@@ -9,6 +9,7 @@ defineProps({
 
 const sections = [
     { key: 'market', label: 'Market & work', href: '/economy/market' },
+    { key: 'work', label: 'My work & hiring', href: '/economy/work' },
     { key: 'agreements', label: 'My agreements', href: '/economy/agreements' },
     { key: 'wallet', label: 'My wallet', href: '/economy/wallet' },
     { key: 'shares', label: 'Shares', href: '/economy/exchange' },

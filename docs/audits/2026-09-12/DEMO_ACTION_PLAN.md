@@ -9,7 +9,7 @@
 | 0. Consolidate | Give each task a clear home; preserve place and institution context. | Completed for the identified overlapping families | Shared arrival, learning, bill, organization, legislature, host and agreement paths are implemented and checked. |
 | 1. Finish browsing | Reach eligible records without loading a world-sized list. | In progress | Remaining directories/selectors offer bounded pages or search; selected records and draft work survive navigation. |
 | 2A. Institutional rooms | Make civic meetings usable and recognizable. | Core rooms, floor controls, archives and role previews implemented; conference rehearsal remains | Institution-specific calls, floor positions, names and reconnect behavior pass independent-participant checks. |
-| 2B. Economic actions | Give participants useful work, trade and help activities. | Paused while rooms are prioritized | Missing actions work through their existing authority and consent rules, with readable results and recovery. |
+| 2B. Economic actions | Give participants useful work, trade and help activities. | Resumed: E1 hiring implemented; E2–E3 remain | Missing actions work through their existing authority and consent rules, with readable results and recovery. |
 | 3. Civic scenario rehearsal | Prove complete attendee journeys through the settled paths. | After required Phase 2 actions | Independent actors complete and repeat each scenario, including refusals and recovery. |
 | 4. Language, teaching and accessibility | Cover the settled flows across languages and modalities. | After scenario fixes | Translations, lessons, keyboard/screen-reader use, narrow displays and media alternatives pass the coverage review. |
 | 5. Conference dress rehearsal | Verify the final demo presentation. | Last release check | The chosen demo sequence runs on the intended host and participant devices, with a known recovery route. |
@@ -28,7 +28,7 @@ Performance fixes accompany the affected screen throughout these phases. Basic a
 | R1 | 2A | Connect chamber, court and board live rooms. | Implemented and tested: directory, calls/discussion, floor controls, witness positioning and connected seating beyond the preview | Actual institution rosters, presider, current speaker/witness and media participants occupy the appropriate positions; exact room-to-institution access is enforced. |
 | R2 | 2A | Rehearse calls with independent participants. | Local two-identity audio/video and rejoin passed; separate devices remain | Separate accounts/devices verify microphone/camera prompts, display names, floor changes, audio continuity, disconnect/rejoin and denied access to unrelated private rooms. |
 | R3 | 2A | Extend role exploration and add session archives. | Completed: public Speaker preview, labeled room guides, direct institution-room links and paginated exact-session records | Visitors can inspect role responsibilities and available actions without receiving authority; older sessions open directly with agenda, votes and records. |
-| E1 | 2B | Add employer posting, application review and decisions. | Applying works; employer services lack the complete UI/action path | Authorized employers manage postings and privately review applications; the applicant account is verified; worker consent and organization countersign finish the existing contract chain. |
+| E1 | 2B | Add employer posting, application review and decisions. | Implemented and tested: posting, private review, immutable offer, worker acceptance/withdrawal and organization countersign | Authorized employers manage postings and privately review applications; the applicant account is verified; worker consent and organization countersign finish the existing contract chain. Full participant rehearsal remains S1. |
 | E2 | 2B | Add usable requests for help and participation. | Schema/public list exist; action workflow is missing | Requesters and responders can create, respond, withdraw and resolve requests under explicit ownership/visibility checks; private requests are protected. |
 | E3 | 2B | Expose share issuance; audit organization board powers. | Issuance handler exists without its entry path; CGC administration requires audit | Eligible agents issue through the existing handler; recipient/units are validated; CGC appointments, shareholder elections, worker elections and chair selection use the appropriate authority. |
 | S1 | 3 | Rehearse places/maps, elections, institutions and economic participation. | Pending | A visitor chooses any home place, reaches its maps, explores roles, joins an institution and completes economic activity; records and return paths are correct. Test allowed actions, refusals and recovery with independent actors. |
@@ -40,7 +40,7 @@ Performance fixes accompany the affected screen throughout these phases. Basic a
 
 - The organization directory, share offers and both agreement families already have cursor pagination. [Directories and workspaces](DIRECTORIES_AND_WORKSPACES.md) records their implementation and tests.
 - `PublicVoiceRoomAccess` now recognizes public commons, committee, chamber and court rooms with exact place checks. Board rooms use current seated-member checks. See [live room evidence and remaining checks](LIVE_ROOMS.md).
-- `LaborBoardService::accept` accepts a supplied user. An employer-facing endpoint must verify the application/account binding and preserve the worker's separate consent; it must not simply supply the employer as that user.
+- `LaborBoardService::accept` now verifies the exact applicant/account binding and a recorded immutable employer offer before filing worker registration. The employer cannot accept on the worker's behalf. The final countersign uses the existing contract engine. See [hiring implementation and validation](HIRING_WORKFLOW.md).
 - `BoardElectionController` currently uses the agent check for generic administration flags, including CGCs. Review the controller and engine together before declaring those actions ready.
 - Session archives and reporting costs are grounded in `SessionController`, `TermSyncController` and `CurrencyTelemetryService`, not in historical planning claims.
 - Simulation start, stop, timing changes and reversion remain operator-controlled. No destructive reset is part of this plan. Schema updates remain additive; testing uses targeted isolated fixtures and bounded live reads.
@@ -76,8 +76,18 @@ Pulling hosts must apply the three additive migrations, refresh cached routes/co
 
 ## Room priority update
 
-The operator prioritized LiveKit/Matrix rooms to conserve remaining usage. Economic action work and unrelated browsing are paused. Room delivery, local transport evidence, deployment steps and remaining physical-device checks are recorded in [LIVE_ROOMS.md](LIVE_ROOMS.md).
+The operator prioritized LiveKit/Matrix rooms to conserve remaining usage. Their development pass is complete; economic actions resumed afterward. Room delivery, local transport evidence, deployment steps and remaining physical-device checks are recorded in [LIVE_ROOMS.md](LIVE_ROOMS.md).
 
 The follow-up completes R3 and repairs committee continuity: room links retain the selected hearing in its official workspace; historical hearings expose their own testimony and disable formal actions; informal discussion continues updating after adjournment. Room guides explicitly label example seats and link to actual rooms. Public Speaker previews do not load member-only office records or grant powers. Session archives page the selected legislature and its exact session's attendance, motions, public records and individual vote lists, with no current-session ballot/action controls mixed into older records.
 
-The next main-plan development work is B3/P2 (remaining treasury and long-history browsing), then E1–E3 (economic actions). Full physical-device/conference-host rehearsal remains R2/D1. Committee testimony still shows its latest 50 entries; its full history pagination belongs to B3 alongside other long institutional records.
+Phase 1's incomplete entries are real remaining work, not a status-update omission. New E1 hiring lists are paginated as part of that feature, while the older B3/P2 treasury and history paths still need their dedicated browsing pass. Full physical-device/conference-host rehearsal remains R2/D1. Committee testimony still shows its latest 50 entries; its full history pagination belongs to B3 alongside other long institutional records.
+
+## Resumed development sequence
+
+| Order | Action | State after this pass |
+|---|---|---|
+| Delivered | E1: employer posting → private application review → employer offer → worker acceptance → organization countersign | Implemented through the existing worker/contract engine. See [hiring evidence and rollout](HIRING_WORKFLOW.md). |
+| Next | E2: create, respond to, withdraw and resolve requests for help | Missing workflow remains; bound its new lists while implementing it. |
+| Following | E3: share issuance entry and organization board authority audit | Existing handlers need the remaining usable entry paths and authority review. |
+| Before civic rehearsal | B3/P2: older wallet/stipend/order/institution records and treasury reads | Still unfinished. Existing money-report and new hiring pagination do not complete these separate paths. |
+| After required implementation | S1/R2/D1, then settled language/accessibility review and final dress rehearsal | Independent participant journeys and remote-device coverage remain explicitly unverified. |

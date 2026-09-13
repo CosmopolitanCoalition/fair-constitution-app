@@ -68,35 +68,36 @@ class LaborBoardService
     /** A resident applies (F-IND-019). Account-scoped, like everything in M. */
     public function apply(string $postingId, string $applicantAccountId, ?string $note = null): string
     {
-        $posting = DB::table('work_postings')->where('id', $postingId)->first();
+        return DB::transaction(function () use ($postingId, $applicantAccountId, $note) {
+            $posting = DB::table('work_postings')->where('id', $postingId)->whereNull('deleted_at')->lockForUpdate()->first();
 
-        if ($posting === null || $posting->status !== 'open') {
-            throw new RuntimeException('That posting is not open.');
-        }
+            if ($posting === null || $posting->status !== 'open') {
+                throw new RuntimeException('That posting is not open.');
+            }
 
-        $alreadyApplied = DB::table('work_applications')
-            ->where('posting_id', $postingId)
-            ->where('applicant_account_id', $applicantAccountId)
-            ->where('status', 'applied')
-            ->exists();
+            $alreadyApplied = DB::table('work_applications')
+                ->where('posting_id', $postingId)
+                ->where('applicant_account_id', $applicantAccountId)
+                ->exists();
 
-        if ($alreadyApplied) {
-            throw new RuntimeException('You have already applied to this posting — one application is on the record.');
-        }
+            if ($alreadyApplied) {
+                throw new RuntimeException('You have already applied to this posting. Its application remains on the record, including after withdrawal or decline.');
+            }
 
-        $id = (string) Str::uuid();
+            $id = (string) Str::uuid();
 
-        DB::table('work_applications')->insert([
-            'id'                   => $id,
-            'posting_id'           => $postingId,
-            'applicant_account_id' => $applicantAccountId,
-            'note'                 => $note,
-            'status'               => 'applied',
-            'created_at'           => now(),
-            'updated_at'           => now(),
-        ]);
+            DB::table('work_applications')->insert([
+                'id'                   => $id,
+                'posting_id'           => $postingId,
+                'applicant_account_id' => $applicantAccountId,
+                'note'                 => $note,
+                'status'               => 'applied',
+                'created_at'           => now(),
+                'updated_at'           => now(),
+            ]);
 
-        return $id;
+            return $id;
+        });
     }
 
     /**
@@ -110,28 +111,28 @@ class LaborBoardService
      */
     public function accept(string $applicationId, User $applicant, ?string $contractTerms = null): void
     {
-        $application = DB::table('work_applications')->where('id', $applicationId)->first();
-
-        if ($application === null || $application->status !== 'applied') {
-            throw new RuntimeException('That application is not awaiting a decision.');
-        }
-
-        $posting = DB::table('work_postings')->where('id', $application->posting_id)->first();
-
-        if ($posting === null) {
-            throw new InvalidArgumentException('That application has no posting.');
-        }
-
-        DB::transaction(function () use ($application, $posting, $applicant, $contractTerms) {
+        $this->withApplication($applicationId, function ($application, $posting) use ($applicant, $contractTerms) {
+            $this->assertApplicant($application, $applicant);
+            $this->assertPending($application, $posting);
+            $this->activeOrganization((string) $posting->organization_id);
+            if ($application->offered_at === null || empty($application->offer_terms)) {
+                throw new RuntimeException('The employer has not offered terms for this application yet.');
+            }
+            if ($contractTerms !== null && $contractTerms !== $application->offer_terms) {
+                throw new InvalidArgumentException('Acceptance must use the exact terms offered by the employer.');
+            }
             // The constitutional path. NOT a direct write to org_workers.
-            $this->engine->file('F-IND-014', $applicant, [
+            $result = $this->engine->file('F-IND-014', $applicant, [
                 'employer_type'  => OrgWorker::EMPLOYER_ORGANIZATIONS,
                 'employer_id'    => (string) $posting->organization_id,
-                'contract_terms' => $contractTerms ?: $posting->terms,
+                'contract_terms' => (string) $application->offer_terms,
             ]);
+            $contractId = $result->recorded['contract_id'] ?? null;
+            if (! is_string($contractId) || ! Str::isUuid($contractId)) throw new RuntimeException('Worker registration did not return an agreement. No offer was accepted.');
 
             DB::table('work_applications')->where('id', $application->id)->update([
                 'status'     => 'accepted',
+                'org_contract_id' => $contractId,
                 'updated_at' => now(),
             ]);
 
@@ -142,11 +143,99 @@ class LaborBoardService
         });
     }
 
-    public function decline(string $applicationId): void
+    /** Explicit employer action; offering never files a worker's consent. */
+    public function offer(string $applicationId, User $employer, string $terms): void
     {
-        DB::table('work_applications')
-            ->where('id', $applicationId)
-            ->where('status', 'applied')
-            ->update(['status' => 'declined', 'updated_at' => now()]);
+        $this->withApplication($applicationId, function ($application, $posting) use ($employer, $terms) {
+            $this->assertEmployer((string) $posting->organization_id, $employer);
+            $this->assertPending($application, $posting);
+            if ($application->offered_at !== null) throw new RuntimeException('An offer is already recorded. Its terms cannot be changed while the applicant decides.');
+            if (trim($terms) === '') throw new InvalidArgumentException('An offer must state the complete work terms.');
+            DB::table('work_applications')->where('id', $application->id)->update([
+                'offered_at' => now(), 'offer_terms' => trim($terms), 'updated_at' => now(),
+            ]);
+        });
+    }
+
+    public function decline(string $applicationId, User $employer): void
+    {
+        $this->withApplication($applicationId, function ($application, $posting) use ($employer) {
+            $this->assertEmployer((string) $posting->organization_id, $employer);
+            $this->assertPending($application, $posting);
+            DB::table('work_applications')->where('id', $application->id)->update(['status' => 'declined', 'updated_at' => now()]);
+        });
+    }
+
+    public function withdraw(string $applicationId, User $applicant): void
+    {
+        $this->withApplication($applicationId, function ($application) use ($applicant) {
+            $this->assertApplicant($application, $applicant);
+            if ($application->status !== 'applied') throw new RuntimeException('Only a pending application can be withdrawn. Accepted agreements use their own contract process.');
+            DB::table('work_applications')->where('id', $application->id)->update(['status' => 'withdrawn', 'updated_at' => now()]);
+        });
+    }
+
+    public function postFor(User $employer, string $organizationId, string $title, string $terms, ?string $rate = null, ?string $currencyId = null): string
+    {
+        return DB::transaction(function () use ($employer, $organizationId, $title, $terms, $rate, $currencyId) {
+            $this->assertEmployer($organizationId, $employer);
+            if (trim($title) === '' || trim($terms) === '') throw new InvalidArgumentException('A posting needs a title and complete work terms.');
+            return $this->post($organizationId, $title, $terms, $rate, $currencyId);
+        });
+    }
+
+    public function closePosting(string $postingId, User $employer): void
+    {
+        DB::transaction(function () use ($postingId, $employer) {
+            $posting = DB::table('work_postings')->where('id', $postingId)->whereNull('deleted_at')->lockForUpdate()->first();
+            abort_if($posting === null, 404);
+            $this->assertEmployer((string) $posting->organization_id, $employer);
+            if ($posting->status !== 'open') throw new RuntimeException('Only an open posting can be closed.');
+            DB::table('work_postings')->where('id', $postingId)->update(['status' => 'closed', 'updated_at' => now()]);
+        });
+    }
+
+    public function assertEmployer(string $organizationId, User $actor): object
+    {
+        $org = $this->activeOrganization($organizationId);
+        abort_unless((string) $org->agent_user_id === (string) $actor->getKey(), 403, 'Only this organization’s current agent can manage hiring.');
+        return $org;
+    }
+
+    private function activeOrganization(string $id): object
+    {
+        $org = DB::table('organizations')->where('id', $id)->whereNull('deleted_at')
+            ->when(DB::transactionLevel() > 0, fn ($query) => $query->lockForUpdate())->first(['id', 'name', 'agent_user_id', 'status']);
+        abort_unless($org && $org->status === 'active', 403, 'Hiring is available only for an active organization.');
+        return $org;
+    }
+
+    private function assertApplicant(object $application, User $actor): void
+    {
+        // The restricted binding is checked only for the authenticated applicant,
+        // and is never resolved to a person for the employer's review screen.
+        $owns = DB::table('economic_account_bindings')->where('account_id', $application->applicant_account_id)
+            ->where('owner_type', 'users')->where('owner_id', (string) $actor->getKey())->exists();
+        abort_unless($owns, 403, 'This application belongs to another applicant.');
+    }
+
+    private function assertPending(object $application, object $posting): void
+    {
+        if ($application->status !== 'applied' || $application->org_contract_id !== null) throw new RuntimeException('That application is no longer awaiting a decision.');
+        if ($posting->status !== 'open' || $posting->deleted_at !== null) throw new RuntimeException('That posting is no longer open.');
+    }
+
+    private function withApplication(string $id, callable $operation): mixed
+    {
+        return DB::transaction(function () use ($id, $operation) {
+            $postingId = DB::table('work_applications')->where('id', $id)->value('posting_id');
+            abort_if($postingId === null, 404);
+            // Every application action locks the posting first. Two offers cannot
+            // accept concurrently and fill the same posting twice.
+            $posting = DB::table('work_postings')->where('id', $postingId)->lockForUpdate()->first();
+            $application = DB::table('work_applications')->where('id', $id)->where('posting_id', $postingId)->lockForUpdate()->first();
+            abort_if($posting === null || $application === null, 404);
+            return $operation($application, $posting);
+        });
     }
 }

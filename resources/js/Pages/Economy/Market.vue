@@ -247,6 +247,10 @@ const pageCount = computed(() => (props[tab.value] ?? []).length);
 
         <!-- ---------------------------------------------------------- work -->
         <section v-if="tab === 'work'" aria-label="Work on offer">
+            <nav class="mkt-pages" aria-label="Manage work">
+                <Link href="/economy/work">My applications</Link>
+                <Link href="/economy/work?tab=hiring">Hire for an organization</Link>
+            </nav>
             <p v-if="!work.length" class="econ-empty">No work is being offered right now.</p>
             <Card v-for="w in work" :key="w.id" as="article" inset class="mkt-row">
                 <div class="mkt-head">

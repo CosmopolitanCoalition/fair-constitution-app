@@ -814,6 +814,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/economy', [\App\Http\Controllers\Economy\EconomyController::class, 'home'])->name('economy.home');
     Route::get('/economy/wallet', [\App\Http\Controllers\Economy\EconomyController::class, 'wallet'])->name('economy.wallet');
     Route::get('/economy/market', [\App\Http\Controllers\Economy\EconomyController::class, 'market'])->name('economy.market');
+    Route::get('/economy/work', [\App\Http\Controllers\Economy\WorkController::class, 'index'])->name('economy.work');
+    Route::post('/economy/work/organizations/{organization}/postings', [\App\Http\Controllers\Economy\WorkController::class, 'postJob'])
+        ->whereUuid('organization')->name('economy.work.post');
+    Route::post('/economy/work/postings/{posting}/close', [\App\Http\Controllers\Economy\WorkController::class, 'closePosting'])
+        ->whereUuid('posting')->name('economy.work.close');
+    Route::post('/economy/work/applications/{application}/offer', [\App\Http\Controllers\Economy\WorkController::class, 'offer'])
+        ->whereUuid('application')->name('economy.work.offer');
+    Route::post('/economy/work/applications/{application}/decline', [\App\Http\Controllers\Economy\WorkController::class, 'decline'])
+        ->whereUuid('application')->name('economy.work.decline');
+    Route::post('/economy/work/applications/{application}/accept', [\App\Http\Controllers\Economy\WorkController::class, 'accept'])
+        ->whereUuid('application')->name('economy.work.accept');
+    Route::post('/economy/work/applications/{application}/withdraw', [\App\Http\Controllers\Economy\WorkController::class, 'withdraw'])
+        ->whereUuid('application')->name('economy.work.withdraw');
     Route::get('/economy/market/{listing}', [\App\Http\Controllers\Economy\EconomyController::class, 'listing'])
         ->whereUuid('listing')->name('economy.listing');
     Route::get('/economy/treasury', [\App\Http\Controllers\Economy\EconomyController::class, 'treasury'])->name('economy.treasury');

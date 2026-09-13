@@ -16,7 +16,7 @@
  * here recomputes the co-determination scale.
  */
 import { computed, ref } from 'vue';
-import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -74,25 +74,12 @@ const STRUCTURE_LABELS = {
 const typeLabel = (t) => TYPE_LABELS[t] ?? titleize(t);
 const structureLabel = (s) => STRUCTURE_LABELS[s] ?? titleize(s);
 
-/* Apply to a posting — a one-click F-IND-019 work application (the note is
-   optional server-side). Applying is a POST, so this is a real engine door, not
-   a GET link; the org decides, and the flash message carries the two-signature
-   promise back. applyingId guards the button while the request is in flight. */
 /* Display-only rate tidy: strip trailing zeros off the numeric(24,6) STRING
    ("18.000000" → "18", "18.500000" → "18.5"). Pure string surgery — never
    parseFloat, per ECONOMY_PROP_CONTRACT (money is a string, format never
    compute; a float round-trip corrupts a ledger). This is a wage rate for
    display, not a balance, but the rule holds either way. */
 const fmtRate = (s) => (s == null ? null : String(s).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, ''));
-
-const applyingId = ref(null);
-function applyForJob(id) {
-    applyingId.value = id;
-    router.post(`/economy/requests/${id}/apply`, {}, {
-        preserveScroll: true,
-        onFinish: () => { applyingId.value = null; },
-    });
-}
 
 const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
@@ -327,6 +314,7 @@ const documentColumns = [
 
         <!-- ============================================ job board ======= -->
         <Card as="section" title="Job board">
+            <Link v-if="can.manage" :href="`/economy/work?tab=hiring&organization=${organization.id}`">Manage hiring</Link>
             <p class="gloss">
                 Explore this organization’s open roles and apply for work. The organization reviews applications.
             </p>
@@ -340,9 +328,7 @@ const documentColumns = [
                             <template v-else>Unpaid / by agreement</template>
                             · {{ job.applications }} {{ job.applications === 1 ? 'application' : 'applications' }}
                         </span>
-                        <Btn variant="secondary" size="sm" :disabled="applyingId === job.id" @click="applyForJob(job.id)">
-                            {{ applyingId === job.id ? 'Applying…' : 'Apply' }}
-                        </Btn>
+                        <Link :href="`/economy/requests/${job.id}`">Review &amp; apply</Link>
                     </div>
                 </li>
             </ul>

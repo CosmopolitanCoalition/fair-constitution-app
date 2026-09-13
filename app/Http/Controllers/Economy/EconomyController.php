@@ -650,7 +650,6 @@ class EconomyController extends Controller
         $hasApplied = $myAccountId !== null && DB::table('work_applications')
             ->where('posting_id', $posting)
             ->where('applicant_account_id', $myAccountId)
-            ->where('status', 'applied')
             ->exists();
 
         return Inertia::render('Economy/RequestDetail', [
@@ -860,15 +859,28 @@ class EconomyController extends Controller
     /** One instrument, in full — parties only (404 to anyone else). */
     public function agreement(Request $request, string $contract): Response
     {
-        $row = $this->visibleContracts($request, $contract)->first();
+        $myId = (string) ($request->user()?->id ?? '');
+        abort_if($myId === '', 404);
+        // A newly appointed agent may not have signed or joined as a member.
+        // Add that authority only for this selected instrument, never a global
+        // contract-directory lane or public organization terms.
+        $row = DB::table('org_contracts as selected')
+            ->join('organizations as org', 'org.id', '=', 'selected.organization_id')
+            ->where('selected.id', $contract)->whereNull('selected.deleted_at')
+            ->where(function ($query) use ($myId, $contract) {
+                $query->whereIn('selected.id', $this->visibleContractQuery($myId, $contract)->select('c.id'))
+                    ->orWhere(fn ($agent) => $agent->where('org.agent_user_id', $myId)->whereNull('org.deleted_at'));
+            })->first(['selected.*', 'org.name as org_name', 'org.agent_user_id as current_agent_id',
+                'org.status as org_status', 'org.deleted_at as org_deleted_at']);
 
         abort_if($row === null, 404);
+        $canCosign = (string) $row->current_agent_id === $myId && $row->org_deleted_at === null
+            && $row->org_status === Organization::STATUS_ACTIVE
+            && in_array($row->status, ['draft', 'offered'], true) && $row->signed_by_org_at === null;
 
         $signerName = $row->signed_by_org_user_id === null
             ? null
             : DB::table('users')->where('id', $row->signed_by_org_user_id)->value('name');
-
-        $myId = (string) ($request->user()?->id ?? '');
 
         return Inertia::render('Economy/AgreementDetail', [
             'surface'   => SurfaceMeta::for('economy/agreement-detail'),
@@ -901,6 +913,8 @@ class EconomyController extends Controller
             // A live instrument (draft/offered/active) can still be negotiated;
             // an ended or voided one is history.
             'can_negotiate' => in_array($row->status, ['draft', 'offered', 'active'], true),
+            'can_cosign' => $canCosign,
+            'cosign_url' => $canCosign ? '/contracts/'.$row->id.'/cosign' : null,
             'my_id'         => $myId === '' ? null : $myId,
         ]);
     }

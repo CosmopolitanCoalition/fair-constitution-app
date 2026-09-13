@@ -47,6 +47,8 @@ final class EconomyNavigationTest extends TestCase
             $t->string('name');
             $t->string('type')->default('organization');
             $t->string('structure')->default('stock');
+            $t->string('agent_user_id')->nullable();
+            $t->string('status')->default('active');
             $t->timestamp('deleted_at')->nullable();
         });
         $schema->create('org_memberships', function (Blueprint $t) {
@@ -246,6 +248,52 @@ final class EconomyNavigationTest extends TestCase
         self::assertSame([$this->id(8)], array_column($visible['agreements'], 'id'));
         $detail = $this->props($this->controller->agreement($this->request('/economy/agreements/'.$this->id(8)), $this->id(8)));
         self::assertSame('Private organization terms 8', $detail['agreement']['terms_full']);
+    }
+
+    public function test_current_agent_can_open_exact_unsigned_contract_without_membership_or_prior_signature(): void
+    {
+        $this->contract(81, 'other');
+        DB::table('organizations')->where('id', 'org')->update(['agent_user_id' => 'viewer']);
+        $detail = $this->props($this->controller->agreement($this->request('/economy/agreements/'.$this->id(81)), $this->id(81)));
+        self::assertSame('Private organization terms 81', $detail['agreement']['terms_full']);
+        self::assertTrue($detail['can_cosign']);
+        self::assertSame('/contracts/'.$this->id(81).'/cosign', $detail['cosign_url']);
+        // The selected-instrument fix does not widen the global directory.
+        self::assertSame([], $this->props($this->controller->agreements($this->request('/economy/agreements')))['agreements']);
+        DB::table('org_contracts')->where('id', $this->id(81))->update(['status' => 'draft']);
+        self::assertTrue($this->props($this->controller->agreement($this->request('/economy/agreements/'.$this->id(81)), $this->id(81)))['can_cosign']);
+    }
+
+    public function test_contract_party_or_prior_signer_cannot_countersign_without_current_agency(): void
+    {
+        $this->contract(82, 'other');
+        DB::table('organizations')->where('id', 'org')->update(['agent_user_id' => 'inactive']);
+        DB::table('org_contracts')->where('id', $this->id(82))->update(['signed_by_org_user_id' => 'viewer']);
+        foreach (['viewer', 'other'] as $actor) {
+            $detail = $this->props($this->controller->agreement($this->request('/economy/agreements/'.$this->id(82), $actor), $this->id(82)));
+            self::assertFalse($detail['can_cosign']);
+            self::assertNull($detail['cosign_url']);
+        }
+        DB::table('org_contracts')->where('id', $this->id(82))->update(['signed_by_org_user_id' => null]);
+        try { $this->controller->agreement($this->request('/economy/agreements/'.$this->id(82)), $this->id(82)); self::fail('Unrelated former agent read contract terms.'); }
+        catch (HttpException $error) { self::assertSame(404, $error->getStatusCode()); }
+    }
+
+    public function test_signature_action_is_hidden_for_closed_signed_or_inactive_organization_contracts(): void
+    {
+        $this->contract(83); // Counterparty access remains while agent/signability changes.
+        DB::table('organizations')->where('id', 'org')->update(['agent_user_id' => 'viewer']);
+        foreach (['active', 'ended', 'voided'] as $status) {
+            DB::table('org_contracts')->where('id', $this->id(83))->update(['status' => $status]);
+            self::assertFalse($this->props($this->controller->agreement($this->request('/economy/agreements/'.$this->id(83)), $this->id(83)))['can_cosign']);
+        }
+        DB::table('org_contracts')->where('id', $this->id(83))->update(['status' => 'offered', 'signed_by_org_at' => '2026-09-12']);
+        self::assertFalse($this->props($this->controller->agreement($this->request('/economy/agreements/'.$this->id(83)), $this->id(83)))['can_cosign']);
+        DB::table('org_contracts')->where('id', $this->id(83))->update(['signed_by_org_at' => null]);
+        foreach ([['status' => 'dissolved'], ['status' => 'active', 'deleted_at' => '2026-09-12']] as $change) {
+            DB::table('organizations')->where('id', 'org')->update($change);
+            self::assertFalse($this->props($this->controller->agreement($this->request('/economy/agreements/'.$this->id(83)), $this->id(83)))['can_cosign']);
+        }
     }
 
     public function test_composer_waits_for_search_without_loading_people_or_agreements(): void

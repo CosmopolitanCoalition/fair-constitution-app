@@ -13,10 +13,13 @@
  * changed instrument. A clause can never waive a right (Art. I floor); a
  * redline that declares a waiver is refused with a citation.
  */
-import { Link, useForm, router } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Link, useForm, usePage, router } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
+import Banner from '@/Components/Ui/Banner.vue';
+import Btn from '@/Components/Ui/Btn.vue';
 import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { formatWhen } from '@/lib/money.js';
@@ -31,8 +34,17 @@ const props = defineProps({
     redlines: { type: Array, default: () => [] },
     /** True for a live instrument (draft/offered/active); false once history. */
     can_negotiate: { type: Boolean, default: false },
+    can_cosign: { type: Boolean, default: false },
+    cosign_url: { type: String, default: null },
     my_id: { type: String, default: null },
 });
+const page = usePage();
+const flashStatus = computed(() => page.props.flash?.status ?? null);
+const cosign = useForm({});
+function countersign() {
+    if (!props.can_cosign || !props.cosign_url || cosign.processing) return;
+    cosign.post(props.cosign_url, { preserveScroll: true });
+}
 
 const resolve = (redlineId, how) =>
     router.post(`/economy/redlines/${redlineId}/${how}`, {}, { preserveScroll: true });
@@ -82,6 +94,8 @@ const STATUS_LABEL = {
         <p class="econ-note">
             This agreement is visible to its parties only.
         </p>
+        <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
+        <Banner v-for="(error, key) in cosign.errors" :key="key" tone="warning" role="alert">{{ error }}</Banner>
 
         <Card as="section" inset>
             <p class="agr-kind">{{ KIND_LABEL[agreement.kind] ?? agreement.kind }}</p>
@@ -120,6 +134,13 @@ const STATUS_LABEL = {
 
         <Card as="section" title="The terms">
             <p class="agr-terms-full">{{ agreement.terms_full }}</p>
+        </Card>
+        <Card v-if="can_cosign" as="section" title="Organization’s signature">
+            <p>Review the terms above before signing for {{ agreement.org_name }}.</p>
+            <p class="econ-note">{{ agreement.signed_by_counterparty ? 'The other party has signed. Your countersignature puts this agreement into effect.' : 'Your signature will be recorded. The agreement takes effect only after both parties sign.' }}</p>
+            <form @submit.prevent="countersign">
+                <Btn type="submit" :disabled="cosign.processing || redline.processing">{{ cosign.processing ? 'Countersigning…' : 'Countersign for the organization' }}</Btn>
+            </form>
         </Card>
 
         <!-- ----------------------------------------------- negotiation -->
