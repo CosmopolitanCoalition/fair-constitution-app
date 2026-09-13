@@ -8,6 +8,7 @@ use App\Models\Advocate;
 use App\Models\CourtCase;
 use App\Models\Judiciary;
 use App\Models\User;
+use App\Support\AdvocateCaseDirectory;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -104,14 +105,24 @@ class AdvocateController extends Controller
         $historyPage = function () use (&$history, $request, $advocate) {
             return $history ??= (new \App\Support\CivicHistoryDirectory)->page($request, 'filings', $advocate === null ? null : (string) $advocate->id, '/judiciary/advocate');
         };
+        $casePages = [];
+        $casePage = function (string $kind) use (&$casePages, $request, $advocate) {
+            return $casePages[$kind] ??= (new AdvocateCaseDirectory)->page($request, $advocate === null ? null : (string) $advocate->id, $kind);
+        };
 
         return Inertia::render('Judiciary/AdvocateConsole', [
             'surface' => SurfaceMeta::for('judiciary/advocate-console'),
             'advocate' => fn () => $this->advocateProps($advocate),
-            'myCases' => fn () => $advocate !== null ? $this->myCaseRows($advocate) : [],
+            'myCases' => fn () => $this->myCaseRows($casePage('roster')['cases']),
+            'case_pages' => fn () => $casePage('roster')['pagination'],
             'filings' => fn () => $historyPage()['records'],
             'filing_pages' => fn () => $historyPage()['pagination'],
-            'composer' => fn () => $this->composerProps($advocate),
+            'composer' => fn () => $this->composerProps(),
+            'composer_cases' => Inertia::optional(fn () => $casePage('composer')['cases']->map(fn (CourtCase $case) => [
+                'id' => (string) $case->id, 'title' => $case->title, 'docket_no' => $case->docket_no,
+                'status' => $case->status, 'state' => self::STATE_LABELS[$case->status][0] ?? ucfirst((string) $case->status), 'href' => '/cases/'.$case->id,
+            ])->all()),
+            'composer_case_pages' => Inertia::optional(fn () => $casePage('composer')['pagination']),
             'registerTargetId' => $context['targetId'],
             // The mockup's prerequisites checklist + jurisdiction-of-practice
             // selector, both built from the SAME join that used to be collapsed
@@ -150,6 +161,7 @@ class AdvocateController extends Controller
         $courtName = $advocate->judiciary?->court_name;
 
         return [
+            'id' => (string) $advocate->id,
             'is_registered' => true,
             'persona' => ['name' => $this->displayName($advocate->user)],
             'granted_at' => $advocate->registered_at?->toIso8601String(),
@@ -166,39 +178,30 @@ class AdvocateController extends Controller
 
     /**
      * The viewer's cases — those they filed on behalf of a client (F-ADV-001),
-     * newest first. Panel size + en-banc are ENGINE snapshots read off the
-     * panel row, never recomputed.
+     * in the directory's title/docket order. Panel size + en-banc are ENGINE
+     * snapshots read off the panel row, never recomputed.
      *
      * @return list<array<string, mixed>>
      */
-    private function myCaseRows(Advocate $advocate): array
+    private function myCaseRows(\Illuminate\Support\Collection $cases): array
     {
-        return CourtCase::query()
-            ->with(['judiciary:id,court_name', 'panel:id,case_id,size,is_en_banc,status'])
-            ->where('advocate_id', (string) $advocate->id)
-            ->where('filed_via_form', 'F-ADV-001')
-            ->whereNull('deleted_at')
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(function (CourtCase $case) {
-                [$stateLabel, $stateTone, $nextAction] = self::STATE_LABELS[$case->status]
-                    ?? [ucfirst((string) $case->status), 'neutral', 'Awaiting court action'];
+        return $cases->map(function (CourtCase $case) {
+            [$stateLabel, $stateTone, $nextAction] = self::STATE_LABELS[$case->status]
+                ?? [ucfirst((string) $case->status), 'neutral', 'Awaiting court action'];
 
-                return [
-                    'id' => (string) $case->id,
-                    'docket_no' => $case->docket_no,
-                    'title' => $case->title,
-                    'kind' => ucfirst((string) $case->kind),
-                    'court' => $case->judiciary?->court_name ?? '—',
-                    'panel' => $this->panelSummary($case),
-                    'state' => $stateLabel,
-                    'state_tone' => $stateTone,
-                    'next_action' => $nextAction,
-                    'href' => "/cases/{$case->id}",
-                ];
-            })
-            ->values()
-            ->all();
+            return [
+                'id' => (string) $case->id,
+                'docket_no' => $case->docket_no,
+                'title' => $case->title,
+                'kind' => ucfirst((string) $case->kind),
+                'court' => $case->judiciary?->court_name ?? '—',
+                'panel' => $this->panelSummary($case),
+                'state' => $stateLabel,
+                'state_tone' => $stateTone,
+                'next_action' => $nextAction,
+                'href' => "/cases/{$case->id}",
+            ];
+        })->values()->all();
     }
 
     /** A human panel summary read off the ENGINE-owned panel row (never computed here). */
@@ -220,35 +223,20 @@ class AdvocateController extends Controller
     }
 
     /**
-     * Composer options: the four filing types (with per-type hints) and the
-     * viewer's own cases (the F-ADV-002/003/004 target set).
+     * The filing types and hints are lightweight. Existing-case choices use
+     * separate optional Inertia props so a new-case draft loads no case roster.
      *
      * @return array<string, mixed>
      */
-    private function composerProps(?Advocate $advocate): array
+    private function composerProps(): array
     {
         $types = [];
         foreach (self::FILING_TYPES as $id => $meta) {
             $types[] = ['id' => $id, 'label' => $meta['label'], 'hint' => $meta['hint']];
         }
 
-        $cases = $advocate === null ? [] : CourtCase::query()
-            ->where('advocate_id', (string) $advocate->id)
-            ->where('filed_via_form', 'F-ADV-001')
-            ->whereNull('deleted_at')
-            ->orderByDesc('created_at')
-            ->get(['id', 'title', 'docket_no'])
-            ->map(fn (CourtCase $case) => [
-                'id' => (string) $case->id,
-                'title' => $case->title,
-                'label' => "{$case->title} ({$case->docket_no})",
-            ])
-            ->values()
-            ->all();
-
         return [
             'types' => $types,
-            'casesForClient' => $cases,
         ];
     }
 

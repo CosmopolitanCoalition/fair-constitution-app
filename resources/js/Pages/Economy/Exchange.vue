@@ -96,8 +96,14 @@ const submitOffer = () => sell.post('/economy/shares/offer', {
                         </option>
                     </select>
                 </label>
-                <label>Units<input v-model="sell.units" type="number" min="0.000001" step="0.000001" required /></label>
-                <label>Price per unit ({{ currency?.symbol ?? 'units' }})<input v-model="sell.price_per_unit" type="number" min="0" step="0.000001" required /></label>
+                <label>Units<input v-model="sell.units" type="text" inputmode="decimal" pattern="[0-9]{1,14}(\.[0-9]{1,6})?"
+                    aria-describedby="share-quantity-hint share-quantity-error" :aria-invalid="sell.errors.units ? 'true' : undefined" required /></label>
+                <p id="share-quantity-hint" class="econ-note">Enter a positive quantity with up to six decimal places.</p>
+                <p id="share-quantity-error" class="ex-err">{{ sell.errors.units }}</p>
+                <label>Price per unit ({{ currency?.symbol ?? 'units' }})<input v-model="sell.price_per_unit" type="text" inputmode="decimal" pattern="[0-9]{1,18}(\.[0-9]{1,6})?"
+                    aria-describedby="share-price-hint share-price-error" :aria-invalid="sell.errors.price_per_unit ? 'true' : undefined" required /></label>
+                <p id="share-price-hint" class="econ-note">Enter a nonnegative price with up to six decimal places. Zero makes this a gift.</p>
+                <p id="share-price-error" class="ex-err">{{ sell.errors.price_per_unit }}</p>
                 <button type="submit" :disabled="sell.processing || !sell.organization_id">Offer for sale</button>
                 <p v-if="sell.errors.constitution" class="ex-err">{{ sell.errors.constitution }}</p>
             </form>

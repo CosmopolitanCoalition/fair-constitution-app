@@ -13,7 +13,6 @@ use App\Models\ChamberVoteProposal;
 use App\Models\Committee;
 use App\Models\CommitteeMeeting;
 use App\Models\CommitteePreference;
-use App\Models\CommitteeReport;
 use App\Models\CommitteeSeat;
 use App\Models\Legislature;
 use App\Models\LegislatureMember;
@@ -21,6 +20,7 @@ use App\Models\PublicRecord;
 use App\Models\VoteCast;
 use App\Services\Legislature\CommitteeAssignmentService;
 use App\Services\PublicRecordService;
+use App\Support\CommitteeRecordDirectories;
 use App\Support\CommitteeTestimonyDirectory;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
@@ -254,6 +254,8 @@ class CommitteeController extends Controller
     {
         $input = $request->validate(['meeting' => ['nullable', 'uuid']]);
         $selectedMeeting = ! empty($input['meeting']);
+        $recordDirectories = app(CommitteeRecordDirectories::class);
+        $recordCursors = $recordDirectories->cursors($request, (string) $committee->id, $selectedMeeting ? $input['meeting'] : null);
         $testimonyDirectory = app(CommitteeTestimonyDirectory::class);
         $testimonyCursor = $testimonyDirectory->cursor($request, (string) $committee->id, $selectedMeeting ? $input['meeting'] : null);
         // Resolve the explicit hearing first, including historical meetings.
@@ -279,20 +281,10 @@ class CommitteeController extends Controller
         $isChair     = $viewer !== null && (string) $committee->chair_member_id === (string) $viewer->id;
         $isAlternate = $viewer !== null && (string) $committee->alternate_member_id === (string) $viewer->id;
 
-        $bills = Bill::query()
-            ->where('committee_id', $committee->id)
-            ->orderByDesc('created_at')
-            ->get();
-
-        $reports = CommitteeReport::query()
-            ->where('committee_id', $committee->id)
-            ->get()
-            ->keyBy(fn (CommitteeReport $r) => (string) ($r->bill_id ?? ''));
-
-        $recordSeqs = PublicRecord::query()
-            ->whereIn('id', $reports->pluck('report_record_id')->filter()->all())
-            ->pluck('audit_seq', 'id');
-
+        $billDirectory = $recordDirectories->bills($request, $committee, $selectedMeeting ? (string) $meeting->id : null, $recordCursors['bills_cursor']);
+        $reportDirectory = $recordDirectories->reports($request, $committee, $selectedMeeting ? (string) $meeting->id : null, $recordCursors['reports_cursor']);
+        $latestReports = $recordDirectories->latestReports($billDirectory['rows'], $request, $committee);
+        $selectedReport = $recordDirectories->selectedReport($request, $committee);
         $testimony = $testimonyDirectory->page($request, (string) $committee->id, $selectedMeeting ? (string) $meeting->id : null, $testimonyCursor);
 
         return Inertia::render('Legislature/CommitteeDetail', [
@@ -329,7 +321,11 @@ class CommitteeController extends Controller
                 'agenda'        => array_values((array) $meeting->agenda),
             ] : null,
             'meetingContext' => ['explicit' => $selectedMeeting, 'readOnly' => $readOnly],
-            'bills'     => $bills->map(fn (Bill $bill) => $this->billCard($bill, $committee, $viewer, $reports, $recordSeqs))->all(),
+            'bills' => $billDirectory['rows']->map(fn (Bill $bill) => $this->billCard($bill, $committee, $viewer, $latestReports->get((string) $bill->id)) + ['href' => $recordDirectories->billHref($request, (string) $bill->id)])->values()->all(),
+            'billPages' => $billDirectory['pages'],
+            'reports' => $reportDirectory['rows'],
+            'reportPages' => $reportDirectory['pages'],
+            'selectedReport' => $selectedReport,
             'testimony' => $testimony['rows'],
             'testimonyPages' => $testimony['pages'],
             'can'       => [
@@ -740,7 +736,7 @@ class CommitteeController extends Controller
     }
 
     /** One CommitteeDetail bill card (B.6). */
-    private function billCard(Bill $bill, Committee $committee, ?LegislatureMember $viewer, $reports, $recordSeqs): array
+    private function billCard(Bill $bill, Committee $committee, ?LegislatureMember $viewer, ?array $report): array
     {
         $vote = ChamberVote::query()
             ->where('votable_type', 'bill')
@@ -749,9 +745,6 @@ class CommitteeController extends Controller
             ->orderByDesc('opened_at')
             ->with('tallies')
             ->first();
-
-        $report    = $reports->get((string) $bill->id);
-        $reportSeq = $report !== null ? $recordSeqs->get((string) $report->report_record_id) : null;
 
         return [
             'id'     => (string) $bill->id,
@@ -767,10 +760,7 @@ class CommitteeController extends Controller
             ] : null,
             'referable'     => $bill->status === Bill::STATUS_REPORTED,
             'refer_url'     => "/bills/{$bill->id}/refer-to-floor",
-            'report'        => $report !== null ? [
-                'filed_at'    => $report->created_at?->toIso8601String(),
-                'record_href' => $reportSeq !== null ? '/system/audit-chain?seq=' . (int) $reportSeq : null,
-            ] : null,
+            'report' => $report,
         ];
     }
 

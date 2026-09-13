@@ -9,7 +9,7 @@
  * independently rejects premature referral) · testimony → public record
  * (WF-LEG-08) · report filing (F-CHR-004).
  */
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
@@ -18,6 +18,7 @@ import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Field from '@/Components/Ui/Field.vue';
+import HistoryPager from '@/Components/Ui/HistoryPager.vue';
 import LogRow from '@/Components/Ui/LogRow.vue';
 import PersonaChip from '@/Components/Ui/PersonaChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
@@ -34,6 +35,10 @@ const props = defineProps({
     meeting: { type: Object, default: null },
     meetingContext: { type: Object, default: () => ({}) },
     bills: { type: Array, default: () => [] },
+    billPages: { type: Object, default: () => ({}) },
+    reports: { type: Array, default: () => [] },
+    reportPages: { type: Object, default: () => ({}) },
+    selectedReport: { type: Object, default: null },
     testimony: { type: Array, default: () => [] },
     testimonyPages: { type: Object, default: () => ({}) },
     can: { type: Object, default: () => ({}) },
@@ -41,6 +46,8 @@ const props = defineProps({
 });
 
 const page = usePage();
+// Refresh every record link so alternating pagers cannot restore another list's stale cursor.
+const recordPageProps = ['bills', 'billPages', 'reports', 'reportPages', 'selectedReport', 'testimonyPages'];
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
@@ -119,6 +126,13 @@ function submitTestimony() {
 
 /* --------------------------------------------------- report (F-CHR-004) */
 const reportForm = useForm({ title: '', body: '', bill_id: '' });
+const selectedReportBill = ref(null);
+watch(() => reportForm.bill_id, (id) => {
+    selectedReportBill.value = props.bills.find(bill => bill.id === id)
+        ?? (selectedReportBill.value?.id === id ? selectedReportBill.value : null);
+});
+const reportBillOptions = computed(() => selectedReportBill.value && !props.bills.some(bill => bill.id === selectedReportBill.value.id)
+    ? [selectedReportBill.value, ...props.bills] : props.bills);
 function submitReport() {
     reportForm
         .transform((data) => ({
@@ -272,13 +286,15 @@ function submitReport() {
         <!-- ================================== bills ==================== -->
         <Card as="section" title="Bills before the committee">
             <p v-if="meetingContext.explicit" class="gloss">These bills and reports belong to the committee as a whole. The hearing and testimony shown here belong to the selected meeting.</p>
-            <p v-if="!bills.length" class="gloss">No bills referred to this committee.</p>
+            <p v-if="!bills.length" class="gloss">No bills on this page.</p>
+            <p class="gloss">Showing {{ bills.length }} bills on this page. Page through the committee's full bill history.</p>
+            <HistoryPager cursor-key="bills_cursor" :pages="billPages" :only="recordPageProps" :first="billPages.first ?? urls.current" label="Committee bill pages" />
 
             <div class="stack" style="gap: var(--space-3)">
                 <Card v-for="bill in bills" :key="bill.id" inset>
                     <div class="cluster" style="justify-content: space-between">
                         <h3 style="font-size: var(--text-base); margin: 0">
-                            <a :href="`/bills/${bill.id}`">{{ bill.title }}</a>
+                            <Link :href="bill.href ?? `/bills/${bill.id}`">{{ bill.title }}</Link>
                             {{ ' ' }}
                             <StatusBadge :tone="BILL_TONES[bill.status] ?? 'neutral'">{{ bill.status }}</StatusBadge>
                         </h3>
@@ -322,11 +338,39 @@ function submitReport() {
                             independently rejects premature referral
                         </span>
                         <StatusBadge v-if="bill.report" tone="success" icon="check">
-                            Report filed {{ fmt(bill.report.filed_at) }}
+                            Latest report filed {{ fmt(bill.report.filed_at) }}
                         </StatusBadge>
-                        <a v-if="bill.report?.record_href" class="citation" :href="bill.report.record_href">sealed record →</a>
+                        <Link v-if="bill.report?.href" class="citation" :href="bill.report.href" preserve-state preserve-scroll>Read report →</Link>
                     </div>
                 </Card>
+            </div>
+            <HistoryPager cursor-key="bills_cursor" :pages="billPages" :only="recordPageProps" :first="billPages.first ?? urls.current" label="Committee bill pages" />
+        </Card>
+
+        <Card id="committee-reports" as="section" title="Published committee reports">
+            <p class="gloss">All reports appear here, including committee-wide reports and earlier reports about the same bill.</p>
+            <div v-if="reports.length" class="stack">
+                <article v-for="report in reports" :key="report.id">
+                    <h3><Link :href="report.href" preserve-state preserve-scroll>{{ report.title }}</Link></h3>
+                    <p v-if="report.excerpt" class="cc-small">{{ report.excerpt }}</p>
+                    <p class="citation">
+                        Filed {{ fmt(report.filed_at) }}
+                        <template v-if="report.bill"> · <Link :href="report.bill.href">{{ report.bill.title }}</Link></template>
+                        <template v-else> · Committee-wide report or associated bill unavailable</template>
+                    </p>
+                </article>
+            </div>
+            <p v-else class="gloss">No reports on this page.</p>
+            <HistoryPager cursor-key="reports_cursor" :pages="reportPages" :only="recordPageProps" :first="reportPages.first ?? urls.current" label="Committee report pages" />
+        </Card>
+        <Card v-if="selectedReport" id="committee-report-detail" as="section" :title="selectedReport.title">
+            <p class="citation">Filed {{ fmt(selectedReport.filed_at) }}<template v-if="selectedReport.actor"> · {{ selectedReport.actor }}</template></p>
+            <p v-if="selectedReport.body" style="white-space: pre-wrap; overflow-wrap: anywhere">{{ selectedReport.body }}</p>
+            <p v-else class="gloss">The report publication is unavailable.</p>
+            <div class="cluster">
+                <Link v-if="selectedReport.bill" :href="selectedReport.bill.href" class="btn btn--secondary">Read bill: {{ selectedReport.bill.title }}</Link>
+                <span v-if="selectedReport.seq" class="citation">Public record {{ selectedReport.seq }}<template v-if="selectedReport.audit_seq"> · Audit entry {{ selectedReport.audit_seq }}</template></span>
+                <Link :href="selectedReport.close_href" class="btn btn--ghost" preserve-state preserve-scroll>Close report</Link>
             </div>
         </Card>
 
@@ -417,10 +461,11 @@ function submitReport() {
                         <template #control="{ id }">
                             <select :id="id" v-model="reportForm.bill_id" class="select">
                                 <option value="">— none —</option>
-                                <option v-for="bill in bills" :key="bill.id" :value="bill.id">{{ bill.title }}</option>
+                                <option v-for="bill in reportBillOptions" :key="bill.id" :value="bill.id">{{ bill.title }}</option>
                             </select>
                         </template>
                     </Field>
+                    <p class="gloss">Choose a bill from the current bill page, or page through the bills above. Your chosen bill stays selected while you browse.</p>
                 </FormCard>
                 <p v-else class="citation">
                     Reports are filed by the chair — or the alternate when the chair is absent (F-CHR-004 · R-12/R-13).

@@ -16,8 +16,9 @@ const snapshot = value => JSON.parse(JSON.stringify(value));
 globalThis.document = { activeElement: null };
 
 async function fixture(t, kind) {
-    const memory = new Map(), submissions = [];
-    const names = kind === 'shares' ? 'shareForm, chooseRecipient, clearRecipient, chosenRecipient, issueShares' : 'draft, chooseParty, removeParty, selectedParties, submit';
+    const memory = new Map(), submissions = [], visits = [];
+    const page = Vue.reactive({ url: `/organizations/${id(900)}/economy`, props: { auth: { user: { id: id(999) } } } });
+    const names = kind === 'shares' ? 'shareForm, chooseRecipient, clearRecipient, chosenRecipient, issueShares, pageShares, searchRecipients, recipientQuery, recipientType, pagingShares, searching, sharePageError, searchError' : 'draft, chooseParty, removeParty, selectedParties, submit';
     const file = kind === 'shares' ? 'Pages/Economy/OrgSettings.vue' : 'Pages/Economy/ResidentAgreements.vue';
     const { descriptor } = parse(read(file).replace('</script>', `defineExpose({ ${names} });\n</script>`));
     const content = compileScript(descriptor, { id: file, inlineTemplate: true, templateOptions: { compilerOptions: { hoistStatic: false } } }).content;
@@ -48,7 +49,7 @@ async function fixture(t, kind) {
     };
     const slots = { setup: (_props, { slots }) => () => Vue.h('section', slots.default?.()) };
     const Link = { props: ['href'], setup: (p, { slots }) => () => Vue.h('a', { href: p.href }, slots.default?.()) };
-    const context = vm.createContext({ console });
+    const context = vm.createContext({ console, URL });
     const cache = new Map();
     function dependency(name) {
         if (cache.has(name)) return cache.get(name);
@@ -58,8 +59,8 @@ async function fixture(t, kind) {
             module = new vm.SourceTextModule(compileScript(descriptor, { id: name, inlineTemplate: true, templateOptions: { compilerOptions: { hoistStatic: false } } }).content, { context });
         } else {
             const values = name === 'vue' ? Vue : name === '@inertiajs/vue3' ? {
-                Link, useForm, useRemember: remember, usePage: () => ({ props: { auth: { user: { id: id(999) } } } }),
-                router: { get() {}, post() {}, visit() {} },
+                Link, useForm, useRemember: remember, usePage: () => page,
+                router: { get: (...args) => visits.push(args), post() {}, visit() {} },
             } : name.endsWith('/money.js') ? Object.fromEntries(['formatMoney', 'formatQuantity', 'formatCount', 'formatWhen', 'shortId'].map(name => [name, value => String(value ?? '')]))
                 : { default: slots };
             module = new vm.SyntheticModule(Object.keys(values), function () { for (const [key, value] of Object.entries(values)) this.setExport(key, value); }, { context });
@@ -93,7 +94,7 @@ async function fixture(t, kind) {
     mount(); await flush(); t.after(() => app.unmount());
     const nodes = (el = root) => [el, ...el.children.flatMap(child => nodes(child))];
     const text = el => el.tag === '#comment' ? '' : [el.text, ...el.children.map(text)].join(' ');
-    return { props, submissions, get state() { return state; },
+    return { props, submissions, visits, page, get state() { return state; },
         nodes: () => nodes(), text: () => text(root),
         selectedText: () => nodes().filter(el => ['selected-recipient', 'ra-selected'].includes(el.props.class)).map(text).join(' '),
         links: () => nodes().filter(el => el.tag === 'a').map(el => el.props.href),
@@ -182,4 +183,90 @@ test('fresh result metadata removes an old public handle from an already-selecte
         assert.doesNotMatch(f.selectedText(), /@first-person/);
         assert.match(f.selectedText(), new RegExp(id(1)));
     }
+});
+
+test('ownership pages merge only their cursor and preserve financial pages, recipient search and a remembered draft', async t => {
+    const f = await fixture(t, 'shares');
+    const path = `/organizations/${id(900)}/economy`;
+    f.page.url = `${path}?transactions_cursor=payment-3&taxes_cursor=tax-2&conversions_cursor=conversion-4&share_cursor=share-2&issue=1&recipient_q=Same&recipient_type=users&recipient_cursor=people-2#shares`;
+    f.state.chooseRecipient(person(1)); f.state.shareForm.units = '9.125000'; await flush();
+    f.state.pageShares(`${path}?share_cursor=share-3&taxes_cursor=stale-tax`);
+    let [url, data, options] = f.visits[0];
+    let query = new URL(url, 'https://conference.example').searchParams;
+    assert.equal(query.get('share_cursor'), 'share-3');
+    assert.equal(query.get('transactions_cursor'), 'payment-3');
+    assert.equal(query.get('taxes_cursor'), 'tax-2');
+    assert.equal(query.get('conversions_cursor'), 'conversion-4');
+    assert.equal(query.get('recipient_cursor'), 'people-2');
+    assert.equal(query.get('recipient_q'), 'Same');
+    assert.ok(url.endsWith('#shares'));
+    assert.deepEqual(snapshot(data), {});
+    assert.deepEqual(snapshot(options.only), ['shares']);
+    assert.equal(options.preserveState, true); assert.equal(options.preserveScroll, true);
+    options.onStart();
+    f.state.pageShares(path); assert.equal(f.visits.length, 1);
+    f.page.url = url; options.onFinish();
+    // Another independently loaded financial list has advanced in between.
+    f.page.url = f.page.url.replace('payment-3', 'payment-4');
+    f.state.pageShares(path);
+    query = new URL(f.visits[1][0], 'https://conference.example').searchParams;
+    assert.equal(query.has('share_cursor'), false);
+    assert.equal(query.get('transactions_cursor'), 'payment-4');
+    assert.equal(query.get('recipient_cursor'), 'people-2');
+    await f.remount();
+    assert.equal(f.state.shareForm.holder_id, id(1));
+    assert.equal(f.state.shareForm.units, '9.125000');
+});
+
+test('recipient search and stale result-page links preserve every other directory cursor', async t => {
+    const f = await fixture(t, 'shares');
+    const path = `/organizations/${id(900)}/economy`;
+    f.page.url = `${path}?transactions_cursor=payment-3&taxes_cursor=tax-2&conversions_cursor=conversion-4&share_cursor=share-2&recipient_q=Old&recipient_type=users&recipient_cursor=old-people#shares`;
+    f.state.recipientQuery = '  New name  '; f.state.recipientType = 'organizations';
+    f.state.chooseRecipient(person(1)); f.state.shareForm.units = '7'; await flush();
+    f.state.searchRecipients();
+    let [url, data, options] = f.visits[0];
+    let query = new URL(url, 'https://conference.example').searchParams;
+    assert.equal(query.get('recipient_q'), 'New name');
+    assert.equal(query.get('recipient_type'), 'organizations');
+    assert.equal(query.get('issue'), '1');
+    assert.equal(query.has('recipient_cursor'), false);
+    assert.equal(query.get('share_cursor'), 'share-2');
+    assert.equal(query.get('transactions_cursor'), 'payment-3');
+    assert.equal(query.get('taxes_cursor'), 'tax-2');
+    assert.equal(query.get('conversions_cursor'), 'conversion-4');
+    assert.deepEqual(snapshot(data), {});
+    assert.deepEqual(snapshot(options.only), ['recipient_directory']);
+    options.onStart(); f.state.searchRecipients(); assert.equal(f.visits.length, 1);
+    f.page.url = url; options.onFinish();
+    f.page.url = f.page.url.replace('share-2', 'share-4');
+    f.state.searchRecipients(`${path}?issue=1&recipient_q=New%20name&recipient_type=organizations&recipient_cursor=people-2&share_cursor=stale-share`);
+    query = new URL(f.visits[1][0], 'https://conference.example').searchParams;
+    assert.equal(query.get('recipient_cursor'), 'people-2');
+    assert.equal(query.get('recipient_type'), 'organizations');
+    assert.equal(query.get('share_cursor'), 'share-4');
+    assert.equal(query.get('transactions_cursor'), 'payment-3');
+    assert.equal(query.get('taxes_cursor'), 'tax-2');
+    assert.equal(query.get('conversions_cursor'), 'conversion-4');
+    assert.ok(f.visits[1][0].endsWith('#shares'));
+    assert.equal(f.state.shareForm.holder_id, id(1));
+    assert.equal(f.state.shareForm.units, '7');
+});
+
+test('ownership and recipient paging errors clear on retry without losing independent list state', async t => {
+    const f = await fixture(t, 'shares');
+    const path = `/organizations/${id(900)}/economy`;
+    f.page.url = `${path}?transactions_cursor=payment-3&share_cursor=share-2`;
+    f.state.pageShares(`${path}?share_cursor=share-3`);
+    let options = f.visits[0][2]; options.onStart();
+    options.onError({ share_cursor: 'Open ownership from the first page.' }); options.onFinish(); await flush();
+    assert.equal(f.state.pagingShares, false); assert.match(f.text(), /Open ownership from the first page/);
+    f.state.pageShares(path); f.visits[1][2].onStart();
+    assert.equal(f.state.sharePageError, ''); f.visits[1][2].onFinish();
+    f.state.searchRecipients(); options = f.visits[2][2]; options.onStart();
+    options.onError({ recipient_cursor: 'Search for that name again.' }); options.onFinish(); await flush();
+    assert.equal(f.state.searching, false); assert.match(f.text(), /Search for that name again/);
+    f.state.searchRecipients(); f.visits[3][2].onStart();
+    assert.equal(f.state.searchError, ''); f.visits[3][2].onFinish();
+    assert.equal(new URL(f.visits[3][0], 'https://conference.example').searchParams.get('transactions_cursor'), 'payment-3');
 });

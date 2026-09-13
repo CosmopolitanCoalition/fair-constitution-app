@@ -34,8 +34,8 @@ class GradingService
         $questions = DB::table('education_questions as q')
             ->join('education_modules as m', 'm.id', '=', 'q.module_id')
             ->join('education_tracks as t', 't.id', '=', 'm.track_id')
-            ->where('t.key', $trackKey)->whereNull('t.deleted_at')
-            ->where('m.key', $moduleKey)->whereNull('m.deleted_at')
+            ->where('t.key', $trackKey)->where('t.status', 'live')->whereNull('t.deleted_at')
+            ->where('m.key', $moduleKey)->where('m.status', 'live')->whereNull('m.deleted_at')
             ->whereNull('q.deleted_at')
             ->orderBy('q.ordering')
             ->get(['q.key', 'q.correct_keys', 'q.weight', 'q.prompt']);

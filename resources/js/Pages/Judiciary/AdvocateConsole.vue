@@ -6,10 +6,11 @@
  * The per-viewer advocate dashboard:
  *  · Registration card — F-IND-015 (R-21 bar entry) when unregistered, else
  *    the "Registered advocate" StatusBadge + grant date + practice scope.
- *  · "Your active cases" — one card--inset per case filed via F-ADV-001, each
+ *  · "Your cases" — one bounded page of cases filed via F-ADV-001, each
  *    carrying the engine state badge + the per-state NEXT-ACTION line.
  *  · "New filing" composer — a filing-type discriminator (F-ADV-001..004); the
- *    case select hides for F-ADV-001 (which shows a client field instead). Every
+ *    case picker loads on demand for existing-case filings. F-ADV-001 shows
+ *    a client field instead. Every
  *    submission POSTs through the engine — F-ADV-001 to /judiciaries/{j}/cases,
  *    the hearing filings to /cases/{c}/filings — stage-gated SERVER-side (the
  *    attach-window). A 422 renders the engine citation verbatim; the UI never
@@ -22,8 +23,8 @@
  * Every threshold/state/panel value is a server snapshot — this page renders
  * rows and opens form doors; it computes nothing.
  */
-import { computed, ref } from 'vue';
-import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, reactive, ref, watch } from 'vue';
+import { Link, router, useForm, usePage, useRemember } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -42,13 +43,15 @@ const props = defineProps({
     surface: { type: Object, required: true },
     /** §B.5 advocate block; null = unregistered viewer (registration card renders). */
     advocate: { type: Object, default: null },
-    /** Cases the viewer filed on behalf of a client (F-ADV-001), newest first. */
+    /** One bounded page of the viewer's cases, in title or docket order. */
     myCases: { type: Array, default: () => [] },
+    case_pages: { type: Object, default: () => ({ query: '', by: 'title', previous: null, next: null, first: '/judiciary/advocate' }) },
     /** The viewer's own docketed filings (append-only), newest first. */
     filings: { type: Array, default: () => [] },
     filing_pages: { type: Object, default: () => ({ previous: null, next: null, first: '/judiciary/advocate' }) },
-    /** { types:[{id,label,hint}], casesForClient:[{id,title,label}] }. */
-    composer: { type: Object, default: () => ({ types: [], casesForClient: [] }) },
+    composer: { type: Object, default: () => ({ types: [] }) },
+    composer_cases: { type: Array, default: () => [] },
+    composer_case_pages: { type: Object, default: () => ({ query: '', by: 'title', loaded: false, previous: null, next: null, first: '/judiciary/advocate' }) },
     /** Unregistered viewer: the judiciary the F-IND-015 form registers with. */
     registerTargetId: { type: String, default: null },
     /** { judiciary:{met,court_name,jurisdiction,type,status,operating}, residency:{met,name} }
@@ -93,22 +96,77 @@ function submitRegistration() {
 }
 
 /* ------------------------------------------------------- composer ------ */
-const composerType = ref(props.composer.types[0]?.id ?? 'F-ADV-001');
+const draftKey = `advocate-filing:${page.props.auth?.user?.id ?? 'guest'}:${props.advocate?.id ?? 'unregistered'}`;
+const composerType = useRemember(ref(props.composer.types[0]?.id ?? 'F-ADV-001'), `${draftKey}:type`);
 const isNewCase = computed(() => composerType.value === 'F-ADV-001');
-
-const filingForm = useForm({
-    case_id: props.composer.casesForClient[0]?.id ?? '',
+const selectedCase = useRemember(ref(null), `${draftKey}:case`);
+const filingBusy = ref(false);
+const filingForm = useForm(draftKey, {
+    case_id: '',
     client: '',
     title: '',
     body: '',
 });
+const selectedCaseLabel = computed(() => selectedCase.value?.id === filingForm.case_id ? selectedCase.value : { id: filingForm.case_id, title: 'Selected case', docket_no: '' });
+const directories = reactive({
+    roster: { query: props.case_pages.query ?? '', by: props.case_pages.by ?? 'title', busy: false, error: '' },
+    composer: { query: props.composer_case_pages.query ?? '', by: props.composer_case_pages.by ?? 'title', busy: false, error: '' },
+});
+watch(() => props.case_pages, value => { directories.roster.query = value.query ?? ''; directories.roster.by = value.by ?? 'title'; });
+watch(() => props.composer_case_pages, value => { directories.composer.query = value.query ?? ''; directories.composer.by = value.by ?? 'title'; });
+watch(() => props.composer_cases, cases => {
+    const current = cases.find(item => item.id === filingForm.case_id);
+    if (current) selectedCase.value = { ...current };
+}, { immediate: true });
+function browseCases(kind, url = null) {
+    const state = directories[kind];
+    if (state.busy || !props.can.file) return;
+    const prefix = kind === 'roster' ? 'case_' : 'compose_case_';
+    // A partial visit updates one list, but its URL is the whole page's saved
+    // location. Preserve the other case list and filing history on refresh/back.
+    const current = new URL(page.url ?? '/judiciary/advocate', 'http://localhost');
+    const target = url ? new URL(url, current) : null;
+    for (const part of ['q', 'by', 'cursor']) {
+        current.searchParams.delete(prefix + part);
+        if (target?.searchParams.has(prefix + part)) current.searchParams.set(prefix + part, target.searchParams.get(prefix + part));
+    }
+    if (!target) {
+        current.searchParams.set(prefix + 'q', state.query.trim());
+        current.searchParams.set(prefix + 'by', state.by);
+    }
+    const query = current.searchParams.toString();
+    router.get('/judiciary/advocate' + (query ? '?' + query : ''), {}, {
+        only: kind === 'roster' ? ['myCases', 'case_pages'] : ['composer_cases', 'composer_case_pages'],
+        preserveState: true, preserveScroll: true,
+        onStart: () => { state.busy = true; state.error = ''; },
+        onFinish: () => { state.busy = false; },
+        onError: errors => { state.error = Object.values(errors)[0] || 'Cases could not be loaded. Try again.'; },
+    });
+}
+watch(isNewCase, value => { if (!value && !props.composer_case_pages.loaded) browseCases('composer'); }, { immediate: true });
+function chooseCase(item) {
+    filingForm.case_id = item.id;
+    selectedCase.value = { ...item };
+    filingForm.clearErrors('case_id');
+}
+function clearCase() { filingForm.case_id = ''; selectedCase.value = null; }
 
 const activeHint = computed(
     () => props.composer.types.find((t) => t.id === composerType.value)?.hint ?? '',
 );
 
 function submitFiling() {
-    if (!props.can.file) return;
+    if (!props.can.file || filingBusy.value) return;
+    if (!isNewCase.value && !filingForm.case_id) {
+        filingForm.setError('case_id', 'Choose the case this filing belongs to.');
+        return;
+    }
+    const options = {
+        preserveScroll: true,
+        onStart: () => { filingBusy.value = true; filingForm.clearErrors(); },
+        onFinish: () => { filingBusy.value = false; },
+        onError: errors => filingForm.setError(errors),
+    };
 
     if (isNewCase.value) {
         /* F-ADV-001 — a new case on behalf of a client (a different endpoint:
@@ -123,7 +181,7 @@ function submitFiling() {
                 client: filingForm.client,
             },
             {
-                preserveScroll: true,
+                ...options,
                 onSuccess: () => filingForm.reset('title', 'body', 'client'),
             },
         );
@@ -139,7 +197,7 @@ function submitFiling() {
             body: filingForm.body,
         },
         {
-            preserveScroll: true,
+            ...options,
             onSuccess: () => filingForm.reset('title', 'body'),
         },
     );
@@ -292,11 +350,19 @@ function submitFiling() {
             </Card>
         </template>
 
-        <!-- ======================================== your active cases ==== -->
-        <Card as="section" title="Your active cases">
-            <p class="gloss">Cases you filed on behalf of clients (via F-ADV-001).</p>
+        <!-- ================================================= your cases ==== -->
+        <Card as="section" title="Your cases">
+            <p class="gloss">Cases you filed on behalf of clients, including completed cases. Browse by title or docket number.</p>
+            <form v-if="can.file" class="case-search" @submit.prevent="browseCases('roster')">
+                <label>Search by<select v-model="directories.roster.by"><option value="title">Title</option><option value="docket">Docket number</option></select></label>
+                <label>Starts with<input v-model="directories.roster.query" type="search" maxlength="160" /></label>
+                <button type="submit" :disabled="directories.roster.busy">Search cases</button>
+                <button v-if="case_pages.query" type="button" :disabled="directories.roster.busy" @click="directories.roster.query = ''; browseCases('roster')">All my cases</button>
+            </form>
+            <p v-if="directories.roster.error" role="alert">{{ directories.roster.error }}</p>
+            <p role="status">{{ directories.roster.busy ? 'Loading cases…' : '' }}</p>
 
-            <div v-if="myCases.length" class="stack" style="gap: var(--space-3); margin-block-start: var(--space-3)">
+            <div v-if="myCases.length" class="stack" :aria-busy="directories.roster.busy" style="gap: var(--space-3); margin-block-start: var(--space-3)">
                 <Card v-for="c in myCases" :key="c.id" inset>
                     <div class="cluster" style="justify-content: space-between">
                         <div>
@@ -316,8 +382,13 @@ function submitFiling() {
                 </Card>
             </div>
             <p v-else class="gloss" style="margin-block-start: var(--space-3)">
-                Cases you file on behalf of clients appear here.
+                {{ case_pages.query ? 'No cases match this beginning. Try another title or docket number.' : 'Cases you file on behalf of clients appear here.' }}
             </p>
+            <nav class="case-pages" aria-label="Your case pages">
+                <button v-if="case_pages.previous" :disabled="directories.roster.busy" @click="browseCases('roster', case_pages.previous)">Previous cases</button>
+                <button v-if="case_pages.next" :disabled="directories.roster.busy" @click="browseCases('roster', case_pages.next)">More cases</button>
+                <button v-if="case_pages.previous || directories.roster.error" :disabled="directories.roster.busy" @click="browseCases('roster', case_pages.first)">First page</button>
+            </nav>
         </Card>
 
         <!-- ============================================= new filing ====== -->
@@ -333,27 +404,41 @@ function submitFiling() {
                             </select>
                         </template>
                     </Field>
-
-                    <Field
-                        v-if="!isNewCase"
-                        label="Case"
-                        :hint="activeHint"
-                        :error="filingForm.errors.case_id"
-                    >
-                        <template #control="{ id, describedBy }">
-                            <select
-                                :id="id"
-                                v-model="filingForm.case_id"
-                                class="select"
-                                :aria-describedby="describedBy"
-                            >
-                                <option v-for="c in composer.casesForClient" :key="c.id" :value="c.id">
-                                    {{ c.label }}
-                                </option>
-                            </select>
-                        </template>
-                    </Field>
                 </div>
+
+                <fieldset v-if="!isNewCase" class="case-picker">
+                    <legend>Case for this filing</legend>
+                    <p class="gloss">{{ activeHint }}</p>
+                    <div v-if="filingForm.case_id" class="selected-case">
+                        <strong>Selected: {{ selectedCaseLabel.title }}</strong>
+                        <span>{{ selectedCaseLabel.docket_no }}</span>
+                        <Link :href="`/cases/${filingForm.case_id}`">Open selected case</Link>
+                        <small>Case reference: {{ filingForm.case_id }}</small>
+                        <button type="button" @click="clearCase">Change case</button>
+                    </div>
+                    <p v-if="filingForm.errors.case_id" role="alert">{{ filingForm.errors.case_id }}</p>
+                    <div class="case-search">
+                        <label>Search by<select v-model="directories.composer.by"><option value="title">Title</option><option value="docket">Docket number</option></select></label>
+                        <label>Starts with<input v-model="directories.composer.query" type="search" maxlength="160" @keydown.enter.prevent="browseCases('composer')" /></label>
+                        <button type="button" :disabled="directories.composer.busy || !can.file" @click="browseCases('composer')">Find a case</button>
+                        <button v-if="composer_case_pages.query" type="button" :disabled="directories.composer.busy" @click="directories.composer.query = ''; browseCases('composer')">All my cases</button>
+                    </div>
+                    <p v-if="directories.composer.error" role="alert">{{ directories.composer.error }}</p>
+                    <div :aria-busy="directories.composer.busy">
+                        <p role="status">{{ directories.composer.busy ? 'Loading cases for this filing…' : (!composer_case_pages.loaded ? 'Find a case to select it for this filing.' : (!composer_cases.length ? 'No matching cases on this page. Try another title or docket number.' : 'Choose the case this filing belongs to.')) }}</p>
+                        <ul class="case-options">
+                            <li v-for="item in composer_cases" :key="item.id">
+                                <div><strong>{{ item.title }}</strong><span>{{ item.docket_no }} · {{ item.state }}</span><Link :href="item.href">Open case</Link><small>Case reference: {{ item.id }}</small></div>
+                                <button type="button" :disabled="filingForm.case_id === item.id || directories.composer.busy" :aria-label="`Select ${item.title}, ${item.docket_no}, case ${item.id}`" @click="chooseCase(item)">Select case</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <nav class="case-pages" aria-label="Filing case choices">
+                        <button v-if="composer_case_pages.previous" type="button" :disabled="directories.composer.busy" @click="browseCases('composer', composer_case_pages.previous)">Previous choices</button>
+                        <button v-if="composer_case_pages.next" type="button" :disabled="directories.composer.busy" @click="browseCases('composer', composer_case_pages.next)">More choices</button>
+                        <button v-if="composer_case_pages.previous || directories.composer.error" type="button" :disabled="directories.composer.busy" @click="browseCases('composer', composer_case_pages.first)">First page</button>
+                    </nav>
+                </fieldset>
 
                 <Field
                     v-if="isNewCase"
@@ -398,8 +483,8 @@ function submitFiling() {
                 </Field>
 
                 <div class="cluster">
-                    <button type="submit" class="btn btn--primary" :disabled="!can.file">
-                        Submit to the docket
+                    <button type="submit" class="btn btn--primary" :disabled="!can.file || filingBusy">
+                        {{ filingBusy ? 'Submitting…' : 'Submit to the docket' }}
                     </button>
                     <span v-if="!can.file" class="gloss">
                         Register as an advocate (F-IND-015) to file on behalf of a client.
@@ -424,7 +509,7 @@ function submitFiling() {
             <p v-else class="gloss" style="margin-block-start: var(--space-2)">
                 No docketed filings on this page.
             </p>
-            <HistoryPager :pages="filing_pages" :only="['filings', 'filing_pages']" :first="filing_pages.first" label="Advocate filing history pages" />
+            <HistoryPager :pages="filing_pages" :only="['filings', 'filing_pages']" :first="filing_pages.first" cursor-key="filings_cursor" label="Advocate filing history pages" />
         </Card>
 
         <!-- ========================================= four instruments ==== -->
@@ -459,3 +544,15 @@ function submitFiling() {
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.case-search, .case-pages { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; margin-block: 1rem; }
+.case-search label, .selected-case, .case-options li > div { display: grid; gap: .3rem; min-inline-size: 0; }
+.case-search input { max-inline-size: 100%; }
+.case-picker { min-inline-size: 0; }
+.case-options { list-style: none; padding: 0; }
+.case-options li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .75rem; border-block-end: 1px solid var(--gov-border); }
+.selected-case, .case-options { overflow-wrap: anywhere; }
+.selected-case { padding: .75rem; background: var(--gov-surface); }
+.selected-case button { justify-self: start; }
+</style>

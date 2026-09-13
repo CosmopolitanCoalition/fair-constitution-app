@@ -72,7 +72,7 @@ const issuanceRows = () => props.issuance.map(i => ({ id: i.id, when: formatWhen
                 <li v-for="place in places" :key="place.id"><Link :href="placeUrl(place.id)">{{ place.name }}</Link></li>
             </ul>
             <p v-else class="econ-note">No smaller places on this page.</p>
-            <HistoryPager :pages="places_pages" :only="['places', 'places_pages']" :first="places_pages.first ?? '/economy/treasury'" label="Places" />
+            <HistoryPager cursor-key="places_cursor" :pages="places_pages" :only="['places', 'places_pages']" :first="places_pages.first ?? '/economy/treasury'" label="Places" />
             <Link href="/jurisdictions">Browse the world map and place directory</Link>
         </Card>
 
@@ -95,7 +95,7 @@ const issuanceRows = () => props.issuance.map(i => ({ id: i.id, when: formatWhen
                     :aria-current="finance_scope.account?.id === row.id && finance_scope.ledger_scope === 'account' ? 'true' : undefined">{{ value }}</Link></template>
             </DataTable>
             <p v-else class="econ-note">No public accounts on this page for this place.</p>
-            <HistoryPager :pages="accounts_pages" :only="['accounts', 'accounts_pages']" :first="accounts_pages.first ?? '/economy/treasury'" label="Public accounts" />
+            <HistoryPager cursor-key="accounts_cursor" :pages="accounts_pages" :only="['accounts', 'accounts_pages']" :first="accounts_pages.first ?? '/economy/treasury'" label="Public accounts" />
         </Card>
 
         <Card as="section" title="The public ledger">
@@ -108,7 +108,7 @@ const issuanceRows = () => props.issuance.map(i => ({ id: i.id, when: formatWhen
             <p class="econ-note">{{ finance_scope.ledger_scope === 'currency' ? 'All account movements in this currency, including pseudonymous economic accounts.' : 'Movements for the selected public account.' }}</p>
             <DataTable v-if="ledger.length" :columns="ledgerColumns" :rows="ledgerRows()" row-key="id" caption="Ledger entries, newest first" />
             <p v-else class="econ-note">{{ finance_scope.ledger_scope === 'account' && !finance_scope.account ? 'Choose a public account, or browse all currency accounts.' : 'No entries on this page.' }}</p>
-            <HistoryPager :pages="ledger_pages" :only="['ledger', 'ledger_pages']" :first="ledger_pages.first ?? '/economy/treasury'" label="Ledger history" />
+            <HistoryPager cursor-key="ledger_cursor" :pages="ledger_pages" :only="['ledger', 'ledger_pages']" :first="ledger_pages.first ?? '/economy/treasury'" label="Ledger history" />
             <p class="econ-note">Ledger entries are append-only and hash-chained. This page shows recorded movements; it does not run a chain verification.</p>
         </Card>
 
@@ -116,7 +116,7 @@ const issuanceRows = () => props.issuance.map(i => ({ id: i.id, when: formatWhen
             <p class="econ-note">Issuance history covers the whole currency.</p>
             <DataTable v-if="issuance.length" :columns="issuanceColumns" :rows="issuanceRows()" row-key="id" caption="Currency issuance history, newest first" />
             <p v-else class="econ-note">No issuance events on this page.</p>
-            <HistoryPager :pages="issuance_pages" :only="['issuance', 'issuance_pages']" :first="issuance_pages.first ?? '/economy/treasury'" label="Issuance history" />
+            <HistoryPager cursor-key="issuance_cursor" :pages="issuance_pages" :only="['issuance', 'issuance_pages']" :first="issuance_pages.first ?? '/economy/treasury'" label="Issuance history" />
         </Card>
 
         <Card as="section" title="Budgets">
@@ -129,12 +129,12 @@ const issuanceRows = () => props.issuance.map(i => ({ id: i.id, when: formatWhen
                 </li>
             </ul>
             <p v-else class="econ-note">No budgets on this page for this place.</p>
-            <HistoryPager :pages="budgets_pages" :only="['budgets', 'budgets_pages']" :first="budgets_pages.first ?? '/economy/treasury'" label="Budgets" />
+            <HistoryPager cursor-key="budgets_cursor" :pages="budgets_pages" :only="['budgets', 'budgets_pages']" :first="budgets_pages.first ?? '/economy/treasury'" label="Budgets" />
             <section v-if="finance_scope.budget" aria-labelledby="budget-lines-title">
                 <h3 id="budget-lines-title">Spending lines: {{ finance_scope.budget.fiscal_label }}</h3>
                 <ul class="econ-list"><li v-for="line in budget_lines" :key="line.id">{{ line.line }} — {{ formatMoney(line.amount, currency) }}</li></ul>
                 <p v-if="!budget_lines.length" class="econ-note">No spending lines on this page.</p>
-                <HistoryPager :pages="budget_lines_pages" :only="['budget_lines', 'budget_lines_pages']" :first="budget_lines_pages.first ?? '/economy/treasury'" label="Budget spending lines" />
+                <HistoryPager cursor-key="lines_cursor" :pages="budget_lines_pages" :only="['budget_lines', 'budget_lines_pages']" :first="budget_lines_pages.first ?? '/economy/treasury'" label="Budget spending lines" />
             </section>
             <p v-else class="econ-note">Select a budget to read its spending lines.</p>
         </Card>
@@ -147,7 +147,7 @@ const issuanceRows = () => props.issuance.map(i => ({ id: i.id, when: formatWhen
                 <p>{{ borrowing.terms }}</p>
             </li></ul>
             <p v-else class="econ-note">No borrowing records on this page for this place.</p>
-            <HistoryPager :pages="borrowings_pages" :only="['borrowings', 'borrowings_pages']" :first="borrowings_pages.first ?? '/economy/treasury'" label="Borrowing history" />
+            <HistoryPager cursor-key="borrowings_cursor" :pages="borrowings_pages" :only="['borrowings', 'borrowings_pages']" :first="borrowings_pages.first ?? '/economy/treasury'" label="Borrowing history" />
         </Card>
 
         <Card as="section" title="Where the money comes from">
@@ -156,12 +156,12 @@ const issuanceRows = () => props.issuance.map(i => ({ id: i.id, when: formatWhen
                 <p v-if="source.enacting_act" class="econ-note">{{ source.enacting_act.act_number ? `Act ${source.enacting_act.act_number}: ` : '' }}{{ source.enacting_act.title }}</p>
             </li></ul>
             <p v-else class="econ-note">No revenue sources on this page for this place.</p>
-            <HistoryPager :pages="revenue_pages" :only="['revenue', 'revenue_pages']" :first="revenue_pages.first ?? '/economy/treasury'" label="Revenue sources" />
+            <HistoryPager cursor-key="revenue_cursor" :pages="revenue_pages" :only="['revenue', 'revenue_pages']" :first="revenue_pages.first ?? '/economy/treasury'" label="Revenue sources" />
             <section v-if="finance_scope.revenue_source" aria-labelledby="levies-title">
                 <h3 id="levies-title">Levies: {{ finance_scope.revenue_source.name }}</h3>
                 <ul class="econ-list"><li v-for="levy in levies" :key="levy.id">{{ levy.rate }} on {{ levy.base.replaceAll('_', ' ') }}<template v-if="levy.civic_exempt"> · civic use exempt</template></li></ul>
                 <p v-if="!levies.length" class="econ-note">No levies on this page.</p>
-                <HistoryPager :pages="levies_pages" :only="['levies', 'levies_pages']" :first="levies_pages.first ?? '/economy/treasury'" label="Levies" />
+                <HistoryPager cursor-key="levies_cursor" :pages="levies_pages" :only="['levies', 'levies_pages']" :first="levies_pages.first ?? '/economy/treasury'" label="Levies" />
             </section>
             <p v-else class="econ-note">Select a revenue source to read its levies.</p>
         </Card>

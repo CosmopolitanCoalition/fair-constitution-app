@@ -6,6 +6,7 @@ use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\FormHandler;
 use App\Models\User;
 use App\Services\Economy\ShareTradeService;
+use App\Services\Organizations\OrgOwnershipService;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -66,7 +67,7 @@ class ShareTrade implements FormHandler
             'offer_shares' => $this->trades->offer(
                 $actor,
                 (string) ($payload['organization_id'] ?? ''),
-                (float) ($payload['units'] ?? 0),
+                OrgOwnershipService::normalizeUnits($payload['units'] ?? null),
                 (string) ($payload['price_per_unit'] ?? '0'),
             ),
             'buy_shares'   => $this->trades->buy($actor, (string) ($payload['offer_id'] ?? '')),

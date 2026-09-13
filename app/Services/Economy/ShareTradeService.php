@@ -46,69 +46,74 @@ class ShareTradeService
      *
      * @return array{offer_id: string, units: string, price_per_unit: string}
      */
-    public function offer(User $seller, string $organizationId, float $units, string $pricePerUnit): array
+    public function offer(User $seller, string $organizationId, string|int|float $units, string $pricePerUnit): array
     {
-        if ($units <= 0) {
-            throw new RuntimeException('A share offer must be for a positive number of units.');
-        }
+        $units = OrgOwnershipService::normalizeUnits($units);
         if (bccomp($pricePerUnit, '0', 6) < 0) {
             throw new RuntimeException('A share price cannot be negative.');
         }
 
-        $org = Organization::query()->find($organizationId);
-        if ($org === null) {
-            throw new RuntimeException('Unknown organization.');
-        }
-        if ((string) $org->structure !== Organization::STRUCTURE_STOCK) {
-            throw new \App\Domain\Engine\ConstitutionalViolation(
-                'Only a stock organization has shares to trade — ownership elsewhere is by membership.',
-                'Art. III §5'
-            );
-        }
+        return DB::transaction(function () use ($seller, $organizationId, $units, $pricePerUnit) {
+            // Reservation reads and insertion share the cap-table mutation lock.
+            // Two offers must never both spend the same currently-unoffered units.
+            $org = Organization::query()->whereKey($organizationId)->lockForUpdate()->first();
+            if ($org === null) {
+                throw new RuntimeException('Unknown organization.');
+            }
+            if ($org->status === Organization::STATUS_DISSOLVED) {
+                throw new RuntimeException('A dissolved organization has no shares to offer.');
+            }
+            if ((string) $org->structure !== Organization::STRUCTURE_STOCK) {
+                throw new \App\Domain\Engine\ConstitutionalViolation(
+                    'Only a stock organization has shares to trade — ownership elsewhere is by membership.',
+                    'Art. III §5'
+                );
+            }
 
-        $held = $this->heldUnits($organizationId, (string) $seller->id);
+            $held = $this->heldUnits($organizationId, (string) $seller->id);
 
-        // Count the seller's OTHER open offers for this org: a holding backs a
-        // sum of offers, not each one independently — otherwise a 100-unit
-        // holder could list two 100-unit offers and, filled concurrently, mint
-        // phantom equity. The buy path also locks + re-guards; this refuses the
-        // over-listing at the source.
-        $alreadyOffered = (float) DB::table('share_offers')
-            ->where('organization_id', $organizationId)
-            ->where('seller_holder_type', OrgOwnershipStake::HOLDER_USERS)
-            ->where('seller_holder_id', (string) $seller->id)
-            ->where('status', 'open')
-            ->whereNull('deleted_at')
-            ->sum('units');
+            // Count the seller's OTHER open offers for this org: a holding backs a
+            // sum of offers, not each one independently — otherwise a 100-unit
+            // holder could list two 100-unit offers and, filled concurrently, mint
+            // phantom equity. The buy path also locks + re-guards; this refuses the
+            // over-listing at the source.
+            $alreadyOffered = (string) DB::table('share_offers')
+                ->where('organization_id', $organizationId)
+                ->where('seller_holder_type', OrgOwnershipStake::HOLDER_USERS)
+                ->where('seller_holder_id', (string) $seller->id)
+                ->where('status', 'open')
+                ->whereNull('deleted_at')
+                ->sum('units');
 
-        if ($alreadyOffered + $units > $held + 1e-9) {
-            throw new \App\Domain\Engine\ConstitutionalViolation(
-                'You cannot offer more shares than you hold — your open offers already cover them.',
-                'Art. III §5'
-            );
-        }
+            if (bccomp(bcadd($alreadyOffered, $units, 6), $held, 6) > 0) {
+                throw new \App\Domain\Engine\ConstitutionalViolation(
+                    'You cannot offer more shares than you hold — your open offers already cover them.',
+                    'Art. III §5'
+                );
+            }
 
-        $currency = $this->rootCurrency();
+            $currency = $this->rootCurrency();
 
-        $id = (string) Str::uuid();
-        DB::table('share_offers')->insert([
-            'id'                 => $id,
-            'organization_id'    => $organizationId,
-            'seller_holder_type' => OrgOwnershipStake::HOLDER_USERS,
-            'seller_holder_id'   => (string) $seller->id,
-            'units'              => $units,
-            'price_per_unit'     => $pricePerUnit,
-            'currency_id'        => (string) $currency->id,
-            'status'             => 'open',
-            'created_at'         => now(),
-            'updated_at'         => now(),
-        ]);
+            $id = (string) Str::uuid();
+            DB::table('share_offers')->insert([
+                'id'                 => $id,
+                'organization_id'    => $organizationId,
+                'seller_holder_type' => OrgOwnershipStake::HOLDER_USERS,
+                'seller_holder_id'   => (string) $seller->id,
+                'units'              => $units,
+                'price_per_unit'     => $pricePerUnit,
+                'currency_id'        => (string) $currency->id,
+                'status'             => 'open',
+                'created_at'         => now(),
+                'updated_at'         => now(),
+            ]);
 
-        return [
-            'offer_id'       => $id,
-            'units'          => (string) $units,
-            'price_per_unit' => (string) $pricePerUnit,
-        ];
+            return [
+                'offer_id'       => $id,
+                'units'          => (string) $units,
+                'price_per_unit' => (string) $pricePerUnit,
+            ];
+        });
     }
 
     /**
@@ -140,7 +145,7 @@ class ShareTradeService
 
             $sellerId   = (string) $offer->seller_holder_id;
             $orgId      = (string) $offer->organization_id;
-            $units      = (float) $offer->units;
+            $units      = (string) $offer->units;
             $currencyId = (string) $offer->currency_id;
             $total      = bcmul((string) $offer->units, (string) $offer->price_per_unit, 6);
 
@@ -179,7 +184,7 @@ class ShareTradeService
             // transaction (money leg included) rolls back. A HARD guard — never a
             // silent fall-through into an unconditional buyer stake.
             $held = $this->heldUnits($orgId, $sellerId);
-            if ($held + 1e-9 < $units) {
+            if (bccomp($held, $units, 6) < 0) {
                 throw new \App\Domain\Engine\ConstitutionalViolation(
                     'The seller no longer holds enough shares to honor this offer.',
                     'Art. III §5'
@@ -212,8 +217,8 @@ class ShareTradeService
                 ->open()
                 ->update(['ended_at' => now(), 'updated_at' => now()]);
 
-            $remainder = round($held - $units, 6);
-            if ($remainder > 1e-9) {
+            $remainder = bcsub($held, $units, 6);
+            if (bccomp($remainder, '0', 6) > 0) {
                 $this->ownership->openStake($org, OrgOwnershipStake::HOLDER_USERS, $sellerId, $remainder, OrgOwnershipStake::VIA_TRANSFER, null);
             } else {
                 // Seller fully divested — recompute so the cap table drops them,
@@ -301,9 +306,9 @@ class ShareTradeService
     }
 
     /** The seller's total OPEN units in an org (stakes are fungible, summed). */
-    private function heldUnits(string $organizationId, string $holderId): float
+    private function heldUnits(string $organizationId, string $holderId): string
     {
-        return (float) OrgOwnershipStake::query()
+        return (string) OrgOwnershipStake::query()
             ->where('organization_id', $organizationId)
             ->where('holder_type', OrgOwnershipStake::HOLDER_USERS)
             ->where('holder_id', $holderId)

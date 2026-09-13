@@ -39,7 +39,7 @@ final class CommitteeMeetingContextTest extends TestCase
             'committee_meetings' => ['committee_id', 'status', 'scheduled_for', 'agenda'],
             'committee_seats' => ['committee_id', 'member_id', 'seat_kind', 'vacated_at'],
             'legislature_members' => ['legislature_id', 'user_id', 'status'], 'users' => ['name', 'display_name'],
-            'bills' => ['committee_id', 'created_at'], 'committee_reports' => ['committee_id', 'bill_id', 'report_record_id'],
+            'bills' => ['committee_id', 'legislature_id', 'title', 'status', 'created_at'], 'committee_reports' => ['committee_id', 'bill_id', 'report_record_id', 'created_at'],
             'public_records' => ['seq', 'kind', 'subject_type', 'subject_id', 'body', 'actor_display', 'published_at', 'audit_seq'],
         ];
         foreach ($tables as $table => $columns) DB::connection()->getSchemaBuilder()->create($table, function (Blueprint $t) use ($columns): void {

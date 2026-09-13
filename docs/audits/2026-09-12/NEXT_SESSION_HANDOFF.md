@@ -52,10 +52,17 @@ The share pass adds `2026_09_13_010000_org_share_directory_indexes.php`, applied
 This pass needs no new migration. Pulling hosts must refresh route/configuration caches and existing Horizon workers after the shared-service changes. No simulation controls or existing-world records were changed.
 
 
-## Consolidation and archive pass � 13 September
+## Consolidation and archive pass — 13 September
 
 LE-1, EO-6, EO-7, identified B4 person selectors and all remaining P2 finance readers are complete with targeted internal testing. B3 committee/hearing testimony, settings-change and advocate-filing archives are also complete; its remaining row is specifically committee bills/reports and advocate case/composer collections. All four tracking documents retain their established build/internal-review/human-only distinction.
 
 Read the 2026-09-13 audits LEARN_CONSOLIDATION, PERSON_SELECTOR_CONTEXT, APPROVAL_DIRECTORY, COMMITTEE_WORKSPACE, CIVIC_HISTORIES, FINANCIAL_HISTORIES and PUBLIC_FINANCE_DIRECTORY for exact executed scopes. Public-profile names no longer fall back to private social fields in CandidacyPanel. Existing legal-consent/ownership name-search contracts are preserved; optional naming-policy alignment is distinct from repeated-name disambiguation.
 
 Migrations 2026_09_13_040000_financial_history_indexes, 050000_public_finance_history_indexes and 060000_civic_history_indexes are applied locally. Pulling hosts must apply them normally; all are additive concurrent seek indexes. Refresh configuration for the five new surface registry entries. No existing-world civic/economic action or simulation was run. Browser read checks reached wallet/help and their correct Learn drawers; the operator persona had no personal wallet, so those checks do not establish populated-wallet UI acceptance. The private fixtures exercise populated histories.
+
+
+## Completed reader/concurrency/lesson pass — 13 September
+
+B3 is complete: committee bills/reports and advocate case/composer collections are bounded and internally tested. Both new directory index migrations (081000 and 090000) are applied locally. Shared history navigation and organization ownership/recipient paging preserve independent current cursors and drafts. S3 PostgreSQL ownership concurrency is completed for its documented scope: competing offer reservations and precision-loss defects were repaired, with 23 actual PostgreSQL checks passing. L1 lesson grading/completion/award/stipend/retake/rollback is also complete through real PostgreSQL application services; unpublished grading is repaired. Their scopes moved to Completed and were removed from the review register.
+
+AuditChainController was found to ignore exact receipt sequence links and count the entire chain per entry; B5 tracks its separate bounded-reader repair. E5/IO6 CGC governor appointments and expiry are next. Read OWNERSHIP_CONCURRENCY, LESSON_WORKFLOW, HISTORY_NAVIGATION, ADVOCATE_CASE_DIRECTORY and COMMITTEE_RECORD_DIRECTORIES for precise validation/isolation limits. Pulling hosts apply the additive migrations normally. No live-world civic/economic action or simulation was run; disposable PostgreSQL databases were verified removed.

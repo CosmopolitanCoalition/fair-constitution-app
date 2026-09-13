@@ -93,9 +93,22 @@ function searchOptions() {
         onError: errors => { searchError.value = Object.values(errors)[0] ?? 'The search could not be completed.'; },
     };
 }
+function directoryUrl(keys, url = null, values = {}) {
+    // Each partial directory owns only its query fields. Its returned links
+    // may predate another list's navigation, so merge into the current URL.
+    const current = new URL(page.url || economyPath, 'http://fixture.invalid');
+    const target = url ? new URL(url, current) : null;
+    for (const key of keys) {
+        current.searchParams.delete(key);
+        const value = target ? target.searchParams.get(key) : values[key];
+        if (value !== null && value !== undefined) current.searchParams.set(key, value);
+    }
+    return economyPath + current.search + current.hash;
+}
 function searchRecipients(url = null) {
-    if (url) router.get(url, {}, searchOptions());
-    else router.get(economyPath, { issue: 1, recipient_q: recipientQuery.value.trim(), recipient_type: recipientType.value }, searchOptions());
+    if (searching.value) return;
+    router.get(directoryUrl(['issue', 'recipient_q', 'recipient_type', 'recipient_cursor'], url,
+        { issue: 1, recipient_q: recipientQuery.value.trim(), recipient_type: recipientType.value }), {}, searchOptions());
 }
 function chooseRecipient(person) {
     shareForm.holder_type = person.type;
@@ -110,7 +123,8 @@ function clearRecipient() {
     chosenContext.value = null;
 }
 function pageShares(url) {
-    router.get(url, {}, {
+    if (pagingShares.value) return;
+    router.get(directoryUrl(['share_cursor'], url), {}, {
         only: ['shares'], preserveState: true, preserveScroll: true,
         onStart: () => { pagingShares.value = true; sharePageError.value = ''; },
         onFinish: () => { pagingShares.value = false; },
@@ -295,7 +309,7 @@ function issueShares() {
                     </tbody>
                 </table>
                 <p v-else class="econ-note">No movements on this page.</p>
-                <HistoryPager :pages="ledger.pagination" :only="['ledger']" :first="economyPath" label="Organization payment pages" />
+                <HistoryPager cursor-key="transactions_cursor" :pages="ledger.pagination" :only="['ledger']" :first="economyPath" label="Organization payment pages" />
             </template>
             <p v-else-if="!ledger.restricted" class="econ-absent">
                 This organization holds no economic account yet — it opens when the org first
@@ -333,7 +347,7 @@ function issueShares() {
             <p v-else class="econ-absent">
                 No levy filings on this page.
             </p>
-            <HistoryPager v-if="!ledger.restricted" :pages="tax_pages" :only="['taxes', 'tax_pages']" :first="economyPath" label="Levy filing pages" />
+            <HistoryPager v-if="!ledger.restricted" cursor-key="taxes_cursor" :pages="tax_pages" :only="['taxes', 'tax_pages']" :first="economyPath" label="Levy filing pages" />
         </Card>
 
         <!-- ------------------------------------- fair-market / conversions -->
@@ -359,7 +373,7 @@ function issueShares() {
             <p v-else class="econ-absent">
                 No ownership conversions on this page.
             </p>
-            <HistoryPager :pages="conversion_pages" :only="['conversions', 'conversion_pages']" :first="economyPath" label="Ownership conversion pages" />
+            <HistoryPager cursor-key="conversions_cursor" :pages="conversion_pages" :only="['conversions', 'conversion_pages']" :first="economyPath" label="Ownership conversion pages" />
         </Card>
 
     </PageScaffold>

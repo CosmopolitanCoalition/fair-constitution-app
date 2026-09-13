@@ -5,10 +5,12 @@ namespace App\Domain\Forms\Handlers;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\FormHandler;
 use App\Domain\Forms\Handlers\Concerns\ResolvesChairActor;
+use App\Models\Bill;
 use App\Models\Committee;
 use App\Models\CommitteeReport;
 use App\Models\User;
 use App\Services\PublicRecordService;
+use Illuminate\Support\Str;
 
 /**
  * F-CHR-004 — Committee Report Filing (chamber ops §C.5). The report body
@@ -67,6 +69,25 @@ class CommitteeReportFiling implements FormHandler
 
         $legislature = $committee->legislature()->firstOrFail();
 
+        $billId = $payload['bill_id'] ?? null;
+        if ($billId !== null) {
+            // The engine transaction holds this row through publication, so a
+            // concurrent referral cannot change the filing's committee scope.
+            $bill = is_string($billId) && Str::isUuid($billId)
+                ? Bill::query()->whereKey($billId)
+                    ->where('committee_id', $committee->id)
+                    ->where('legislature_id', $legislature->id)
+                    ->lockForUpdate()->first(['id'])
+                : null;
+            if ($bill === null) {
+                throw new ConstitutionalViolation(
+                    'A bill report must name a current bill assigned to this committee and legislature.',
+                    'CGA Forms Catalog (F-CHR-004)'
+                );
+            }
+            $billId = (string) $bill->id;
+        }
+
         $record = $this->records->publish(
             kind: 'other',
             title: sprintf('Committee report — %s: %s', $committee->name, $title),
@@ -83,7 +104,7 @@ class CommitteeReportFiling implements FormHandler
 
         $report = CommitteeReport::create([
             'committee_id'       => $committee->id,
-            'bill_id'            => $payload['bill_id'] ?? null,
+            'bill_id'            => $billId,
             'filed_by_member_id' => $chair->id,
             'report_record_id'   => (string) $record->id,
         ]);
@@ -93,7 +114,7 @@ class CommitteeReportFiling implements FormHandler
             'report_id'        => (string) $report->id,
             'report_record_id' => (string) $record->id,
             'filed_by'         => (string) $chair->id,
-            'bill_id'          => $payload['bill_id'] ?? null,
+            'bill_id'          => $billId,
         ];
     }
 }

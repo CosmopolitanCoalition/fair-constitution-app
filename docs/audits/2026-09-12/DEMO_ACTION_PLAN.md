@@ -10,7 +10,7 @@ Finish the current build before starting the next. Consolidation comes first, th
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| B3 | Bound the remaining committee bills/reports and advocate case/composer collections. | Entry and selection load bounded pages with every record reachable; independent history navigation preserves forms. Committee testimony, settings changes and advocate filings are complete. Interjurisdictional history remains with S2. |
+| B5 | Repair audit receipt destinations and bound audit-history browsing. | Existing `?seq=` links display that exact entry, all history is cursor-browsable without whole-chain counts, and metadata privacy/loading/recovery remain intact. Full verification/reconciliation remain explicit operator actions. |
 
 Evidence for the remaining B3 readers: [committee inventory](../2026-09-13/COMMITTEE_WORKSPACE.md), [advocate archive inspection](../2026-09-13/CIVIC_HISTORIES.md). Completed P2, B4, EO-6 and LE-1 have moved to the archive. Large-race performance and full workflow acceptance remain internal reviews, not claims of completion.
 

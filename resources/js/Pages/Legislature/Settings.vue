@@ -323,7 +323,7 @@ function fmt(iso) {
                 </template>
                 <template #cell-applied_at="{ row }">{{ fmt(row.applied_at) }}</template>
             </DataTable>
-            <HistoryPager :pages="change_pages" :only="['changes', 'change_pages']" :first="change_pages.first || `/legislatures/${legislature.id}/settings`" label="Setting change history pages" />
+            <HistoryPager cursor-key="changes_cursor" :pages="change_pages" :only="['changes', 'change_pages']" :first="change_pages.first || `/legislatures/${legislature.id}/settings`" label="Setting change history pages" />
         </Card>
 
         <template #about>

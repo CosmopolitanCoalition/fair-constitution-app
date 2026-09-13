@@ -1,18 +1,33 @@
 <script setup>
 import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     pages: { type: Object, default: () => ({ previous: null, next: null }) },
     only: { type: Array, required: true },
     first: { type: String, required: true },
     label: { type: String, required: true },
+    cursorKey: { type: String, default: '' },
 });
+const page = usePage();
 const busy = ref(false);
 const error = ref('');
+function currentUrl(url) {
+    if (!props.cursorKey || !page.url) return url;
+    // Another independent partial visit may have changed selections/cursors
+    // since this link was generated. This pager owns only its seek parameter.
+    const base = typeof window === 'undefined' ? 'http://fixture.invalid' : window.location.origin;
+    const target = new URL(url, base);
+    const current = new URL(page.url, base);
+    if (target.origin !== current.origin || target.pathname !== current.pathname) return url;
+    const cursor = target.searchParams.get(props.cursorKey);
+    if (cursor === null) current.searchParams.delete(props.cursorKey);
+    else current.searchParams.set(props.cursorKey, cursor);
+    return current.pathname + current.search + current.hash;
+}
 function visit(url) {
     if (busy.value) return;
-    router.get(url, {}, {
+    router.get(currentUrl(url), {}, {
         only: props.only, preserveState: true, preserveScroll: true,
         onStart: () => { busy.value = true; error.value = ''; },
         onFinish: () => { busy.value = false; },

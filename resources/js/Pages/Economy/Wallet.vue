@@ -316,7 +316,7 @@ const assetRows = () =>
                     caption="Your transactions, newest first — 20 per page"
                 />
                 <p v-else class="econ-note">No transactions on this page.</p>
-                <HistoryPager :pages="transaction_pages" :only="['transactions', 'transaction_pages']" first="/economy/wallet" label="Transaction history pages" />
+                <HistoryPager cursor-key="transactions_cursor" :pages="transaction_pages" :only="['transactions', 'transaction_pages']" first="/economy/wallet" label="Transaction history pages" />
             </Card>
 
             <Card as="section" title="Stipend receipts">
