@@ -87,3 +87,8 @@ E5 and IO-6 development and required internal tests are complete; see the two CG
 The additive `2026_09_13_101000_governor_nominee_directory_indexes` migration is applied locally, all three indexes verified valid, and routes cleared. Horizon restart is pending completion and rollout of the concurrently developing EO-2 schema/service changes; do not restart workers into a partially written or unmigrated application. Pulling hosts must apply additive migrations and refresh workers through their deployment process.
 
 The action plan now carries a fixed-baseline progress table: 10 build items closed / 23 remaining, 2 whole internal reviews closed / 27 remaining. E5/IO-6 are included in those closures. EO-2 and EO-8 are the current bounded builds. B6 belongs with EO-5; IO-7 governor removal remains separate from completed nomination/expiry. Do not restart exploratory inventories or count partial reviews as closed.
+
+
+## Corrected election certification closure — 13 September
+
+EO-8 is implemented and internally tested (15 tests / 531 assertions). Corrections preserve the original legislative cycle and unchanged offices; changed winners use existing vacancy consequences and inherit the unchanged original expiry. Corrections with independent vacancy/replacement history that cannot be resolved safely refuse atomically and are not reported as automatically supported. No migration or live election action was needed for this patch. Restart remains coordinated with EO-2 schema rollout. Current fixed-baseline counts are 11 build closures / 22 remaining and 2 full review closures / 27 remaining; EO-2 is still uncompleted and not included.

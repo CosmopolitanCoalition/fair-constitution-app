@@ -1,5 +1,28 @@
 # Corrected-election recertification review — 2026-09-13
 
+## EO-8 repair and internal validation
+
+The demonstrated current-term general-election correction defect is repaired. `ElectionResultsCertification` now serializes each filing on its election row, retains the original `elections.certified_at` cycle anchor, and routes a superseding general count to `ElectionCertificationReconciliationService`. The service locks the chamber/current roster, verifies the prior sealed race hashes against the certification being superseded, and requires a newly resolved corrected audit. Ordinary first certification remains on the existing pipeline.
+
+- Unchanged winners keep their member/term IDs, seated status, speaker and committee offices, original dates, clocks and successor. Their normalized result metadata can be corrected without repeating institutional organization.
+- For an unambiguous changed current winner, actual `VacancyService::declare(queueCountback: false)` retires only the displaced member and associated committee/presiding offices. Ex-officio executive membership linked to that member also ends. The corrected winner enters that physical seat as `elected` with a new term starting at correction and inheriting the original expiry; the vacancy is filled without running a countback or scheduling a new cycle. Unaffected offices and prior/open votes are preserved.
+- Metadata-only correction remains supported when an original winner independently resigned and was replaced: a real private-fixture countback replacement and the old resignation retain their identities and history.
+- A historical-window mismatch, changed-winner race with independent vacancy/replacement lineage, mismatched prior certification snapshot, missing/ambiguous original successor, or repeated accepted count refuses atomically. No old laws or votes are retroactively invalidated.
+
+The former opt-in diagnostic was converted into desired-behavior regressions at `tests/Unit/CorrectedElectionRecertificationTest.php`; `tests/reviews/CorrectedElectionRecertificationReviewTest.php` is removed. Validation:
+
+```powershell
+docker exec -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: -e CACHE_STORE=array fc_app php vendor/bin/phpunit tests/Unit/CorrectedElectionRecertificationTest.php tests/Constitutional/TermLockstepTest.php --do-not-cache-result --stop-on-error
+```
+
+**Passed: 15 tests / 531 assertions, 23.853 seconds, 20.00 MB.** This combines ten private correction tests with five DB-free term invariants. Coverage includes unchanged and changed winners, independent countback history, prior/current offices, preserved successor and cycle, stale-status retry, historical refusal, prior-hash mismatch, unauthorized/reaffirmed controls, and an intentional replacement INSERT failure after vacancy retirement proving complete transaction rollback. Jobs are faked, countback dispatch is explicitly absent, and only the original first-certification social-provisioning job is recorded by the fake.
+
+The immutable-term writer inventory now explicitly includes the new reconciliation service because it creates the replacement's term using `CertificationService::inheritedWindow`. The unconditional source scan proving no `ends_on` update still covers this service and passes; neither that scan nor the expiry rule was weakened. No schema migration, live civic mutation, production build or external call was needed.
+
+**Bounded remaining lifecycle scope:** automatic changed-winner reconciliation across independent resignations/countbacks/special replacements is explicitly unsupported and refuses safely. Historical corrections that would need to alter seating, changed occupied-seat totals, and a corrected winner already holding another chamber seat also require separate reconciliation work. Executive/judicial/organization/special-election recertification, actual concurrent PostgreSQL delivery and full engine/audit-chain integration were not claimed as completed by this SQLite pass. These limits do not prevent the demonstrated same-election repair from preserving a current, unambiguous term.
+
+## Original defect evidence (before repair)
+
 **Confirmed build defect:** certifying a corrected audit of an already seated general election executes another complete chamber rollover. It restarts the term window, advances its number, retires unchanged members and their committee/presiding offices, shifts the next-cycle clock, and opens another successor election. Production code was not changed by this review.
 
 Reviewed at `df72a0a7` (`Retire legislative offices on rollover and verify combined room workflows`). The term/successor problem already exists in the ordinary certification path; the recent, correct new-term cleanup also applies to this misclassified recertification and therefore clears committee and speaker offices. Removing that cleanup would reopen the genuine new-term defect rather than fix recertification.

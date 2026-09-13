@@ -168,6 +168,11 @@ class TermLockstepTest extends TestCase
         $whitelist = [
             $this->normalize($this->appPath().'/Models/Term.php'),                  // fillable/casts
             $this->normalize($this->appPath().'/Services/CertificationService.php'), // Term::create + window math
+            // Corrected general counts create ONLY a displaced winner's new
+            // inherited-expiry term. Existing member/term identities and every
+            // prior ends_on remain unchanged (CorrectedElectionRecertificationTest).
+            // The no-update scan above still examines this writer unconditionally.
+            $this->normalize($this->appPath().'/Services/ElectionCertificationReconciliationService.php'),
             $this->normalize($this->appPath().'/Services/Legislature/ChamberActService.php'), // civil-appointment Term::create (Phase C)
             // Phase D (constitutional review note, PHASE_D_DESIGN_executive
             // §C): BoG governors are 10-year CIVIL appointments (Art. II §9)

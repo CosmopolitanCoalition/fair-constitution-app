@@ -37,6 +37,7 @@ Date: 2026-09-13. Scope: E5's current-board governor workspace, bounded nominee 
 | Actual PostgreSQL search plans | Three production query lanes used their dedicated public-prefix index and the existing active-association index on synthetic 20,000 users, 10,000 social profiles and 20,000 associations. Warm first-page execution times were chosen name **0.313 ms**, social name **0.411 ms**, and public handle **0.311 ms**. Forward/back traversal passed. These are bounded synthetic query checks, not a claim of measured planet-scale throughput. |
 | Migration and route activation | Parent applied `2026_09_13_101000_governor_nominee_directory_indexes` locally in approximately 6 s and verified the three expected indexes have `indisvalid=true`; route cache was cleared. No destructive schema operation or world reset was used. |
 | Patch integrity | `git diff --check` passed. No production frontend build was run. |
+| Read-only browser walkthrough | Parent verified the actual board page for **'Eua fo'ou Community Health Corporation**, reached from the worldwide directory: institutional links, governor records and the expandable nomination role preview rendered and were browsable. No nomination, vote or other civic mutation was performed. |
 
 Reproduction commands for the main surface suites:
 

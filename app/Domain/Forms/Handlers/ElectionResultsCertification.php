@@ -12,6 +12,8 @@ use App\Models\ElectionCertification;
 use App\Models\Tabulation;
 use App\Models\User;
 use App\Services\ConstitutionalVersionService;
+use App\Services\ElectionCertificationReconciliationService;
+use Illuminate\Support\Facades\DB;
 
 /**
  * F-ELB-004 — Election Results Certification (R-08).
@@ -41,8 +43,7 @@ class ElectionResultsCertification implements FormHandler
 {
     public function __construct(
         private readonly CertificationPipeline $pipeline,
-    ) {
-    }
+    ) {}
 
     public function module(): string
     {
@@ -66,7 +67,13 @@ class ElectionResultsCertification implements FormHandler
 
     public function handle(?User $actor, array $payload): array
     {
-        $election = Election::query()->find($payload['election_id'] ?? null);
+        return DB::transaction(fn () => $this->certifyWithinTransaction($actor, $payload));
+    }
+
+    private function certifyWithinTransaction(?User $actor, array $payload): array
+    {
+        // Serialize first certification and audit retries on the same election.
+        $election = Election::query()->lockForUpdate()->find($payload['election_id'] ?? null);
 
         if ($election === null) {
             throw new ConstitutionalViolation(
@@ -78,7 +85,7 @@ class ElectionResultsCertification implements FormHandler
         if (! in_array($election->status, [Election::STATUS_TABULATING, Election::STATUS_AUDIT_RERUN], true)) {
             throw new ConstitutionalViolation(
                 "Election [{$election->id}] is not certifiable (status: {$election->status}; "
-                . 'requires tabulating or audit_rerun).',
+                .'requires tabulating or audit_rerun).',
                 'CGA Forms Catalog (F-ELB-004)'
             );
         }
@@ -94,50 +101,57 @@ class ElectionResultsCertification implements FormHandler
         if ($pinned !== null && $pinned !== app(ConstitutionalVersionService::class)->derive()) {
             throw new ConstitutionalViolation(
                 "Election [{$election->id}] opened under constitutional_version [{$pinned}] but the deployed "
-                . 'version has changed — certifying would seal a count under rules that moved mid-contest. '
-                . 'A constitutional-version upgrade cannot disrupt an electoral process in flight.',
+                .'version has changed — certifying would seal a count under rules that moved mid-contest. '
+                .'A constitutional-version upgrade cannot disrupt an electoral process in flight.',
                 'Art. II §7'
             );
         }
 
         $recordHashes = $this->raceRecordHashes($election);
-        $member       = BoardProvenance::resolveMember($actor, $election, 'F-ELB-004');
+        $member = BoardProvenance::resolveMember($actor, $election, 'F-ELB-004');
 
         $superseded = $this->resolveIdempotency($election);
+        $isGeneralCorrection = $superseded !== null && $election->kind === Election::KIND_GENERAL;
 
         // Hash over all race record hashes, order-independent (sorted by
         // race id) — sealed into the chain with this entry.
         ksort($recordHashes);
         $countRecordHash = hash('sha256', implode("\n", array_map(
-            fn (string $raceId) => $raceId . ':' . $recordHashes[$raceId],
+            fn (string $raceId) => $raceId.':'.$recordHashes[$raceId],
             array_keys($recordHashes),
         )));
 
         $certification = ElectionCertification::query()->create([
-            'election_id'            => (string) $election->id,
-            'election_board_id'      => (string) $member->election_board_id,
+            'election_id' => (string) $election->id,
+            'election_board_id' => (string) $member->election_board_id,
             'certified_by_member_id' => (string) $member->id,
-            'certified_at'           => now(),
-            'count_record_hash'      => $countRecordHash,
-            'status'                 => ElectionCertification::STATUS_CERTIFIED,
+            'certified_at' => now(),
+            'count_record_hash' => $countRecordHash,
+            'status' => ElectionCertification::STATUS_CERTIFIED,
         ]);
 
         $election->forceFill([
-            'status'       => Election::STATUS_CERTIFIED,
-            'certified_at' => now(),
+            'status' => Election::STATUS_CERTIFIED,
+            // This is the original cycle anchor. The new certification row
+            // separately records when its corrected count was accepted.
+            'certified_at' => $isGeneralCorrection ? $election->certified_at : now(),
         ])->save();
 
         $election->races()->update(['status' => Election::STATUS_CERTIFIED]);
 
         // WI-B5 seam — seating block runs here once the real pipeline is
         // bound; the no-op records the deferral in the audit payload.
-        $pipelineExtra = $this->pipeline->certify($election, $certification);
+        $pipelineExtra = $isGeneralCorrection
+            ? app(ElectionCertificationReconciliationService::class)->reconcile(
+                $election, $certification, ElectionCertification::findOrFail($superseded), $recordHashes, $actor,
+            )
+            : $this->pipeline->certify($election, $certification);
 
         return array_merge([
-            'election_id'              => (string) $election->id,
-            'certification_id'         => (string) $certification->id,
-            'count_record_hash'        => $countRecordHash,
-            'races_certified'          => count($recordHashes),
+            'election_id' => (string) $election->id,
+            'certification_id' => (string) $certification->id,
+            'count_record_hash' => $countRecordHash,
+            'races_certified' => count($recordHashes),
             'superseded_certification' => $superseded,
         ], $pipelineExtra);
     }
@@ -172,7 +186,7 @@ class ElectionResultsCertification implements FormHandler
             if ($tabulation === null) {
                 throw new ConstitutionalViolation(
                     "Race [{$race->id}] has no complete tabulation with a sealed record hash — "
-                    . 'certification requires every race counted.',
+                    .'certification requires every race counted.',
                     'CGA Forms Catalog (F-ELB-004)'
                 );
             }
@@ -208,7 +222,7 @@ class ElectionResultsCertification implements FormHandler
         if (! $corrected) {
             throw new ConstitutionalViolation(
                 "Election [{$election->id}] is already certified — a second certification requires an "
-                . "audit re-run with outcome 'corrected' (F-ELB-006).",
+                ."audit re-run with outcome 'corrected' (F-ELB-006).",
                 'CGA Forms Catalog (F-ELB-004)'
             );
         }
