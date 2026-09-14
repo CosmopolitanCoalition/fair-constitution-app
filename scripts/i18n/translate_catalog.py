@@ -346,13 +346,121 @@ class ClaudeProvider(Provider):
         return out if isinstance(out, list) and len(out) == len(texts) else [None] * len(texts)
 
 
-def make_provider(name: str, glossary=None) -> Provider:
+class OllamaProvider(Provider):
+    """
+    A local instruct LLM served by Ollama on this box. Free and private, like
+    NLLB, but an instruct model reads the context header and glossary, so it
+    keeps UI tone and settled terms far better than a raw MT model on short
+    strings. The default model is the largest that fits an 8 GB card.
+
+    JSON MODE. The request asks Ollama for a JSON object {"t": [...]} the same
+    length and order as the input, so the array is parsed rather than scraped
+    out of prose. A wrong length or a broken parse returns None for the whole
+    batch, and qa() skips those to review - never ships a guess.
+    """
+
+    name = "ollama"
+
+    def __init__(self, glossary=None, model=None, lang=None, host=None,
+                 retries=3, timeout=300):
+        self.glossary = glossary or {}
+        self.model = model or os.environ.get("OLLAMA_MODEL") or "llama3.1:8b"
+        self.lang = lang or {}
+        self.host = self._normalize_host(host or os.environ.get("OLLAMA_HOST")
+                                         or "http://127.0.0.1:11434")
+        self.retries = retries
+        self.timeout = timeout
+        self.device = "ollama"
+
+    @staticmethod
+    def _normalize_host(raw: str) -> str:
+        """
+        Make a reachable client URL from OLLAMA_HOST.
+
+        OLLAMA_HOST commonly holds the server's BIND address, e.g.
+        "0.0.0.0:11434" with no scheme. 0.0.0.0 is bind-all, not a destination a
+        client can dial, and a missing scheme raises "unknown url type". Add
+        http:// when absent and dial 127.0.0.1 for a bind-all address.
+        """
+        h = raw.strip().rstrip("/")
+        if "://" not in h:
+            h = "http://" + h
+        return h.replace("://0.0.0.0", "://127.0.0.1")
+
+    def _system(self, target: str) -> str:
+        lang_name = self.lang.get("name") or target
+        terms = "\n".join(f"  {k} -> {v}" for k, v in self.glossary.items())
+        rtl = ("\nThis language is written right-to-left. Return natural "
+               "right-to-left text and do not reorder the markers.") if self.lang.get("dir") == "rtl" else ""
+        return (
+            f"You translate user-interface strings into {lang_name}. Rules, all mandatory:\n"
+            "1. Translate each input string into the target language.\n"
+            "2. Keep every bracketed marker like [0] or [12] exactly as written. "
+            "They stand for tokens that must not change.\n"
+            "3. Keep every {placeholder} exactly as written.\n"
+            "4. Keep the tone plain, precise, and non-bureaucratic. Short sentences.\n"
+            + (f"5. Use these settled terms:\n{terms}\n" if terms else "")
+            + rtl
+            + '\nReturn ONLY a JSON object of the form {"t": ["...", "..."]}, '
+            "the SAME length and order as the input array. No prose."
+        )
+
+    def _post(self, payload: dict) -> dict | None:
+        import urllib.error
+        import urllib.request
+
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(f"{self.host}/api/chat", data=data,
+                                     headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+            return None
+
+    def _run(self, texts, target):
+        payload_base = {
+            "model": self.model,
+            "stream": False,
+            "format": "json",
+            # Keep the model resident across chunks. A shared 8 GB card evicts
+            # it between separate requests otherwise, so every chunk pays the
+            # cold-load cost again.
+            "keep_alive": "10m",
+            "options": {"temperature": 0.2},
+            "messages": [
+                {"role": "system", "content": self._system(target)},
+                {"role": "user", "content": json.dumps(texts, ensure_ascii=False)},
+            ],
+        }
+        for attempt in range(self.retries):
+            resp = self._post(payload_base)
+            if resp is not None:
+                content = (resp.get("message") or {}).get("content", "")
+                try:
+                    obj = json.loads(content)
+                except json.JSONDecodeError:
+                    obj = None
+                arr = obj.get("t") if isinstance(obj, dict) else None
+                if isinstance(arr, list) and len(arr) == len(texts):
+                    return [str(x) if x is not None else None for x in arr]
+            # Backoff before a retry. A request that fails instantly is usually
+            # the server loading the model under GPU pressure; an immediate
+            # re-POST fails the same way, so give it room.
+            if attempt < self.retries - 1:
+                time.sleep(3 * (attempt + 1))
+        return [None] * len(texts)
+
+
+def make_provider(name: str, glossary=None, model=None, lang=None) -> Provider:
     if name == "stub":
         return StubProvider()
     if name == "nllb":
         return NllbProvider()
     if name == "claude":
         return ClaudeProvider(glossary)
+    if name == "ollama":
+        return OllamaProvider(glossary, model=model, lang=lang)
     raise SystemExit(f"unknown provider [{name}]")
 
 
@@ -719,18 +827,66 @@ def self_test() -> int:
     return 1 if failed else 0
 
 
+def smoke(args, reg) -> int:
+    """
+    Translate a handful of real strings through the provider and print them,
+    with the qa() verdict for each. Writes NOTHING. This is how a local model is
+    compared against another before a full pass is authorised.
+    """
+    src_dir = LOCALES_DIR / "en"
+    namespaces = ([args.namespace] if args.namespace
+                  else sorted(p.stem for p in src_dir.glob("*.json")))
+    picks: list[tuple[str, str, str]] = []
+    for ns in namespaces:
+        for key, text in load(src_dir / f"{ns}.json").items():
+            m, _ = mask(text)
+            if re.sub(r"\[\d+\]", "", m).strip():
+                picks.append((ns, key, text))
+            if len(picks) >= args.smoke:
+                break
+        if len(picks) >= args.smoke:
+            break
+
+    script = reg[args.locale].get("script") or "Latn"
+    glossary = glossary_terms(args.locale)
+    provider = make_provider(args.provider, glossary, model=args.model, lang=reg[args.locale])
+    model_note = f" model={getattr(provider, 'model', '-')}" if args.provider == "ollama" else ""
+    print(f"\nsmoke  en -> {args.locale} ({reg[args.locale]['endonym']})   "
+          f"provider={args.provider}{model_note}   strings={len(picks)}   [NO WRITE]\n")
+
+    outs = provider.translate_batch([t for _, _, t in picks], args.locale)
+    ok = 0
+    for (ns, key, text), out in zip(picks, outs):
+        reason = qa(text, out, script)
+        verdict = "PASS" if reason is None else f"SKIP ({reason})"
+        if reason is None:
+            ok += 1
+        print(f"  [{ns}] {key}")
+        print(f"    en : {text}")
+        print(f"    {args.locale:<3}: {out}")
+        print(f"    qa : {verdict}\n")
+    print(f"  {ok}/{len(picks)} passed qa   [nothing written]")
+    return 0
+
+
 def main() -> int:
     if "--self-test" in sys.argv:
         return self_test()
     ap = argparse.ArgumentParser(description="Machine-translate the message catalogs.")
     ap.add_argument("--locale", required=True)
     ap.add_argument("--namespace")
-    ap.add_argument("--provider", default="stub", choices=["stub", "nllb", "claude"])
+    ap.add_argument("--provider", default="stub", choices=["stub", "nllb", "claude", "ollama"])
     ap.add_argument("--limit", type=int)
     ap.add_argument("--chunk", type=int, default=40)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--yes-spend", action="store_true")
+    ap.add_argument("--model", help="ollama model tag (default OLLAMA_MODEL or llama3.1:8b)")
+    ap.add_argument("--smoke", type=int, metavar="N",
+                    help="translate N strings through the provider and print them; write NOTHING")
+    ap.add_argument("--yes-run", action="store_true",
+                    help="required for a full --provider ollama pass (no --limit, no --smoke); a full "
+                         "local-model pass is the operator's GO. Smoke and --limit runs do not need it.")
     args = ap.parse_args()
 
     reg = registry()
@@ -743,6 +899,16 @@ def main() -> int:
     if args.provider == "claude" and not os.environ.get("ANTHROPIC_API_KEY"):
         print("ANTHROPIC_API_KEY is not set. The operator places the key; this script never will.")
         return 2
+    # A full local-model pass is the operator's GO. A bounded --limit or a
+    # --smoke run needs no gate; a full pass does.
+    if (args.provider == "ollama" and not args.dry_run and args.smoke is None
+            and args.limit is None and not args.yes_run):
+        print("--provider ollama runs a full local-model pass. That is the operator's GO.\n"
+              "Re-run with --yes-run for a full pass, or --smoke N / --limit N for a bounded run.")
+        return 2
+
+    if args.smoke is not None:
+        return smoke(args, reg)
 
     src_dir = LOCALES_DIR / "en"
     if not src_dir.exists():
@@ -754,7 +920,8 @@ def main() -> int:
 
     script = reg[args.locale].get("script") or "Latn"
     glossary = glossary_terms(args.locale)
-    provider = None if args.dry_run else make_provider(args.provider, glossary)
+    provider = None if args.dry_run else make_provider(
+        args.provider, glossary, model=args.model, lang=reg[args.locale])
 
     # total outstanding across every namespace, so the bar has a real denominator
     outstanding = 0
