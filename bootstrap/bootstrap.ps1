@@ -28,6 +28,7 @@ param(
   [switch]$NonInteractive,
   [string]$Prefix = "fc",
   [int]$NginxPort = 8080,
+  [string]$Project = "",
   [Parameter(ValueFromRemainingArguments = $true)] [string[]]$PassThru = @()
 )
 
@@ -127,29 +128,84 @@ foreach ($t in @('yggdrasil', 'tailnet', 'onion', 'https')) {
 $selfArgs = @()
 if ($selfUrl -and -not ($PassThru -contains '-SelfUrl')) { $selfArgs = @('-SelfUrl', $selfUrl) }
 Write-Host "-> Handing off to deploy.ps1 for the app layer..."
-& (Join-Path $Root "deploy.ps1") -Prefix $Prefix -NginxPort $NginxPort @PassThru @selfArgs
+# Forward every argument by NAME. PowerShell ARRAY splatting binds POSITIONALLY — it ignores the
+# '-Name' tokens — so a mixed `& deploy.ps1 -Prefix x @selfArgs` sent -SelfUrl/-Project to the
+# wrong positional slots (deploy.ps1 position 3 is [int]$PgPort, so -SelfUrl failed to convert).
+# Invoking through `pwsh -File` routes the tokens through the argument parser, which honours
+# -Name (the same mechanism tests/deploy/test_join_rerun.ps1 relies on). Thread an explicit
+# -Project when the operator gave one; otherwise deploy.ps1 resolves it (the .env pin, else
+# $Prefix), pins it to .env, and we read that back below. Either way both scripts agree.
+$deployArgs = @('-Prefix', $Prefix, '-NginxPort', "$NginxPort")
+if ($Project) { $deployArgs += @('-Project', $Project) }
+$deployArgs += $PassThru
+$deployArgs += $selfArgs
+& pwsh -NoProfile -File (Join-Path $Root "deploy.ps1") @deployArgs
+if ($LASTEXITCODE -ne 0) { throw "deploy.ps1 failed (exit $LASTEXITCODE) - the app layer did not come up." }
 
 # 4. Post-up: enable federation, register transports, publish the directory.
-$dc = @("compose", "-p", $Prefix)
+# deploy.ps1 (above) is the SINGLE OWNER of compose-project resolution and pinned the resolved
+# name into .env (COMPOSE_PROJECT_NAME). READ THAT — $Prefix is the CONTAINER-NAME prefix, not
+# the compose project, and a $Prefix-keyed DC addressed a different, often EMPTY stack from the
+# one deploy.ps1 just brought up. Parse literally (strip surrounding quotes / whitespace); fall
+# back to -Project then $Prefix only when the pin is absent (it never is once deploy.ps1 ran).
+$project = ""
+$envPath = Join-Path $Root ".env"
+if (Test-Path $envPath) {
+  foreach ($line in @(Get-Content $envPath)) {
+    if ($line -like "COMPOSE_PROJECT_NAME=*") {
+      $project = ($line.Substring("COMPOSE_PROJECT_NAME=".Length)).Trim().Trim('"')
+      break
+    }
+  }
+}
+if (-not $project) { $project = if ($Project) { $Project } else { $Prefix } }
+Write-Host "-> compose project = $project   (resolved by deploy.ps1, read from .env)"
+$dc = @("compose", "-p", $project)
 function Invoke-Artisan { docker @dc exec -T app php artisan @args }
 
+# A native (docker/artisan) non-zero exit does NOT throw by default, so check $LASTEXITCODE
+# explicitly after each step and throw. Any post-deploy step failing means the mesh is NOT
+# ready: abort LOUD rather than printing the completion line ("failures cannot report success").
+function Assert-Artisan([string]$Label) { if ($LASTEXITCODE -ne 0) { throw "Survival-mesh setup FAILED: $Label" } }
+
 # federation:init mints the identity AND opens the mesh endpoints (federation_enabled) —
-# without it /api/federation/identity is refused and the anchor is undiscoverable.
+# without it /api/federation/identity is refused and the anchor is undiscoverable. deploy.ps1
+# now runs it unconditionally, so this is idempotent/redundant when deploy.ps1 succeeded; it
+# stays as the bootstrap-side backstop. No -rotate (never regenerate identity on a rerun).
 Write-Host "-> Enabling federation (mint identity + open the mesh endpoints)..."
-try { Invoke-Artisan federation:init } catch { Write-Host "  WARN: federation:init failed - the mesh endpoints stay closed" }
+Invoke-Artisan federation:init
+Assert-Artisan "federation:init failed - the mesh endpoints stay closed"
 
 Write-Host "-> Registering transports..."
+$registered = 0
 foreach ($t in $chosen) {
   if (-not $advert.ContainsKey($t)) { Write-Host "  (skipping $t - no live address)"; continue }
-  try { Invoke-Artisan transport:register $t $advert[$t] } catch { Write-Host "  WARN: transport:register $t failed" }
+  Invoke-Artisan transport:register $t $advert[$t]
+  Assert-Artisan "transport:register $t failed"
+  $registered++
 }
-Write-Host "-> Publishing the directory..."
-try { Invoke-Artisan directory:publish } catch { Write-Host "  (no explicit-authority jurisdiction yet - run directory:publish <id> later)" }
+# directory:publish is FATAL on a genuine error, but two states are legitimate no-ops and must
+# NOT abort setup:
+#   1. No transport was registered (e.g. the air-gapped profile: sneakernet advertises nothing,
+#      so the register loop skips it). mesh:gates classifies "no transport advertised" as WARN,
+#      not FAIL, so the node is still federation-ready - do not abort one step before the
+#      readiness gate. directory:publish exits non-zero on this state, so guard it here and skip.
+#   2. No jurisdiction is explicitly authoritative - a mirror or fresh anchor. The command
+#      itself exits 0 with an informational line there, so it is already non-fatal.
+Write-Host "-> Publishing the directory for jurisdictions this node is authoritative for..."
+if ($registered -eq 0) {
+  Write-Host "  (no live transport registered - nothing to advertise; skipping directory:publish)"
+} else {
+  Invoke-Artisan directory:publish
+  Assert-Artisan "directory:publish failed"
+}
 
-# 5. Honest reachability report instead of a blind checkmark. Non-fatal — the overlay
-#    daemon may not be up yet.
-Write-Host "-> Mesh self-check:"
-try { Invoke-Artisan mesh:doctor } catch {}
+# 5. Final readiness assertion — the SAME contract deploy.ps1 enforces at the end of its run
+#    (mesh:gates). It exits non-zero on a hard FAIL (federation off / identity not minted), so
+#    the completion line below prints ONLY after the node is verified ready to federate.
+Write-Host "-> Verifying federation readiness (mesh:gates)..."
+Invoke-Artisan mesh:gates
+Assert-Artisan "mesh:gates reported the node is not ready to federate"
 
 Write-Host "OK Survival-mesh setup complete. Transports: $($chosen -join ', ')"
 Write-Host "  Two-way check: once BOTH boxes are up, run 'php artisan mesh:doctor <other-box-url>' on each."

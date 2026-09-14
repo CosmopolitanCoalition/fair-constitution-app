@@ -142,28 +142,66 @@ echo "→ Handing off to deploy.sh for the app layer…"
 "$ROOT/deploy.sh" "${PASSTHRU[@]:-}" "${SELF_ARG[@]:-}"
 
 # 5. Post-up: enable federation, register each chosen transport, publish the directory.
-DC=(docker compose -p "$PREFIX")
+# deploy.sh (above) is the SINGLE OWNER of compose-project resolution: it honours --project,
+# else the COMPOSE_PROJECT_NAME a prior run pinned in .env, else the normalised dir basename,
+# and pins the resolved name back into .env. READ THAT PIN — never re-derive from $PREFIX,
+# which is the CONTAINER-NAME prefix (fc), not the compose project. A $PREFIX-keyed DC
+# addressed a different, often EMPTY stack from the one deploy.sh just brought up, so every
+# post-deploy artisan call could silently hit the wrong project. Parse exactly as deploy.sh
+# does (strip surrounding quotes and any CR); fall back to the same normalised basename only
+# when the key is absent (it never is once deploy.sh has run).
+PROJECT=""
+if [[ -f "$ROOT/.env" ]] && grep -qE '^COMPOSE_PROJECT_NAME=' "$ROOT/.env"; then
+  PROJECT="$(grep -E '^COMPOSE_PROJECT_NAME=' "$ROOT/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d '\r')"
+fi
+PROJECT="${PROJECT:-$(basename "$ROOT" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_-]//g')}"
+echo "→ compose project = ${PROJECT}   (resolved by deploy.sh, read from .env)"
+DC=(docker compose -p "$PROJECT")
 art() { "${DC[@]}" exec -T app php artisan "$@"; }
+
+# Any post-deploy step failing means the mesh is NOT ready. Abort LOUD rather than printing a
+# completion line over a mistargeted or failed registration ("failures cannot report success").
+fail() { echo "✗ Survival-mesh setup FAILED: $1" >&2; exit 1; }
 
 # federation:init mints the identity AND opens the mesh endpoints (federation_enabled) —
 # without it /api/federation/identity is refused and the anchor is undiscoverable. deploy.sh
-# only runs it on --join, so a public-anchor needs it here. Idempotent (no --rotate).
+# now runs it UNCONDITIONALLY, so this is idempotent/redundant when deploy.sh succeeded; it
+# stays as the bootstrap-side backstop. Idempotent (no --rotate — never regenerate identity
+# on a rerun). FATAL: a failure here means the endpoints stay closed, which is not "complete".
 echo "→ Enabling federation (mint identity + open the mesh endpoints)…"
-art federation:init || echo "  WARN: federation:init failed — the mesh endpoints stay closed"
+art federation:init || fail "federation:init failed — the mesh endpoints stay closed"
 
 echo "→ Registering transports…"
+REGISTERED=0
 for t in "${CHOSEN[@]}"; do
   addr="${ADVERT[$t]:-}"
   [[ -n "$addr" ]] || { echo "  (skipping ${t} — no live address)"; continue; }
-  art transport:register "$t" "$addr" || echo "  WARN: transport:register ${t} failed"
+  art transport:register "$t" "$addr" || fail "transport:register ${t} failed"
+  REGISTERED=$((REGISTERED + 1))
 done
+# directory:publish is FATAL on a genuine error, but two states are legitimate no-ops and must
+# NOT abort setup:
+#   1. No transport was registered (e.g. the air-gapped profile: sneakernet advertises nothing,
+#      so the register loop skips it and there is nothing to advertise). mesh:gates classifies
+#      "no transport advertised" as WARN, not FAIL, so the node is still federation-ready — do
+#      not abort one step before the readiness gate. directory:publish exits non-zero on this
+#      state (no transports = FAILURE, correct in general), so guard it here and skip.
+#   2. No jurisdiction is explicitly authoritative to this node — a mirror or fresh anchor. The
+#      command itself now exits 0 with an informational line there (DirectoryPublishCommand),
+#      so it is already non-fatal.
 echo "→ Publishing the directory for jurisdictions this node is authoritative for…"
-art directory:publish || echo "  (no explicit-authority jurisdiction yet — run directory:publish <id> later)"
+if [[ "$REGISTERED" -eq 0 ]]; then
+  echo "  (no live transport registered — nothing to advertise; skipping directory:publish)"
+else
+  art directory:publish || fail "directory:publish failed"
+fi
 
-# 6. Honest reachability report (NOT a blind checkmark): dials our advertised transports
-#    and prints what to verify two-way. Non-fatal — the overlay daemon may not be up yet.
-echo "→ Mesh self-check:"
-art mesh:doctor || true
+# 6. Final readiness assertion — the SAME contract deploy.sh enforces at the end of its run
+#    (art mesh:gates). mesh:gates exits non-zero on a hard FAIL (federation off / identity not
+#    minted), so this is the gate that makes the completion line below trustworthy: it prints
+#    ONLY after the node is verified ready to federate, never over a failed/mistargeted step.
+echo "→ Verifying federation readiness (mesh:gates)…"
+art mesh:gates || fail "mesh:gates reported the node is not ready to federate"
 
 echo "✓ Survival-mesh setup complete. Transports: ${CHOSEN[*]}"
 echo "  Two-way check: once BOTH boxes are up, run 'php artisan mesh:doctor <other-box-url>' on each."

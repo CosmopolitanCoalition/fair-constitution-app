@@ -36,9 +36,27 @@ param(
 
 $ErrorActionPreference = "Stop"
 if (-not $SelfUrl) { $SelfUrl = "http://host.docker.internal:$NginxPort" }
-if (-not $Project) { $Project = $Prefix }
 
 Set-Location -Path $PSScriptRoot
+
+# Compose project resolution (parity with deploy.sh:146-155). -Project wins. Otherwise REUSE
+# the project this checkout already runs under: the COMPOSE_PROJECT_NAME a prior run pinned in
+# .env. Defaulting STRAIGHT to $Prefix orphaned a box previously deployed under a custom
+# project — the rerun redeployed under a DIFFERENT, empty set of volumes and the world looked
+# gone. Only when .env carries no pin do we fall back to $Prefix. Parse like the .env readers
+# below (literal, strip surrounding quotes / whitespace).
+if (-not $Project) {
+  $pinnedProject = ""
+  if (Test-Path .env) {
+    foreach ($line in @(Get-Content .env)) {
+      if ($line -like "COMPOSE_PROJECT_NAME=*") {
+        $pinnedProject = ($line.Substring("COMPOSE_PROJECT_NAME=".Length)).Trim().Trim('"')
+        break
+      }
+    }
+  }
+  if ($pinnedProject) { $Project = $pinnedProject } else { $Project = $Prefix }
+}
 
 $dc = @("compose", "-p", $Project)
 function Invoke-Artisan { docker @dc exec -T app php artisan @args }
