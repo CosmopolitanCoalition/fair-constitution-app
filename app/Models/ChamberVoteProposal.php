@@ -104,6 +104,11 @@ class ChamberVoteProposal extends Model
 
     public const KIND_DISINTERMEDIATION = 'disintermediation';
 
+    // budget_enactment (F-LEG-039): a drafted budget is moved to enactment on
+    // the floor. On adoption the lines become appropriations under the
+    // enacting act (BudgetService::enact). The effect happens only on adoption.
+    public const KIND_BUDGET_ENACTMENT = 'budget_enactment';
+
     public const STATUS_OPEN = 'open';
 
     public const STATUS_ADOPTED = 'adopted';

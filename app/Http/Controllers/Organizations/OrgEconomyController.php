@@ -139,6 +139,26 @@ class OrgEconomyController extends Controller
     }
 
     /**
+     * Pay membership dues (F-IND-023, kind='dues'). A member pays the
+     * organization's published dues amount into the organization's account.
+     * The handler resolves the amount from the dues policy and refuses when
+     * the organization charges no dues or the filer is not an active member.
+     * Dues are voluntary and never gate a civic right.
+     */
+    public function payDues(Request $request, Organization $organization, ConstitutionalEngine $engine): RedirectResponse
+    {
+        abort_unless($request->user(), 403);
+
+        $engine->file('F-IND-023', $request->user(), [
+            'action'          => 'dues',
+            'organization_id' => (string) $organization->id,
+        ]);
+
+        return redirect('/organizations/'.$organization->id.'/economy')
+            ->with('status', 'Dues paid. The payment is on the public ledger, recorded as dues.');
+    }
+
+    /**
      * The org's economic account ids (the money plane). An org may hold an
      * account per currency; all are its own to view here. Empty is honest —
      * an org with no account has no ledger, and the page says so.
