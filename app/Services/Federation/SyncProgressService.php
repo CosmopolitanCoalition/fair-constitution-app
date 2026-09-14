@@ -278,7 +278,7 @@ class SyncProgressService
                 'status' => $status,
                 'started_at' => $c?->created_at?->toIso8601String(),
                 'completed_at' => $status === 'done' ? $c?->updated_at?->toIso8601String() : null,
-                'indeterminate' => $total === null,
+                'indeterminate' => $total === null || $total <= 0, // no denominator, or reltuples not yet analyzed
             ];
         }
 

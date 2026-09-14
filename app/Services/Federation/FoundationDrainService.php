@@ -121,10 +121,13 @@ class FoundationDrainService
         $nextKey = $page['next_from_key'] ?? null;
         $applied = count($rows);
 
-        // Apply the page AND advance the cursor atomically — a crash before commit re-fetches the
-        // SAME page on resume (no gap, no dup); a crash after commit never re-fetches it.
-        DB::transaction(function () use ($table, $page, $cursor, $nextKey, $total, $applied) {
+        // Apply the page, stamp its authority, AND advance the cursor atomically — a crash before
+        // commit re-fetches the SAME page on resume (no gap, no dup); a crash after commit never
+        // re-fetches it. The authority stamp rides the page: it is a bounded, id-scoped UPDATE of
+        // this page's rows only (≤ page_size), never a planet-wide statement (ETL paradigm).
+        DB::transaction(function () use ($host, $table, $page, $cursor, $nextKey, $total, $applied) {
             $this->applyPage($table, $page);
+            $this->stampPageAuthority($table, $page, (string) $host->server_id);
             $cursor->forceFill([
                 'from_key' => $cursor->next_from_key,
                 'next_from_key' => $nextKey,
@@ -192,6 +195,83 @@ class FoundationDrainService
         DB::insert($sql, $bind);
 
         return count($rows);
+    }
+
+    /**
+     * Stamp the host's authority onto the jurisdiction rows of the page just applied, INSIDE the
+     * caller's per-page transaction (so the stamp commits atomically with the cursor advance and
+     * rides the drain). It is ONE bounded UPDATE scoped to this page's ids ({@code WHERE id IN
+     * (<= page_size ids)}), never a whole-table statement.
+     *
+     * Mirrors claim no authority: the stamp writes the HOST's server_id, NEVER this box's own id and
+     * NEVER NULL. A row that arrived carrying a (third-server) authoritative_server_id is left
+     * unchanged by the {@code IS NULL} predicate — only the donor's own rows (NULL sentinel) become
+     * the host's. Idempotent: a re-applied page finds its rows already owned and updates nothing.
+     * Only `jurisdictions` carries authority; every other foundation table is a no-op.
+     *
+     * @param  array<string,mixed>  $page
+     * @return int  rows stamped this page
+     */
+    public function stampPageAuthority(string $table, array $page, string $hostServerId): int
+    {
+        if ($table !== 'jurisdictions') {
+            return 0;
+        }
+
+        $ids = $this->pageColumnValues($page, 'id');
+        if ($ids === []) {
+            return 0;
+        }
+
+        return DB::table($table)
+            ->whereIn('id', $ids)
+            ->whereNull('authoritative_server_id')
+            ->update(['authoritative_server_id' => $hostServerId]);
+    }
+
+    /**
+     * Pull the non-null values of one column out of a decoded page's rows (rows are column-keyed
+     * maps). Bounded to the page — at most page_size values. Scopes the per-page authority stamp to
+     * exactly this page's ids.
+     *
+     * @param  array<string,mixed>  $page
+     * @return list<mixed>
+     */
+    private function pageColumnValues(array $page, string $column): array
+    {
+        $rows = (array) ($page['rows'] ?? []);
+        $out = [];
+        foreach ($rows as $row) {
+            $v = is_array($row) ? ($row[$column] ?? null) : null;
+            if ($v !== null) {
+                $out[] = $v;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Ledger completion evidence for the paginated seed, read from the COMMITTED cursor summary — no
+     * world-table scan. Every foundation table must have reached COMPLETE (the keyset was exhausted /
+     * the donor marked the last page complete). This is the exact completion signal; total_rows is an
+     * approximate bar denominator only (see FoundationServeService::estimatedRowCount) and is not the
+     * gate. An empty summary is not complete.
+     *
+     * @param  array<string,array{status:string,rows_applied:int,total_rows:?int}>  $summary
+     */
+    public function seedLedgerComplete(array $summary): bool
+    {
+        if ($summary === []) {
+            return false;
+        }
+        foreach ($summary as $s) {
+            if (($s['status'] ?? null) !== FoundationSyncCursor::STATUS_COMPLETE) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // ── verification ───────────────────────────────────────────────────────────

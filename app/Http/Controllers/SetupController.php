@@ -2401,6 +2401,16 @@ class SetupController extends Controller
 
     private function jurisdictionsCounts(): array
     {
+        // CACHED (8 s): this is a planet-scale GROUP BY over the whole world
+        // table and the pull-progress panel polls every 2 s; uncached, every
+        // poll re-scanned the world (M6 — "total progress does not require
+        // repeated world-table scans"). The sibling world-count block already
+        // caches 8 s the same way; a poll now hits the cache, not a fresh scan.
+        return cache()->remember('geodata-jurisdictions-counts', 8, fn () => $this->computeJurisdictionsCounts());
+    }
+
+    private function computeJurisdictionsCounts(): array
+    {
         // Single grouped query: totals *and* "has population" count per level
         // in one pass. Since geoBoundaries always runs before WorldPop, the
         // ratio `with_pop / count` is an accurate indicator of how much of

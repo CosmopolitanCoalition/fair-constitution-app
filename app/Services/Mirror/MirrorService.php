@@ -34,9 +34,11 @@ use RuntimeException;
  * (`POST /api/federation/adopt`, join key, chunked backfill) and the
  * ConstitutionalEngine write-guard on top of these primitives.
  *
- * Cardinal invariant: a mirror is authoritative for NOTHING. Nothing here ever
- * writes `authoritative_server_id` — `mirror_of_server_id` points AT the host;
- * it never claims authority.
+ * Cardinal invariant: a mirror is authoritative for NOTHING. The one deliberate write of
+ * `authoritative_server_id` is the seed: it stamps each imported jurisdiction to the HOST's
+ * server_id — per drained page on the paginated transport, in bounded keyset chunks on the legacy
+ * tarball — never to this box's own id and never NULL. `mirror_of_server_id` points AT the host;
+ * this instance never names itself as an authority.
  */
 class MirrorService
 {
@@ -432,10 +434,11 @@ class MirrorService
             return; // this host's seed is already applied
         }
 
-        // Seed transport (seed redesign). 'paginated' drains the foundation a signed KEYSET page at
-        // a time, UPSERTing per table with a resumable cursor — visible, crash-resumable, and
-        // non-destructive (never clears the identity / append-only tables). Default 'tarball' keeps
-        // the legacy pg_restore path below, byte-identical, as the fallback.
+        // Seed transport (seed redesign). The DEFAULT is 'paginated' (config/cga.php): it drains the
+        // foundation a signed KEYSET page at a time, UPSERTing per table with a resumable cursor and
+        // stamping authority per page — visible, crash-resumable, non-destructive (never clears the
+        // identity / append-only tables). The 'tarball' pg_restore path below is LEGACY, kept only as
+        // a fallback; it stamps authority in bounded keyset chunks after the one-shot load.
         if (config('cga.federation_seed_transport') === 'paginated') {
             $this->seedFromHostPaginated($host, $membership);
 
@@ -455,16 +458,18 @@ class MirrorService
         $this->import->importSeedFromFile($pulled['path']); // D1 identity-safe load + cosmic re-point
         $this->progress->completeImport($membership);
 
-        $stamped = DB::table('jurisdictions')
-            ->whereNull('authoritative_server_id')
-            ->update(['authoritative_server_id' => $host->server_id]);
+        // LEGACY transport: pg_restore loads the whole foundation in one shot, so — unlike the paginated
+        // path, which stamps authority per drained page inside the page transaction — authority is
+        // stamped here in bounded keyset chunks, committed per chunk with a visible progress line.
+        $stamped = $this->stampSeedAuthorityChunked((string) $host->server_id);
 
-        // Fail-CLOSED: after the stamp NO jurisdiction may remain unowned — a NULL authoritative_server_id
-        // resolves to "ours" (AuthorityResolver), which would make this mirror wrongly authoritative for the
-        // whole imported world. Refuse to finish seeding (and to stamp seeded_at) if any slipped through.
-        $unowned = (int) DB::table('jurisdictions')->whereNull('authoritative_server_id')->count();
-        if ($unowned > 0) {
-            throw new RuntimeException("Seed authority stamp left {$unowned} jurisdiction(s) unowned — refusing to finish seeding.");
+        // Fail-CLOSED (bounded): after the stamp NO jurisdiction may remain unowned — a NULL
+        // authoritative_server_id resolves to "ours" (AuthorityResolver), which would make this mirror
+        // wrongly authoritative for the whole imported world. ONE index-assisted existence probe (the
+        // btree on authoritative_server_id indexes NULLs), not a whole-table COUNT.
+        $blocker = $this->unownedJurisdictionReason();
+        if ($blocker !== null) {
+            throw new RuntimeException($blocker.' — refusing to finish seeding.');
         }
 
         $membership->forceFill(['seeded_at' => now()])->save();
@@ -497,25 +502,18 @@ class MirrorService
 
         $summary = $this->foundationDrain->drain($host);
 
-        // Per-table-complete gate (fail-closed) — every foundation table must have fully drained.
-        foreach ($summary as $table => $s) {
-            if (($s['status'] ?? null) !== FoundationSyncCursor::STATUS_COMPLETE) {
-                $this->progress->fail($membership, "Foundation drain for {$table} did not complete (status ".($s['status'] ?? 'unknown').').');
-                throw new RuntimeException("Foundation drain for '{$table}' did not complete (status ".($s['status'] ?? 'unknown').') — re-run the join to resume.');
-            }
-        }
-
-        // Authority stamp — identical to the tarball path. Rows the donor was authoritative for arrive
-        // with a NULL authoritative_server_id (the donor's "mine" sentinel) and are stamped to the host;
-        // rows the donor itself mirrored keep their third-server id. Fail-closed: none may remain unowned.
-        $stamped = DB::table('jurisdictions')
-            ->whereNull('authoritative_server_id')
-            ->update(['authoritative_server_id' => $host->server_id]);
-
-        $unowned = (int) DB::table('jurisdictions')->whereNull('authoritative_server_id')->count();
-        if ($unowned > 0) {
-            $this->progress->fail($membership, "Seed authority stamp left {$unowned} jurisdiction(s) unowned.");
-            throw new RuntimeException("Seed authority stamp left {$unowned} jurisdiction(s) unowned — refusing to finish seeding.");
+        // Bounded completion gate (fail-closed), no world-table scan:
+        //   1. Ledger evidence — every foundation table's committed cursor reached COMPLETE (the
+        //      authority stamp already rode each drained page inside its page transaction, so there is
+        //      no whole-table UPDATE here at all).
+        //   2. ONE index-assisted existence probe for a still-unowned jurisdiction (the btree on
+        //      authoritative_server_id indexes NULLs) — a NULL resolves to "ours" (AuthorityResolver),
+        //      which would wrongly make this mirror authoritative for the imported world.
+        // If either fails the membership stays SYNCING with a visible reason; a re-run resumes.
+        $blocker = $this->seedFinalizationBlocker($summary);
+        if ($blocker !== null) {
+            $this->progress->fail($membership, $blocker);
+            throw new RuntimeException($blocker.' — re-run the join to resume.');
         }
 
         DB::table('instance_settings')->update(['map_accepted_at' => now()]);
@@ -538,9 +536,107 @@ class MirrorService
         $this->audit->append('mirror', 'mirror.seeded', [
             'host_server_id' => $host->server_id,
             'transport' => 'paginated',
-            'jurisdictions_attributed' => $stamped,
+            'jurisdictions_rows' => $summary['jurisdictions']['rows_applied'] ?? null,
             'tables' => array_keys($summary),
         ], 'WF-JUR-06');
+    }
+
+    /**
+     * Bounded fail-closed completion gate for the PAGINATED seed. No world-table scan:
+     *   1. Ledger evidence — every foundation table's committed cursor is COMPLETE (drain summary).
+     *   2. ONE index-assisted existence probe for an unowned jurisdiction.
+     * Returns the reason the seed may NOT be finalized (membership stays SYNCING), or null to proceed.
+     *
+     * @param  array<string,array{status:string,rows_applied:int,total_rows:?int}>  $summary
+     */
+    public function seedFinalizationBlocker(array $summary): ?string
+    {
+        foreach ($summary as $table => $s) {
+            if (($s['status'] ?? null) !== FoundationSyncCursor::STATUS_COMPLETE) {
+                return "Foundation drain for '{$table}' did not complete (status ".($s['status'] ?? 'unknown').')';
+            }
+        }
+
+        return $this->unownedJurisdictionReason();
+    }
+
+    /**
+     * Bounded fail-closed probe: ONE index-assisted existence check for a still-unowned jurisdiction.
+     * The btree on authoritative_server_id indexes NULLs, so `whereNull(...)->exists()` is a bounded
+     * index probe (stops at the first hit), never a whole-table COUNT. A NULL authoritative_server_id
+     * resolves to "ours" in AuthorityResolver, which would wrongly make this mirror authoritative for
+     * the imported world; none may remain before seeded_at is stamped. Returns a reason, or null.
+     */
+    public function unownedJurisdictionReason(): ?string
+    {
+        if (DB::table('jurisdictions')->whereNull('authoritative_server_id')->exists()) {
+            return 'Seed authority stamp left jurisdiction(s) unowned';
+        }
+
+        return null;
+    }
+
+    /**
+     * LEGACY tarball transport only. The paginated transport (the config default) stamps authority per
+     * drained page inside the page transaction; the tarball path loads the whole foundation via one
+     * pg_restore, so it stamps AFTER the load in bounded keyset chunks — a cheap id roster
+     * (`id > cursor ORDER BY id LIMIT chunk`) then a bounded, id-scoped UPDATE per chunk, each with a
+     * visible progress line — never one planet-wide statement (ETL paradigm).
+     *
+     * Mirrors claim no authority: the stamp writes the HOST's server_id, NEVER this box's own id and
+     * NEVER NULL; a row already carrying a (third-server) authoritative_server_id is left unchanged by
+     * the `IS NULL` predicate. Idempotent and resumable: a re-run re-walks the keyset and stamps only
+     * the rows still NULL. Returns the number of rows stamped.
+     */
+    public function stampSeedAuthorityChunked(string $hostServerId, ?int $chunkSize = null): int
+    {
+        $chunk = $chunkSize ?? $this->authorityStampChunkSize();
+        $cursor = null;                     // null on the first pass — jurisdictions.id is a native
+                                            // uuid, and no valid uuid sorts before all others, so the
+                                            // predicate is applied only from the second chunk onward
+                                            // (matches FoundationServeService's serve-side keyset)
+        $stamped = 0;
+        $started = microtime(true);
+
+        while (true) {
+            $ids = DB::table('jurisdictions')
+                ->when($cursor !== null, fn ($q) => $q->where('id', '>', $cursor))
+                ->orderBy('id')
+                ->limit($chunk)
+                ->pluck('id')
+                ->all();
+
+            if ($ids === []) {
+                break;
+            }
+
+            $cursor = (string) end($ids);
+
+            $stamped += DB::table('jurisdictions')
+                ->whereIn('id', $ids)
+                ->whereNull('authoritative_server_id')
+                ->update(['authoritative_server_id' => $hostServerId]);
+
+            Log::info('mirror seed authority stamp (legacy tarball, chunked)', [
+                'chunk_rows' => count($ids),
+                'stamped_total' => $stamped,
+                'last_id' => $cursor,
+                'elapsed_s' => round(microtime(true) - $started, 1),
+            ]);
+        }
+
+        return $stamped;
+    }
+
+    /**
+     * Derived keyset chunk size for the legacy tarball authority stamp — host-scaled (cores) with a
+     * floor that still runs on a Pi, env-overridable. Never hard-coded per host (ETL paradigm).
+     */
+    private function authorityStampChunkSize(): int
+    {
+        $default = max(1000, \App\Support\HostCapacity::cpuCores() * 1000);
+
+        return max(1, (int) config('cga.federation_authority_stamp_chunk', $default));
     }
 
     /**
