@@ -50,8 +50,18 @@ make_workspace() {
   mkdir -p "$ws/bin"
   cat > "$ws/bin/docker" <<'STUB'
 #!/usr/bin/env bash
-# Stub docker: log `php artisan <cmd>` calls to $ART_LOG, control exit codes via env.
+# Stub docker: log `php artisan <cmd>` calls to $ART_LOG, control exit codes via env. It also
+# writes an ORDERING trace to $ORDER_LOG (in invocation order) with a marker for the nginx
+# start and for each artisan call, so the harness can prove the join is DISPATCHED after nginx
+# is up (the M5 outcome: the UI serves while the transfer runs).
 args=("$@")
+full="${args[*]}"
+
+# Ordering trace: nginx start marker (docker compose ... up -d nginx).
+if [[ -n "${ORDER_LOG:-}" && "$full" == *" up "*"nginx"* ]]; then
+  echo "NGINX_UP" >> "$ORDER_LOG"
+fi
+
 art_start=-1
 for i in "${!args[@]}"; do
   if [[ "${args[$i]}" == "artisan" ]]; then art_start=$((i + 1)); fi
@@ -60,6 +70,7 @@ done
 if [[ "$art_start" -ge 0 ]]; then
   cmd="${args[*]:$art_start}"
   echo "$cmd" >> "$ART_LOG"
+  [[ -n "${ORDER_LOG:-}" ]] && echo "ARTISAN $cmd" >> "$ORDER_LOG"
   set -- "${args[@]:$art_start}"
   case "$1" in
     federation:resume-join) exit "${STUB_RESUME_RC:-0}";;
@@ -82,10 +93,22 @@ STUB
 # run_case <workspace> <extra deploy args...>  (env STUB_* already exported)
 run_case() {
   local ws="$1"; shift
-  ( cd "$ws" && PATH="$ws/bin:$PATH" ART_LOG="$ws/art.log" \
+  ( cd "$ws" && PATH="$ws/bin:$PATH" ART_LOG="$ws/art.log" ORDER_LOG="$ws/order.log" \
       bash "$ws/deploy.sh" --self-url http://box.invalid:8080 --project testproj "$@" \
       > "$ws/out.log" 2>&1 )
   echo $?  # deploy.sh exit code
+}
+
+# assert_before <label> <file> <earlier_needle> <later_needle>
+# passes when earlier_needle first appears on a LINE NUMBER below later_needle (i.e. earlier ran first).
+assert_before() {
+  local label="$1" file="$2" earlier="$3" later="$4"
+  local le ll
+  le="$(grep -Fn -- "$earlier" "$file" | head -1 | cut -d: -f1)"
+  ll="$(grep -Fn -- "$later" "$file" | head -1 | cut -d: -f1)"
+  if [[ -z "$le" ]]; then fail "$label (earlier marker never logged: $earlier)"; return; fi
+  if [[ -z "$ll" ]]; then fail "$label (later marker never logged: $later)"; return; fi
+  if (( le < ll )); then pass "$label"; else fail "$label ($earlier at line $le not before $later at line $ll)"; fi
 }
 
 echo "== (a) first run: virgin example key =="
@@ -96,7 +119,10 @@ assert_contains "key:generate ran"            "$WS/art.log" "key:generate --forc
 assert_contains "federation:init ran"         "$WS/art.log" "federation:init"
 assert_absent   "no --rotate"                 "$WS/art.log" "federation:init --rotate"
 assert_contains "cluster:join adopt"          "$WS/art.log" "cluster:join http://host.invalid:8081 --key handle.secret"
+assert_absent   "no --sync (async dispatch)"  "$WS/art.log" "cluster:join http://host.invalid:8081 --key handle.secret --sync"
 assert_absent   "no resume-join"              "$WS/art.log" "federation:resume-join"
+# M5: the join is DISPATCHED after nginx is up, so the UI serves while the transfer runs.
+assert_before   "adopt after nginx up"        "$WS/order.log" "NGINX_UP" "ARTISAN cluster:join"
 rm -rf "$WS"
 
 echo "== (b) rerun, membership present (resume exits 0) =="
@@ -105,8 +131,11 @@ RC="$(STUB_RESUME_RC=0 STUB_CLUSTER_JOIN_RC=0 run_case "$WS" --join http://host.
 [[ "$RC" == "0" ]] && pass "exit 0" || fail "exit 0 (got $RC)"
 assert_absent   "no key:generate"             "$WS/art.log" "key:generate"
 assert_absent   "no --rotate"                 "$WS/art.log" "federation:init --rotate"
-assert_contains "resume-join --sync ran"      "$WS/art.log" "federation:resume-join --sync"
+assert_contains "resume-join ran"             "$WS/art.log" "federation:resume-join"
+assert_absent   "resume-join async (no --sync)" "$WS/art.log" "federation:resume-join --sync"
 assert_absent   "no cluster:join"             "$WS/art.log" "cluster:join"
+# M5: the resume is DISPATCHED after nginx is up.
+assert_before   "resume after nginx up"       "$WS/order.log" "NGINX_UP" "ARTISAN federation:resume-join"
 rm -rf "$WS"
 
 echo "== (c) rerun, no membership (resume exits 3) =="
@@ -115,8 +144,12 @@ RC="$(STUB_RESUME_RC=3 STUB_CLUSTER_JOIN_RC=0 run_case "$WS" --join http://host.
 [[ "$RC" == "0" ]] && pass "exit 0" || fail "exit 0 (got $RC)"
 assert_absent   "no key:generate"             "$WS/art.log" "key:generate"
 assert_absent   "no --rotate"                 "$WS/art.log" "federation:init --rotate"
-assert_contains "resume-join --sync tried"    "$WS/art.log" "federation:resume-join --sync"
+assert_contains "resume-join tried"           "$WS/art.log" "federation:resume-join"
+assert_absent   "resume-join async (no --sync)" "$WS/art.log" "federation:resume-join --sync"
 assert_count    "cluster:join once"           "$WS/art.log" "cluster:join" "1"
+# M5: both the resume attempt and the fall-through adopt run after nginx is up.
+assert_before   "resume after nginx up"       "$WS/order.log" "NGINX_UP" "ARTISAN federation:resume-join"
+assert_before   "adopt after nginx up"        "$WS/order.log" "NGINX_UP" "ARTISAN cluster:join"
 rm -rf "$WS"
 
 echo "== (d) --clone-rekey: explicit rotate =="
@@ -140,7 +173,7 @@ echo "== (f) rerun, departed/rejected membership (resume exits 4): fail loud, no
 WS="$(make_workspace "$REAL_KEY")"
 RC="$(STUB_RESUME_RC=4 STUB_CLUSTER_JOIN_RC=0 run_case "$WS" --join http://host.invalid:8081 --key handle.secret)"
 [[ "$RC" != "0" ]] && pass "non-zero exit" || fail "non-zero exit (got $RC)"
-assert_contains "resume-join --sync tried"    "$WS/art.log" "federation:resume-join --sync"
+assert_contains "resume-join tried"           "$WS/art.log" "federation:resume-join"
 assert_absent   "no silent re-adopt"          "$WS/art.log" "cluster:join"
 assert_absent   "identity not rotated"        "$WS/art.log" "federation:init --rotate"
 assert_contains "mint instruction printed"    "$WS/out.log" "cluster:keys:mint"

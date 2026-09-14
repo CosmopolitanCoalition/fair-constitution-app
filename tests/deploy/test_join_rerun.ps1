@@ -40,14 +40,32 @@ function AssertCount($label, $file, $needle, $n) {
   $c = @(Get-Content $file | Where-Object { $_ -like "*$needle*" }).Count
   if ($c -eq $n) { Pass $label } else { Fail "$label (want $n got $c of: $needle)" }
 }
+# AssertBefore: earlier first appears on a LINE below later (earlier ran first).
+function AssertBefore($label, $file, $earlier, $later) {
+  $lines = @(Get-Content $file)
+  $le = -1; $ll = -1
+  for ($i = 0; $i -lt $lines.Count; $i++) {
+    if ($le -lt 0 -and $lines[$i] -like "*$earlier*") { $le = $i }
+    if ($ll -lt 0 -and $lines[$i] -like "*$later*")   { $ll = $i }
+  }
+  if ($le -lt 0) { Fail "$label (earlier marker never logged: $earlier)"; return }
+  if ($ll -lt 0) { Fail "$label (later marker never logged: $later)"; return }
+  if ($le -lt $ll) { Pass $label } else { Fail "$label ($earlier at $le not before $later at $ll)" }
+}
 
 $stubPs1 = @'
 $a = @($args)
 $log = $env:ART_LOG
+$order = $env:ORDER_LOG
+$full = ($a -join ' ')
+# Ordering trace: nginx start marker (docker compose ... up -d nginx), so the harness can prove
+# the join is DISPATCHED after nginx is up (the M5 outcome: the UI serves while the transfer runs).
+if ($order -and ($full -match ' up .*nginx')) { Add-Content -LiteralPath $order -Value 'NGINX_UP' }
 $idx = [Array]::IndexOf($a, 'artisan')
 if ($idx -ge 0) {
   $cmd = ($a[($idx + 1)..($a.Count - 1)]) -join ' '
   Add-Content -LiteralPath $log -Value $cmd
+  if ($order) { Add-Content -LiteralPath $order -Value "ARTISAN $cmd" }
   $sub = [string]$a[$idx + 1]
   if ($sub -eq 'federation:resume-join') { exit ([int]$env:STUB_RESUME_RC) }
   if ($sub -eq 'cluster:join')           { exit ([int]$env:STUB_CLUSTER_JOIN_RC) }
@@ -73,6 +91,7 @@ function New-Workspace($currentKey) {
 
 function Invoke-Case($ws, [hashtable]$stub, [string[]]$extra) {
   $env:ART_LOG              = (Join-Path $ws 'art.log')
+  $env:ORDER_LOG            = (Join-Path $ws 'order.log')
   $env:STUB_RESUME_RC       = [string]$stub.Resume
   $env:STUB_CLUSTER_JOIN_RC = [string]$stub.Join
   $oldPath = $env:Path
@@ -96,7 +115,9 @@ AssertContains "key:generate ran"       $log "key:generate --force"
 AssertContains "federation:init ran"    $log "federation:init"
 AssertAbsent   "no --rotate"            $log "federation:init --rotate"
 AssertContains "cluster:join adopt"     $log "cluster:join http://host.invalid:8081 --key handle.secret"
+AssertAbsent   "no --sync (async)"      $log "cluster:join http://host.invalid:8081 --key handle.secret --sync"
 AssertAbsent   "no resume-join"         $log "federation:resume-join"
+AssertBefore   "adopt after nginx up"   (Join-Path $ws 'order.log') "NGINX_UP" "ARTISAN cluster:join"
 Remove-Item -Recurse -Force $ws
 
 Write-Host "== (b) rerun, membership present (resume exits 0) =="
@@ -106,8 +127,10 @@ $log = Join-Path $ws 'art.log'
 if ($rc -eq 0) { Pass "exit 0" } else { Fail "exit 0 (got $rc)" }
 AssertAbsent   "no key:generate"        $log "key:generate"
 AssertAbsent   "no --rotate"            $log "federation:init --rotate"
-AssertContains "resume-join --sync ran" $log "federation:resume-join --sync"
+AssertContains "resume-join ran"        $log "federation:resume-join"
+AssertAbsent   "resume-join async"      $log "federation:resume-join --sync"
 AssertAbsent   "no cluster:join"        $log "cluster:join"
+AssertBefore   "resume after nginx up"  (Join-Path $ws 'order.log') "NGINX_UP" "ARTISAN federation:resume-join"
 Remove-Item -Recurse -Force $ws
 
 Write-Host "== (c) rerun, no membership (resume exits 3) =="
@@ -117,7 +140,7 @@ $log = Join-Path $ws 'art.log'
 if ($rc -eq 0) { Pass "exit 0" } else { Fail "exit 0 (got $rc)" }
 AssertAbsent   "no key:generate"          $log "key:generate"
 AssertAbsent   "no --rotate"              $log "federation:init --rotate"
-AssertContains "resume-join --sync tried" $log "federation:resume-join --sync"
+AssertContains "resume-join tried"      $log "federation:resume-join"
 AssertCount    "cluster:join once"        $log "cluster:join" 1
 Remove-Item -Recurse -Force $ws
 
@@ -147,7 +170,7 @@ $rc = Invoke-Case $ws @{ Resume = 4; Join = 0 } @()
 $log = Join-Path $ws 'art.log'
 $out = Join-Path $ws 'out.log'
 if ($rc -ne 0) { Pass "non-zero exit" } else { Fail "non-zero exit (got $rc)" }
-AssertContains "resume-join --sync tried" $log "federation:resume-join --sync"
+AssertContains "resume-join tried"      $log "federation:resume-join"
 AssertAbsent   "no silent re-adopt"       $log "cluster:join"
 AssertAbsent   "identity not rotated"     $log "federation:init --rotate"
 AssertContains "mint instruction printed" $out "cluster:keys:mint"
@@ -176,7 +199,7 @@ try {
 }
 $log = Join-Path $ws 'art.log'
 if ($rc -eq 0) { Pass "exit 0 (pin prevented the throw; fall-through ran)" } else { Fail "exit 0 (got $rc)" }
-AssertContains "resume-join --sync tried" $log "federation:resume-join --sync"
+AssertContains "resume-join tried"      $log "federation:resume-join"
 AssertCount    "cluster:join once"        $log "cluster:join" 1
 Remove-Item -Recurse -Force $ws
 

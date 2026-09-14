@@ -526,50 +526,10 @@ art mesh:gates
 # 4. Optional standing demo data.
 [[ -n "$SEED" ]] && { echo "→ Seeding demo data…"; art institutions:demo-e || true; }
 
-# 5. Optional: join a host as a read-only mirror. DETECT-AND-BRANCH (mirrors
-#    SetupController::joinFromSetup): a FIRST run adopts with the key; a RERUN of an
-#    already-keyed box RESUMES the existing membership and consumes NO second join-key use,
-#    and only falls through to a keyed adopt when there is no membership to resume.
-#    A rerun NEVER re-keys identity as a recovery — a departed/rejected membership or an
-#    exhausted key fails LOUD with the instruction to mint a fresh key on the host.
+# 5. Optional join validated here; DISPATCHED in step 8, AFTER the workers reload and nginx
+#    is up (see below). A --join needs a --key, so fail fast now rather than after the build.
 if [[ -n "$JOIN_URL" ]]; then
   [[ -n "$JOIN_KEY" ]] || { echo "ERROR: --join requires --key handle.secret" >&2; exit 1; }
-
-  # federation:resume-join exit codes (see FederationResumeJoinCommand): 0 = resumed;
-  # 3 = NO membership at all (this box was never a mirror) — adopt with the key; 4 = a
-  # DEPARTED/REJECTED membership exists — NEVER silently re-adopt, fail loud. --sync drains
-  # inline so the installer blocks until the seed + drain finish rather than reporting
-  # "dispatched" while Horizon is not yet up. A clone (--clone-rekey) is a fresh node with a
-  # new identity, so it adopts, never resumes.
-  fail_join_loud() {
-    echo "ERROR: Cannot (re)join ${JOIN_URL} — no active membership to resume and the join key" >&2
-    echo "       was rejected or is exhausted. This box's federation identity was NOT changed." >&2
-    echo "       Mint a fresh single-use key ON THE HOST and re-run --join with it:" >&2
-    echo "         docker compose exec app php artisan cluster:keys:mint --max-uses=1" >&2
-    exit 1
-  }
-
-  if [[ -n "$HAD_EXISTING_APP_KEY" && -z "$CLONE_REKEY" ]]; then
-    echo "→ Rerun of an already-keyed box — resuming the existing mirror membership…"
-    set +e
-    art federation:resume-join --sync
-    RESUME_RC=$?
-    set -e
-    if [[ "$RESUME_RC" -eq 0 ]]; then
-      echo "→ Resumed the existing membership (no new join-key use)."
-    elif [[ "$RESUME_RC" -eq 3 ]]; then
-      echo "→ No membership to resume — adopting ${JOIN_URL} with the join key…"
-      art cluster:join "$JOIN_URL" --key "$JOIN_KEY" || fail_join_loud
-    else
-      # rc 4 = a DEPARTED/REJECTED membership (this box left the cluster or was rejected);
-      # any other rc = a resume failure. Never silently re-adopt and never rotate identity:
-      # fail loud with the mint-a-fresh-key-on-the-host instruction.
-      fail_join_loud
-    fi
-  else
-    echo "→ Joining ${JOIN_URL} as a read-only mirror…"
-    art cluster:join "$JOIN_URL" --key "$JOIN_KEY" || fail_join_loud
-  fi
 fi
 
 # 6. Production front-end assets — build ONCE (no Vite at runtime), so the UI
@@ -607,6 +567,58 @@ echo "→ Reloading workers with the final APP_KEY…"
 # the built assets with no startup 502 and nothing to wait on.
 echo "→ Starting nginx…"
 "${DC[@]}" up -d nginx
+
+# 8. Optional: join a host as a read-only mirror — DISPATCHED here, LAST, on purpose. The seed +
+#    audit drain is a multi-GB, ~951k-row transfer; it now runs in the long-running Horizon queue
+#    (ClusterJoinJob, timeout=0) so the UI is ALREADY SERVING (nginx up, above) while the transfer
+#    proceeds asynchronously, and the worker holds the FINAL APP_KEY (reloaded in step 7) — so
+#    Crypt::decryptString of the signing key never 500s the job (the failure documented in step 7).
+#    DETECT-AND-BRANCH (mirrors SetupController::joinFromSetup): a FIRST run adopts with the key
+#    then dispatches; a RERUN of an already-keyed box RESUMES the existing membership and consumes
+#    NO second join-key use, falling through to a keyed adopt only when there is no membership to
+#    resume. A rerun NEVER re-keys identity — a departed/rejected membership or an exhausted key
+#    fails LOUD with the instruction to mint a fresh key on the host. cluster:join and
+#    federation:resume-join both DISPATCH by default (async); the node keeps serving while the
+#    resumable, idempotent job drains in the worker (seeded_at short-circuits the seed, the cold
+#    cursor resumes the drain — no completed page is replayed).
+if [[ -n "$JOIN_URL" ]]; then
+  fail_join_loud() {
+    echo "ERROR: Cannot (re)join ${JOIN_URL} — no active membership to resume and the join key" >&2
+    echo "       was rejected or is exhausted. This box's federation identity was NOT changed." >&2
+    echo "       Mint a fresh single-use key ON THE HOST and re-run --join with it:" >&2
+    echo "         docker compose exec app php artisan cluster:keys:mint --max-uses=1" >&2
+    exit 1
+  }
+
+  if [[ -n "$HAD_EXISTING_APP_KEY" && -z "$CLONE_REKEY" ]]; then
+    echo "→ Rerun of an already-keyed box — resuming the existing mirror membership…"
+    # federation:resume-join exit codes (see FederationResumeJoinCommand): 0 = resumed
+    # (dispatched to the long-running queue); 3 = NO membership at all (this box was never a
+    # mirror) — adopt with the key; 4 = a DEPARTED/REJECTED membership exists — NEVER silently
+    # re-adopt, fail loud. A clone (--clone-rekey) is a fresh node with a new identity, so it
+    # adopts, never resumes.
+    set +e
+    art federation:resume-join
+    RESUME_RC=$?
+    set -e
+    if [[ "$RESUME_RC" -eq 0 ]]; then
+      echo "→ Resume dispatched to the long-running queue (no new join-key use)."
+    elif [[ "$RESUME_RC" -eq 3 ]]; then
+      echo "→ No membership to resume — adopting ${JOIN_URL} with the join key…"
+      art cluster:join "$JOIN_URL" --key "$JOIN_KEY" || fail_join_loud
+    else
+      # rc 4 = a DEPARTED/REJECTED membership (this box left the cluster or was rejected);
+      # any other rc = a resume failure. Never silently re-adopt and never rotate identity:
+      # fail loud with the mint-a-fresh-key-on-the-host instruction.
+      fail_join_loud
+    fi
+  else
+    echo "→ Joining ${JOIN_URL} as a read-only mirror…"
+    art cluster:join "$JOIN_URL" --key "$JOIN_KEY" || fail_join_loud
+  fi
+  echo "  • The seed + drain runs in Horizon; the UI is already serving. Watch progress at"
+  echo "    GET /federation/cluster/sync-progress (or the mesh console / setup join page)."
+fi
 
 if [[ -n "$PUBLIC_URL" ]]; then
   # The edge proxy terminates TLS and obtains/renews certificates automatically (HTTP-01),
