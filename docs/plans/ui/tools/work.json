@@ -6730,10 +6730,10 @@
     {
       "id": "W-0197",
       "title": "Seed a committee meeting for the tour and add a civic room index",
-      "phase": "P1",
-      "order": 5,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "blocker: VERIFIED 2026-09-14 (partial): surfaces.js still hardcodes the committee meeting UUID with no matching seed. No civic room index. No committee meetings on the demo box. Gap stands. | VERIFIED 2026-09-08 (partial): The committee room route exists at routes/web.php:888. Commit 080d389c completed the Matrix/LiveKit infrastructure for public deployment. The /rooms route (web.php:1179) is a private Messages inbox, not a civic room index. The tour stop at surfaces.js:289 hardcodes a meeting UUID with no seed. No committee meetings or seated members exist on the demo box, so no room can be …",
       "done_when": "A seed creates the committee meeting matching the tour UUID, or the tour links to a data-driven room index; a civic room index route distinct from the private inbox exists; the room opens on the demo box without a prior sim run.",
@@ -6790,6 +6790,10 @@
         {
           "date": "2026-09-14",
           "note": "Blocker: VERIFIED 2026-09-14 (partial): Room directory and chamber/court/board room routes added since baseline. Floor controls built. Committee hearing room still requires a seated committee and a meeting row; tour UUID has no seed. On a box where the sim has run and seated legislatures exist, a chamber room can be opened from the directory. | VERIFIED 2026-09-08 (partial): Committee hearing route and all floor mechanics (FIFO raise-hand, chair-gated recognize/advance) are built at routes/web.php:888-895. Commit 080d389c wired Matrix/MAS/LiveKit so the room works on a public deployment. A chamber session has no route. The demo box has no committee_meetings data, so no room composes. Evidence: routes/web.php:888-895 routes committee/raiseHand/recognize/advance. LiveRoomController.php builds the room from real CommitteeMeeting + CommitteeSeat rows. Commit 080d389c fixed Matrix/LiveKit secrets sync and LiveKit startup in deploy.sh, so the infrastructure works on a public deployment. Chamber session has no route; LiveRoomController exposes only committee. No committee_meetings or seated members exist on the demo box."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built (commit 0e1e87be, merge ef7ef119): institutions:demo-room seeds the committee hearing at the tour UUID on a synthetic world (idempotent, --fresh teardown), wired as the committee-hearing preset; the civic room index /rooms was already distinct from the private inbox. Pinned by tests/Unit/RoomsDemoTest.php (6 tests, 34 assertions on main). Seeded on box E: /rooms/committee/019fae79-aceb-73a8-a87a-8e25969f1e62 answers 200."
         }
       ]
     },
@@ -12821,10 +12825,10 @@
     {
       "id": "W-0334",
       "title": "Internationalize MultiTrackVideoPlayer labels, aria-labels and error messages",
-      "phase": "P1",
-      "order": 9,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "Internationalize `resources/js/Components/Media/MultiTrackVideoPlayer.vue`: the audio and captions labels, the transport aria-labels and the three audio, video and caption error and fallback messages through vue-i18n, with keys in all seven locales.",
       "done_when": "No English literal remains in MultiTrackVideoPlayer labels, aria-labels or messages; keys exist in all seven locales; player tests stay green.",
@@ -12863,6 +12867,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: Per our conversation this is in porgress now as you have accessed the video player files on the site to model off of."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built (commit 46b74cfe): icon-first controls, every visible and aria string of the player through vue-i18n in the new c_media namespace (40 keys, en with status source; other locales fall back until the machine pass); the i18nCoverage player check now passes."
         }
       ]
     },
@@ -16371,10 +16379,10 @@
     {
       "id": "W-0430",
       "title": "Player playlist: previous, select, next and auto-advance across the library",
-      "phase": "P1",
-      "order": 69,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "The video player accepts a playlist (the library catalog) and shows previous, a film selector and next when more than one film is present; the film ends and the next one starts with the same language choice; the library page opens the selected film inside the playlist. Model: the operator plugin video_player.php playlist controls.",
       "done_when": "tests/js/multiTrackVideoPlayer.test.mjs and tests/browser/videoDecoding.test.mjs prove previous, select, next and auto-advance on a two-film playlist; a single film shows no playlist controls.",
@@ -16394,16 +16402,20 @@
         {
           "date": "2026-09-14",
           "note": "Operator order: close the gap to the Coalition multi-track player plugin (playlist, volume and mute, account-saved preferences)."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built (commit 46b74cfe) on the Coalition plugin model: previous, film select, next, auto-advance on ended with the language choice kept, hidden for a single film; the library follows ?v= without a reload. Pinned by the compiled player tests (21 of 21) and the browser test with a real two-film playlist."
         }
       ]
     },
     {
       "id": "W-0431",
       "title": "Player volume and mute for the language dub",
-      "phase": "P1",
-      "order": 70,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "A mute button and a volume slider act on the hidden dub audio element (the master stays muted by design); the level and mute state are remembered with the other player preferences. Model: the operator plugin mute button and volume slider.",
       "done_when": "The compiled and browser player tests prove the slider sets audio.volume, mute toggles audio.muted with the icon state, and both persist across a reload.",
@@ -16421,16 +16433,20 @@
         {
           "date": "2026-09-14",
           "note": "Operator order: close the gap to the Coalition multi-track player plugin (playlist, volume and mute, account-saved preferences)."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built (commit 46b74cfe): mute button and volume slider act on the dub audio only, the master stays muted; both persist with the player preferences. Pinned in the compiled and browser tests."
         }
       ]
     },
     {
       "id": "W-0432",
       "title": "Account-saved player preferences for signed-in people",
-      "phase": "P1",
-      "order": 71,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "A signed-in viewer keeps audio language, captions language, link state, captions on or off, volume and mute on the account (an additive real-dated table, one JSON document per user) so they follow the person across browsers; browser storage stays the fallback for guests and the cache for everyone. Model: the operator plugin usermeta preferences.",
       "done_when": "A PHP feature test on a SQLite fixture proves the endpoint requires a session, round-trips the document and rejects unknown keys; the compiled player test proves server preferences win over browser storage at mount and a change is sent once per debounce window; the migration is applied on box E.",
@@ -16448,6 +16464,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator order: close the gap to the Coalition multi-track player plugin (playlist, volume and mute, account-saved preferences)."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built (commit 46b74cfe): user_media_prefs table (migration 2026_09_14_120000, applied on box E), GET and PUT /api/me/video-prefs behind auth with key validation, page props seed the player and server preferences win over browser storage; PUT debounced once per change window. Pinned by tests/Unit/VideoPrefsControllerTest.php (5 tests) and the compiled player tests."
         }
       ]
     }

@@ -222,9 +222,10 @@
    "title": "Add constituent_requests and room read-position schema for honest-empty pages"
   },
   "W-0334": {
-   "note": "Per our conversation this is in porgress now as you have accessed the video player files on the site to model off of.",
+   "note": "Built (commit 46b74cfe): icon-first controls, every visible and aria string of the player through vue-i18n in the new c_media namespace (40 keys, en with status source; other locales fall back until the machine pass); the i18nCoverage player check now passes.",
    "date": "2026-09-14",
-   "title": "Internationalize MultiTrackVideoPlayer labels, aria-labels and error messages"
+   "title": "Internationalize MultiTrackVideoPlayer labels, aria-labels and error messages",
+   "status": "done"
   },
   "W-0332": {
    "status": "blocked",
@@ -290,6 +291,30 @@
    "date": "2026-09-14",
    "title": "Fix stale class references and outdated comments; add scheduler to docs",
    "status": "done"
+  },
+  "W-0197": {
+   "status": "done",
+   "note": "Built (commit 0e1e87be, merge ef7ef119): institutions:demo-room seeds the committee hearing at the tour UUID on a synthetic world (idempotent, --fresh teardown), wired as the committee-hearing preset; the civic room index /rooms was already distinct from the private inbox. Pinned by tests/Unit/RoomsDemoTest.php (6 tests, 34 assertions on main). Seeded on box E: /rooms/committee/019fae79-aceb-73a8-a87a-8e25969f1e62 answers 200.",
+   "date": "2026-09-14",
+   "title": "Seed a committee meeting for the tour and add a civic room index"
+  },
+  "W-0430": {
+   "status": "done",
+   "note": "Built (commit 46b74cfe) on the Coalition plugin model: previous, film select, next, auto-advance on ended with the language choice kept, hidden for a single film; the library follows ?v= without a reload. Pinned by the compiled player tests (21 of 21) and the browser test with a real two-film playlist.",
+   "date": "2026-09-14",
+   "title": "Player playlist: previous, select, next and auto-advance across the library"
+  },
+  "W-0431": {
+   "status": "done",
+   "note": "Built (commit 46b74cfe): mute button and volume slider act on the dub audio only, the master stays muted; both persist with the player preferences. Pinned in the compiled and browser tests.",
+   "date": "2026-09-14",
+   "title": "Player volume and mute for the language dub"
+  },
+  "W-0432": {
+   "status": "done",
+   "note": "Built (commit 46b74cfe): user_media_prefs table (migration 2026_09_14_120000, applied on box E), GET and PUT /api/me/video-prefs behind auth with key validation, page props seed the player and server preferences win over browser storage; PUT debounced once per change window. Pinned by tests/Unit/VideoPrefsControllerTest.php (5 tests) and the compiled player tests.",
+   "date": "2026-09-14",
+   "title": "Account-saved player preferences for signed-in people"
   }
  }
 }
