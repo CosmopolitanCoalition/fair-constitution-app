@@ -111,6 +111,90 @@
    "note": "Dont worry about this.",
    "date": "2026-09-14",
    "title": "Redraw the nine box-E maps that hold a zero-seat district"
+  },
+  "W-0286": {
+   "status": "moot",
+   "note": "This is an Ops deploy thing and outside of scope.",
+   "date": "2026-09-14",
+   "title": "Run Steps 5 and 6 on the Azure box and record per-step baselines"
+  },
+  "W-0287": {
+   "status": "moot",
+   "note": "This is an Ops deploy thing and outside of scope. This is excessive. We will readdress if something comes up.",
+   "date": "2026-09-14",
+   "title": "Provision Europe mirror node and demo.worldofstatecraft.org DNS and TLS"
+  },
+  "W-0344": {
+   "status": "moot",
+   "note": "This is an Ops deploy thing and outside of scope. This is excessive. We will readdress if something comes up.",
+   "date": "2026-09-14",
+   "title": "Run container installation on a disposable Linux host"
+  },
+  "W-0343": {
+   "status": "moot",
+   "note": "This is excessive. We will readdress if something comes up.",
+   "date": "2026-09-14",
+   "title": "Verify federation identity survives a full Compose restart"
+  },
+  "W-0339": {
+   "status": "moot",
+   "note": "This is an Ops deploy thing and outside of scope. This is excessive.",
+   "date": "2026-09-14",
+   "title": "Verify civic room media transport both directions with rejoin and removal"
+  },
+  "W-0348": {
+   "status": "moot",
+   "note": "This is an Ops deploy thing and outside of scope. IT is also excessive.",
+   "date": "2026-09-14",
+   "title": "Verify public-host transport on a disposable Linux host"
+  },
+  "W-0349": {
+   "status": "moot",
+   "note": "This is an Ops deploy thing and outside of scope.",
+   "date": "2026-09-14",
+   "title": "Install the release on the Linux conference host"
+  },
+  "W-0350": {
+   "status": "moot",
+   "note": "This is an Ops deploy thing and outside of scope.",
+   "date": "2026-09-14",
+   "title": "Verify public endpoints: connect, exchange media, recover from disconnect"
+  },
+  "W-0288": {
+   "status": "moot",
+   "note": "This seems like a Duplicate of D1",
+   "date": "2026-09-14",
+   "title": "Smoke-walk demo.worldofstatecraft.org and match counts to Azure"
+  },
+  "W-0207": {
+   "status": "moot",
+   "note": "This seems like a Duplicate of D1",
+   "date": "2026-09-14",
+   "title": "Capture pixel after-shots of demo surfaces on the live host"
+  },
+  "W-0346": {
+   "status": "moot",
+   "note": "NOT something the rubric cares about. The Rubric will only care about things unbuilt related to the CODE itself. You are not concerned with Ops deploying.",
+   "date": "2026-09-14",
+   "title": "Validate demo and beta world modes separately with prerequisites"
+  },
+  "W-0351": {
+   "status": "blocked",
+   "note": "This will happen post build. Also I thought this was already done.",
+   "date": "2026-09-14",
+   "title": "Execute the full simulated D1 presentation on the demo setup"
+  },
+  "W-0248": {
+   "status": "moot",
+   "note": "Busy work that doesnt help.",
+   "date": "2026-09-14",
+   "title": "Subtract the network sub-cap from the workers_target display"
+  },
+  "W-0247": {
+   "status": "moot",
+   "note": "No.",
+   "date": "2026-09-14",
+   "title": "Add an acceptance scan to the verifying sim phase before done"
   }
  }
 }

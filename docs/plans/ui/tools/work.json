@@ -7116,10 +7116,10 @@
     {
       "id": "W-0207",
       "title": "Capture pixel after-shots of demo surfaces on the live host",
-      "phase": "P2",
-      "order": 34,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "cloud_box",
       "detail": "review lists across lanes: lane 4 flyout clock advance; lane 15 flyout on 2-3 surfaces; lane 2 flyout mesh state (b785bae, needs columns + demo peers); lane 13 economy surfaces (medium). Standing rule is SCREENSHOT PROOF AFTER EVERY FIX, but no browser pane composites pixels on this box. Everything is DOM-verified / server-verified; the after-pixel-shot is owed at review time when the operator is present. Every lane carries some form of this debt.",
       "done_when": "After-pixel screenshots are captured via Claude in Chrome on the live host for every surface that received a DOM-only fix and attached to the review records.",
@@ -7158,6 +7158,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Fleet-wide pixel proof owed at operator-present review; the browser pane cannot composite on box E."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This seems like a Duplicate of D1"
         }
       ]
     },
@@ -8885,10 +8889,10 @@
     {
       "id": "W-0247",
       "title": "Add an acceptance scan to the verifying sim phase before done",
-      "phase": "P3",
-      "order": 46,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "app/Models/SimRun.php:40-88; app/Console/Commands/SimPumpCommand.php:329, 422-460; app/Services/Demo/HashChainRandom.php:21; PersonaFactory.php:11; CohortBallotExpander.php:34 (medium). The run passes verifying to done with no acceptance scan.",
       "done_when": "The verifying phase runs an acceptance scan; the run advances to done only when the scan passes or failures are recorded as review items.",
@@ -8927,16 +8931,20 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Remaining verifying-phase gap; the mechanical breakage and sim:revert are resolved."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. No."
         }
       ]
     },
     {
       "id": "W-0248",
       "title": "Subtract the network sub-cap from the workers_target display",
-      "phase": "P3",
-      "order": 45,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "app/Http/Controllers/Demo/SimConsoleController.php:56, 140, 192-214, 285-394; resources/js/Pages/Demo/SimConsole.vue:181-218 (low). Cached snapshot per minute like Step 3.",
       "done_when": "SimConsoleController subtracts the network sub-cap before passing workers_target; the displayed count matches the available lane budget.",
@@ -8975,6 +8983,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Remaining sim-console gap; the other three issues are resolved."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. Busy work that doesnt help."
         }
       ]
     },
@@ -10658,10 +10670,10 @@
     {
       "id": "W-0286",
       "title": "Run Steps 5 and 6 on the Azure box and record per-step baselines",
-      "phase": "P2",
-      "order": 25,
+      "phase": "done",
+      "order": null,
       "kind": "ops",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "cloud_box",
       "detail": "UPDATE 2026-09-08: Steps 0 to 4 ran end to end on the Azure box (D64als_v7, later D8; the 96-core size was not used). Step 4 done 14:53, 923,118 units, review 0. The boot-prewarm measurement was taken (worker storm on 16 GB) and produced e10d2588. REMAINING: Step 5/6 on this box were set aside by operator decision (the box is the writable beta); the clock-job sweep measurement (debt row, still deferred); the zero-seat leaf chamber confirmation; per-step baselines are in the cloud lane's reports, not yet recorded here. | VERIFIED 2026-09-08 (next): Infrastructure task. No commits address an Az…",
       "done_when": "Steps 5 and 6 complete on the Azure box; per-step baselines and a clock-sweep measurement are recorded; no zero-seat leaf chambers. Together with the Europe mirror (fleet:W9:2) this closes capability 71 (fresh cloud build and the mirror behind demo.worldofstatecraft.org).",
@@ -10716,16 +10728,20 @@
         {
           "date": "2026-09-14",
           "note": "Blocker: VERIFIED 2026-09-14 (partial): No new cloud infrastructure commits. beta.worldofstatecraft.org still partial (Step 4 only, no Europe mirror, no demo.worldofstatecraft.org). Demo punch list 33/33 closed but Europe mirror and second domain remain absent. | LIVE-VERIFIED 2026-09-08 22:11 on the box: Lakshadweep review cleared (planet done 923,118 / review 0), Horizon up through a gated prewarm and a sweep, Type B recompute idempotent. | VERIFIED 2026-09-08 (partial). BUILT and LIVE: the Azure box WoS ran Steps 0 to 4 through the wizard (Step 4 done 2026-09-08 14:53, 923,118 shells and units, review 0) and is public at beta.worldofstatecraft.org with TLS (Caddy HTTP-01 for beta, auth.beta, rtc.beta), Matrix login via MAS, rooms and voice working (cloud lane report 2026-09-08; deploy series 80874ed5..9c51cb80). Sized D64als_v7 then down to D8 (16 GB), not 96 cores. NOT BUILT: the Europe mirror; demo.worldofstatecraft.org (the read-only simulation). Step 5 was skipped on this box by operator decision (it becomes the writable beta). | VERIFIED 2026-09-08 (absent): No Azure provisioning, DNS, or TLS work committed. Neither domain appears in the codebase. Purely a deployment ops task with no code shipped toward it. Evidence: No Azure provisioning scripts, DNS configuration, or TLS setup for demo.worldofstatecraft.org or beta.worldofstatecraft.org appear in any of the 97 commits. The domain names do not appear in any changed file. This is a pure deployment ops task."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is an Ops deploy thing and outside of scope."
         }
       ]
     },
     {
       "id": "W-0287",
       "title": "Provision Europe mirror node and demo.worldofstatecraft.org DNS and TLS",
-      "phase": "P2",
-      "order": 26,
+      "phase": "done",
+      "order": null,
       "kind": "ops",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "linux_host",
       "detail": "UPDATE 2026-09-08: DONE: scale down (D8), DNS and TLS for beta.worldofstatecraft.org (+ auth.beta, rtc.beta) via deploy.sh --public-url and the Caddy edge. NOT DONE: the Europe mirror node; DNS/TLS for demo.worldofstatecraft.org (the read-only simulation). | VERIFIED 2026-09-08 (next): Infrastructure task. No commits address scaling, a Europe mirror, or DNS and TLS. Status unchanged. Evidence: Infrastructure task: scaling, mirror node, DNS, TLS. No commits in the 97-commit window address these. | Ruled europe-node-identity B. Scale the Azure box down. Mirror-join a node hosted in Europe; the …",
       "done_when": "The Europe mirror node runs and joins the Azure authoritative box; demo.worldofstatecraft.org resolves with valid TLS; Full-Faith-and-Credit sync is active.",
@@ -10758,16 +10774,20 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Two keys name the same Europe mirror and demo domain; needs a distinct Linux host."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is an Ops deploy thing and outside of scope. This is excessive. We will readdress if something comes up."
         }
       ]
     },
     {
       "id": "W-0288",
       "title": "Smoke-walk demo.worldofstatecraft.org and match counts to Azure",
-      "phase": "P2",
-      "order": 33,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "linux_host",
       "detail": "VERIFIED 2026-09-08 (next): Manual test on a mirror node not yet provisioned. W9 items 2 and 3 are not done. Status unchanged. Evidence: Manual test on infrastructure that does not yet exist. Prerequisite W9 items 2 and 3 are not done. Cannot verify from code. | Guest walk on demo.worldofstatecraft.org under the lock. Compare counts with the Azure box. Record the sync lag.",
       "done_when": "A guest walk on demo.worldofstatecraft.org reaches all read surfaces; jurisdiction and election counts match the Azure box; sync lag is recorded.",
@@ -10801,6 +10821,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Mirror smoke walk; depends on the Azure run and the mirror provisioning."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This seems like a Duplicate of D1"
         }
       ]
     },
@@ -12887,10 +12911,10 @@
     {
       "id": "W-0339",
       "title": "Verify civic room media transport both directions with rejoin and removal",
-      "phase": "P2",
-      "order": 29,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "linux_host",
       "detail": "Combined institutional rooms over real transport Dependency: A host browser run (SFU_WS=ws://localhost:7880 SFU_HTTP=http://localhost:7880) or a host where the SFU's advertised node IP is reachable; Mesh/rooms · TLS for the public overlay",
       "done_when": "Media frames flow both directions; interruption and rejoin resume media; a removed member loses the live connection, all on a host where the SFU node IP is reachable.",
@@ -12921,6 +12945,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Rooms are in the demo; signaling verified but media is blocked by the 127.0.0.1 SFU node IP inside the container."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is an Ops deploy thing and outside of scope. This is excessive."
         }
       ]
     },
@@ -13056,10 +13084,10 @@
     {
       "id": "W-0343",
       "title": "Verify federation identity survives a full Compose restart",
-      "phase": "P2",
-      "order": 28,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "linux_host",
       "detail": "Virgin PostgreSQL/PostGIS install and restart Dependency: Uniquely named disposable Compose project (rubric `second-compose-project-box-e` = B: a Linux host or the cloud box)",
       "done_when": "The federation identity row and CLK-20 timer persist unchanged across a full stop and restart of a disposable Compose project.",
@@ -13090,16 +13118,20 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Restart persistence for the Azure/mirror pair; needs a Linux host."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is excessive. We will readdress if something comes up."
         }
       ]
     },
     {
       "id": "W-0344",
       "title": "Run container installation on a disposable Linux host",
-      "phase": "P2",
-      "order": 27,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "linux_host",
       "detail": "Linux/Windows failure/retry contracts Dependency: Linux Docker host for the cold container install; rubric `windows-public-deploy-policy` for the deploy.ps1 public-Matrix gate (punch list DP-1)",
       "done_when": "Cold container installation completes on a disposable Linux host; failure and retry paths produce the expected errors and recoveries.",
@@ -13130,6 +13162,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Pre-flight for the conference host rollout; needs a Linux host."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is an Ops deploy thing and outside of scope. This is excessive. We will readdress if something comes up."
         }
       ]
     },
@@ -13182,10 +13218,10 @@
     {
       "id": "W-0346",
       "title": "Validate demo and beta world modes separately with prerequisites",
-      "phase": "P2",
-      "order": 35,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "awaiting_go",
+      "status": "moot",
       "blocker": "operator_go",
       "detail": "Walkable demo and player-ready beta Dependency: G1/G2; settled civic/economic flows; isolated Step 5/Dev sequences",
       "done_when": "Demo mode shows representatives, ownership, boards and scenario prerequisites; beta mode confirmed separately; repeated resumes complete without duplicates. The player-ready beta mode is validated again under fleet:W11:4 once the writable beta exists.",
@@ -13218,6 +13254,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition awaiting_go: Needs sim data from P3 items; the read-only demo cannot be validated without it."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. NOT something the rubric cares about. The Rubric will only care about things unbuilt related to the CODE itself. You are not concerned with Ops deploying."
         }
       ]
     },
@@ -13268,10 +13308,10 @@
     {
       "id": "W-0348",
       "title": "Verify public-host transport on a disposable Linux host",
-      "phase": "P2",
-      "order": 30,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "linux_host",
       "detail": "Fresh public-host transport harness Dependency: Disposable Linux host or isolated TLS harness; separate Matrix/MAS/LiveKit users/rooms/URLs",
       "done_when": "Synthetic clients complete secure login, signaling, media exchange and disconnect/rejoin with Matrix history retained on a disposable Linux host.",
@@ -13304,16 +13344,20 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Public-host transport harness; depends on the room media verify."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is an Ops deploy thing and outside of scope. IT is also excessive."
         }
       ]
     },
     {
       "id": "W-0349",
       "title": "Install the release on the Linux conference host",
-      "phase": "P2",
-      "order": 31,
+      "phase": "done",
+      "order": null,
       "kind": "ops",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "linux_host",
       "detail": "Release installation on the separate Linux conference host Dependency: Release ready; host access/deployment owner; handoff",
       "done_when": "The release is pulled, additive migrations applied, caches and workers refreshed; running revision, login, services and preserved state confirmed on the conference host.",
@@ -13346,16 +13390,20 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Installs the intended release on the conference host; needs the Linux host."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is an Ops deploy thing and outside of scope."
         }
       ]
     },
     {
       "id": "W-0350",
       "title": "Verify public endpoints: connect, exchange media, recover from disconnect",
-      "phase": "P2",
-      "order": 32,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "linux_host",
       "detail": "Public signaling, Matrix and ICE/TURN connectivity Dependency: Deployed conference release; public URLs, certificates, DNS and network configuration",
       "done_when": "Separate synthetic internet clients connect through public URLs, exchange media, recover from disconnect and reach retained Matrix history.",
@@ -13388,6 +13436,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Public-endpoint verify; depends on the host rollout."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is an Ops deploy thing and outside of scope."
         }
       ]
     },
@@ -13397,7 +13449,7 @@
       "phase": "P2",
       "order": 36,
       "kind": "verify",
-      "status": "awaiting_go",
+      "status": "blocked",
       "blocker": "operator_go",
       "detail": "Complete final simulated presentation Dependency: Setup · worlds, Mesh/rooms · TLS and Host · rollout/internet (deferred by the 2026-09-14 rulings); the S1 predecessors",
       "done_when": "The full simulated presentation runs on the intended demo setup: navigation, jurisdiction tree and maps, civic and economic actions, room calls, loading feedback and recovery all verified.",
@@ -13433,6 +13485,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition awaiting_go: Final P2 gate; depends on the host and worlds verifies."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set blocked. This will happen post build. Also I thought this was already done."
         }
       ]
     },
