@@ -48,7 +48,11 @@ class OrganizationProfileManagement implements FormHandler
 
     public function requiredRoles(): array
     {
-        return ['R-23'];
+        // R-23 (agent) OR R-31 (a scoped staff delegate, IO-5). The engine gate
+        // only admits the person to the handler; the per-action check below is
+        // the binding one — a delegate reaches only the tasks their bucket
+        // permits, and agency-defining acts stay agent-only.
+        return ['R-23', 'R-31'];
     }
 
     public function systemOnly(): bool
@@ -64,16 +68,28 @@ class OrganizationProfileManagement implements FormHandler
             throw new ConstitutionalViolation('F-ORG-001 targets an unknown organization.', 'CGA Forms Catalog (F-ORG-001)');
         }
 
-        // The role gate proves agency over SOME org; the action must come
-        // from THIS org's agent (system filings pass — engine rule).
-        if ($actor !== null && (string) $org->agent_user_id !== (string) $actor->getKey()) {
+        $action = (string) ($payload['action'] ?? '');
+
+        // Per-action authority (IO-5, the single mayPerform rail). An action
+        // that maps to a delegable bucket admits the agent OR a delegate holding
+        // that bucket; reassign_agent and dedicate_ip map to no bucket and stay
+        // agent-only (never delegable). System filings (actor null) pass, per
+        // the engine's null-actor rule.
+        $bucket = \App\Domain\Organizations\StaffTask::bucketForAction($action);
+
+        if ($bucket === null) {
+            if ($actor !== null && (string) $org->agent_user_id !== (string) $actor->getKey()) {
+                throw new ConstitutionalViolation(
+                    'Only this organization\'s agent may perform this act (R-23) — it is never delegable.',
+                    'CGA Forms Catalog (R-23)'
+                );
+            }
+        } elseif (! app(\App\Services\Organizations\OrgDelegationService::class)->mayPerform($org, $actor, $bucket)) {
             throw new ConstitutionalViolation(
-                'Only this organization\'s agent may manage it (R-23).',
+                'Only this organization\'s agent or a delegate holding this task may manage it (R-23 / R-31).',
                 'CGA Forms Catalog (R-23)'
             );
         }
-
-        $action = (string) ($payload['action'] ?? '');
 
         $result = match ($action) {
             'update_profile'          => $this->updateProfile($org, $payload),

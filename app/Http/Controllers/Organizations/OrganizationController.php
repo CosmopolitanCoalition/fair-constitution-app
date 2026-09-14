@@ -165,6 +165,12 @@ class OrganizationController extends Controller
                 : [],
         );
 
+        // IO-5 — the single mayPerform rail decides each per-task capability
+        // flag. A guest (no viewer) holds none; the agent holds all; a delegate
+        // holds only the buckets granted to them.
+        $delegation = app(\App\Services\Organizations\OrgDelegationService::class);
+        $mayTask = fn (string $task): bool => $viewer !== null && $delegation->mayPerform($organization, $viewer, $task);
+
         $props = [
             'surface' => SurfaceMeta::for('organizations/org-detail'),
             'organization' => [
@@ -205,10 +211,20 @@ class OrganizationController extends Controller
             // applying (F-IND-019, POST /economy/requests/{posting}/apply).
             'jobs' => $this->jobRows($organization),
             'can' => [
+                // manage stays agent-only: it gates the agency transfer and the
+                // delegation grant/revoke block, neither of which is delegable.
                 'manage' => $isAgent,
                 'join' => in_array('R-01', $this->roles->rolesFor($viewer), true) && $organization->status === Organization::STATUS_ACTIVE,
                 'registerWorker' => in_array('R-01', $this->roles->rolesFor($viewer), true) && $organization->status === Organization::STATUS_ACTIVE,
                 'cosign' => $isAgent,
+                // IO-5 per-task flags (agent OR the matching-bucket delegate).
+                // A guest ($viewer null) gets none of them.
+                'profile' => $mayTask(\App\Domain\Organizations\StaffTask::PROFILE),
+                'membership' => $mayTask(\App\Domain\Organizations\StaffTask::MEMBERSHIP),
+                'contracts' => $mayTask(\App\Domain\Organizations\StaffTask::CONTRACTS),
+                'documents' => $mayTask(\App\Domain\Organizations\StaffTask::DOCUMENTS),
+                'hiring' => $mayTask(\App\Domain\Organizations\StaffTask::HIRING),
+                'shares' => $mayTask(\App\Domain\Organizations\StaffTask::SHARES),
                 // Whether to SHOW the economy console link — the same two clauses
                 // OrgEconomyController::maySteer gates entry on (agent, or a seated
                 // board seat), so the door isn't hidden from someone allowed in.
@@ -223,13 +239,25 @@ class OrganizationController extends Controller
             ],
         ];
 
-        // Agent-only surfaces (privacy — the pending queue reveals applicant
-        // identities). Emitted ONLY for this org's own agent; absent otherwise.
-        // Lazy closures so HistoryPager / the person search partial-reload
-        // exactly their own prop.
-        if ($isAgent) {
+        // The membership review queue — emitted for the agent OR a
+        // membership-bucket delegate (F-ORG-011). Both hold the same
+        // accept/decline authority through the engine, so both are lawfully
+        // entitled to see the applicant queue; without the prop the delegate's
+        // granted card would render empty. A lazy closure so HistoryPager
+        // partial-reloads exactly its own prop.
+        if ($isAgent || $mayTask(\App\Domain\Organizations\StaffTask::MEMBERSHIP)) {
             $props['pendingMembers'] = fn () => app(OrgMembershipReviewDirectory::class)->page($request, $organization);
+        }
+
+        // Agent-only surfaces. The agent search feeds the agency transfer and
+        // the delegations register carries private grantee identities — neither
+        // is delegable, so both are emitted ONLY for this org's own agent.
+        // Lazy closures so the person search partial-reloads its own prop.
+        if ($isAgent) {
             $props['agentSearch'] = fn () => app(OrgAgentDirectory::class)->page($request, $organization, '/organizations/'.$organization->id);
+            // IO-5 — the agent's active staff delegations (grantee identities are
+            // private, so this is emitted only for the agent).
+            $props['delegations'] = fn () => app(\App\Support\OrgStaffGrantDirectory::class)->page($request, $organization, '/organizations/'.$organization->id);
         }
 
         return Inertia::render('Organizations/OrgDetail', $props);

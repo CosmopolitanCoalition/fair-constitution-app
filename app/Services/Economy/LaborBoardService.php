@@ -198,7 +198,15 @@ class LaborBoardService
     public function assertEmployer(string $organizationId, User $actor): object
     {
         $org = $this->activeOrganization($organizationId);
-        abort_unless((string) $org->agent_user_id === (string) $actor->getKey(), 403, 'Only this organization’s current agent can manage hiring.');
+        // IO-5: the single mayPerform rail — the current agent OR a person the
+        // agent delegated the 'hiring' bucket to may manage hiring. Evaluated at
+        // act time, so a revoked delegate cannot act.
+        abort_unless(
+            app(\App\Services\Organizations\OrgDelegationService::class)
+                ->mayPerform($organizationId, $actor, \App\Domain\Organizations\StaffTask::HIRING),
+            403,
+            'Only this organization’s current agent or a hiring delegate can manage hiring.'
+        );
         return $org;
     }
 

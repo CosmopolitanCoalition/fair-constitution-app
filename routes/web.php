@@ -1115,6 +1115,14 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('organization')->whereUuid('membership')->name('organizations.memberships.decide'); // F-ORG-001 accept/decline
     Route::post('/organizations/{organization}/agent', [\App\Http\Controllers\Organizations\OrganizationController::class, 'reassignAgent'])
         ->whereUuid('organization')->name('organizations.agent.reassign');         // F-ORG-001 reassign_agent
+    // IO-5 — scoped staff delegation (F-ORG-011). Grant/revoke are agent-only,
+    // audited acts; the active list rides on the org detail page.
+    Route::get('/organizations/{organization}/delegations', [\App\Http\Controllers\Organizations\OrgDelegationController::class, 'index'])
+        ->whereUuid('organization')->name('organizations.delegations.index');
+    Route::post('/organizations/{organization}/delegations', [\App\Http\Controllers\Organizations\OrgDelegationController::class, 'store'])
+        ->whereUuid('organization')->name('organizations.delegations.store');       // F-ORG-011 grant_task
+    Route::delete('/organizations/{organization}/delegations/{grant}', [\App\Http\Controllers\Organizations\OrgDelegationController::class, 'destroy'])
+        ->whereUuid('organization')->whereUuid('grant')->name('organizations.delegations.destroy'); // F-ORG-011 revoke_task
     Route::post('/organizations/{organization}/workers', [\App\Http\Controllers\Organizations\OrganizationController::class, 'storeWorker'])
         ->whereUuid('organization')->name('organizations.workers.store');          // F-IND-014 (the headcount feed)
     Route::post('/organizations/{organization}/documents', [\App\Http\Controllers\Organizations\OrganizationController::class, 'storeDocument'])

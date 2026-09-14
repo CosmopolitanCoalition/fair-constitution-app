@@ -72,6 +72,12 @@ final class ShareIssuanceWorkflowTest extends TestCase
             $t->timestamps();
             $t->softDeletes();
         });
+        // IO-5 — OrgDelegationService::mayPerform reads this on the non-agent
+        // 'shares' path. Empty here, so another org's agent is still refused.
+        $schema->create('org_staff_grants', function (Blueprint $t) {
+            $t->uuid('id')->primary(); foreach (['organization_id', 'grantee_user_id', 'task', 'status'] as $name) $t->string($name);
+            $t->softDeletes();
+        });
         foreach ([1, 2] as $n) DB::table('organizations')->insert([
             'id' => $this->id($n), 'agent_user_id' => $this->id(100 + $n), 'structure' => 'stock',
         ]);

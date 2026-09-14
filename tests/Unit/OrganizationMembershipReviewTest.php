@@ -77,6 +77,13 @@ class OrganizationMembershipReviewTest extends TestCase
             $t->uuid('accepted_by_user_id')->nullable(); $t->string('end_reason')->nullable();
             $t->timestamps(); $t->softDeletes();
         });
+        // IO-5 — OrganizationProfileManagement now routes each action through
+        // OrgDelegationService::mayPerform, which reads this on the non-agent
+        // path. Empty here, so a non-agent (or another org's agent) is refused.
+        $s->create('org_staff_grants', function (Blueprint $t) {
+            $t->uuid('id')->primary(); foreach (['organization_id', 'grantee_user_id', 'task', 'status'] as $field) $t->string($field);
+            $t->softDeletes();
+        });
 
         // The agent (user 1), a second org's agent (user 2), an applicant (user 20).
         DB::table('users')->insert([

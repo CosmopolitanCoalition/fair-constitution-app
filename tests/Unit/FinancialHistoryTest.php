@@ -33,6 +33,10 @@ final class FinancialHistoryTest extends TestCase
         $schema->create('economic_account_bindings', function (Blueprint $t) { foreach (['account_id', 'owner_type', 'owner_id'] as $c) $t->string($c); });
         $schema->create('economic_accounts', function (Blueprint $t) { $t->uuid('id')->primary(); $t->string('balance'); $t->softDeletes(); });
         $schema->create('board_seats', function (Blueprint $t) { foreach (['board_id', 'holder_user_id', 'status'] as $c) $t->string($c); $t->softDeletes(); });
+        // IO-5 — OrgEconomyController::show computes can_issue_shares via
+        // OrgDelegationService::mayPerform, which reads this on the non-agent
+        // path. Empty here, so a non-agent viewer gets can_issue_shares = false.
+        $schema->create('org_staff_grants', function (Blueprint $t) { foreach (['organization_id', 'grantee_user_id', 'task', 'status'] as $c) $t->string($c); $t->softDeletes(); });
         $schema->create('tax_filings', function (Blueprint $t) {
             $t->uuid('id')->primary(); foreach (['account_id', 'levy_id', 'period', 'declared', 'assessed', 'status'] as $c) $t->string($c)->nullable();
         });

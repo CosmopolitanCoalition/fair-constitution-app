@@ -52,7 +52,11 @@ class OrgEconomyController extends Controller
         // exact-agent authority used by the existing settings/issuance forms.
         $canSteer = $this->maySteer($organization, $request);
         $isAgent = (string) $organization->agent_user_id === (string) $request->user()->getKey();
-        $canIssue = $isAgent && $organization->structure === Organization::STRUCTURE_STOCK
+        // IO-5: share issuance is the 'shares' bucket — the agent OR a shares
+        // delegate may issue, if the org is a live stock enterprise.
+        $canIssue = app(\App\Services\Organizations\OrgDelegationService::class)
+            ->mayPerform($organization, $request->user(), \App\Domain\Organizations\StaffTask::SHARES)
+            && $organization->structure === Organization::STRUCTURE_STOCK
             && $organization->status !== Organization::STATUS_DISSOLVED;
         $accountIds = null;
         $accounts = function () use ($organization, &$accountIds) {
@@ -71,7 +75,10 @@ class OrgEconomyController extends Controller
         return Inertia::render('Economy/OrgSettings', [
             'surface'    => SurfaceMeta::for('economy/org-settings'),
             'can_steer'  => $canSteer,
-            'can_update_dues' => $isAgent,
+            // Dues ride F-ORG-001 update_settings (the profile bucket), so the
+            // page control follows the same authority the handler enforces.
+            'can_update_dues' => app(\App\Services\Organizations\OrgDelegationService::class)
+                ->mayPerform($organization, $request->user(), \App\Domain\Organizations\StaffTask::PROFILE),
             'can_issue_shares' => $canIssue,
             'compose' => $request->boolean('issue'),
             'currency'   => fn () => $this->currencyProp($this->rootCurrency()),
@@ -103,7 +110,8 @@ class OrgEconomyController extends Controller
     public function issueShares(Request $request, Organization $organization, ConstitutionalEngine $engine): RedirectResponse
     {
         abort_unless($request->user()
-            && (string) $organization->agent_user_id === (string) $request->user()->getKey(), 403);
+            && app(\App\Services\Organizations\OrgDelegationService::class)
+                ->mayPerform($organization, $request->user(), \App\Domain\Organizations\StaffTask::SHARES), 403);
         abort_unless($organization->structure === Organization::STRUCTURE_STOCK, 422, 'Only stock organizations issue shares.');
         abort_if($organization->status === Organization::STATUS_DISSOLVED, 422, 'A dissolved organization cannot issue shares.');
         $data = $request->validate([

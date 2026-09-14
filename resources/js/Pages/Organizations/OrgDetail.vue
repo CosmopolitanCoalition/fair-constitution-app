@@ -56,6 +56,8 @@ const props = defineProps({
     pendingMembers: { type: Object, default: null },
     /** IO-4 — agent-only. Agent-transfer person search {query, by, searched, candidates, previous, next}; null for non-agents. */
     agentSearch: { type: Object, default: null },
+    /** IO-5 — agent-only. Bounded active staff-delegation list {rows, pages}; null for non-agents. */
+    delegations: { type: Object, default: null },
     can: { type: Object, default: () => ({ manage: false, join: false, registerWorker: false, cosign: false, steerEconomy: false }) },
 });
 
@@ -223,6 +225,55 @@ function reassignAgent() {
     });
 }
 
+/* ============================================ IO-5 — scoped staff delegation
+ * (F-ORG-011, agent only; operator ruling 2026-09-13). The agent grants one
+ * person one coarse task bucket (profile · membership · contracts · documents ·
+ * hiring · shares) and can revoke it at any time. A delegate acts only within
+ * that bucket and holds no constitutional office. The grantee search reuses the
+ * IO-4 person search (agentSearch). Agency and delegation are never delegable. */
+const DELEGATION_BUCKETS = [
+    { k: 'profile', t: 'Profile and settings' },
+    { k: 'membership', t: 'Membership review' },
+    { k: 'contracts', t: 'Contracts' },
+    { k: 'documents', t: 'Document packages' },
+    { k: 'hiring', t: 'Hiring' },
+    { k: 'shares', t: 'Share issuance' },
+];
+const bucketLabel = (k) => DELEGATION_BUCKETS.find((b) => b.k === k)?.t ?? titleize(k);
+const delegateBucket = ref('membership');
+const delegatePick = ref(null);
+const grantBusy = ref(false);
+const grantError = ref('');
+const grantNotice = ref('');
+const revokeBusyId = ref(null);
+const revokeError = ref('');
+const revokeNotice = ref('');
+
+function grantTask() {
+    if (grantBusy.value || !delegatePick.value) return;
+    router.post(`/organizations/${props.organization.id}/delegations`, {
+        grantee_user_id: delegatePick.value.id, bucket: delegateBucket.value,
+    }, {
+        preserveScroll: true,
+        onStart: () => { grantBusy.value = true; grantError.value = ''; grantNotice.value = ''; },
+        onFinish: () => { grantBusy.value = false; },
+        onError: (errs) => { grantError.value = Object.values(errs)[0] || 'The delegation could not be filed. Please retry.'; },
+        onSuccess: () => { grantNotice.value = 'Task delegated.'; delegatePick.value = null; },
+    });
+}
+
+function revokeGrant(grantId) {
+    if (revokeBusyId.value) return;
+    router.delete(`/organizations/${props.organization.id}/delegations/${grantId}`, {
+        preserveScroll: true,
+        only: ['delegations'],
+        onStart: () => { revokeBusyId.value = grantId; revokeError.value = ''; revokeNotice.value = ''; },
+        onFinish: () => { revokeBusyId.value = null; },
+        onError: (errs) => { revokeError.value = Object.values(errs)[0] || 'The revocation could not be filed. Please retry.'; },
+        onSuccess: () => { revokeNotice.value = 'Delegation revoked.'; },
+    });
+}
+
 /* ---------------------------------------------- join (F-IND-013 / F-IND-014) */
 const membershipForm = useForm({ kind: null });
 function submitMembership() {
@@ -311,7 +362,7 @@ const documentColumns = [
             </dl>
             <p v-if="organization.purpose" style="margin-block-start: var(--space-2)">{{ organization.purpose }}</p>
 
-            <details v-if="can.manage" style="margin-block-start: var(--space-3)">
+            <details v-if="can.manage || can.profile" style="margin-block-start: var(--space-3)">
                 <summary>Edit profile</summary>
                 <form class="stack" style="gap: var(--space-2); margin-block-start: var(--space-2)" novalidate @submit.prevent="submitProfile">
                     <input type="hidden" name="form_id" value="F-ORG-001" />
@@ -336,7 +387,7 @@ const documentColumns = [
                 </form>
             </details>
 
-            <details v-if="can.manage" style="margin-block-start: var(--space-3)">
+            <details v-if="can.manage || can.profile" style="margin-block-start: var(--space-3)">
                 <summary>Org settings — board elections</summary>
                 <form class="stack" style="gap: var(--space-2); margin-block-start: var(--space-2)" novalidate @submit.prevent="submitSettings">
                     <Field
@@ -374,7 +425,7 @@ const documentColumns = [
         </Card>
 
         <!-- ==================================== IO-4 applications ======= -->
-        <Card v-if="can.manage" as="section" title="Membership applications">
+        <Card v-if="can.manage || can.membership" as="section" title="Membership applications">
             <p class="gloss">
                 Review people who applied to join. Accepting grants membership; declining is final for
                 that application, and the person may apply again.
@@ -495,6 +546,85 @@ const documentColumns = [
             <p v-if="reassignError" role="alert">{{ reassignError }}</p>
         </Card>
 
+        <!-- ==================================== IO-5 staff delegation ===== -->
+        <Card v-if="can.manage" as="section" title="Staff delegation">
+            <p class="gloss">
+                Let a person handle one kind of task for this organization. A delegate acts only
+                within the task you grant and holds no constitutional office. Agency itself,
+                delegation itself, and dissolution are never delegable. Revoke any grant at any time.
+            </p>
+
+            <div class="stack io5-controls" style="gap: var(--space-2)">
+                <p style="margin: 0">
+                    Search a person in the "Representative (agent)" section above, then choose them here.
+                </p>
+                <Field label="Task to delegate">
+                    <template #control="{ id }">
+                        <select :id="id" v-model="delegateBucket" class="field-input">
+                            <option v-for="b in DELEGATION_BUCKETS" :key="b.k" :value="b.k">{{ b.t }}</option>
+                        </select>
+                    </template>
+                </Field>
+                <div
+                    v-for="person in (agentSearch ? agentSearch.candidates : [])"
+                    :key="'grant-' + person.id"
+                    class="card card--inset io5-controls"
+                    style="margin-block-end: var(--space-2)"
+                >
+                    <SelectionIdentity :person="person" />
+                    <Btn
+                        variant="ghost"
+                        size="sm"
+                        :pressed="delegatePick && delegatePick.id === person.id"
+                        @click="delegatePick = person"
+                    >{{ delegatePick && delegatePick.id === person.id ? 'Selected' : 'Select' }}</Btn>
+                </div>
+                <div v-if="delegatePick" class="cluster io5-controls" style="gap: var(--space-2)">
+                    <p style="margin: 0">
+                        Grant <strong>{{ bucketLabel(delegateBucket) }}</strong> to
+                        <strong>{{ delegatePick.name }}</strong>.
+                    </p>
+                    <Btn variant="primary" size="sm" :disabled="grantBusy" @click="grantTask">
+                        {{ grantBusy ? 'Granting…' : 'Grant task' }}
+                    </Btn>
+                    <FormChip v-if="formMeta('F-ORG-011')" :form-id="formMeta('F-ORG-011').id" :name="formMeta('F-ORG-011').name" :alias="formMeta('F-ORG-011').alias" />
+                </div>
+                <p v-if="grantNotice" role="status">{{ grantNotice }}</p>
+                <p v-if="grantError" role="alert">{{ grantError }}</p>
+            </div>
+
+            <h3 style="margin-block-start: var(--space-3)">Active delegations</h3>
+            <template v-if="delegations && delegations.rows.length">
+                <div
+                    v-for="row in delegations.rows"
+                    :key="row.id"
+                    class="card card--inset io5-controls"
+                    style="margin-block-end: var(--space-2)"
+                >
+                    <SelectionIdentity :person="row.grantee" />
+                    <p class="citation" style="margin-block: var(--space-1) 0">
+                        {{ bucketLabel(row.bucket) }} · granted {{ fmtDate(row.granted_at) }}
+                    </p>
+                    <Btn
+                        variant="ghost"
+                        size="sm"
+                        :disabled="revokeBusyId === row.id"
+                        @click="revokeGrant(row.id)"
+                    >{{ revokeBusyId === row.id ? 'Revoking…' : 'Revoke' }}</Btn>
+                </div>
+                <HistoryPager
+                    :pages="delegations.pages"
+                    :first="`/organizations/${organization.id}`"
+                    :only="['delegations']"
+                    cursor-key="grants_cursor"
+                    label="Delegation pages"
+                />
+            </template>
+            <p v-else class="gloss">No active delegations.</p>
+            <p v-if="revokeNotice" role="status">{{ revokeNotice }}</p>
+            <p v-if="revokeError" role="alert">{{ revokeError }}</p>
+        </Card>
+
         <!-- ======================================== endorsements ======== -->
         <Card as="section" title="Endorsements">
             <p class="gloss">Candidates can ask for this organization’s endorsement. Its representative
@@ -549,7 +679,7 @@ const documentColumns = [
 
         <!-- ============================================ job board ======= -->
         <Card as="section" title="Job board">
-            <Link v-if="can.manage" :href="`/economy/work?tab=hiring&organization=${organization.id}`">Manage hiring</Link>
+            <Link v-if="can.manage || can.hiring" :href="`/economy/work?tab=hiring&organization=${organization.id}`">Manage hiring</Link>
             <p class="gloss">
                 Explore this organization’s open roles and apply for work. The organization reviews applications.
             </p>
@@ -683,7 +813,7 @@ const documentColumns = [
                 with a form ID.
             </p>
 
-            <details v-if="can.manage" style="margin-block-start: var(--space-3)">
+            <details v-if="can.manage || can.documents" style="margin-block-start: var(--space-3)">
                 <summary>Upload a new version</summary>
                 <form class="stack" style="gap: var(--space-2); margin-block-start: var(--space-2)" novalidate @submit.prevent="submitDocument">
                     <input type="hidden" name="form_id" value="F-ORG-001" />
@@ -727,7 +857,7 @@ const documentColumns = [
                             org {{ contract.signed_a ? 'signed' : 'unsigned' }} · counterparty {{ contract.signed_b ? 'signed' : 'unsigned' }}
                         </span>
                         <Btn
-                            v-if="can.cosign && !contract.signed_a && contract.status !== 'voided' && contract.status !== 'ended'"
+                            v-if="(can.cosign || can.contracts) && !contract.signed_a && contract.status !== 'voided' && contract.status !== 'ended'"
                             variant="primary"
                             size="sm"
                             :disabled="cosignForm.processing"
@@ -758,9 +888,12 @@ const documentColumns = [
 </template>
 
 <style scoped>
-/* IO-4 — 44px minimum for the review + transfer controls (touch target). */
+/* IO-4 / IO-5 — 44px minimum for the review, transfer and delegation controls
+   (touch target). */
 .io4-controls :deep(button),
-.io4-controls .field-input {
+.io4-controls .field-input,
+.io5-controls :deep(button),
+.io5-controls .field-input {
     min-block-size: 44px;
 }
 </style>

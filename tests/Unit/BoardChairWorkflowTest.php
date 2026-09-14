@@ -232,7 +232,7 @@ final class BoardChairWorkflowTest extends TestCase
         self::assertFalse($props['canCast']);
         self::assertTrue($props['submitted']);
         self::assertSame([$this->id(11)], $props['memberSeats'][0]['rankings']);
-        self::assertCount(130, FormRegistry::FORMS); // EO-4 adds two nomination authority forms; EO-5 adds F-IND-025/026 (individual endorsement + withdrawal); IO-1 adds F-JDG-011/012/013/014 (hearing/deliberation/dismissal/ruling; the verdict stays a transition, not a form); IO-2 adds F-IND-027 (Appeal Filing; appeals-workflow-rules = B).
+        self::assertCount(131, FormRegistry::FORMS); // EO-4 adds two nomination authority forms; EO-5 adds F-IND-025/026 (individual endorsement + withdrawal); IO-1 adds F-JDG-011/012/013/014 (hearing/deliberation/dismissal/ruling; the verdict stays a transition, not a form); IO-2 adds F-IND-027 (Appeal Filing; appeals-workflow-rules = B); IO-5 adds F-ORG-011 (Staff Delegation; org-staff-delegation-model = A; the delegate derives R-31 and holds no office).
     }
 
     public function test_member_with_two_seats_can_cast_each_seat_and_finish_the_ballot(): void

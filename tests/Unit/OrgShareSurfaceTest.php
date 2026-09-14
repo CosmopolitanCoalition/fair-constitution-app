@@ -52,6 +52,13 @@ final class OrgShareSurfaceTest extends TestCase
             $t->string('holder_type'); $t->string('units'); $t->string('pct');
             $t->string('acquired_via'); $t->timestamp('ended_at')->nullable();
         });
+        // IO-5 — OrgDelegationService::mayPerform reads this on the non-agent
+        // 'shares' path. Empty here, so a board member / non-agent still gets
+        // can_issue_shares = false and issueShares refuses (403).
+        $schema->create('org_staff_grants', function (Blueprint $t) {
+            $t->uuid('id')->primary(); foreach (['organization_id', 'grantee_user_id', 'task', 'status'] as $field) $t->string($field);
+            $t->softDeletes();
+        });
         foreach (range(1, 25) as $n) {
             DB::table('users')->insert(['id' => $this->id(100 + $n), 'name' => 'Fallback '.$n, 'display_name' => 'Member '.sprintf('%02d', $n)]);
             DB::table('org_ownership_stakes')->insert([

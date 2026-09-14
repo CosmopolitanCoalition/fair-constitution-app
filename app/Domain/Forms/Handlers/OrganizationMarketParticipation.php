@@ -46,7 +46,9 @@ class OrganizationMarketParticipation implements FormHandler
 
     public function requiredRoles(): array
     {
-        return ['R-23'];
+        // R-23 (agent) OR R-31 (a shares-bucket delegate, IO-5). The binding
+        // check is the per-act mayPerform below.
+        return ['R-23', 'R-31'];
     }
 
     public function systemOnly(): bool
@@ -74,16 +76,19 @@ class OrganizationMarketParticipation implements FormHandler
             throw new ConstitutionalViolation('F-ORG-008 targets an unknown organization.', 'CGA Forms Catalog (F-ORG-008)');
         }
 
-        // The role gate proves agency over SOME org; the act must come from
-        // THIS org's agent (a system filing passes — engine rule).
-        if ($actor !== null && (string) $org->agent_user_id !== (string) $actor->getKey()) {
+        $action = is_string($payload['action'] ?? null) ? $payload['action'] : '';
+
+        // Per-act authority (IO-5, the single mayPerform rail). The market acts
+        // sit in the 'shares' bucket: the agent OR a shares delegate may act; a
+        // system filing passes (engine null-actor rule).
+        $bucket = \App\Domain\Organizations\StaffTask::bucketForAction($action) ?? \App\Domain\Organizations\StaffTask::SHARES;
+
+        if (! app(\App\Services\Organizations\OrgDelegationService::class)->mayPerform($org, $actor, $bucket)) {
             throw new ConstitutionalViolation(
-                'Only this organization\'s agent may act in the market for it (R-23).',
+                'Only this organization\'s agent or a shares delegate may act in the market for it (R-23 / R-31).',
                 'CGA Forms Catalog (R-23)'
             );
         }
-
-        $action = is_string($payload['action'] ?? null) ? $payload['action'] : '';
 
         $result = match ($action) {
             'issue_shares' => $this->issueShares($org, $payload),

@@ -46,6 +46,13 @@ final class WorkWorkflowTest extends TestCase
             $t->timestamp('offered_at')->nullable(); $t->timestamps(); $t->unique(['posting_id', 'applicant_account_id']);
         });
         $schema->create('economic_account_bindings', function (Blueprint $t) { foreach (['account_id', 'owner_type', 'owner_id'] as $field) $t->string($field); });
+        // IO-5 — OrgDelegationService::mayPerform reads this on the non-agent
+        // hiring path (a hiring delegate). Empty here: no delegations in these
+        // fixtures, so a non-agent is still refused.
+        $schema->create('org_staff_grants', function (Blueprint $t) {
+            $t->string('id')->primary(); foreach (['organization_id', 'grantee_user_id', 'task', 'status'] as $field) $t->string($field);
+            $t->softDeletes();
+        });
         DB::table('organizations')->insert([
             ['id' => $this->id(1), 'agent_user_id' => $this->id(11), 'name' => 'First organization', 'status' => 'active'],
             ['id' => $this->id(2), 'agent_user_id' => $this->id(12), 'name' => 'Other organization', 'status' => 'active'],

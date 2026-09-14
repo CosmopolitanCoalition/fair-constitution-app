@@ -748,6 +748,7 @@ public companies, in **one open list**.
 | 2 | Follow the endorsement handshake | A candidate requests (F-CAN-002); the agent grants (F-ORG-002), which is forced public and confers R-07 on the candidate. | Art. I; Art. II §2 |
 | 3 | Join, or register as a worker | Membership and work are separate paths with separate consequences. | F-IND-013 · F-IND-014 |
 | 4 | As the agent, review applications and transfer agency | Accept or decline each pending application; a decline is final for that application, and the person may apply again. Transfer agency to any registered person — the transfer is immediate and takes management from you at once. | F-ORG-001 |
+| 5 | As the agent, delegate a scoped task, and revoke it | Grant one person one task bucket — profile, membership, contracts, documents, hiring, or shares. A delegate acts only within that bucket and holds no constitutional office. Agency itself, delegation itself, and dissolution are never delegable. Revoke any grant at any time. | F-ORG-011 |
 
 > **The why:** **endorsement linkage feeds proportionality, never a faction layer.** The worker
 > headcount feeds the co-determination scale. One organization model carries both.

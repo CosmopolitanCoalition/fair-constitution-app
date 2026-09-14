@@ -696,7 +696,7 @@ return [
         'title'     => 'Organization profile',
         'module'    => 'organizations',
         'nav'       => 'org-registry',
-        'roles'     => ['R-23', 'R-24', 'R-06', 'R-07'],
+        'roles'     => ['R-23', 'R-24', 'R-06', 'R-07', 'R-31'],
         'workflows' => ['WF-ORG-02', 'WF-ORG-03'],
         'forms'     => [
             ['id' => 'F-ORG-001', 'citation' => 'Art. I (Economic Freedom) — self-managed profile'],
@@ -704,6 +704,7 @@ return [
             ['id' => 'F-ORG-002', 'citation' => 'Art. I (Freedom of Assembly) — granting confers R-07'],
             ['id' => 'F-IND-013', 'availableTo' => ['R-01'], 'citation' => 'Art. I (Freedom of Assembly) — creates the membership record (R-24)'],
             ['id' => 'F-IND-014', 'availableTo' => ['R-01'], 'citation' => 'Art. III §6 (Work Councils) — THE co-determination headcount feed · CLK-13 / CLK-14'],
+            ['id' => 'F-ORG-011', 'availableTo' => ['R-23'], 'citation' => 'Art. I (Economic Freedom) — the agent delegates a scoped task; it confers no office (R-31)'],
         ],
         'clocks'    => ['CLK-13', 'CLK-14'],
         'citation'  => 'Endorsements are polymorphic — granting confers R-07 · Art. I · Art. II §2',

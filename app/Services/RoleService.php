@@ -77,6 +77,14 @@ use Illuminate\Support\Facades\DB;
  *                        'departments') with an active 'civil_officer'
  *                        civil-appointment term (Phase D thin slice —
  *                        department staff via the C.2 consent pipeline)
+ *   R-31 Org delegate  — an active org_staff_grants row on a non-dissolved
+ *                        organization (IO-5, F-ORG-011). Scoped staff
+ *                        delegation: the person may act on the granted task
+ *                        bucket for that one organization. It confers NO
+ *                        constitutional office — R-31 never appears in an
+ *                        office form's roles or an office surface — and never
+ *                        the agency, grant/revoke, ownership, board,
+ *                        conversion, dissolution or IP-dedication acts.
  *
  * Guests carry no roles here; the Inertia layer maps "no user" to the
  * mockups' R-00 visitor code for display. The shared-prop exposure
@@ -137,6 +145,7 @@ class RoleService implements ResolvesRoles
             $this->hasJudicialSeat($id, 'elected'),
             $this->hasRegisteredAdvocacy($id),
             $this->hasActiveJurySummons($id),
+            $this->hasOrgDelegation($id),
         );
     }
 
@@ -189,6 +198,7 @@ class RoleService implements ResolvesRoles
         bool $hasElectedJudicialSeat = false,
         bool $hasRegisteredAdvocacy = false,
         bool $hasActiveJurySummons = false,
+        bool $hasOrgDelegation = false,
     ): array {
         if (! $authenticated) {
             return [];
@@ -325,6 +335,14 @@ class RoleService implements ResolvesRoles
             $roles[] = 'R-30';
         }
 
+        // R-31 (org delegate, IO-5) — scoped staff delegation from an active
+        // org_staff_grants row. Appended at the TAIL, like the E-CASES facts,
+        // so the association→rights chain (R-03 ⇔ R-04) is untouched and it
+        // confers no office.
+        if ($hasOrgDelegation) {
+            $roles[] = 'R-31';
+        }
+
         return $roles;
     }
 
@@ -459,6 +477,19 @@ class RoleService implements ResolvesRoles
             ->where('agent_user_id', $userId)
             ->where('is_active', true)
             ->whereNull('deleted_at')
+            ->exists();
+    }
+
+    /** R-31: an active staff-delegation grant on a non-dissolved org (IO-5). */
+    private function hasOrgDelegation(string $userId): bool
+    {
+        return DB::table('org_staff_grants as g')
+            ->join('organizations as o', 'o.id', '=', 'g.organization_id')
+            ->where('g.grantee_user_id', $userId)
+            ->where('g.status', 'active')
+            ->whereNull('g.deleted_at')
+            ->where('o.status', '!=', 'dissolved')
+            ->whereNull('o.deleted_at')
             ->exists();
     }
 

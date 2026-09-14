@@ -5,7 +5,7 @@ namespace App\Domain\Forms;
 use InvalidArgumentException;
 
 /**
- * Canonical registry of the constitutional forms — 130 total: the 103 Template forms +
+ * Canonical registry of the constitutional forms — 131 total: the 103 Template forms +
  * F-ELB-008 (Manual District Draw, Phase H) + the Phase K-1 civic-commons trio
  * F-SOC-001/002/003 (public square / halls testimony / carve-out removal) + the Phase K-3
  * F-SOC-004 (M-5 physical-law legal-compliance removal, operator-plane) + the Phase M
@@ -16,7 +16,7 @@ use InvalidArgumentException;
  * + F-IND-020 (Resident Agreement — person-to-person / N-party agreements +
  * clause redlines) + the Wave 4 economy build F-IND-021 (Share Trade —
  * holder-to-holder secondary share resale on the exchange), F-CHR-005/006
- * (committee meeting lifecycle), F-ORG-010 (joint board-chair participation), F-LEG-037/038 (judicial nomination authorization and committee designation), the EO-5 individual-endorsement pair F-IND-025/026 (an individual's own public endorsement of a candidacy, and its withdrawal — distinct from the secret approval vote and from the organization endorsement handshake), and the IO-1 case-lifecycle quartet F-JDG-011/012/013/014 (hearing order, deliberation order, dismissal order, motion/evidence ruling — operator ruling 2026-09-13, case-lifecycle-controls-shape A; the VERDICT stays a CaseService transition, not a form), and the IO-2 appeal form F-IND-027 (Appeal Filing — a party appeals a decided/sentenced judgement to the parent judiciary or the same court en banc; the appellate outcome rides on the appeal panel's F-JDG-003 opinion; operator ruling 2026-09-13, appeals-workflow-rules = B).
+ * (committee meeting lifecycle), F-ORG-010 (joint board-chair participation), F-LEG-037/038 (judicial nomination authorization and committee designation), the EO-5 individual-endorsement pair F-IND-025/026 (an individual's own public endorsement of a candidacy, and its withdrawal — distinct from the secret approval vote and from the organization endorsement handshake), and the IO-1 case-lifecycle quartet F-JDG-011/012/013/014 (hearing order, deliberation order, dismissal order, motion/evidence ruling — operator ruling 2026-09-13, case-lifecycle-controls-shape A; the VERDICT stays a CaseService transition, not a form), and the IO-2 appeal form F-IND-027 (Appeal Filing — a party appeals a decided/sentenced judgement to the parent judiciary or the same court en banc; the appellate outcome rides on the appeal panel's F-JDG-003 opinion; operator ruling 2026-09-13, appeals-workflow-rules = B), and the IO-5 form F-ORG-011 (Staff Delegation — the organization agent grants/revokes a coarse task bucket to a named person; the delegate derives R-31 and holds no constitutional office; operator ruling 2026-09-13, org-staff-delegation-model = A).
  *
  * Source of truth: CGA_Constitutional_Roles_Forms_Chart.xlsx sheet
  * "3. Forms Catalog" (transcribed in docs/plans/institutions/
@@ -151,6 +151,12 @@ class FormRegistry
         // Joint chair participation by a current board member (WF-ORG-05).
         // This is separate from the agent's owner/worker election administration.
         'F-ORG-010' => ['name' => 'Board Chair Election',                       'roles' => ['R-01']],
+        // F-ORG-011 — scoped staff delegation (IO-5, operator ruling
+        // 2026-09-13 · org-staff-delegation-model = A). The AGENT (R-23) grants
+        // and revokes a coarse task bucket for a named person; grant/revoke are
+        // audited acts and never themselves delegable. R-31 (org delegate)
+        // derives from the resulting active grant and confers NO office.
+        'F-ORG-011' => ['name' => 'Staff Delegation',                           'roles' => ['R-23']],
 
         // ── F-ELB — Election Board Forms (6) ────────────────────────────────
         'F-ELB-001' => ['name' => 'Election Scheduling Order',                  'roles' => ['R-08']],
@@ -419,6 +425,7 @@ class FormRegistry
         'F-ORG-007' => Handlers\OrganizationDissolution::class,
         'F-ORG-008' => Handlers\OrganizationMarketParticipation::class,
         'F-ORG-009' => Handlers\InternalRestructuring::class,
+        'F-ORG-011' => Handlers\OrganizationStaffDelegation::class,
         'F-LEG-019' => Handlers\CgcCreationAct::class,
         'F-LEG-026' => Handlers\MonopolyAcquisitionVote::class,
         'F-LEG-027' => Handlers\CgcReorganizationSaleVote::class,

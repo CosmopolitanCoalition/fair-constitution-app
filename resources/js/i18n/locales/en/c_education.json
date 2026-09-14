@@ -789,6 +789,8 @@
   "education_organizations_org_detail.s3_do": "Join, or register as a worker",
   "education_organizations_org_detail.s4_detail": "Accept or decline each pending application; a decline is final for that application, and the person may apply again. Transfer agency to any registered person — the transfer is immediate and takes management from you at once.",
   "education_organizations_org_detail.s4_do": "As the agent, review applications and transfer agency",
+  "education_organizations_org_detail.s5_detail": "Grant one person one task bucket — profile, membership, contracts, documents, hiring, or shares. A delegate acts only within that bucket and holds no constitutional office. Agency itself, delegation itself, and dissolution are never delegable. Revoke any grant at any time.",
+  "education_organizations_org_detail.s5_do": "As the agent, delegate a scoped task, and revoke it",
   "education_organizations_org_detail.why": "endorsement linkage feeds proportionality, never a faction layer. The worker headcount feeds the co-determination scale. One organization model carries both.",
   "education_organizations_org_registry.learn": "Every registered organization where you live — parties, businesses, nonprofits and public companies, in one open list.",
   "education_organizations_org_registry.s1_detail": "One registry, one model, discriminated only by type. There is no faction layer.",
