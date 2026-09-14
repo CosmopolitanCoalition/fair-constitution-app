@@ -9,11 +9,18 @@
  * automatically, on residency verification (Art. I).
  */
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, provide, ref, useId } from 'vue';
 import Banner from '@/Components/Ui/Banner.vue';
 
 // Standalone (pre-shell) page — opt out of the AppShell default layout.
 defineOptions({ layout: null });
+import CmdBar from '@/Components/ShellV2/CmdBar.vue';
+
+// LE-5: no shell here, so the page provides its own Learn context and mounts
+// the Learn-only command bar. The surface id resolves the authored guidance
+// (registry/education.js, key auth/register).
+provide('cga:surface', ref({ id: 'auth/register', module: 'civic' }));
+provide('cga:learn-target', '#learn-content-' + useId());
 import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import CheckboxField from '@/Components/Ui/CheckboxField.vue';
@@ -274,6 +281,9 @@ function submit() {
             </Card>
         </div>
     </main>
+
+    <!-- LE-5: Learn drawer reachable during onboarding, before any session. -->
+    <CmdBar learn-only />
 </template>
 
 <style scoped>

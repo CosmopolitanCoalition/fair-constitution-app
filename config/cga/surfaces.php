@@ -98,6 +98,33 @@ return [
         'citation'  => 'Registration is open to any person — rights are inherent · Art. I',
     ],
 
+    // Front-door sign-in surfaces (LE-5). Standalone pages with no shell; they
+    // mount a Learn-only command bar and provide these ids so the drawer
+    // resolves the authored K-2 guidance. No controller passes SurfaceMeta for
+    // them yet; the record exists so the education generator's join holds and
+    // any later server pass can adopt it.
+    'auth/login' => [
+        'title'     => 'Log in',
+        'module'    => 'civic',
+        'nav'       => 'home',
+        'roles'     => ['R-01'],
+        'workflows' => ['WF-CIV-01'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Signing in recognises your record; rights ride with residency, not the session · Art. I',
+    ],
+
+    'auth/operator-login' => [
+        'title'     => 'Operator sign-in',
+        'module'    => 'system',
+        'nav'       => null,
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Operator status is infrastructure and confers no governance standing · Art. I',
+    ],
+
     'legislature/index' => [
         'title'     => 'Legislatures',
         'module'    => 'jurisdictions',

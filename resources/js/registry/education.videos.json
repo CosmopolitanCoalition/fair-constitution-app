@@ -1,4 +1,6 @@
 {
+  "auth/login": "v-introduction-to-the-coalition1",
+  "auth/operator-login": "v-introduction-to-the-coalition1",
   "auth/register": "v-introduction-to-the-coalition1",
   "build/progress": "v-introduction-to-the-coalition1",
   "civic/commons-halls": "v-introduction-to-the-coalition1",
