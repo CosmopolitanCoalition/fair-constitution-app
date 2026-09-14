@@ -5750,10 +5750,10 @@
     {
       "id": "W-0171",
       "title": "Wire useI18n into civic, legislature and election page bodies",
-      "phase": "P1",
-      "order": 12,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "blocker: VERIFIED 2026-09-14 (partial): 24/145 pages call useI18n vs 16/133 at baseline. Slight improvement. Most page bodies still hardcoded English; no new catalog work since 9c51cb80. | VERIFIED 2026-09-08 (partial): All 6 non-English locales (ar, es, fr, hi, pt, zh-Hans) have catalog files including auth and chrome catalogs. The machinery and English fallback work. Only 16 of 133 Page components call useI18n. Most civic, legislature, and election page bodies remain hardcoded English. No i18n coverage commits since the rubric was stamped. Evidence: 7 locale dirs exist in resources/js/i18n/…",
       "done_when": "The major civic, legislature and election page bodies call useI18n() for body text; the coverage report shows the majority of page components using useI18n.",
@@ -5788,6 +5788,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Markup wiring so page bodies are translatable; distinct from catalog authoring."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the markup lane, commit 41da1033, merged 64f99473. useI18n wired into civic, legislature and all 7 election pages; adoption 27 of 43 target pages, 402 wired keys, 0 unresolved. Pinned by i18nPageWiring.test.mjs (8 sections)."
         }
       ]
     },
@@ -12893,10 +12897,10 @@
     {
       "id": "W-0335",
       "title": "Label 67 accessible-name gaps across 18 Vue files",
-      "phase": "P1",
-      "order": 14,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "Label the 67 accessible-name gaps the static scan pins in `tests/js/a11y-baseline.json` (18 .vue files): 64 form controls with no programmatic name (Setup/Step1_Constants.vue 28 label-without-for inputs and selects; Jurisdictions/Federation.vue 9 placeholder-only fields; Setup/OperatorSetup.vue 4; Jurisdictions/Index.vue 4; Operator/Dns.vue 3; Economy/AgreementDetail.vue, Economy/OrgSettings.vue, Legislature/Districts.vue, Legislature/TypeBDistricts.vue, Operator/Operations.vue 2 each; ImportBackupPanel.vue file input, RowDetailPanel.vue textarea, Invite/InviteButton.vue read-only input, Juri…",
       "done_when": "a11yStaticScan reports zero baseline findings; a11y-baseline.json is empty; player and browser a11y sweeps stay green.",
@@ -12923,6 +12927,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Distinct a11y fix (accessible names); feeds the L2 verify."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the markup lane, commit 99e78979, merged 64f99473. All 67 gaps labeled (aria-label, for/id pairs, aria-hidden), a11y-baseline.json emptied, static scan 0 findings over 271 files on main. Player and room tests 25 of 25."
         }
       ]
     },

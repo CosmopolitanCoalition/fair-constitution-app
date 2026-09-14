@@ -334,6 +334,18 @@
    "note": "Built by the economy lane, commit c4b0571d, merged 74a0ea6f. Resumable keyset walk in host-derived chunks, cursor committed per chunk, logged progress. Pinned by SocialSweepChunkingTest (3).",
    "date": "2026-09-14",
    "title": "Chunk EvaluateSocialStructureJob halls binding with keyset commits"
+  },
+  "W-0171": {
+   "status": "done",
+   "note": "Built by the markup lane, commit 41da1033, merged 64f99473. useI18n wired into civic, legislature and all 7 election pages; adoption 27 of 43 target pages, 402 wired keys, 0 unresolved. Pinned by i18nPageWiring.test.mjs (8 sections).",
+   "date": "2026-09-14",
+   "title": "Wire useI18n into civic, legislature and election page bodies"
+  },
+  "W-0335": {
+   "status": "done",
+   "note": "Built by the markup lane, commit 99e78979, merged 64f99473. All 67 gaps labeled (aria-label, for/id pairs, aria-hidden), a11y-baseline.json emptied, static scan 0 findings over 271 files on main. Player and room tests 25 of 25.",
+   "date": "2026-09-14",
+   "title": "Label 67 accessible-name gaps across 18 Vue files"
   }
  }
 }
