@@ -12821,6 +12821,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: There is PHP and HTML.Javascript Code I built for the international player. Do you have access to that? That is the mdoel we will be using for multimodal translation."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator: the Coalition plugin (video_player.php) is the model; icon-first controls with native language labels, the remaining strings through vue-i18n."
         }
       ]
     },
@@ -16323,6 +16327,89 @@
         {
           "date": "2026-09-14",
           "note": "Closed punch row: Regression"
+        }
+      ]
+    },
+    {
+      "id": "W-0430",
+      "title": "Player playlist: previous, select, next and auto-advance across the library",
+      "phase": "P1",
+      "order": 69,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "detail": "The video player accepts a playlist (the library catalog) and shows previous, a film selector and next when more than one film is present; the film ends and the next one starts with the same language choice; the library page opens the selected film inside the playlist. Model: the operator plugin video_player.php playlist controls.",
+      "done_when": "tests/js/multiTrackVideoPlayer.test.mjs and tests/browser/videoDecoding.test.mjs prove previous, select, next and auto-advance on a two-film playlist; a single film shows no playlist controls.",
+      "depends_on": [
+        "W-0334"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-14 player plugin gap",
+          "title": "Player playlist: previous, select, next and auto-advance across the library",
+          "wave": ""
+        }
+      ],
+      "evidence": [],
+      "history": [
+        {
+          "date": "2026-09-14",
+          "note": "Operator order: close the gap to the Coalition multi-track player plugin (playlist, volume and mute, account-saved preferences)."
+        }
+      ]
+    },
+    {
+      "id": "W-0431",
+      "title": "Player volume and mute for the language dub",
+      "phase": "P1",
+      "order": 70,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "detail": "A mute button and a volume slider act on the hidden dub audio element (the master stays muted by design); the level and mute state are remembered with the other player preferences. Model: the operator plugin mute button and volume slider.",
+      "done_when": "The compiled and browser player tests prove the slider sets audio.volume, mute toggles audio.muted with the icon state, and both persist across a reload.",
+      "depends_on": [],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-14 player plugin gap",
+          "title": "Player volume and mute for the language dub",
+          "wave": ""
+        }
+      ],
+      "evidence": [],
+      "history": [
+        {
+          "date": "2026-09-14",
+          "note": "Operator order: close the gap to the Coalition multi-track player plugin (playlist, volume and mute, account-saved preferences)."
+        }
+      ]
+    },
+    {
+      "id": "W-0432",
+      "title": "Account-saved player preferences for signed-in people",
+      "phase": "P1",
+      "order": 71,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "detail": "A signed-in viewer keeps audio language, captions language, link state, captions on or off, volume and mute on the account (an additive real-dated table, one JSON document per user) so they follow the person across browsers; browser storage stays the fallback for guests and the cache for everyone. Model: the operator plugin usermeta preferences.",
+      "done_when": "A PHP feature test on a SQLite fixture proves the endpoint requires a session, round-trips the document and rejects unknown keys; the compiled player test proves server preferences win over browser storage at mount and a change is sent once per debounce window; the migration is applied on box E.",
+      "depends_on": [],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-14 player plugin gap",
+          "title": "Account-saved player preferences for signed-in people",
+          "wave": ""
+        }
+      ],
+      "evidence": [],
+      "history": [
+        {
+          "date": "2026-09-14",
+          "note": "Operator order: close the gap to the Coalition multi-track player plugin (playlist, volume and mute, account-saved preferences)."
         }
       ]
     }
