@@ -176,6 +176,9 @@ assert_contains "probe is TCP (-h 127.0.0.1)" "$WS/docker.log" "pg_isready -h 12
 assert_count    "3 not-ready probes retried"  "$WS/order.log" "PG_PROBE_FAIL" "3"
 assert_contains "reached ready"               "$WS/order.log" "PG_PROBE_OK"
 assert_before   "ready before any migrate"    "$WS/order.log" "PG_PROBE_OK" "ARTISAN migrate"
+# redis_queue is the queue's single home and is NOT behind a profile. Pin it into the stack up
+# so it can never be dropped again (WoS 2026-09-08: down redis_queue -> app 500 getaddrinfo).
+assert_contains "stack up includes redis_queue" "$WS/docker.log" "up -d --build app postgres redis redis_queue horizon scheduler"
 rm -rf "$WS"
 
 # ── (2) config generation failure (matrix:setup non-zero) ─────────────────────────────

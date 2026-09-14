@@ -1,8 +1,8 @@
 #!/usr/bin/env pwsh
 #
 # test_installer_contracts.ps1 - deploy.ps1 installer failure/retry contract harness
-# (Windows parity with tests/deploy/test_installer_contracts.sh, minus the two config-gen
-# cases that deploy.ps1 has NO branch for; see the divergence note at the bottom of this file).
+# (Windows parity with tests/deploy/test_installer_contracts.sh, including the public-Matrix
+# config-generation-failure and missing-output gate cases now mirrored in deploy.ps1).
 #
 # Runs the REAL deploy.ps1 in an isolated temp dir with a native `docker` stub
 # (docker.bat -> docker_stub.ps1) on PATH. The stub logs every `php artisan` invocation to
@@ -14,6 +14,12 @@
 #
 # Cases (every one a Windows failure/retry contract the register row names for deploy.ps1):
 #   (1)  PG not-ready x3 then ready       -> TCP probe (-h 127.0.0.1), retried, migrate AFTER ready
+#   (2)  -PublicUrl config-gen FAILURE    -> matrix:setup non-zero -> exit 1, "generation failed",
+#                                            Matrix/MAS not started, APP_KEY preserved, staging cleaned
+#   (3)  -PublicUrl MISSING OUTPUT        -> matrix:setup ok but bundle validation fails -> exit 1,
+#                                            "did not pass validation", not started, APP_KEY preserved
+#   (3v) -PublicUrl VALID existing bundle -> preserve, no matrix:setup, Matrix+MAS force-recreated
+#                                            with the validated (never the committed dev) secrets
 #   (4)  custom project (-Project X)      -> compose -p X, .env pins COMPOSE_PROJECT_NAME=X
 #   (5)  existing project (.env pin)      -> reuse the pinned project, not the -Prefix default
 #   (6a) own APP_KEY                      -> preserve byte-identical, no key:generate, no --rotate
@@ -23,11 +29,10 @@
 #   (7c) rerun --join, resume rc4         -> fail loud non-zero, no re-adopt, no --rotate, mint recovery
 #   (7d) rerun --join, resume rc3 + join rc1 (exhausted key) -> fail loud, mint recovery, no --rotate
 #
-# deploy.ps1 has NO public-Matrix config-generation-failure / missing-output branch
-# (matrix:setup appears only in comments at deploy.ps1:102 and :158; the deploy.sh
-# 'generation failed' / 'did not pass validation' gates at deploy.sh:452/456 have no
-# PowerShell counterpart), so cases 2 and 3 of the .sh harness have nothing to exercise here.
-# That gap is a deploy.ps1-vs-deploy.sh divergence, recorded, not a testable Windows contract.
+# deploy.ps1 now mirrors the deploy.sh public-Matrix gate: on -PublicUrl it runs matrix:setup,
+# validates the generated bundle with the same isolated check_public_matrix.py, refuses to start
+# Matrix + MAS on a failed or missing bundle, and never falls back to the committed development
+# Matrix secrets. Cases 2 / 3 / 3v exercise that gate (stubbed artisan + docker, no real Docker).
 #
 # Run from the worktree:  pwsh -NoProfile -File tests/deploy/test_installer_contracts.ps1
 #
@@ -83,6 +88,15 @@ $full = ($a -join ' ')
 if ($dock)  { Add-Content -LiteralPath $dock -Value $full }
 # nginx start marker (docker compose ... up -d nginx) so ordering can be proven.
 if ($order -and ($full -match ' up .*nginx')) { Add-Content -LiteralPath $order -Value 'NGINX_UP' }
+# Isolated python checks (identity name probe / bundle validation) run via `docker run`.
+# The bundle check returns STUB_BUNDLE_RC (default 1 = invalid, forces the regen path, parity
+# with the .sh stub). The name probe reports a fresh box.
+if ($full -match 'deploy-check.py bundle') {
+  if ($order) { Add-Content -LiteralPath $order -Value 'BUNDLE_CHECK' }
+  $brc = 1; if ($env:STUB_BUNDLE_RC) { $brc = [int]$env:STUB_BUNDLE_RC }
+  exit $brc
+}
+if ($full -match 'deploy-check.py name') { Write-Output 'fresh'; exit 0 }
 # PostgreSQL readiness probe: fail STUB_PG_FAILS times (per-workspace counter), then ready.
 if ($full -match 'pg_isready') {
   $cf = $env:PG_COUNT_FILE
@@ -109,6 +123,7 @@ if ($idx -ge 0) {
   $sub = [string]$a[$idx + 1]
   if ($sub -eq 'federation:resume-join') { exit ([int]$env:STUB_RESUME_RC) }
   if ($sub -eq 'cluster:join')           { exit ([int]$env:STUB_CLUSTER_JOIN_RC) }
+  if ($sub -eq 'matrix:setup')           { exit ([int]$env:STUB_MATRIX_SETUP_RC) }
   exit 0
 }
 exit 0
@@ -117,8 +132,10 @@ exit 0
 $stubBat = "@echo off`r`npwsh -NoProfile -File `"%~dp0docker_stub.ps1`" %*`r`nexit /b %ERRORLEVEL%`r`n"
 
 # New-Workspace: synthetic .env / .env.example, docker stub on ./bin. $EnvExtra adds .env lines
-# (e.g. a COMPOSE_PROJECT_NAME pin) BEFORE deploy.ps1 reads them.
-function New-Workspace($currentKey, [string[]]$EnvExtra) {
+# (e.g. a COMPOSE_PROJECT_NAME pin) BEFORE deploy.ps1 reads them. -Public also lays down the
+# source files the public-Matrix staging block copies (registration/mas-synapse/livekit configs
+# and the deploy-check script) so the gate has real files to stage, plus the mas output dir.
+function New-Workspace($currentKey, [string[]]$EnvExtra, [switch]$Public) {
   $ws = Join-Path ([System.IO.Path]::GetTempPath()) ("instps_" + [System.Guid]::NewGuid().ToString('N'))
   New-Item -ItemType Directory -Path $ws | Out-Null
   New-Item -ItemType Directory -Path (Join-Path $ws 'bin') | Out-Null
@@ -129,6 +146,17 @@ function New-Workspace($currentKey, [string[]]$EnvExtra) {
   Set-Content -LiteralPath (Join-Path $ws '.env') -Value $envLines
   Set-Content -LiteralPath (Join-Path $ws 'bin/docker_stub.ps1') -Value $stubPs1
   Set-Content -LiteralPath (Join-Path $ws 'bin/docker.bat')      -Value $stubBat -NoNewline
+  if ($Public) {
+    New-Item -ItemType Directory -Path (Join-Path $ws 'docker/matrix/mas') -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $ws 'docker/matrix/appservice') -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $ws 'docker/matrix/conf.d') -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $ws 'docker/livekit') -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $ws 'scripts/deploy') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $ws 'docker/matrix/appservice/registration.yaml') -Value 'stub'
+    Set-Content -LiteralPath (Join-Path $ws 'docker/matrix/conf.d/20-mas.yaml') -Value 'stub'
+    Set-Content -LiteralPath (Join-Path $ws 'docker/livekit/livekit.yaml') -Value 'use_external_ip: true'
+    Set-Content -LiteralPath (Join-Path $ws 'scripts/deploy/check_public_matrix.py') -Value 'stub'
+  }
   return $ws
 }
 
@@ -142,6 +170,8 @@ function Invoke-Case($ws, [hashtable]$stub, [string[]]$deployArgs) {
   $env:STUB_PG_FAILS        = [string]([int]$stub.PgFails)
   $env:STUB_RESUME_RC       = [string]([int]$stub.Resume)
   $env:STUB_CLUSTER_JOIN_RC = [string]([int]$stub.Join)
+  $env:STUB_MATRIX_SETUP_RC = [string]([int]$stub.MatrixSetup)
+  $env:STUB_BUNDLE_RC       = [string]([int]$stub.Bundle)
   $oldPath = $env:Path
   $env:Path = (Join-Path $ws 'bin') + [IO.Path]::PathSeparator + $oldPath
   try {
@@ -149,7 +179,7 @@ function Invoke-Case($ws, [hashtable]$stub, [string[]]$deployArgs) {
     return $LASTEXITCODE
   } finally {
     $env:Path = $oldPath
-    Remove-Item Env:\STUB_PG_FAILS, Env:\STUB_RESUME_RC, Env:\STUB_CLUSTER_JOIN_RC, Env:\PG_COUNT_FILE -ErrorAction SilentlyContinue
+    Remove-Item Env:\STUB_PG_FAILS, Env:\STUB_RESUME_RC, Env:\STUB_CLUSTER_JOIN_RC, Env:\PG_COUNT_FILE, Env:\STUB_MATRIX_SETUP_RC, Env:\STUB_BUNDLE_RC -ErrorAction SilentlyContinue
   }
 }
 
@@ -163,6 +193,58 @@ AssertContains     "TCP probe -h 127.0.0.1"     $doc "pg_isready -h 127.0.0.1"
 AssertCountAtLeast "3 not-ready probes retried"  $ord "PG_PROBE_FAIL" 3
 AssertContains     "reached ready"               $ord "PG_PROBE_OK"
 AssertBefore       "ready before migrate"        $ord "PG_PROBE_OK" "ARTISAN migrate"
+# redis_queue is the queue's single home and is NOT behind a profile. Pin it into the stack up
+# so it can never be dropped again (WoS 2026-09-08: down redis_queue -> app 500 getaddrinfo).
+AssertContains     "stack up includes redis_queue" $doc "up -d --build app postgres redis redis_queue horizon scheduler"
+Remove-Item -Recurse -Force $ws
+
+Write-Host "== (2) -PublicUrl config generation FAILURE (matrix:setup non-zero) =="
+$ws = New-Workspace $realKey @() -Public
+$beforeKey = (Get-Content (Join-Path $ws '.env') | Where-Object { $_ -like 'APP_KEY=*' })
+$rc = Invoke-Case $ws @{ PgFails = 0; Resume = 0; Join = 0; MatrixSetup = 1; Bundle = 1 } `
+        @('-PublicUrl','https://earth.example.org','-MediaIp','203.0.113.10','-Project','t2')
+$out = Join-Path $ws 'out.log'; $art = Join-Path $ws 'art.log'
+if ($rc -eq 1) { Pass "non-zero exit (1)" } else { Fail "non-zero exit (got $rc)" }
+AssertContains "generation-failed message"  $out "Public Matrix configuration generation failed"
+AssertContains "not started"                 $out "Matrix and MAS were not started"
+AssertContains "matrix:setup was attempted"  $art "matrix:setup"
+AssertAbsent   "no success banner"           $out "Instance up"
+AssertAbsent   "identity not rotated"        $art "federation:init --rotate"
+AssertAbsent   "no key regeneration"         $art "key:generate"
+$afterKey = (Get-Content (Join-Path $ws '.env') | Where-Object { $_ -like 'APP_KEY=*' })
+if ($afterKey -eq $beforeKey) { Pass "APP_KEY preserved" } else { Fail "APP_KEY preserved (got '$afterKey')" }
+$stale = @(Get-ChildItem -Path $ws -Directory -Filter '.matrix-deploy.*' -Force -ErrorAction SilentlyContinue).Count
+if ($stale -eq 0) { Pass "staging dir cleaned" } else { Fail "staging dir cleaned (found $stale)" }
+Remove-Item -Recurse -Force $ws
+
+Write-Host "== (3) -PublicUrl MISSING OUTPUT (matrix:setup ok, bundle validation fails) =="
+$ws = New-Workspace $realKey @() -Public
+$beforeKey = (Get-Content (Join-Path $ws '.env') | Where-Object { $_ -like 'APP_KEY=*' })
+$rc = Invoke-Case $ws @{ PgFails = 0; Resume = 0; Join = 0; MatrixSetup = 0; Bundle = 1 } `
+        @('-PublicUrl','https://earth.example.org','-MediaIp','203.0.113.10','-Project','t3')
+$out = Join-Path $ws 'out.log'; $art = Join-Path $ws 'art.log'
+if ($rc -eq 1) { Pass "non-zero exit (1)" } else { Fail "non-zero exit (got $rc)" }
+AssertContains "validation-failed message"   $out "did not pass validation"
+AssertContains "not started"                 $out "Matrix and MAS were not started"
+AssertContains "matrix:setup ran (gen ok)"   $art "matrix:setup"
+AssertAbsent   "no success banner"           $out "Instance up"
+AssertAbsent   "identity not rotated"        $art "federation:init --rotate"
+$afterKey = (Get-Content (Join-Path $ws '.env') | Where-Object { $_ -like 'APP_KEY=*' })
+if ($afterKey -eq $beforeKey) { Pass "APP_KEY preserved" } else { Fail "APP_KEY preserved (got '$afterKey')" }
+$stale = @(Get-ChildItem -Path $ws -Directory -Filter '.matrix-deploy.*' -Force -ErrorAction SilentlyContinue).Count
+if ($stale -eq 0) { Pass "staging dir cleaned" } else { Fail "staging dir cleaned (found $stale)" }
+Remove-Item -Recurse -Force $ws
+
+Write-Host "== (3v) -PublicUrl VALID existing bundle -> preserve, no matrix:setup, Matrix+MAS started =="
+$ws = New-Workspace $realKey @() -Public
+$rc = Invoke-Case $ws @{ PgFails = 0; Resume = 0; Join = 0; MatrixSetup = 0; Bundle = 0 } `
+        @('-PublicUrl','https://earth.example.org','-MediaIp','203.0.113.10','-Project','t3v')
+$out = Join-Path $ws 'out.log'; $art = Join-Path $ws 'art.log'; $doc = Join-Path $ws 'docker.log'
+if ($rc -eq 0) { Pass "exit 0 (valid bundle path completes)" } else { Fail "exit 0 (got $rc)" }
+AssertContains "preserve message"            $out "Preserving the existing matched"
+AssertAbsent   "no matrix:setup on preserve" $art "matrix:setup"
+AssertContains "Matrix+MAS force-recreated"  $doc "up -d --force-recreate matrix mas"
+AssertContains "started with validated cfg"  $out "validated public configuration"
 Remove-Item -Recurse -Force $ws
 
 Write-Host "== (4) custom project (-Project cga_custom) =="
