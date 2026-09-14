@@ -25,6 +25,8 @@ use Tests\TestCase;
 /** Named, private SQLite only. No world writes or live-PG test helpers. */
 class CandidacyEndorsementDirectoryTest extends TestCase
 {
+    use \Tests\Concerns\AchievementSchema;
+
     private string $original;
     private Candidacy $candidate;
     private CandidacyEndorsementDirectory $directory;
@@ -35,6 +37,7 @@ class CandidacyEndorsementDirectoryTest extends TestCase
         $this->original = DB::getDefaultConnection();
         config(['database.connections.candidacy_directory_fixture' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '']]);
         DB::setDefaultConnection('candidacy_directory_fixture');
+        $this->createAchievementTables(); // AC-1: the wired handlers read the ledger before they award
         self::assertSame('sqlite', DB::connection()->getDriverName());
         self::assertSame(':memory:', DB::connection()->getDatabaseName());
         $s = DB::connection()->getSchemaBuilder();

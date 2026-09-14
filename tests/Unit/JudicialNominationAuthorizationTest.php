@@ -59,6 +59,8 @@ use Tests\TestCase;
 /** Actual court controller, nomination service, confirmation forms and civil terms. Private SQLite only. */
 final class JudicialNominationAuthorizationTest extends TestCase
 {
+    use \Tests\Concerns\AchievementSchema;
+
     private string $original;
 
     private ConstitutionalEngine $engine;
@@ -77,6 +79,7 @@ final class JudicialNominationAuthorizationTest extends TestCase
         $this->original = DB::getDefaultConnection();
         config(['database.connections.judicial_nomination_fixture' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => ''], 'cga.demo_session_capture' => false]);
         DB::setDefaultConnection('judicial_nomination_fixture');
+        $this->createAchievementTables(); // AC-1: the wired handlers read the ledger before they award
         self::assertSame('sqlite', DB::connection()->getDriverName());
         self::assertSame(':memory:', DB::connection()->getDatabaseName());
         foreach ([ChamberVoteProposal::class, Committee::class, CommitteeSeat::class, Appointment::class, ChamberVote::class, ChamberVoteTally::class, Clock::class, ClockTimer::class,

@@ -19,6 +19,8 @@ use Tests\TestCase;
  */
 final class LegislativeRolloverWorkflowTest extends TestCase
 {
+    use \Tests\Concerns\AchievementSchema;
+
     private string $original;
     private CertificationService $service;
 
@@ -28,6 +30,7 @@ final class LegislativeRolloverWorkflowTest extends TestCase
         $this->original = DB::getDefaultConnection();
         config(['database.connections.rollover_fixture' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '']]);
         DB::setDefaultConnection('rollover_fixture');
+        $this->createAchievementTables(); // AC-1: the wired handlers read the ledger before they award
         self::assertSame('sqlite', DB::connection()->getDriverName());
         self::assertSame(':memory:', DB::connection()->getDatabaseName());
         Bus::fake();
@@ -79,6 +82,9 @@ final class LegislativeRolloverWorkflowTest extends TestCase
         $this->app->instance(ReferendumService::class, $referendums);
         $this->service = new CertificationService($audit, new ClockService($audit, $settings), $settings, $lifecycle, app(RoleService::class));
         $this->seedOutgoing();
+
+        // AC-1: the committee seat-minting award site resolves each holder with User::find.
+        $this->createUsersTableIfMissing();
     }
 
     protected function tearDown(): void

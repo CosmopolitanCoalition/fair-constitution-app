@@ -26,6 +26,8 @@ use Tests\TestCase;
  */
 class OrganizationEndorsementWithdrawalTest extends TestCase
 {
+    use \Tests\Concerns\AchievementSchema;
+
     private string $original;
 
     protected function setUp(): void
@@ -34,6 +36,7 @@ class OrganizationEndorsementWithdrawalTest extends TestCase
         $this->original = DB::getDefaultConnection();
         config(['database.connections.org_endorsement_fixture' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '']]);
         DB::setDefaultConnection('org_endorsement_fixture');
+        $this->createAchievementTables(); // AC-1: the wired handlers read the ledger before they award
         self::assertSame('sqlite', DB::connection()->getDriverName());
         self::assertSame(':memory:', DB::connection()->getDatabaseName());
 

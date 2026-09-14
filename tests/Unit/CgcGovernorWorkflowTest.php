@@ -55,6 +55,8 @@ use Tests\TestCase;
  */
 final class CgcGovernorWorkflowTest extends TestCase
 {
+    use \Tests\Concerns\AchievementSchema;
+
     private string $original;
 
     private ConstitutionalEngine $engine;
@@ -73,6 +75,7 @@ final class CgcGovernorWorkflowTest extends TestCase
         $this->original = DB::getDefaultConnection();
         config(['database.connections.cgc_governor_fixture' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => ''], 'cga.demo_session_capture' => false]);
         DB::setDefaultConnection('cgc_governor_fixture');
+        $this->createAchievementTables(); // AC-1: the wired handlers read the ledger before they award
         self::assertSame('sqlite', DB::connection()->getDriverName());
         self::assertSame(':memory:', DB::connection()->getDatabaseName());
         foreach ([Appointment::class, Board::class, BoardSeat::class, ChamberVote::class, ChamberVoteTally::class,

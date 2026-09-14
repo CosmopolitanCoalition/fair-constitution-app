@@ -13,6 +13,8 @@ use Tests\TestCase;
 /** The actual preference handler over private SQLite fixtures; no engine/audit/world writes. */
 final class CommitteePreferenceRevisionTest extends TestCase
 {
+    use \Tests\Concerns\AchievementSchema;
+
     private string $original;
 
     protected function setUp(): void
@@ -21,6 +23,7 @@ final class CommitteePreferenceRevisionTest extends TestCase
         $this->original = DB::getDefaultConnection();
         config(['database.connections.preference_revision_fixture' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '']]);
         DB::setDefaultConnection('preference_revision_fixture');
+        $this->createAchievementTables(); // AC-1: the wired handlers read the ledger before they award
         self::assertSame('sqlite', DB::connection()->getDriverName());
         self::assertSame(':memory:', DB::connection()->getDatabaseName());
         foreach (['legislatures' => [], 'legislature_members' => ['legislature_id', 'user_id', 'status'], 'committees' => ['legislature_id', 'status']] as $name => $columns) {

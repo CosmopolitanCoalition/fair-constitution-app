@@ -20,6 +20,8 @@ use Tests\TestCase;
 /** Real handler queries on private SQLite fixtures; certification is a guarded mock. */
 final class BoardCertificationScopeTest extends TestCase
 {
+    use \Tests\Concerns\AchievementSchema;
+
     private string $originalConnection;
     private OrgBoardSeatingService $seating;
 
@@ -31,6 +33,7 @@ final class BoardCertificationScopeTest extends TestCase
             'driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '',
         ]]);
         DB::setDefaultConnection('board_certification_fixture');
+        $this->createAchievementTables(); // AC-1: the wired handlers read the ledger before they award
         self::assertSame('sqlite', DB::connection()->getDriverName());
         self::assertSame(':memory:', DB::connection()->getDatabaseName());
         $schema = DB::connection()->getSchemaBuilder();

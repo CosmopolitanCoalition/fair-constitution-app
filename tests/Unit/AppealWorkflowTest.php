@@ -46,6 +46,8 @@ use Tests\TestCase;
  */
 final class AppealWorkflowTest extends TestCase
 {
+    use \Tests\Concerns\AchievementSchema;
+
     private string $original;
 
     private ConstitutionalEngine $engine;
@@ -63,6 +65,7 @@ final class AppealWorkflowTest extends TestCase
             'cga.demo_session_capture' => false,
         ]);
         DB::setDefaultConnection('appeal_fixture');
+        $this->createAchievementTables(); // AC-1: the wired handlers read the ledger before they award
         self::assertSame('sqlite', DB::connection()->getDriverName());
         self::assertSame(':memory:', DB::connection()->getDatabaseName());
 

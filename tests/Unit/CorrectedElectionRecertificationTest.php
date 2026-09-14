@@ -47,6 +47,8 @@ use Tests\TestCase;
  */
 final class CorrectedElectionRecertificationTest extends TestCase
 {
+    use \Tests\Concerns\AchievementSchema;
+
     private string $original;
 
     private ElectionResultsCertification $handler;
@@ -73,6 +75,7 @@ final class CorrectedElectionRecertificationTest extends TestCase
             'queue.default' => 'sync',
         ]);
         DB::setDefaultConnection('recertification_review');
+        $this->createAchievementTables(); // AC-1: the wired handlers read the ledger before they award
         self::assertSame('sqlite', DB::connection()->getDriverName());
         self::assertSame(':memory:', DB::connection()->getDatabaseName());
         Bus::fake();

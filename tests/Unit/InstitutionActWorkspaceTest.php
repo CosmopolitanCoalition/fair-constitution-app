@@ -53,6 +53,8 @@ use Tests\TestCase;
  */
 final class InstitutionActWorkspaceTest extends TestCase
 {
+    use \Tests\Concerns\AchievementSchema;
+
     private string $original;
 
     private ConstitutionalEngine $engine;
@@ -69,6 +71,7 @@ final class InstitutionActWorkspaceTest extends TestCase
         $this->original = DB::getDefaultConnection();
         config(['database.connections.institution_acts_fixture' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => ''], 'cga.demo_session_capture' => false, 'session.driver' => 'array']);
         DB::setDefaultConnection('institution_acts_fixture');
+        $this->createAchievementTables(); // AC-1: the wired handlers read the ledger before they award
         self::assertSame('sqlite', DB::connection()->getDriverName());
         self::assertSame(':memory:', DB::connection()->getDatabaseName());
         Bus::fake();
