@@ -195,6 +195,10 @@ class BillController extends Controller
             'scope_judiciary_id'  => $request->input('scope_judiciary_id') ?: null,
             'targets_setting_key' => $request->input('targets_setting_key') ?: null,
             'proposed_value'      => is_numeric($proposed) ? $proposed + 0 : $proposed,
+            // Phase E Path 1 (IO-3): a remedial bill tagged to the challenge it
+            // answers, so ConstitutionalChallengeService::onRemedialEnactment
+            // closes the challenge when this bill enacts within the CLK-12 window.
+            'targets_challenge_id' => $request->input('targets_challenge_id') ?: null,
         ]);
 
         return back()->with('status', 'Bill introduced (F-LEG-003) — version 1 recorded; scale & scope are fixed at introduction (Art. V §4).');

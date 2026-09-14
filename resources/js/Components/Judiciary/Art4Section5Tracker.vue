@@ -10,20 +10,29 @@
  * supermajority override), and LawDiff (the judicial_remedy law version,
  * del/ins) + the preserved-history link.
  *
- * CONSTITUTIONAL POSTURE — pure renderer, never decides the path: every
- * threshold, the override `required` count, the CLK-11/CLK-12 due dates,
- * and the `applied` boolean are ENGINE snapshots from constitutional_
- * challenges / chamber_votes / clock_timers.override_value / the
- * judicial_remedy LawVersion. The mockup's data-sim-* buttons (simulate
- * vote / window close / reset) are demo affordances and DO NOT ship — in
- * product Path B advances through real F-LEG-035 casts on the Phase C vote
- * endpoints, and Path C fires when CLK-11 expires (the engine writes the
- * LawVersion, the page re-renders it). Feed `override.required=99` and it
- * honestly displays 99 (the VoteTally pure-renderer discipline).
+ * CONSTITUTIONAL POSTURE — the record is a pure renderer: every threshold,
+ * the override `required` count, the CLK-11/CLK-12 due dates, and the
+ * `applied` boolean are ENGINE snapshots from constitutional_challenges /
+ * chamber_votes / clock_timers.override_value / the judicial_remedy
+ * LawVersion. Feed `override.required=99` and it honestly displays 99 (the
+ * VoteTally pure-renderer discipline).
  *
- * Classes: all already ported — no new CSS.
+ * OUTCOME CONTROLS (IO-3, operator ruling 2026-09-13) — the four existing
+ * handlers post from this tracker, each control enabled only in its lawful
+ * state by a `can` HINT computed server-side from status + the viewer's seat
+ * / membership: the finding (F-JDG-004) and the remedy recommendation
+ * (F-JDG-005) for a seated judge; the supermajority override (F-LEG-035, Path
+ * B) for a member of the offending law's legislature within the veto window;
+ * the direct judicial remedy (F-JDG-006, Path C) for a seated judge once both
+ * windows close (the CLK-11 sweep applies it automatically too); and a
+ * "propose amendment bill" link (Path A) that prefills targets_challenge_id.
+ * The ENGINE is the 422 boundary — the flags drive enabled state only and
+ * never re-derive a threshold or a window client-side.
+ *
+ * Classes: kit classes plus a small scoped block for the control forms.
  */
-import { computed } from 'vue';
+import { computed, reactive, ref } from 'vue';
+import { router } from '@inertiajs/vue3';
 import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
@@ -60,6 +69,12 @@ const props = defineProps({
     machine: { type: Array, default: () => [] },
     /** Empty-state filing FormCard record (F-IND-016) — from SurfaceMeta. */
     fileForm: { type: Object, default: null },
+    /**
+     * IO-3 outcome gate hints (server-computed, enabled-state only):
+     * { isSeatedJudge, isLegislatureMember, finding, recommend, override,
+     *   remedy, proposeAmendment }. The engine remains the 422 boundary.
+     */
+    can: { type: Object, default: () => ({}) },
 });
 
 const STAGE_GLOSS =
@@ -71,6 +86,52 @@ const remedy = computed(() => ch.value?.remedy ?? {});
 const override = computed(() => ch.value?.override ?? {});
 const diff = computed(() => ch.value?.remedy_diff ?? null);
 const resolution = computed(() => ch.value?.resolution ?? 'window_open');
+
+/* ------------------------------------------ IO-3 outcome controls --------- */
+const can = computed(() => props.can ?? {});
+const base = computed(() => `/constitutional-challenges/${ch.value?.id}`);
+
+const findingForm = reactive({ finds_contradiction: 'true', opinion_text: '', full_court: false });
+const recommendForm = reactive({ remedy_kind: 'modify', recommended_text: '', rationale_text: '', remedy_timeframe_days: 30, veto_window_days: 30 });
+const overrideForm = reactive({ dissent_text: '' });
+
+const busy = ref('');
+const error = ref('');
+const notice = ref('');
+
+function post(action, url, data) {
+    if (busy.value) return;
+    router.post(url, data, {
+        preserveScroll: true,
+        onStart: () => { busy.value = action; error.value = ''; notice.value = ''; },
+        onFinish: () => { busy.value = ''; },
+        onError: (errs) => { error.value = errs.constitution || Object.values(errs)[0] || 'The action was refused. Please retry.'; },
+        onSuccess: () => { notice.value = 'Recorded on the public register — the tracker reflects the new state.'; },
+    });
+}
+
+function submitFinding() {
+    post('finding', `${base.value}/finding`, {
+        finds_contradiction: findingForm.finds_contradiction === 'true',
+        opinion_text: findingForm.opinion_text,
+        full_court: findingForm.full_court,
+    });
+}
+function submitRecommend() {
+    post('recommend', `${base.value}/remedy-recommendation`, {
+        remedy_kind: recommendForm.remedy_kind,
+        recommended_text: recommendForm.remedy_kind === 'modify' ? recommendForm.recommended_text : '',
+        rationale_text: recommendForm.rationale_text,
+        remedy_timeframe_days: recommendForm.remedy_timeframe_days,
+        veto_window_days: recommendForm.veto_window_days,
+    });
+}
+function submitOverride() {
+    post('override', `${base.value}/override`, { dissent_text: overrideForm.dissent_text });
+}
+function submitRemedy() {
+    post('remedy', `${base.value}/remedy`, {});
+}
 
 /* Pipeline overview steps — Finding+Remedy → Legislative window → Resolved. */
 const steps = computed(() => {
@@ -203,6 +264,46 @@ function pathBadge(path) {
                 </div>
             </div>
             <p class="gloss" style="margin-block-start: var(--space-3)">{{ STAGE_GLOSS }}</p>
+
+            <!-- IO-3 · a seated judge records the finding, then the remedy -->
+            <div v-if="can.isSeatedJudge" class="a4-controls">
+                <form class="a4-control" :aria-busy="busy === 'finding'" @submit.prevent="submitFinding">
+                    <h4>Record the constitutional finding</h4>
+                    <label :for="`a4-finds-${ch.id}`">Determination</label>
+                    <select :id="`a4-finds-${ch.id}`" v-model="findingForm.finds_contradiction">
+                        <option value="true">A contradiction is found (opens the remedy step)</option>
+                        <option value="false">No contradiction (dismiss the challenge)</option>
+                    </select>
+                    <label :for="`a4-opinion-${ch.id}`">Opinion</label>
+                    <textarea :id="`a4-opinion-${ch.id}`" v-model="findingForm.opinion_text" rows="3" maxlength="10000" />
+                    <label class="a4-check"><input v-model="findingForm.full_court" type="checkbox" /> Heard by the full court</label>
+                    <button type="submit" :disabled="busy !== '' || !can.finding">Record finding</button>
+                    <p v-if="!can.finding" role="status">A finding is recorded while the challenge is under review (Art. IV §5.2).</p>
+                </form>
+
+                <form class="a4-control" :aria-busy="busy === 'recommend'" @submit.prevent="submitRecommend">
+                    <h4>Recommend the remedy and set the windows</h4>
+                    <label :for="`a4-kind-${ch.id}`">Remedy</label>
+                    <select :id="`a4-kind-${ch.id}`" v-model="recommendForm.remedy_kind">
+                        <option value="modify">Modify the law (provide replacement text)</option>
+                        <option value="remove">Remove the law (repeal)</option>
+                    </select>
+                    <template v-if="recommendForm.remedy_kind === 'modify'">
+                        <label :for="`a4-text-${ch.id}`">Replacement text</label>
+                        <textarea :id="`a4-text-${ch.id}`" v-model="recommendForm.recommended_text" rows="3" maxlength="20000" />
+                    </template>
+                    <label :for="`a4-rationale-${ch.id}`">Why this makes the law non-contradictory</label>
+                    <textarea :id="`a4-rationale-${ch.id}`" v-model="recommendForm.rationale_text" rows="2" maxlength="10000" />
+                    <label :for="`a4-tf-${ch.id}`">Remedy timeframe (days · CLK-12)</label>
+                    <input :id="`a4-tf-${ch.id}`" v-model.number="recommendForm.remedy_timeframe_days" type="number" min="1" />
+                    <label :for="`a4-veto-${ch.id}`">Veto window (days · CLK-11)</label>
+                    <input :id="`a4-veto-${ch.id}`" v-model.number="recommendForm.veto_window_days" type="number" min="1" />
+                    <button type="submit" :disabled="busy !== '' || !can.recommend">Recommend remedy</button>
+                    <p v-if="!can.recommend" role="status">A remedy is recommended after a contradiction is found (Art. IV §5.3).</p>
+                </form>
+                <p v-if="error" role="alert">{{ error }}</p>
+                <p v-if="notice" role="status">{{ notice }}</p>
+            </div>
         </Card>
 
         <!-- 5 · The three paths -->
@@ -226,6 +327,13 @@ function pathBadge(path) {
                     the judicial timeframe.
                 </p>
                 <p v-if="ch.bill_href"><a :href="ch.bill_href">Amendment bill in committee →</a></p>
+                <!-- IO-3 · a member of the offending law's legislature opens Path 1 -->
+                <p v-if="can.isLegislatureMember && can.proposeAmendment && ch.amendment_bill_new_href">
+                    <a :href="ch.amendment_bill_new_href">Propose amendment bill →</a>
+                </p>
+                <p v-else-if="can.isLegislatureMember" role="status" class="a4-reason">
+                    A remedial bill is proposed while the legislative window is open (Art. IV §5.3).
+                </p>
                 <p class="citation">
                     due within {{ remedy.timeframe_days }} days of the finding · {{ remedy.clk || 'CLK-12' }} ·
                     Art. IV §5 — opinions remain commentary on the law as edited
@@ -279,6 +387,24 @@ function pathBadge(path) {
                     Supermajority of all serving members — not just those present — recorded within the
                     veto window.
                 </p>
+
+                <!-- IO-3 · a member of the offending law's legislature opens the override -->
+                <form
+                    v-if="can.isLegislatureMember"
+                    class="a4-control"
+                    :aria-busy="busy === 'override'"
+                    @submit.prevent="submitOverride"
+                >
+                    <label :for="`a4-dissent-${ch.id}`">Dissent (optional, public)</label>
+                    <textarea :id="`a4-dissent-${ch.id}`" v-model="overrideForm.dissent_text" rows="2" maxlength="10000" />
+                    <button type="submit" :disabled="busy !== '' || !can.override">Open override vote</button>
+                    <p v-if="!can.override" role="status">
+                        A supermajority override opens while the legislative window is open, within the veto
+                        window (Art. IV §5.4).
+                    </p>
+                    <p v-if="error && busy === ''" role="alert">{{ error }}</p>
+                </form>
+
                 <Banner
                     v-if="resolution === 'overridden'"
                     tone="info"
@@ -316,6 +442,21 @@ function pathBadge(path) {
                     </div>
                     <p class="citation" style="margin-block-start: var(--space-1)">{{ ch.judicial_remedy_form_card.citation }}</p>
                 </div>
+                <!-- IO-3 · a seated judge applies the remedy once both windows close -->
+                <form
+                    v-if="can.isSeatedJudge"
+                    class="a4-control"
+                    :aria-busy="busy === 'remedy'"
+                    @submit.prevent="submitRemedy"
+                >
+                    <button type="submit" :disabled="busy !== '' || !can.remedy">Apply the remedy now</button>
+                    <p v-if="!can.remedy" role="status">
+                        Available once both the remedy timeframe and the veto window have closed; the CLK-11
+                        sweep applies it automatically otherwise (Art. IV §5.5).
+                    </p>
+                    <p v-if="error && busy === ''" role="alert">{{ error }}</p>
+                </form>
+
                 <p class="citation" style="margin-block-start: var(--space-2)">
                     opinions remain commentary on the law as written or edited · Art. IV §5
                 </p>
@@ -345,3 +486,16 @@ function pathBadge(path) {
         </Banner>
     </div>
 </template>
+
+<style scoped>
+/* IO-3 outcome controls — 44px targets, kit tokens, theme-agnostic. */
+.a4-controls { display: grid; gap: var(--space-4); margin-block-start: var(--space-4); border-block-start: 1px solid var(--border, #344054); padding-block-start: var(--space-4); }
+.a4-control { display: grid; gap: 0.5rem; }
+.a4-control h4 { margin-block: 0; color: var(--gov-fg); }
+.a4-control label { font-size: var(--text-sm); color: var(--gov-fg); }
+.a4-control textarea, .a4-control input[type='number'], .a4-control select { inline-size: 100%; max-inline-size: 42rem; font: inherit; min-block-size: 44px; }
+.a4-control .a4-check { display: flex; align-items: center; gap: 0.5rem; }
+.a4-control .a4-check input { min-block-size: auto; }
+.a4-control button { min-block-size: 44px; inline-size: fit-content; font: inherit; }
+.a4-reason { font-size: var(--text-sm); }
+</style>

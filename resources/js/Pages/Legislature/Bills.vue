@@ -83,7 +83,11 @@ const columns = [
 /* ------------------------------------------------------ introduction --- */
 const query = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
 const presetSetting = query.get('setting');
-const introOpen = ref(query.get('intro') === '1' || presetSetting !== null);
+/* Phase E Path 1 (IO-3): a remedial bill deep-linked from the Art. IV §5
+   tracker carries the challenge id, so the enacted bill closes that challenge
+   (ConstitutionalChallengeService::onRemedialEnactment). */
+const presetChallenge = query.get('targets_challenge_id');
+const introOpen = ref(query.get('intro') === '1' || presetSetting !== null || presetChallenge !== null);
 
 const form = useForm({
     title: '',
@@ -93,6 +97,7 @@ const form = useForm({
     scope_judiciary_id: '',
     targets_setting_key: presetSetting ?? '',
     proposed_value: '',
+    targets_challenge_id: presetChallenge ?? '',
 });
 
 const isSettingBill = computed(() => form.act_type === 'setting_change');
@@ -265,6 +270,19 @@ function boundsLabel(bounds) {
                 processing-label="Introducing…"
                 @submit="submit"
             >
+                <p
+                    v-if="form.targets_challenge_id"
+                    role="status"
+                    class="citation"
+                    style="margin-block-end: var(--space-3)"
+                >
+                    This bill answers a constitutional challenge (Art. IV §5.3, Path 1). Enacting it
+                    within the remedy timeframe closes the challenge.
+                    <a :href="`/constitutional-challenges/${form.targets_challenge_id}`" data-no-i18n>
+                        Open the challenge →
+                    </a>
+                </p>
+
                 <Field label="Title" :error="form.errors.title" required>
                     <template #control="{ id, invalid, describedBy }">
                         <input

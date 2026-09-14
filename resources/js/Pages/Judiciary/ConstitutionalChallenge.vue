@@ -79,8 +79,11 @@ function submitFiling() {
             reasonable timeframe to act, and an override window — all on a public clock.
         </template>
 
-        <!-- engine 422: the rejection citation, verbatim -->
-        <Banner v-if="constitutionError" tone="emergency" role="alert" title="The challenge was not filed.">
+        <!-- engine 422: the rejection citation, verbatim. Filing and the four
+             outcome actions (finding/recommend/override/remedy) all land in
+             errors.constitution; the title stays neutral so it never claims a
+             filing refusal for an outcome-action refusal. -->
+        <Banner v-if="constitutionError" tone="emergency" role="alert" title="This action was refused.">
             {{ constitutionError }}
         </Banner>
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -90,7 +93,7 @@ function submitFiling() {
              null so the tracker renders the record + explainer; the wired
              F-IND-016 composer lives below (the tracker's internal FormCard
              does not forward submit — the page owns the POST). -->
-        <Art4Section5Tracker :challenge="challenge" :machine="machine" :file-form="null" />
+        <Art4Section5Tracker :challenge="challenge" :machine="machine" :file-form="null" :can="can" />
 
         <!-- ============================================ F-IND-016 ======== -->
         <!-- The filing door — always available (file the first challenge, or

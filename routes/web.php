@@ -1219,6 +1219,16 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('challenge')->name('judiciary.challenges.show');
     Route::post('/constitutional-challenges', [\App\Http\Controllers\Judiciary\ChallengeController::class, 'file'])
         ->name('judiciary.challenges.file');                                      // F-IND-016
+    // IO-3 — the four outcome doors (operator ruling 2026-09-13). Each enabled
+    // only in its lawful state; the engine is the 422 boundary, never the door.
+    Route::post('/constitutional-challenges/{challenge}/finding', [\App\Http\Controllers\Judiciary\ChallengeController::class, 'finding'])
+        ->whereUuid('challenge')->name('judiciary.challenges.finding');           // F-JDG-004
+    Route::post('/constitutional-challenges/{challenge}/remedy-recommendation', [\App\Http\Controllers\Judiciary\ChallengeController::class, 'recommend'])
+        ->whereUuid('challenge')->name('judiciary.challenges.remedy-recommendation'); // F-JDG-005
+    Route::post('/constitutional-challenges/{challenge}/override', [\App\Http\Controllers\Judiciary\ChallengeController::class, 'override'])
+        ->whereUuid('challenge')->name('judiciary.challenges.override');          // F-LEG-035
+    Route::post('/constitutional-challenges/{challenge}/remedy', [\App\Http\Controllers\Judiciary\ChallengeController::class, 'remedy'])
+        ->whereUuid('challenge')->name('judiciary.challenges.remedy');            // F-JDG-006
 });
 
 // WI-5/WI-8 — Civic module: dashboard, record, identity, residency claim

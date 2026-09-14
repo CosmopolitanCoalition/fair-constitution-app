@@ -12,16 +12,15 @@ Fixed baseline: commit `8bf59184`, immediately before this development batch. Cl
 
 | List | At baseline | New confirmed items | Closed | Remaining |
 |---|---:|---:|---:|---:|
-| Build punch list | 29 | 4 | 18 | 15 |
+| Build punch list | 29 | 4 | 19 | 14 |
 | Internal review register | 29 | 0 | 2 | 27 |
 
-The eighteen closed builds are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2, EO-3, B6, EO-4, EO-5, IO-1 and IO-2. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5, EO-8 and B6 (already closed), and IO-7 (open), each tied to a demonstrated defect or missing action. EO-4 nomination, committee designation, confirmation and seating are now integrated and internally tested. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
+The nineteen closed builds are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2, EO-3, B6, EO-4, EO-5, IO-1, IO-2 and IO-3. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5, EO-8 and B6 (already closed), and IO-7 (open), each tied to a demonstrated defect or missing action. EO-4 nomination, committee designation, confirmation and seating are now integrated and internally tested. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
 
 ## 1. Complete the institutional action paths
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| IO-3 | Connect constitutional findings, recommendations, legislative response/override and remedy application. | The existing judicial and legislative handlers are reachable from the tracker; each outcome preserves law versions and refuses premature or repeated application. |
 | IO-4 | Add organization membership review and agent reassignment controls. | The actual agent can page pending applications, accept/decline and transfer agency; unrelated users cannot. |
 | IO-7 | Add CGC governor removal through its actual overseeing executive and creating legislature. | The CGC removal action targets its current board/holder and follows the existing authorized removal decision rules; stale outcomes cannot revive expired seats or affect another institution. |
 | IO-5 | Add scoped organization staff delegation. | Task-specific grant/revoke controls enforce the selected organization's permissions without granting constitutional office powers. |

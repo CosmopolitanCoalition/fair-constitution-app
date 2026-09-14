@@ -1236,17 +1236,27 @@ export const EDUCATION_BY_SURFACE = {
             {
                 do: "c_education.education_judiciary_constitutional_challenge.s2_do",
                 detail: "c_education.education_judiciary_constitutional_challenge.s2_detail",
-                cite: "F-JDG-004 · F-JDG-005"
+                cite: "F-JDG-004 · Art. IV §5.2"
             },
             {
                 do: "c_education.education_judiciary_constitutional_challenge.s3_do",
                 detail: "c_education.education_judiciary_constitutional_challenge.s3_detail",
-                cite: "F-JDG-006"
+                cite: "F-JDG-005 · Art. IV §5.3"
             },
             {
                 do: "c_education.education_judiciary_constitutional_challenge.s4_do",
                 detail: "c_education.education_judiciary_constitutional_challenge.s4_detail",
-                cite: "F-LEG-035"
+                cite: "F-LEG-003 · Art. IV §5.3"
+            },
+            {
+                do: "c_education.education_judiciary_constitutional_challenge.s5_do",
+                detail: "c_education.education_judiciary_constitutional_challenge.s5_detail",
+                cite: "F-LEG-035 · Art. IV §5.4"
+            },
+            {
+                do: "c_education.education_judiciary_constitutional_challenge.s6_do",
+                detail: "c_education.education_judiciary_constitutional_challenge.s6_detail",
+                cite: "F-JDG-006 · Art. IV §5.5"
             }
         ],
         why: "c_education.education_judiciary_constitutional_challenge.why"

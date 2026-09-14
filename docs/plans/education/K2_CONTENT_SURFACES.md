@@ -629,9 +629,11 @@ the law directly.
 | # | do | detail | cite |
 |---|---|---|---|
 | 1 | File a challenge | **Any inhabitant may file. There is no standing gatekeeper**, no fee, and no eligibility test beyond living here. | F-IND-016 · Art. IV §5 |
-| 2 | Follow the finding | The court makes a constitutional finding and may recommend a remedy. | F-JDG-004 · F-JDG-005 |
-| 3 | See the remedy applied | Where the path allows it, the court **edits the law itself** — and the full version history is preserved. | F-JDG-006 |
-| 4 | See the legislature's answer | A chamber can override a judicial outcome by the constitutional route, not by ignoring it. | F-LEG-035 |
+| 2 | Record the finding | A seated judge of the court records whether the law contradicts the constitution. The control appears only while the challenge is under review. | F-JDG-004 · Art. IV §5.2 |
+| 3 | Recommend the remedy | A seated judge recommends how to fix the law and sets both windows — the remedy timeframe (CLK-12) and the veto window (CLK-11). The control appears after a contradiction is found. | F-JDG-005 · Art. IV §5.3 |
+| 4 | Propose an amendment bill | A member of the offending law's legislature opens the bill flow with the challenge prefilled; enacting it within the timeframe closes the challenge (Path 1). | F-LEG-003 · Art. IV §5.3 |
+| 5 | Open a supermajority override | A member of that legislature opens the override vote within the veto window; a supermajority of all serving members overrules the finding and the law stands unchanged (Path 2). | F-LEG-035 · Art. IV §5.4 |
+| 6 | Apply the judicial remedy | Once both windows close with neither amendment nor override, a seated judge applies the remedy directly — the court **edits the law itself** and the full version history is preserved (Path 3). The CLK-11 sweep applies it automatically too. | F-JDG-006 · Art. IV §5.5 |
 
 > **The why:** this is the deepest act in the app. It is deliberately open to *anyone* who lives
 > there, because a constitution that only lawyers can invoke belongs to lawyers.

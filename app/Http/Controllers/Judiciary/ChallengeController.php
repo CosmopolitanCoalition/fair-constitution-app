@@ -14,8 +14,10 @@ use App\Models\Executive;
 use App\Models\JudicialSeat;
 use App\Models\Judiciary;
 use App\Models\Law;
+use App\Models\LegislatureMember;
 use App\Models\PublicRecord;
 use App\Models\RemedyRecommendation;
+use App\Models\User;
 use App\Services\RoleService;
 use App\Support\SurfaceMeta;
 use App\Support\TextDiff;
@@ -74,7 +76,7 @@ class ChallengeController extends Controller
         // the viewer's chain, else the most recent of any state (public read).
         $challenge = $this->latestChallenge($judiciary, $chainIds);
 
-        return $this->renderSurface($judiciary, $challenge, $associations);
+        return $this->renderSurface($judiciary, $challenge, $associations, $user);
     }
 
     // =========================================================================
@@ -88,7 +90,7 @@ class ChallengeController extends Controller
 
         $challenge->loadMissing('judiciary', 'challengedLaw', 'finding', 'remedy');
 
-        return $this->renderSurface($challenge->judiciary, $challenge, $associations);
+        return $this->renderSurface($challenge->judiciary, $challenge, $associations, $user);
     }
 
     // =========================================================================
@@ -121,12 +123,116 @@ class ChallengeController extends Controller
         );
     }
 
+    // =========================================================================
+    // Outcome doors (IO-3, operator ruling 2026-09-13). Each mirrors file():
+    // validate the request into the handler's payload contract, hand it to the
+    // engine, and return the flash. The ENGINE is the 422 boundary — a filing
+    // in the wrong state, by the wrong actor, or outside a window surfaces as
+    // errors.constitution (the citation verbatim, bootstrap/app.php render),
+    // never a page 403. The page gate flags only drive the control's enabled
+    // state; they never decide the path.
+    // =========================================================================
+
+    /**
+     * F-JDG-004 — record the constitutional finding (§5.2 first half). A seated
+     * judge (R-19/R-20) of THIS court, on a challenge under review. finds
+     * contradiction → finding_issued (awaits F-JDG-005); no contradiction →
+     * dismissed. The offending law / basis default to the challenge's own when
+     * the form leaves them blank (the handler + service re-check both).
+     */
+    public function finding(Request $request, ConstitutionalChallenge $challenge): RedirectResponse
+    {
+        $this->engine->file('F-JDG-004', $request->user(), [
+            'challenge_id' => (string) $challenge->id,
+            'finds_contradiction' => $request->boolean('finds_contradiction'),
+            'contradiction_against' => $request->input('contradiction_against') ?: $challenge->claimed_basis,
+            'offending_law_id' => $request->input('offending_law_id') ?: (string) $challenge->challenged_law_id,
+            'offending_version_no' => $request->filled('offending_version_no') ? (int) $request->input('offending_version_no') : null,
+            'opinion_text' => (string) $request->input('opinion_text', ''),
+            'full_court' => $request->boolean('full_court'),
+            'jurisdiction_id' => (string) $challenge->jurisdiction_id,
+        ]);
+
+        return back()->with(
+            'status',
+            'Constitutional finding recorded — a contradiction opens the remedy step; no contradiction '
+            .'dismisses the challenge (F-JDG-004 · Art. IV §5).'
+        );
+    }
+
+    /**
+     * F-JDG-005 — recommend the remedy and set both windows (§5.2/§5.3/§5.4). A
+     * seated judge (R-19/R-20), on a finding of contradiction. The judge-set
+     * timeframe (CLK-12) and veto window (CLK-11) are positive durations; the
+     * engine arms the clocks and lands the challenge at legislative_window_open.
+     */
+    public function recommend(Request $request, ConstitutionalChallenge $challenge): RedirectResponse
+    {
+        $this->engine->file('F-JDG-005', $request->user(), [
+            'challenge_id' => (string) $challenge->id,
+            'remedy_kind' => (string) $request->input('remedy_kind', ''),
+            'recommended_text' => $request->input('recommended_text'),
+            'rationale_text' => (string) $request->input('rationale_text', ''),
+            'remedy_timeframe_days' => (int) $request->input('remedy_timeframe_days', 0),
+            'veto_window_days' => (int) $request->input('veto_window_days', 0),
+            'jurisdiction_id' => (string) $challenge->jurisdiction_id,
+        ]);
+
+        return back()->with(
+            'status',
+            'Remedy recommended — the legislative window is open; the timeframe (CLK-12) and the override '
+            .'window (CLK-11) run from now (F-JDG-005 · Art. IV §5).'
+        );
+    }
+
+    /**
+     * F-LEG-035 — open the supermajority override vote (Path 2, §5.4). A current
+     * member (R-09) of the offending law's legislature, within the CLK-11 veto
+     * window. The threshold is the PROTECTED supermajority of all serving; the
+     * engine opens the chamber vote and never re-derives the ceiling here.
+     */
+    public function override(Request $request, ConstitutionalChallenge $challenge): RedirectResponse
+    {
+        $this->engine->file('F-LEG-035', $request->user(), [
+            'challenge_id' => (string) $challenge->id,
+            'dissent_text' => $request->input('dissent_text'),
+            'jurisdiction_id' => (string) $challenge->jurisdiction_id,
+        ]);
+
+        return back()->with(
+            'status',
+            'Override vote opened — a supermajority of all serving members, recorded within the veto window, '
+            .'overrules the finding; the law then stands unchanged (F-LEG-035 · Art. IV §5.4).'
+        );
+    }
+
+    /**
+     * F-JDG-006 — apply the judicial remedy directly (Path 3, §5.5). A seated
+     * judge (R-19/R-20), once BOTH windows have closed. The engine's
+     * JudicialRemedyService re-checks the premature guard (now ≥ both deadlines)
+     * and the repeated-application guard (status still legislative_window_open,
+     * under lock); the law version is appended (history preserved).
+     */
+    public function remedy(Request $request, ConstitutionalChallenge $challenge): RedirectResponse
+    {
+        $this->engine->file('F-JDG-006', $request->user(), [
+            'challenge_id' => (string) $challenge->id,
+            'jurisdiction_id' => (string) $challenge->jurisdiction_id,
+        ]);
+
+        return back()->with(
+            'status',
+            'Judicial remedy applied — the offending law is brought into constitutional order; the prior '
+            .'version is preserved in history (F-JDG-006 · Art. IV §5.5).'
+        );
+    }
+
     // -------------------------------------------------------------------------
     // Rendering
     // -------------------------------------------------------------------------
 
     /** @param  list<array<string, mixed>>  $associations */
-    private function renderSurface(?Judiciary $judiciary, ?ConstitutionalChallenge $challenge, array $associations): Response
+    private function renderSurface(?Judiciary $judiciary, ?ConstitutionalChallenge $challenge, array $associations, ?User $user = null): Response
     {
         $chainIds = array_column($associations, 'id');
 
@@ -153,12 +259,76 @@ class ChallengeController extends Controller
                 ],
             ],
             'isAssociated' => $chainIds !== [],
-            'can' => [
+            'can' => $this->outcomeGates($challenge, $user) + [
                 // R-03 = any active residency association. The engine is the
                 // boundary (422); this only drives the form's enabled state.
                 'fileChallenge' => $chainIds !== [],
             ],
         ]);
+    }
+
+    /**
+     * Page gate flags for the four outcome controls (IO-3). Each is a HINT
+     * derived from the challenge status plus the viewer's seat / membership —
+     * it drives a control's enabled state, never the constitutional decision
+     * (the engine is the 422 boundary; no threshold or window is re-derived
+     * here). Windows are read off the remedy row the service already stamped.
+     *
+     * @return array<string, bool>
+     */
+    private function outcomeGates(?ConstitutionalChallenge $challenge, ?User $user): array
+    {
+        if ($challenge === null || $user === null) {
+            return [
+                'isSeatedJudge' => false,
+                'isLegislatureMember' => false,
+                'finding' => false,
+                'recommend' => false,
+                'override' => false,
+                'remedy' => false,
+                'proposeAmendment' => false,
+            ];
+        }
+
+        $viewerId = (string) $user->getKey();
+        $status = $challenge->status;
+
+        $seated = JudicialSeat::query()
+            ->where('judiciary_id', (string) $challenge->judiciary_id)
+            ->where('user_id', $viewerId)
+            ->where('status', JudicialSeat::STATUS_SEATED)
+            ->whereNull('deleted_at')
+            ->exists();
+
+        // R-09 of the OFFENDING law's legislature (the body that may override
+        // under §5.4, and the body that amends under §5.3).
+        $law = $challenge->challengedLaw ?? ($challenge->challenged_law_id !== null
+            ? Law::query()->find((string) $challenge->challenged_law_id)
+            : null);
+        $legislatureMember = $law !== null && $law->legislature_id !== null
+            && LegislatureMember::query()
+                ->where('legislature_id', (string) $law->legislature_id)
+                ->where('user_id', $viewerId)
+                ->whereIn('status', LegislatureMember::CURRENT_STATUSES)
+                ->exists();
+
+        $remedy = $challenge->remedy;
+        $now = now();
+        $windowOpen = $status === ConstitutionalChallenge::STATUS_LEGISLATIVE_WINDOW_OPEN;
+        $withinVeto = $remedy?->veto_closes_at !== null && $now->lessThanOrEqualTo($remedy->veto_closes_at);
+        $bothWindowsClosed = $remedy?->veto_closes_at !== null && $remedy->remedy_due_at !== null
+            && $now->greaterThanOrEqualTo($remedy->veto_closes_at)
+            && $now->greaterThanOrEqualTo($remedy->remedy_due_at);
+
+        return [
+            'isSeatedJudge' => $seated,
+            'isLegislatureMember' => (bool) $legislatureMember,
+            'finding' => $seated && $status === ConstitutionalChallenge::STATUS_UNDER_REVIEW,
+            'recommend' => $seated && $status === ConstitutionalChallenge::STATUS_FINDING_ISSUED,
+            'override' => (bool) $legislatureMember && $windowOpen && $withinVeto,
+            'remedy' => $seated && $windowOpen && $bothWindowsClosed,
+            'proposeAmendment' => (bool) $legislatureMember && $windowOpen,
+        ];
     }
 
     // -------------------------------------------------------------------------
@@ -253,6 +423,7 @@ class ChallengeController extends Controller
             'override' => $this->overrideProps($challenge, $remedy),
 
             'bill_href' => $this->amendmentBillHref($challenge),
+            'amendment_bill_new_href' => $this->amendmentBillNewHref($challenge, $law),
 
             'remedy_diff' => $this->remedyDiff($challenge, $finding, $remedy, $law),
             'judicial_remedy_form_card' => $this->formCard('F-JDG-006'),
@@ -494,6 +665,26 @@ class ChallengeController extends Controller
             ->value('id');
 
         return $billId !== null ? "/bills/{$billId}" : null;
+    }
+
+    /**
+     * Path A entry (§5.3, IO-3) — the "propose amendment bill" deep link into
+     * the offending law's legislature bill flow, prefilling
+     * `targets_challenge_id` so the enacted bill closes this challenge via
+     * ConstitutionalChallengeService::onRemedialEnactment. Null when the law
+     * names no legislature (no chamber to amend it).
+     */
+    private function amendmentBillNewHref(ConstitutionalChallenge $challenge, ?Law $law): ?string
+    {
+        if ($law === null || $law->legislature_id === null) {
+            return null;
+        }
+
+        return sprintf(
+            '/legislatures/%s/bills?intro=1&targets_challenge_id=%s',
+            (string) $law->legislature_id,
+            (string) $challenge->id,
+        );
     }
 
     /** WF-EXE-07 — the executive that enforces the outcome, if one exists. */
