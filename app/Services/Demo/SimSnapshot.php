@@ -3,6 +3,7 @@
 namespace App\Services\Demo;
 
 use App\Models\SimRun;
+use App\Services\Setup\SetupProgressRollup;
 use App\Support\HostCapacity;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -20,12 +21,13 @@ use Illuminate\Support\Facades\DB;
  *
  * THE CHEAP / EXPENSIVE SPLIT (the Step 4 anti-tax lesson). The stage bars are a
  * fresh index-only GROUP BY on `sim_items` and run on every poll — real numbers,
- * never the pump's once-a-minute counters. `world()` is the opposite: it scans
- * legislatures, users (a `sim-%@demo.invalid` LIKE that grows to millions as the
- * sim populates) and two heavy district joins, seconds now and tens of seconds
- * at full population. An open progress page polling that every few seconds would
- * steal the same disk the run needs, so `world()` is cached briefly and every
- * poller shares the one computation.
+ * never the pump's once-a-minute counters. `world()` never scans on the poll
+ * thread (ruling A): its headline figures read O(1) counters off the run row,
+ * and its four whole-table scope figures (chambers, jurisdictions, population
+ * and electorate sums) read the scheduler-warmed SetupProgressRollup 'world'
+ * snapshot, served last-known with a timestamp and warmed off-thread on a cold
+ * miss. `world()` also keeps a brief WORLD_TTL cache so a burst of pollers
+ * shares one read.
  */
 class SimSnapshot
 {
@@ -379,9 +381,21 @@ class SimSnapshot
     }
 
     /**
-     * What the run has PRODUCED — the point of the whole engine. EXPENSIVE
-     * (heavy joins + a growing sim-user LIKE scan), so cached briefly and shared
-     * across every poller. Never call this on the fast path uncached.
+     * What the run has PRODUCED — the point of the whole engine.
+     *
+     * G3 (bound the world poll, ruling A): the headline figures — people,
+     * residencies, cohorts, chambers governed — are O(1) counters the pump
+     * maintains on the run row (SimWorkerJob::maintainWorldCounters), so a poll
+     * reads them instead of scanning users/legislatures/cohorts. The old
+     * `WHERE email LIKE 'sim-%@demo.invalid'` scan over users, which grew to
+     * millions of rows as the sim populated, is GONE. The four scope figures
+     * that need a whole-table read (chambers total, jurisdictions in scope,
+     * population and electorate sums) sit behind the SAME scheduler-warmed
+     * snapshot the Step 4 rollups use (SetupProgressRollup 'world' kind): the
+     * poll only READS the snapshot and serves last-known values with a
+     * snapshot_at / snapshot_stale / snapshot_state stamp, never an inline
+     * scan. The brief WORLD_TTL cache stays as the second line of defence
+     * across concurrent pollers.
      *
      * @return array<string,mixed>
      */
@@ -397,32 +411,59 @@ class SimSnapshot
     /** @return array<string,mixed> */
     private function computeWorld(): array
     {
-        $chambers = (int) DB::table('legislatures')->whereNull('deleted_at')->count();
+        $run = $this->activeOrLatestRun();
 
-        $governed = (int) DB::table('legislatures as l')
-            ->whereNull('l.deleted_at')
-            ->whereExists(function ($q) {
-                $q->select(DB::raw(1))
-                    ->from('legislature_members as m')
-                    ->whereColumn('m.legislature_id', 'l.id')
-                    ->whereIn('m.status', ['elected', 'seated'])
-                    ->whereNull('m.deleted_at');
-            })
-            ->count();
+        // O(1) counters off the run row (G3). Null-safe: a box that has not
+        // applied the additive counters migration reads zeros, never throws.
+        $people      = (int) ($run->people_founded ?? 0);
+        $residencies = (int) ($run->residencies_founded ?? 0);
+        $cohorts     = (int) ($run->cohorts ?? 0);
+        $governed    = (int) ($run->chambers_governed ?? 0);
+
+        $scope    = $this->worldScope();
+        $chambers = (int) $scope['values']['chambers'];
 
         return [
             'chambers' => $chambers,
             'chambers_governed' => $governed,
             'chambers_awaiting_election' => max(0, $chambers - $governed),
-            'jurisdictions' => (int) DB::table('jurisdictions')->whereNull('deleted_at')->count(),
-            'cohorts' => (int) DB::table('jurisdiction_cohorts')->count(),
-            // 'sim-%' not '@demo.invalid': the reserved namespace is shared with
-            // other fixtures, and a headline number must count only what THIS
-            // engine made.
-            'people' => (int) DB::table('users')->where('email', 'like', 'sim-%@demo.invalid')->count(),
-            'residencies' => (int) DB::table('residency_confirmations')->where('is_active', true)->count(),
-            'population_modelled' => (int) DB::table('jurisdiction_cohorts')->sum('population'),
-            'electorate_modelled' => (int) DB::table('jurisdiction_cohorts')->sum('electorate'),
+            'jurisdictions' => (int) $scope['values']['jurisdictions'],
+            'cohorts' => $cohorts,
+            'people' => $people,
+            'residencies' => $residencies,
+            'population_modelled' => (int) $scope['values']['population_modelled'],
+            'electorate_modelled' => (int) $scope['values']['electorate_modelled'],
+            // The scope figures' provenance (ruling A: serve stale with its
+            // timestamp). 'ready' with snapshot_at, or 'computing' until the
+            // scheduler / warm job has produced the first copy.
+            'scope_snapshot_at'    => $scope['computed_at'],
+            'scope_snapshot_stale' => $scope['stale'],
+            'scope_snapshot_state' => $scope['state'],
+        ];
+    }
+
+    /**
+     * The scope figures — chambers, jurisdictions, and the modelled population
+     * and electorate sums. Ruling A (progress-polling-bounds): these are whole-
+     * table reads over the two biggest tables, so they NEVER run on the poll
+     * request thread. They live behind the scheduler-warmed snapshot owner
+     * (SetupProgressRollup 'world' kind); this method is a pure cache read that
+     * marks the viewer and warms a cold miss OFF the request thread, returning
+     * last-known values (or zeros while computing) with a stamp. No count(*),
+     * no sum() runs here.
+     *
+     * @return array{values:array<string,int>,computed_at:?string,stale:bool,state:string}
+     */
+    private function worldScope(): array
+    {
+        $snap   = app(SetupProgressRollup::class)->readOrWarm('world');
+        $values = $snap['values'] ?? SetupProgressRollup::emptyValues('world');
+
+        return [
+            'values'      => $values,
+            'computed_at' => $snap['computed_at'],
+            'stale'       => $snap['stale'],
+            'state'       => $snap['state'],
         ];
     }
 }

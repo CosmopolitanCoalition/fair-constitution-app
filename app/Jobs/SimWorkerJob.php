@@ -171,6 +171,14 @@ class SimWorkerJob implements ShouldQueue
                     $reason = $metrics['_reason'] ?? null;
                     unset($metrics['_verdict'], $metrics['_reason']);
                     $this->settle($item->id, $verdict, $metrics, $reason);
+                    if ($verdict === SimItem::STATUS_DONE) {
+                        // O(1) world counters (G3): the pump maintains the
+                        // headline figures per committed item so the Step 5
+                        // poll reads them off the run row instead of scanning
+                        // users/legislatures/cohorts. Deltas, never the source
+                        // of truth — see SimSnapshot::computeWorld.
+                        $this->maintainWorldCounters($run, $item->kind, $metrics);
+                    }
                     $failures = 0;
                 } catch (\Throwable $e) {
                     SimTimer::close($part); // no-op if already closed
@@ -416,5 +424,61 @@ class SimWorkerJob implements ShouldQueue
     private function label(object $item): string
     {
         return Str::limit($item->kind.' · '.($item->jurisdiction_id ?? $item->race_id ?? '—'), 155, '');
+    }
+
+    /**
+     * Maintain the O(1) world counters on the run row (G3). Called once per
+     * item that settles DONE. The counts come from the stage's own returned
+     * metrics — IdentityStage separates minted from reused, so people_founded
+     * grows only by NEW rows. A crashed chunk can leave a counter off by one
+     * chunk; the figures that must be exact (chambers total, population sums)
+     * are recomputed per phase in SimSnapshot, never derived from these.
+     *
+     * @param array<string,mixed> $metrics
+     */
+    private function maintainWorldCounters(SimRun $run, string $kind, array $metrics): void
+    {
+        if (! self::countersPresent()) {
+            return; // additive migration not applied on this box — poll reads zeros
+        }
+
+        $inc = [];
+        switch ($kind) {
+            case 'identity_batch':
+                $people = (int) ($metrics['users'] ?? 0);
+                $confs  = (int) ($metrics['confirmations'] ?? 0);
+                if ($people > 0) {
+                    $inc['people_founded'] = $people;
+                }
+                if ($confs > 0) {
+                    $inc['residencies_founded'] = $confs;
+                }
+                break;
+            case 'cohort_scope':
+                // One cohort per settled scope.
+                $inc['cohorts'] = 1;
+                break;
+            case 'seat_scope':
+                if (($metrics['certified'] ?? false) === true) {
+                    $inc['chambers_governed'] = 1;
+                }
+                break;
+        }
+
+        if ($inc === []) {
+            return;
+        }
+
+        DB::table('sim_runs')->where('id', $run->id)->incrementEach($inc, ['updated_at' => now()]);
+    }
+
+    /** @var array<string,bool> keyed by connection name */
+    private static array $countersPresent = [];
+
+    private static function countersPresent(): bool
+    {
+        $conn = DB::connection()->getName();
+
+        return self::$countersPresent[$conn] ??= \Illuminate\Support\Facades\Schema::hasColumn('sim_runs', 'people_founded');
     }
 }

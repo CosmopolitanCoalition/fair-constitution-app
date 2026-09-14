@@ -112,6 +112,16 @@ Schedule::command('geodata:pump')
 Schedule::command('autoscale:progress-snapshot')
     ->everyMinute()->withoutOverlapping(5)->runInBackground()->onOneServer();
 
+// ── Setup progress rollups (G3, 2026-09-13) ─────────────────────────────
+// The Step 4 / Step 2 wizard polls read whole-world figures (the provision
+// ledger counters, the legislatures count, the ADM-level jurisdictions count,
+// the Step 4 summary counts) from a snapshot instead of scanning on every
+// poll. This keeps each rollup warm WHILE A VIEWER IS PRESENT — the refresher
+// no-ops in one cache read per kind when nobody has the page open, so a closed
+// wizard adds nothing. Same viewer-gated pattern as the Step 3 snapshot above.
+Schedule::call(fn () => app(\App\Services\Setup\SetupProgressRollup::class)->refreshWatched())
+    ->name('setup-progress-rollups')->everyMinute()->withoutOverlapping()->onOneServer();
+
 // ── WI-B3: daily approval standings rollup (ESM-04) ─────────────────────
 // Public approval standings aggregate ONCE A DAY per race (Earth-scale
 // rule — never per request, never per approval; identities never leave

@@ -5,6 +5,7 @@ namespace App\Jobs\Organizations;
 use App\Models\ClockTimer;
 use App\Models\Election;
 use App\Services\Organizations\OrgBoardSeatingService;
+use Carbon\CarbonInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -65,10 +66,16 @@ class EvaluateCoDeterminationJob implements ShouldQueue
         }
 
         // ── 2. auto-certify backstop (48h after voting closed) ──────────
+        // The grace threshold follows the SAME clock the elections use: under
+        // a compressed demo (config cga.election_demo_compression = N minutes,
+        // read by ElectionLifecycleService::defaultDates) the 48h wall grace
+        // compresses to N minutes, so worker boards seat inside a short demo
+        // instead of never appearing. False (production) keeps the 48h wall
+        // clock exactly. See backstopThreshold().
         $stalled = Election::query()
             ->whereIn('kind', [Election::KIND_ORG_BOARD_OWNER, Election::KIND_ORG_BOARD_WORKER])
             ->whereIn('status', [Election::STATUS_VOTING_CLOSED, Election::STATUS_TABULATING])
-            ->where('ranked_closes_at', '<=', now()->subHours(48))
+            ->where('ranked_closes_at', '<=', self::backstopThreshold())
             ->get();
 
         foreach ($stalled as $election) {
@@ -79,5 +86,24 @@ class EvaluateCoDeterminationJob implements ShouldQueue
                 // retries; tabulation has its own pipeline.
             }
         }
+    }
+
+    /**
+     * The auto-certify grace threshold. An election whose voting closed at or
+     * before this instant has stalled long enough for the backstop to seat it.
+     *
+     * Reads the same dial the elections consult (cga.election_demo_compression):
+     *   - false / 0  → 48h wall-clock grace (production, unchanged).
+     *   - N minutes  → N-minute grace, so a compressed demo whose phase windows
+     *                  are N minutes apart also seats stalled worker boards
+     *                  after one such window, not after two real days.
+     */
+    public static function backstopThreshold(): CarbonInterface
+    {
+        $compression = (int) config('cga.election_demo_compression', 0);
+
+        return $compression > 0
+            ? now()->subMinutes($compression)
+            : now()->subHours(48);
     }
 }
