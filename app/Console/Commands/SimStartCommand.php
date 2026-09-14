@@ -39,7 +39,8 @@ class SimStartCommand extends Command
                             {--jurisdiction= : Scope the world to this jurisdiction and its subtree (slug or UUID) — the narrow co-test posture}
                             {--aspects= : Comma-separated aspects to simulate (elections,governance,civic_life,training,money); prerequisites auto-included; default all}
                             {--no-floor : Disable the election roster floor top-up (measure the pre-floor-fix behaviour — short scopes file review instead of minting)}
-                            {--resume : Adopt the newest unfinished run instead of starting one}';
+                            {--resume : Adopt the single active unfinished run instead of starting one}
+                            {--run= : Resume this specific run id (implies --resume); refuses if it is not an unfinished run}';
 
     protected $description = 'Start a simulated-world populate run and enumerate its worklist';
 
@@ -91,9 +92,37 @@ class SimStartCommand extends Command
             $scopeRootId = (string) $scopeRootId;
         }
 
-        $run = $this->option('resume')
-            ? SimRun::query()->whereIn('status', ['queued', 'running', 'halted'])->orderByDesc('created_at')->first()
-            : null;
+        // SINGLE-RUN SELECTION (fleet W7 item 2, third part). A resume adopts
+        // the ONE run the engine acts on, never the newest of several. The
+        // pump and SimRunControl::activeRun both keep the OLDEST unfinished run
+        // and supersede the rest, so a resume that picked the newest adopted a
+        // run the pump would then kill. --run names a specific run; plain
+        // --resume takes the single active run. The choice is a pure seam
+        // (selectResumeRun), unit-tested without a DB.
+        $named = trim((string) $this->option('run'));
+        $wantResume = (bool) $this->option('resume') || $named !== '';
+
+        $run = null;
+        if ($wantResume) {
+            $candidates = SimRun::query()
+                ->whereIn('status', ['queued', 'running', 'halted'])
+                ->orderBy('created_at')
+                ->get(['id', 'created_at'])
+                ->map(fn ($r) => ['id' => (string) $r->id, 'created_at' => (string) $r->created_at])
+                ->all();
+
+            $sel = self::selectResumeRun($candidates, $named !== '' ? $named : null);
+            if ($sel['error'] !== null) {
+                $this->error($sel['error']);
+
+                return self::FAILURE;
+            }
+            if ($sel['run_id'] !== null) {
+                $run = SimRun::query()->whereKey($sel['run_id'])->first();
+            }
+            // run_id null with no error means no unfinished run and no --run:
+            // fall through to the fresh-start branch below.
+        }
 
         if ($run === null) {
             $existing = SimRun::query()->whereIn('status', ['queued', 'running', 'halted'])->count();
@@ -204,6 +233,47 @@ class SimStartCommand extends Command
      * @param  array<string,mixed>|null  $options
      * @return array{adm_max:int, limit:?int, overrode:bool}
      */
+    /**
+     * Choose the unfinished run a resume adopts. Pure seam over candidate
+     * descriptors, so it unit-tests without a DB.
+     *
+     * The selection law aligns with SimRunControl::activeRun and the pump's
+     * oldest-wins supersede: a named run wins when it is in the candidate set;
+     * otherwise the single active run is the OLDEST candidate, never the
+     * newest. An empty set with no name returns null run_id and null error so
+     * the caller starts a fresh run.
+     *
+     * @param  list<array{id:string, created_at:string}>  $candidates  unfinished runs, any order
+     * @return array{run_id:?string, error:?string}
+     */
+    public static function selectResumeRun(array $candidates, ?string $namedRunId): array
+    {
+        if ($namedRunId !== null && $namedRunId !== '') {
+            foreach ($candidates as $c) {
+                if ($c['id'] === $namedRunId) {
+                    return ['run_id' => $namedRunId, 'error' => null];
+                }
+            }
+
+            return [
+                'run_id' => null,
+                'error' => "Run {$namedRunId} is not an unfinished run (queued, running or halted).",
+            ];
+        }
+
+        if ($candidates === []) {
+            return ['run_id' => null, 'error' => null];
+        }
+
+        // The single active run: oldest by created_at, ties broken by lowest
+        // id — the same run the pump keeps.
+        usort($candidates, function ($a, $b) {
+            return [$a['created_at'], $a['id']] <=> [$b['created_at'], $b['id']];
+        });
+
+        return ['run_id' => $candidates[0]['id'], 'error' => null];
+    }
+
     public static function resolveResumeParams(?array $options, int $cliAdmMax, ?int $cliLimit): array
     {
         $options ??= [];
