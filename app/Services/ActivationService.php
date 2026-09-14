@@ -253,13 +253,24 @@ class ActivationService
     // =========================================================================
 
     /**
-     * CLK-06 crossing: upsert the activation row → critical_population.
-     * Idempotent — a row already past boundary_loaded is returned
-     * untouched (re-runs never double-fire).
+     * CLK-06 crossing: upsert the activation row → critical_population, then
+     * BOOT the place.
+     *
+     * Idempotent — a row already past boundary_loaded is returned untouched
+     * (re-runs never double-fire).
+     *
+     * POPULATION-MODE AUTOBOOT (operator ruling A, 2026-09-14). The crossing
+     * boots the place. Before this ruling the crossing wrote state and
+     * stopped, so a place whose resident count crossed the critical
+     * population never got its founding election or board. Now the crossing
+     * calls the same activate() path the operator boot uses. The effective
+     * threshold is the caller's, resolved from settings at evaluation time.
      */
     public function onCriticalPopulation(string $jurisdictionId, int $verifiedResidents, int $threshold): JurisdictionActivation
     {
-        return DB::transaction(function () use ($jurisdictionId, $verifiedResidents, $threshold) {
+        $crossed = false;
+
+        $activation = DB::transaction(function () use ($jurisdictionId, $verifiedResidents, $threshold, &$crossed) {
             $activation = JurisdictionActivation::query()
                 ->where('jurisdiction_id', $jurisdictionId)
                 ->lockForUpdate()
@@ -298,8 +309,33 @@ class ActivationService
                 jurisdictionId: $jurisdictionId,
             );
 
+            $crossed = true;
+
             return $activation;
         });
+
+        // Only a real crossing boots. A repeat crossing returns above with
+        // $crossed false, so the place is never booted twice. The boot runs
+        // OUTSIDE the state transaction — activate() opens its own
+        // transactions and shells out to apportionment:seed. One failed boot
+        // is logged and never aborts the caller's sweep (the ETL
+        // all-or-nothing law); jurisdiction:activate heals a stuck place.
+        if ($crossed) {
+            $jurisdiction = Jurisdiction::query()->find($jurisdictionId);
+            if ($jurisdiction !== null) {
+                try {
+                    return $this->activate($jurisdiction, scheduleElection: true);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning(sprintf(
+                        'CLK-06 autoboot failed for %s: %s',
+                        $jurisdictionId,
+                        $e->getMessage(),
+                    ));
+                }
+            }
+        }
+
+        return $activation;
     }
 
     // =========================================================================

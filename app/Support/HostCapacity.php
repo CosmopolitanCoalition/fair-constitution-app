@@ -291,6 +291,40 @@ class HostCapacity
         return (int) max(1000, min(100000, (int) round(self::hostMemoryGb() * 3125)));
     }
 
+    /**
+     * Keyset chunk size for the clock and standings sweeps (W-0187). Each
+     * chunk is one committed unit of a resumable pass, so a kill costs one
+     * chunk. Derived from host memory, floored so a Pi still runs (200) and
+     * capped so a big host never holds too large a working set at once.
+     * CGA_SWEEP_CHUNK overrides (operator dial).
+     */
+    public static function sweepChunk(): int
+    {
+        $override = (int) env('CGA_SWEEP_CHUNK', 0);
+        if ($override > 0) {
+            return $override;
+        }
+
+        return (int) max(200, min(5000, (int) round(self::hostMemoryGb() * 250)));
+    }
+
+    /**
+     * Per-sweep ceiling on clock-timer fires (W-0187, replaces the fixed
+     * 500). The chamber-size backlog drains oldest-first across sweeps with
+     * no starvation; the ceiling only bounds one sweep. Scales with the lane
+     * pool so a big host fires more per minute, floored at 500 so no box
+     * regresses and a Pi stays honest. CGA_CLOCK_SWEEP_BUDGET overrides.
+     */
+    public static function clockSweepBudget(): int
+    {
+        $override = (int) env('CGA_CLOCK_SWEEP_BUDGET', 0);
+        if ($override > 0) {
+            return $override;
+        }
+
+        return (int) max(500, min(50000, self::autoscaleWorkers() * 1000));
+    }
+
     public static function cpuCores(): int
     {
         $n = (int) trim((string) @shell_exec('nproc 2>/dev/null'));

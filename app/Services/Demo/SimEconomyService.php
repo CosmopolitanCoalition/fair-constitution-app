@@ -113,6 +113,15 @@ class SimEconomyService
             app(IssuanceService::class)->mint($currency, $treasuryId, self::OPENING_SUPPLY, 'sim: opening supply');
         }
 
+        // W-0201: the treasury is minted, so arm the standalone stipend clock
+        // (CLK-22) once for the root. Idempotent, and a no-op before the
+        // registry migration lands — never breaks the money plane.
+        try {
+            app(\App\Services\Economy\StipendClockService::class)->armForRoot();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Stipend clock arm skipped: '.$e->getMessage());
+        }
+
         return self::$resolved = ['currency' => $currency, 'treasury_id' => $treasuryId];
     }
 

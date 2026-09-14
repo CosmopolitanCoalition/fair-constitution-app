@@ -19,7 +19,9 @@ use Tests\TestCase;
  * touched. Authenticated reads run on the guarded live-pg connection (the
  * InviteFlowTest posture) — the phpunit sqlite :memory: connection has no
  * schema and RefreshDatabase is forbidden on the live dev DB; the clocks
- * registry (21 canonical rows, ClockRegistrySeeder) is seeded on this box.
+ * registry (22 canonical rows, ClockRegistrySeeder) is seeded on this box.
+ * CLK-22 (civic stipend, W-0201) is seeded by its additive migration and the
+ * seeder; this count passes once that migration is applied to the box.
  * SKIPS when pg is unreachable — run inside the app container.
  */
 class SystemClocksAmendmentsTest extends TestCase
@@ -40,7 +42,7 @@ class SystemClocksAmendmentsTest extends TestCase
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
                     ->component('System/Clocks')
-                    ->has('clocks', 21)
+                    ->has('clocks', 22)
                     ->where('surface.id', 'system/clocks'));
         });
     }
@@ -61,9 +63,9 @@ class SystemClocksAmendmentsTest extends TestCase
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
                     ->component('System/Clocks')
-                    ->has('clocks', 21) // the full canonical registry
+                    ->has('clocks', 22) // the full canonical registry
                     ->has('armed')
-                    ->where('stats.total', 21)
+                    ->where('stats.total', 22)
                     ->where('surface.id', 'system/clocks'));
         });
     }

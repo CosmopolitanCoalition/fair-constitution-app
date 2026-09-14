@@ -45,7 +45,7 @@ class ClockRegistrySeeder extends Seeder
             ['name', 'type', 'default_value', 'amendable', 'fires_workflow', 'basis', 'updated_at']
         );
 
-        $this->command?->info('Clock registry seeded: ' . count($rows) . ' clocks (CLK-01…CLK-21).');
+        $this->command?->info('Clock registry seeded: ' . count($rows) . ' clocks (CLK-01…CLK-22).');
     }
 
     /**
@@ -243,6 +243,19 @@ class ClockRegistrySeeder extends Seeder
                 'amendable'      => true,
                 'fires_workflow' => 'finalist cutoff WF-ELE-01 / WF-CIV-08',
                 'basis'          => 'CGA open-ballot spec; Art. II §2',
+            ],
+            [
+                // W-0201: the standalone civic stipend period. Armed on
+                // treasury mint and re-derived when stipend_period_days
+                // changes (unit days, so the re-derive path handles it). The
+                // fired handler runs the chunked stipend pass and re-arms.
+                'id'             => 'CLK-22',
+                'name'           => 'Civic Stipend Period',
+                'type'           => 'recurring',
+                'default_value'  => ['value' => 30, 'unit' => 'days', 'setting_key' => 'stipend_period_days', 'mode' => 'amendable'],
+                'amendable'      => true,
+                'fires_workflow' => 'F-TRE-004 civic stipend run',
+                'basis'          => 'Art. II §9 · [POLICY]',
             ],
         ];
     }

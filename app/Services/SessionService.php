@@ -559,6 +559,50 @@ class SessionService
     }
 
     /**
+     * CLK-02 FIRST ARM AT SEATING (W-0187, Art. II §2). A chamber must meet
+     * within max_days_between_meetings of being seated, so the 90-day clock
+     * starts at certification, not only after the first adjournment. This
+     * arms next_meeting_due_by from the seating moment WITHOUT stamping
+     * last_met_on — the chamber has not met yet. Idempotent: a chamber that
+     * already carries an armed CLK-02 (re-certification, or a chamber that
+     * has since met) is left untouched.
+     */
+    public function armInitialMeetingClock(Legislature $legislature, CarbonInterface $seatedAt): void
+    {
+        $alreadyArmed = \App\Models\ClockTimer::query()
+            ->armed()
+            ->where('clock_id', 'CLK-02')
+            ->where('subject_type', 'legislature')
+            ->where('subject_id', (string) $legislature->id)
+            ->exists();
+
+        if ($alreadyArmed) {
+            return;
+        }
+
+        $days  = $this->settings->resolveInt((string) $legislature->jurisdiction_id, 'max_days_between_meetings', 90);
+        $dueBy = $seatedAt->copy()->startOfDay()->addDays($days);
+
+        $legislature->forceFill([
+            'next_meeting_due_by' => $dueBy->toDateString(),
+        ])->save();
+
+        $this->clocks->arm(
+            'CLK-02',
+            (string) $legislature->jurisdiction_id,
+            'legislature',
+            (string) $legislature->id,
+            $dueBy,
+            [
+                'derive' => [
+                    'anchor_at' => $seatedAt->copy()->startOfDay()->toIso8601String(),
+                    'unit'      => 'days',
+                ],
+            ],
+        );
+    }
+
+    /**
      * CLK-02 bookkeeping: last_met_on / next_meeting_due_by + cancel and
      * re-arm the rolling deadline with payload.derive — the anchor a
      * max_days_between_meetings change re-derives from.
