@@ -1,5 +1,7 @@
 # Completed demo development
 
+Archive of closed items with evidence. The live list of work is the rubric Work tab (`docs/plans/ui/tools/app_progress_rubric.html`); the Archive tab there indexes these rows.
+
 Updated 13 September 2026. Reference archive for finished development scopes and their passed internal checks. These items are removed from the [active punch list](DEMO_ACTION_PLAN.md) and require no repeat work unless a later change or test exposes a defect.
 
 Where a larger item was mixed, only its finished scope is archived here. Unfinished full application journeys, combined room tests and broader scale/deployment checks remain in the [internal review register](DEMO_REVIEW_REGISTER.md). They are not reported as passed. Confirmed builds alone belong on the punch list; only human-dependent checks are deferred.

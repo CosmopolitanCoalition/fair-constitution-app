@@ -458,6 +458,19 @@ diagram-first rule is its companion — he reads the chart, skips the paragraph.
 **When you have a question for the operator, the rubric is the answer to "where
 does it go."**
 
+**ONE LIST OF WORK (operator order 2026-09-14).** The rubric's **Work** tab is the
+only list of work: every open screen, capability, debt row, wave item, punch
+item and review row was folded into `docs/plans/ui/tools/work.json` (open items
+carry phase, a single sortable order of operations, kind, status, blocker,
+done-when, dependencies, sources and evidence; closed items live in the
+Archive tab). The desk's ruling per source row is
+`docs/plans/ui/tools/dispositions.json`; rebuild with
+`python3 docs/plans/ui/tools/migrate_to_work.py && python3 docs/plans/ui/tools/gen_app_rubric.py`
+(the generator refuses to write when `--check` fails). New work goes into
+`work.json` (or a disposition for a source row), never into a new markdown
+list; the former `DEMO_ACTION_PLAN.md` and `DEMO_REVIEW_REGISTER.md` are
+retired pointers. The Questions tab shows open questions only by default.
+
 ---
 
 ## Architecture Principles

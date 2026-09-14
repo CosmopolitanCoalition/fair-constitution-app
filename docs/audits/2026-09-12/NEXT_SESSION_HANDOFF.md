@@ -1,5 +1,7 @@
 # Next session handoff
 
+**One file to pay attention to (operator order 2026-09-14): `docs/plans/ui/tools/app_progress_rubric.html`, the Work tab.** The punch list and the review register below are retired; their open rows are work items there (70 open items in five phases, one order of operations). This handoff stays as the session narrative and the cloud-box pull list.
+
 This is a continuation aid, not authority over the implementation. Read `CLAUDE.md`, extract/read the reference documents as it requires, inspect Git status, and verify current code before changing it. The operator's settled rulings override older planning assumptions.
 
 ## Current handoff — integrated 13 September
