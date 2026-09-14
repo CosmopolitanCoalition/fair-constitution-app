@@ -1111,6 +1111,10 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('organization')->name('organizations.ip-register');            // CGC public-domain dedication (additive only)
     Route::post('/organizations/{organization}/memberships', [\App\Http\Controllers\Organizations\OrganizationController::class, 'storeMembership'])
         ->whereUuid('organization')->name('organizations.memberships.store');      // F-IND-013
+    Route::post('/organizations/{organization}/memberships/{membership}/decision', [\App\Http\Controllers\Organizations\OrganizationController::class, 'decideMembership'])
+        ->whereUuid('organization')->whereUuid('membership')->name('organizations.memberships.decide'); // F-ORG-001 accept/decline
+    Route::post('/organizations/{organization}/agent', [\App\Http\Controllers\Organizations\OrganizationController::class, 'reassignAgent'])
+        ->whereUuid('organization')->name('organizations.agent.reassign');         // F-ORG-001 reassign_agent
     Route::post('/organizations/{organization}/workers', [\App\Http\Controllers\Organizations\OrganizationController::class, 'storeWorker'])
         ->whereUuid('organization')->name('organizations.workers.store');          // F-IND-014 (the headcount feed)
     Route::post('/organizations/{organization}/documents', [\App\Http\Controllers\Organizations\OrganizationController::class, 'storeDocument'])

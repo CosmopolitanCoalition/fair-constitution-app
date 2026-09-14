@@ -19,6 +19,8 @@ use App\Services\RoleService;
 use App\Services\SettingsResolver;
 use App\Support\SurfaceMeta;
 use App\Support\OrganizationDirectory;
+use App\Support\OrgAgentDirectory;
+use App\Support\OrgMembershipReviewDirectory;
 use App\Support\JurisdictionContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -163,7 +165,7 @@ class OrganizationController extends Controller
                 : [],
         );
 
-        return Inertia::render('Organizations/OrgDetail', [
+        $props = [
             'surface' => SurfaceMeta::for('organizations/org-detail'),
             'organization' => [
                 'id' => (string) $organization->id,
@@ -219,7 +221,18 @@ class OrganizationController extends Controller
                         ->exists()
                 ),
             ],
-        ]);
+        ];
+
+        // Agent-only surfaces (privacy — the pending queue reveals applicant
+        // identities). Emitted ONLY for this org's own agent; absent otherwise.
+        // Lazy closures so HistoryPager / the person search partial-reload
+        // exactly their own prop.
+        if ($isAgent) {
+            $props['pendingMembers'] = fn () => app(OrgMembershipReviewDirectory::class)->page($request, $organization);
+            $props['agentSearch'] = fn () => app(OrgAgentDirectory::class)->page($request, $organization, '/organizations/'.$organization->id);
+        }
+
+        return Inertia::render('Organizations/OrgDetail', $props);
     }
 
     /**
@@ -304,6 +317,56 @@ class OrganizationController extends Controller
         ]);
 
         return back()->with('status', 'Membership application filed (F-IND-013 · WF-ORG-03) — R-24 derives on the organization\'s acceptance.');
+    }
+
+    /**
+     * POST /organizations/{o}/memberships/{membership}/decision — F-ORG-001
+     * 'accept_member' / 'decline_member' (R-23). The org's agent reviews a
+     * pending application. A declined row is terminal; the applicant may file
+     * a fresh F-IND-013 (operator ruling 2026-09-13 · org-membership-agent-
+     * rules = A). The engine + handler identity gate enforce that only THIS
+     * org's agent acts; the membership is bound to this org here so a cross-org
+     * id is refused before the engine.
+     */
+    public function decideMembership(Request $request, Organization $organization, OrgMembership $membership): RedirectResponse
+    {
+        $validated = $request->validate([
+            'decision' => ['required', 'in:accept,decline'],
+        ]);
+
+        abort_unless((string) $membership->organization_id === (string) $organization->id, 404);
+
+        $this->engine->file('F-ORG-001', $request->user(), [
+            'action'          => $validated['decision'] === 'decline' ? 'decline_member' : 'accept_member',
+            'organization_id' => (string) $organization->id,
+            'membership_id'   => (string) $membership->id,
+        ]);
+
+        return back()->with('status', $validated['decision'] === 'decline'
+            ? 'Application declined (F-ORG-001) — the applicant may apply again.'
+            : 'Application accepted (F-ORG-001) — R-24 now derives from the active membership.');
+    }
+
+    /**
+     * POST /organizations/{o}/agent — F-ORG-001 'reassign_agent' (R-23). The
+     * transfer is immediate and unilateral: any registered user may be named
+     * (operator ruling 2026-09-13 · org-membership-agent-rules = A). The
+     * outgoing agent loses R-23; the incoming user gains it (both role caches
+     * flush in the handler).
+     */
+    public function reassignAgent(Request $request, Organization $organization): RedirectResponse
+    {
+        $validated = $request->validate([
+            'agent_user_id' => ['required', 'uuid'],
+        ]);
+
+        $this->engine->file('F-ORG-001', $request->user(), [
+            'action'          => 'reassign_agent',
+            'organization_id' => (string) $organization->id,
+            'agent_user_id'   => $validated['agent_user_id'],
+        ]);
+
+        return back()->with('status', 'Agency transferred (F-ORG-001) — effective immediately; the new representative now manages this organization.');
     }
 
     /** POST /organizations/{o}/workers — F-IND-014, the headcount feed (R-01). */

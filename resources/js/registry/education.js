@@ -2174,6 +2174,11 @@ export const EDUCATION_BY_SURFACE = {
                 do: "c_education.education_organizations_org_detail.s3_do",
                 detail: "c_education.education_organizations_org_detail.s3_detail",
                 cite: "F-IND-013 · F-IND-014"
+            },
+            {
+                do: "c_education.education_organizations_org_detail.s4_do",
+                detail: "c_education.education_organizations_org_detail.s4_detail",
+                cite: "F-ORG-001"
             }
         ],
         why: "c_education.education_organizations_org_detail.why"

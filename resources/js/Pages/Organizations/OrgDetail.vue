@@ -33,6 +33,8 @@ import TagChip from '@/Components/Ui/TagChip.vue';
 import BoardStrip from '@/Components/Organizations/BoardStrip.vue';
 import OwnershipPanel from '@/Components/Organizations/OwnershipPanel.vue';
 import OrganizationNav from '@/Components/Organizations/OrganizationNav.vue';
+import HistoryPager from '@/Components/Ui/HistoryPager.vue';
+import SelectionIdentity from '@/Components/Ui/SelectionIdentity.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -50,6 +52,10 @@ const props = defineProps({
     myWorker: { type: Object, default: null },
     /** The org's own open work postings — [{id,title,terms,rate,currency,applications}]. */
     jobs: { type: Array, default: () => [] },
+    /** IO-4 — agent-only. Bounded pending-application queue {rows, pages}; null for non-agents. */
+    pendingMembers: { type: Object, default: null },
+    /** IO-4 — agent-only. Agent-transfer person search {query, by, searched, candidates, previous, next}; null for non-agents. */
+    agentSearch: { type: Object, default: null },
     can: { type: Object, default: () => ({ manage: false, join: false, registerWorker: false, cosign: false, steerEconomy: false }) },
 });
 
@@ -156,6 +162,64 @@ function reEndorse(requestId) {
         onFinish: () => { endorseBusyId.value = null; },
         onError: (errs) => { endorseError.value = Object.values(errs)[0] || 'The re-endorsement could not be filed. Please retry.'; },
         onSuccess: () => { endorseNotice.value = 'Endorsement re-made.'; },
+    });
+}
+
+/* ============================================ IO-4 — membership review +
+ * agent reassignment (F-ORG-001, agent only). Accept/decline a pending
+ * application; transfer agency to any registered user. The transfer is
+ * immediate and unilateral (operator ruling 2026-09-13). Per-row busy state
+ * with role=status / role=alert feedback; the engine 422 renders into the
+ * constitutionError banner. */
+const decideBusyId = ref(null);
+const decideNotice = ref('');
+const decideError = ref('');
+
+function decideMember(membershipId, decision) {
+    if (decideBusyId.value) return;
+    router.post(`/organizations/${props.organization.id}/memberships/${membershipId}/decision`, { decision }, {
+        preserveScroll: true,
+        only: ['pendingMembers', 'ownership', 'organization'],
+        onStart: () => { decideBusyId.value = membershipId; decideError.value = ''; decideNotice.value = ''; },
+        onFinish: () => { decideBusyId.value = null; },
+        onError: (errs) => { decideError.value = Object.values(errs)[0] || 'The decision could not be filed. Please retry.'; },
+        onSuccess: () => { decideNotice.value = decision === 'accept' ? 'Application accepted.' : 'Application declined.'; },
+    });
+}
+
+/* Agent transfer — pick a person by public name or profile reference, then
+ * reassign. Search partial-reloads only its own prop. */
+const agentQuery = ref(props.agentSearch?.query || '');
+const agentBy = ref(props.agentSearch?.by || 'name');
+const agentPick = ref(null);
+const agentSearching = ref(false);
+const agentSearchError = ref('');
+const reassignBusy = ref(false);
+const reassignError = ref('');
+const reassignNotice = ref('');
+
+function searchAgent() {
+    if (agentSearching.value) return;
+    const url = new URL(page.url || `/organizations/${props.organization.id}`, 'http://fixture.invalid');
+    url.searchParams.set('agent_q', agentQuery.value.trim());
+    url.searchParams.set('agent_by', agentBy.value);
+    url.searchParams.delete('agent_cursor');
+    router.get(url.pathname + url.search, {}, {
+        only: ['agentSearch'], preserveState: true, preserveScroll: true,
+        onStart: () => { agentSearching.value = true; agentSearchError.value = ''; },
+        onFinish: () => { agentSearching.value = false; },
+        onError: (errs) => { agentSearchError.value = Object.values(errs)[0] || 'Search could not be loaded. Please retry.'; },
+    });
+}
+
+function reassignAgent() {
+    if (reassignBusy.value || !agentPick.value) return;
+    router.post(`/organizations/${props.organization.id}/agent`, { agent_user_id: agentPick.value.id }, {
+        preserveScroll: true,
+        onStart: () => { reassignBusy.value = true; reassignError.value = ''; reassignNotice.value = ''; },
+        onFinish: () => { reassignBusy.value = false; },
+        onError: (errs) => { reassignError.value = Object.values(errs)[0] || 'The transfer could not be filed. Please retry.'; },
+        onSuccess: () => { reassignNotice.value = 'Agency transferred.'; agentPick.value = null; },
     });
 }
 
@@ -307,6 +371,128 @@ const documentColumns = [
                     </div>
                 </form>
             </details>
+        </Card>
+
+        <!-- ==================================== IO-4 applications ======= -->
+        <Card v-if="can.manage" as="section" title="Membership applications">
+            <p class="gloss">
+                Review people who applied to join. Accepting grants membership; declining is final for
+                that application, and the person may apply again.
+            </p>
+            <template v-if="pendingMembers && pendingMembers.rows.length">
+                <div
+                    v-for="row in pendingMembers.rows"
+                    :key="row.id"
+                    class="card card--inset"
+                    style="margin-block-end: var(--space-2)"
+                >
+                    <SelectionIdentity :person="row.user" />
+                    <p class="citation" style="margin-block: var(--space-1) 0">
+                        {{ titleize(row.kind) }} · applied {{ fmtDate(row.applied_at) }}
+                    </p>
+                    <div class="cluster io4-controls" style="margin-block-start: var(--space-2)">
+                        <Btn
+                            variant="primary"
+                            size="sm"
+                            :disabled="decideBusyId === row.id"
+                            @click="decideMember(row.id, 'accept')"
+                        >{{ decideBusyId === row.id ? 'Working…' : 'Accept' }}</Btn>
+                        <Btn
+                            variant="ghost"
+                            size="sm"
+                            :disabled="decideBusyId === row.id"
+                            @click="decideMember(row.id, 'decline')"
+                        >Decline</Btn>
+                        <FormChip :form-id="formMeta('F-ORG-001').id" :name="formMeta('F-ORG-001').name" :alias="formMeta('F-ORG-001').alias" />
+                    </div>
+                </div>
+                <HistoryPager
+                    :pages="pendingMembers.pages"
+                    :first="`/organizations/${organization.id}`"
+                    :only="['pendingMembers']"
+                    cursor-key="members_cursor"
+                    label="Membership application pages"
+                />
+            </template>
+            <p v-else class="gloss">No applications are waiting.</p>
+            <p v-if="decideNotice" role="status">{{ decideNotice }}</p>
+            <p v-if="decideError" role="alert">{{ decideError }}</p>
+        </Card>
+
+        <!-- ==================================== IO-4 agent transfer ===== -->
+        <Card v-if="can.manage" as="section" title="Representative (agent)">
+            <p style="margin: 0">
+                Current representative:
+                <strong>{{ organization.agent?.name ?? '—' }}</strong>
+                <span v-if="organization.agent?.is_viewer" class="citation"> · you</span>
+            </p>
+            <p class="gloss">
+                Transfer agency to any registered person. The transfer is immediate and unilateral —
+                the person becomes the representative at once, and you lose management of this
+                organization.
+            </p>
+
+            <form class="stack io4-controls" style="gap: var(--space-2)" :aria-busy="agentSearching" novalidate @submit.prevent="searchAgent">
+                <Field label="Find by">
+                    <template #control="{ id }">
+                        <select :id="id" v-model="agentBy" class="field-input">
+                            <option value="name">Public name or @handle</option>
+                            <option value="reference">Profile reference</option>
+                        </select>
+                    </template>
+                </Field>
+                <Field :label="agentBy === 'reference' ? 'Complete profile reference' : 'Start of public name or @handle'">
+                    <template #control="{ id }">
+                        <input :id="id" v-model="agentQuery" class="field-input" maxlength="120" />
+                    </template>
+                </Field>
+                <div class="cluster">
+                    <Btn type="submit" variant="secondary" size="sm" :disabled="agentSearching">Search people</Btn>
+                </div>
+                <p v-if="agentSearching" role="status">Searching people…</p>
+                <p v-if="agentSearchError" role="alert">{{ agentSearchError }}</p>
+            </form>
+
+            <p v-if="agentSearch && agentSearch.searched && !agentSearch.candidates.length" role="status">
+                No matching people.
+            </p>
+            <div
+                v-for="person in (agentSearch ? agentSearch.candidates : [])"
+                :key="person.id"
+                class="card card--inset io4-controls"
+                style="margin-block-end: var(--space-2)"
+            >
+                <SelectionIdentity :person="person" />
+                <Btn
+                    variant="ghost"
+                    size="sm"
+                    :pressed="agentPick && agentPick.id === person.id"
+                    @click="agentPick = person"
+                >{{ agentPick && agentPick.id === person.id ? 'Selected' : 'Select' }}</Btn>
+            </div>
+            <HistoryPager
+                v-if="agentSearch"
+                :pages="{ previous: agentSearch.previous, next: agentSearch.next }"
+                :first="`/organizations/${organization.id}`"
+                :only="['agentSearch']"
+                cursor-key="agent_cursor"
+                label="Agent search pages"
+            />
+
+            <div v-if="agentPick" class="stack io4-controls" style="gap: var(--space-2); margin-block-start: var(--space-3)">
+                <p style="margin: 0">
+                    Transfer agency to <strong>{{ agentPick.name }}</strong>. This takes effect immediately
+                    and cannot be undone by you afterward.
+                </p>
+                <div class="cluster">
+                    <Btn variant="primary" size="sm" :disabled="reassignBusy" @click="reassignAgent">
+                        {{ reassignBusy ? 'Transferring…' : 'Transfer agency' }}
+                    </Btn>
+                    <FormChip :form-id="formMeta('F-ORG-001').id" :name="formMeta('F-ORG-001').name" :alias="formMeta('F-ORG-001').alias" />
+                </div>
+            </div>
+            <p v-if="reassignNotice" role="status">{{ reassignNotice }}</p>
+            <p v-if="reassignError" role="alert">{{ reassignError }}</p>
         </Card>
 
         <!-- ======================================== endorsements ======== -->
@@ -570,3 +756,11 @@ const documentColumns = [
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+/* IO-4 — 44px minimum for the review + transfer controls (touch target). */
+.io4-controls :deep(button),
+.io4-controls .field-input {
+    min-block-size: 44px;
+}
+</style>

@@ -785,6 +785,8 @@
   "education_organizations_org_detail.s2_do": "Follow the endorsement handshake",
   "education_organizations_org_detail.s3_detail": "Membership and work are separate paths with separate consequences.",
   "education_organizations_org_detail.s3_do": "Join, or register as a worker",
+  "education_organizations_org_detail.s4_detail": "Accept or decline each pending application; a decline is final for that application, and the person may apply again. Transfer agency to any registered person — the transfer is immediate and takes management from you at once.",
+  "education_organizations_org_detail.s4_do": "As the agent, review applications and transfer agency",
   "education_organizations_org_detail.why": "endorsement linkage feeds proportionality, never a faction layer. The worker headcount feeds the co-determination scale. One organization model carries both.",
   "education_organizations_org_registry.learn": "Every registered organization where you live — parties, businesses, nonprofits and public companies, in one open list.",
   "education_organizations_org_registry.s1_detail": "One registry, one model, discriminated only by type. There is no faction layer.",
