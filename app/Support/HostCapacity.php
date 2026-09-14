@@ -264,6 +264,33 @@ class HostCapacity
         return $gb;
     }
 
+    /**
+     * ROWS PER ENUMERATION CHUNK, DERIVED FROM THE HOST (the derive-from-host
+     * law generalized to every sibling, operator ruling 2026-09-13). One
+     * bounded, individually committed chunk of a keyset enumeration walk (the
+     * sim cohort worklist, the Step 4 provision ledger, the autoscale
+     * apportionment worklist). Bigger hosts commit fewer, larger chunks; a Pi
+     * commits many small ones and stays resumable in tiny bites.
+     *
+     * Derivation: rows scale with host memory, since a chunk buffers the
+     * keyset page plus the INSERT...SELECT working set. The 8 GB reference box
+     * ran 25000 comfortably, so ~3125 rows per host GB. Floor 1000 keeps a Pi
+     * resumable without huge per-chunk statements; cap 100000 keeps one
+     * chunk's statement bounded on big iron. hostMemoryGb() falls back to 8.0
+     * when unreadable, so an unknown host resolves to exactly 25000 — the
+     * behaviour is identical to the retired fixed constants apart from the
+     * size. CGA_ENUM_CHUNK overrides everything (operator dial).
+     */
+    public static function enumerationChunk(): int
+    {
+        $override = (int) env('CGA_ENUM_CHUNK', 0);
+        if ($override > 0) {
+            return $override;
+        }
+
+        return (int) max(1000, min(100000, (int) round(self::hostMemoryGb() * 3125)));
+    }
+
     public static function cpuCores(): int
     {
         $n = (int) trim((string) @shell_exec('nproc 2>/dev/null'));

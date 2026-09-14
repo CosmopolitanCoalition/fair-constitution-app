@@ -6,6 +6,7 @@ use App\Models\ProvisionRun;
 use App\Services\AuditService;
 use App\Services\InstitutionProvisionService;
 use App\Services\InstitutionScaleService;
+use App\Support\HostCapacity;
 use App\Support\ProvisionClaims;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,17 @@ use Illuminate\Support\Facades\Log;
  */
 class ProvisionRunControl
 {
-    public const LEDGER_CHUNK = 25000;
+    /**
+     * ROWS PER LEDGER CHUNK, DERIVED FROM THE HOST (operator ruling
+     * 2026-09-13, the derive-from-host law generalized to every sibling):
+     * one source, HostCapacity::enumerationChunk(), shared with
+     * SimStartCommand and AutoscaleEnumeration. The fallback host resolves to
+     * 25000 — identical to the retired constant apart from the size.
+     */
+    public static function ledgerChunk(): int
+    {
+        return HostCapacity::enumerationChunk();
+    }
 
     public function __construct(
         private readonly InstitutionProvisionService $provision,
@@ -124,7 +135,7 @@ class ProvisionRunControl
                 SELECT (SELECT count(*) FROM page) AS scanned,
                        (SELECT count(*) FROM ins) AS inserted,
                        (SELECT id FROM page ORDER BY id DESC LIMIT 1) AS last_id
-            ", [$afterId, self::LEDGER_CHUNK]);
+            ", [$afterId, self::ledgerChunk()]);
             $scanned = (int) ($row->scanned ?? 0);
             if ($scanned === 0) {
                 $complete = true;
@@ -134,7 +145,7 @@ class ProvisionRunControl
             $afterId = (string) $row->last_id;
             // Persist the cursor each chunk — resumable at chunk granularity.
             $run->forceFill(['ledger_cursor' => $afterId, 'updated_at' => now()])->save();
-            if ($scanned < self::LEDGER_CHUNK) {
+            if ($scanned < self::ledgerChunk()) {
                 $complete = true;
                 break;
             }
@@ -273,7 +284,7 @@ class ProvisionRunControl
                 ->where('legislature_id', '>', $afterId)
                 ->where('stage', '>=', $shells ? 0 : 1)
                 ->orderBy('legislature_id')
-                ->limit(self::LEDGER_CHUNK)
+                ->limit(self::ledgerChunk())
                 ->pluck('legislature_id')
                 ->map(fn ($id) => (string) $id)
                 ->all();

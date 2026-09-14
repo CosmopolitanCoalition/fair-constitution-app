@@ -30,6 +30,7 @@ class SimRun extends Model
     protected $casts = [
         'options' => 'array',
         'phase_timings' => 'array',
+        'enum_cursor' => 'array',
         'halt_requested_at' => 'datetime',
         'paused_until' => 'datetime',
         'started_at' => 'datetime',

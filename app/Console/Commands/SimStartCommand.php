@@ -6,6 +6,7 @@ use App\Console\Concerns\GuardsSyntheticData;
 use App\Models\SimRun;
 use App\Services\AuditService;
 use App\Services\Demo\Stages\CohortStage;
+use App\Support\HostCapacity;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -42,8 +43,17 @@ class SimStartCommand extends Command
 
     protected $description = 'Start a simulated-world populate run and enumerate its worklist';
 
-    /** THE ETL RULE chunk size, matching AutoscaleEnumeration::CHUNK. */
-    private const CHUNK = 25000;
+    /**
+     * THE ETL RULE chunk size, DERIVED FROM THE HOST (operator ruling
+     * 2026-09-13, the derive-from-host law generalized to every sibling): one
+     * source, HostCapacity::enumerationChunk(), shared with ProvisionRunControl
+     * and AutoscaleEnumeration. The fallback host resolves to 25000. Env
+     * override CGA_ENUM_CHUNK.
+     */
+    public static function chunk(): int
+    {
+        return HostCapacity::enumerationChunk();
+    }
 
     public function __construct(private readonly AuditService $audit)
     {
@@ -113,6 +123,20 @@ class SimStartCommand extends Command
             $this->info("run {$run->id} created (version {$version}, turnout {$turnout}%)");
         } else {
             $this->info("resuming run {$run->id}");
+
+            // A RESUME REPRODUCES THE ORIGINAL SET (operator ruling
+            // sim-resume-cursor = A). adm_max and limit come from the stored
+            // run options, never the command line, so a resume that omits the
+            // original flags enumerates the same set the run started with.
+            $resolved = self::resolveResumeParams($run->options ?? [], $admMax, $limit);
+            if ($resolved['overrode']) {
+                $this->warn('resume: using the stored run options (adm_max='.$resolved['adm_max']
+                    .', limit='.($resolved['limit'] === null ? 'none' : $resolved['limit'])
+                    .'). Command-line --adm-max/--limit are ignored on resume.');
+            }
+            $admMax = $resolved['adm_max'];
+            $limit  = $resolved['limit'];
+            $scopeRootId = $run->options['scope_jurisdiction_id'] ?? null;
         }
 
         $minted = $this->enumerateCohorts($run, $admMax, $limit,
@@ -171,11 +195,54 @@ class SimStartCommand extends Command
     }
 
     /**
-     * Mint one `cohort_scope` item per eligible jurisdiction, in bounded chunks.
+     * The stored options win over the command line on a resume (operator
+     * ruling sim-resume-cursor = A). Pure: no DB, no output — the unit-tested
+     * seam. A stored value present (adm_max non-null, or the limit key set)
+     * replaces the command-line value; missing stored keys fall back to the
+     * command line (the create path, where options == the command line).
      *
-     * Ordering is LARGEST-FIRST (`position` from population DESC) so the
-     * biggest populations start immediately rather than defining the tail —
-     * the geodata plan's inversion of autoscale's simplest-first.
+     * @param  array<string,mixed>|null  $options
+     * @return array{adm_max:int, limit:?int, overrode:bool}
+     */
+    public static function resolveResumeParams(?array $options, int $cliAdmMax, ?int $cliLimit): array
+    {
+        $options ??= [];
+
+        $admMax = (array_key_exists('adm_max', $options) && $options['adm_max'] !== null)
+            ? (int) $options['adm_max']
+            : $cliAdmMax;
+
+        $limit = array_key_exists('limit', $options)
+            ? ($options['limit'] === null ? null : (int) $options['limit'])
+            : $cliLimit;
+
+        return [
+            'adm_max' => $admMax,
+            'limit' => $limit,
+            'overrode' => ($admMax !== $cliAdmMax) || ($limit !== $cliLimit),
+        ];
+    }
+
+    /**
+     * Mint one `cohort_scope` item per eligible jurisdiction, in bounded,
+     * individually committed KEYSET chunks (G2, operator ruling
+     * sim-resume-cursor = A).
+     *
+     * THE RESUME DEFECT THIS REPAIRS: the old walk paged by OFFSET and looped
+     * on rows INSERTED. A resume whose first page was already enrolled saw the
+     * NOT EXISTS guard insert zero rows and exited after one page, so every
+     * later, unenrolled cohort was never minted. The walk now:
+     *   - orders LARGEST-FIRST by (COALESCE(population,0) DESC, id) and pages
+     *     by a KEYSET cursor over that order (bounds the INPUT, never a
+     *     planet-wide OFFSET rescan);
+     *   - loops on rows SCANNED, not inserted, so a fully pre-enrolled chunk
+     *     still advances the cursor to the next chunk;
+     *   - persists a durable {key, id, position_max, scanned_total} into
+     *     sim_runs.enum_cursor after each committed chunk, so a resume
+     *     continues from the stored maximum and positions never restart at 0;
+     *   - keeps NOT EXISTS + the sim_items_unit_uq key, so a re-scan is a
+     *     no-op and repeat resumes never duplicate or skip.
+     * This mirrors the Step 4 sibling ProvisionRunControl::materializeLedger.
      */
     private function enumerateCohorts(SimRun $run, int $admMax, ?int $limit, ?string $scopeRootId = null): int
     {
@@ -195,8 +262,8 @@ class SimStartCommand extends Command
         // India's 661k descendants every chunk and ran Postgres out of lock
         // memory (2026-09-07). Walk it once into a temp roster and paginate that
         // flat, indexed table; --resume re-materialises it (a fresh session) and
-        // the NOT EXISTS keeps redo clean. The ROOT scope needs no roster — it
-        // is already a flat paginated index scan.
+        // the KEYSET cursor rides over it identically. The ROOT scope needs no
+        // roster — it is already a flat paginated index scan.
         if ($scopeRootId !== null) {
             DB::statement('DROP TABLE IF EXISTS sim_scope_roster');
             DB::statement(
@@ -220,76 +287,213 @@ class SimStartCommand extends Command
             ? "eligible jurisdictions (adm ≤ {$admMax}): {$eligible}"
             : "eligible jurisdictions (adm ≤ {$admMax}, subtree of {$scopeRootId}): {$eligible}");
 
-        $bar = $this->output->createProgressBar($limit ?? $eligible);
+        // Portable-SQL tokens: the id generator and the cursor-id cast are the
+        // only Postgres/sqlite differences; the walk structure is identical
+        // (one owner, no divergent code path), so the DB-free fixture exercises
+        // the real keyset walk.
+        $driver = DB::connection()->getDriverName();
+        $isPg = $driver === 'pgsql';
+        $newId = $isPg ? 'gen_random_uuid()' : 'lower(hex(randomblob(16)))';
+        $idCast = $isPg ? '::uuid' : '';
+
+        $chunkSize = self::chunk();
+        $ts = now();
+
+        // THE STARTING CURSOR: the stored enum_cursor on a resume, else a
+        // recovery boundary derived from any already-enrolled prefix (an
+        // in-flight run seeded by the old restart-from-zero enumerator), else
+        // a fresh start. Positions continue from the stored maximum.
+        [$curPop, $curId, $base, $scannedTotal] = $this->resumeCursor($run);
+        $hasCursor = $curId !== null;
+
+        $target = $limit !== null ? min($limit, $eligible) : $eligible;
+        $bar = $this->output->createProgressBar(max(0, $target));
         $bar->start();
+        $bar->setProgress(min($scannedTotal, max(0, $target)));
 
-        $total = 0;
-        $offset = 0;
+        $startAt = microtime(true);
+        $scannedThisRun = 0;
+        $insertedTotal = 0;
 
-        do {
-            $take = $limit !== null ? min(self::CHUNK, $limit - $total) : self::CHUNK;
-
+        while (true) {
+            $take = $limit !== null ? min($chunkSize, $limit - $scannedTotal) : $chunkSize;
             if ($take <= 0) {
                 break;
             }
 
-            // Each chunk is its own committed statement. NOT EXISTS makes redo
-            // clean, so a crash mid-enumeration resumes without duplicates.
-            if ($scopeRootId === null) {
-                $n = DB::affectingStatement(
-                    "INSERT INTO sim_items
-                        (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
-                         position, est_cost, metrics, created_at, updated_at)
-                     SELECT gen_random_uuid(), ?, 'cohort_scope', 'pending', j.id, j.adm_level, j.id::text,
-                            ? + row_number() OVER (ORDER BY COALESCE(j.population, 0) DESC, j.id),
-                            COALESCE(j.population, 0), '{}', now(), now()
-                       FROM (
-                            SELECT id, adm_level, population
-                              FROM jurisdictions
-                             WHERE deleted_at IS NULL AND adm_level <= ?
-                             ORDER BY COALESCE(population, 0) DESC, id
-                             LIMIT ? OFFSET ?
-                       ) j
-                      WHERE NOT EXISTS (
-                            SELECT 1 FROM sim_items s
-                             WHERE s.run_id = ? AND s.kind = 'cohort_scope' AND s.unit_key = j.id::text
-                      )",
-                    [$run->id, $total, $admMax, $take, $offset, $run->id]
-                );
-            } else {
-                $n = DB::affectingStatement(
-                    "INSERT INTO sim_items
-                        (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
-                         position, est_cost, metrics, created_at, updated_at)
-                     SELECT gen_random_uuid(), ?, 'cohort_scope', 'pending', j.id, j.adm_level, j.id::text,
-                            ? + row_number() OVER (ORDER BY j.population DESC, j.id),
-                            j.population, '{}', now(), now()
-                       FROM (
-                            SELECT id, adm_level, population
-                              FROM sim_scope_roster
-                             ORDER BY population DESC, id
-                             LIMIT ? OFFSET ?
-                       ) j
-                      WHERE NOT EXISTS (
-                            SELECT 1 FROM sim_items s
-                             WHERE s.run_id = ? AND s.kind = 'cohort_scope' AND s.unit_key = j.id::text
-                      )",
-                    [$run->id, $total, $take, $offset, $run->id]
-                );
+            [$pageSql, $pageBinds] = $this->pageSql($scopeRootId, $admMax, $hasCursor, $curPop, $curId, $take, $idCast);
+
+            // SCAN the page — scanned count and the ordering-last row (the next
+            // cursor). Loop terminates on scanned, never on inserted.
+            $scan = DB::selectOne(
+                "WITH page AS ($pageSql)
+                 SELECT (SELECT count(*) FROM page) AS scanned,
+                        (SELECT id FROM page ORDER BY population ASC, id DESC LIMIT 1) AS last_id,
+                        (SELECT population FROM page ORDER BY population ASC, id DESC LIMIT 1) AS last_pop",
+                $pageBinds
+            );
+            $scanned = (int) ($scan->scanned ?? 0);
+            if ($scanned === 0) {
+                break;
             }
 
-            $total += $n;
-            $offset += $take;
-            $bar->advance($n);
+            // ENROL the page. NOT EXISTS + sim_items_unit_uq make a re-scan a
+            // no-op, so a resume over an already-enrolled chunk inserts nothing
+            // yet still advances the cursor below. position = base +
+            // row_number(), so numbering stays dense and largest-first across
+            // the resume boundary.
+            $inserted = DB::affectingStatement(
+                "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT {$newId}, ?, 'cohort_scope', 'pending', j.id, j.adm_level, CAST(j.id AS text),
+                        ? + row_number() OVER (ORDER BY j.population DESC, j.id),
+                        j.population, '{}', ?, ?
+                   FROM ({$pageSql}) j
+                  WHERE NOT EXISTS (
+                        SELECT 1 FROM sim_items s
+                         WHERE s.run_id = ? AND s.kind = 'cohort_scope' AND s.unit_key = CAST(j.id AS text)
+                  )",
+                array_merge([$run->id, $base, $ts, $ts], $pageBinds, [$run->id])
+            );
 
-            if ($n > 0) {
-                $this->line("  chunk committed: {$total} items");
+            $base += $inserted;
+            $insertedTotal += $inserted;
+            $scannedTotal += $scanned;
+            $scannedThisRun += $scanned;
+            $curPop = (int) $scan->last_pop;
+            $curId = (string) $scan->last_id;
+            $hasCursor = true;
+
+            // PERSIST THE CURSOR each committed chunk — resumable at chunk
+            // granularity. A crash after the insert but before this save leaves
+            // the cursor behind actual inserts; the resume re-scans that chunk
+            // and NOT EXISTS makes it a no-op, then advances. Never a gap.
+            $run->forceFill(['enum_cursor' => [
+                'key' => $curPop,
+                'id' => $curId,
+                'position_max' => $base,
+                'scanned_total' => $scannedTotal,
+            ]])->save();
+
+            $bar->setProgress(min($scannedTotal, max(0, $target)));
+
+            // VISIBLE: per-chunk scanned / inserted / elapsed / ETA (ETA from
+            // this invocation's rate over the remaining eligible count).
+            $elapsed = microtime(true) - $startAt;
+            $remaining = max(0, $target - $scannedTotal);
+            $eta = ($scannedThisRun > 0 && $elapsed > 0)
+                ? $this->fmtDuration($remaining / ($scannedThisRun / $elapsed))
+                : '—';
+            $this->line(sprintf(
+                '  chunk: scanned=%d inserted=%d total=%d/%d elapsed=%s eta=%s',
+                $scanned, $inserted, $scannedTotal, $target, $this->fmtDuration($elapsed), $eta
+            ));
+
+            if ($scanned < $take) {
+                break;
             }
-        } while ($n > 0 && $offset < ($limit ?? $eligible));
+        }
 
         $bar->finish();
         $this->newLine();
 
-        return $total;
+        return $insertedTotal;
+    }
+
+    /**
+     * The starting cursor for enumeration.
+     *
+     * @return array{0:int, 1:?string, 2:int, 3:int} [population, id, position_max, scanned_total]
+     */
+    private function resumeCursor(SimRun $run): array
+    {
+        $cursor = $run->enum_cursor;
+        if (is_array($cursor) && isset($cursor['id'])) {
+            return [
+                (int) ($cursor['key'] ?? 0),
+                (string) $cursor['id'],
+                (int) ($cursor['position_max'] ?? 0),
+                (int) ($cursor['scanned_total'] ?? 0),
+            ];
+        }
+
+        // RECOVERY (mirror ProvisionRunControl::resume): no stored cursor, but
+        // an already-enrolled prefix from the old enumerator. The buggy walk
+        // always left a contiguous largest-first prefix, so the max-position
+        // enrolled row is the exact resume boundary — continue past it, never
+        // re-scan it. est_cost stores COALESCE(population,0); unit_key stores
+        // the text id — the two ordering keys.
+        $enrolled = (int) DB::table('sim_items')
+            ->where('run_id', $run->id)
+            ->where('kind', 'cohort_scope')
+            ->count();
+        if ($enrolled > 0) {
+            $last = DB::selectOne(
+                "SELECT position, est_cost, unit_key FROM sim_items
+                  WHERE run_id = ? AND kind = 'cohort_scope'
+                  ORDER BY position DESC LIMIT 1",
+                [$run->id]
+            );
+
+            return [
+                (int) ($last->est_cost ?? 0),
+                (string) $last->unit_key,
+                (int) ($last->position ?? $enrolled),
+                $enrolled,
+            ];
+        }
+
+        return [0, null, 0, 0];
+    }
+
+    /**
+     * The keyset page SELECT and its bindings, for both the scan and the
+     * insert (one fragment, so the two statements can never diverge). Rows
+     * strictly AFTER the cursor in (population DESC, id ASC) order:
+     *   population < curPop OR (population = curPop AND id > curId).
+     *
+     * @return array{0:string, 1:array<int,mixed>}
+     */
+    private function pageSql(?string $scopeRootId, int $admMax, bool $hasCursor, int $curPop, ?string $curId, int $take, string $idCast): array
+    {
+        if ($scopeRootId === null) {
+            $sql = 'SELECT id, adm_level, COALESCE(population, 0) AS population
+                      FROM jurisdictions
+                     WHERE deleted_at IS NULL AND adm_level <= ?'
+                . ($hasCursor
+                    ? " AND (COALESCE(population, 0) < ? OR (COALESCE(population, 0) = ? AND id > ?{$idCast}))"
+                    : '')
+                . ' ORDER BY COALESCE(population, 0) DESC, id
+                     LIMIT ?';
+            $binds = $hasCursor ? [$admMax, $curPop, $curPop, $curId, $take] : [$admMax, $take];
+
+            return [$sql, $binds];
+        }
+
+        $sql = 'SELECT id, adm_level, population
+                  FROM sim_scope_roster'
+            . ($hasCursor
+                ? " WHERE (population < ? OR (population = ? AND id > ?{$idCast}))"
+                : '')
+            . ' ORDER BY population DESC, id
+                 LIMIT ?';
+        $binds = $hasCursor ? [$curPop, $curPop, $curId, $take] : [$take];
+
+        return [$sql, $binds];
+    }
+
+    /** Compact H:MM:SS / M:SS / Ns duration for the per-chunk progress line. */
+    private function fmtDuration(float $seconds): string
+    {
+        $seconds = (int) round($seconds);
+        if ($seconds < 60) {
+            return $seconds.'s';
+        }
+        if ($seconds < 3600) {
+            return sprintf('%d:%02d', intdiv($seconds, 60), $seconds % 60);
+        }
+
+        return sprintf('%d:%02d:%02d', intdiv($seconds, 3600), intdiv($seconds % 3600, 60), $seconds % 60);
     }
 }

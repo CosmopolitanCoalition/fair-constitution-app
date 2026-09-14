@@ -23,8 +23,17 @@ final class AutoscaleEnumeration
      * BOUNDED CHUNKS, each its own committed statement — visible progress,
      * resumable at any boundary, never a single opaque multi-hour
      * transaction.
+     *
+     * THE CHUNK SIZE DERIVES FROM THE HOST (operator ruling 2026-09-13, the
+     * derive-from-host law generalized to every sibling): one source,
+     * HostCapacity::enumerationChunk(), shared with SimStartCommand and
+     * ProvisionRunControl. The fallback host resolves to 25000 — identical to
+     * the retired constant apart from the size.
      */
-    public const CHUNK = 25000;
+    public static function chunk(): int
+    {
+        return HostCapacity::enumerationChunk();
+    }
 
 
 
@@ -239,7 +248,7 @@ final class AutoscaleEnumeration
                    AND EXISTS (SELECT 1 FROM jurisdictions c
                                 WHERE c.parent_id = l.jurisdiction_id AND c.deleted_at IS NULL)
                    AND NOT EXISTS (SELECT 1 FROM apportionment_ledger al WHERE al.legislature_id = l.id)
-                 LIMIT " . self::CHUNK . '
+                 LIMIT " . self::chunk() . '
                     ON CONFLICT (legislature_id) DO NOTHING
             ');
             $total += $n;
@@ -261,7 +270,7 @@ final class AutoscaleEnumeration
                    AND NOT EXISTS (SELECT 1 FROM jurisdictions c
                                     WHERE c.parent_id = l.jurisdiction_id AND c.deleted_at IS NULL)
                    AND NOT EXISTS (SELECT 1 FROM apportionment_ledger al WHERE al.legislature_id = l.id)
-                 LIMIT " . self::CHUNK . '
+                 LIMIT " . self::chunk() . '
                     ON CONFLICT (legislature_id) DO NOTHING
             ');
             $total += $n;
@@ -429,7 +438,7 @@ final class AutoscaleEnumeration
                   FROM (SELECT id, scope_jurisdiction_id
                           FROM apportionment_ledger_scopes
                          WHERE is_leaf IS NULL
-                         LIMIT ' . intdiv(self::CHUNK, 5) . '
+                         LIMIT ' . intdiv(self::chunk(), 5) . '
                            FOR UPDATE SKIP LOCKED) t
                   LEFT JOIN LATERAL (SELECT 1 AS hit FROM jurisdictions c
                                       WHERE c.parent_id = t.scope_jurisdiction_id
@@ -458,7 +467,7 @@ final class AutoscaleEnumeration
                    AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
                                     WHERE s.legislature_id = al.legislature_id
                                       AND s.scope_jurisdiction_id = al.jurisdiction_id)
-                 LIMIT " . self::CHUNK . '
+                 LIMIT " . self::chunk() . '
                     ON CONFLICT (legislature_id, scope_jurisdiction_id, scope_kind) DO NOTHING
             ');
             $total += $n;
@@ -582,7 +591,7 @@ final class AutoscaleEnumeration
                  WHERE legislature_id IN (
                        SELECT legislature_id FROM apportionment_ledger
                         WHERE gate_reason IS NOT NULL AND map_status = 'pending'
-                        LIMIT " . self::CHUNK . '
+                        LIMIT " . self::chunk() . '
                  )
             ');
             $total += $n;
@@ -610,7 +619,7 @@ final class AutoscaleEnumeration
                                             WHERE m.legislature_id = al.legislature_id
                                               AND m.name = 'Founding Map'
                                               AND m.deleted_at IS NULL)
-                         LIMIT " . self::CHUNK . '
+                         LIMIT " . self::chunk() . '
                   ) x
             ');
             $total += $n;
@@ -643,7 +652,7 @@ final class AutoscaleEnumeration
                                         WHERE m.legislature_id = al2.legislature_id
                                           AND m.name = 'Founding Map'
                                           AND m.deleted_at IS NULL)
-                         LIMIT " . self::CHUNK . '
+                         LIMIT " . self::chunk() . '
                  )
                    AND fm.legislature_id = al.legislature_id
             ');
