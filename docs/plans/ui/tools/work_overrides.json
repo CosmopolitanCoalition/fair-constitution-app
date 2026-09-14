@@ -284,9 +284,10 @@
    "title": "Complete the federation toggle: mint identity and arm CLK-20"
   },
   "W-0251": {
-   "note": "I think this might have been handled by Codex. Recheck and clean up the detial to be coherent.",
+   "note": "Desk recheck 2026-09-14 on the operator note. Fixed: CLAUDE.md protected list named app/Services/ElectionTriggerService.php, which does not exist (the trigger and cycle logic lives in ElectionLifecycleService.php; list corrected); CLAUDE.md Docker services table lacked fc_scheduler (added); SetupController.php header described a four-step wizard (rewritten to the built 0 to 6 ladder from SetupLadder). Left as is, flagged: ConstitutionalVersionService::HARDENED_SURFACE still lists the nonexistent ElectionTriggerService.php; changing that list changes the constitutional version hash on every instance, so it stays until the operator wants a version bump. docker-compose.yml and config/horizon.php comments were re-read and are accurate.",
    "date": "2026-09-14",
-   "title": "Fix stale class references and outdated comments; add scheduler to docs"
+   "title": "Fix stale class references and outdated comments; add scheduler to docs",
+   "status": "done"
   }
  }
 }

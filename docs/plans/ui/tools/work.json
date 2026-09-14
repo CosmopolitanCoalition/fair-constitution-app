@@ -9157,10 +9157,10 @@
     {
       "id": "W-0251",
       "title": "Fix stale class references and outdated comments; add scheduler to docs",
-      "phase": "P5",
-      "order": 61,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "CLAUDE.md protected files; app/Services/ConstitutionalVersionService.php:33; docker-compose.yml:503-526; config/horizon.php:257-260; app/Http/Controllers/SetupController.php:42, 3858 (low).",
       "done_when": "ConstitutionalVersionService no longer names the absent ElectionTriggerService.php; horizon.php reflects the current lane law; SetupController docblocks drop AutoscaleOrchestratorJob; the scheduler container is in the CLAUDE.md service table.",
@@ -9217,6 +9217,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: I think this might have been handled by Codex. Recheck and clean up the detial to be coherent."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Desk recheck 2026-09-14 on the operator note. Fixed: CLAUDE.md protected list named app/Services/ElectionTriggerService.php, which does not exist (the trigger and cycle logic lives in ElectionLifecycleService.php; list corrected); CLAUDE.md Docker services table lacked fc_scheduler (added); SetupController.php header described a four-step wizard (rewritten to the built 0 to 6 ladder from SetupLadder). Left as is, flagged: ConstitutionalVersionService::HARDENED_SURFACE still lists the nonexistent ElectionTriggerService.php; changing that list changes the constitutional version hash on every instance, so it stays until the operator wants a version bump. docker-compose.yml and config/horizon.php comments were re-read and are accurate."
         }
       ]
     },

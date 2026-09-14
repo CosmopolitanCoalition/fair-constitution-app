@@ -92,6 +92,7 @@ fc_postgres  PostgreSQL 17+PostGIS     localhost:5432
 fc_redis     Redis 7.4                 internal
 fc_vite      Vite dev server           localhost:5173
 fc_horizon   Laravel Horizon (queues)  internal
+fc_scheduler Laravel scheduler (schedule:work, the constitutional clock sweep every minute)  internal
 fc_etl       Python 3.12 ETL          internal
 ```
 
@@ -606,7 +607,7 @@ Files (announce, fix, pin — do not wait):
 app/Services/VoteCountingService.php
 app/Domain/Counting/   (counting core: Micro, BallotSet, CountInput, CountResult, RoundResult, CountbackResult)
 app/Services/DistrictingService.php
-app/Services/ElectionTriggerService.php
+app/Services/ElectionLifecycleService.php   (election triggers and cycles; the former ElectionTriggerService, which no longer exists)
 app/Services/ConstitutionalValidator.php
 app/Services/Organizations/CoDeterminationService.php   (Art. III §6 hardened math — Phase D)
 app/Models/ConstitutionalSettings.php

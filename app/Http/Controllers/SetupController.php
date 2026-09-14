@@ -33,12 +33,16 @@ use Inertia\Response;
  * Setup wizard — WordPress-style install flow that takes a fresh instance
  * from `docker compose up` through a configured Earth legislature.
  *
- * Step 0 — Welcome + Cosmic Address (map mode, time mode, instance name)
- * Step 1 — Per Jurisdiction Constitutional Defaults (founder authors the constitution)
- * Step 2 — Load GeoBoundaries + WorldPop Data (apportionment fires on activation)
- * Step 3 — Build Districts (handoff to existing district mapper)
- * Step 4 — Confirm + Seat Institutions (executives + judiciaries scaffolded,
- *          setup_completed_at set, "Ready Player One" landing message)
+ * The ladder is owned by App\Support\SetupLadder (labels, applies, next,
+ * reachable, completed). Steps as built:
+ * Step 0 — Cosmic Address (map mode, time mode, instance name)
+ * Step 1 — Constitutional Defaults (the founder authors the constitution)
+ * Step 2 — Map Data (geoBoundaries + WorldPop; apportionment fires on activation)
+ * Step 3 — Build Districts (the district mapper; map quality card)
+ * Step 4 — Scale Up Institutions (the provisioning engine seats legislatures,
+ *          executives, courts and boards per legislature)
+ * Step 5 — Simulate (the population simulation, operator-triggered)
+ * Step 6 — Confirm & Close (setup_completed_at set, the founding window closes)
  *
  * Ordering note: Constitutional Defaults runs BEFORE Map Data so apportionment
  * can execute as soon as data injection completes. When the founder submits
