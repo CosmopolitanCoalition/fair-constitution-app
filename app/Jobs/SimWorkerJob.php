@@ -160,7 +160,25 @@ class SimWorkerJob implements ShouldQueue
                 try {
                     $metrics = $this->execute($run, $item, $token);
                     SimTimer::close($part);
-                    $this->settle($item->id, SimItem::STATUS_DONE, $metrics);
+                    // A stage may return a REVIEW verdict without throwing — a
+                    // scan that finds a gap is a settled review outcome, not an
+                    // error. `_verdict`/`_reason` steer the settle; absent, the
+                    // return is a plain done (every existing stage). The internal
+                    // keys never reach the stored metrics.
+                    $verdict = ($metrics['_verdict'] ?? null) === SimItem::STATUS_REVIEW
+                        ? SimItem::STATUS_REVIEW
+                        : SimItem::STATUS_DONE;
+                    $reason = $metrics['_reason'] ?? null;
+                    unset($metrics['_verdict'], $metrics['_reason']);
+                    $this->settle($item->id, $verdict, $metrics, $reason);
+                    if ($verdict === SimItem::STATUS_DONE) {
+                        // O(1) world counters (G3): the pump maintains the
+                        // headline figures per committed item so the Step 5
+                        // poll reads them off the run row instead of scanning
+                        // users/legislatures/cohorts. Deltas, never the source
+                        // of truth — see SimSnapshot::computeWorld.
+                        $this->maintainWorldCounters($run, $item->kind, $metrics);
+                    }
                     $failures = 0;
                 } catch (\Throwable $e) {
                     SimTimer::close($part); // no-op if already closed
@@ -315,6 +333,16 @@ class SimWorkerJob implements ShouldQueue
                 $version,
                 $beat,
             ),
+            // The acceptance scan (G1): read this jurisdiction's OWN artifacts
+            // and return done, or review-with-gaps via `_verdict`/`_reason` in
+            // the result. It files no constitutional act (the audit batch
+            // commits nothing) — a pure read that settles the item.
+            'verify_scope' => \App\Services\Demo\Stages\VerifyStage::run(
+                (string) $item->jurisdiction_id,
+                (string) $run->id,
+                $version,
+                $beat,
+            ),
             // Stages land here as they are built; an unknown kind is a REVIEW
             // row naming itself rather than a crash.
             default => throw new \RuntimeException("No stage is wired for item kind '{$item->kind}'."),
@@ -396,5 +424,61 @@ class SimWorkerJob implements ShouldQueue
     private function label(object $item): string
     {
         return Str::limit($item->kind.' · '.($item->jurisdiction_id ?? $item->race_id ?? '—'), 155, '');
+    }
+
+    /**
+     * Maintain the O(1) world counters on the run row (G3). Called once per
+     * item that settles DONE. The counts come from the stage's own returned
+     * metrics — IdentityStage separates minted from reused, so people_founded
+     * grows only by NEW rows. A crashed chunk can leave a counter off by one
+     * chunk; the figures that must be exact (chambers total, population sums)
+     * are recomputed per phase in SimSnapshot, never derived from these.
+     *
+     * @param array<string,mixed> $metrics
+     */
+    private function maintainWorldCounters(SimRun $run, string $kind, array $metrics): void
+    {
+        if (! self::countersPresent()) {
+            return; // additive migration not applied on this box — poll reads zeros
+        }
+
+        $inc = [];
+        switch ($kind) {
+            case 'identity_batch':
+                $people = (int) ($metrics['users'] ?? 0);
+                $confs  = (int) ($metrics['confirmations'] ?? 0);
+                if ($people > 0) {
+                    $inc['people_founded'] = $people;
+                }
+                if ($confs > 0) {
+                    $inc['residencies_founded'] = $confs;
+                }
+                break;
+            case 'cohort_scope':
+                // One cohort per settled scope.
+                $inc['cohorts'] = 1;
+                break;
+            case 'seat_scope':
+                if (($metrics['certified'] ?? false) === true) {
+                    $inc['chambers_governed'] = 1;
+                }
+                break;
+        }
+
+        if ($inc === []) {
+            return;
+        }
+
+        DB::table('sim_runs')->where('id', $run->id)->incrementEach($inc, ['updated_at' => now()]);
+    }
+
+    /** @var array<string,bool> keyed by connection name */
+    private static array $countersPresent = [];
+
+    private static function countersPresent(): bool
+    {
+        $conn = DB::connection()->getName();
+
+        return self::$countersPresent[$conn] ??= \Illuminate\Support\Facades\Schema::hasColumn('sim_runs', 'people_founded');
     }
 }

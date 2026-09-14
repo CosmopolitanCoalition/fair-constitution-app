@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Support\QuorumLaw;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -23,8 +24,17 @@ final class AutoscaleEnumeration
      * BOUNDED CHUNKS, each its own committed statement — visible progress,
      * resumable at any boundary, never a single opaque multi-hour
      * transaction.
+     *
+     * THE CHUNK SIZE DERIVES FROM THE HOST (operator ruling 2026-09-13, the
+     * derive-from-host law generalized to every sibling): one source,
+     * HostCapacity::enumerationChunk(), shared with SimStartCommand and
+     * ProvisionRunControl. The fallback host resolves to 25000 — identical to
+     * the retired constant apart from the size.
      */
-    public const CHUNK = 25000;
+    public static function chunk(): int
+    {
+        return HostCapacity::enumerationChunk();
+    }
 
 
 
@@ -239,7 +249,7 @@ final class AutoscaleEnumeration
                    AND EXISTS (SELECT 1 FROM jurisdictions c
                                 WHERE c.parent_id = l.jurisdiction_id AND c.deleted_at IS NULL)
                    AND NOT EXISTS (SELECT 1 FROM apportionment_ledger al WHERE al.legislature_id = l.id)
-                 LIMIT " . self::CHUNK . '
+                 LIMIT " . self::chunk() . '
                     ON CONFLICT (legislature_id) DO NOTHING
             ');
             $total += $n;
@@ -261,7 +271,7 @@ final class AutoscaleEnumeration
                    AND NOT EXISTS (SELECT 1 FROM jurisdictions c
                                     WHERE c.parent_id = l.jurisdiction_id AND c.deleted_at IS NULL)
                    AND NOT EXISTS (SELECT 1 FROM apportionment_ledger al WHERE al.legislature_id = l.id)
-                 LIMIT " . self::CHUNK . '
+                 LIMIT " . self::chunk() . '
                     ON CONFLICT (legislature_id) DO NOTHING
             ');
             $total += $n;
@@ -307,96 +317,268 @@ final class AutoscaleEnumeration
         $beat = static function () use ($tick) { if ($tick) { $tick(); } };
         DB::statement('SET max_parallel_workers_per_gather = 0');
 
-        DB::statement('
-            UPDATE apportionment_ledger al
-               SET adm_level = j.adm_level,
-                   child_count = cc.n,
-                   kind = CASE WHEN cc.n > 0 OR COALESCE(al.head_seats, l.type_a_seats) > ? THEN ? ELSE ? END,
-                   est_districts = CEIL(COALESCE(al.head_seats, l.type_a_seats)::numeric / ?)::smallint,
-                   updated_at = now()
-              FROM legislatures l, jurisdictions j,
-                   LATERAL (SELECT COUNT(*)::int AS n FROM jurisdictions c
-                             WHERE c.parent_id = j.id AND c.deleted_at IS NULL) cc
-             WHERE l.id = al.legislature_id AND j.id = al.jurisdiction_id
-        ', [max($ceiling, 1), 'sweep', 'single', max($ceiling, 1)]);
+        // RESUMABLE PHASE MARKER (G3, 2026-09-13). The stamp / cascade /
+        // position / block passes are whole-set and order-dependent (the
+        // ROW_NUMBER position and the cascade fixpoint read the entire set), so
+        // they stay whole and byte-identical; only the geometry (area_tier)
+        // scan — per-row independent and the one expensive PostGIS pass — is
+        // chunked by legislature_id keyset. The marker records which phase was
+        // reached and, inside the geometry phase, the keyset cursor, so a kill
+        // resumes at the last committed chunk instead of restarting the scan.
+        // A clean run clears the marker at the end, so a legitimate re-run
+        // (sizes changed) starts fresh and recomputes every key.
+        $marker = self::readDeriveMarker();
+        if ($marker['started_at'] === null) {
+            $marker['started_at'] = now()->toIso8601String();
+        }
+
+        if (self::shouldRunDerivePhase($marker['phase'], 'stamp')) {
+            DB::statement('
+                UPDATE apportionment_ledger al
+                   SET adm_level = j.adm_level,
+                       child_count = cc.n,
+                       kind = CASE WHEN cc.n > 0 OR COALESCE(al.head_seats, l.type_a_seats) > ? THEN ? ELSE ? END,
+                       est_districts = CEIL(COALESCE(al.head_seats, l.type_a_seats)::numeric / ?)::smallint,
+                       updated_at = now()
+                  FROM legislatures l, jurisdictions j,
+                       LATERAL (SELECT COUNT(*)::int AS n FROM jurisdictions c
+                                 WHERE c.parent_id = j.id AND c.deleted_at IS NULL) cc
+                 WHERE l.id = al.legislature_id AND j.id = al.jurisdiction_id
+            ', [max($ceiling, 1), 'sweep', 'single', max($ceiling, 1)]);
+            $marker['phase'] = 'cascade';
+            self::writeDeriveMarker($marker);
+        }
         $beat();
 
-        DB::statement('UPDATE apportionment_ledger SET cascade_height = NULL');
-        DB::statement('UPDATE apportionment_ledger SET cascade_height = 0 WHERE child_count = 0');
-        for ($pass = 0; $pass < 12; $pass++) {
-            $updated = DB::update('
-                UPDATE apportionment_ledger p
-                   SET cascade_height = x.h
-                  FROM (
-                        SELECT p2.legislature_id, (1 + MAX(ci.cascade_height))::smallint AS h
-                          FROM apportionment_ledger p2
-                          JOIN jurisdictions c
-                                 ON c.parent_id = p2.jurisdiction_id AND c.deleted_at IS NULL
-                          LEFT JOIN apportionment_ledger ci ON ci.jurisdiction_id = c.id
-                         WHERE p2.cascade_height IS NULL
-                         GROUP BY p2.legislature_id
-                        HAVING bool_and(ci.cascade_height IS NOT NULL)
-                  ) x
-                 WHERE p.legislature_id = x.legislature_id
+        if (self::shouldRunDerivePhase($marker['phase'], 'cascade')) {
+            DB::statement('UPDATE apportionment_ledger SET cascade_height = NULL');
+            DB::statement('UPDATE apportionment_ledger SET cascade_height = 0 WHERE child_count = 0');
+            for ($pass = 0; $pass < 12; $pass++) {
+                $updated = DB::update('
+                    UPDATE apportionment_ledger p
+                       SET cascade_height = x.h
+                      FROM (
+                            SELECT p2.legislature_id, (1 + MAX(ci.cascade_height))::smallint AS h
+                              FROM apportionment_ledger p2
+                              JOIN jurisdictions c
+                                     ON c.parent_id = p2.jurisdiction_id AND c.deleted_at IS NULL
+                              LEFT JOIN apportionment_ledger ci ON ci.jurisdiction_id = c.id
+                             WHERE p2.cascade_height IS NULL
+                             GROUP BY p2.legislature_id
+                            HAVING bool_and(ci.cascade_height IS NOT NULL)
+                      ) x
+                     WHERE p.legislature_id = x.legislature_id
+                ');
+                if ($updated === 0) {
+                    break;
+                }
+            }
+            DB::update('UPDATE apportionment_ledger SET cascade_height = 99 WHERE cascade_height IS NULL');
+            // Enter the geometry phase: size the bar from the ledger once (a
+            // one-shot count for ETA, stored so a resume never recounts).
+            $marker['phase']       = 'geometry';
+            $marker['geom_cursor'] = self::DERIVE_ZERO_UUID;
+            $marker['geom_total']  = (int) DB::table('apportionment_ledger')->count();
+            $marker['geom_done']   = 0;
+            self::writeDeriveMarker($marker);
+        }
+        $beat();
+
+        if (self::shouldRunDerivePhase($marker['phase'], 'geometry')) {
+            self::deriveAreaTiersChunked($marker, $beat);
+            $marker['phase'] = 'position';
+            self::writeDeriveMarker($marker);
+        }
+        $beat();
+
+        if (self::shouldRunDerivePhase($marker['phase'], 'position')) {
+            DB::statement('
+                WITH ranked AS (
+                    SELECT al.legislature_id,
+                           ROW_NUMBER() OVER (
+                               ORDER BY al.est_districts ASC, al.cascade_height ASC,
+                                        COALESCE(al.area_tier, 1) ASC,
+                                        al.adm_level DESC, al.population ASC NULLS FIRST, al.legislature_id
+                           ) AS rn
+                      FROM apportionment_ledger al
+                )
+                UPDATE apportionment_ledger al
+                   SET position = r.rn
+                  FROM ranked r
+                 WHERE al.legislature_id = r.legislature_id
             ');
-            if ($updated === 0) {
+            $marker['phase'] = 'block';
+            self::writeDeriveMarker($marker);
+        }
+        $beat();
+
+        if (self::shouldRunDerivePhase($marker['phase'], 'block')) {
+            // THE BLOCK ORDER: planet, then each layer composites (biggest
+            // first) then leaves (smallest first — trivials lead by definition).
+            DB::statement("
+                UPDATE apportionment_ledger
+                   SET block_rank  = adm_level * 2 + CASE WHEN child_count > 0 THEN 0 ELSE 1 END,
+                       block_order = CASE WHEN child_count > 0
+                                          THEN -GREATEST(COALESCE(population, 0), 0)
+                                          ELSE  GREATEST(COALESCE(population, 0), 0) END,
+                       updated_at = now()
+            ");
+            $marker['phase'] = 'done';
+            self::writeDeriveMarker($marker);
+        }
+        $beat();
+
+        DB::statement('RESET max_parallel_workers_per_gather');
+        self::clearDeriveMarker();
+    }
+
+    /** The sentinel low cursor for keyset walks (mirrors ProvisionRunControl). */
+    private const DERIVE_ZERO_UUID = '00000000-0000-0000-0000-000000000000';
+
+    /** The ordered phases of the ledger ordering-key derive (G3). */
+    public const DERIVE_PHASES = ['stamp', 'cascade', 'geometry', 'position', 'block', 'done'];
+
+    public const DERIVE_MARKER_KEY = 'autoscale.derive.progress';
+
+    /**
+     * Read the resumable derive marker. An absent or malformed marker is a
+     * fresh run (phase 'stamp', cursor at the low sentinel).
+     *
+     * @return array{phase:string,geom_cursor:string,geom_total:int,geom_done:int,started_at:?string}
+     */
+    public static function readDeriveMarker(): array
+    {
+        $m = Cache::get(self::DERIVE_MARKER_KEY);
+        if (! is_array($m) || ! in_array($m['phase'] ?? null, self::DERIVE_PHASES, true)) {
+            return [
+                'phase'       => 'stamp',
+                'geom_cursor' => self::DERIVE_ZERO_UUID,
+                'geom_total'  => 0,
+                'geom_done'   => 0,
+                'started_at'  => null,
+            ];
+        }
+
+        return [
+            'phase'       => (string) $m['phase'],
+            'geom_cursor' => (string) ($m['geom_cursor'] ?? self::DERIVE_ZERO_UUID),
+            'geom_total'  => (int) ($m['geom_total'] ?? 0),
+            'geom_done'   => (int) ($m['geom_done'] ?? 0),
+            'started_at'  => $m['started_at'] ?? null,
+        ];
+    }
+
+    /** @param array<string,mixed> $marker */
+    public static function writeDeriveMarker(array $marker): void
+    {
+        Cache::put(self::DERIVE_MARKER_KEY, $marker, 86400);
+    }
+
+    public static function clearDeriveMarker(): void
+    {
+        Cache::forget(self::DERIVE_MARKER_KEY);
+    }
+
+    /**
+     * Should a phase run given the marker's current phase? A phase runs when
+     * the marker has reached it or an earlier phase — so a resume skips the
+     * phases already completed and re-enters the interrupted one (whole
+     * passes are idempotent; the geometry phase resumes from its cursor).
+     */
+    public static function shouldRunDerivePhase(string $markerPhase, string $phase): bool
+    {
+        $at = array_search($markerPhase, self::DERIVE_PHASES, true);
+        $of = array_search($phase, self::DERIVE_PHASES, true);
+        if ($at === false || $of === false) {
+            return true; // unknown marker phase — run defensively
+        }
+
+        return $at <= $of;
+    }
+
+    /**
+     * THE ONE EXPENSIVE PASS, chunked (G3). area_tier is a per-row function of
+     * that row's own jurisdiction bounding box, so a keyset band produces
+     * byte-identical values to the whole-table UPDATE while bounding the
+     * PostGIS scan. Each chunk is its own committed statement, the cursor is
+     * persisted per chunk (resumable), and elapsed / ETA are logged so the
+     * pass is visible. Chunk size derives from the host (HostCapacity), the
+     * same source SimStartCommand and ProvisionRunControl use.
+     *
+     * @param array{phase:string,geom_cursor:string,geom_total:int,geom_done:int,started_at:?string} $marker
+     */
+    private static function deriveAreaTiersChunked(array &$marker, callable $beat): void
+    {
+        $chunk  = self::chunk();
+        $cursor = $marker['geom_cursor'];
+        $total  = $marker['geom_total'];
+        $done   = $marker['geom_done'];
+        $t0     = microtime(true);
+
+        while (true) {
+            $page = DB::selectOne('
+                WITH page AS (
+                    SELECT al.legislature_id
+                      FROM apportionment_ledger al
+                     WHERE al.legislature_id > ?::uuid
+                     ORDER BY al.legislature_id
+                     LIMIT ?
+                )
+                SELECT (SELECT count(*) FROM page) AS scanned,
+                       (SELECT legislature_id FROM page ORDER BY legislature_id DESC LIMIT 1) AS last_id
+            ', [$cursor, $chunk]);
+
+            $scanned = (int) ($page->scanned ?? 0);
+            if ($scanned === 0) {
+                break;
+            }
+            $lastId = (string) $page->last_id;
+
+            DB::statement("
+                UPDATE apportionment_ledger al
+                   SET area_tier = CASE
+                           WHEN j.geom IS NULL THEN 1
+                           ELSE CASE
+                               WHEN bbox.km2 <= 300      THEN 1
+                               WHEN bbox.km2 <= 3000     THEN 2
+                               WHEN bbox.km2 <= 30000    THEN 3
+                               WHEN bbox.km2 <= 300000   THEN 4
+                               ELSE 5
+                           END
+                       END
+                  FROM jurisdictions j
+                  LEFT JOIN LATERAL (
+                       SELECT (ST_XMax(j.geom) - ST_XMin(j.geom)) * 111.32
+                              * GREATEST(cos(radians((ST_YMin(j.geom) + ST_YMax(j.geom)) / 2)), 0.01)
+                              * (ST_YMax(j.geom) - ST_YMin(j.geom)) * 110.57 AS km2
+                  ) bbox ON true
+                 WHERE j.id = al.jurisdiction_id
+                   AND al.legislature_id >  ?::uuid
+                   AND al.legislature_id <= ?::uuid
+            ", [$cursor, $lastId]);
+
+            $cursor = $lastId;
+            $done  += $scanned;
+            $marker['geom_cursor'] = $cursor;
+            $marker['geom_done']   = $done;
+            self::writeDeriveMarker($marker);
+
+            $elapsed = microtime(true) - $t0;
+            $rate    = $done > 0 ? $done / max(0.001, $elapsed) : 0.0;
+            $etaS    = ($rate > 0 && $total > $done) ? (int) round(($total - $done) / $rate) : null;
+            Log::info('derive: area_tier chunk committed', [
+                'done'      => $done,
+                'total'     => $total,
+                'elapsed_s' => round($elapsed, 1),
+                'eta_s'     => $etaS,
+                'chunk'     => $chunk,
+            ]);
+            $beat();
+
+            if ($scanned < $chunk) {
                 break;
             }
         }
-        $beat();
-        DB::update('UPDATE apportionment_ledger SET cascade_height = 99 WHERE cascade_height IS NULL');
-
-        DB::statement("
-            UPDATE apportionment_ledger al
-               SET area_tier = CASE
-                       WHEN j.geom IS NULL THEN 1
-                       ELSE CASE
-                           WHEN bbox.km2 <= 300      THEN 1
-                           WHEN bbox.km2 <= 3000     THEN 2
-                           WHEN bbox.km2 <= 30000    THEN 3
-                           WHEN bbox.km2 <= 300000   THEN 4
-                           ELSE 5
-                       END
-                   END
-              FROM jurisdictions j
-              LEFT JOIN LATERAL (
-                   SELECT (ST_XMax(j.geom) - ST_XMin(j.geom)) * 111.32
-                          * GREATEST(cos(radians((ST_YMin(j.geom) + ST_YMax(j.geom)) / 2)), 0.01)
-                          * (ST_YMax(j.geom) - ST_YMin(j.geom)) * 110.57 AS km2
-              ) bbox ON true
-             WHERE j.id = al.jurisdiction_id
-        ");
-        $beat();
-
-        DB::statement('
-            WITH ranked AS (
-                SELECT al.legislature_id,
-                       ROW_NUMBER() OVER (
-                           ORDER BY al.est_districts ASC, al.cascade_height ASC,
-                                    COALESCE(al.area_tier, 1) ASC,
-                                    al.adm_level DESC, al.population ASC NULLS FIRST, al.legislature_id
-                       ) AS rn
-                  FROM apportionment_ledger al
-            )
-            UPDATE apportionment_ledger al
-               SET position = r.rn
-              FROM ranked r
-             WHERE al.legislature_id = r.legislature_id
-        ');
-        $beat();
-
-        // THE BLOCK ORDER: planet, then each layer composites (biggest
-        // first) then leaves (smallest first — trivials lead by definition).
-        DB::statement("
-            UPDATE apportionment_ledger
-               SET block_rank  = adm_level * 2 + CASE WHEN child_count > 0 THEN 0 ELSE 1 END,
-                   block_order = CASE WHEN child_count > 0
-                                      THEN -GREATEST(COALESCE(population, 0), 0)
-                                      ELSE  GREATEST(COALESCE(population, 0), 0) END,
-                   updated_at = now()
-        ");
-        $beat();
-        DB::statement('RESET max_parallel_workers_per_gather');
     }
 
     /**
@@ -429,7 +611,7 @@ final class AutoscaleEnumeration
                   FROM (SELECT id, scope_jurisdiction_id
                           FROM apportionment_ledger_scopes
                          WHERE is_leaf IS NULL
-                         LIMIT ' . intdiv(self::CHUNK, 5) . '
+                         LIMIT ' . intdiv(self::chunk(), 5) . '
                            FOR UPDATE SKIP LOCKED) t
                   LEFT JOIN LATERAL (SELECT 1 AS hit FROM jurisdictions c
                                       WHERE c.parent_id = t.scope_jurisdiction_id
@@ -458,7 +640,7 @@ final class AutoscaleEnumeration
                    AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
                                     WHERE s.legislature_id = al.legislature_id
                                       AND s.scope_jurisdiction_id = al.jurisdiction_id)
-                 LIMIT " . self::CHUNK . '
+                 LIMIT " . self::chunk() . '
                     ON CONFLICT (legislature_id, scope_jurisdiction_id, scope_kind) DO NOTHING
             ');
             $total += $n;
@@ -582,7 +764,7 @@ final class AutoscaleEnumeration
                  WHERE legislature_id IN (
                        SELECT legislature_id FROM apportionment_ledger
                         WHERE gate_reason IS NOT NULL AND map_status = 'pending'
-                        LIMIT " . self::CHUNK . '
+                        LIMIT " . self::chunk() . '
                  )
             ');
             $total += $n;
@@ -610,7 +792,7 @@ final class AutoscaleEnumeration
                                             WHERE m.legislature_id = al.legislature_id
                                               AND m.name = 'Founding Map'
                                               AND m.deleted_at IS NULL)
-                         LIMIT " . self::CHUNK . '
+                         LIMIT " . self::chunk() . '
                   ) x
             ');
             $total += $n;
@@ -643,7 +825,7 @@ final class AutoscaleEnumeration
                                         WHERE m.legislature_id = al2.legislature_id
                                           AND m.name = 'Founding Map'
                                           AND m.deleted_at IS NULL)
-                         LIMIT " . self::CHUNK . '
+                         LIMIT " . self::chunk() . '
                  )
                    AND fm.legislature_id = al.legislature_id
             ');

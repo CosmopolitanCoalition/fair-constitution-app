@@ -30,6 +30,7 @@ class SimRun extends Model
     protected $casts = [
         'options' => 'array',
         'phase_timings' => 'array',
+        'enum_cursor' => 'array',
         'halt_requested_at' => 'datetime',
         'paused_until' => 'datetime',
         'started_at' => 'datetime',
@@ -111,9 +112,13 @@ class SimRun extends Model
         // jurisdiction's roster — bounded per scope, so no planet-wide
         // transaction. Wallets were opened in the identities phase.
         'stipends' => ['stipend_scope'],
-        // Empty slot (W7 item 3): a real acceptance scan is future work. No kind
-        // declared, so advancePhase advances straight through to done.
-        'verifying' => [],
+        // THE ACCEPTANCE SCAN (G1). One verify_scope item per legislature-bearing
+        // jurisdiction in the run's enrolled scope; VerifyStage reads ONLY that
+        // jurisdiction's own artifacts (seated chamber, executive, judiciary,
+        // org boards + ownership) gated by the run's aspects and settles done
+        // or review-with-gaps. The phase now BLOCKS until its items settle, so a
+        // "done" run has evidence of readiness, not an unrun empty slot.
+        'verifying' => ['verify_scope'],
         'done' => [],
     ];
 
@@ -192,6 +197,38 @@ class SimRun extends Model
         $phases[] = 'done';
 
         return array_values(array_unique($phases));
+    }
+
+    /**
+     * The run's active aspects, closed over prerequisites — the aspect-level
+     * companion to activePhases(). VerifyStage reads this to know which
+     * artifacts the run actually built, so the acceptance scan asserts only
+     * what was in scope. Null/empty scope ⇒ every aspect.
+     *
+     * @return list<string>
+     */
+    public function activeAspects(): array
+    {
+        $chosen = $this->options['scope_aspects'] ?? null;
+
+        if (! is_array($chosen) || $chosen === []) {
+            $chosen = self::ALL_ASPECTS;
+        }
+
+        $active = ['base' => true];
+        $stack = array_values(array_intersect($chosen, self::ALL_ASPECTS));
+        while ($stack !== []) {
+            $a = array_pop($stack);
+            if (isset($active[$a])) {
+                continue;
+            }
+            $active[$a] = true;
+            foreach (self::ASPECT_REQUIRES[$a] ?? [] as $req) {
+                $stack[] = $req;
+            }
+        }
+
+        return array_keys($active);
     }
 
     /** The next phase after $this->phase that is in scope (skips inactive ones). */

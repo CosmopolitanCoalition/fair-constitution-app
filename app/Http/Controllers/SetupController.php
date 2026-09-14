@@ -23,7 +23,9 @@ use Illuminate\Validation\Rule;
 use App\Services\Demo\SimRunControl;
 use App\Services\Demo\SimSnapshot;
 use App\Services\Provision\ProvisionRunControl;
+use App\Services\Setup\SetupProgressRollup;
 use App\Support\SetupLadder;
+use App\Support\WorldReadiness;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -1078,13 +1080,24 @@ class SetupController extends Controller
     {
         $counts = $this->jurisdictionsCounts();
 
+        // The counts come from the warmed snapshot (G3), which returns zeros
+        // while it is still computing. Deriving the categorical state from
+        // cold-miss zeros would report a FULLY_LOADED box as EMPTY during the
+        // warm window and could route the operator back into the ETL. When the
+        // snapshot is still computing, decide the category from a bounded
+        // existence probe instead — three short-circuiting EXISTS reads on an
+        // indexed column, never a planet-wide aggregate.
+        [$adm0, $adm1, $adm2] = ($counts['snapshot_state'] ?? 'ready') === 'computing'
+            ? $this->levelExistence()
+            : [$counts['adm0'] > 0, $counts['adm1'] > 0, $counts['adm2'] > 0];
+
         $running = $this->readEtlControlFile('running.json');
         $state   = 'EMPTY';
         if ($running !== null) {
             $state = 'IN_PROGRESS';
-        } elseif ($counts['adm0'] > 0 && $counts['adm1'] === 0 && $counts['adm2'] === 0) {
+        } elseif ($adm0 && ! $adm1 && ! $adm2) {
             $state = 'ADM0_ONLY';
-        } elseif ($counts['adm0'] > 0 && ($counts['adm1'] > 0 || $counts['adm2'] > 0)) {
+        } elseif ($adm0 && ($adm1 || $adm2)) {
             $state = 'FULLY_LOADED';
         }
 
@@ -2401,77 +2414,41 @@ class SetupController extends Controller
 
     private function jurisdictionsCounts(): array
     {
-        // Single grouped query: totals *and* "has population" count per level
-        // in one pass. Since geoBoundaries always runs before WorldPop, the
-        // ratio `with_pop / count` is an accurate indicator of how much of
-        // the WorldPop phase has finished at any given ADM level.
-        //
-        // We treat `population > 0` as "has been computed" rather than
-        // `population IS NOT NULL`. After 2026_04_27 the column is nullable
-        // and arrives as NULL on fresh inserts, so IS NOT NULL would suffice;
-        // adding `> 0` is a belt-and-braces guard so any legacy 0 values
-        // (e.g. from the old DEFAULT 0 schema) don't get counted as "done."
-        $rows = DB::table('jurisdictions')
+        // The per-level jurisdictions count (totals, with-population, sum) is a
+        // whole-table GROUP BY that both the Step 2 map poll and detectStep1
+        // read. It comes from the snapshot owner (G3) now: readOrWarm is a pure
+        // cache read that marks the viewer and warms a cold miss off the
+        // request thread. Never scanned on the poll. The legacy keys
+        // (adm0/adm1/adm2/total/by_level) are preserved so both callers keep
+        // working; a still-computing copy returns zeros.
+        $rollups  = app(SetupProgressRollup::class);
+        $snapshot = $rollups->readOrWarm('jurisdictions');
+        $values   = $snapshot['values'] ?? SetupProgressRollup::emptyValues('jurisdictions');
+
+        return array_merge($values, [
+            'snapshot_at'    => $snapshot['computed_at'],
+            'snapshot_stale' => $snapshot['stale'],
+            'snapshot_state' => $snapshot['state'],
+        ]);
+    }
+
+    /**
+     * Bounded existence of the three categorical ADM levels, for detectStep1
+     * only. Each is a short-circuiting EXISTS on the indexed adm_level column
+     * (it stops at the first matching row), never a whole-table count. Used
+     * only while the jurisdictions snapshot is still computing, so a loaded
+     * world is never mis-read as EMPTY during the warm window.
+     *
+     * @return array{0:bool,1:bool,2:bool}
+     */
+    private function levelExistence(): array
+    {
+        $exists = fn (int $lvl): bool => DB::table('jurisdictions')
             ->whereNull('deleted_at')
-            ->select(
-                'adm_level',
-                DB::raw('count(*) as c'),
-                DB::raw('count(*) FILTER (WHERE population IS NOT NULL AND population > 0) as with_pop'),
-                DB::raw('COALESCE(SUM(population) FILTER (WHERE population > 0), 0) as sum_pop'),
-            )
-            ->groupBy('adm_level')
-            ->orderBy('adm_level')
-            ->get();
+            ->where('adm_level', $lvl)
+            ->exists();
 
-        // Canonical natural-language labels. The Python ETL has a sibling
-        // mapping at the top of import_geoboundaries.py / import_worldpop.py
-        // — keep them in sync. No "ADM" jargon anywhere user-facing.
-        $labels = [
-            0 => 'Planet',
-            1 => 'Countries',
-            2 => 'States / Provinces',
-            3 => 'Counties',
-            4 => 'Municipalities',
-            5 => 'Townships',
-            6 => 'Neighborhoods',
-        ];
-
-        // List (not object) so PHP doesn't reindex numeric keys and the JSON
-        // always serializes as an array the frontend can iterate safely.
-        $byLevel = [];
-        $byLevelMap = [];
-        $total = 0;
-        $totalWithPop = 0;
-        $totalSumPop  = 0;
-        foreach ($rows as $r) {
-            $lvl     = (int) $r->adm_level;
-            $count   = (int) $r->c;
-            $withPop = (int) $r->with_pop;
-            $sumPop  = (int) $r->sum_pop;
-            $entry = [
-                'level'    => $lvl,
-                'count'    => $count,
-                'with_pop' => $withPop,
-                'sum_pop'  => $sumPop,
-                'label'    => $labels[$lvl] ?? ('Level ' . $lvl),
-            ];
-            $byLevel[]          = $entry;
-            $byLevelMap[$lvl]   = $count;
-            $total             += $count;
-            $totalWithPop      += $withPop;
-            $totalSumPop       += $sumPop;
-        }
-
-        return [
-            // Legacy keys kept so detectStep1 and other callers don't break.
-            'adm0'           => $byLevelMap[0] ?? 0,
-            'adm1'           => $byLevelMap[1] ?? 0,
-            'adm2'           => $byLevelMap[2] ?? 0,
-            'total'          => $total,
-            'total_with_pop' => $totalWithPop,
-            'total_sum_pop'  => $totalSumPop,
-            'by_level'       => $byLevel,
-        ];
+        return [$exists(0), $exists(1), $exists(2)];
     }
 
     private function etlControlDir(): string
@@ -3134,30 +3111,28 @@ class SetupController extends Controller
         $snapKey  = 'autoscale.progress.snapshot.'.$run->id;
         $freshKey = $snapKey.'.fresh';
         $payload  = Cache::get($snapKey);
-        if (! is_array($payload) || ! Cache::has($freshKey)) {
-            // Cold start, or the scheduler is not running: the FIRST poll
-            // computes once under a lock. Every poll after reads the copy the
-            // scheduler renews each minute, so the heavy scan never runs inside
-            // a routine poll again.
-            $lock = Cache::lock('autoscale.progress.lock.'.$run->id, 120);
-            if ($lock->get()) {
-                try {
-                    $payload = $this->storeProgressSnapshot($run);
-                } finally {
-                    $lock->release();
-                }
-            } elseif (! is_array($payload)) {
-                // Another request is computing: wait for the copy rather than
-                // starting a second scan of the ledger.
-                for ($i = 0; $i < 60 && ! is_array($payload); $i++) {
-                    usleep(500000);
-                    $payload = Cache::get($snapKey);
-                }
-                if (! is_array($payload)) {
-                    $payload = $this->storeProgressSnapshot($run);
-                }
+        $fresh    = Cache::has($freshKey);
+        if (! is_array($payload) || ! $fresh) {
+            // NO INLINE COLD SCAN (G3). The whole-ledger dashboard aggregates
+            // run in the scheduler (autoscale:progress-snapshot) or a queued
+            // warm, never in this request. A cold or stale copy dispatches ONE
+            // warm (Cache::add is atomic, so a burst of pollers dispatches
+            // once) and serves the last known copy, or a 'computing' skeleton
+            // until the first refresh lands. The old usleep spin — up to 30 s
+            // blocking the request while a sibling scanned — is gone. On a sync
+            // queue (tests) the warm runs during dispatch and the re-read below
+            // serves it; on an async queue (box E) it runs off-thread and the
+            // request returns immediately.
+            if (Cache::add($snapKey.'.warming', 1, self::PROGRESS_SNAPSHOT_SECONDS)) {
+                \App\Jobs\Setup\WarmSetupRollupJob::dispatch('autoscale');
             }
+            $reread  = Cache::get($snapKey);
+            $payload = is_array($reread) ? $reread
+                : (is_array($payload) ? $payload : ['snapshot_state' => 'computing']);
+            $fresh   = Cache::has($freshKey);
         }
+        $payload['snapshot_state'] = $payload['snapshot_state'] ?? 'ready';
+        $payload['snapshot_stale'] = ! $fresh;
 
         // The live overlay: cheap reads, fresh on every poll.
         $autoKill = $run->getAttributes()['auto_kill_minutes'] ?? null;
@@ -3913,21 +3888,77 @@ class SetupController extends Controller
     }
 
     /**
-     * POST /api/setup/wizard/step5/complete — Step 5 (Simulate) done. The
-     * simulation page itself is Wave 7's; this closes the step on the ladder.
+     * POST /api/setup/wizard/step5/complete — Step 5 (Simulate) done. GATED by
+     * the world-readiness guard (G1, operator ruling step5-readiness-guard = A):
+     * the ladder cannot advance past a world the acceptance scan never verified.
+     *
+     *  - Run not done              → 422 (the run must finish first).
+     *  - Done but zero verify items → 422 "verification pending" — the bounded
+     *    verify phase was never run (a legacy run, or one closed before the
+     *    phase existed). force does NOT bypass this: there is nothing verified.
+     *  - Verify items in review     → 422 unless force=true. With force, the
+     *    outstanding list is RECORDED into setup_completion_notes (documented
+     *    exclusions, never a silent claim) and the step proceeds.
+     *  - All verify items settled done → passes.
+     *
+     * On any pass, a step5_verification stamp is folded into
+     * setup_completion_notes so completeStep6 can confirm the guard ran.
      */
     public function completeStep5(Request $request): JsonResponse
     {
         abort_unless((bool) $request->user()?->is_operator, 403);
 
+        $report = app(WorldReadiness::class)->report();
+        $force  = $request->boolean('force');
+
+        if (! $report['run_done']) {
+            return response()->json([
+                'ok'        => false,
+                'error'     => 'The simulation run is not done yet. Let it finish before locking Step 5.',
+                'readiness' => $report,
+            ], 422);
+        }
+
+        if ($report['pending']) {
+            return response()->json([
+                'ok'        => false,
+                'error'     => 'Verification pending — the run finished but the acceptance scan (the verifying phase) never ran. Run the verify phase before locking. This cannot be forced past: nothing has been verified.',
+                'readiness' => $report,
+            ], 422);
+        }
+
+        if ($report['verify_review'] > 0 && ! $force) {
+            return response()->json([
+                'ok'        => false,
+                'error'     => $report['verify_review'].' scope(s) did not pass verification. Resolve them, or finish with documented exclusions to record the outstanding list and proceed.',
+                'readiness' => $report,
+            ], 422);
+        }
+
         $settings = InstanceSettings::current();
-        $settings->setup_step_completed = SetupLadder::completed(5, $settings);
+
+        // Fold the verification stamp into setup_completion_notes (merged, not
+        // overwritten — D3). It records what the guard saw and, when forced, the
+        // outstanding review list so the exclusions are documented, never silent.
+        $notes = $settings->setup_completion_notes ?? [];
+        $notes['step5_verification'] = [
+            'passed_at'     => now()->toIso8601String(),
+            'run_id'        => $report['run_id'],
+            'verify_total'  => $report['verify_total'],
+            'verify_done'   => $report['verify_done'],
+            'verify_review' => $report['verify_review'],
+            'forced'        => $force && $report['verify_review'] > 0,
+            'outstanding'   => $force ? $report['unresolved'] : [],
+        ];
+        $settings->setup_completion_notes = $notes;
+        $settings->setup_step_completed   = SetupLadder::completed(5, $settings);
         $settings->save();
 
         return response()->json([
-            'ok'       => true,
-            'settings' => $this->serializeSettings($settings->fresh()),
-            'next'     => '/setup/step/'.min(SetupLadder::LAST, SetupLadder::next($settings->fresh())),
+            'ok'        => true,
+            'settings'  => $this->serializeSettings($settings->fresh()),
+            'readiness' => $report,
+            'next'      => '/setup/step/'.min(SetupLadder::LAST, SetupLadder::next($settings->fresh())),
         ]);
     }
 
@@ -3945,13 +3976,33 @@ class SetupController extends Controller
         abort_unless((bool) $request->user()?->is_operator, 403);
 
         $settings = InstanceSettings::current();
+
+        // GUARD (G1): when Step 5 applies to this instance, setup cannot close
+        // until Step 5 passed the world-readiness guard, which stamps
+        // step5_verification into the notes. Its absence means the acceptance
+        // scan was bypassed — refuse rather than assert an unverified readiness.
+        $existingNotes = $settings->setup_completion_notes ?? [];
+        if (SetupLadder::applies(5, $settings) && empty($existingNotes['step5_verification'])) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Complete Step 5 verification first — the world-readiness scan must pass (or finish with documented exclusions) before setup can close.',
+            ], 422);
+        }
+
         $settings->setup_districts_confirmed_at = $settings->setup_districts_confirmed_at ?? now();
         $settings->setup_step_completed         = SetupLadder::completed(6, $settings);
         $settings->setup_completed_at           = now();
         // Capture the data-quality review snapshot at completion time so a
-        // future audit can see what issues were outstanding when the
-        // operator finished setup. Top-level summary only — no row drill.
-        $settings->setup_completion_notes       = $this->buildStep4Review();
+        // future audit can see what issues were outstanding when the operator
+        // finished setup. Folded into (not over) the existing notes, so the
+        // Step 5 verification stamp survives, plus a completion-time readiness
+        // snapshot.
+        $notes = $existingNotes;
+        foreach ($this->buildStep4Review() as $k => $v) {
+            $notes[$k] = $v;
+        }
+        $notes['world_readiness'] = app(WorldReadiness::class)->report();
+        $settings->setup_completion_notes       = $notes;
         $settings->save();
 
         return response()->json([
@@ -3970,20 +4021,18 @@ class SetupController extends Controller
         $control = app(ProvisionRunControl::class);
         $run     = $control->latestRun();
 
-        $ledger = DB::table('provision_ledger')->selectRaw("
-            COUNT(*) AS total,
-            COUNT(*) FILTER (WHERE status = 'skipped') AS skipped,
-            COUNT(*) FILTER (WHERE stage >= 1) AS shells_done,
-            COUNT(*) FILTER (WHERE status = 'done') AS units_done,
-            COUNT(*) FILTER (WHERE status = 'review') AS review,
-            COUNT(*) FILTER (WHERE status = 'running' AND stage = 0) AS shells_running,
-            COUNT(*) FILTER (WHERE status = 'running' AND stage = 1) AS units_running,
-            COUNT(*) FILTER (WHERE status = 'pending' AND stage = 0) AS shells_pending,
-            COUNT(*) FILTER (WHERE status = 'pending' AND stage = 1) AS units_pending
-        ")->first();
-        $ledger = array_map('intval', (array) $ledger);
-        $work   = max(0, $ledger['total'] - $ledger['skipped']);
-        $totalLegislatures = (int) DB::scalar('SELECT count(*) FROM legislatures WHERE deleted_at IS NULL');
+        // The heavy whole-world aggregates (the ledger 9-filter counter, the
+        // legislatures scalar, the windowed founded count, the per-layer bars
+        // and the newest-25 review list) come from the snapshot owner (G3) and
+        // are never scanned on the poll. readOrWarm is a pure cache read that
+        // marks the viewer and warms a cold miss off the request thread; a
+        // missing copy returns zeros with state='computing'.
+        $rollups  = app(SetupProgressRollup::class);
+        $snapshot = $rollups->readOrWarm('step4');
+        $rv       = $snapshot['values'] ?? SetupProgressRollup::emptyValues('step4');
+        $ledger   = $rv['ledger'];
+        $work     = max(0, $ledger['total'] - $ledger['skipped']);
+        $totalLegislatures = (int) $rv['total_legislatures'];
 
         // THE PHASE, elapsed, a MEASURED rate and ETA (Step-3 parity 2026-09-06).
         $shellsActive = $ledger['shells_pending'] + $ledger['shells_running'] > 0;
@@ -4010,17 +4059,15 @@ class SetupController extends Controller
             } elseif ($ledger['units_done'] >= 50) {
                 // WINDOWED rate (operator order 2026-09-06): units founded in
                 // the last 10 minutes, NOT cumulative since the run started.
-                // finished_at is stamped only at unit completion (the shell rung
-                // never sets it), so this counts real recent foundings and is
-                // immune to the slow early code and the halt/resume gaps an
-                // elapsed-based average bakes in. ETA divides remaining units by
-                // it, so it is accurate too. Display-only; picked up next poll.
-                $windowSecs = 600;
-                $winDone = (int) DB::table('provision_ledger')
-                    ->where('status', 'done')
-                    ->where('finished_at', '>', now()->subSeconds($windowSecs))
-                    ->count();
-                $rate = $winDone / $windowSecs;
+                // finished_at is stamped only at unit completion, so it counts
+                // real recent foundings, immune to the slow early code and the
+                // halt/resume gaps an elapsed-based average bakes in. The count
+                // comes from the snapshot (G3), never scanned on the poll, so it
+                // trails the true window by at most the refresher cadence.
+                // Display-only; picked up next poll.
+                $windowSecs = (int) ($rv['window_secs'] ?? 600);
+                $winDone    = (int) ($rv['win_done'] ?? 0);
+                $rate       = $winDone / max(1, $windowSecs);
                 if ($winDone > 0) {
                     $eta       = (int) round(($ledger['units_pending'] + $ledger['units_running']) / $rate);
                     $ratePerH  = (int) round($rate * 3600);
@@ -4030,55 +4077,9 @@ class SetupController extends Controller
         }
 
         // SEGMENTED PER-LAYER BARS (Step-3 parity 2026-09-06): one bar per ADM
-        // layer over provision_ledger.adm_level, each split seated | shelled |
-        // review, the void the layer still owes. One cheap indexed GROUP BY.
-        $layerRows = DB::table('provision_ledger')
-            ->selectRaw("
-                COALESCE(adm_level, 99) AS adm_level,
-                COUNT(*)                                    AS total,
-                COUNT(*) FILTER (WHERE status = 'skipped')  AS skipped,
-                COUNT(*) FILTER (WHERE stage >= 1)          AS shells_done,
-                COUNT(*) FILTER (WHERE status = 'done')     AS units_done,
-                COUNT(*) FILTER (WHERE status = 'running')  AS running,
-                COUNT(*) FILTER (WHERE status = 'review')   AS review
-            ")
-            ->groupBy(DB::raw('COALESCE(adm_level, 99)'))
-            ->orderBy('adm_level')
-            ->get();
-        $layerLabels = [
-            0 => 'Planet', 1 => 'Countries', 2 => 'States / Provinces',
-            3 => 'Counties', 4 => 'Municipalities', 5 => 'Townships',
-            6 => 'Neighborhoods', 99 => 'Other',
-        ];
-        $layers = [];
-        foreach ($layerRows as $r) {
-            $lvl    = (int) $r->adm_level;
-            $tot    = (int) $r->total;
-            $sk     = (int) $r->skipped;
-            $workL  = max(0, $tot - $sk);
-            $seated = (int) $r->units_done;
-            $review = (int) $r->review;
-            $shelled = max(0, (int) $r->shells_done - $seated - $review);
-            $shelled = min($shelled, max(0, $workL - $seated - $review));
-            $pending = max(0, $workL - $seated - $shelled - $review);
-            $status  = $workL === 0 ? 'skipped'
-                : ($seated >= $workL ? 'done'
-                : ((int) $r->running > 0 || (int) $r->shells_done > 0 ? 'running' : 'pending'));
-            $layers[] = [
-                'key'      => "level:{$lvl}",
-                'adm_level'=> $lvl,
-                'label'    => $layerLabels[$lvl] ?? "Level {$lvl}",
-                'total'    => $tot,
-                'skipped'  => $sk,
-                'work'     => $workL,
-                'seated'   => $seated,
-                'shelled'  => $shelled,
-                'running'  => (int) $r->running,
-                'review'   => $review,
-                'pending'  => $pending,
-                'status'   => $status,
-            ];
-        }
+        // layer, each split seated | shelled | review. Built in the snapshot
+        // owner (G3), read here — never a GROUP BY on the poll.
+        $layers = $rv['layers'];
 
         $stages = [
             ['kind' => 'seeding', 'label' => 'Building the work-list', 'phase' => 'seed',
@@ -4123,17 +4124,9 @@ class SetupController extends Controller
                 ])->values()->all();
         }
 
-        $review = DB::table('provision_ledger as pl')
-            ->join('jurisdictions as j', 'j.id', '=', 'pl.jurisdiction_id')
-            ->where('pl.status', 'review')
-            ->orderByDesc('pl.est_cost')
-            ->limit(25)
-            ->get(['pl.legislature_id', 'j.name', 'j.slug', 'j.adm_level', 'pl.reason'])
-            ->map(fn ($r) => [
-                'legislature_id' => (string) $r->legislature_id,
-                'name' => $r->name, 'slug' => $r->slug, 'adm_level' => $r->adm_level,
-                'reason' => $r->reason,
-            ])->values()->all();
+        // The newest-25 review list is built in the snapshot owner (G3), read
+        // here — never a provision_ledger join on the poll.
+        $review = $rv['review'];
 
         // LANE / PART TIMINGS (operator order 2026-09-06): what each part of a
         // claim took and how long a lane sat between claims, so the slow points
@@ -4183,6 +4176,12 @@ class SetupController extends Controller
             'review'  => $review,
             'timings' => $timings,
             'maps_running' => DB::table('autoscale_runs')->whereIn('status', ['queued', 'sizing', 'mapping'])->exists(),
+            // The snapshot stamp (G3): when the whole-world figures were last
+            // computed, whether that copy is stale, and 'computing' before the
+            // first refresh lands. The page shows the age instead of blocking.
+            'snapshot_at'    => $snapshot['computed_at'],
+            'snapshot_stale' => $snapshot['stale'],
+            'snapshot_state' => $snapshot['state'],
         ];
     }
 
@@ -4209,6 +4208,7 @@ class SetupController extends Controller
                 'review'  => [],
                 'timings' => [],
                 'world'   => $snap->world(),
+                'readiness' => app(WorldReadiness::class)->report(null),
                 'control' => app(SimRunControl::class)->control(),
             ];
         }
@@ -4255,6 +4255,7 @@ class SetupController extends Controller
             'review'  => $snap->reviewItems($run),
             'timings' => $snap->timings($run),
             'world'   => $snap->world(),
+            'readiness' => app(WorldReadiness::class)->report($run),
             'control' => app(SimRunControl::class)->control(),
         ];
     }
@@ -4264,23 +4265,17 @@ class SetupController extends Controller
      */
     private function buildStep4Summary(): array
     {
-        $legislatures = (int) DB::table('legislatures')
-            ->whereNull('deleted_at')
-            ->count();
+        // The four counts come from the snapshot owner (G3): a pure cache read
+        // that warms a cold miss off the request thread. Never scanned here.
+        $rollups  = app(SetupProgressRollup::class);
+        $snapshot = $rollups->readOrWarm('summary');
+        $values   = $snapshot['values'] ?? SetupProgressRollup::emptyValues('summary');
 
-        $districts = (int) DB::table('legislature_districts')
-            ->whereNull('deleted_at')
-            ->count();
-
-        $existingExecs   = (int) DB::table('executives')->whereNull('deleted_at')->count();
-        $existingJudges  = (int) DB::table('judiciaries')->whereNull('deleted_at')->count();
-
-        return [
-            'legislatures'        => $legislatures,
-            'districts'           => $districts,
-            'existing_executives' => $existingExecs,
-            'existing_judiciaries'=> $existingJudges,
-        ];
+        return array_merge($values, [
+            'snapshot_at'    => $snapshot['computed_at'],
+            'snapshot_stale' => $snapshot['stale'],
+            'snapshot_state' => $snapshot['state'],
+        ]);
     }
 
     /**
