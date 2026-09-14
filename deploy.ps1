@@ -30,7 +30,8 @@ param(
   [switch]$Seed,
   [switch]$WithEtl,
   [string]$Join      = "",
-  [string]$Key       = ""
+  [string]$Key       = "",
+  [switch]$CloneRekey
 )
 
 $ErrorActionPreference = "Stop"
@@ -153,9 +154,31 @@ for ($i = 0; $i -lt 240; $i++) {
   Start-Sleep -Seconds 5
 }
 
-# 2. A FRESH APP_KEY — clone-identity-safe (never reuse the repo's shared dev key).
-Write-Host "-> Generating a fresh APP_KEY..."
-Invoke-Artisan key:generate --force
+# 2. APP_KEY — mint one ONLY when this box has never had its own (parity with deploy.sh:400-407).
+#    APP_KEY encrypts instance_settings.private_key_encrypted (the federation signing key), so
+#    regenerating it on a rerun makes every Crypt::decryptString() of that key throw "MAC is
+#    invalid" — the whole point of M3. Detection is exact: a virgin .env carries the committed
+#    .env.example key verbatim, so "differs from the example key" means "this box is already
+#    keyed" and we leave it alone. Same Set-EnvVar-style parse used above (literal, not regex).
+function Get-EnvValue([string]$Path, [string]$Name) {
+  if (-not (Test-Path $Path)) { return "" }
+  foreach ($line in @(Get-Content $Path)) {
+    if ($line -like "$Name=*") { return $line.Substring($Name.Length + 1) }
+  }
+  return ""
+}
+$exampleAppKey = Get-EnvValue ".env.example" "APP_KEY"
+$currentAppKey = Get-EnvValue ".env" "APP_KEY"
+if (-not $currentAppKey -or $currentAppKey -eq $exampleAppKey) {
+  Write-Host "-> Generating a fresh APP_KEY..."
+  Invoke-Artisan key:generate --force
+  # Virgin box = FIRST run: the join step below adopts (keyed cluster:join), never resumes.
+  $script:HadExistingAppKey = $false
+} else {
+  Write-Host "-> Preserving the existing APP_KEY (federation identity intact)."
+  # Already-keyed box = RERUN: the join step resumes first, adopts only if no membership exists.
+  $script:HadExistingAppKey = $true
+}
 
 Write-Host "-> Migrating..."
 Invoke-Artisan migrate --force
@@ -169,10 +192,16 @@ Invoke-Artisan db:seed --class=ClockRegistrySeeder --force
 # 3. Federation identity. Every deployed node is federation-capable, so this runs
 #    UNCONDITIONALLY (parity with deploy.sh) — a -SelfUrl peer (discover->handshake) needs
 #    it too, or federation_enabled stays false and mesh:gates reports "not ready to
-#    federate". federation:init is idempotent (reuses the existing server_id); -rotate ONLY
-#    on -Join (re-key a clone's carried-in keypair under the new APP_KEY).
+#    federate". federation:init is idempotent (ensureIdentity is a no-op once minted).
+#    NEVER -rotate on an ordinary run OR on -Join: rotating mints a brand-new server_id that
+#    every peer must re-handshake, so a plain rerun of an admitted node would lose its identity.
+#    -rotate is reached ONLY through the explicit -CloneRekey flag: a box CLONED from another
+#    carries a keypair encrypted under the SOURCE's key and MUST re-key so two peers never
+#    share an identity. That is an operator's deliberate one-time act, never the packaged join.
 Write-Host "-> Minting the federation identity..."
-if ($Join) {
+if ($CloneRekey) {
+  Write-Warning "-CloneRekey: rotating the federation identity (new server_id + keypair)."
+  Write-Warning "Every peer must RE-HANDSHAKE with this box; its old identity is discarded."
   Invoke-Artisan federation:init --rotate
 } else {
   Invoke-Artisan federation:init
@@ -188,11 +217,63 @@ if ($LASTEXITCODE -ne 0) { throw "Federation readiness gates FAILED — the node
 # 4. Optional standing demo data.
 if ($Seed) { Write-Host "-> Seeding demo data..."; Invoke-Artisan institutions:demo-e }
 
-# 5. Optional: adopt a host as a read-only mirror in one step.
+# 5. Optional: join a host as a read-only mirror. DETECT-AND-BRANCH (parity with deploy.sh and
+#    SetupController::joinFromSetup): a FIRST run adopts with the key; a RERUN of an already-keyed
+#    box RESUMES the existing membership and consumes NO second join-key use, falling through to a
+#    keyed adopt only when there is no membership to resume. A rerun NEVER re-keys identity as a
+#    recovery — a departed/rejected membership or an exhausted key fails LOUD with the instruction
+#    to mint a fresh key on the host.
 if ($Join) {
   if (-not $Key) { throw "-Join requires -Key handle.secret" }
-  Write-Host "-> Joining $Join as a read-only mirror..."
-  Invoke-Artisan cluster:join $Join --key $Key
+
+  function Fail-JoinLoud {
+    # One Write-Error so $ErrorActionPreference='Stop' cannot terminate before the mint
+    # instruction prints. The terminating error alone yields a non-zero exit; exit 1 is the
+    # belt-and-braces path when the preference is not Stop.
+    Write-Error ("Cannot (re)join $Join - no active membership to resume and the join key was rejected or is exhausted. " +
+      "This box's federation identity was NOT changed. Mint a fresh single-use key ON THE HOST and re-run -Join with it: " +
+      "docker compose exec app php artisan cluster:keys:mint --max-uses=1") -ErrorAction Continue
+    exit 1
+  }
+
+  # Capture native exit codes reliably regardless of the ambient
+  # $PSNativeCommandUseErrorActionPreference (mirrors deploy.sh's `set +e` around the resume
+  # call). With that preference True AND $ErrorActionPreference='Stop', a non-zero native exit
+  # THROWS a NativeCommandExitException before $LASTEXITCODE is read — which would break the
+  # rc=3 fall-through and the fail-loud branch below. Pin it off for the detect-and-branch,
+  # restore it after. (Default is False, so this is a robustness guard, not a behavior change.)
+  $priorNativePref = $PSNativeCommandUseErrorActionPreference
+  $PSNativeCommandUseErrorActionPreference = $false
+  try {
+    if ($script:HadExistingAppKey -and -not $CloneRekey) {
+      # federation:resume-join exit codes: 0 = resumed; 3 = NO membership at all (this box was
+      # never a mirror) - adopt with the key; 4 = a DEPARTED/REJECTED membership exists - NEVER
+      # silently re-adopt, fail loud. --sync drains inline so the installer blocks until done
+      # rather than reporting "dispatched" while Horizon may not be up. A clone (-CloneRekey) is
+      # a fresh node with a new identity, so it adopts, never resumes.
+      Write-Host "-> Rerun of an already-keyed box - resuming the existing mirror membership..."
+      Invoke-Artisan federation:resume-join --sync
+      $resumeRc = $LASTEXITCODE
+      if ($resumeRc -eq 0) {
+        Write-Host "-> Resumed the existing membership (no new join-key use)."
+      } elseif ($resumeRc -eq 3) {
+        Write-Host "-> No membership to resume - adopting $Join with the join key..."
+        Invoke-Artisan cluster:join $Join --key $Key
+        if ($LASTEXITCODE -ne 0) { Fail-JoinLoud }
+      } else {
+        # rc 4 = a DEPARTED/REJECTED membership (this box left the cluster or was rejected);
+        # any other rc = a resume failure. Never silently re-adopt and never rotate identity:
+        # fail loud with the mint-a-fresh-key-on-the-host instruction.
+        Fail-JoinLoud
+      }
+    } else {
+      Write-Host "-> Joining $Join as a read-only mirror..."
+      Invoke-Artisan cluster:join $Join --key $Key
+      if ($LASTEXITCODE -ne 0) { Fail-JoinLoud }
+    }
+  } finally {
+    $PSNativeCommandUseErrorActionPreference = $priorNativePref
+  }
 }
 
 # 6. Production front-end assets — build ONCE (no Vite at runtime) so the UI renders from
