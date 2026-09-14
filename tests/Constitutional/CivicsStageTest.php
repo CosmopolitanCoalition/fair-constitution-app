@@ -2,6 +2,7 @@
 
 namespace Tests\Constitutional;
 
+use App\Models\Endorsement;
 use App\Models\Organization;
 use App\Services\Demo\Stages\CivicsStage;
 use Illuminate\Support\Facades\DB;
@@ -144,10 +145,14 @@ class CivicsStageTest extends TestCase
 
             // Polymorphic: BOTH organizations and individuals endorse — no party
             // slate, no partisan layer between voters and their selections.
+            // endorser_type is the canonical singular enum 'organization' | 'user'
+            // (Endorsement::ENDORSER_ORGANIZATION / ENDORSER_USER, canonicalized
+            // by Endorsement::canonicalType). The sim stage writes this canonical
+            // spelling since commit c1db6f48 (was the legacy plural before).
             $types = DB::table('endorsements')->where('election_id', $electionId)
                 ->distinct()->pluck('endorser_type')->all();
-            $this->assertContains('organizations', $types, 'organizations endorse');
-            $this->assertContains('users', $types, 'individuals endorse too');
+            $this->assertContains(Endorsement::ENDORSER_ORGANIZATION, $types, 'organizations endorse');
+            $this->assertContains(Endorsement::ENDORSER_USER, $types, 'individuals endorse too');
 
             // Idempotent: a second pass adds none.
             CivicsStage::run($jid, null, 1);
