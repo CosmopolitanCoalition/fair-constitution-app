@@ -1230,6 +1230,32 @@ return [
         'citation'  => 'Walkthroughs of the things people actually do — the live half is the '
             .'journeys engine · K2',
     ],
+    'education/material-manager' => [
+        'title'     => 'Manage training material',
+        'module'    => 'education',
+        'nav'       => 'learn',
+        'roles'     => ['R-23'],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-EDU-002', 'availableTo' => ['R-23'], 'citation' => 'Art. III §5 (publication under the public-domain dedication)'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'The authoring body publishes and revises training modules; lesson prose is '
+            .'authored in the K-2 source, never in this form · Art. III §5 · F-EDU-002',
+    ],
+    'education/material-edit' => [
+        'title'     => 'Edit a training module',
+        'module'    => 'education',
+        'nav'       => 'learn',
+        'roles'     => ['R-23'],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-EDU-002', 'availableTo' => ['R-23'], 'citation' => 'Art. III §5 (revise an existing module by its key)'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'A revise names an existing module and increments its revision; the answer key '
+            .'never rides this form · Art. III §5 · F-EDU-002',
+    ],
 
     'legislature/districts' => [
         'title'     => 'The district mapper',

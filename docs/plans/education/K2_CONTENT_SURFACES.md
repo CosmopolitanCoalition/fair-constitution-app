@@ -1004,6 +1004,38 @@ has woken up yet.
 
 ---
 
+### 71. `education/material-manager` — Manage training material
+**learn:** The authoring body's shelf: every training track and its modules, with each module's
+status, revision, and who last published it.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read the tracks and modules | Live modules arm the training gate; drafts do not. | Art. III §5 |
+| 2 | Publish or revise a module | A publish files F-EDU-002; a revise increments the module's revision and keeps its key. | F-EDU-002 |
+| 3 | Note where the lesson text lives | The module row carries title, surface, status. The lesson prose is authored in the K-2 source, never here. | Art. III §5 |
+
+> **The why:** publication is a filed act on the public record, dedicated to the public domain like
+> every Common Good work. The row is the structure; the words stay in one source so translations
+> never fork.
+
+---
+
+### 72. `education/material-edit` — Edit a training module
+**learn:** One module's publication form: its key, title, track, the screen it teaches, its length,
+and whether it publishes as a draft or as live.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Name the module and its track | The key and track together identify the module; a revise must name one that already exists. | F-EDU-002 |
+| 2 | Point it at a registered surface | The surface is the screen whose Learn content this module is; it must already be registered. | Art. III §5 |
+| 3 | Choose draft or live | Live publishes it to learners and arms the role's training gate; draft holds it back. | Art. III §5 |
+
+> **The why:** a module points at a real screen and a real track, so a learner always lands
+> somewhere and a gate always has a door. The answer key never rides this form — grading stays
+> server-side.
+
+---
+
 ## Things these waves surfaced
 
 1. **A real distinction worth teaching deliberately, not glossing.** `civic/public-square` is

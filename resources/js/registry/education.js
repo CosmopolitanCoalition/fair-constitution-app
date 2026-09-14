@@ -812,6 +812,48 @@ export const EDUCATION_BY_SURFACE = {
         ],
         why: "c_education.education_economy_work.why"
     },
+    "education/material-edit": {
+        learn: "c_education.education_education_material_edit.learn",
+        steps: [
+            {
+                do: "c_education.education_education_material_edit.s1_do",
+                detail: "c_education.education_education_material_edit.s1_detail",
+                cite: "F-EDU-002"
+            },
+            {
+                do: "c_education.education_education_material_edit.s2_do",
+                detail: "c_education.education_education_material_edit.s2_detail",
+                cite: "Art. III §5"
+            },
+            {
+                do: "c_education.education_education_material_edit.s3_do",
+                detail: "c_education.education_education_material_edit.s3_detail",
+                cite: "Art. III §5"
+            }
+        ],
+        why: "c_education.education_education_material_edit.why"
+    },
+    "education/material-manager": {
+        learn: "c_education.education_education_material_manager.learn",
+        steps: [
+            {
+                do: "c_education.education_education_material_manager.s1_do",
+                detail: "c_education.education_education_material_manager.s1_detail",
+                cite: "Art. III §5"
+            },
+            {
+                do: "c_education.education_education_material_manager.s2_do",
+                detail: "c_education.education_education_material_manager.s2_detail",
+                cite: "F-EDU-002"
+            },
+            {
+                do: "c_education.education_education_material_manager.s3_do",
+                detail: "c_education.education_education_material_manager.s3_detail",
+                cite: "Art. III §5"
+            }
+        ],
+        why: "c_education.education_education_material_manager.why"
+    },
     "elections/board-console": {
         learn: "c_education.education_elections_board_console.learn",
         steps: [

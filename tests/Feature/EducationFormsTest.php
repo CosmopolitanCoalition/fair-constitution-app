@@ -106,22 +106,32 @@ class EducationFormsTest extends TestCase
         }
     }
 
-    public function test_publication_requires_module_title_and_a_known_action(): void
+    /**
+     * F-EDU-002 shape refusals. Under LE-2 (structural publish) a publication
+     * names a module, a title, a known action, a track, a draft/live status
+     * and a REGISTERED surface. Every refusal here sits ABOVE the handler's
+     * first DB touch, so this method stays storage-free. The accept path (the
+     * education_modules write through EducationCatalogService) is owned by
+     * MaterialPublicationTest, which runs on a private fixture.
+     */
+    public function test_publication_refuses_a_malformed_shape_before_any_write(): void
     {
         $handler = app(TrainingMaterialPublication::class);
         $actor = new User;
 
-        $good = ['module_key' => 'floor-vote', 'title' => 'The Floor Vote', 'action' => 'publish'];
-
-        $this->assertSame($good, $handler->handle($actor, $good));
-
-        $withRef = $handler->handle($actor, $good + ['ip_register_entry_id' => 'abc-123']);
-        $this->assertSame('abc-123', $withRef['ip_register_entry_id']);
+        $good = [
+            'module_key' => 'floor-vote', 'title' => 'The Floor Vote', 'action' => 'publish',
+            'track_key' => 'legislature', 'status' => 'live', 'surface_id' => 'learn/lesson',
+        ];
 
         foreach ([
             'missing module' => array_diff_key($good, ['module_key' => 1]),
             'missing title' => array_diff_key($good, ['title' => 1]),
             'unknown action' => array_replace($good, ['action' => 'retract']),
+            'missing track' => array_diff_key($good, ['track_key' => 1]),
+            'unknown status' => array_replace($good, ['status' => 'archived']),
+            'non-integer minutes' => array_replace($good, ['minutes' => '5']),
+            'unregistered surface' => array_replace($good, ['surface_id' => 'not/a-surface']),
             'system filing' => null,
         ] as $label => $payload) {
             try {

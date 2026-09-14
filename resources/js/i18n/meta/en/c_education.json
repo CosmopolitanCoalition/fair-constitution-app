@@ -2057,6 +2057,118 @@
     "line": 18,
     "status": "source"
   },
+  "education_education_material_edit.learn": {
+    "source_hash": "3153f8654c82fd42fa7f160a7f7902bc849af9e6e2d7aade7a177e40a3e535a9",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1024,
+    "status": "source"
+  },
+  "education_education_material_edit.s1_detail": {
+    "source_hash": "7d0dad1196f80fccfc4af9d6736eb819f1a963eed62734c11cc8c328cc2bc0ec",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1029,
+    "status": "source"
+  },
+  "education_education_material_edit.s1_do": {
+    "source_hash": "e0c8be11f977cd4e13d5221f1ab061d3a06aed7479db343fdd8b9790c4a4fedf",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1029,
+    "status": "source"
+  },
+  "education_education_material_edit.s2_detail": {
+    "source_hash": "407da1bc51f8485f506fd5b7beb922c9de0b47027e99e78deaf4d359b9269dd7",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1030,
+    "status": "source"
+  },
+  "education_education_material_edit.s2_do": {
+    "source_hash": "982200fdf45bd3048076d7895123ffce8ccbcce88ca3636f7170d7a6cf490027",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1030,
+    "status": "source"
+  },
+  "education_education_material_edit.s3_detail": {
+    "source_hash": "a9f43d453a0189eea11f873cbd3fec7f2965a75fac41fe97b03d3dceebc89df1",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1031,
+    "status": "source"
+  },
+  "education_education_material_edit.s3_do": {
+    "source_hash": "2df169f986c2d8cca1fdc6fe207d116f785a11d3b22a12de8df2d768875581c7",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1031,
+    "status": "source"
+  },
+  "education_education_material_edit.why": {
+    "source_hash": "f2fbdb326a1065ef4766b984573ea25458f5f71a62e993eba27a73134fc75580",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1033,
+    "status": "source"
+  },
+  "education_education_material_manager.learn": {
+    "source_hash": "e51e92d90710a71aa359dfd5f2c4dd0798cb0cec43843b8eb6f21821584fc46d",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1008,
+    "status": "source"
+  },
+  "education_education_material_manager.s1_detail": {
+    "source_hash": "b6d83d7b6c0514096b0af6ae217712add62eba3cc9ef71ace48bc062af1370db",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1013,
+    "status": "source"
+  },
+  "education_education_material_manager.s1_do": {
+    "source_hash": "71a33c7f049609650a874e10c99aad2d3fc1df2560ee74f49159336244cd15c1",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1013,
+    "status": "source"
+  },
+  "education_education_material_manager.s2_detail": {
+    "source_hash": "40ccbbbcc9476f0dbd5fde347e1f3a9b9539608bf2ced46518a043458cee6e93",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1014,
+    "status": "source"
+  },
+  "education_education_material_manager.s2_do": {
+    "source_hash": "17b65001ea0b4d52787018e16a6acdf6d29f5cba34a79d18360873517e794948",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1014,
+    "status": "source"
+  },
+  "education_education_material_manager.s3_detail": {
+    "source_hash": "e2c58f39bda1058533986ee8eabd7cfa3285aa5dba10459cd5676e5567812311",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1015,
+    "status": "source"
+  },
+  "education_education_material_manager.s3_do": {
+    "source_hash": "69168d10e02df299d8390fc186a2e110205110a0c285cd4a32af93a03544ce98",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1015,
+    "status": "source"
+  },
+  "education_education_material_manager.why": {
+    "source_hash": "cf2189f998bd1f9df8c6f7c7ee22098f73276f404bec1fd94c058a7aaa9ffdb5",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_SURFACES.md",
+    "line": 1017,
+    "status": "source"
+  },
   "education_elections_board_console.learn": {
     "source_hash": "b0fab6bebf9f93be6107713839ba28392e2525361b2c13cbde425caf50395478",
     "shape": "static",

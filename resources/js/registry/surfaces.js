@@ -151,6 +151,8 @@ export const SITEMAP = [
         { id: 'journeys', label: 'Journeys', icon: 'list-checks', href: '/journeys', contract: 'index.html#journeys-h' },
         { id: 'tour', label: 'Guided tour', icon: 'map', href: 'tour:start', contract: 'tour.html', phase: 1 },
         { id: 'learn', label: 'Learn & lessons', icon: 'graduation-cap', href: '/learn', contract: 'learn/learn-home.html' },
+        /* R-23 (authoring body's agent) files F-EDU-002 here. Role-gated, so MenuNav shows it live to holders and dead-with-hint to others; the page itself stays readable (read-everywhere) and the engine is the real gate on publish. No mockup rel yet, so contract: null. */
+        { id: 'material-manager', label: 'Manage training material', icon: 'file-text', href: '/learn/manage', contract: null, roles: ['R-23'] },
         { id: 'support-report', label: 'Report an issue', icon: 'flag', href: '/support/report', contract: 'support/report.html' },
         { id: 'support-tickets', label: 'Your reports', icon: 'list-checks', href: '/support/tickets', contract: 'support/tickets.html' },
         { id: 'accessibility', label: 'Accessibility', icon: 'shield', href: '/system/accessibility', contract: 'shared/accessibility.html' },
