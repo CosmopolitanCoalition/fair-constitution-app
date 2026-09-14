@@ -464,12 +464,19 @@ item and review row was folded into `docs/plans/ui/tools/work.json` (open items
 carry phase, a single sortable order of operations, kind, status, blocker,
 done-when, dependencies, sources and evidence; closed items live in the
 Archive tab). The desk's ruling per source row is
-`docs/plans/ui/tools/dispositions.json`; rebuild with
-`python3 docs/plans/ui/tools/migrate_to_work.py && python3 docs/plans/ui/tools/gen_app_rubric.py`
-(the generator refuses to write when `--check` fails). New work goes into
-`work.json` (or a disposition for a source row), never into a new markdown
-list; the former `DEMO_ACTION_PLAN.md` and `DEMO_REVIEW_REGISTER.md` are
-retired pointers. The Questions tab shows open questions only by default.
+`docs/plans/ui/tools/dispositions.json`. Regenerate the page with
+`python3 docs/plans/ui/tools/gen_app_rubric.py` (it refuses to write when
+`--check` fails). **The operator changes a status in the page**: open a Work
+row, set the status and notes, click Export changes, paste the block to the
+desk; the desk saves it to a file and runs
+`python3 docs/plans/ui/tools/apply_work_changes.py <block.txt>`, which records
+the change in `work_overrides.json`, applies it to `work.json` with a dated
+history line, and regenerates. `migrate_to_work.py` is the 2026-09-14 fold; a
+re-run reads the retired lists from git at their last revision and re-applies
+the overrides, so it reproduces the list. New work goes into `work.json` (or
+a disposition for a source row), never into a new markdown list; the former
+`DEMO_ACTION_PLAN.md` and `DEMO_REVIEW_REGISTER.md` are retired pointers. The
+Questions tab shows open questions only by default.
 
 ---
 

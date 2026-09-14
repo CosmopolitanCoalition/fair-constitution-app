@@ -478,11 +478,37 @@ def build_work(raw, dispositions, asof=ASOF_DEFAULT):
 # ---------------------------------------------------------------------------
 # driver
 # ---------------------------------------------------------------------------
+RETIRED_LISTS_REV = 'f186c2d8'  # last main commit before the markdown lists were retired into work.json (2026-09-14)
+
+
+def _frozen_list(path):
+    """The markdown lists were retired to pointers on 2026-09-14. When a pointer is
+    found on disk, read the list as it stood at RETIRED_LISTS_REV from git so the
+    fold stays reproducible; otherwise read the file itself."""
+    try:
+        head = io.open(path, encoding='utf-8').read(400)
+    except OSError:
+        return path
+    if 'retired' not in head.lower():
+        return path
+    import subprocess
+    import tempfile
+    repo = os.path.normpath(os.path.join(_HERE, '..', '..', '..', '..'))
+    rel = os.path.relpath(path, repo).replace(os.sep, '/')
+    out = subprocess.run(['git', '-C', repo, 'show', '%s:%s' % (RETIRED_LISTS_REV, rel)],
+                         capture_output=True, text=True, encoding='utf-8')
+    if out.returncode != 0:
+        raise SystemExit('cannot read %s at %s: %s' % (rel, RETIRED_LISTS_REV, out.stderr.strip()))
+    tmp = os.path.join(tempfile.gettempdir(), 'frozen_' + os.path.basename(path))
+    io.open(tmp, 'w', encoding='utf-8', newline='\n').write(out.stdout)
+    return tmp
+
+
 def load_inputs(tools_dir, audit_dir, fleet):
     screens, caps, debt = load_badged(os.path.join(tools_dir, 'badged.json'))
-    punch = parse_action_plan(os.path.join(audit_dir, 'DEMO_ACTION_PLAN.md'))
-    review = parse_review_register(os.path.join(audit_dir, 'DEMO_REVIEW_REGISTER.md'))
-    completed = parse_completed(os.path.join(audit_dir, 'DEMO_COMPLETED_WORK.md'))
+    punch = parse_action_plan(_frozen_list(os.path.join(audit_dir, 'DEMO_ACTION_PLAN.md')))
+    review = parse_review_register(_frozen_list(os.path.join(audit_dir, 'DEMO_REVIEW_REGISTER.md')))
+    completed = parse_completed(_frozen_list(os.path.join(audit_dir, 'DEMO_COMPLETED_WORK.md')))
     return screens, caps, debt, fleet, punch, review, completed
 
 
@@ -492,6 +518,14 @@ def run(tools_dir, audit_dir, fleet, out_path, disp_path, asof=ASOF_DEFAULT):
     open_rows = [r for r in raw if not r['closed']]
     disp, used_stub = load_dispositions(disp_path, open_rows)
     work = build_work(raw, disp, asof=asof)
+    # the operator's exported status changes (apply_work_changes.py) are durable in
+    # work_overrides.json and re-applied here so a re-fold never loses them
+    ovr_path = os.path.join(tools_dir, 'work_overrides.json')
+    if os.path.exists(ovr_path):
+        sys.path.insert(0, tools_dir)
+        from apply_work_changes import apply_overrides, load_overrides
+        applied = apply_overrides(work, load_overrides(ovr_path))
+        print('work_overrides.json applied:', len(applied), 'items')
     with io.open(out_path, 'w', encoding='utf-8') as f:
         json.dump(work, f, ensure_ascii=False, indent=2, sort_keys=False)
         f.write('\n')

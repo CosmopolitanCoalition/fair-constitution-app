@@ -54,7 +54,8 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 .lwbadge{font-family:var(--mono);font-size:.66rem;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:.14em .45em;border-radius:4px;white-space:nowrap;letter-spacing:.02em}
 .qbar{display:flex;gap:.8rem;align-items:center;margin:0 0 1rem;flex-wrap:wrap}
 .qhint{font-size:.78rem;color:var(--faint);flex:1;min-width:14rem}
-#qexport{font-weight:700;color:var(--accent);border-color:var(--accent)}
+#qexport,#wexport{font-weight:700;color:var(--accent);border-color:var(--accent)}
+.wovr{display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-start;margin-top:.8rem;padding-top:.7rem;border-top:1px dashed var(--line)}.wovr .wnotes{flex:1 1 18rem;min-height:3.2rem;font:inherit;font-size:.82rem;padding:.4rem .55rem;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}.wovr .wsel{font:inherit;font-size:.82rem}.wovr .qhint{flex-basis:100%}tr.wrow.chg td.c-id{font-weight:700;color:var(--accent)}
 .qexport-wrap{position:relative;margin:0 0 1rem}.qexport-wrap.hidden{display:none}.qcopy{position:absolute;top:.45rem;right:.45rem;z-index:2;cursor:pointer;font:600 .72rem/1 var(--mono);padding:.35rem .6rem;border-radius:6px;background:var(--surface2,#1b1f27);color:var(--accent);border:1px solid var(--accent);opacity:.85}.qcopy:hover{opacity:1}.qcopy.ok{color:var(--good);border-color:var(--good)}.qexport{background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:.7rem .9rem;font-family:var(--mono);font-size:.76rem;white-space:pre-wrap;color:var(--ink);margin:0;padding-top:1.9rem;user-select:all}
 .qcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;margin:0 0 .7rem}
 .qcard.resolved{opacity:.65}
@@ -137,6 +138,12 @@ function hi(t){if(!q)return esc(t);const s=String(t==null?'':t);const i=s.toLowe
 // open-question answers persist in the page, unchanged from prior versions.
 let ANS={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('cga4qs_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].sel=localStorage.getItem(k);}if(k&&k.indexOf('cga4qn_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].notes=localStorage.getItem(k);}}}catch(e){}
 function saveAns(id,f,v){ANS[id]=ANS[id]||{};ANS[id][f]=v;try{localStorage.setItem('cga4q'+(f==='sel'?'s':'n')+'_'+id,v);}catch(e){}}
+// operator status changes on work items persist in the page the same way (cga4ws_<id> status, cga4wn_<id> notes) until exported and folded in by the desk.
+const STATUSES=['open','blocked','awaiting_go','deferred','done','moot'];
+let OVR={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('cga4ws_')===0){const id=k.slice(7);OVR[id]=OVR[id]||{};OVR[id].sel=localStorage.getItem(k);}if(k&&k.indexOf('cga4wn_')===0){const id=k.slice(7);OVR[id]=OVR[id]||{};OVR[id].notes=localStorage.getItem(k);}}}catch(e){}
+function saveOvr(id,f,v){OVR[id]=OVR[id]||{};if(v){OVR[id][f]=v;}else{delete OVR[id][f];}try{if(v)localStorage.setItem('cga4w'+(f==='sel'?'s':'n')+'_'+id,v);else localStorage.removeItem('cga4w'+(f==='sel'?'s':'n')+'_'+id);}catch(e){}if(!OVR[id].sel&&!OVR[id].notes)delete OVR[id];}
+const changed=id=>!!(OVR[id]&&(OVR[id].sel||OVR[id].notes));
+let showChanged=false;
 // tiles: open items per phase, awaiting-GO, blocked, open questions
 function tile(lbl,num,sub){return `<div class="tile"><p class="lbl">${esc(lbl)}</p><div class="num">${num}</div><div class="sub">${esc(sub)}</div></div>`;}
 function renderTiles(){
@@ -155,7 +162,7 @@ function ctrlHTML(){
     const kinds=['all'].concat([...new Set(items.map(i=>i.kind))].sort());
     const stats=['all'].concat([...new Set(items.map(i=>i.status))].sort());
     const blks=['all'].concat([...new Set(items.map(i=>i.blocker))].sort());
-    return sel('phase',flt.phase,phs,v=>phaseName[v]||v)+sel('kind',flt.kind,kinds)+sel('status',flt.status,stats,v=>SLB[v]||v)+sel('blocker',flt.blocker,blks)+`<button class="chip" id="showdone" aria-pressed="${showDone}">Show done and moot</button>`;
+    return sel('phase',flt.phase,phs,v=>phaseName[v]||v)+sel('kind',flt.kind,kinds)+sel('status',flt.status,stats,v=>SLB[v]||v)+sel('blocker',flt.blocker,blks)+`<button class="chip" id="showdone" aria-pressed="${showDone}">Show done and moot</button><button class="chip" id="showchanged" aria-pressed="${showChanged}">Changed only</button>`;
   }
   if(view==='questions'){return `<button class="chip" id="qres" aria-pressed="${qShowResolved}">Show resolved</button>`;}
   return '';
@@ -178,9 +185,21 @@ function workRows(){
     if(flt.kind!=='all'&&it.kind!==flt.kind)return false;
     if(flt.status!=='all'&&it.status!==flt.status)return false;
     if(flt.blocker!=='all'&&it.blocker!==flt.blocker)return false;
+    if(showChanged&&!changed(it.id))return false;
     if(q){const hay=(it.id+' '+it.title+' '+it.detail+' '+it.done_when+' '+it.sources.map(s=>s.list+' '+s.ref).join(' ')).toLowerCase();if(hay.indexOf(q)<0)return false;}
     return true;
   }).sort(cmp);
+}
+function ovrHTML(it){
+  const o=OVR[it.id]||{};const sel=o.sel||'';const nt=o.notes||'';
+  const opts=['<option value="">(keep: '+esc(SLB[it.status]||it.status)+')</option>'].concat(STATUSES.filter(s=>s!==it.status).map(s=>`<option value="${s}"${sel===s?' selected':''}>${esc(SLB[s]||s)}</option>`)).join('');
+  return `<div class="wovr"><label class="flab">Set status <select class="wsel" data-id="${esc(it.id)}">${opts}</select></label><textarea class="wnotes" data-id="${esc(it.id)}" placeholder="Why, or what to do instead…">${esc(nt)}</textarea><button class="chip wreset" data-id="${esc(it.id)}"${changed(it.id)?'':' disabled'}>Reset</button><span class="qhint">Your change saves in this page. Click Export changes above, then paste the block to the desk.</span></div>`;
+}
+function exportChanges(){
+  const L=['CGA WORK — operator changes'];
+  items.slice().sort(cmp).forEach(it=>{const o=OVR[it.id];if(!o||(!o.sel&&!o.notes))return;L.push('\n['+it.id+'] '+it.title+'\n  = '+(o.sel||'(no status change)')+(o.notes?'\n  notes: '+o.notes:''));});
+  if(L.length===1)L.push('\n(no changes)');
+  return L.join('\n');
 }
 function detailHTML(it){
   const idmap={};items.forEach(x=>idmap[x.id]=x.title);
@@ -191,15 +210,18 @@ function detailHTML(it){
   if(it.sources&&it.sources.length)h+=`<dt>Sources</dt><dd>${it.sources.map(s=>`<span class="srcbadge">${esc(s.list)}${s.wave?' '+esc(s.wave):''}</span>${esc(s.ref)}`).join('<br>')}</dd>`;
   if(it.evidence&&it.evidence.length)h+=`<dt>Evidence</dt><dd>${it.evidence.map(e=>`<a href="${esc(e.href)}">${esc(e.label)}</a>`).join(' · ')}</dd>`;
   if(it.history&&it.history.length)h+=`<dt>History</dt><dd><ul>${it.history.map(x=>`<li><span class="meta">${esc(x.date)}</span> ${hi(x.note)}</li>`).join('')}</ul></dd>`;
-  return h+'</dl>';
+  return h+'</dl>'+ovrHTML(it);
 }
 function workView(){
   const rows=workRows();
   const th=COLS.map(([k,l])=>`<th data-k="${k}">${esc(l)}${sortKey===k?` <span class="ar">${sortDir>0?'▲':'▼'}</span>`:''}</th>`).join('');
-  let h=`<p class="stamp">${rows.length} of ${items.length} items shown</p><div class="tblwrap"><table class="wtable"><thead><tr>${th}</tr></thead><tbody>`;
+  const nchg=Object.keys(OVR).filter(changed).length;
+  let h=`<div class="qbar"><button class="chip" id="wexport">⭳ Export changes${nchg?' ('+nchg+')':''}</button><span class="qhint">Open a row, set a status and add notes; changes save in this page. Export copies a block to paste to the desk, which folds it into the list.</span></div><div id="wexport-wrap" class="qexport-wrap hidden"><button class="qcopy" id="wexport-copy" title="Copy changes to clipboard">⧉ Copy</button><pre id="wexport-out" class="qexport"></pre></div>`;
+  h+=`<p class="stamp">${rows.length} of ${items.length} items shown</p><div class="tblwrap"><table class="wtable"><thead><tr>${th}</tr></thead><tbody>`;
   rows.forEach(it=>{
     const src=it.sources.map(s=>`<span class="srcbadge">${esc(s.list)}</span>`).join('');
-    h+=`<tr class="wrow" data-id="${esc(it.id)}"><td class="c-order">${it.order==null?'—':it.order}</td><td class="c-id">${esc(it.id)}</td><td class="c-title">${hi(it.title)}</td><td>${esc(phaseName[it.phase]||it.phase)}</td><td class="kindb">${esc(it.kind)}</td><td><span class="pill p-${it.status}">${SLB[it.status]||it.status}</span></td><td>${esc(it.blocker==='none'?'-':it.blocker)}</td><td>${src}</td></tr>`;
+    const o=OVR[it.id]||{};const ov=o.sel?` <span class="pill p-${o.sel}" title="your change, not yet folded in">→ ${SLB[o.sel]||o.sel}</span>`:(o.notes?' <span class="pill p-open" title="note pending export">note</span>':'');
+    h+=`<tr class="wrow${changed(it.id)?' chg':''}" data-id="${esc(it.id)}"><td class="c-order">${it.order==null?'—':it.order}</td><td class="c-id">${esc(it.id)}</td><td class="c-title">${hi(it.title)}</td><td>${esc(phaseName[it.phase]||it.phase)}</td><td class="kindb">${esc(it.kind)}</td><td><span class="pill p-${it.status}">${SLB[it.status]||it.status}</span>${ov}</td><td>${esc(it.blocker==='none'?'-':it.blocker)}</td><td>${src}</td></tr>`;
     h+=`<tr class="drow hidden" data-for="${esc(it.id)}"><td colspan="${COLS.length}"><div class="detail" style="border:0;padding:0">${detailHTML(it)}</div></td></tr>`;
   });
   h+='</tbody></table></div>';
@@ -244,6 +266,11 @@ function render(){
   if(view==='work'){b.innerHTML=workView();
     b.querySelectorAll('.wtable th').forEach(th=>th.addEventListener('click',()=>{const k=th.dataset.k;if(sortKey===k)sortDir=-sortDir;else{sortKey=k;sortDir=1;}render();}));
     b.querySelectorAll('tr.wrow').forEach(tr=>tr.addEventListener('click',()=>{const dr=b.querySelector('tr.drow[data-for="'+CSS.escape(tr.dataset.id)+'"]');if(dr)dr.classList.toggle('hidden');}));
+    b.querySelectorAll('.wsel').forEach(s=>s.addEventListener('change',e=>{saveOvr(e.target.dataset.id,'sel',e.target.value);const open=[...b.querySelectorAll('tr.drow:not(.hidden)')].map(x=>x.dataset.for);render();open.forEach(id=>{const dr=b.querySelector('tr.drow[data-for="'+CSS.escape(id)+'"]');if(dr)dr.classList.remove('hidden');});}));
+    b.querySelectorAll('.wnotes').forEach(ta=>ta.addEventListener('input',e=>{saveOvr(e.target.dataset.id,'notes',e.target.value);const rs=e.target.parentElement.querySelector('.wreset');if(rs)rs.disabled=!changed(e.target.dataset.id);}));
+    b.querySelectorAll('.wreset').forEach(bt=>bt.addEventListener('click',e=>{const id=e.target.dataset.id;saveOvr(id,'sel','');saveOvr(id,'notes','');const open=[...b.querySelectorAll('tr.drow:not(.hidden)')].map(x=>x.dataset.for);render();open.forEach(x=>{const dr=b.querySelector('tr.drow[data-for="'+CSS.escape(x)+'"]');if(dr)dr.classList.remove('hidden');});}));
+    const wx=document.getElementById('wexport');if(wx)wx.addEventListener('click',()=>{const txt=exportChanges();const o=document.getElementById('wexport-out');o.textContent=txt;document.getElementById('wexport-wrap').classList.remove('hidden');try{navigator.clipboard.writeText(txt);}catch(e){}});
+    const wc=document.getElementById('wexport-copy');if(wc)wc.addEventListener('click',()=>{const t=document.getElementById('wexport-out').textContent;const done=()=>{wc.textContent='✓ Copied';wc.classList.add('ok');setTimeout(()=>{wc.textContent='⧉ Copy';wc.classList.remove('ok');},1400);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(()=>{});}else{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}ta.remove();}});
     return;}
   if(view==='archive'){b.innerHTML=archiveView();
     b.querySelectorAll('.area-head').forEach(hh=>{const list=hh.nextElementSibling;if(!list)return;hh.addEventListener('click',()=>{const hid=list.classList.toggle('hidden');hh.setAttribute('aria-expanded',String(!hid));});});
@@ -264,6 +291,7 @@ function buildControls(){
   wire('f_status',e=>{flt.status=e.target.value;render();});
   wire('f_blocker',e=>{flt.blocker=e.target.value;render();});
   const sd=document.getElementById('showdone');if(sd)sd.addEventListener('click',()=>{showDone=!showDone;sd.setAttribute('aria-pressed',String(showDone));render();});
+  const sc=document.getElementById('showchanged');if(sc)sc.addEventListener('click',()=>{showChanged=!showChanged;sc.setAttribute('aria-pressed',String(showChanged));render();});
   const qr=document.getElementById('qres');if(qr)qr.addEventListener('click',()=>{qShowResolved=!qShowResolved;qr.setAttribute('aria-pressed',String(qShowResolved));render();});
 }
 document.querySelectorAll('.view-btn').forEach(vb=>vb.addEventListener('click',()=>{view=vb.dataset.v;document.querySelectorAll('.view-btn').forEach(x=>x.setAttribute('aria-selected',String(x===vb)));buildControls();render();}));
