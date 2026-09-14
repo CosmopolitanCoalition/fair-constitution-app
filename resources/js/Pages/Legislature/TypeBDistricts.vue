@@ -137,7 +137,7 @@
                             <!-- Rename row -->
                             <div v-else-if="renamingMapId === m.id"
                                  class="flex items-center gap-1.5 px-3 py-2 bg-gray-800 border-b border-gray-700">
-                                <input id="map-rename-input" v-model="renameValue"
+                                <input id="map-rename-input" v-model="renameValue" aria-label="Rename district map"
                                        @keyup.enter="submitRename(m.id)"
                                        @keyup.escape="cancelRename"
                                        class="flex-1 px-1.5 py-0.5 rounded text-xs bg-gray-700 border border-gray-600 text-gray-200 focus:outline-none focus:border-indigo-500 min-w-0" />
@@ -201,7 +201,7 @@
 
                     <!-- New map inline form -->
                     <div v-if="newMapFormOpen" class="mt-2 flex items-center gap-1.5">
-                        <input v-model="newMapName"
+                        <input v-model="newMapName" aria-label="New map name"
                                @keyup.enter="submitNewMap"
                                @keyup.escape="if (!creatingMap) { newMapFormOpen = false; newMapName = '' }"
                                :disabled="creatingMap"

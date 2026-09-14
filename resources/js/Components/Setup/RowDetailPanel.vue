@@ -370,6 +370,7 @@ watch(
                 <textarea
                     v-model="note"
                     rows="2"
+                    aria-label="Decision note"
                     placeholder="Optional note — what did you decide and why?"
                     class="w-full bg-gray-950 border border-gray-800 rounded px-2 py-1 text-xs font-mono text-gray-200 placeholder-gray-600 focus:border-blue-700 focus:outline-none"
                 />

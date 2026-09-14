@@ -74,6 +74,7 @@ onBeforeUnmount(() => {
         :class="!presenting && isSpeaking ? 'ring-emerald-400 shadow-lg shadow-emerald-500/20' : (presenting ? 'ring-sky-500/40' : 'ring-transparent')"
     >
         <video v-show="videoTrack" ref="videoEl" autoplay playsinline :muted="isLocal"
+            :aria-label="label"
             class="h-full w-full" :class="presenting ? 'bg-black object-contain' : 'object-cover'"></video>
 
         <div v-show="!videoTrack" class="flex h-full w-full items-center justify-center">
@@ -82,7 +83,7 @@ onBeforeUnmount(() => {
 
         <!-- remote audio only; the local mic / own screen audio is never played back. On a camera tile this
              is the participant's mic; on a presenter tile it's the screen's tab/system audio (if any). -->
-        <audio v-if="!isLocal" ref="audioEl" autoplay></audio>
+        <audio v-if="!isLocal" ref="audioEl" autoplay aria-hidden="true"></audio>
 
         <div class="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5 text-xs text-white">
             <ScreenShare v-if="presenting" :size="14" class="shrink-0 opacity-90" :aria-label="text('screen_share', 'Screen share')" />

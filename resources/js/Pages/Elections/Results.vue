@@ -10,6 +10,7 @@
  * renders the instant-count banner and polls by partial reload.
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
@@ -43,6 +44,7 @@ const props = defineProps({
     csvHref: { type: String, required: true },
 });
 
+const { t } = useI18n();
 const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
@@ -143,22 +145,18 @@ const phaseBadge = computed(() => ({
 <template>
     <PageScaffold :surface="surface" :title="`Results — ${race.label}`">
         <template #intro>
-            Every one of the {{ race.seats }}
-            {{ race.seats === 1 ? 'seat' : 'seats' }} fills in this single count. Your vote
-            moves to your next choice when your favorite either wins with room to spare or is
-            eliminated — so no vote is wasted. Write-ins are counted exactly like finalists,
-            and the full record below is public and auditable.
+            {{ t('c_elections.results.intro', 'Every seat fills in this single count. Your vote moves to your next choice when your favorite either wins with room to spare or is eliminated, so no vote is wasted. Write-ins are counted exactly like finalists, and the full record below is public and auditable.') }}
         </template>
 
         <p class="citation">
-            STV with Droop quota · fractional (Gregory) surplus transfers · hardened · Art. II §2
+            {{ t('c_elections.results.cite_method', 'STV with Droop quota · fractional (Gregory) surplus transfers · hardened · Art. II §2') }}
         </p>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <div v-if="races.length > 1" class="field" style="max-inline-size: 32rem">
-            <label class="field-label" for="race-picker">Race</label>
+            <label class="field-label" for="race-picker">{{ t('c_elections.results.race_label', 'Race') }}</label>
             <select id="race-picker" class="select" :value="race.id" @change="switchRace">
                 <option v-for="r in races" :key="r.id" :value="r.id">{{ r.label }}</option>
             </select>
@@ -169,10 +167,9 @@ const phaseBadge = computed(() => ({
             v-if="tabulation.status === 'running'"
             tone="info"
             icon="clock"
-            title="Tabulating — instant count in progress."
+            :title="t('c_elections.results.tab_running_title', 'Tabulating — instant count in progress.')"
         >
-            The ranked window has closed and the protected counting engine is re-running every
-            ballot. This page refreshes itself until the record lands.
+            {{ t('c_elections.results.tab_running_body', 'The ranked window has closed and the protected counting engine is re-running every ballot. This page refreshes itself until the record lands.') }}
             <CitationLine text="VoteCountingService · hardened · Art. II §2" />
         </Banner>
 
@@ -180,10 +177,9 @@ const phaseBadge = computed(() => ({
             v-else-if="tabulation.status === 'none'"
             tone="warning"
             role="status"
-            title="No count record exists for this race yet."
+            :title="t('c_elections.results.tab_none_title', 'No count record exists for this race yet.')"
         >
-            Tabulation dispatches automatically when the ranked window closes — no official can
-            start, stop, or skip it.
+            {{ t('c_elections.results.tab_none_body', 'Tabulation dispatches automatically when the ranked window closes. No official can start, stop, or skip it.') }}
         </Banner>
 
         <template v-if="stv">
@@ -222,10 +218,9 @@ const phaseBadge = computed(() => ({
             </Card>
 
             <!-- ===================================== the count =========== -->
-            <Card as="section" title="The count, round by round">
+            <Card as="section" :title="t('c_elections.results.count_title', 'The count, round by round')">
                 <p class="gloss">
-                    Gold tick = the Droop quota. Reaching it elects a candidate; their surplus
-                    transfers onward at fractional value so no vote is wasted.
+                    {{ t('c_elections.results.count_gloss', 'Gold tick = the Droop quota. Reaching it elects a candidate; their surplus transfers onward at fractional value so no vote is wasted.') }}
                 </p>
                 <span class="visually-hidden">Droop quota {{ stv.quota.toLocaleString() }}</span>
 
@@ -274,14 +269,14 @@ const phaseBadge = computed(() => ({
 
                 <p style="margin-block-start: var(--space-3)">
                     <Btn as="a" :href="csvHref" variant="secondary" size="sm" icon="file-text">
-                        Download full count record (CSV)
+                        {{ t('c_elections.results.download_csv', 'Download full count record (CSV)') }}
                     </Btn>
                     <span class="citation"> full precision · streamed from tabulation_rounds</span>
                 </p>
             </Card>
 
             <!-- ===================================== audit re-run ======== -->
-            <Card v-if="auditStv" as="section" title="Audit re-run (recount)">
+            <Card v-if="auditStv" as="section" :title="t('c_elections.results.audit_title', 'Audit re-run (recount)')">
                 <div class="cluster" style="margin-block-end: var(--space-3)">
                     <StatusBadge tone="danger" icon="refresh-cw">kind: audit_rerun</StatusBadge>
                     <template v-for="audit in audits" :key="audit.id">
@@ -295,9 +290,7 @@ const phaseBadge = computed(() => ({
                     </template>
                 </div>
                 <p class="gloss">
-                    A recount is an audit re-run of the stored ballots through the same protected
-                    engine — there is no hand count. Identical inputs reproduce an identical
-                    record hash.
+                    {{ t('c_elections.results.audit_gloss', 'A recount is an audit re-run of the stored ballots through the same protected engine. There is no hand count. Identical inputs reproduce an identical record hash.') }}
                 </p>
                 <details class="about-surface">
                     <summary>Re-run record — {{ auditStv.rounds }} rounds</summary>
@@ -319,11 +312,9 @@ const phaseBadge = computed(() => ({
         </template>
 
         <!-- ===================================== certification =========== -->
-        <Card as="section" title="Certification &amp; chain of custody">
+        <Card as="section" :title="t('c_elections.results.cert_title', 'Certification and chain of custody')">
             <p>
-                The count ran under a public chain of custody. Observation and audit standing
-                belongs to the endorsing organizations and to the candidates themselves; any
-                voter can verify their own ballot by receipt hash.
+                {{ t('c_elections.results.cert_body', 'The count ran under a public chain of custody. Observation and audit standing belongs to the endorsing organizations and to the candidates themselves. Any voter can verify their own ballot by receipt hash.') }}
             </p>
             <p class="citation">All factions can observe and audit · Art. II §2 · as implemented — observer standing transfers to endorsing organizations and candidates</p>
 
@@ -350,8 +341,7 @@ const phaseBadge = computed(() => ({
                 <FormChip form-id="F-ELB-004" name="Election results certification" />
                 <FormChip form-id="F-ELB-006" name="Recount/audit order" />
                 <span class="gloss">
-                    The count runs in-system, so a "recount" is an audit review: tabulation
-                    re-runs and the chain of custody is re-verified — there is no hand-count.
+                    {{ t('c_elections.results.recount_gloss', 'The count runs in-system, so a recount is an audit review. Tabulation re-runs and the chain of custody is re-verified. There is no hand count.') }}
                 </span>
                 <StatusBadge :tone="phaseBadge.tone" :icon="phaseBadge.icon">{{ phaseBadge.label }}</StatusBadge>
             </div>
@@ -362,43 +352,39 @@ const phaseBadge = computed(() => ({
 
             <div v-if="can.certify || can.recount" class="cluster" style="margin-block-start: var(--space-3)">
                 <Btn v-if="can.certify" variant="primary" size="sm" :disabled="posting" @click="certify">
-                    Certify results — F-ELB-004
+                    {{ t('c_elections.results.certify_btn', 'Certify results — F-ELB-004') }}
                 </Btn>
                 <Btn
                     v-if="can.recount && !recountOpen"
                     variant="danger"
                     size="sm"
                     @click="recountOpen = true"
-                >Order recount — F-ELB-006</Btn>
+                >{{ t('c_elections.results.order_recount_btn', 'Order recount — F-ELB-006') }}</Btn>
             </div>
             <div v-if="recountOpen" class="field" style="margin-block-start: var(--space-2)">
-                <label class="field-label" for="recount-cause">Cause for the audit re-run (required)</label>
+                <label class="field-label" for="recount-cause">{{ t('c_elections.results.recount_cause_label', 'Cause for the audit re-run (required)') }}</label>
                 <textarea id="recount-cause" v-model="recountCause" class="field-input" rows="2"></textarea>
-                <span class="field-hint">The engine rejects an order without a stated cause.</span>
+                <span class="field-hint">{{ t('c_elections.results.recount_cause_hint', 'The engine rejects an order without a stated cause.') }}</span>
                 <div class="cluster" style="margin-block-start: var(--space-2)">
                     <Btn variant="danger" size="sm" :disabled="posting || !recountCause.trim()" @click="orderRecount">
-                        Confirm recount order
+                        {{ t('c_elections.results.recount_confirm_btn', 'Confirm recount order') }}
                     </Btn>
-                    <Btn variant="ghost" size="sm" @click="recountOpen = false; recountCause = ''">Cancel</Btn>
+                    <Btn variant="ghost" size="sm" @click="recountOpen = false; recountCause = ''">{{ t('c_elections.results.cancel_btn', 'Cancel') }}</Btn>
                 </div>
             </div>
         </Card>
 
         <!-- ============== RCV single-winner variant (Phase D races only) == -->
-        <Card v-if="race.seat_kind === 'single' && stv" as="section" title="Single-winner variant — individual executive (RCV)">
+        <Card v-if="race.seat_kind === 'single' && stv" as="section" :title="t('c_elections.results.rcv_title', 'Single-winner variant — individual executive (RCV)')">
             <p class="cc-small">
-                Single-winner ranked-choice voting applies <strong>only</strong> to the
-                individual executive office model. The top 4 runners-up become the executive's
-                advisors and alternates automatically — derived by sequential exclusion.
+                {{ t('c_elections.results.rcv_body', 'Single-winner ranked-choice voting applies only to the individual executive office model. The top 4 runners-up become the executive advisors and alternates automatically, derived by sequential exclusion.') }}
             </p>
             <p class="citation">Single-winner RCV only for the individual executive · top-4 runners-up as advisors · Art. III §3</p>
         </Card>
 
         <template #about>
             <p>
-                <strong>Entity state machine:</strong> Election — Tabulating → Certified
-                (→ Recount). The countback engine (WF-ELE-03) re-runs these same ballots when a
-                vacancy opens.
+                {{ t('c_elections.results.about', 'Entity state machine: Election — Tabulating to Certified (to Recount). The countback engine (WF-ELE-03) re-runs these same ballots when a vacancy opens.') }}
             </p>
         </template>
     </PageScaffold>

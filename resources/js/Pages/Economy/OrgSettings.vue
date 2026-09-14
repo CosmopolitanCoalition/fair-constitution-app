@@ -182,7 +182,7 @@ function issueShares() {
             <!-- write: the org's own dial (F-ORG-001 update_settings) -->
             <div class="dues-dials">
                 <form class="dues-dial" @submit.prevent="saveAmount">
-                    <label :for="'dues-amount'">Dues amount ({{ currency?.symbol ?? 'units' }})</label>
+                    <label for="dues-amount">Dues amount ({{ currency?.symbol ?? 'units' }})</label>
                     <div class="dues-dial-row">
                         <input id="dues-amount" v-model="amountForm.value" type="number" min="0" step="0.000001" inputmode="decimal" />
                         <button type="submit" :disabled="!can_update_dues || amountForm.processing">{{ amountForm.processing ? 'Saving…' : 'Save' }}</button>
@@ -192,7 +192,7 @@ function issueShares() {
                 </form>
 
                 <form class="dues-dial" @submit.prevent="savePeriod">
-                    <label :for="'dues-period'">Period (days)</label>
+                    <label for="dues-period">Period (days)</label>
                     <div class="dues-dial-row">
                         <input id="dues-period" v-model="periodForm.value" type="number" min="1" max="3650" step="1" inputmode="numeric" />
                         <button type="submit" :disabled="!can_update_dues || periodForm.processing">{{ periodForm.processing ? 'Saving…' : 'Save' }}</button>

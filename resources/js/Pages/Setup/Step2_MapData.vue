@@ -1433,7 +1433,7 @@ onBeforeUnmount(() => {
                          ONE continue button stays the only continue control;
                          the dropdown beside it chooses what acceptance STARTS. -->
                     <div v-if="!mapAccepted" class="flex flex-col items-end gap-1.5">
-                        <select v-model="scaleMode"
+                        <select v-model="scaleMode" aria-label="Activation mode"
                                 class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
                             <option v-for="o in MODE_OPTS" :key="o.v" :value="o.v">{{ o.t }}</option>
                         </select>

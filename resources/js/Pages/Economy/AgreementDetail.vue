@@ -185,8 +185,8 @@ const STATUS_LABEL = {
             <details v-if="can_negotiate" class="agr-propose">
                 <summary>Propose a change</summary>
                 <div class="agr-propose-body">
-                    <textarea v-model="redline.body" rows="2" maxlength="10000" placeholder="The amendment you propose (added as a new clause)"></textarea>
-                    <input v-model="redline.rationale" type="text" maxlength="500" placeholder="Why (optional)" />
+                    <textarea v-model="redline.body" rows="2" maxlength="10000" aria-label="Proposed amendment" placeholder="The amendment you propose (added as a new clause)"></textarea>
+                    <input v-model="redline.rationale" type="text" maxlength="500" aria-label="Reason for the amendment" placeholder="Why (optional)" />
                     <button type="button" :disabled="redline.processing || !redline.body" @click="propose(null, 'add')">Propose amendment</button>
                     <p v-if="redline.errors.constitution" class="agr-err">{{ redline.errors.constitution }}</p>
                 </div>

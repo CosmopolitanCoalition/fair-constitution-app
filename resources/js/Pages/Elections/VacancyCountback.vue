@@ -12,6 +12,7 @@
  * the Field error.
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
@@ -38,6 +39,7 @@ const props = defineProps({
     can: { type: Object, default: () => ({ certify: false, schedule: false }) },
 });
 
+const { t } = useI18n();
 const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
@@ -113,29 +115,26 @@ const dateError = computed(
         :title="`Vacancy countback — ${vacancy.office_label}${vacancy.seat_no != null ? `, seat ${vacancy.seat_no}` : ''}`"
     >
         <template #intro>
-            {{ vacancy.member_name ?? 'The member' }}
-            {{ vacancy.reason === 'resigned' || !vacancy.reason ? 'resigned' : `was ${vacancy.reason}` }}.
-            No new election is needed yet: the game re-runs the prior election's ballots with
-            the vacated member removed as a candidate (a "vacancy countback"). The voters'
-            original preferences decide the replacement — only if those ballots run out does
-            a special election follow.
+            {{ vacancy.member_name ?? t('c_elections.countback.the_member', 'The member') }}
+            {{ vacancy.reason === 'resigned' || !vacancy.reason ? t('c_elections.countback.resigned', 'resigned') : t('c_elections.countback.was_reason', 'was {reason}', { reason: vacancy.reason }) }}.
+            {{ t('c_elections.countback.intro', 'No new election is needed yet. The game re-runs the prior election ballots with the vacated member removed as a candidate (a vacancy countback). The voters\' original preferences decide the replacement. Only if those ballots run out does a special election follow.') }}
         </template>
 
-        <p class="citation">Vacancies filled by countback of prior ballots · Art. II §5 · countback engine — hardened</p>
+        <p class="citation">{{ t('c_elections.countback.cite_method', 'Vacancies filled by countback of prior ballots · Art. II §5 · countback engine — hardened') }}</p>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <!-- ============================================ trigger ========== -->
-        <Card as="section" title="Trigger">
+        <Card as="section" :title="t('c_elections.countback.trigger_title', 'Trigger')">
             <Card inset>
                 <p style="margin-block-end: var(--space-1)">
-                    <strong>Vacancy declaration</strong>
+                    <strong>{{ t('c_elections.countback.vacancy_declaration', 'Vacancy declaration') }}</strong>
                     {{ ' ' }}
                     <FormChip form-id="F-LEG-036" />
                 </p>
                 <p class="cc-small" style="margin-block-end: var(--space-1)">
-                    Declare a seat vacant due to death, resignation, removal, or incapacity.
+                    {{ t('c_elections.countback.declare_body', 'Declare a seat vacant due to death, resignation, removal, or incapacity.') }}
                 </p>
                 <p class="citation">
                     available to R-09 Legislative Representative / R-10 Speaker · creates a vacancy
@@ -144,24 +143,23 @@ const dateError = computed(
                 <p class="citation">catalog alias: F-LEG-030 · workflows catalog (renumbering drift)</p>
             </Card>
             <p class="cc-small" style="margin-block-start: var(--space-3)">
-                Declared by {{ vacancy.declared_by }} on {{ fmt(vacancy.declared_at) }} — shown in
-                your timezone · stored as UTC.
+                {{ t('c_elections.countback.declared_by', 'Declared by {who} on {when} — shown in your timezone, stored as UTC.', { who: vacancy.declared_by, when: fmt(vacancy.declared_at) }) }}
             </p>
-            <StateStrip :states="machine" :current="vacancy.status" aria-label="Vacancy state machine" />
+            <StateStrip :states="machine" :current="vacancy.status" :aria-label="t('c_elections.countback.vacancy_machine', 'Vacancy state machine')" />
         </Card>
 
         <!-- ============================================ the re-run ======= -->
         <Card as="section">
             <template #title>
                 <h2>
-                    The re-run
+                    {{ t('c_elections.countback.rerun_title', 'The re-run') }}
                     <StatusBadge v-if="winnerFound" tone="success" icon="check">
-                        Winner found{{ rerun.winner ? ` — ${rerun.winner.name}` : '' }}
+                        {{ t('c_elections.countback.winner_found', 'Winner found') }}{{ rerun.winner ? ` — ${rerun.winner.name}` : '' }}
                     </StatusBadge>
                     <StatusBadge v-else-if="exhausted" tone="danger" icon="alert-triangle">
-                        Countback failed — ballots exhausted
+                        {{ t('c_elections.countback.failed_exhausted', 'Countback failed — ballots exhausted') }}
                     </StatusBadge>
-                    <StatusBadge v-else tone="warning" icon="clock">Countback running</StatusBadge>
+                    <StatusBadge v-else tone="warning" icon="clock">{{ t('c_elections.countback.running', 'Countback running') }}</StatusBadge>
                 </h2>
             </template>
 
@@ -193,17 +191,14 @@ const dateError = computed(
                 />
             </template>
             <p v-else-if="running" class="gloss">
-                The countback is re-running the stored ballots — this page refreshes itself
-                until the record lands.
+                {{ t('c_elections.countback.running_body', 'The countback is re-running the stored ballots. This page refreshes itself until the record lands.') }}
             </p>
 
             <p class="gloss" style="margin-block-start: var(--space-2)">
-                Gold tick = the Droop quota. A continuing candidate who reaches it fills the
-                seat; ballots with no remaining preference become exhausted.
+                {{ t('c_elections.countback.gold_tick', 'Gold tick = the Droop quota. A continuing candidate who reaches it fills the seat. Ballots with no remaining preference become exhausted.') }}
             </p>
             <p class="citation">
-                Re-run of prior ballots with the vacated member removed · Art. II §5 ·
-                universal — no faction filtering · STV with Droop quota — hardened
+                {{ t('c_elections.countback.rerun_cite', 'Re-run of prior ballots with the vacated member removed · Art. II §5 · universal — no faction filtering · STV with Droop quota — hardened') }}
             </p>
         </Card>
 
@@ -215,50 +210,48 @@ const dateError = computed(
                 aria-labelledby="found-h"
             >
                 <h2 id="found-h">
-                    Branch: winner found
-                    <StatusBadge v-if="winnerFound" tone="success" icon="check">active branch</StatusBadge>
-                    <StatusBadge v-else-if="exhausted" tone="neutral">not taken</StatusBadge>
-                    <StatusBadge v-else tone="neutral">pending</StatusBadge>
+                    {{ t('c_elections.countback.branch_found', 'Branch: winner found') }}
+                    <StatusBadge v-if="winnerFound" tone="success" icon="check">{{ t('c_elections.countback.active_branch', 'active branch') }}</StatusBadge>
+                    <StatusBadge v-else-if="exhausted" tone="neutral">{{ t('c_elections.countback.not_taken', 'not taken') }}</StatusBadge>
+                    <StatusBadge v-else tone="neutral">{{ t('c_elections.countback.pending', 'pending') }}</StatusBadge>
                 </h2>
                 <p class="cc-small">
-                    The countback yields a replacement. The election board certifies, the winner
-                    is seated by oath (F-LEG-001), and committee proportionality is re-checked.
+                    {{ t('c_elections.countback.found_body', 'The countback yields a replacement. The election board certifies, the winner is seated by oath (F-LEG-001), and committee proportionality is re-checked.') }}
                 </p>
                 <Card inset style="margin-block-end: var(--space-3)">
                     <p style="margin-block-end: var(--space-1)">
-                        <strong>Election results certification</strong>
+                        <strong>{{ t('c_elections.countback.cert_form', 'Election results certification') }}</strong>
                         {{ ' ' }}
                         <FormChip form-id="F-ELB-004" />
                     </p>
-                    <p class="citation">available to R-08 Election Board Member · Art. II §2 (transparent election process)</p>
+                    <p class="citation">{{ t('c_elections.countback.cert_cite', 'available to R-08 Election Board Member · Art. II §2 (transparent election process)') }}</p>
                 </Card>
                 <div class="cluster">
                     <template v-if="certification">
                         <StatusBadge tone="success" icon="check">
-                            {{ certification.winner_name }} certified · seated via oath F-LEG-001
+                            {{ t('c_elections.countback.certified_badge', '{name} certified · seated via oath F-LEG-001', { name: certification.winner_name }) }}
                         </StatusBadge>
                         <span class="citation">
-                            F-ELB-004 committed {{ fmt(certification.certified_at) }} ·
-                            proportionality re-check queued (WF-LEG-13)
-                            <span class="planned-flag">Planned · Phase C</span>
+                            {{ t('c_elections.countback.committed_at', 'F-ELB-004 committed {when} · proportionality re-check queued (WF-LEG-13)', { when: fmt(certification.certified_at) }) }}
+                            <span class="planned-flag">{{ t('c_elections.countback.planned_c', 'Planned · Phase C') }}</span>
                         </span>
                     </template>
                     <template v-else-if="can.certify">
                         <Btn variant="primary" size="sm" :disabled="certifying" @click="certify">
-                            Certify countback winner
+                            {{ t('c_elections.countback.certify_btn', 'Certify countback winner') }}
                         </Btn>
-                        <span v-if="rerun.winner" class="citation">certifies {{ rerun.winner.name }}</span>
+                        <span v-if="rerun.winner" class="citation">{{ t('c_elections.countback.certifies', 'certifies {name}', { name: rerun.winner.name }) }}</span>
                     </template>
                     <Btn
                         v-else
                         variant="secondary"
                         size="sm"
                         disabled
-                        :title="exhausted ? 'No winner in this countback' : 'Certification follows the countback automatically'"
-                    >Certify countback winner</Btn>
+                        :title="exhausted ? t('c_elections.countback.no_winner', 'No winner in this countback') : t('c_elections.countback.cert_auto', 'Certification follows the countback automatically')"
+                    >{{ t('c_elections.countback.certify_btn', 'Certify countback winner') }}</Btn>
                 </div>
                 <p class="citation" style="margin-block-start: var(--space-3)">
-                    Committee proportionality re-checked after seating · WF-LEG-13
+                    {{ t('c_elections.countback.prop_recheck', 'Committee proportionality re-checked after seating · WF-LEG-13') }}
                 </p>
             </section>
 
@@ -268,16 +261,13 @@ const dateError = computed(
                 aria-labelledby="failed-h"
             >
                 <h2 id="failed-h">
-                    Branch: ballots exhausted
-                    <StatusBadge v-if="exhausted" tone="danger" icon="alert-triangle">active branch</StatusBadge>
-                    <StatusBadge v-else-if="winnerFound" tone="neutral">not taken</StatusBadge>
-                    <StatusBadge v-else tone="neutral">pending</StatusBadge>
+                    {{ t('c_elections.countback.branch_exhausted', 'Branch: ballots exhausted') }}
+                    <StatusBadge v-if="exhausted" tone="danger" icon="alert-triangle">{{ t('c_elections.countback.active_branch', 'active branch') }}</StatusBadge>
+                    <StatusBadge v-else-if="winnerFound" tone="neutral">{{ t('c_elections.countback.not_taken', 'not taken') }}</StatusBadge>
+                    <StatusBadge v-else tone="neutral">{{ t('c_elections.countback.pending', 'pending') }}</StatusBadge>
                 </h2>
                 <p class="cc-small">
-                    No continuing candidate can reach the quota — the countback fails and a
-                    special election must be held no sooner than
-                    {{ vacancy.window?.min_days ?? 90 }} and no later than
-                    {{ vacancy.window?.max_days ?? 180 }} days after the vacancy.
+                    {{ t('c_elections.countback.exhausted_body', 'No continuing candidate can reach the quota. The countback fails and a special election must be held no sooner than {min} and no later than {max} days after the vacancy.', { min: vacancy.window?.min_days ?? 90, max: vacancy.window?.max_days ?? 180 }) }}
                 </p>
                 <p class="citation">
                     Special election window · {{ vacancy.window?.min_days ?? 90 }}–{{ vacancy.window?.max_days ?? 180 }}
@@ -285,22 +275,20 @@ const dateError = computed(
                 </p>
 
                 <Banner v-if="specialElection" tone="info" role="status">
-                    Special election scheduled — ranked window opens
-                    {{ specialElection.scheduled_for }} (status: {{ specialElection.status }}).
-                    The order below refines dates within the window.
+                    {{ t('c_elections.countback.special_scheduled', 'Special election scheduled — ranked window opens {when} (status: {status}). The order below refines dates within the window.', { when: specialElection.scheduled_for, status: specialElection.status }) }}
                 </Banner>
 
                 <FormCard
                     v-if="can.schedule && formMeta('F-ELB-001')"
                     :form="formMeta('F-ELB-001')"
                     :inertia-form="specialForm"
-                    submit-label="Schedule special election"
-                    processing-label="Scheduling…"
+                    :submit-label="t('c_elections.countback.schedule_special', 'Schedule special election')"
+                    :processing-label="t('c_elections.countback.scheduling', 'Scheduling…')"
                     @submit="submitSpecial"
                 >
                     <Field
-                        label="Special election date (ranked window opens)"
-                        :hint="`Window for this vacancy: ${vacancy.window?.opens_on} → ${vacancy.window?.closes_on} (latest start ${vacancy.window?.latest_start} — the ${vacancy.window?.ranked_window_days}-day ranked window must fit inside). The engine rejects dates outside the window.`"
+                        :label="t('c_elections.countback.special_date_label', 'Special election date (ranked window opens)')"
+                        :hint="t('c_elections.countback.special_date_hint', 'Window for this vacancy: {opens} to {closes} (latest start {latest} — the {days}-day ranked window must fit inside). The engine rejects dates outside the window.', { opens: vacancy.window?.opens_on, closes: vacancy.window?.closes_on, latest: vacancy.window?.latest_start, days: vacancy.window?.ranked_window_days })"
                         :error="dateError"
                     >
                         <template #control="{ id, invalid, describedBy }">
@@ -318,7 +306,7 @@ const dateError = computed(
                     </Field>
                 </FormCard>
                 <p v-else-if="!exhausted" class="gloss">
-                    Scheduling opens only if the countback exhausts.
+                    {{ t('c_elections.countback.scheduling_gated', 'Scheduling opens only if the countback exhausts.') }}
                 </p>
 
                 <p class="citation" style="margin-block-start: var(--space-3)">
@@ -328,20 +316,19 @@ const dateError = computed(
         </div>
 
         <!-- ============================================ knock-on effects = -->
-        <Card as="section" title="Knock-on effects">
+        <Card as="section" :title="t('c_elections.countback.knockon_title', 'Knock-on effects')">
             <div class="stack" style="gap: var(--space-3)">
                 <Card inset>
-                    <strong>Committee proportionality re-check pending</strong>
+                    <strong>{{ t('c_elections.countback.prop_pending', 'Committee proportionality re-check pending') }}</strong>
                     <span class="citation" style="display: block">
-                        re-check runs when the replacement is seated · WF-LEG-13 · Art. II §4
-                        <span class="planned-flag">Planned · Phase C</span>
+                        {{ t('c_elections.countback.prop_pending_cite', 're-check runs when the replacement is seated · WF-LEG-13 · Art. II §4') }}
+                        <span class="planned-flag">{{ t('c_elections.countback.planned_c', 'Planned · Phase C') }}</span>
                     </span>
                 </Card>
                 <Card inset>
-                    <strong>Term inheritance (CLK-10)</strong>
+                    <strong>{{ t('c_elections.countback.term_inherit', 'Term inheritance (CLK-10)') }}</strong>
                     <span class="citation" style="display: block">
-                        a replacement term never outlives the term it fills — the inherited
-                        ends_on is written once and never moves · Art. II §5
+                        {{ t('c_elections.countback.term_inherit_cite', 'a replacement term never outlives the term it fills. The inherited ends_on is written once and never moves · Art. II §5') }}
                     </span>
                 </Card>
             </div>
@@ -349,12 +336,10 @@ const dateError = computed(
 
         <template #about>
             <p>
-                <strong>Entity state machine:</strong> Vacancy —
-                {{ machine.join(' → ') }}. The strip above tracks the live record.
+                {{ t('c_elections.countback.about_machine', 'Entity state machine: Vacancy. The strip above tracks the live record.') }}
             </p>
             <p>
-                Phase B vacancies are dev-seeded (<code data-no-i18n>php artisan vacancy:declare</code>);
-                the F-LEG-036 declaration form itself arrives with Phase C Speaker tooling.
+                {{ t('c_elections.countback.about_devseed', 'Phase B vacancies are dev-seeded (php artisan vacancy:declare). The F-LEG-036 declaration form itself arrives with Phase C Speaker tooling.') }}
             </p>
         </template>
     </PageScaffold>
