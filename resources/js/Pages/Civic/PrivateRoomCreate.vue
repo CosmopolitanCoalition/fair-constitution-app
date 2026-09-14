@@ -11,6 +11,7 @@
  * no persisted DM-vs-group kind — one field (a name) creates the room either way.
  */
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -19,6 +20,7 @@ import Icon from '@/Components/Ui/Icon.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 // One field creates the room; store() lands back on the inbox with the invite-link share step open.
 const form = useForm({ name: '' });
@@ -28,23 +30,22 @@ function start() {
 </script>
 
 <template>
-    <Head title="New message" />
+    <Head :title="t('places.message_new.title', 'New message')" />
 
     <div class="stack" style="gap: var(--space-4)">
         <header>
-            <p class="eyebrow">People, together · start a conversation</p>
-            <h1>New message</h1>
+            <p class="eyebrow">{{ t('places.message_new.eyebrow', 'People, together · start a conversation') }}</p>
+            <h1>{{ t('places.message_new.title', 'New message') }}</h1>
             <p class="page-intro">
-                Message one person directly, or start a group with a few. Either way it is just a conversation —
-                talk, files, voice, and video.
+                {{ t('places.message_new.intro', 'Message one person directly, or start a group with a few. Either way it is just a conversation — talk, files, voice, and video.') }}
             </p>
         </header>
 
         <Card as="section">
             <form class="stack" style="gap: var(--space-4)" @submit.prevent="start">
                 <Field
-                    label="Name this conversation"
-                    hint="A friendly label so you can find it later — direct or group, one field starts it."
+                    :label="t('places.message_new.name_label', 'Name this conversation')"
+                    :hint="t('places.message_new.name_hint', 'A friendly label so you can find it later — direct or group, one field starts it.')"
                     :error="form.errors.name"
                 >
                     <template #control="{ id, invalid, describedBy }">
@@ -55,7 +56,7 @@ function start() {
                             class="field-input"
                             style="inline-size: 100%"
                             maxlength="200"
-                            placeholder="e.g. Saturday crew — or a friend’s name for a direct message"
+                            :placeholder="t('places.message_new.name_placeholder', 'e.g. Saturday crew — or a friend’s name for a direct message')"
                             :aria-invalid="invalid ? 'true' : undefined"
                             :aria-describedby="describedBy"
                         />
@@ -64,9 +65,9 @@ function start() {
 
                 <div class="cluster" style="gap: var(--space-3)">
                     <Btn type="submit" variant="primary" :disabled="form.processing || !form.name.trim()">
-                        <Icon name="message-square" size="sm" /> Start the conversation
+                        <Icon name="message-square" size="sm" /> {{ t('places.message_new.submit', 'Start the conversation') }}
                     </Btn>
-                    <Link href="/civic/rooms" class="btn btn--ghost">Cancel</Link>
+                    <Link href="/civic/rooms" class="btn btn--ghost">{{ t('places.message_new.cancel', 'Cancel') }}</Link>
                 </div>
             </form>
         </Card>
@@ -74,20 +75,17 @@ function start() {
         <div class="lr-note">
             <div><Icon name="user" size="sm" /></div>
             <div>
-                <strong style="color: var(--gov-fg)">You add people with a link, not by searching for them.</strong>
-                Names here are pseudonymous and there is no directory to look anyone up in — so once the
-                conversation exists, you share a private invite link and whoever opens it lands inside. Nobody
-                can be added without a link they chose to open.
+                <strong style="color: var(--gov-fg)">{{ t('places.message_new.note_link_title', 'You add people with a link, not by searching for them.') }}</strong>
+                {{ t('places.message_new.note_link_body', 'Names here are pseudonymous and there is no directory to look anyone up in — so once the conversation exists, you share a private invite link and whoever opens it lands inside. Nobody can be added without a link they chose to open.') }}
             </div>
         </div>
 
         <div class="lr-note">
             <div><Icon name="shield" size="sm" /></div>
             <div>
-                <strong style="color: var(--gov-fg)">A group message is temporary and private.</strong>
-                It grants no governance power, and it is private like a ballot — only the people in it can read it.
-                When everyone leaves, it is gone. If a group wants to last, it can become an
-                <Link href="/organizations" class="underline">organization</Link> — but it never has to.
+                <strong style="color: var(--gov-fg)">{{ t('places.message_new.note_temp_title', 'A group message is temporary and private.') }}</strong>
+                {{ t('places.message_new.note_temp_body', 'It grants no governance power, and it is private like a ballot — only the people in it can read it. When everyone leaves, it is gone. If a group wants to last, it can become an') }}
+                <Link href="/organizations" class="underline">{{ t('places.message_new.organization', 'organization') }}</Link>{{ t('places.message_new.note_temp_tail', ' — but it never has to.') }}
             </div>
         </div>
     </div>

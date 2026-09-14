@@ -11,6 +11,7 @@
  */
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -20,6 +21,7 @@ import { CLASSES, JOURNEYS_BY_ID } from '@/registry/journeys.js';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -44,20 +46,17 @@ const groups = computed(() =>
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            Learn by doing — each journey walks you through one real process, step by step.
-            Finishing one goes on your profile.
+            {{ t('places.journeys.intro', 'Learn by doing — each journey walks you through one real process, step by step. Finishing one goes on your profile.') }}
         </template>
         <template #about>
             <p>
-                A journey is a guided arc over the real institutions — you mark off each step as
-                you take it, and completing the whole arc earns a medal on
-                <Link href="/civic/record?tab=achievements">your profile</Link>. A medal never
-                changes a vote, a seat, or what you are allowed to do.
+                {{ t('places.journeys.about_before', 'A journey is a guided arc over the real institutions — you mark off each step as you take it, and completing the whole arc earns a medal on') }}
+                <Link href="/civic/record?tab=achievements">{{ t('places.journeys.about_profile', 'your profile') }}</Link>{{ t('places.journeys.about_after', '. A medal never changes a vote, a seat, or what you are allowed to do.') }}
             </p>
         </template>
 
-        <p><Link href="/learn">← Learn & help</Link></p>
-        <p v-if="!groups.length">No guided journeys are available yet. You can explore the lessons in Learn & help.</p>
+        <p><Link href="/learn">{{ t('places.journeys.back_learn', '← Learn & help') }}</Link></p>
+        <p v-if="!groups.length">{{ t('places.journeys.none', 'No guided journeys are available yet. You can explore the lessons in Learn & help.') }}</p>
         <section v-for="group in groups" :key="group.id" :aria-labelledby="`jcls-${group.id}`">
             <h2 :id="`jcls-${group.id}`">{{ group.label }}</h2>
 
@@ -70,12 +69,12 @@ const groups = computed(() =>
                     <!-- steps-done meter — n of N -->
                     <div class="cluster" style="justify-content: space-between; align-items: baseline">
                         <span v-if="j.completed" class="cc-small">
-                            <Icon name="award" size="sm" /> Journey complete
+                            <Icon name="award" size="sm" /> {{ t('places.journeys.complete', 'Journey complete') }}
                         </span>
-                        <span v-else-if="signedIn" class="cc-small">{{ j.steps_done }} of {{ j.steps_total }} steps</span>
-                        <span v-else class="cc-small">{{ j.steps_total }} steps</span>
+                        <span v-else-if="signedIn" class="cc-small">{{ t('places.journeys.steps_progress', { done: j.steps_done, total: j.steps_total }) }}</span>
+                        <span v-else class="cc-small">{{ t('places.journeys.steps_total', { total: j.steps_total }) }}</span>
                         <StatusBadge v-if="j.status === 'planned'" tone="neutral" icon="clock">
-                            Planned
+                            {{ t('places.journeys.planned', 'Planned') }}
                         </StatusBadge>
                     </div>
                     <div
@@ -85,7 +84,7 @@ const groups = computed(() =>
                         aria-valuemin="0"
                         :aria-valuemax="j.steps_total"
                         :aria-valuenow="j.steps_done"
-                        :aria-label="`Your progress — ${j.steps_done} of ${j.steps_total} steps done`"
+                        :aria-label="t('places.journeys.progress_aria', { done: j.steps_done, total: j.steps_total })"
                     >
                         <span
                             class="meter-fill"
@@ -96,14 +95,14 @@ const groups = computed(() =>
 
                     <!-- planned journeys carry no CTA — honest, never a locked door -->
                     <p v-if="j.status === 'planned'" class="gloss" style="margin: 0">
-                        Not live in this world yet — it arrives with a later phase.
+                        {{ t('places.journeys.planned_note', 'Not live in this world yet — it arrives with a later phase.') }}
                     </p>
                     <div v-else class="cluster">
                         <Btn :as="Link" :href="`/journeys/${j.id}`" variant="secondary" size="sm">
-                            {{ j.steps_done > 0 ? 'Continue' : 'Start' }}
+                            {{ j.steps_done > 0 ? t('places.journeys.continue', 'Continue') : t('places.journeys.start', 'Start') }}
                             <Icon name="arrow-right" size="sm" />
                         </Btn>
-                        <span v-if="j.completed" class="cc-small">On your profile.</span>
+                        <span v-if="j.completed" class="cc-small">{{ t('places.journeys.on_profile', 'On your profile.') }}</span>
                     </div>
                 </div>
             </div>

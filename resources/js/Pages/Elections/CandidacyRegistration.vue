@@ -16,6 +16,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -33,6 +34,7 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -81,92 +83,84 @@ const machineCurrent = computed(() => {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`Stand for office — ${election.jurisdiction_name}`">
+    <PageScaffold :surface="surface" :title="t('c_elections.candidacy.page_title', { name: election.jurisdiction_name })">
         <template #intro>
-            If you live somewhere, you can run for office there — that's the only requirement.
-            Sign-ups stay open the whole time between elections: they open the moment the last
-            election is certified and close only when the final ballot locks (the finalist
-            cutoff).
+            {{ t('c_elections.candidacy.intro', 'If you live somewhere, you can run for office there — that\'s the only requirement. Sign-ups stay open the whole time between elections: they open the moment the last election is certified and close only when the final ballot locks (the finalist cutoff).') }}
         </template>
         <template #about>
             <p>
-                WF-CIV-05 candidacy lifecycle. Entity machine ESM-06:
-                {{ machine.join(' → ') }} (rejected / withdrawn / non-finalist are terminal
-                public-record branches). The board's only check is residency (F-ELB-002).
+                {{ t('c_elections.candidacy.about_before', 'WF-CIV-05 candidacy lifecycle. Entity machine ESM-06:') }}
+                {{ machine.join(' → ') }} {{ t('c_elections.candidacy.about_after', '(rejected / withdrawn / non-finalist are terminal public-record branches). The board\'s only check is residency (F-ELB-002).') }}
             </p>
         </template>
 
         <p class="cluster" style="gap: var(--space-3)">
             <HardenedChip />
-            <CitationLine text="Right to stand — Art. I · no fees, no signatures, no vetting" />
-            <CitationLine text="Registration window = approval phase · CLK-18" />
+            <CitationLine :text="t('c_elections.candidacy.cite_right', 'Right to stand — Art. I · no fees, no signatures, no vetting')" />
+            <CitationLine :text="t('c_elections.candidacy.cite_window', 'Registration window = approval phase · CLK-18')" />
         </p>
 
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
-        <Banner v-if="errors.constitution" tone="warning" title="Filing rejected by the constitutional engine">
-            {{ errors.constitution }} — the rejection itself is on the audit chain (append-only).
+        <Banner v-if="errors.constitution" tone="warning" :title="t('c_elections.candidacy.rejected_title', 'Filing rejected by the constitutional engine')">
+            {{ errors.constitution }} {{ t('c_elections.candidacy.rejected_appendonly', '— the rejection itself is on the audit chain (append-only).') }}
         </Banner>
 
         <PhaseBanner :phase="phase" context="registration" />
 
         <!-- ───────────── viewer has no associations (R-01/R-02) ───────── -->
-        <Card v-if="!viewerAssociated && !myCandidacy" as="section" title="Establish residency to stand for office">
+        <Card v-if="!viewerAssociated && !myCandidacy" as="section" :title="t('c_elections.candidacy.establish_title', 'Establish residency to stand for office')">
             <p>
-                Voting and candidacy unlock together the moment residency verifies — no other
-                requirement exists, by constitutional design.
+                {{ t('c_elections.candidacy.establish_body', 'Voting and candidacy unlock together the moment residency verifies — no other requirement exists, by constitutional design.') }}
             </p>
             <div class="cluster" style="margin-block-start: var(--space-3)">
                 <Btn :as="Link" href="/civic/residency" variant="primary" icon="map-pin">
-                    Declare residency
+                    {{ t('c_elections.candidacy.declare_residency', 'Declare residency') }}
                 </Btn>
             </div>
             <p class="citation" style="margin-block-start: var(--space-2)">
-                Residency verified → all associations → rights unlocked · Art. I; Art. V §1
+                {{ t('c_elections.candidacy.establish_cite', 'Residency verified → all associations → rights unlocked · Art. I; Art. V §1') }}
             </p>
         </Card>
 
         <!-- ─────────────────────── result card (myCandidacy non-null) ── -->
-        <Card v-else-if="myCandidacy" as="section" title="Your candidacy in this election">
+        <Card v-else-if="myCandidacy" as="section" :title="t('c_elections.candidacy.result_title', 'Your candidacy in this election')">
             <StateStrip :states="machine" :current="machineCurrent" />
 
             <div style="margin-block-start: var(--space-3)">
-                <Banner v-if="myCandidacy.status === 'registered'" tone="info" title="Submitted — awaiting board validation.">
-                    The board's validation (F-ELB-002) checks residency and nothing else — it is
-                    the only check that may exist.
-                    <CitationLine text="Art. I · residency is the only check" />
+                <Banner v-if="myCandidacy.status === 'registered'" tone="info" :title="t('c_elections.candidacy.registered_title', 'Submitted — awaiting board validation.')">
+                    {{ t('c_elections.candidacy.registered_body', 'The board\'s validation (F-ELB-002) checks residency and nothing else — it is the only check that may exist.') }}
+                    <CitationLine :text="t('c_elections.candidacy.registered_cite', 'Art. I · residency is the only check')" />
                 </Banner>
 
-                <Banner v-else-if="inPool" tone="info" title="Validated — you are in the approval pool.">
+                <Banner v-else-if="inPool" tone="info" :title="t('c_elections.candidacy.pool_title', 'Validated — you are in the approval pool.')">
                     <span class="cluster" style="gap: var(--space-2); margin-block: var(--space-2)">
-                        <StatusBadge tone="success" icon="check">In approval pool · R-06</StatusBadge>
+                        <StatusBadge tone="success" icon="check">{{ t('c_elections.candidacy.in_pool_badge', 'In approval pool · R-06') }}</StatusBadge>
                         <StatusBadge tone="neutral">{{ myCandidacy.office_label }}</StatusBadge>
                     </span>
                     <span class="cluster" style="gap: var(--space-2)">
                         <Btn :as="Link" :href="`/elections/${election.id}/open-ballot`" variant="secondary" size="sm">
-                            See your standing on the open ballot
+                            {{ t('c_elections.candidacy.see_standing', 'See your standing on the open ballot') }}
                         </Btn>
                         <Btn :as="Link" :href="`/candidates/${myCandidacy.id}`" variant="secondary" size="sm">
-                            Manage your public profile — F-CAN-001
+                            {{ t('c_elections.candidacy.manage_profile', 'Manage your public profile — F-CAN-001') }}
                         </Btn>
                     </span>
                 </Banner>
 
-                <Banner v-else-if="myCandidacy.status === 'rejected'" tone="emergency" title="Registration rejected — no residency association found.">
-                    The only permissible ground for rejection is the absence of a residency
-                    association in the selected jurisdiction — anything else would violate
-                    Art. I. If you believe this is wrong, correct your residency declaration or
-                    <a href="/judiciary/docket">challenge the decision in court</a>.
-                    <CitationLine :text="`Recorded ground: ${myCandidacy.rejection_reason ?? 'no_residency_association'} · Art. I`" />
+                <Banner v-else-if="myCandidacy.status === 'rejected'" tone="emergency" :title="t('c_elections.candidacy.rejected_pool_title', 'Registration rejected — no residency association found.')">
+                    {{ t('c_elections.candidacy.rejected_pool_before', 'The only permissible ground for rejection is the absence of a residency association in the selected jurisdiction — anything else would violate Art. I. If you believe this is wrong, correct your residency declaration or') }}
+                    <a href="/judiciary/docket">{{ t('c_elections.candidacy.rejected_pool_link', 'challenge the decision in court') }}</a>{{ t('c_elections.candidacy.rejected_pool_after', '.') }}
+                    <CitationLine :text="t('c_elections.candidacy.recorded_ground', { reason: myCandidacy.rejection_reason ?? 'no_residency_association' })" />
                 </Banner>
 
-                <Banner v-else-if="myCandidacy.status === 'withdrawn'" tone="warning" title="Candidacy withdrawn.">
-                    Withdrawal is a permanent public record.
-                    <CitationLine text="F-CAN-003 · terminal ESM-06 state" />
+                <Banner v-else-if="myCandidacy.status === 'withdrawn'" tone="warning" :title="t('c_elections.candidacy.withdrawn_title', 'Candidacy withdrawn.')">
+                    {{ t('c_elections.candidacy.withdrawn_body', 'Withdrawal is a permanent public record.') }}
+                    <CitationLine :text="t('c_elections.candidacy.withdrawn_cite', 'F-CAN-003 · terminal ESM-06 state')" />
                 </Banner>
 
-                <Banner v-else tone="info" :title="`Candidacy status: ${myCandidacy.status}`">
+                <Banner v-else tone="info" :title="t('c_elections.candidacy.status_title', { status: myCandidacy.status })">
                     <Btn :as="Link" :href="`/candidates/${myCandidacy.id}`" variant="secondary" size="sm">
-                        Open your public profile
+                        {{ t('c_elections.candidacy.open_profile', 'Open your public profile') }}
                     </Btn>
                 </Banner>
             </div>
@@ -177,14 +171,14 @@ const machineCurrent = computed(() => {
             <FormCard
                 :form="formMeta('F-IND-011')"
                 :inertia-form="form"
-                :submit-label="registrationOpen ? 'Register candidacy — F-IND-011' : 'Registration window is closed'"
-                processing-label="Filing F-IND-011…"
+                :submit-label="registrationOpen ? t('c_elections.candidacy.submit_open', 'Register candidacy — F-IND-011') : t('c_elections.candidacy.submit_closed', 'Registration window is closed')"
+                :processing-label="t('c_elections.candidacy.submit_processing', 'Filing F-IND-011…')"
                 :disabled="!registrationOpen || !offices.length"
                 @submit="submit"
             >
                 <Field
-                    label="Office (election race)"
-                    hint="Only jurisdictions you are associated with are listed — candidacy follows residency, nothing else."
+                    :label="t('c_elections.candidacy.office_label', 'Office (election race)')"
+                    :hint="t('c_elections.candidacy.office_hint', 'Only jurisdictions you are associated with are listed — candidacy follows residency, nothing else.')"
                     :error="form.errors.race_id"
                     required
                 >
@@ -196,21 +190,20 @@ const machineCurrent = computed(() => {
                             :aria-invalid="invalid ? 'true' : undefined"
                             :aria-describedby="describedBy"
                         >
-                            <option value="" disabled>— select a race —</option>
+                            <option value="" disabled>{{ t('c_elections.candidacy.select_race', '— select a race —') }}</option>
                             <option v-for="office in offices" :key="office.race_id" :value="office.race_id">
-                                {{ office.label }} · {{ office.seats }} seats
+                                {{ t('c_elections.candidacy.office_option', { label: office.label, seats: office.seats }) }}
                             </option>
                         </select>
                     </template>
                 </Field>
                 <p v-if="!offices.length" class="gloss">
-                    No race footprint of this election contains one of your associations — this
-                    election may simply not be yours to stand in.
+                    {{ t('c_elections.candidacy.no_offices', 'No race footprint of this election contains one of your associations — this election may simply not be yours to stand in.') }}
                 </p>
 
                 <Field
-                    label="Platform statement (optional)"
-                    hint="Public, self-managed, editable any time via F-CAN-001."
+                    :label="t('c_elections.candidacy.platform_label', 'Platform statement (optional)')"
+                    :hint="t('c_elections.candidacy.platform_hint', 'Public, self-managed, editable any time via F-CAN-001.')"
                     :error="form.errors.platform_statement"
                 >
                     <template #control="{ id, invalid, describedBy }">
@@ -226,7 +219,7 @@ const machineCurrent = computed(() => {
                 </Field>
 
                 <div class="field">
-                    <span class="field-label">Position tags (optional)</span>
+                    <span class="field-label">{{ t('c_elections.candidacy.tags_label', 'Position tags (optional)') }}</span>
                     <span class="cluster" style="gap: var(--space-1)">
                         <ChipToggle
                             v-for="tag in tagVocabulary"
@@ -240,8 +233,8 @@ const machineCurrent = computed(() => {
 
                 <div class="field" :class="{ 'field--invalid': form.errors.residency_attested }">
                     <CheckboxField v-model="form.residency_attested" name="residency_attested">
-                        I attest that I reside in the selected jurisdiction.
-                        <strong>Nothing else is asked of me.</strong>
+                        {{ t('c_elections.candidacy.attest', 'I attest that I reside in the selected jurisdiction.') }}
+                        <strong>{{ t('c_elections.candidacy.attest_strong', 'Nothing else is asked of me.') }}</strong>
                     </CheckboxField>
                     <span v-if="form.errors.residency_attested" class="field-error">
                         {{ form.errors.residency_attested }}
@@ -250,30 +243,27 @@ const machineCurrent = computed(() => {
 
                 <template #actions>
                     <span v-if="!registrationOpen" class="citation">
-                        closes at the finalist cutoff · reopens at certification · CLK-18
+                        {{ t('c_elections.candidacy.closes_note', 'closes at the finalist cutoff · reopens at certification · CLK-18') }}
                     </span>
                 </template>
             </FormCard>
 
-            <Card as="section" title="What happens next">
+            <Card as="section" :title="t('c_elections.candidacy.next_title', 'What happens next')">
                 <StateStrip :states="machine" :current="null" />
                 <ol style="margin-block-start: var(--space-3); padding-inline-start: var(--space-5)">
                     <li>
-                        The election board validates your residency association —
-                        <strong>the only check that may exist</strong> (F-ELB-002 · Art. I).
+                        {{ t('c_elections.candidacy.next_1_before', 'The election board validates your residency association —') }}
+                        <strong>{{ t('c_elections.candidacy.next_1_strong', 'the only check that may exist') }}</strong> {{ t('c_elections.candidacy.next_1_after', '(F-ELB-002 · Art. I).') }}
                     </li>
                     <li>
-                        You enter the approval pool: every associated resident can approve you,
-                        revocably, until the finalist cutoff (WF-CIV-08 · CLK-18).
+                        {{ t('c_elections.candidacy.next_2', 'You enter the approval pool: every associated resident can approve you, revocably, until the finalist cutoff (WF-CIV-08 · CLK-18).') }}
                     </li>
                     <li>
-                        The top X by approvals advance to the ranked ballot; everyone else
-                        remains write-in eligible — the right to stand is never lost (CLK-21).
+                        {{ t('c_elections.candidacy.next_3', 'The top X by approvals advance to the ranked ballot; everyone else remains write-in eligible — the right to stand is never lost (CLK-21).') }}
                     </li>
                 </ol>
                 <p class="citation" style="margin-block-start: var(--space-2)">
-                    finalists X = finalist_multiplier × seats · pre-published with the
-                    scheduling order · CLK-21
+                    {{ t('c_elections.candidacy.next_cite', 'finalists X = finalist_multiplier × seats · pre-published with the scheduling order · CLK-21') }}
                 </p>
             </Card>
         </div>

@@ -13,6 +13,7 @@
  * a scenario control, not product UI).
  */
 import { computed, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
@@ -44,6 +45,7 @@ const props = defineProps({
     vacancies: { type: Array, default: () => [] },
 });
 
+const { t } = useI18n();
 const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 /* Art. II §7 — an emergency cannot disrupt an election; the shell shows which
@@ -179,32 +181,29 @@ function runPetitionAudit(row) {
         v-if="board && board.is_bootstrap"
         tone="warning"
         role="status"
-        title="Bootstrap election board — temporary · replacement queued."
+        :title="t('c_elections.board.bootstrap_title', 'Bootstrap election board — temporary · replacement queued.')"
     >
-        This board exists only to run the first election. The seated legislature must appoint
-        a proper, politically neutral board as part of its first sessions.
+        {{ t('c_elections.board.bootstrap_body', 'This board exists only to run the first election. The seated legislature must appoint a proper, politically neutral board as part of its first sessions.') }}
         <CitationLine text="WF-ELE-02 · WF-ELE-10 · Art. II §2" />
     </Banner>
 
     <PageScaffold :surface="surface" :title="`Election board console — ${board.jurisdiction_name}`">
         <template #intro>
-            The board is an independent, politically neutral office: it schedules, validates,
-            oversees boundaries, certifies, audits, and orders recounts. It never counts by
-            hand — tabulation runs in protected code.
+            {{ t('c_elections.board.intro', 'The board is an independent, politically neutral office. It schedules, validates, oversees boundaries, certifies, audits, and orders recounts. It never counts by hand. Tabulation runs in protected code.') }}
         </template>
 
-        <p class="citation">Establish independent election boards · Art. II §2</p>
-        <p v-if="!board" class="citation">No election board is standing for you. This console is readable by everyone; its actions belong to seated board members (R-08).</p>
-        <p v-else-if="!can_act" class="citation">You are viewing this board. Its actions belong to seated board members (R-08).</p>
+        <p class="citation">{{ t('c_elections.board.cite_establish', 'Establish independent election boards · Art. II §2') }}</p>
+        <p v-if="!board" class="citation">{{ t('c_elections.board.no_board', 'No election board is standing for you. This console is readable by everyone. Its actions belong to seated board members (R-08).') }}</p>
+        <p v-else-if="!can_act" class="citation">{{ t('c_elections.board.viewing', 'You are viewing this board. Its actions belong to seated board members (R-08).') }}</p>
         <p class="citation">
-            Board members:
+            {{ t('c_elections.board.members_label', 'Board members:') }}
             <template v-for="(member, i) in board.members" :key="i">
                 <template v-if="i > 0"> · </template>{{ member.name }}
             </template>
         </p>
 
         <div v-if="boards.length > 1" class="field" style="max-inline-size: 28rem">
-            <label class="field-label" for="board-picker">Board</label>
+            <label class="field-label" for="board-picker">{{ t('c_elections.board.board_label', 'Board') }}</label>
             <select id="board-picker" class="select" :value="board.id" @change="switchBoard">
                 <option v-for="b in boards" :key="b.id" :value="b.id">
                     {{ b.jurisdiction_name }}{{ b.is_bootstrap ? ' (bootstrap)' : '' }}
@@ -215,9 +214,8 @@ function runPetitionAudit(row) {
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
         <!-- Art. II §7 — the board's work cannot be disrupted by an emergency. -->
-        <Banner v-if="emergenciesActive" tone="info" role="status" title="Elections cannot be disrupted — the board proceeds.">
-            An emergency cannot suspend an election or the board's work. Certification, seating
-            and the countback run on their clocks regardless. <span class="citation">Art. II §7</span>
+        <Banner v-if="emergenciesActive" tone="info" role="status" :title="t('c_elections.board.emergency_title', 'Elections cannot be disrupted — the board proceeds.')">
+            {{ t('c_elections.board.emergency_body', 'An emergency cannot suspend an election or the board work. Certification, seating and the countback run on their clocks regardless.') }} <span class="citation">Art. II §7</span>
         </Banner>
 
         <div class="cluster" style="gap: var(--space-6)">
@@ -232,13 +230,13 @@ function runPetitionAudit(row) {
             v-if="schedulable.length && formMeta('F-ELB-001')"
             :form="formMeta('F-ELB-001')"
             :inertia-form="schedForm"
-            submit-label="Issue scheduling order"
-            processing-label="Issuing…"
+            :submit-label="t('c_elections.board.issue_order', 'Issue scheduling order')"
+            :processing-label="t('c_elections.board.issuing', 'Issuing…')"
             @submit="submitSchedule"
         >
             <div class="grid-2">
                 <div>
-                    <Field label="Election" :error="schedForm.errors.election_id">
+                    <Field :label="t('c_elections.board.election_label', 'Election')" :error="schedForm.errors.election_id">
                         <template #control="{ id }">
                             <select :id="id" v-model="schedForm.election_id" class="select">
                                 <option v-for="e in schedulable" :key="e.election_id" :value="e.election_id">
@@ -248,10 +246,10 @@ function runPetitionAudit(row) {
                         </template>
                     </Field>
                     <Field
-                        label="Finalist cutoff"
+                        :label="t('c_elections.board.finalist_cutoff', 'Finalist cutoff')"
                         :hint="selectedElection
-                            ? `X per race is pre-published with this order — ${selectedElection.races.map((r) => `${r.label}: X = ${r.finalist_count}`).join(' · ')} · CLK-21`
-                            : 'X per race is pre-published with this order · CLK-21'"
+                            ? t('c_elections.board.cutoff_hint_sel', 'X per race is pre-published with this order — {races} · CLK-21', { races: selectedElection.races.map((r) => `${r.label}: X = ${r.finalist_count}`).join(' · ') })
+                            : t('c_elections.board.cutoff_hint', 'X per race is pre-published with this order · CLK-21')"
                         :error="schedForm.errors.finalist_cutoff_at"
                     >
                         <template #control="{ id, describedBy }">
@@ -266,14 +264,14 @@ function runPetitionAudit(row) {
                     </Field>
                 </div>
                 <div>
-                    <Field label="Ranked window opens" :error="schedForm.errors.ranked_opens_at">
+                    <Field :label="t('c_elections.board.ranked_opens', 'Ranked window opens')" :error="schedForm.errors.ranked_opens_at">
                         <template #control="{ id }">
                             <input :id="id" v-model="schedForm.ranked_opens_at" class="field-input" type="datetime-local" />
                         </template>
                     </Field>
                     <Field
-                        label="Ranked window closes"
-                        hint="Entered and stored as UTC — the engine validates window ordering and phase lengths."
+                        :label="t('c_elections.board.ranked_closes', 'Ranked window closes')"
+                        :hint="t('c_elections.board.ranked_closes_hint', 'Entered and stored as UTC. The engine validates window ordering and phase lengths.')"
                         :error="schedForm.errors.ranked_closes_at || schedForm.errors.constitution"
                     >
                         <template #control="{ id, describedBy }">
@@ -294,42 +292,41 @@ function runPetitionAudit(row) {
         <Card as="section">
             <template #title>
                 <h2>
-                    Validation queue
+                    {{ t('c_elections.board.queue_title', 'Validation queue') }}
                     <span class="citation">Candidate validation · F-ELB-002</span>
                 </h2>
             </template>
-            <p class="citation">available to R-08 · prereq: F-IND-011 submitted · Art. II §2 (election integrity)</p>
+            <p class="citation">{{ t('c_elections.board.queue_cite', 'available to R-08 · prereq: F-IND-011 submitted · Art. II §2 (election integrity)') }}</p>
             <p class="cc-small">
-                Residency association is the <strong>only</strong> permissible check. A rejection
-                is appealable in court.
+                {{ t('c_elections.board.queue_body', 'Residency association is the only permissible check. A rejection is appealable in court.') }}
             </p>
 
             <DataTable
                 v-if="queueRows.length"
                 :columns="[
-                    { key: 'name', label: 'Registrant' },
-                    { key: 'office', label: 'Office' },
-                    { key: 'residency', label: 'Residency record' },
-                    { key: 'decision', label: 'Decision' },
+                    { key: 'name', label: t('c_elections.board.col_registrant', 'Registrant') },
+                    { key: 'office', label: t('c_elections.board.col_office', 'Office') },
+                    { key: 'residency', label: t('c_elections.board.col_residency', 'Residency record') },
+                    { key: 'decision', label: t('c_elections.board.col_decision', 'Decision') },
                 ]"
                 :rows="queueRows"
                 row-key="candidacy_id"
-                caption="Pending candidacy registrations"
+                :caption="t('c_elections.board.queue_caption', 'Pending candidacy registrations')"
             >
                 <template #cell-residency="{ row }">
                     <StatusBadge v-if="row.residency.found" tone="success" icon="check">
-                        found{{ row.residency.slug ? ` · ${row.residency.slug}` : '' }}{{ row.residency.duplicate ? ' · duplicate registration flag' : '' }}
+                        {{ t('c_elections.board.res_found', 'found') }}{{ row.residency.slug ? ` · ${row.residency.slug}` : '' }}{{ row.residency.duplicate ? t('c_elections.board.res_dup', ' · duplicate registration flag') : '' }}
                     </StatusBadge>
-                    <StatusBadge v-else tone="danger" icon="alert-triangle">not found in jurisdiction</StatusBadge>
+                    <StatusBadge v-else tone="danger" icon="alert-triangle">{{ t('c_elections.board.res_not_found', 'not found in jurisdiction') }}</StatusBadge>
                 </template>
                 <template #cell-decision="{ row }">
                     <StatusBadge v-if="row.decision === 'validate'" tone="success" icon="check">
-                        validated · in approval pool
+                        {{ t('c_elections.board.dec_validated', 'validated · in approval pool') }}
                     </StatusBadge>
                     <template v-else-if="row.decision === 'reject'">
-                        <StatusBadge tone="danger" icon="x">rejected · appeal path open</StatusBadge>
+                        <StatusBadge tone="danger" icon="x">{{ t('c_elections.board.dec_rejected', 'rejected · appeal path open') }}</StatusBadge>
                         {{ ' ' }}
-                        <span class="planned-flag">court appeal · Planned · Phase E</span>
+                        <span class="planned-flag">{{ t('c_elections.board.court_appeal', 'court appeal · Planned · Phase E') }}</span>
                     </template>
                     <span v-else class="cluster" style="gap: var(--space-1)">
                         <Btn
@@ -337,17 +334,17 @@ function runPetitionAudit(row) {
                             size="sm"
                             :disabled="!can_act || !!decideBusy[row.candidacy_id]"
                             @click="decide(row, 'validate')"
-                        >Validate</Btn>
+                        >{{ t('c_elections.board.validate_btn', 'Validate') }}</Btn>
                         <Btn
                             variant="ghost"
                             size="sm"
                             :disabled="!can_act || !!decideBusy[row.candidacy_id]"
                             @click="decide(row, 'reject')"
-                        >Reject</Btn>
+                        >{{ t('c_elections.board.reject_btn', 'Reject') }}</Btn>
                     </span>
                 </template>
             </DataTable>
-            <p v-else class="gloss">No registrations awaiting validation.</p>
+            <p v-else class="gloss">{{ t('c_elections.board.queue_empty', 'No registrations awaiting validation.') }}</p>
         </Card>
 
         <div class="grid-2">
@@ -355,63 +352,62 @@ function runPetitionAudit(row) {
             <Card as="section">
                 <template #title>
                     <h2>
-                        District-map oversight
+                        {{ t('c_elections.board.district_title', 'District-map oversight') }}
                         <span class="citation">Subdivision boundary drawing · F-ELB-003</span>
                     </h2>
                 </template>
-                <p class="citation">available to R-08 · prereq: legislature seat count &gt; 9 · Art. II §2; Art. II §8 (Subdivision)</p>
+                <p class="citation">{{ t('c_elections.board.district_cite', 'available to R-08 · prereq: legislature seat count above 9 · Art. II §2; Art. II §8 (Subdivision)') }}</p>
                 <DataTable
                     v-if="districtOversight.length"
                     :columns="[
-                        { key: 'name', label: 'Plan' },
-                        { key: 'districts', label: 'Districts' },
-                        { key: 'status', label: 'Status' },
+                        { key: 'name', label: t('c_elections.board.col_plan', 'Plan') },
+                        { key: 'districts', label: t('c_elections.board.col_districts', 'Districts') },
+                        { key: 'status', label: t('c_elections.board.col_status', 'Status') },
                     ]"
                     :rows="districtOversight"
                     row-key="map_id"
-                    caption="District map plans under oversight"
+                    :caption="t('c_elections.board.district_caption', 'District map plans under oversight')"
                 >
                     <template #cell-districts="{ row }">
-                        {{ row.district_count }} · seats {{ row.seat_string }}
+                        {{ t('c_elections.board.district_seats', '{n} · seats {s}', { n: row.district_count, s: row.seat_string }) }}
                     </template>
                     <template #cell-status="{ row }">
-                        <StatusBadge v-if="row.status === 'active'" tone="success" icon="check">active</StatusBadge>
-                        <StatusBadge v-else-if="row.status === 'draft'" tone="info" icon="map">draft · published for observation</StatusBadge>
+                        <StatusBadge v-if="row.status === 'active'" tone="success" icon="check">{{ t('c_elections.board.status_active', 'active') }}</StatusBadge>
+                        <StatusBadge v-else-if="row.status === 'draft'" tone="info" icon="map">{{ t('c_elections.board.status_draft', 'draft · published for observation') }}</StatusBadge>
                         <StatusBadge v-else tone="neutral">{{ row.status }}</StatusBadge>
                     </template>
                 </DataTable>
                 <p v-else class="gloss">
-                    No district maps under oversight — chambers at or below the 9-seat ceiling
-                    run at-large by constitutional default (Art. II §8).
+                    {{ t('c_elections.board.district_empty', 'No district maps under oversight. Chambers at or below the 9-seat ceiling run at-large by constitutional default (Art. II §8).') }}
                 </p>
                 <p style="margin-block-start: var(--space-2)">
-                    <Link href="/legislatures">Open the legislature browser →</Link>
+                    <Link href="/legislatures">{{ t('c_elections.board.open_leg_browser', 'Open the legislature browser') }}</Link>
                 </p>
-                <p class="citation">Contiguous, equal subdivisions · Art. II §8</p>
+                <p class="citation">{{ t('c_elections.board.contiguous_cite', 'Contiguous, equal subdivisions · Art. II §8') }}</p>
             </Card>
 
             <!-- ===================================== certification ======= -->
             <Card as="section">
                 <template #title>
                     <h2>
-                        Certification
+                        {{ t('c_elections.board.cert_title', 'Certification') }}
                         <span class="citation">Election results certification · F-ELB-004</span>
                     </h2>
                 </template>
-                <p class="citation">available to R-08 · prereq: voting closed + tabulation complete · Art. II §2 (transparent election process)</p>
+                <p class="citation">{{ t('c_elections.board.cert_cite', 'available to R-08 · prereq: voting closed + tabulation complete · Art. II §2 (transparent election process)') }}</p>
 
                 <div v-for="row in certifiable" :key="row.election_id" class="card card--inset" style="margin-block-end: var(--space-3)">
                     <p style="margin-block-end: var(--space-1)"><strong>{{ row.label }}</strong></p>
                     <p class="citation">
-                        {{ row.rounds }} rounds · {{ row.seats }} seats ·
-                        {{ row.tabulation_complete ? 'tabulation complete' : 'tabulation in progress' }}
+                        {{ t('c_elections.board.cert_summary', '{r} rounds · {s} seats', { r: row.rounds, s: row.seats }) }} ·
+                        {{ row.tabulation_complete ? t('c_elections.board.tab_complete', 'tabulation complete') : t('c_elections.board.tab_progress', 'tabulation in progress') }}
                     </p>
                     <div class="cluster" style="margin-block-start: var(--space-2)">
                         <Btn as="a" :href="`/elections/${row.election_id}/results`" variant="secondary" size="sm">
-                            Review the count record
+                            {{ t('c_elections.board.review_record', 'Review the count record') }}
                         </Btn>
                         <template v-if="row.certified">
-                            <StatusBadge tone="success" icon="check">Certified — winners granted roles</StatusBadge>
+                            <StatusBadge tone="success" icon="check">{{ t('c_elections.board.certified_badge', 'Certified — winners granted roles') }}</StatusBadge>
                         </template>
                         <Btn
                             v-else
@@ -419,46 +415,45 @@ function runPetitionAudit(row) {
                             size="sm"
                             :disabled="!can_act || !row.tabulation_complete || !!certBusy[row.election_id]"
                             @click="certify(row.election_id)"
-                        >Certify results</Btn>
+                        >{{ t('c_elections.board.certify_results', 'Certify results') }}</Btn>
                     </div>
                     <hr />
-                    <h3>Recount <span class="citation">Recount/audit order · F-ELB-006</span></h3>
+                    <h3>{{ t('c_elections.board.recount_title', 'Recount') }} <span class="citation">Recount/audit order · F-ELB-006</span></h3>
                     <div class="cluster">
                         <StatusBadge v-if="row.recount.ordered" tone="danger" icon="refresh-cw">
-                            Recount proceedings open · WF-ELE-05
+                            {{ t('c_elections.board.recount_open', 'Recount proceedings open · WF-ELE-05') }}
                         </StatusBadge>
                         <template v-else-if="recountFor !== row.election_id">
                             <Btn
                                 variant="danger"
                                 size="sm"
                                 :disabled="!can_act || !row.certified"
-                                :title="row.certified ? undefined : 'Requires certification first'"
+                                :title="row.certified ? undefined : t('c_elections.board.needs_cert', 'Requires certification first')"
                                 @click="recountFor = row.election_id"
-                            >Order recount</Btn>
+                            >{{ t('c_elections.board.order_recount', 'Order recount') }}</Btn>
                             <span class="citation">
-                                {{ row.certified ? 'cause must be stated on the order' : 'enabled after certification' }}
+                                {{ row.certified ? t('c_elections.board.cause_required', 'cause must be stated on the order') : t('c_elections.board.after_cert', 'enabled after certification') }}
                                 · opens WF-ELE-05
                             </span>
                         </template>
                     </div>
                     <div v-if="recountFor === row.election_id" class="field" style="margin-block-start: var(--space-2)">
-                        <label class="field-label" :for="`cause-${row.election_id}`">Cause for the audit re-run (required)</label>
+                        <label class="field-label" :for="`cause-${row.election_id}`">{{ t('c_elections.board.recount_cause_label', 'Cause for the audit re-run (required)') }}</label>
                         <textarea :id="`cause-${row.election_id}`" v-model="recountCause" class="field-input" rows="2"></textarea>
-                        <span class="field-hint">The engine rejects an order without a stated cause.</span>
+                        <span class="field-hint">{{ t('c_elections.board.recount_cause_hint', 'The engine rejects an order without a stated cause.') }}</span>
                         <div class="cluster" style="margin-block-start: var(--space-2)">
                             <Btn
                                 variant="danger"
                                 size="sm"
                                 :disabled="!can_act || !recountCause.trim() || !!certBusy[row.election_id]"
                                 @click="orderRecount(row.election_id)"
-                            >Confirm recount order</Btn>
-                            <Btn variant="ghost" size="sm" @click="recountFor = null; recountCause = ''">Cancel</Btn>
+                            >{{ t('c_elections.board.recount_confirm', 'Confirm recount order') }}</Btn>
+                            <Btn variant="ghost" size="sm" @click="recountFor = null; recountCause = ''">{{ t('c_elections.board.cancel', 'Cancel') }}</Btn>
                         </div>
                     </div>
                 </div>
                 <p v-if="!certifiable.length" class="gloss">
-                    Nothing awaiting certification — counts appear here the moment a ranked
-                    window closes.
+                    {{ t('c_elections.board.cert_empty', 'Nothing awaiting certification. Counts appear here the moment a ranked window closes.') }}
                 </p>
             </Card>
         </div>
@@ -468,11 +463,11 @@ function runPetitionAudit(row) {
             <Card as="section">
                 <template #title>
                     <h2>
-                        Signature audit
+                        {{ t('c_elections.board.sig_title', 'Signature audit') }}
                         <span class="citation">Petition signature audit · F-ELB-005</span>
                     </h2>
                 </template>
-                <p class="citation">available to R-08 · prereq: petition at threshold · Art. II §6 (independent audit)</p>
+                <p class="citation">{{ t('c_elections.board.sig_cite', 'available to R-08 · prereq: petition at threshold · Art. II §6 (independent audit)') }}</p>
                 <div v-if="petitionAudits.length" class="stack" style="gap: var(--space-3)">
                     <div v-for="row in petitionAudits" :key="row.petition_id" class="card card--inset">
                         <p style="margin-block-end: var(--space-1)">
@@ -483,12 +478,11 @@ function runPetitionAudit(row) {
                             </StatusBadge>
                         </p>
                         <p class="cc-small">
-                            {{ row.signatures.toLocaleString() }} live signatures · threshold {{ row.threshold_count.toLocaleString() }}
+                            {{ t('c_elections.board.sig_counts', '{live} live signatures · threshold {threshold}', { live: row.signatures.toLocaleString(), threshold: row.threshold_count.toLocaleString() }) }}
                         </p>
                         <p v-if="row.result" class="cc-small">
-                            {{ row.result.valid.toLocaleString() }} of {{ row.result.checked.toLocaleString() }} valid
-                            ({{ row.result.pct_valid }}%) —
-                            {{ row.result.still_above ? 'still above threshold' : 'below threshold — invalidated (kill-path)' }}
+                            {{ t('c_elections.board.sig_result', '{valid} of {checked} valid ({pct}%)', { valid: row.result.valid.toLocaleString(), checked: row.result.checked.toLocaleString(), pct: row.result.pct_valid }) }} —
+                            {{ row.result.still_above ? t('c_elections.board.still_above', 'still above threshold') : t('c_elections.board.below_threshold', 'below threshold — invalidated (kill-path)') }}
                         </p>
                         <Btn
                             v-if="row.due"
@@ -496,37 +490,35 @@ function runPetitionAudit(row) {
                             size="sm"
                             :disabled="!can_act || auditingPetition === row.petition_id"
                             @click="runPetitionAudit(row)"
-                        >Run signature audit (F-ELB-005)</Btn>
+                        >{{ t('c_elections.board.run_sig_audit', 'Run signature audit (F-ELB-005)') }}</Btn>
                     </div>
                 </div>
-                <p v-else class="gloss">No petitions at threshold.</p>
+                <p v-else class="gloss">{{ t('c_elections.board.sig_empty', 'No petitions at threshold.') }}</p>
             </Card>
 
             <!-- ===================================== vacancies =========== -->
-            <Card as="section" title="Vacancies">
+            <Card as="section" :title="t('c_elections.board.vac_title', 'Vacancies')">
                 <div v-if="vacancies.length" class="stack" style="gap: var(--space-3)">
                     <div v-for="vacancy in vacancies" :key="vacancy.vacancy_id" class="card card--inset">
                         <p style="margin-block-end: var(--space-1)"><strong>{{ vacancy.label }}</strong></p>
-                        <p class="citation">Vacancy declaration received · F-LEG-036 · countback per Art. II §5</p>
+                        <p class="citation">{{ t('c_elections.board.vac_cite', 'Vacancy declaration received · F-LEG-036 · countback per Art. II §5') }}</p>
                         <div class="cluster" style="margin-block-start: var(--space-2)">
                             <StatusBadge
                                 :tone="vacancy.status === 'filled' ? 'success' : vacancy.status === 'countback_failed' ? 'danger' : 'warning'"
                             >{{ vacancy.status }}</StatusBadge>
                             <Btn as="a" :href="`/vacancies/${vacancy.vacancy_id}`" variant="secondary" size="sm">
-                                Open the countback view
+                                {{ t('c_elections.board.open_countback', 'Open the countback view') }}
                             </Btn>
                         </div>
                     </div>
                 </div>
-                <p v-else class="gloss">No vacancies — every seat in the jurisdiction is held.</p>
+                <p v-else class="gloss">{{ t('c_elections.board.vac_empty', 'No vacancies. Every seat in the jurisdiction is held.') }}</p>
             </Card>
         </div>
 
         <template #about>
             <p>
-                <strong>Bootstrap variant:</strong> a bootstrap board administers only the first
-                election and carries the persistent replacement warning until the seated
-                legislature appoints a proper board (WF-ELE-10).
+                {{ t('c_elections.board.about', 'Bootstrap variant: a bootstrap board administers only the first election and carries the persistent replacement warning until the seated legislature appoints a proper board (WF-ELE-10).') }}
             </p>
         </template>
     </PageScaffold>
