@@ -2,19 +2,22 @@
 
 namespace App\Console\Commands;
 
-use App\Models\AutoscaleRun;
-use App\Models\InstanceSettings;
+use App\Services\Setup\MapAcceptanceOptions;
+use App\Services\Setup\MapAcceptanceResult;
+use App\Services\Setup\MapAcceptanceService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 
 /**
  * maps:accept — the CLI half of the planet-scope "Accept Map Data & Continue"
- * button (UI↔CLI parity). CANONICAL SOURCE: JurisdictionController::acceptMaps
- * — this command mirrors its state changes and guards; keep the two in sync.
- * Stamps instance_settings.map_accepted_at (which CLOSES the repair window),
- * advances setup_step_completed to ≥2, and starts (or resumes) the full-scale
- * autoscale run via the pump.
+ * button (UI↔CLI parity). Both doors, and a backup restore, route through
+ * MapAcceptanceService, so the state left behind is identical: the repair
+ * window closes, the instance is stamped, the activation mode is recorded, and
+ * (under eager) the full-scale autoscale run starts.
+ *
+ * This command once drifted from the endpoint — it had no verifier gate, wrote
+ * no mode, and created a run with the wrong status. The shared service removed
+ * that drift; the command now only resolves options and renders the result.
  *
  * The repair-plane acknowledgment gate travels with the pair: open geodata
  * flags block acceptance unless --acknowledge is passed (the confirm dialog's
@@ -24,111 +27,97 @@ use Illuminate\Support\Facades\DB;
  */
 class MapsAcceptCommand extends Command
 {
-    protected $signature = 'maps:accept {--acknowledge : proceed despite open geodata flags (the confirm-dialog acknowledgment)}';
+    protected $signature = 'maps:accept
+                            {--mode=eager : Activation mode — eager | population | manual (eager starts the planet build)}
+                            {--simulate : Under eager on a sandbox world, populate with simulated residents after the build}
+                            {--acknowledge : Proceed despite open geodata flags (the confirm-dialog acknowledgment)}';
 
-    protected $description = 'Accept map data — close the repair window and start the full-scale autoscale run';
+    protected $description = 'Accept map data — close the repair window, record the mode, and start the full-scale autoscale run under eager';
 
-    public function handle(): int
+    public function handle(MapAcceptanceService $service): int
     {
-        // Locked check-then-stamp: repairs take the same instance_settings row
-        // lock as their first statement, so acceptance serializes against an
-        // in-flight repair instead of racing it (mirrors the controller).
-        $outcome = DB::transaction(function () {
-            $instance = InstanceSettings::query()->whereNull('deleted_at')->lockForUpdate()->first();
-            if (! $instance) {
-                return ['status' => 'missing'];
-            }
+        $mode = (string) $this->option('mode');
+        if (! in_array($mode, ['eager', 'population', 'manual'], true)) {
+            $this->error("Unknown --mode '{$mode}'. Use eager, population or manual.");
 
-            if ($instance->map_accepted_at) {
-                // Re-accept after acceptance RESUMES an unfinished run (the
-                // reboot/halt recovery path); a live run is left alone.
-                $unfinished = AutoscaleRun::unfinished();
-                if ($unfinished !== null) {
-                    if ($unfinished->status !== 'halted' && ! $unfinished->haltRequested()) {
-                        return ['status' => 'already_live', 'run_id' => (string) $unfinished->id, 'run_status' => $unfinished->status];
-                    }
-                    $unfinished->forceFill(['halt_requested_at' => null])->save();
+            return self::FAILURE;
+        }
 
-                    return ['status' => 'resumed', 'run_id' => (string) $unfinished->id];
-                }
+        $opts = new MapAcceptanceOptions(
+            mode: $mode,
+            simulateAtScale: (bool) $this->option('simulate'),
+            acknowledgeOpenFlags: (bool) $this->option('acknowledge'),
+            startAutoscale: false,
+            // Eager gates on the world-build verifier, exactly as the endpoint.
+            gateOnVerifier: $mode === 'eager',
+            initiatorUserId: null, // the CLI has no request user
+        );
 
-                return ['status' => 'already_accepted'];
-            }
+        $result = $service->accept($opts);
+        $p = $result->payload;
 
-            // Repair-plane acknowledgment gate: accepting CLOSES the repair
-            // window, so open flags must be acknowledged first.
-            $openRow = DB::table('geodata_flags')
-                ->whereNull('deleted_at')
-                ->where('status', 'open')
-                ->selectRaw("
-                    COUNT(*) FILTER (WHERE severity = 'critical') AS critical,
-                    COUNT(*) FILTER (WHERE severity = 'warning')  AS warning,
-                    COUNT(*) FILTER (WHERE severity = 'info')     AS info
-                ")
-                ->first();
-            $openFlags = [
-                'critical' => (int) ($openRow->critical ?? 0),
-                'warning'  => (int) ($openRow->warning ?? 0),
-                'info'     => (int) ($openRow->info ?? 0),
-            ];
-            if (array_sum($openFlags) > 0 && ! $this->option('acknowledge')) {
-                return ['status' => 'requires_ack', 'open_flags' => $openFlags];
-            }
-
-            $instance->forceFill([
-                'map_accepted_at'      => now(),
-                'setup_step_completed' => max((int) $instance->setup_step_completed, 2),
-            ])->save();
-
-            return ['status' => 'accepted', 'open_flags' => $openFlags];
-        });
-
-        switch ($outcome['status']) {
-            case 'missing':
+        switch ($result->outcome) {
+            case MapAcceptanceResult::MISSING_INSTANCE:
                 $this->error('Instance settings row is missing — bootstrap not complete.');
 
                 return self::FAILURE;
-            case 'already_live':
-                $this->info("Already accepted — autoscale run {$outcome['run_id']} is {$outcome['run_status']} (nothing to do).");
 
-                return self::SUCCESS;
-            case 'resumed':
-                Artisan::call('autoscale:pump'); // pump kick AFTER the locked tx commits
-                $this->info("Already accepted — resumed halted autoscale run {$outcome['run_id']}.");
+            case MapAcceptanceResult::WORLD_BUILD_INCOMPLETE:
+                $legs = $p['progress']['legislatures'] ?? [];
+                $app = $p['progress']['apportionment'] ?? [];
+                $this->error('World build incomplete — acceptance refused. '
+                    .'Unsized parents: '.($legs['unsized_parents'] ?? '?').', '
+                    .'unsized leaves: '.($legs['unsized_leaves'] ?? '?').', '
+                    .'apportionment open: '.($app['open'] ?? '?').', failed: '.($app['failed'] ?? '?').'.');
 
-                return self::SUCCESS;
-            case 'already_accepted':
-                $this->info('Already accepted — no unfinished autoscale run.');
+                return self::FAILURE;
 
-                return self::SUCCESS;
-            case 'requires_ack':
-                $f = $outcome['open_flags'];
+            case MapAcceptanceResult::REQUIRES_ACKNOWLEDGMENT:
+                $f = $p['open_flags'];
                 $this->error(sprintf(
                     'Open geodata flags block acceptance: %d critical, %d warning, %d info. Re-run with --acknowledge to proceed.',
                     $f['critical'], $f['warning'], $f['info']
                 ));
 
                 return self::FAILURE;
+
+            case MapAcceptanceResult::ALREADY_LIVE:
+                $this->info("Already accepted — autoscale run {$result->run?->id} is ".($p['run_status'] ?? '?').' (nothing to do).');
+
+                return self::SUCCESS;
+
+            case MapAcceptanceResult::RESUMED:
+                Artisan::call('autoscale:pump'); // pump kick AFTER the locked tx commits
+                $this->info("Already accepted — resumed halted autoscale run {$result->run?->id}.");
+
+                return self::SUCCESS;
+
+            case MapAcceptanceResult::ALREADY_ACCEPTED:
+                $this->info('Already accepted — no unfinished autoscale run.');
+
+                return self::SUCCESS;
         }
 
-        // status = accepted → start (or resume) the run and pump.
-        $run = AutoscaleRun::unfinished();
-        if ($run === null) {
-            $run = AutoscaleRun::create([
-                'status'            => 'queued',
-                'adm_max'           => (int) config('cga.autoscale_adm_max', 6),
-                'initiator_user_id' => null, // the CLI has no request user
-                'template'          => null,
-            ]);
-        } else {
-            $run->forceFill(['halt_requested_at' => null])->save();
-        }
-        Artisan::call('autoscale:pump');
+        // ACCEPTED — a fresh stamp.
+        $f = $p['open_flags'] ?? ['critical' => 0, 'warning' => 0, 'info' => 0];
 
-        $f = $outcome['open_flags'];
+        if ($p['deferred'] ?? false) {
+            $this->info(sprintf(
+                'Map data accepted — mode %s: planet-wide autoscale deferred '.
+                '(open flags at acceptance: %d critical, %d warning, %d info).',
+                $p['mode'] ?? $mode, $f['critical'], $f['warning'], $f['info']
+            ));
+
+            return self::SUCCESS;
+        }
+
+        if ($result->kickPump) {
+            Artisan::call('autoscale:pump');
+        }
+
         $this->info(sprintf(
             'Map data accepted (open flags at acceptance: %d critical, %d warning, %d info). Autoscale run %s started.',
-            $f['critical'], $f['warning'], $f['info'], $run->id
+            $f['critical'], $f['warning'], $f['info'], $result->run?->id
         ));
 
         return self::SUCCESS;

@@ -161,11 +161,21 @@ class MapDataImportService
         $proc->setEnv(['PGPASSWORD' => $cfg['password']]);
         $proc->mustRun();
 
-        // Stamp acceptance — the receiving operator can re-affirm via the
-        // viewer if they want, but the import is itself an acceptance signal.
-        DB::table('instance_settings')->update([
-            'map_accepted_at' => now(),
-        ]);
+        // Stamp acceptance through the ONE acceptance path (MapAcceptanceService),
+        // so a restore leaves the same state as a wizard or CLI acceptance:
+        // map_accepted_at stamped, setup_step_completed advanced to >=2, and the
+        // activation mode recorded. A restore chooses MANUAL — the receiving
+        // operator decides when to build the planet, so no autoscale run starts
+        // and the world-build verifier gate is skipped. Open geodata flags never
+        // block a restore, so acknowledgment is implied. Idempotent: a donor
+        // instance already accepted keeps its timestamp (the service no-ops).
+        app(\App\Services\Setup\MapAcceptanceService::class)->accept(
+            new \App\Services\Setup\MapAcceptanceOptions(
+                mode: 'manual',
+                acknowledgeOpenFlags: true,
+                gateOnVerifier: false,
+            )
+        );
 
         // A restore replaces jurisdictions / districts / settings wholesale, so
         // every derived cache (boundary GeoJSON, revealed GeoJSON, mass-op flags)
@@ -331,7 +341,23 @@ class MapDataImportService
                 DB::table('instance_settings')->update(['cosmic_address_id' => $node->id]);
             }
 
-            DB::table('instance_settings')->update(['map_accepted_at' => now()]);
+            // Stamp acceptance through the ONE acceptance path (MapAcceptanceService),
+            // so a seed import (the maps:import CLI, or the legacy federation tarball
+            // pull) leaves the same state as a wizard, maps:accept, or backup-upload
+            // acceptance: map_accepted_at stamped, setup_step_completed advanced to
+            // >=2, and the activation mode recorded. A seed import chooses MANUAL: the
+            // receiving box decides when to build, so no autoscale run starts and the
+            // world-build verifier gate is skipped. Open geodata flags never block a
+            // seed import, so acknowledgment is implied. Idempotent: a box already
+            // accepted keeps its timestamp (the service no-ops). Placed AFTER the
+            // cosmic re-point transaction so the identity sequence is undisturbed.
+            app(\App\Services\Setup\MapAcceptanceService::class)->accept(
+                new \App\Services\Setup\MapAcceptanceOptions(
+                    mode: 'manual',
+                    acknowledgeOpenFlags: true,
+                    gateOnVerifier: false,
+                )
+            );
 
             Cache::flush();
             try {

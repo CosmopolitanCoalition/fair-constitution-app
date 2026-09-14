@@ -116,6 +116,100 @@ final class SimResumeEnumerationTest extends TestCase
         self::assertFalse($r3['overrode']);
     }
 
+    // ---- pure seam: single-run selection on resume -------------------------
+
+    public function test_named_run_wins_when_it_is_an_unfinished_candidate(): void
+    {
+        $candidates = [
+            ['id' => 'b', 'created_at' => '2026-09-01 00:00:00'],
+            ['id' => 'a', 'created_at' => '2026-09-02 00:00:00'],
+        ];
+        $sel = SimStartCommand::selectResumeRun($candidates, 'a');
+        self::assertSame('a', $sel['run_id']);
+        self::assertNull($sel['error']);
+    }
+
+    public function test_named_run_absent_from_the_candidate_set_refuses(): void
+    {
+        $sel = SimStartCommand::selectResumeRun(
+            [['id' => 'a', 'created_at' => '2026-09-02 00:00:00']],
+            'zzz'
+        );
+        self::assertNull($sel['run_id']);
+        self::assertStringContainsString('zzz', (string) $sel['error']);
+        self::assertStringContainsString('unfinished run', (string) $sel['error']);
+    }
+
+    public function test_plain_resume_takes_the_single_active_run(): void
+    {
+        $sel = SimStartCommand::selectResumeRun(
+            [['id' => 'only', 'created_at' => '2026-09-05 00:00:00']],
+            null
+        );
+        self::assertSame('only', $sel['run_id']);
+        self::assertNull($sel['error']);
+    }
+
+    public function test_plain_resume_takes_the_oldest_never_the_newest(): void
+    {
+        // Deliberately unsorted; the newest is first in the list.
+        $candidates = [
+            ['id' => 'new', 'created_at' => '2026-09-10 00:00:00'],
+            ['id' => 'old', 'created_at' => '2026-09-01 00:00:00'],
+            ['id' => 'mid', 'created_at' => '2026-09-05 00:00:00'],
+        ];
+        $sel = SimStartCommand::selectResumeRun($candidates, null);
+        self::assertSame('old', $sel['run_id'], 'the oldest is the single active run the pump keeps');
+        self::assertNull($sel['error']);
+    }
+
+    public function test_equal_created_at_breaks_the_tie_by_lowest_id(): void
+    {
+        $candidates = [
+            ['id' => 'z', 'created_at' => '2026-09-01 00:00:00'],
+            ['id' => 'a', 'created_at' => '2026-09-01 00:00:00'],
+        ];
+        $sel = SimStartCommand::selectResumeRun($candidates, null);
+        self::assertSame('a', $sel['run_id']);
+    }
+
+    public function test_empty_candidate_set_with_no_name_starts_fresh(): void
+    {
+        $sel = SimStartCommand::selectResumeRun([], null);
+        self::assertNull($sel['run_id'], 'null run_id and null error tells the caller to start fresh');
+        self::assertNull($sel['error']);
+    }
+
+    public function test_run_selection_over_real_sim_run_rows_on_the_fixture(): void
+    {
+        // Three unfinished runs plus one finished — the finished one is never a
+        // candidate. Seed the same way the command queries them.
+        $this->makeRun('r-old', 'running', '2026-09-01 00:00:00');
+        $this->makeRun('r-mid', 'halted', '2026-09-05 00:00:00');
+        $this->makeRun('r-new', 'queued', '2026-09-10 00:00:00');
+        $this->makeRun('r-done', 'completed', '2026-09-02 00:00:00');
+
+        $candidates = DB::table('sim_runs')
+            ->whereIn('status', ['queued', 'running', 'halted'])
+            ->orderBy('created_at')
+            ->get(['id', 'created_at'])
+            ->map(fn ($r) => ['id' => (string) $r->id, 'created_at' => (string) $r->created_at])
+            ->all();
+
+        self::assertCount(3, $candidates, 'the finished run is excluded');
+
+        // Plain resume adopts the oldest unfinished run.
+        self::assertSame('r-old', SimStartCommand::selectResumeRun($candidates, null)['run_id']);
+
+        // --run names a specific unfinished run, even a newer one.
+        self::assertSame('r-new', SimStartCommand::selectResumeRun($candidates, 'r-new')['run_id']);
+
+        // Naming the finished run refuses — it is not a candidate.
+        $refuse = SimStartCommand::selectResumeRun($candidates, 'r-done');
+        self::assertNull($refuse['run_id']);
+        self::assertNotNull($refuse['error']);
+    }
+
     // ---- chunk size derivation ---------------------------------------------
 
     public function test_enumeration_chunk_honours_env_override_and_floor(): void
@@ -237,6 +331,18 @@ final class SimResumeEnumerationTest extends TestCase
         }
 
         return $ids;
+    }
+
+    /** Insert a sim_runs row with an explicit id, status and created_at. */
+    private function makeRun(string $id, string $status, string $createdAt): void
+    {
+        DB::table('sim_runs')->insert([
+            'id' => $id,
+            'status' => $status,
+            'phase' => 'cohorts',
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
+        ]);
     }
 
     private function newRun(): SimRun

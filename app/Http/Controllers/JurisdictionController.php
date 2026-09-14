@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Jurisdiction;
+use App\Services\Setup\MapAcceptanceOptions;
+use App\Services\Setup\MapAcceptanceResult;
+use App\Services\Setup\MapAcceptanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -783,252 +786,118 @@ class JurisdictionController extends Controller
         // be able to slam it shut (or, via reopen, swing it open).
         abort_unless((bool) $request->user()?->is_operator, 403);
 
-        // NULL-POP NORMALIZATION AT ACCEPTANCE (operator ruling 2026-09-09).
-        // Ingestion should leave every population at 0, never NULL, but a
-        // survivor NULL (a small-island ingest gap — Lakshadweep, capital
-        // included) trips the districting's unassigned-constituents check and
-        // parks the map in review. At map-data acceptance — the end of
-        // ingestion, before any drawing starts — normalize ALL remaining NULL
-        // populations to 0 in one pass, so the districting never sees a NULL.
-        // Idempotent, one-time; touches only the anomalous NULL rows, and no
-        // already-built seat total changes (COALESCE reads NULL as 0 elsewhere).
-        DB::table('jurisdictions')->whereNull('population')
-            ->update(['population' => 0, 'updated_at' => now()]);
+        // ONE ACCEPTANCE PATH (MapAcceptanceService): the wizard endpoint,
+        // maps:accept, and the backup restore all leave identical state. The
+        // controller resolves the request into options, then renders the
+        // service result as JSON and kicks the pump the web way — QUEUED,
+        // never inline, because the pump's pg-recovery probe can sleep ten
+        // minutes and must never do it inside a web request.
+        $mode = MapAcceptanceOptions::resolveMode(
+            $request->input('scale_mode'),
+            $request->boolean('defer_autoscale'),
+        );
+        $opts = new MapAcceptanceOptions(
+            mode: $mode,
+            simulateAtScale: $request->boolean('simulate_at_scale'),
+            acknowledgeOpenFlags: $request->boolean('acknowledge_open_flags'),
+            startAutoscale: $request->boolean('start_autoscale'),
+            gateOnVerifier: $mode === 'eager' || $request->boolean('start_autoscale'),
+            initiatorUserId: $request->user()?->getKey(),
+        );
 
-        // THE ACCEPT GATE (operator plan 2026-08-31): phase 3 is verify +
-        // flip. Any request that would START the drawing verifies the world
-        // build FIRST — before anything stamps — and an incomplete build
-        // returns the live progress report as a 422 (the wizard renders the
-        // same bars the step-3 empty state shows). Non-run modes (manual /
-        // population) stamp acceptance without the gate, exactly as before.
-        $requestedMode = (string) $request->input('scale_mode', '');
-        if (! in_array($requestedMode, ['eager', 'population', 'manual'], true)) {
-            $requestedMode = $request->boolean('defer_autoscale') ? 'manual' : 'eager';
+        $result = app(MapAcceptanceService::class)->accept($opts);
+
+        if ($result->kickPump) {
+            try {
+                \Illuminate\Support\Facades\Artisan::queue('autoscale:pump')->onQueue('autoscale');
+            } catch (\Throwable) {
+                // The scheduler's next pump minute resumes it anyway.
+            }
         }
-        if ($requestedMode === 'eager' || $request->boolean('start_autoscale')) {
-            $worldReport = \App\Support\WorldBuildVerifier::report();
-            if (! $worldReport['complete']) {
+
+        return $this->acceptMapsResponse($result);
+    }
+
+    /** Render a MapAcceptanceResult as the acceptMaps JSON response. */
+    private function acceptMapsResponse(MapAcceptanceResult $result): JsonResponse
+    {
+        $p = $result->payload;
+
+        switch ($result->outcome) {
+            case MapAcceptanceResult::MISSING_INSTANCE:
+                return response()->json([
+                    'ok' => false,
+                    'error' => 'Instance settings row is missing — bootstrap not complete.',
+                ], 422);
+
+            case MapAcceptanceResult::WORLD_BUILD_INCOMPLETE:
                 return response()->json([
                     'ok' => false,
                     'world_build_incomplete' => true,
-                    'progress' => $worldReport,
+                    'progress' => $p['progress'],
                 ], 422);
-            }
-        }
 
-        // Locked check-then-stamp: repairs take the same instance_settings row
-        // lock as the FIRST statement of their transactions, so acceptance
-        // serializes against an in-flight repair instead of racing it.
-        $gate = DB::transaction(function () use ($request) {
-            $instance = \App\Models\InstanceSettings::query()->whereNull('deleted_at')->lockForUpdate()->first();
-            if (! $instance) {
-                return ['response' => response()->json([
-                    'ok' => false,
-                    'error' => 'Instance settings row is missing — bootstrap not complete.',
-                ], 422)];
-            }
+            case MapAcceptanceResult::REQUIRES_ACKNOWLEDGMENT:
+                return response()->json([
+                    'requires_acknowledgment' => true,
+                    'open_flags' => $p['open_flags'],
+                ], 422);
 
-            if ($instance->map_accepted_at) {
-                // Autoscale (2026-07-18): a re-POST after acceptance RESUMES an
-                // unfinished full-scale run instead of 409ing — the operator's
-                // recovery path after a box reboot or a halt. A live run
-                // (fresh heartbeat) is left alone.
-                $unfinished = \App\Models\AutoscaleRun::unfinished();
-                if ($unfinished !== null) {
-                    if ($unfinished->status !== 'halted' && ! $unfinished->haltRequested()) {
-                        // Pull engine: an active run needs no revival — the
-                        // pump is its liveness root. Nothing to dispatch.
-                        return ['response' => response()->json([
-                            'ok' => true,
-                            'already_accepted' => true,
-                            'autoscale_run_id' => (string) $unfinished->id,
-                            'autoscale_status' => $unfinished->status,
-                        ])];
-                    }
-                    $unfinished->forceFill(['halt_requested_at' => null])->save();
-                    // Pump kick happens AFTER this locked transaction commits
-                    // (see below) — never hold the instance_settings row lock
-                    // through pump work.
-                    return ['response' => response()->json([
-                        'ok' => true,
-                        'already_accepted' => true,
-                        'autoscale_resumed' => true,
-                        'autoscale_run_id' => (string) $unfinished->id,
-                    ]), 'kick_pump' => true];
-                }
-
-                // THE RE-HOOK (operator 2026-08-06, the manual-first arc):
-                // acceptance may have DEFERRED the planet-wide build; the
-                // "Start planet-wide generation" control re-posts with
-                // start_autoscale=true and the run is created below through
-                // the same path as a fresh acceptance. An unfinished run was
-                // already handled above; a completed one is deliberately left
-                // alone — re-running the planet is the mass-reseed sweep's
-                // job, not acceptance's.
-                if ($request->boolean('start_autoscale')) {
-                    return ['instance' => $instance, 'rehook' => true,
-                            'open_flags' => ['critical' => 0, 'warning' => 0, 'info' => 0]];
-                }
-
-                return ['response' => response()->json([
+            case MapAcceptanceResult::ALREADY_LIVE:
+                return response()->json([
                     'ok' => true,
                     'already_accepted' => true,
-                    'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
-                    'apportionment_completed_at' => $instance->apportionment_completed_at?->toIso8601String(),
-                ])];
-            }
+                    'autoscale_run_id' => (string) $result->run?->id,
+                    'autoscale_status' => $p['run_status'] ?? null,
+                ]);
 
-            // Repair-plane acknowledgment gate: accepting the map CLOSES the
-            // repair window, so open geodata flags must be surfaced first. Any
-            // open flag requires an explicit acknowledge_open_flags=true from
-            // the confirm dialog before acceptance proceeds; the counts snapshot
-            // rides the success response (and the log) either way.
-            $openRow = DB::table('geodata_flags')
-                ->whereNull('deleted_at')
-                ->where('status', 'open')
-                ->selectRaw("
-                    COUNT(*) FILTER (WHERE severity = 'critical') AS critical,
-                    COUNT(*) FILTER (WHERE severity = 'warning')  AS warning,
-                    COUNT(*) FILTER (WHERE severity = 'info')     AS info
-                ")
-                ->first();
-            $openFlags = [
-                'critical' => (int) ($openRow->critical ?? 0),
-                'warning'  => (int) ($openRow->warning ?? 0),
-                'info'     => (int) ($openRow->info ?? 0),
-            ];
-            if (array_sum($openFlags) > 0 && ! $request->boolean('acknowledge_open_flags')) {
-                return ['response' => response()->json([
-                    'requires_acknowledgment' => true,
-                    'open_flags' => $openFlags,
-                ], 422)];
-            }
+            case MapAcceptanceResult::RESUMED:
+                return response()->json([
+                    'ok' => true,
+                    'already_accepted' => true,
+                    'autoscale_resumed' => true,
+                    'autoscale_run_id' => (string) $result->run?->id,
+                ]);
 
-            // THE THREE ACTIVATION MODES (operator, 2026-08-08). The mode is
-            // chosen at acceptance and stored; everything downstream reads it:
-            //   eager      → the full-scale build starts below (autoscale),
-            //                and its completion chains institution
-            //                provisioning (AutoscalePumpCommand done-flip).
-            //   population → nothing starts; CLK-06 boots each place as
-            //                verified residents cross its threshold.
-            //   manual     → nothing starts; the Activate controls and the
-            //                governance forms build the world by hand.
-            // simulate_at_scale is dev-only (game_mode sandbox) and only
-            // meaningful under eager. Legacy defer_autoscale (no mode sent)
-            // maps to manual.
-            $mode = (string) $request->input('scale_mode', '');
-            if (! in_array($mode, ['eager', 'population', 'manual'], true)) {
-                $mode = $request->boolean('defer_autoscale') ? 'manual' : 'eager';
-            }
-            $simulate = $mode === 'eager'
-                && $request->boolean('simulate_at_scale')
-                && $instance->game_mode === 'sandbox';
-
-            $instance->forceFill([
-                'map_accepted_at' => now(),
-                'setup_step_completed' => max((int) $instance->setup_step_completed, 2),
-                'institution_scale_mode' => $mode,
-                'simulate_at_scale' => $simulate,
-            ])->save();
-
-            return ['instance' => $instance, 'open_flags' => $openFlags, 'mode' => $mode];
-        });
-
-        if (isset($gate['response'])) {
-            if ($gate['kick_pump'] ?? false) {
-                try {
-                    // QUEUED, never inline (operator plan 2026-08-31): the
-                    // pump's pg-recovery probe can sleep ten minutes and must
-                    // never do it inside a web request.
-                    \Illuminate\Support\Facades\Artisan::queue('autoscale:pump')->onQueue('autoscale');
-                } catch (\Throwable) {
-                    // The scheduler's next pump minute resumes it anyway.
-                }
-            }
-
-            return $gate['response'];
+            case MapAcceptanceResult::ALREADY_ACCEPTED:
+                return response()->json([
+                    'ok' => true,
+                    'already_accepted' => true,
+                    'map_accepted_at' => $p['map_accepted_at'] ?? null,
+                    'apportionment_completed_at' => $p['apportionment_completed_at'] ?? null,
+                ]);
         }
-        $instance  = $gate['instance'];
-        $openFlags = $gate['open_flags'];
 
-        // MANUAL-FIRST MODE (operator 2026-08-06: "I want to return to
-        // building One Jurisdiction at a time manually"): acceptance stamps
-        // and closes the repair window exactly as always, but the planet-
-        // wide build does NOT start. The operator maps manually
-        // (apportionment:seed --jurisdiction=… + the mapper), then the
-        // Start-planet-wide-generation control re-hooks the full build via
-        // the re-hook branch above.
-        $mode = $gate['mode'] ?? 'eager';
-        if ($mode !== 'eager' && ! ($gate['rehook'] ?? false)) {
+        // ACCEPTED — a fresh stamp. Deferred (manual / population) records the
+        // mode and starts nothing; eager / re-hook carries the run id.
+        $openFlags = $p['open_flags'] ?? ['critical' => 0, 'warning' => 0, 'info' => 0];
+
+        if ($p['deferred'] ?? false) {
             \Illuminate\Support\Facades\Log::info(sprintf(
                 'Map data accepted — mode %s: planet-wide autoscale DEFERRED. '.
                 'Open flags at acceptance: %d critical, %d warning, %d info.',
-                $mode, $openFlags['critical'], $openFlags['warning'], $openFlags['info'],
+                $p['mode'] ?? 'manual', $openFlags['critical'], $openFlags['warning'], $openFlags['info'],
             ));
 
             return response()->json([
                 'ok' => true,
-                'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
+                'map_accepted_at' => $p['map_accepted_at'] ?? null,
                 'open_flags_at_acceptance' => $openFlags,
-                'institution_scale_mode' => $mode,
+                'institution_scale_mode' => $p['mode'] ?? null,
                 'autoscale_deferred' => true,
             ]);
         }
 
-        // AUTOSCALE (pull engine, 2026-07-19): acceptance kicks off
-        // governance for ALL jurisdictions — sizing every legislature (TRUE
-        // ALL SCALE, adm6 villages included) and district-mapping every one
-        // (48k mixed-autoseed sweeps + ~903k set-based single-district leaf
-        // councils). The run row + items/scopes are the durable state; the
-        // scheduler's every-minute pump is the run's liveness root, and the
-        // inline pump call below just skips the first minute of waiting.
-        try {
-            // Accept → reopen → repairs → accept-again must not mint a SECOND
-            // run: an unfinished run (paused by reopenMaps' halt) resumes
-            // instead. The pump's oldest-wins dedupe backstops the remaining
-            // ms-window against a racing CLI start.
-            $run = \App\Models\AutoscaleRun::unfinished();
-            if ($run === null) {
-                // Born MAPPING: the sizing phase retired into the world
-                // build, so the flip IS the benchmark clock.
-                $kinds = DB::table('apportionment_ledger')
-                    ->selectRaw("COUNT(*) FILTER (WHERE kind = 'single') AS singles,
-                                 COUNT(*) FILTER (WHERE kind IS DISTINCT FROM 'single') AS sweeps")
-                    ->first();
-                $run = \App\Models\AutoscaleRun::create([
-                    'status'             => 'mapping',
-                    'mapping_started_at' => now(),
-                    'adm_max'            => (int) config('cga.autoscale_adm_max', 6),
-                    'initiator_user_id'  => $request->user()?->getKey(),
-                    'template'           => null, // constitutional default per legislature
-                    'singles_total'      => (int) ($kinds->singles ?? 0),
-                    'sweeps_total'       => (int) ($kinds->sweeps ?? 0),
-                ]);
-            } else {
-                $run->forceFill(['halt_requested_at' => null])->save();
-            }
-            \Illuminate\Support\Facades\Artisan::queue('autoscale:pump')->onQueue('autoscale');
-        } catch (\Throwable $e) {
-            // Don't fail the acceptance — the scheduler's next pump minute
-            // starts the run anyway.
-            \Illuminate\Support\Facades\Log::warning(
-                'Autoscale pump kick failed (acceptance still recorded): '.$e->getMessage()
-            );
-            $run = null;
-        }
-
         \Illuminate\Support\Facades\Log::info(sprintf(
             'Map data accepted — open geodata flags at acceptance: %d critical, %d warning, %d info.',
-            $openFlags['critical'],
-            $openFlags['warning'],
-            $openFlags['info'],
+            $openFlags['critical'], $openFlags['warning'], $openFlags['info'],
         ));
 
         return response()->json([
             'ok' => true,
-            'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
+            'map_accepted_at' => $p['map_accepted_at'] ?? null,
             'open_flags_at_acceptance' => $openFlags,
-            'autoscale_run_id' => $run?->id,
+            'autoscale_run_id' => $result->run?->id,
         ]);
     }
 
