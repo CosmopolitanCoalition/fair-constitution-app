@@ -1,4 +1,4 @@
-# Mesh lane (M3, M4, M5; M6 pending)
+# Mesh lane (M3, M4, M5, M6)
 
 Date: 2026-09-13. Built in parallel on branch `lane/mesh` (worktree `.wt/mesh`), each item reviewed by three adversarial lenses and repaired, committed per item, merged into main as `d810d9b8`. No script was run for real; every check uses stub harnesses or sqlite fixtures.
 
@@ -14,7 +14,9 @@ Ruling `bootstrap-project-and-failures` = A. `bootstrap.sh` reads the project `d
 
 Ruling `join-async-dispatch` = A. `cluster:join` dispatches `ClusterJoinJob` by default (`--sync` opt-in) and resumes an existing membership instead of re-admitting; `deploy.sh` and `deploy.ps1` dispatch the join after nginx is up so the UI serves during the transfer. The job contract (long-running queue, no overlap, one try, no timeout) is pinned.
 
-## M6 bounded import finalization. Building on the lane at the time of this record; merged separately when it lands.
+## M6 bounded import finalization (commit 73981899, merged as f94b4545). Closed.
+
+Ruling `import-finalization-bounds` = A. The authority stamp rides each drained page inside the page transaction (a scoped id-range UPDATE); the planet-wide stamp and count are gone from the paginated path; completion is the page ledger plus one index-assisted exists() probe before `seeded_at`, and the membership stays SYNCING with a visible reason if unowned rows remain; the legacy tarball path is marked legacy and stamps by keyset chunks; the progress denominator reads `pg_class.reltuples` on PostgreSQL (count on sqlite); the mirror writes only the host server id. Reviewers caught two real defects in the first build (the legacy keyset started at an empty string, which PostgreSQL rejects for a uuid) and both were repaired. The geodata counts poll ended up on G3's snapshot rather than M6's 8-second cache, which supersedes it; the M6 test now pins that a poll never scans the world table.
 
 ## Passed checks on the merged main
 

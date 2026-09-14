@@ -319,7 +319,14 @@ class FoundationImportBoundsTest extends TestCase
 
     // ── geodata pull counts: served from cache on the second poll ─────────────────────────────
 
-    public function test_geodata_jurisdictions_counts_are_served_from_cache_on_the_second_call(): void
+    /**
+     * M6 asked that the geodata counts never re-scan the world on a poll. The
+     * merged design (G3's SetupProgressRollup) goes further than the 8-second
+     * cache this test first pinned: the poll reads a warmed snapshot and never
+     * issues the GROUP BY itself. Once the snapshot is warm, a poll touches no
+     * world table at all.
+     */
+    public function test_geodata_jurisdictions_counts_never_scan_on_the_poll_path(): void
     {
         $this->seedRow('00000000-0000-0000-0000-00000000dd01', self::HOST);
         $this->seedRow('00000000-0000-0000-0000-00000000dd02', self::HOST);
@@ -328,15 +335,15 @@ class FoundationImportBoundsTest extends TestCase
         $m = new ReflectionMethod($controller, 'jurisdictionsCounts');
         $m->setAccessible(true);
 
+        $m->invoke($controller); // cold miss: computing skeleton, warm queued off the request path
+
         DB::enableQueryLog();
-        $first = $m->invoke($controller);
-        $second = $m->invoke($controller);
+        $warm = $m->invoke($controller);
         $log = DB::getQueryLog();
         DB::disableQueryLog();
 
-        $this->assertSame($first, $second, 'the cached poll returns the same counts');
-
-        $scans = array_values(array_filter($log, fn ($q) => str_contains(strtolower($q['query']), 'group by "adm_level"')));
-        $this->assertCount(1, $scans, 'the second poll within 8 s is served from cache — one world scan, not two');
+        $this->assertArrayHasKey('snapshot_state', $warm);
+        $scans = array_values(array_filter($log, fn ($q) => str_contains(strtolower($q['query']), 'from "jurisdictions"')));
+        $this->assertCount(0, $scans, 'a poll never scans the world table; the snapshot owner does that off the request path');
     }
 }
