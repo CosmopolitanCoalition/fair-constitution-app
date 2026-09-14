@@ -364,6 +364,24 @@
    "note": "Built by the siminst lane, commit c24ce73d, merged 778eeb57. Protected-file defect fix in ConstitutionalValidator: type_b races validate against the equal-representation ladder (1 to the resolved per-child count, ceiling 9) instead of the 5 to 9 district band, matching the generator and the 2026-07-29 ruling. Pinned by RaceStructureTest; regression 42 tests green on main.",
    "date": "2026-09-14",
    "title": "Align Type B seat-band validation across generator and ballot paths"
+  },
+  "W-0283": {
+   "status": "done",
+   "note": "Built by the reads lane, commit f8110d93, merged c3efbb88. Setup ALLOW list admits /, simworld, building, economy, executives, departments, committees, learn, support, videos, launchpad, tour, atlas, coverage, coverage-ops and system; read routes carry withoutMiddleware auth; drive endpoints keep auth operator. Pinned by PublicReadSurfaceGateTest and SimControlParityTest. Guest probes on box E: /, /simworld, /economy, /learn, /atlas return 200.",
+   "date": "2026-09-14",
+   "title": "Open every read surface to guests: widen setup allow list, ungate read routes"
+  },
+  "W-0249": {
+   "status": "done",
+   "note": "Built by the reads lane, commit f8110d93, merged c3efbb88. import/jurisdictions, setup/join, pull-option, pull-control and deploy-package carry auth plus the operator check (guest 401, citizen 403); register is off the ALLOW list. Pinned by OpenWriteDoorGateTest, SetupWindowOperatorGateTest, SetupJoinAsyncTest.",
+   "date": "2026-09-14",
+   "title": "Close three open write doors: gate import and join, drop register from allow list"
+  },
+  "W-0183": {
+   "status": "done",
+   "note": "Built by the reads lane, commit f8110d93, merged c3efbb88. DemoSessionBanner in AppShellV2 on scale_demo instances; DemoSessionService::void holds the SimPumpCommand exec lock while it reverses. Pinned by demoSessionBanner.test.mjs (4) and DemoVoidPumpPauseTest. Reads lane tests on main: 81 PHP tests green (12 live-pg skips).",
+   "date": "2026-09-14",
+   "title": "Complete demo mode: add session-scoped banner and a pump-pause path"
   }
  }
 }

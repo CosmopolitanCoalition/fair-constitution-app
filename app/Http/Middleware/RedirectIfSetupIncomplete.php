@@ -31,7 +31,7 @@ class RedirectIfSetupIncomplete
      * operator console, the district mapper + jurisdiction viewer (step 3 /
      * step 2 tools), the federation join screen, and the auth routes.
      *
-     * Second, the public read surfaces (operator ruling 2026-09-10 — every
+     * Second, the public read surfaces (operator ruling 2026-09-10: every
      * page is readable by anyone, a role gates actions never the page). A read
      * page stays reachable while a box is still building, the way a citizen may
      * watch the machinery. Only the top-level prefix is listed; every API/XHR/

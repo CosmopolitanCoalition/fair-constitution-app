@@ -6156,10 +6156,10 @@
     {
       "id": "W-0183",
       "title": "Complete demo mode: add session-scoped banner and a pump-pause path",
-      "phase": "P1",
-      "order": 3,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "blocker: VERIFIED 2026-09-14 (partial): Demo mode built in commit a1a23600. Instance flag: InstanceClass::isScaleDemo() returns true on a scale_demo box; HandleInertiaRequests.php:295 passes 'demo' => InstanceClass::isScaleDemo() to Inertia. Engine recording: ConstitutionalEngine.php:180-181 sets cga.demo_session GUC per filing; DemoSessionService records all INSERT/UPDATE/DELETE via the cga_demo_capture PG trigger and reverses them at logout or expiry (DemoSessionService.php:128-192). AppShell CmdBar shows a Demo flyout when demo=true (CmdBar.vue:99). Role and training gates waived and recor…",
       "done_when": "AppShell shows a banner on scale_demo instances stating writes are session-scoped and reversed at logout; a pump-pause path exists for demo mode.",
@@ -6197,6 +6197,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Demo-mode completion; its /register and /simworld gaps are already closed by the read-open and write-door clusters, so scope here is banner plus pump-pause."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the reads lane, commit f8110d93, merged c3efbb88. DemoSessionBanner in AppShellV2 on scale_demo instances; DemoSessionService::void holds the SimPumpCommand exec lock while it reverses. Pinned by demoSessionBanner.test.mjs (4) and DemoVoidPumpPauseTest. Reads lane tests on main: 81 PHP tests green (12 live-pg skips)."
         }
       ]
     },
@@ -9029,10 +9033,10 @@
     {
       "id": "W-0249",
       "title": "Close three open write doors: gate import and join, drop register from allow list",
-      "phase": "P1",
-      "order": 2,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "routes/web.php:98-99, 432; app/Http/Controllers/SetupController.php:1512-1528, 1798-1922, 4249-4266; app/Http/Controllers/JurisdictionController.php:630-667 (high).",
       "done_when": "POST /api/import/jurisdictions carries auth and an operator check; POST /api/setup/join carries a user check; register is removed from the RedirectIfSetupIncomplete ALLOW list; the setup smoke test still passes.",
@@ -9109,6 +9113,10 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (next): All four gaps remain open. /api/import/jurisdictions runs pg_restore with no auth (routes/web.php:456, JurisdictionController.php:637). pull-option and pull-control have auth but not an operator check. The join API has no auth (routes/web.php:99). /register is on the setup allow list. Evidence: POST /api/import/jurisdictions (routes/web.php:456) has no middleware and no abort_unless(is_operator) in JurisdictionController::importMaps (JurisdictionController.php:637). pull-option (routes/web.php:167) and pull-control (routes/web.php:170) carry middleware('auth') but SetupController::setGeodataPullOption (line 1629) has no operator check. POST /api/setup/join (routes/web.php:99) has no middleware. /register is in ALLOW list (RedirectIfSetupIncomplete.php:34). | POST /api/import/jurisdictions has no auth and runs pg_restore (routes/web.php:432; JurisdictionController.php:630-667); pull-option, pull-control and deploy-package lack the operator check (SetupController.php:1512-1528, 1798-1922, 4249-4266); the join API has no user check (:332-346); /register is on the allow list. All carry auth and the operator check; all refuse under the lock."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the reads lane, commit f8110d93, merged c3efbb88. import/jurisdictions, setup/join, pull-option, pull-control and deploy-package carry auth plus the operator check (guest 401, citizen 403); register is off the ALLOW list. Pinned by OpenWriteDoorGateTest, SetupWindowOperatorGateTest, SetupJoinAsyncTest."
         }
       ]
     },
@@ -10454,10 +10462,10 @@
     {
       "id": "W-0283",
       "title": "Open every read surface to guests: widen setup allow list, ungate read routes",
-      "phase": "P1",
-      "order": 1,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (next): /simworld and /api/simworld/progress remain behind middleware('auth') (routes/web.php:711-726). The setup allow list is unchanged (RedirectIfSetupIncomplete.php:34). No read surfaces have been opened since this item was written. Evidence: /simworld is inside middleware('auth') group (routes/web.php:711). /api/simworld/progress is in the same group (routes/web.php:725). RedirectIfSetupIncomplete ALLOW list is unchanged: ['setup','operator','legislatures','jurisdictions','federation','login','logout','register'] (RedirectIfSetupIncomplete.php:34). No route changes to…",
       "done_when": "Every read surface (/simworld, /building, economy pages, /executives, /departments, committees, referendums, emergency-powers, /learn, /support, federation console) loads for an unauthenticated guest with setup incomplete; sim and engine drive endpoints stay operator-gated. The setup-lock allow list also admits /, /launchpad, /tour, /atlas, /coverage, /coverage-ops and the /system/* read pages named by screen 126.",
@@ -10620,6 +10628,10 @@
         {
           "date": "2026-09-14",
           "note": "Owner: lane 13"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the reads lane, commit f8110d93, merged c3efbb88. Setup ALLOW list admits /, simworld, building, economy, executives, departments, committees, learn, support, videos, launchpad, tour, atlas, coverage, coverage-ops and system; read routes carry withoutMiddleware auth; drive endpoints keep auth operator. Pinned by PublicReadSurfaceGateTest and SimControlParityTest. Guest probes on box E: /, /simworld, /economy, /learn, /atlas return 200."
         }
       ]
     },
