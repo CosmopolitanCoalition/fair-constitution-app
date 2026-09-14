@@ -542,7 +542,7 @@ for _q in QUESTIONS:
 # Screens / caps / debt all come from the enriched, badged corpus in this dir (repo-stable).
 _enr = json.load(open(os.path.join(_HERE, 'badged.json'), encoding='utf-8'))
 screens = _enr['screens']; caps = _enr['caps']; debt = _enr['debt']
-DATA = {'asOf': '2026-09-08', 'head': '171bca97', 'forms': 120,
+DATA = {'asOf': '2026-09-14', 'head': '229af248', 'forms': 120,
         'screens': screens, 'caps': caps, 'debt': debt, 'fleet': FLEET, 'questions': QUESTIONS}
 
 TEMPLATE = r"""<title>App Progress Rubric — CGA</title>
@@ -654,7 +654,7 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
   <span class="expanders"><button class="chip" id="exAll">Expand all</button><button class="chip" id="coAll">Collapse all</button></span>
 </div>
 <div id="body"></div>
-<p class="foot">Generated from <code>badged.json</code> (the 107 <code>mockups/v3</code> screens plus the Wave 6 rows; capabilities; debt), <code>wave4_data.py</code> (fleet and waves) and the questions in the generator. Re-verified against the code on 2026-09-05 by 33 readers, each checked by a skeptic; W7+ re-audited 2026-09-06 (10 independent agents), correcting 70 understated badges. Reorganised into the Desk work list (Waves W6 to W11) by operator order.</p>
+<p class="foot">Generated from <code>badged.json</code> (the 107 <code>mockups/v3</code> screens plus the Wave 6 rows; capabilities; debt), <code>wave4_data.py</code> (fleet and waves) and the questions in the generator. Re-verified against the code on 2026-09-05 by 33 readers, each checked by a skeptic; W7+ re-audited 2026-09-06 (10 independent agents), correcting 70 understated badges. Reorganised into the Desk work list (Waves W6 to W11) by operator order. Re-verified 2026-09-14 against main 229af248 after the demo punch list and the review campaign (6 batch readers, 2 skeptics): 7 rows moved, 61 re-confirmed with dated notes.</p>
 </div>
 <script>
 const D=%%DATA%%;
