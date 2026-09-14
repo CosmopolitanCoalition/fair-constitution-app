@@ -1,4 +1,116 @@
 {
+  "education_auth_login.learn": {
+    "source_hash": "9d7355a550f7ff2eff7d545d3b744f82e81ef5c59d820edc8f21dd8d9125dfce",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 20,
+    "status": "source"
+  },
+  "education_auth_login.s1_detail": {
+    "source_hash": "16047d37e9adb563e68f05d5f19cda317b911c46711c826f8ae5ea21f14a9f65",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 25,
+    "status": "source"
+  },
+  "education_auth_login.s1_do": {
+    "source_hash": "cb636fd0f7d91f2a1356ea91ac0fb72f8c0b8a5bcbd065f174ee564ade1fdc9d",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 25,
+    "status": "source"
+  },
+  "education_auth_login.s2_detail": {
+    "source_hash": "1f00017b23d5e9c47715608b3947d910dac4dc576c9c98602741a119e33124e4",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 26,
+    "status": "source"
+  },
+  "education_auth_login.s2_do": {
+    "source_hash": "bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 26,
+    "status": "source"
+  },
+  "education_auth_login.s3_detail": {
+    "source_hash": "f3cd3267d8588cecb86a0fe91c09c9b708ff4af7d1efc84210c7347ce950d7fa",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 27,
+    "status": "source"
+  },
+  "education_auth_login.s3_do": {
+    "source_hash": "65d5cb2a7766e9c9d1a90474c0cdc8ebaaa373a1e814e4eb699abc3b6fb176e9",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 27,
+    "status": "source"
+  },
+  "education_auth_login.why": {
+    "source_hash": "87651ad68c2d8d0e784cbd2288ca13d5d91ba9a5b00b9cb76e22d3b21c9e6968",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 29,
+    "status": "source"
+  },
+  "education_auth_operator_login.learn": {
+    "source_hash": "f5d596441028b0f221c0eef65853f721722ec2a27f51cf6eacc9ef4f56df4547",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 36,
+    "status": "source"
+  },
+  "education_auth_operator_login.s1_detail": {
+    "source_hash": "e4b152d765f9af83ee84d4c07cbafb2880f2cb5dd985ef4f63d923d033404cec",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 41,
+    "status": "source"
+  },
+  "education_auth_operator_login.s1_do": {
+    "source_hash": "63bd07d1cb436aa458c015523efe887ad667786c786b7eab9aba8d859fc61595",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 41,
+    "status": "source"
+  },
+  "education_auth_operator_login.s2_detail": {
+    "source_hash": "c5fdfc658af7351329511219550df85bde0220a24421bc844ff9f802da03345c",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 42,
+    "status": "source"
+  },
+  "education_auth_operator_login.s2_do": {
+    "source_hash": "2d34b47fa3a167df248b89f36dd119f55abcde141f256dfac7e0f08b7001b7b0",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 42,
+    "status": "source"
+  },
+  "education_auth_operator_login.s3_detail": {
+    "source_hash": "054d6a273c48ca8d943a6c0d7e87f6428fa9d38d1384073444ba56a79aed9090",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 43,
+    "status": "source"
+  },
+  "education_auth_operator_login.s3_do": {
+    "source_hash": "c0143cb93da69b7846a92a55f2e90672ba4aee129f25d3d367aa45603494c0a6",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 43,
+    "status": "source"
+  },
+  "education_auth_operator_login.why": {
+    "source_hash": "7457f205e32ffbe24632e8ebb21fbdf45a727a4ec7e0cc944db07902c1f5a0be",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_FRONTDOOR.md",
+    "line": 45,
+    "status": "source"
+  },
   "education_auth_register.learn": {
     "source_hash": "420e4751bd2b275c091d3eb3c02051caf3a38f4cad617244309e72c52e25760e",
     "shape": "static",

@@ -6,12 +6,20 @@
  * Operator status is infrastructure — it confers no governance standing.
  */
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { provide, ref, useId } from 'vue';
 
 // Standalone (pre-shell) page — opt out of the AppShell default layout.
 defineOptions({ layout: null });
 import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Field from '@/Components/Ui/Field.vue';
+import CmdBar from '@/Components/ShellV2/CmdBar.vue';
+
+// LE-5: no shell here, so the page provides its own Learn context and mounts
+// the Learn-only command bar. The surface id resolves the authored guidance
+// (registry/education.js, key auth/operator-login).
+provide('cga:surface', ref({ id: 'auth/operator-login', module: 'system' }));
+provide('cga:learn-target', '#learn-content-' + useId());
 
 const form = useForm({
     username: '',
@@ -90,6 +98,9 @@ function submit() {
             </Card>
         </div>
     </main>
+
+    <!-- LE-5: Learn drawer reachable on the bare operator sign-in. -->
+    <CmdBar learn-only />
 </template>
 
 <style scoped>

@@ -8,6 +8,56 @@
    ============================================================================ */
 
 export const EDUCATION_BY_SURFACE = {
+    "auth/login": {
+        learn: "c_education.education_auth_login.learn",
+        steps: [
+            {
+                do: "c_education.education_auth_login.s1_do",
+                detail: "c_education.education_auth_login.s1_detail",
+                cite: "Art. I"
+            },
+            {
+                do: "c_education.education_auth_login.s2_do",
+                detail: "c_education.education_auth_login.s2_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_auth_login.s3_do",
+                detail: "c_education.education_auth_login.s3_detail",
+                cite: "F-IND-003 · Art. I"
+            }
+        ],
+        why: "c_education.education_auth_login.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
+    },
+    "auth/operator-login": {
+        learn: "c_education.education_auth_operator_login.learn",
+        steps: [
+            {
+                do: "c_education.education_auth_operator_login.s1_do",
+                detail: "c_education.education_auth_operator_login.s1_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_auth_operator_login.s2_do",
+                detail: "c_education.education_auth_operator_login.s2_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_auth_operator_login.s3_do",
+                detail: "c_education.education_auth_operator_login.s3_detail",
+                cite: "Art. I"
+            }
+        ],
+        why: "c_education.education_auth_operator_login.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
+    },
     "auth/register": {
         learn: "c_education.education_auth_register.learn",
         steps: [

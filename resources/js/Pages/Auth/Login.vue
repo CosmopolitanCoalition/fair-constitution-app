@@ -5,7 +5,7 @@
  * per email+IP and surfaces the lockout message on the email field.
  */
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, provide, ref, useId } from 'vue';
 import Banner from '@/Components/Ui/Banner.vue';
 
 // Standalone (pre-shell) page — opt out of the AppShell default layout.
@@ -14,6 +14,14 @@ import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import CheckboxField from '@/Components/Ui/CheckboxField.vue';
 import Field from '@/Components/Ui/Field.vue';
+import CmdBar from '@/Components/ShellV2/CmdBar.vue';
+
+// LE-5: this page carries no shell, so it provides its own Learn context and
+// mounts the Learn-only command bar. The surface id resolves the authored
+// guidance (registry/education.js, key auth/login); the learn target mirrors
+// the shell's teleport anchor so the drawer body renders the same way.
+provide('cga:surface', ref({ id: 'auth/login', module: 'civic' }));
+provide('cga:learn-target', '#learn-content-' + useId());
 
 const status = computed(() => usePage().props.flash?.status ?? null);
 
@@ -118,6 +126,10 @@ function submit() {
             </Card>
         </div>
     </main>
+
+    <!-- LE-5: Learn drawer reachable before signing in (same component and
+         Learn target the legacy shell provides, without a shell). -->
+    <CmdBar learn-only />
 </template>
 
 <style scoped>
