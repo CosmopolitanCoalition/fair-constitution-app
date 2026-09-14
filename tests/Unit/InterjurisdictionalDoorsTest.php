@@ -684,6 +684,189 @@ final class InterjurisdictionalDoorsTest extends TestCase
         }
     }
 
+    // ── S1 · JURISDICTIONS — the full one-tree lifecycle walk ────────────────────
+
+    /**
+     * Register row S1 · jurisdictions. One jurisdiction tree, walked through all
+     * four interjurisdictional decisions in order: union formation, then
+     * disintermediation with law merging, then affected-area border settlement,
+     * then judicial restoration. Each stage carries its own required refusal:
+     *   • premature union finalize (both meters unmet) leaves the process OPEN;
+     *   • a wrong-body applicant referendum (a non-applicant chamber) is refused 403;
+     *   • a wrong-body encompassing consent (the intermediary chamber) is refused Art. V §8.
+     * Recovery from each refusal is demonstrated by driving the same stage to its
+     * completed state afterwards.
+     */
+    public function test_full_lifecycle_walk_union_disintermediation_border_restoration_on_one_tree(): void
+    {
+        // ── stage 1: UNION FORMATION ────────────────────────────────────────
+        $earth = $this->jurisdiction('Earth');
+        $countryA = $this->jurisdiction('Country A');
+        $countryB = $this->jurisdiction('Country B');
+        $countryC = $this->jurisdiction('Country C');
+        $outsider = $this->jurisdiction('Outsider place');
+        $this->residents($countryA, 3); // applicant population 3 → supermajority(3) == 2
+
+        $legA = Legislature::create(['id' => $this->id('7d000000'), 'jurisdiction_id' => $countryA, 'status' => 'active']);
+        $userA = (new User)->forceFill(['id' => $this->id('7f000000'), 'name' => 'A rep']);
+        $userA->save();
+        LegislatureMember::create(['id' => $this->id('7f000000'), 'legislature_id' => $legA->id, 'user_id' => $userA->id, 'status' => 'seated']);
+
+        // Constituent supermajority of THREE is unanimity here (required =
+        // max(ceil(2·3/3), floor(3/2)+2) == 3); all three must consent.
+        $process = $this->union->open(UnionProcess::KIND_FORMATION, $legA, [$countryA, $countryB], [$countryA, $countryB, $countryC], $earth);
+
+        // REFUSAL 1 — wrong-body applicant referendum: a seat in a non-applicant
+        // chamber is refused 403 and the meter is untouched.
+        $legOut = Legislature::create(['id' => $this->id('7d000000'), 'jurisdiction_id' => $outsider, 'status' => 'active']);
+        $userOut = (new User)->forceFill(['id' => $this->id('7f000000'), 'name' => 'Outsider rep']);
+        $userOut->save();
+        LegislatureMember::create(['id' => $this->id('7f000000'), 'legislature_id' => $legOut->id, 'user_id' => $userOut->id, 'status' => 'seated']);
+        $controller = new LifecycleController;
+        $refReq = Request::create('/x', 'POST', ['yes_votes' => 5]);
+        $refReq->setUserResolver(fn () => $userOut);
+        try {
+            $controller->unionApplicantReferendum($refReq, $process->refresh(), $this->union);
+            $this->fail('Expected a 403 from a non-applicant chamber.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            self::assertSame(403, $e->getStatusCode());
+        }
+        self::assertFalse((bool) $process->refresh()->applicant_supermajority_met, 'the wrong actor never moves the meter');
+
+        // REFUSAL 2 — premature finalize (neither meter met) leaves it OPEN, not FAILED.
+        $finReq = Request::create('/x', 'POST');
+        $finReq->setUserResolver(fn () => $userA);
+        $controller->unionFinalize($finReq, $process->refresh(), $this->union);
+        self::assertSame(UnionProcess::STATUS_OPEN, $process->refresh()->status, 'a premature finalize never fails a live union');
+
+        // RECOVERY — the applicant chamber records its own referendum, then the
+        // constituents consent to supermajority, then finalize applies the union.
+        $refReqA = Request::create('/x', 'POST', ['yes_votes' => 3]);
+        $refReqA->setUserResolver(fn () => $userA);
+        $controller->unionApplicantReferendum($refReqA, $process->refresh(), $this->union);
+        self::assertTrue((bool) $process->refresh()->applicant_supermajority_met);
+
+        $mjv = $process->constituentProcess;
+        $this->mjvService->recordConsent($mjv, $countryA, true);
+        $this->mjvService->recordConsent($mjv->refresh(), $countryB, true);
+        $this->mjvService->recordConsent($mjv->refresh(), $countryC, true); // third consent tips it to PASSED
+        $this->union->maybeFinalize($mjv->refresh());
+
+        $process->refresh();
+        self::assertSame(UnionProcess::STATUS_PASSED, $process->status, 'union finalizes once both meters are met');
+        self::assertSame($earth, (string) $process->resulting_jurisdiction_id);
+        self::assertSame($earth, (string) DB::table('jurisdictions')->where('id', $countryA)->value('parent_id'), 'applicant A reparented under the union');
+        self::assertSame($earth, (string) DB::table('jurisdictions')->where('id', $countryB)->value('parent_id'), 'applicant B reparented under the union');
+        self::assertSame(1, DB::table('jurisdiction_maps')->where('root_jurisdiction_id', $earth)->where('origin', 'union')->count(), 'a union map version records the change');
+
+        // ── stage 2: DISINTERMEDIATION + LAW MERGING ────────────────────────
+        // A fresh three-level branch of the same tree: Country A (encompassing) →
+        // State (intermediary) → County (constituent). The intermediary holds one
+        // in-force act that must fold to its constituent.
+        $state = $this->jurisdiction('State', $countryA);
+        $county = $this->jurisdiction('County', $state);
+        $legState = Legislature::create(['id' => $this->id('7d000000'), 'jurisdiction_id' => $state, 'status' => 'active']);
+        $law = Law::create(['id' => $this->id('81000000'), 'jurisdiction_id' => $state, 'legislature_id' => $legState->id,
+            'act_number' => 'S-1', 'title' => 'State act', 'status' => Law::STATUS_IN_FORCE, 'current_version_no' => 1]);
+        LawVersion::create(['id' => $this->id('82000000'), 'law_id' => $law->id, 'version_no' => 1, 'text' => 'original', 'text_hash' => hash('sha256', 'original'), 'source' => 'enactment']);
+
+        $disProcess = $this->disinter->open($legState, $state, $countryA, [$county]);
+
+        // REFUSAL 3 — wrong-body encompassing consent: the intermediary's own
+        // chamber cannot consent for the encompassing jurisdiction (Art. V §8).
+        $userState = (new User)->forceFill(['id' => $this->id('7f000000'), 'name' => 'State rep']);
+        $userState->save();
+        LegislatureMember::create(['id' => $this->id('7f000000'), 'legislature_id' => $legState->id, 'user_id' => $userState->id, 'status' => 'seated']);
+        $encReqBad = Request::create('/x', 'POST', ['consented' => true]);
+        $encReqBad->setUserResolver(fn () => $userState);
+        try {
+            $controller->disintermediationEncompassingConsent($encReqBad, $disProcess->refresh(), $this->disinter);
+            $this->fail('Expected Art. V §8 from a non-encompassing chamber.');
+        } catch (ConstitutionalViolation $e) {
+            self::assertSame('Art. V §8', $e->citation);
+        }
+        self::assertNotTrue($disProcess->refresh()->encompassing_consent, 'the wrong actor never records encompassing consent');
+
+        // RECOVERY — the encompassing chamber consents, the sole constituent gives
+        // unanimity, and finalize folds the act to the constituent and reparents.
+        $legCountry = Legislature::create(['id' => $this->id('7d000000'), 'jurisdiction_id' => $countryA, 'status' => 'active']);
+        $userCountry = (new User)->forceFill(['id' => $this->id('7f000000'), 'name' => 'Country rep']);
+        $userCountry->save();
+        LegislatureMember::create(['id' => $this->id('7f000000'), 'legislature_id' => $legCountry->id, 'user_id' => $userCountry->id, 'status' => 'seated']);
+        $encReq = Request::create('/x', 'POST', ['consented' => true]);
+        $encReq->setUserResolver(fn () => $userCountry);
+        $controller->disintermediationEncompassingConsent($encReq, $disProcess->refresh(), $this->disinter);
+        self::assertTrue((bool) $disProcess->refresh()->encompassing_consent);
+
+        $this->mjvService->recordConsent($disProcess->constituentProcess, $county, true); // unanimity 1 of 1
+        $this->disinter->finalize($disProcess->refresh());
+
+        $disProcess->refresh();
+        self::assertSame(DisintermediationProcess::STATUS_MERGED, $disProcess->status);
+        self::assertSame($countryA, (string) DB::table('jurisdictions')->where('id', $county)->value('parent_id'), 'the constituent re-points to the encompassing jurisdiction');
+        self::assertSame(1, LawMergeResolution::query()->where('process_id', $disProcess->id)->where('target_jurisdiction_id', $county)->count(), 'a law_merge_resolutions row records the fold');
+        self::assertSame(1, Law::query()->where('jurisdiction_id', $county)->count(), 'the constituent inherits its own copy of the act');
+
+        // ── stage 3: AFFECTED-AREA BORDER SETTLEMENT ────────────────────────
+        $placeP = $this->jurisdiction('Place P');
+        $placeQ = $this->jurisdiction('Place Q');
+        $strip = $this->jurisdiction('Border strip');
+        $this->residents($strip, 3); // affected population 3 → supermajority(3) == 2
+
+        $settlement = $this->border->open($placeP, $placeQ, [$strip]);
+        self::assertSame(3, (int) $settlement->affected_population);
+        $this->border->recordReferendum($settlement->refresh(), 3);
+        $this->border->adopt($settlement->refresh());
+        self::assertSame(BorderSettlement::STATUS_ADOPTED, $settlement->refresh()->status);
+        self::assertSame(1, DB::table('jurisdiction_maps')->where('origin', 'border')->count(), 'a border map version records the boundary');
+
+        // ── stage 4: JUDICIAL RESTORATION ───────────────────────────────────
+        $fallen = $this->jurisdiction('Fallen place');
+        $caseId = $this->id('84000000');
+        $event = $this->restoration->declare($fallen, RestorationEvent::CONDITION_CAPTURED, ['e' => 1], $caseId);
+        $this->restoration->confirm($event->refresh(), true); // the judicial finding
+        self::assertSame(RestorationEvent::STATUS_CONFIRMED, $event->refresh()->status);
+        $this->restoration->advanceTier($event->refresh(), 1);
+        $this->restoration->advanceTier($event->refresh(), 2);
+        $this->restoration->advanceTier($event->refresh(), 3);
+        $this->restoration->complete($event->refresh());
+        self::assertSame(RestorationEvent::STATUS_RESTORED, $event->refresh()->status, 'the tree walk ends with a restored government');
+    }
+
+    /**
+     * Peer sync does not establish civic consent. Materializing a process row —
+     * the same write a federation ingest would perform — leaves every consent
+     * meter unmet: the union applicant/constituent meters, the disintermediation
+     * encompassing/constituent meters, and the border affected-area meter all
+     * start unmet. Consent flips only through the owning-body recorded methods
+     * (markApplicantReferendum, recordConsent, recordEncompassingConsent,
+     * recordReferendum), never by the arrival of a row.
+     */
+    public function test_materializing_a_process_does_not_establish_consent(): void
+    {
+        $a = $this->jurisdiction('Applicant A');
+        $b = $this->jurisdiction('Applicant B');
+        $union = $this->jurisdiction('Union');
+        $legA = Legislature::create(['id' => $this->id('7d000000'), 'jurisdiction_id' => $a, 'status' => 'active']);
+        $unionProc = $this->union->open(UnionProcess::KIND_FORMATION, $legA, [$a, $b], [$a, $b], $union);
+        self::assertFalse((bool) $unionProc->applicant_supermajority_met, 'a materialized union has no applicant consent');
+        self::assertSame(MultiJurisdictionVote::STATUS_OPEN, $unionProc->constituentProcess->status, 'a materialized union has no constituent consent');
+
+        $country = $this->jurisdiction('Country');
+        $state = $this->jurisdiction('State', $country);
+        $county = $this->jurisdiction('County', $state);
+        $legState = Legislature::create(['id' => $this->id('7d000000'), 'jurisdiction_id' => $state, 'status' => 'active']);
+        $dis = $this->disinter->open($legState, $state, $country, [$county]);
+        self::assertNotTrue($dis->encompassing_consent, 'a materialized disintermediation has no encompassing consent');
+        self::assertSame(MultiJurisdictionVote::STATUS_OPEN, $dis->constituentProcess->status, 'a materialized disintermediation has no constituent consent');
+
+        $strip = $this->jurisdiction('Strip');
+        $this->residents($strip, 3);
+        $border = $this->border->open($this->jurisdiction('P'), $this->jurisdiction('Q'), [$strip]);
+        self::assertNotTrue($border->affected_supermajority_met, 'a materialized border settlement has no affected-area consent');
+        self::assertSame(BorderSettlement::STATUS_OPEN, $border->status);
+    }
+
     private function formationService(): ExecutiveFormationService
     {
         return new ExecutiveFormationService(
