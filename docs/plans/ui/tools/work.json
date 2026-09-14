@@ -16486,6 +16486,25 @@
           "note": "Operator set done. Built (commit 46b74cfe): user_media_prefs table (migration 2026_09_14_120000, applied on box E), GET and PUT /api/me/video-prefs behind auth with key validation, page props seed the player and server preferences win over browser storage; PUT debounced once per change window. Pinned by tests/Unit/VideoPrefsControllerTest.php (5 tests) and the compiled player tests."
         }
       ]
+    },
+    {
+      "id": "W-0433",
+      "title": "Fix SubforumReconcilerTest collision with live box data (23505 on legislatures_live_jurisdiction_uq)",
+      "phase": "P5",
+      "order": 69,
+      "kind": "debt",
+      "status": "open",
+      "blocker": "",
+      "detail": "tests/Constitutional/SubforumReconcilerTest.php runs its live pin inside a rolled-back transaction on the live PostgreSQL (LivePgConnection::livePg defaults to fair_constitution). On box E the test inserts a legislature for a jurisdiction that already holds a live legislature, so PostgreSQL refuses it with SQLSTATE 23505 on legislatures_live_jurisdiction_uq. Reproduced 2026-09-14 on main c29012b7: Tests 3, Assertions 11, Errors 1. Pre-existing; first seen by the economy lane commit step.",
+      "done_when": "SubforumReconcilerTest passes on box E and on a virgin database: the live pin either builds its fixture in a disposable cga_<domain>_<date>_<nonce> database or picks a jurisdiction with no live legislature.",
+      "depends_on": [],
+      "sources": [
+        "desk: economy lane commit step 2026-09-14"
+      ],
+      "evidence": [],
+      "history": [
+        "Opened 2026-09-14 by the desk after the economy lane reported the failure; reproduced on main c29012b7."
+      ]
     }
   ]
 }
