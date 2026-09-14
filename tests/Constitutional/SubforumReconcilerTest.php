@@ -102,11 +102,12 @@ class SubforumReconcilerTest extends TestCase
     public function test_the_join_path_seams_bind_live_objects_and_candidacy_stays_pseudonymous(): void
     {
         $this->onLivePg(function () {
-            $jur = DB::table('jurisdictions')->whereNull('deleted_at')->value('id');
-            if ($jur === null) {
-                $this->markTestSkipped('Live DB has no jurisdiction.');
-            }
-            $jur = (string) $jur;
+            // Own the jurisdiction the fixture builds under. Picking an existing
+            // live jurisdiction collides with its live legislature on the partial
+            // unique index legislatures_live_jurisdiction_uq (one live legislature
+            // per jurisdiction). A jurisdiction created here holds no legislature,
+            // so the fixture legislature inserts cleanly. Rolled back at teardown.
+            $jur = $this->newJurisdiction();
             $reconciler = app(SubforumReconciler::class);
 
             // Committee meeting — bound via the committee→legislature→jurisdiction JOIN (no direct FK).
@@ -168,6 +169,27 @@ class SubforumReconcilerTest extends TestCase
             $this->assertNull($after->firstWhere('id', $meetingId), 'an adjourned meeting is no longer live');
             $this->assertNull($after->firstWhere('id', $candidacyId), 'a withdrawn candidacy is no longer live');
         });
+    }
+
+    /** A fresh childless jurisdiction the fixture owns. It holds no live legislature. */
+    private function newJurisdiction(): string
+    {
+        $id = (string) Str::uuid();
+
+        DB::table('jurisdictions')->insert([
+            'id'                 => $id,
+            'name'               => 'Reconciler Pin',
+            'slug'               => 'reconciler-pin-'.Str::lower(Str::random(10)),
+            'adm_level'          => 4,
+            'population'         => 100000,
+            'source'            => 'user_defined',
+            'official_languages' => '["en"]',
+            'timezone'           => 'UTC',
+            'created_at'         => now(),
+            'updated_at'         => now(),
+        ]);
+
+        return $id;
     }
 
     private function user(string $name): User
