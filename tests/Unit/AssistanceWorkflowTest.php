@@ -21,6 +21,7 @@ final class AssistanceWorkflowTest extends TestCase
     private string $original;
     private AssistanceService $help;
     private AssistanceController $controller;
+    private LedgerService $ledger;
 
     protected function setUp(): void
     {
@@ -49,9 +50,17 @@ final class AssistanceWorkflowTest extends TestCase
             DB::table('economic_accounts')->insert(['id' => $this->id($user + 100), 'currency_id' => $this->id(2), 'status' => 'open']);
             DB::table('economic_account_bindings')->insert(['account_id' => $this->id($user + 100), 'owner_type' => 'users', 'owner_id' => $this->id($user)]);
         }
-        $ledger = $this->createMock(LedgerService::class);
-        $ledger->expects($this->never())->method('post');
-        $this->help = new AssistanceService(new AccountService($ledger));
+        // The REAL money engine, not a mock. Voluntary help must move no
+        // value; proving that with the real ledger (an empty ledger_entries
+        // table after a full lifecycle) is stronger than a mock asserting
+        // post() is never called — a mocked engine success is not a journey.
+        $schema->create('ledger_entries', function (Blueprint $t) {
+            $t->increments('seq'); $t->uuid('id'); $t->uuid('entry_group'); $t->string('account_type'); $t->uuid('account_id');
+            $t->uuid('currency_id'); $t->string('direction'); $t->decimal('amount', 24, 6); $t->string('kind');
+            $t->string('ref_type')->nullable(); $t->uuid('ref_id')->nullable(); $t->text('prev_hash'); $t->text('hash'); $t->timestamp('created_at')->nullable();
+        });
+        $this->ledger = new LedgerService;
+        $this->help = new AssistanceService(new AccountService($this->ledger));
         $this->controller = new AssistanceController($this->help);
     }
 
@@ -108,6 +117,45 @@ final class AssistanceWorkflowTest extends TestCase
         self::assertFalse($this->detail($id)['canResolve']);
         $this->refused(fn () => $this->help->withdrawResponse($this->user(12), $id, $first));
         $this->refused(fn () => $this->help->respond($this->user(14), $id, 'Late offer'));
+    }
+
+    public function test_help_completion_and_withdrawal_recovery_move_no_value_on_the_real_ledger(): void
+    {
+        // A complete voluntary-help journey, then a withdrawal-recovery
+        // journey, both against the REAL LedgerService/AccountService.
+        // Completion path: create -> publish -> two offers -> match -> resolve.
+        $completed = $this->make(11, 'private');
+        $this->help->publish($this->user(11), $completed);
+        $offerA = $this->help->respond($this->user(12), $completed, 'I can help Saturday.');
+        $offerB = $this->help->respond($this->user(13), $completed, 'I can help Sunday.');
+        $this->help->match($this->user(11), $completed, $offerA);
+        self::assertSame('matched', $this->row($completed)->status);
+        self::assertSame($this->id(112), $this->row($completed)->responder_account_id);
+        $this->refused(fn () => $this->help->match($this->user(11), $completed, $offerB)); // stale second match
+        $this->help->resolve($this->user(11), $completed);
+        self::assertSame('resolved', $this->row($completed)->status);
+
+        // Withdrawal-recovery path: match then the accepted helper withdraws,
+        // which must reopen the request and clear the responder.
+        $recovered = $this->make(11, 'public');
+        $offerC = $this->help->respond($this->user(12), $recovered, 'First offer.');
+        $offerD = $this->help->respond($this->user(13), $recovered, 'Second offer.');
+        $this->help->match($this->user(11), $recovered, $offerC);
+        self::assertSame('matched', $this->row($recovered)->status);
+        $this->help->withdrawResponse($this->user(12), $recovered, $offerC);
+        self::assertSame('open', $this->row($recovered)->status);
+        self::assertNull($this->row($recovered)->responder_account_id);
+        self::assertSame('withdrawn', $this->response($offerC)->status);
+        self::assertSame('offered', $this->response($offerD)->status);
+        $this->help->match($this->user(11), $recovered, $offerD); // recovery: rematch the standing offer
+        self::assertSame($this->id(113), $this->row($recovered)->responder_account_id);
+        $this->help->resolve($this->user(11), $recovered);
+        self::assertSame('resolved', $this->row($recovered)->status);
+
+        // The real money engine observed no movement across either lifecycle.
+        self::assertSame(0, DB::table('ledger_entries')->count());
+        self::assertSame([], $this->ledger->imbalanceByCurrency());
+        self::assertTrue($this->ledger->verifyChain());
     }
 
     public function test_selected_helper_withdrawal_reopens_without_changing_privacy(): void

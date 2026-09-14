@@ -24,6 +24,7 @@ async function fixture(t, pageFile, props) {
     // A HistoryPager stub that surfaces its own cursorKey for assertion.
     const Pager = { props: ['pages', 'only', 'first', 'label', 'cursorKey'], setup: (p) => () => Vue.h('nav', { 'data-cursor-key': p.cursorKey }, `pager:${p.cursorKey}`) };
     const Link = { props: ['href'], setup: (props, { slots, attrs }) => () => Vue.h('a', { ...attrs, href: props.href }, slots.default?.()) };
+    const Head = { setup: (props, { slots }) => () => Vue.h('head-stub', {}, slots.default?.()) };
 
     function compiled(file) {
         const { descriptor } = parse(read(file));
@@ -36,9 +37,9 @@ async function fixture(t, pageFile, props) {
         if (actual.has(file)) module = compiled(file);
         else {
             const values = name === 'vue' ? Vue
-                : name === '@inertiajs/vue3' ? { Link, useForm: () => ({}), usePage: () => page,
+                : name === '@inertiajs/vue3' ? { Link, Head, useForm: () => ({}), usePage: () => page,
                     router: { get: (...args) => visits.push(args), post: (url, data, options) => posts.push({ url, data: snapshot(data), options }) } }
-                : name === 'vue-i18n' ? { useI18n: () => ({ t: (key, arg, fallback) => (typeof arg === 'string' ? arg : fallback ?? key) }) }
+                : name === 'vue-i18n' ? { useI18n: () => ({ t: (key, arg, fallback) => (typeof arg === 'string' ? arg : fallback ?? key), n: (v) => String(v) }) }
                 : file === 'lib/plain.js' ? { plainState: (s) => String(s) }
                 : file === 'Components/Ui/HistoryPager.vue' ? { default: Pager }
                 : file === 'composables/useDemoMode' ? { useDemoMode: () => ({ isDemoMode: false }) }
@@ -227,4 +228,60 @@ test('restoration: the active banner re-derives when a page swap replaces the ev
     f.props.events = [{ id: 'e9', jurisdiction: 'Older', condition: 'destroyed', status: 'restored', judicially_confirmed: true, judicial_finding: true, review_case_id: 'c9', tier: 3, declared_at: '2026-09-12T00:00:00Z' }];
     await flush();
     assert.match(f.text(), /Restoration mode dormant/, 'the banner re-derives to dormant after the page swap');
+});
+
+// ── PLACE / MAP NAVIGATION (S1 · jurisdictions) ──────────────────────────────
+// The places browser walks the jurisdiction tree; the register criterion is
+// that place context (the ancestor trail) and the legislative-map links are
+// retained and update as the walk moves between levels.
+
+const browseProps = (over = {}) => ({
+    places: {
+        data: [{ id: 'child1', name: 'Child One', slug: 'child-one', adm_level: 2, population: 1200, has_children: true, legislature_id: 'leg-child1' }],
+        current_page: 1, prev_page_url: null, next_page_url: null,
+    },
+    parent: { id: 'state', name: 'State', slug: 'state' },
+    jurisdictionContext: { chain: [
+        { id: 'world', name: 'World', slug: 'world' },
+        { id: 'country', name: 'Country', slug: 'country' },
+        { id: 'state', name: 'State', slug: 'state' },
+    ] },
+    filters: {}, scope: null,
+    ...over,
+});
+
+const hrefs = (f) => f.nodes().filter((el) => el.tag === 'a').map((el) => el.props.href);
+
+test('places: the ancestor trail and the legislative-map link render with place context retained', async (t) => {
+    const f = await fixture(t, 'Pages/Jurisdictions/Browse.vue', browseProps());
+    const links = hrefs(f);
+    // The full ancestor chain is present in the trail (place context retained).
+    assert.ok(links.includes('/jurisdictions?parent=world'), 'trail keeps the world ancestor');
+    assert.ok(links.includes('/jurisdictions?parent=country'), 'trail keeps the country ancestor');
+    assert.ok(links.includes('/jurisdictions?parent=state'), 'trail keeps the current place');
+    // The legislative map is reachable from the child card, and the boundary map
+    // from the parent scope — walking the tree AND its legislative maps.
+    assert.ok(links.includes('/legislatures/leg-child1/districts'), 'a child card links to its legislative districts map');
+    assert.ok(links.includes('/jurisdictions/state/map'), 'the parent scope links to its boundary map');
+});
+
+test('places: the ancestor links update when a page swap moves the walk one level deeper', async (t) => {
+    const f = await fixture(t, 'Pages/Jurisdictions/Browse.vue', browseProps());
+    assert.equal(hrefs(f).includes('/jurisdictions?parent=county'), false, 'the deeper level is not present before the walk moves');
+
+    // A preserveState navigation into the child swaps the context and parent
+    // props only. The trail must re-derive to the new, deeper chain.
+    f.props.jurisdictionContext = { chain: [
+        { id: 'world', name: 'World', slug: 'world' },
+        { id: 'country', name: 'Country', slug: 'country' },
+        { id: 'state', name: 'State', slug: 'state' },
+        { id: 'county', name: 'County', slug: 'county' },
+    ] };
+    f.props.parent = { id: 'county', name: 'County', slug: 'county' };
+    await flush();
+
+    const links = hrefs(f);
+    assert.ok(links.includes('/jurisdictions?parent=county'), 'the trail gains the newly entered place');
+    assert.ok(links.includes('/jurisdictions?parent=state'), 'the former place stays in the trail as an ancestor');
+    assert.ok(links.includes('/jurisdictions/county/map'), 'the boundary-map link follows the walk to the new place');
 });
