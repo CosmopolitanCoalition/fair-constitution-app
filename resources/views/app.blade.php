@@ -24,7 +24,9 @@
 <html lang="{{ $locale }}" dir="{{ $dir }}">
     <head>
         <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+        {{-- No maximum-scale: disabling pinch-zoom fails WCAG 2.1 AA 1.4.4
+             (axe meta-viewport). The viewer must be able to zoom the page. --}}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="csrf-token" content="{{ csrf_token() }}" />
         {{-- Visible even while the frontend modules are still downloading. --}}
         <style>

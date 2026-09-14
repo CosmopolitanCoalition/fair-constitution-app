@@ -19,8 +19,14 @@ export default defineConfig({
         // The video review generates media with canvas.captureStream +
         // MediaRecorder; a fake device is not required, but the flags keep
         // autoplay/codecs unrestricted in the headless shell.
+        // --disable-dev-shm-usage: the container's /dev/shm is the Docker
+        // default 64 MB; heavier guest pages (e.g. /tour, /legislatures,
+        // /coverage-ops, /system/public-records) exhaust it and the Chromium
+        // renderer crashes ("Page crashed") before the app can establish. The
+        // flag routes shared memory to /tmp so those pages load and can be
+        // scanned. Harness-only; changes nothing on the live app.
         launchOptions: {
-            args: ['--autoplay-policy=no-user-gesture-required'],
+            args: ['--autoplay-policy=no-user-gesture-required', '--disable-dev-shm-usage'],
         },
     },
     projects: [

@@ -1,0 +1,1874 @@
+{
+ "_provenance": "php artisan route:list --json (fc_app), GET routes only, normalized to {uri,name,middleware}. Regenerate: docker exec fc_app php artisan route:list --json | node tests/browser/roster/refresh-route-list.mjs",
+ "_capturedAt": "2026-09-14",
+ "routes": [
+  {
+   "uri": "/",
+   "name": null,
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/.well-known/cga-federation",
+   "name": null,
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/.well-known/matrix/client",
+   "name": null,
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/.well-known/matrix/server",
+   "name": null,
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/.well-known/openid-configuration",
+   "name": null,
+   "middleware": [
+    "throttle:120,1"
+   ]
+  },
+  {
+   "uri": "/_matrix/app/v1/rooms/{alias}",
+   "name": null,
+   "middleware": [
+    "matrix.appservice",
+    "throttle:600,1"
+   ]
+  },
+  {
+   "uri": "/_matrix/app/v1/users/{userId}",
+   "name": null,
+   "middleware": [
+    "matrix.appservice",
+    "throttle:600,1"
+   ]
+  },
+  {
+   "uri": "/achievements",
+   "name": "achievements.index",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/background-jobs",
+   "name": "api.background-jobs",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/build/progress",
+   "name": "api.build.progress",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/cosmic-addresses/default-path",
+   "name": "api.cosmic-addresses.default-path",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/cosmic-addresses/{id}/children",
+   "name": "api.cosmic-addresses.children",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/export/jurisdictions",
+   "name": "jurisdictions.export",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/export/jurisdictions/download/{filename}",
+   "name": "jurisdictions.export.download",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/export/jurisdictions/list",
+   "name": "jurisdictions.export.list",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/export/jurisdictions/tables",
+   "name": "jurisdictions.export.tables",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/federation/audit-tail",
+   "name": null,
+   "middleware": [
+    "federation.signed",
+    "throttle:300,1"
+   ]
+  },
+  {
+   "uri": "/api/federation/checkpoint",
+   "name": null,
+   "middleware": [
+    "federation.signed",
+    "throttle:300,1"
+   ]
+  },
+  {
+   "uri": "/api/federation/foundation/page",
+   "name": null,
+   "middleware": [
+    "federation.signed",
+    "throttle:300,1"
+   ]
+  },
+  {
+   "uri": "/api/federation/geodata/manifest",
+   "name": null,
+   "middleware": [
+    "federation.signed",
+    "throttle:300,1"
+   ]
+  },
+  {
+   "uri": "/api/federation/geodata/seed/page",
+   "name": null,
+   "middleware": [
+    "federation.signed",
+    "throttle:300,1"
+   ]
+  },
+  {
+   "uri": "/api/federation/identity",
+   "name": null,
+   "middleware": [
+    "federation.signed:public",
+    "throttle:300,1"
+   ]
+  },
+  {
+   "uri": "/api/federation/write-status/{origin}/{key}",
+   "name": "federation.write-status",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/geodata/flags",
+   "name": "api.geodata.flags",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/geodata/repairs",
+   "name": "api.geodata.repairs",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/geodata/scan/status",
+   "name": "api.geodata.scan.status",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/jurisdictions/activation-status",
+   "name": "jurisdictions.activation-status",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/jurisdictions/{jurisdiction}/ancestors",
+   "name": "jurisdictions.ancestors",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/jurisdictions/{jurisdiction}/children.geojson",
+   "name": "jurisdictions.children.geojson",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/jurisdictions/{jurisdiction}/self.geojson",
+   "name": "jurisdictions.self.geojson",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/jurisdictions/{jurisdiction}/siblings.geojson",
+   "name": "jurisdictions.siblings.geojson",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/jurisdictions/{jurisdiction}/subtree-progress",
+   "name": "jurisdictions.subtree-progress",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/legislatures/{legislature_id}/districts-at",
+   "name": "legislatures.districts-at",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/legislatures/{legislature_id}/maps",
+   "name": "legislatures.maps.list",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/legislatures/{legislature_id}/mass-status",
+   "name": "legislatures.mass-status",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/legislatures/{legislature_id}/revealed.geojson",
+   "name": "legislatures.revealed.geojson",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/legislatures/{legislature_id}/type-b-map/revealed.geojson",
+   "name": "legislatures.type-b-map.revealed",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/legislatures/{legislature_id}/type-b-map/status",
+   "name": "legislatures.type-b-map.status",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/legislatures/{legislature_id}/wizard-steps",
+   "name": "legislatures.wizard-steps",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/maps/latest-pmtiles",
+   "name": "maps.latest-pmtiles",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/mesh/nearest",
+   "name": null,
+   "middleware": [
+    "throttle:60,1"
+   ]
+  },
+  {
+   "uri": "/api/rasters/{z}/{x}/{y}.png",
+   "name": "rasters.tile",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/session/heartbeat",
+   "name": "session.heartbeat",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/bootstrap/status",
+   "name": "api.setup.bootstrap.status",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/deploy-package",
+   "name": "api.setup.deploy-package",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/state",
+   "name": "api.setup.state",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step2/progress",
+   "name": "api.setup.step2.progress",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step2/pull-progress",
+   "name": "api.setup.step2.pull-progress",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step2/review/aggregation_discrepancies",
+   "name": "api.setup.step2.review.aggregation_discrepancies",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step2/review/orphans",
+   "name": "api.setup.step2.review.orphans",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step2/review/parent_assignment_audit",
+   "name": "api.setup.step2.review.parent_assignment_audit",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step2/review/population_assignment_audit",
+   "name": "api.setup.step2.review.population_assignment_audit",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step2/review/population_gaps",
+   "name": "api.setup.step2.review.population_gaps",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step2/review/sovereign_territories",
+   "name": "api.setup.step2.review.sovereign_territories",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step2/review/{category}/{jurisdiction}/detail",
+   "name": "api.setup.step2.review.detail",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step2/sources",
+   "name": "api.setup.step2.sources",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step3/autoscale-progress",
+   "name": "api.setup.step3.autoscale-progress",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step3/summary",
+   "name": "api.setup.step3.summary",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step4/progress",
+   "name": "api.setup.step4.progress",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/setup/wizard/step5/progress",
+   "name": "api.setup.step5.progress",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/api/simworld/progress",
+   "name": "api.simworld.progress",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/atlas",
+   "name": "atlas.index",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/bills/{bill}",
+   "name": "bills.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/bills/{bill}/conversation",
+   "name": "bills.conversation",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/board",
+   "name": "board.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/building",
+   "name": "build.progress",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/candidates/{candidacy}",
+   "name": "candidates.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/cases/{case}",
+   "name": "judiciary.cases.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic",
+   "name": "civic.home",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/commons/halls",
+   "name": "civic.commons.halls",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/commons/square",
+   "name": "civic.commons.square",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/halls",
+   "name": "civic.halls",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/identity",
+   "name": "civic.identity",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/jurisdictions/search",
+   "name": "civic.jurisdictions.search",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/petitions",
+   "name": "civic.petitions.index",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/petitions/{petition}",
+   "name": "civic.petitions.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/record",
+   "name": "civic.record",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/relocation",
+   "name": "civic.relocation",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/residency",
+   "name": "civic.residency",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/rooms",
+   "name": "civic.rooms.index",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/rooms/new",
+   "name": "civic.rooms.create",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/rooms/{space}",
+   "name": "civic.rooms.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/civic/square",
+   "name": "civic.square",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/committees/{committee}",
+   "name": "committees.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/constitutional-challenges",
+   "name": "judiciary.challenges.index",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/constitutional-challenges/{challenge}",
+   "name": "judiciary.challenges.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/continue",
+   "name": "continue",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/coverage",
+   "name": "coverage",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/coverage-ops",
+   "name": "coverage-ops",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/departments/{department}",
+   "name": "executive.department-detail",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/departments/{department}/reporting",
+   "name": "departments.reporting",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/dev/electoral-kit",
+   "name": "dev.electoral-kit",
+   "middleware": [
+    "App\\Http\\Middleware\\DevToolsEnabled",
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/dev/executive-kit",
+   "name": "dev.executive-kit",
+   "middleware": [
+    "App\\Http\\Middleware\\DevToolsEnabled",
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/dev/judiciary-kit",
+   "name": "dev.judiciary-kit",
+   "middleware": [
+    "App\\Http\\Middleware\\DevToolsEnabled",
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/dev/legislature-kit",
+   "name": "dev.legislature-kit",
+   "middleware": [
+    "App\\Http\\Middleware\\DevToolsEnabled",
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/dev/playtest/state",
+   "name": "dev.playtest.state",
+   "middleware": [
+    "App\\Http\\Middleware\\DevToolsEnabled",
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/dev/scenario/state",
+   "name": "dev.scenario.state",
+   "middleware": [
+    "App\\Http\\Middleware\\DevToolsEnabled",
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/dev/users",
+   "name": "dev.users",
+   "middleware": [
+    "App\\Http\\Middleware\\DevToolsEnabled",
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy",
+   "name": "economy.home",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/agreements",
+   "name": "economy.agreements",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/agreements/{contract}",
+   "name": "economy.agreement",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/exchange",
+   "name": "economy.exchange",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/help",
+   "name": "economy.help",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/help/{assistance}",
+   "name": "economy.help.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/joint-ledgers",
+   "name": "economy.joint",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/market",
+   "name": "economy.market",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/market/{listing}",
+   "name": "economy.listing",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/requests/{posting}",
+   "name": "economy.request",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/resident-agreements",
+   "name": "economy.resident-agreements",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/stipend",
+   "name": "economy.stipend",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/treasury",
+   "name": "economy.treasury",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/units",
+   "name": "economy.units",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/wallet",
+   "name": "economy.wallet",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/economy/work",
+   "name": "economy.work",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections",
+   "name": "elections.index",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/board",
+   "name": null,
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/candidacy",
+   "name": "elections.entry.candidacy",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/countback",
+   "name": null,
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/open-ballot",
+   "name": "elections.entry.open-ballot",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/ranked-ballot",
+   "name": "elections.entry.ranked-ballot",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/results",
+   "name": "elections.entry.results",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/{election}",
+   "name": "elections.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/{election}/candidacy",
+   "name": "elections.candidacy.create",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/{election}/open-ballot",
+   "name": "elections.open-ballot",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/{election}/ranked-ballot",
+   "name": "elections.ranked-ballot",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/{election}/results",
+   "name": "elections.results",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/elections/{election}/results.csv",
+   "name": "elections.results.csv",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/executive/{sub?}",
+   "name": "executive.resolve",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/executives/{executive}",
+   "name": "executives.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/executives/{executive}/actions",
+   "name": "executive.actions",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/executives/{executive}/departments",
+   "name": "executive.departments",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/explore",
+   "name": "roles.explore",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/federation",
+   "name": "federation.between",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/federation/cluster/sync-progress",
+   "name": "federation.cluster.sync-progress",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/horizon/api/batches",
+   "name": "horizon.jobs-batches.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/batches/{id}",
+   "name": "horizon.jobs-batches.show",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/jobs/completed",
+   "name": "horizon.completed-jobs.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/jobs/failed",
+   "name": "horizon.failed-jobs.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/jobs/failed/{id}",
+   "name": "horizon.failed-jobs.show",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/jobs/pending",
+   "name": "horizon.pending-jobs.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/jobs/silenced",
+   "name": "horizon.silenced-jobs.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/jobs/{id}",
+   "name": "horizon.jobs.show",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/masters",
+   "name": "horizon.masters.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/metrics/jobs",
+   "name": "horizon.jobs-metrics.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/metrics/jobs/{id}",
+   "name": "horizon.jobs-metrics.show",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/metrics/queues",
+   "name": "horizon.queues-metrics.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/metrics/queues/{id}",
+   "name": "horizon.queues-metrics.show",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/monitoring",
+   "name": "horizon.monitoring.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/monitoring/{tag}",
+   "name": "horizon.monitoring-tag.paginate",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/stats",
+   "name": "horizon.stats.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/api/workload",
+   "name": "horizon.workload.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/horizon/{view?}",
+   "name": "horizon.index",
+   "middleware": [
+    "Laravel\\Horizon\\Http\\Middleware\\Authenticate",
+    "horizon"
+   ]
+  },
+  {
+   "uri": "/i/{token}",
+   "name": "invite.land",
+   "middleware": [
+    "throttle:30,1",
+    "web"
+   ]
+  },
+  {
+   "uri": "/journeys",
+   "name": "journeys.index",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/journeys/{id}",
+   "name": "journeys.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/judiciaries/{judiciary}",
+   "name": "judiciaries.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/judiciaries/{judiciary}/docket",
+   "name": "judiciary.docket",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/judiciary/advocate",
+   "name": "judiciary.advocate",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/judiciary/docket",
+   "name": "judiciary.docket.mine",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/judiciary/jury/{summons}",
+   "name": "judiciary.juror.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/judiciary/{sub?}",
+   "name": "judiciary.resolve",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/jurisdictions",
+   "name": "jurisdictions.index",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/jurisdictions/bootstrap",
+   "name": "jurisdictions.bootstrap",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/jurisdictions/disintermediation",
+   "name": "jurisdictions.disintermediation",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/jurisdictions/restoration",
+   "name": "jurisdictions.restoration",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/jurisdictions/union-formation",
+   "name": "jurisdictions.union",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/jurisdictions/{jurisdiction}",
+   "name": "jurisdictions.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/jurisdictions/{jurisdiction}/map",
+   "name": "jurisdictions.map",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/launchpad",
+   "name": "launchpad",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/learn",
+   "name": "learn.home",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/learn/guides",
+   "name": "learn.guides",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/learn/manage",
+   "name": "learn.manage",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/learn/manage/{module}",
+   "name": "learn.manage.edit",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/learn/{track}/{module?}",
+   "name": "learn.lesson",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislature/{sub?}",
+   "name": "legislature.resolve",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures",
+   "name": "legislatures.index",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature_id}",
+   "name": "legislatures.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature_id}/districts",
+   "name": "legislatures.districts",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature_id}/panels",
+   "name": "legislatures.panels",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature_id}/type-b-map",
+   "name": null,
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature}/bills",
+   "name": "bills.index",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature}/chamber",
+   "name": "chamber.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature}/committees",
+   "name": "committees.index",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature}/emergency-powers",
+   "name": "emergency-powers.index",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature}/institution-acts",
+   "name": "institution-acts.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature}/oversight",
+   "name": "oversight.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature}/referendums",
+   "name": "referendums.index",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature}/session",
+   "name": "session.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature}/sessions",
+   "name": "sessions.index",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature}/settings",
+   "name": "settings.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/legislatures/{legislature}/speaker",
+   "name": "speaker.show",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/login",
+   "name": "login",
+   "middleware": [
+    "guest",
+    "web"
+   ]
+  },
+  {
+   "uri": "/oauth/authorize",
+   "name": null,
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/oauth/jwks",
+   "name": null,
+   "middleware": [
+    "throttle:120,1"
+   ]
+  },
+  {
+   "uri": "/oauth/userinfo",
+   "name": null,
+   "middleware": [
+    "throttle:120,1"
+   ]
+  },
+  {
+   "uri": "/operator",
+   "name": "operator.home",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/operator/console",
+   "name": "operator.console",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/operator/dns",
+   "name": "operator.dns",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/operator/federation",
+   "name": "federation.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/operator/identity",
+   "name": "operator.identity",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/operator/login",
+   "name": "operator.login",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/operator/mesh",
+   "name": "operator.mesh",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/operator/moderation",
+   "name": "operator.moderation",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/operator/operations",
+   "name": "operator.operations",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/operator/operations/apply-status",
+   "name": "operator.operations.apply-status",
+   "middleware": [
+    "auth:operator",
+    "web"
+   ]
+  },
+  {
+   "uri": "/operator/roles",
+   "name": "operator.roles",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/operator/versioning",
+   "name": "operator.versioning",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/organizations",
+   "name": "organizations.index",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/organizations/co-determination",
+   "name": "organizations.co-determination",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/organizations/transfers-conversions",
+   "name": "organizations.transfers-conversions",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/organizations/{organization}",
+   "name": "organizations.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/organizations/{organization}/board-elections",
+   "name": "organizations.board-elections",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/organizations/{organization}/cgc",
+   "name": "organizations.cgc.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/organizations/{organization}/delegations",
+   "name": "organizations.delegations.index",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/organizations/{organization}/economy",
+   "name": "organizations.economy",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/people",
+   "name": "people.show",
+   "middleware": [
+    "throttle:60,1",
+    "web"
+   ]
+  },
+  {
+   "uri": "/reach",
+   "name": "reach.index",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/register",
+   "name": "register",
+   "middleware": [
+    "guest",
+    "web"
+   ]
+  },
+  {
+   "uri": "/rooms",
+   "name": "rooms.index",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/rooms/board/{board}",
+   "name": "rooms.board",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/rooms/chamber/{legislature}",
+   "name": "rooms.chamber",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/rooms/committee/{meeting}",
+   "name": "rooms.committee",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/rooms/court/{case}",
+   "name": "rooms.court",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/setup",
+   "name": "setup.index",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/setup/bootstrap",
+   "name": "setup.bootstrap",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/setup/join",
+   "name": "setup.join",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/setup/mode",
+   "name": "setup.mode",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/setup/operator",
+   "name": "setup.operator",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/setup/step/{n}",
+   "name": "setup.step",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/simworld",
+   "name": "simworld.console",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/storage/{path}",
+   "name": "storage.local",
+   "middleware": []
+  },
+  {
+   "uri": "/support/report",
+   "name": "support.report",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/support/ticket/{ref}",
+   "name": "support.ticket",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/support/tickets",
+   "name": "support.tickets",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/system/accessibility",
+   "name": "system.accessibility",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/system/amendments",
+   "name": "system.amendments",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/system/audit-chain",
+   "name": "system.audit-chain",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/system/clocks",
+   "name": "system.clocks",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/system/constitutional-questions",
+   "name": "system.constitutional-questions",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/system/public-records",
+   "name": "system.public-records",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/system/term-sync",
+   "name": "system.term-sync",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/system/translations",
+   "name": "system.translations",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/system/translations/progress",
+   "name": "system.translations.progress",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/system/translations/review/{locale}",
+   "name": "system.translations.review",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/tour",
+   "name": "tour",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
+   "uri": "/up",
+   "name": null,
+   "middleware": []
+  },
+  {
+   "uri": "/vacancies/{vacancy}",
+   "name": "vacancies.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
+   "uri": "/videos",
+   "name": "videos",
+   "middleware": [
+    "web"
+   ]
+  }
+ ]
+}
