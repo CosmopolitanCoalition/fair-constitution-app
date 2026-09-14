@@ -349,6 +349,46 @@ final class ChallengeTrackerControlsTest extends TestCase
         self::assertFalse($gMember['proposeAmendment']);
     }
 
+    /**
+     * IO-3, the register's "repeated application after legislative remedy or
+     * override" clause, at the tracker gate: once a challenge has been resolved
+     * by a Path-1 legislative amendment (amended_by_legislature) or a Path-2
+     * override (overridden), the outcome gates enable NOTHING — no repeated
+     * override, no repeated remedy, no further amendment proposal — even with
+     * both windows in the past. The controls stay visible to their actors
+     * (disabled, not hidden). This pins the two Path-1/Path-2 terminal statuses
+     * distinctly from the generic `closed` covered above; the ENGINE-level
+     * repeated-application refusals are exercised on a disposable PostgreSQL
+     * database by tests/concurrency/challenge_direct_remedy.php.
+     */
+    public function test_resolved_challenge_enables_no_repeated_application(): void
+    {
+        $scene = $this->scene();
+        $judge = $this->judge(91, (string) $scene['court']->id);
+        $member = $this->member(92, (string) $scene['legislature']->id);
+        $calls = [];
+        $controller = $this->recordingController($calls);
+
+        foreach ([
+            ConstitutionalChallenge::STATUS_AMENDED_BY_LEGISLATURE,
+            ConstitutionalChallenge::STATUS_OVERRIDDEN,
+        ] as $status) {
+            // Both windows in the PAST — only the resolved status bars the gate.
+            $resolved = $this->makeChallenge($status, $scene, -5, -5);
+
+            $gMember = $this->gates($controller, $resolved, $member);
+            self::assertTrue($gMember['isLegislatureMember'], "member still sees the controls ({$status})");
+            self::assertFalse($gMember['override'], "no repeated override after resolution ({$status})");
+            self::assertFalse($gMember['proposeAmendment'], "no further amendment after resolution ({$status})");
+
+            $gJudge = $this->gates($controller, $resolved, $judge);
+            self::assertTrue($gJudge['isSeatedJudge'], "judge still sees the controls ({$status})");
+            self::assertFalse($gJudge['remedy'], "no repeated judicial remedy after resolution ({$status})");
+            self::assertFalse($gJudge['finding']);
+            self::assertFalse($gJudge['recommend']);
+        }
+    }
+
     public function test_bill_prefill_forwards_targets_challenge_id(): void
     {
         $scene = $this->scene();
