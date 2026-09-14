@@ -346,6 +346,24 @@
    "note": "Built by the markup lane, commit 99e78979, merged 64f99473. All 67 gaps labeled (aria-label, for/id pairs, aria-hidden), a11y-baseline.json emptied, static scan 0 findings over 271 files on main. Player and room tests 25 of 25.",
    "date": "2026-09-14",
    "title": "Label 67 accessible-name gaps across 18 Vue files"
+  },
+  "W-0196": {
+   "status": "done",
+   "note": "Built by the siminst lane, commit f7803960, merged 778eeb57. GovernanceStage::seatDepartmentGovernors files F-EXE-001 through the real consent pipeline and arms CLK-09 per seat. Pinned by SimDepartmentGovernorStageTest (3).",
+   "date": "2026-09-14",
+   "title": "Add the F-EXE-001 department board-of-governors path to the sim"
+  },
+  "W-0246": {
+   "status": "done",
+   "note": "Built by the siminst lane, commit 044626cb, merged 778eeb57. The counting mint joins the done election_scope to the election it produced (race_id), one count item per election. Pinned by SimCountingMintScopeTest (2, disposable PostgreSQL).",
+   "date": "2026-09-14",
+   "title": "Bound the counting-mint query to the target election"
+  },
+  "W-0242": {
+   "status": "done",
+   "note": "Built by the siminst lane, commit c24ce73d, merged 778eeb57. Protected-file defect fix in ConstitutionalValidator: type_b races validate against the equal-representation ladder (1 to the resolved per-child count, ceiling 9) instead of the 5 to 9 district band, matching the generator and the 2026-07-29 ruling. Pinned by RaceStructureTest; regression 42 tests green on main.",
+   "date": "2026-09-14",
+   "title": "Align Type B seat-band validation across generator and ballot paths"
   }
  }
 }

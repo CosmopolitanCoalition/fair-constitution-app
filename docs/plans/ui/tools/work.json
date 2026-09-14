@@ -6694,10 +6694,10 @@
     {
       "id": "W-0196",
       "title": "Add the F-EXE-001 department board-of-governors path to the sim",
-      "phase": "P3",
-      "order": 41,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "blocker: VERIFIED 2026-09-14 (absent): SimBoardService now arms CLK-09 in seatSeat for CGC governor seats. Department Board of Governors via F-EXE-001 (nomination + legislative consent) is still absent from every sim stage. | VERIFIED 2026-09-08 (absent): CivicsStage now seats CGC governor boards via SimBoardService::seatCgcGovernors (commit 1c9740f9). Department Board of Governors (F-EXE-001 nomination and consent, CLK-09 arm) remains absent from the sim. No sim stage files F-EXE-001 or arms a CLK-09 clock for a department's BoG seats. Evidence: Commit 1c9740f9 added SimBoardService::seatCgc…",
       "done_when": "A sim stage files F-EXE-001 to nominate and seat department BoG members with CLK-09 armed per seat; department BoG rows exist after a sim run.",
@@ -6732,6 +6732,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Distinct sim-stage gap; CGC governor boards seat but department BoG does not."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the siminst lane, commit f7803960, merged 778eeb57. GovernanceStage::seatDepartmentGovernors files F-EXE-001 through the real consent pipeline and arms CLK-09 per seat. Pinned by SimDepartmentGovernorStageTest (3)."
         }
       ]
     },
@@ -8700,10 +8704,10 @@
     {
       "id": "W-0242",
       "title": "Align Type B seat-band validation across generator and ballot paths",
-      "phase": "P3",
-      "order": 44,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "app/Services/ConstitutionalValidator.php:615-697; app/Domain/Forms/Handlers/ElectionSchedulingOrder.php:439-467; app/Services/ElectionLifecycleService.php:730-746, 849-940; app/Domain/Forms/Handlers/SubdivisionBoundaryDrawing.php:101 (medium). An explicit race list carrying a lawful 2-seat Type B race is rejected while the generator produces the same race unchecked.",
       "done_when": "Type B seat-band validation agrees between the generator path and the explicit ballot path; ConstitutionalValidatorTest confirms no asymmetry.",
@@ -8742,6 +8746,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Removes the validator asymmetry that would reject a generator-produced 2-seat race."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the siminst lane, commit c24ce73d, merged 778eeb57. Protected-file defect fix in ConstitutionalValidator: type_b races validate against the equal-representation ladder (1 to the resolved per-child count, ceiling 9) instead of the 5 to 9 district band, matching the generator and the 2026-07-29 ruling. Pinned by RaceStructureTest; regression 42 tests green on main."
         }
       ]
     },
@@ -8865,10 +8873,10 @@
     {
       "id": "W-0246",
       "title": "Bound the counting-mint query to the target election",
-      "phase": "P3",
-      "order": 43,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "app/Support/SimClaims.php:120-136; app/Console/Commands/SimStartCommand.php:189-207; app/Console/Commands/SimPumpCommand.php:213-233 (low). A --limit smoke run claims in uuid order.",
       "done_when": "The counting-mint query is scoped to the target election with no full scan over all open elections; a targeted test confirms the scope.",
@@ -8907,6 +8915,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Remaining clause of debt:43; the 25k-band claim clause is already resolved."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the siminst lane, commit 044626cb, merged 778eeb57. The counting mint joins the done election_scope to the election it produced (race_id), one count item per election. Pinned by SimCountingMintScopeTest (2, disposable PostgreSQL)."
         }
       ]
     },
@@ -16512,6 +16524,25 @@
       "evidence": [],
       "history": [
         "Opened 2026-09-14 by the desk after the economy lane reported the failure; reproduced on main c29012b7."
+      ]
+    },
+    {
+      "id": "W-0434",
+      "title": "Fix CivicsStageTest: the sim civics stage no longer records organization endorsements",
+      "phase": "P1",
+      "order": 70,
+      "kind": "debt",
+      "status": "open",
+      "blocker": "",
+      "detail": "tests/Constitutional/CivicsStageTest.php:149 asserts that after CivicsStage::run the endorsements of the open election carry both endorser_type organizations and users. On main 778eeb57 the organizations type is absent: Tests 5, Assertions 23, Failures 1 (organizations endorse). Last commits on app/Services/Demo/Stages/CivicsStage.php: c1db6f48, ebb77f0f, caa1ad10 (endorsement source lowered, parties folded into the org path). Pre-existing before the 2026-09-14 lanes; first seen by the siminst lane commit step, reproduced by the desk.",
+      "done_when": "CivicsStageTest passes on main: a sim civics pass records endorsements from organizations and from individuals for the open election, or the test is corrected to the ruled behaviour with the ruling cited.",
+      "depends_on": [],
+      "sources": [
+        "desk: siminst lane commit step 2026-09-14"
+      ],
+      "evidence": [],
+      "history": [
+        "Opened 2026-09-14 by the desk after the siminst lane reported the failure; reproduced on main 778eeb57."
       ]
     }
   ]
