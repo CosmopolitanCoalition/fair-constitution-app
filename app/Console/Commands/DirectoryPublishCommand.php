@@ -37,9 +37,15 @@ class DirectoryPublishCommand extends Command
             : Jurisdiction::query()->where('authoritative_server_id', $identity->serverId())->pluck('id')->all();
 
         if ($targets === []) {
-            $this->warn('No jurisdiction is explicitly authoritative to this server — pass a jurisdiction id to publish.');
+            // No jurisdiction is explicitly authoritative to this node. That is the NORMAL
+            // state for a mirror or a fresh anchor with no adopted jurisdiction yet — a
+            // legitimate no-op, NOT an error (a mirror never claims local authority). Exit 0
+            // with an informational line so an orchestrator (bootstrap.sh) treats it as
+            // success and continues. A GENUINE error (no transports, above) still exits
+            // non-zero and is fatal.
+            $this->info('No jurisdiction is explicitly authoritative to this server — nothing to publish. Pass a jurisdiction id to publish a specific route later.');
 
-            return self::FAILURE;
+            return self::SUCCESS;
         }
 
         foreach ($targets as $jurisdictionId) {
