@@ -332,6 +332,7 @@ onBeforeUnmount(() => {
         <div v-if="hasMedia" class="vplayer-stage vplayer-stage--live">
             <video
                 ref="videoEl"
+                :aria-label="video.title"
                 :poster="undefined"
                 muted
                 playsinline
