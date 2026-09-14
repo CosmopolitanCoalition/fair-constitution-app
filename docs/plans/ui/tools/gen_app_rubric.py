@@ -517,6 +517,10 @@ _ANS = {
  'setup-shell-menus':('A','Lock everything except Setup, Jurisdictions and Learn until setup completes.','Plus the OPERATOR CONTROLS — everything is locked except operator controls, setup controls, and the three in A.'),
  'guest-banner':('B','Collapse into the header bar as a small badge beside Log in / Register.',''),
  'about-surface':('A','Move the content into the Learn tab; remove the block from the viewer.','⚑ CHECK LEARN FIRST — do not duplicate or override what is already there. And a STANDING instruction for the whole walkthrough: much of the UI is explanatory text that previous design/developer AIs generated. Expect to be cleaning a lot of that out as we go.'),
+ 'disposable-pg-on-box-e':('A','Review lanes create and drop nonce-guarded disposable cga_* / codex_* databases on the existing postgres of box E; the world database is never a fixture; every database is dropped at the end of its run.','"1: A" (2026-09-14)'),
+ 'second-compose-project-box-e':('B','Deferred: the two-node mesh join and TLS reviews run on a Linux host or the restored cloud box; no second Compose project on box E; both register rows stay BLOCKED with their harnesses prepared.','"2 and 3 Sounds like this is just testing that isn\'t blocking building. if so defer. if not let me know." (2026-09-14; desk assessment: both rows are verification only, no build item depends on them, so both are deferred)'),
+ 'benchmark-go-scope':('B','Deferred: no simulation or setup run starts on box E for the review campaign; the Setup worlds and Scale rows keep their written fixtures and harness and wait for a dedicated benchmark window.','"2 and 3 Sounds like this is just testing that isn\'t blocking building. if so defer. if not let me know." (2026-09-14; desk assessment: both rows are verification only, no build item depends on them, so both are deferred)'),
+ 'video-a11y-tooling':('A','Playwright and axe-core added as dev dependencies with a Chromium download inside the Vite container; unblocks the video decoding review, accessibility pass 2 and the D1 rehearsal runner.','"4: A" (2026-09-14)'),
 }
 for _q in QUESTIONS:
     a = _ANS.get(_q['id'])
