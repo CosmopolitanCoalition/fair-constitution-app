@@ -83,3 +83,4 @@ docker/matrix/mas/config.generated.yaml
 
 # Parallel build lanes: git worktrees kept under the repo so the Docker bind mount sees them.
 /.wt/
+/test-results/
