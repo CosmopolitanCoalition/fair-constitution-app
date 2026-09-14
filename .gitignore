@@ -80,3 +80,6 @@ docker/matrix/mas/config.generated.yaml
 # Live translation run state — worker heartbeats, written per chunk.
 # Machine state about a run in flight, not a repo artifact.
 /storage/app/i18n-run/
+
+# Parallel build lanes: git worktrees kept under the repo so the Docker bind mount sees them.
+/.wt/
