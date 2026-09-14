@@ -206,7 +206,8 @@
   "W-0294": {
    "note": "I think the LEarn management system already exists for this. If not that all comes together so the learn drawer has the video as well. The v3 Mockups already have this in place and are the model for use.",
    "date": "2026-09-14",
-   "title": "Add video and translation nav rows and seed the education catalog"
+   "title": "Add video and translation nav rows and seed the education catalog",
+   "status": "moot"
   },
   "W-0295": {
    "status": "moot",
@@ -221,19 +222,19 @@
    "title": "Add constituent_requests and room read-position schema for honest-empty pages"
   },
   "W-0334": {
-   "note": "There is PHP and HTML.Javascript Code I built for the international player. Do you have access to that? That is the mdoel we will be using for multimodal translation.",
+   "note": "Per our conversation this is in porgress now as you have accessed the video player files on the site to model off of.",
    "date": "2026-09-14",
    "title": "Internationalize MultiTrackVideoPlayer labels, aria-labels and error messages"
   },
   "W-0332": {
-   "status": "deferred",
-   "note": "Waiting for the Surfaces to Settle before making translations and feels like duplicate of the untraslated keys jsut the reverse in that the calalog needs the keys. Combine if needed.",
+   "status": "blocked",
+   "note": "Waiting for the Surfaces to Settle before making translations and feels like duplicate of the untraslated keys jsut the reverse in that the calalog needs the keys. Combine if needed. Merge",
    "date": "2026-09-14",
    "title": "Author the 14 namespace catalogs absent from the six conference locales"
   },
   "W-0333": {
-   "status": "deferred",
-   "note": "Waiting for the Surfaces to Settle before making translations.",
+   "status": "moot",
+   "note": "Waiting for the Surfaces to Settle before making translations. Merge",
    "date": "2026-09-14",
    "title": "Fill 10,597 untranslated keys across six conference locales"
   },
@@ -264,7 +265,8 @@
   "W-0284": {
    "note": "Not needed for E specifically.",
    "date": "2026-09-14",
-   "title": "Verify guest walk on box E and session-scoped write purge"
+   "title": "Verify guest walk on box E and session-scoped write purge",
+   "status": "moot"
   },
   "W-0299": {
    "note": "This might already exist. Reconfirm.",
@@ -272,7 +274,7 @@
    "title": "Wire budget form, record dues as dues, add balance-floor constraint"
   },
   "W-0257": {
-   "status": "open",
+   "status": "moot",
    "note": "This will be done when we make a new fresh linux box. If it is built this is moot. If iti s not built then this is moot as it will be done in Testing.",
    "date": "2026-09-14",
    "title": "Run the simulation to populate economy surfaces"

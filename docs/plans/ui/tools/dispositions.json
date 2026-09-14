@@ -1139,29 +1139,24 @@
    "src": "punch",
    "i": "LG-1",
    "final": "work",
-   "work_title": "Author the 14 namespace catalogs absent from the six conference locales",
+   "work_title": "Translate the six conference locales: the 14 absent catalogs and the 10,597 untranslated keys",
    "kind": "content",
-   "blocker": "none",
-   "done_when": "Every English namespace catalog file exists for ar, es, fr, hi, pt and zh-Hans; the i18nCoverage absence check passes.",
+   "blocker": "other",
+   "done_when": "Every English namespace file exists for ar, es, fr, hi, pt and zh-Hans and tests/js/i18nCoverage.test.mjs reports zero missing keys for the six conference locales; human naturalness review stays separate.",
    "depends_on": [],
    "evidence": "tests/js/i18nCoverage.test.mjs records 14 absent namespace files per conference locale as of 2026-09-14. translate_run.py exists but provider is unruled (rubric translation-first-pass-provider open).",
    "reason": "English base catalogs are desk authoring; the machine fill depends on them. Provider ruled 2026-09-14 (local model on box E).",
-   "merged": []
+   "merged": [
+    "punch:LG-2"
+   ]
   },
   {
    "src": "punch",
    "i": "LG-2",
-   "final": "work",
-   "work_title": "Fill 10,597 untranslated keys across six conference locales",
-   "kind": "content",
-   "blocker": "operator_go",
-   "done_when": "i18nCoverage reports zero missing keys for the six conference locales after the machine first pass runs.",
-   "depends_on": [
-    "punch:LG-1"
-   ],
-   "evidence": "Punch list created 2026-09-12/13: 10,597 untranslated keys reported across conference locales as of 2026-09-14. c_education is the largest gap at 165-259 keys per locale.",
-   "reason": "The machine first pass provider is ruled (local model on box E) but a run needs the operator's GO.",
-   "merged": []
+   "final": "duplicate",
+   "duplicate_of": "punch:LG-1",
+   "reason": "Merged into punch:LG-1 on the operator note \"Merge\" (2026-09-14).",
+   "evidence": ""
   },
   {
    "src": "punch",
@@ -1510,12 +1505,6 @@
     "order": 10,
     "phase": "P1",
     "rationale": "English base catalogs are desk authoring; the machine fill depends on them. Provider ruled 2026-09-14 (local model on box E)."
-   },
-   {
-    "key": "punch:LG-2",
-    "order": 11,
-    "phase": "P1",
-    "rationale": "The machine first pass provider is ruled (local model on box E) but a run needs the operator's GO."
    },
    {
     "key": "caps:51",

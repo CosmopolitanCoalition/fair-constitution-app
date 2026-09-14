@@ -9502,10 +9502,10 @@
     {
       "id": "W-0257",
       "title": "Run the simulation to populate economy surfaces",
-      "phase": "P3",
-      "order": 52,
+      "phase": "done",
+      "order": null,
       "kind": "ops",
-      "status": "open",
+      "status": "moot",
       "blocker": "operator_go",
       "detail": "Live single-table counts: currencies 0, economic_accounts 0, marketplace_listings 0, work_postings 0, ledger_entries 0, share_offers 0. The only caller of CurrencyService::create (app/Services/Economy/CurrencyService.php:52) is app/Console/Commands/TreasuryDemoCommand.php:49. (medium). Partly addressed 2026-09-06: the Step 4 shell batch now founds the root currency and one public treasury per jurisdiction at planet scale (923,092 treasuries, balance 0). Resident wallets, the mint, stipend runs and account balances remain Wave 7 (the simulation), so the account-level economy surfaces stay empt…",
       "done_when": "A planet-scale sim run completes; currencies, wallets, stipend entries and ledger rows are non-zero on the box.",
@@ -9548,6 +9548,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator set open. This will be done when we make a new fresh linux box. If it is built this is moot. If iti s not built then this is moot as it will be done in Testing."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This will be done when we make a new fresh linux box. If it is built this is moot. If iti s not built then this is moot as it will be done in Testing."
         }
       ]
     },
@@ -10594,10 +10598,10 @@
     {
       "id": "W-0284",
       "title": "Verify guest walk on box E and session-scoped write purge",
-      "phase": "P1",
-      "order": 22,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (next): Manual test on a live box. W8 items 1 through 4 are not finished. Cannot verify from code. Evidence: Manual test requiring a live instance. W8 items 1-4 are not complete. Cannot verify from code. | Sign out. Walk every read surface as a guest, including the sim console. Attempt writes as a guest and as an assumed role: every write is refused with the message and nothing persists.",
       "done_when": "A signed-out walk reaches every read surface without redirect; write attempts return the session-scoped message; no write persists after the session ends.",
@@ -10636,6 +10640,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: Not needed for E specifically."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. Not needed for E specifically."
         }
       ]
     },
@@ -11038,10 +11046,10 @@
     {
       "id": "W-0294",
       "title": "Add video and translation nav rows and seed the education catalog",
-      "phase": "P1",
-      "order": 6,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (next): Nav rows for video library and translation board are absent. Education catalog is unseeded (no education:seed in the scheduler). No commit in the recent set closes any sub-item. Evidence: resources/js/registry/coverage.js says the translations nav row 'lands at lane 5's next pass'. No nav row for video library was found in resources/js/Components/Nav/. No education:seed command call or education track seeding exists in routes/console.php or database/seeders/. No commit in the leads list addresses any of these items. | Publish the education catalog (config; only edu…",
       "done_when": "surfaces.js has nav entries for /videos and /system/translations; education:seed runs; Learn, lesson and video pages render real content.",
@@ -11112,6 +11120,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: I think the LEarn management system already exists for this. If not that all comes together so the learn drawer has the video as well. The v3 Mockups already have this in place and are the model for use."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. I think the LEarn management system already exists for this. If not that all comes together so the learn drawer has the video as well. The v3 Mockups already have this in place and are the model for use."
         }
       ]
     },
@@ -12704,20 +12716,26 @@
     },
     {
       "id": "W-0332",
-      "title": "Author the 14 namespace catalogs absent from the six conference locales",
+      "title": "Translate the six conference locales: the 14 absent catalogs and the 10,597 untranslated keys",
       "phase": "P1",
       "order": 10,
       "kind": "content",
-      "status": "deferred",
-      "blocker": "none",
-      "detail": "Author the fourteen English namespace catalogs absent from every conference locale (c_bill, c_community, c_explore, c_host, c_learn, c_legislature_workspace, c_live_commons, c_loading, c_navigation, c_references, c_rooms, c_term_sync, flows, places) for ar, es, fr, hi, pt and zh-Hans; fr and pt additionally c_shell, c_shellv2, chrome and registry. Machine first pass through `scripts/i18n/translate_run.py` once the provider is ruled (rubric `translation-first-pass-provider`).",
-      "done_when": "Every English namespace catalog file exists for ar, es, fr, hi, pt and zh-Hans; the i18nCoverage absence check passes.",
+      "status": "blocked",
+      "blocker": "other",
+      "detail": "Merged item (operator, 2026-09-14): the absent per-locale catalog files and the untranslated keys are one job. The export writes each missing file with its keys; the machine first pass (local model on box E, ruling translation-first-pass-provider = A) or any AI translates; the importer validates and writes. Blocked until the surfaces settle. Tooling built (LG-0): scripts/i18n/export_master.py, import_translated.py, the Ollama provider; procedure in docs/plans/i18n/MASTER_EXPORT.md.",
+      "done_when": "Every English namespace file exists for ar, es, fr, hi, pt and zh-Hans and tests/js/i18nCoverage.test.mjs reports zero missing keys for the six conference locales; human naturalness review stays separate.",
       "depends_on": [],
       "sources": [
         {
           "list": "punch",
           "ref": "LG-1",
           "title": "LG-1 punch item",
+          "wave": ""
+        },
+        {
+          "list": "punch",
+          "ref": "LG-2",
+          "title": "LG-2 punch item",
           "wave": ""
         }
       ],
@@ -12739,16 +12757,24 @@
         {
           "date": "2026-09-14",
           "note": "Operator set deferred. Waiting for the Surfaces to Settle before making translations and feels like duplicate of the untraslated keys jsut the reverse in that the calalog needs the keys. Combine if needed."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set blocked. Waiting for the Surfaces to Settle before making translations and feels like duplicate of the untraslated keys jsut the reverse in that the calalog needs the keys. Combine if needed. Merge"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Merged W-0333 (fill the untranslated keys) into this item on the operator note \"Merge\"; blocked until the surfaces settle."
         }
       ]
     },
     {
       "id": "W-0333",
       "title": "Fill 10,597 untranslated keys across six conference locales",
-      "phase": "P1",
-      "order": 11,
+      "phase": "done",
+      "order": null,
       "kind": "content",
-      "status": "deferred",
+      "status": "moot",
       "blocker": "operator_go",
       "detail": "Complete the untranslated keys in the namespaces that exist per conference locale (10,597 keys on 14 September; c_education the largest at 165 to 259 keys per locale). Same machine first pass, then the human naturalness review that the register keeps separate.",
       "done_when": "i18nCoverage reports zero missing keys for the six conference locales after the machine first pass runs.",
@@ -12781,6 +12807,14 @@
         {
           "date": "2026-09-14",
           "note": "Operator set deferred. Waiting for the Surfaces to Settle before making translations."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. Waiting for the Surfaces to Settle before making translations. Merge"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Merged into W-0332 on the operator note \"Merge\"."
         }
       ]
     },
@@ -12825,6 +12859,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator: the Coalition plugin (video_player.php) is the model; icon-first controls with native language labels, the remaining strings through vue-i18n."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: Per our conversation this is in porgress now as you have accessed the video player files on the site to model off of."
         }
       ]
     },
