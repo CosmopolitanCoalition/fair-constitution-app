@@ -172,6 +172,16 @@ class SimWorkerJob implements ShouldQueue
                     unset($metrics['_verdict'], $metrics['_reason']);
                     $this->settle($item->id, $verdict, $metrics, $reason);
                     if ($verdict === SimItem::STATUS_DONE) {
+                        // Stamp the election an election_scope produced onto its
+                        // own race_id, so the counting mint binds a count item
+                        // to THIS election, not to every open election of the
+                        // jurisdiction (debt row 43). A scope that produced no
+                        // election (blocked, no board) leaves race_id null and
+                        // mints nothing, which is correct.
+                        if ($item->kind === 'election_scope' && ! empty($metrics['election_id'])) {
+                            DB::table('sim_items')->where('id', $item->id)
+                                ->update(['race_id' => (string) $metrics['election_id']]);
+                        }
                         // O(1) world counters (G3): the pump maintains the
                         // headline figures per committed item so the Step 5
                         // poll reads them off the run row instead of scanning

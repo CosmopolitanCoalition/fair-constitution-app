@@ -200,6 +200,44 @@ class SimPumpCommand extends Command
     }
 
     /**
+     * The counting-phase mint statement (extracted so a disposable-database
+     * test can run the exact production SQL, never a copy).
+     *
+     * BOUND TO THE TARGET ELECTION OF THE CLAIM (debt row 43). One count item
+     * per election an election_scope PRODUCED — the id ElectionStage stamped
+     * into election_scope.race_id at settle. The join is on that election, not
+     * on the jurisdiction. A jurisdiction can hold more than one open election
+     * (a second chamber, a prior run's orphan); a jurisdiction-keyed join
+     * minted a count item for each. One election_scope produced exactly one
+     * election, so it mints exactly one count item. A scope that produced no
+     * election left race_id null and mints nothing.
+     *
+     * The election id rides in count_election.race_id — the item's spare
+     * reference column — because counting and seating act on an election.
+     */
+    public static function countingMintSql(): string
+    {
+        return "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, race_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT gen_random_uuid(), ?, 'count_election', 'pending',
+                        e.jurisdiction_id, e.id, s.adm_level, e.id::text,
+                        s.position, 0, '{}', now(), now()
+                   FROM elections e
+                   JOIN sim_items s
+                     ON s.run_id = ? AND s.kind = 'election_scope'
+                    AND s.race_id = e.id AND s.status = 'done'
+                  WHERE e.status NOT IN ('certified', 'cancelled')
+                    AND EXISTS (SELECT 1 FROM election_races r WHERE r.election_id = e.id)
+                    AND NOT EXISTS (
+                        SELECT 1 FROM sim_items x
+                         WHERE x.run_id = ? AND x.kind = 'count_election'
+                           AND x.unit_key = e.id::text
+                    )
+                  LIMIT ".self::MINT_CHUNK;
+    }
+
+    /**
      * Mint the worklist for a phase we are entering. Bounded, individually
      * committed chunks with a NOT-EXISTS guard, so a pump that dies mid-mint
      * resumes cleanly on the next tick and a double pump is a no-op (THE ETL
@@ -258,24 +296,7 @@ class SimPumpCommand extends Command
             // One counting item per ELECTION this run scheduled. The election id
             // rides in race_id — the item's spare reference column — because
             // counting and seating act on an election, not a jurisdiction.
-            'counting' => "INSERT INTO sim_items
-                    (id, run_id, kind, status, jurisdiction_id, race_id, adm_level, unit_key,
-                     position, est_cost, metrics, created_at, updated_at)
-                 SELECT gen_random_uuid(), ?, 'count_election', 'pending',
-                        e.jurisdiction_id, e.id, s.adm_level, e.id::text,
-                        s.position, 0, '{}', now(), now()
-                   FROM elections e
-                   JOIN sim_items s
-                     ON s.run_id = ? AND s.kind = 'election_scope'
-                    AND s.unit_key = e.jurisdiction_id::text AND s.status = 'done'
-                  WHERE e.status NOT IN ('certified', 'cancelled')
-                    AND EXISTS (SELECT 1 FROM election_races r WHERE r.election_id = e.id)
-                    AND NOT EXISTS (
-                        SELECT 1 FROM sim_items x
-                         WHERE x.run_id = ? AND x.kind = 'count_election'
-                           AND x.unit_key = e.id::text
-                    )
-                  LIMIT ".self::MINT_CHUNK,
+            'counting' => self::countingMintSql(),
 
             // One seating item per election whose races have all been counted.
             'seating' => "INSERT INTO sim_items
