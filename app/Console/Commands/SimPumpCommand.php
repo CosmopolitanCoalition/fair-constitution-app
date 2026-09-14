@@ -429,6 +429,35 @@ class SimPumpCommand extends Command
                     )
                   LIMIT ".self::MINT_CHUNK,
 
+            // THE ACCEPTANCE SCAN (G1): one verify_scope item per legislature-
+            // bearing jurisdiction in the run's OWN enrolled scope. Keyed over
+            // the run's cohort_scope items (the enrolled roster) — bounded to
+            // the run's own worklist, never a planet scan of jurisdictions — with
+            // an EXISTS on the jurisdiction's own legislatures FK so only
+            // chamber-bearing scopes are verified. NOT EXISTS makes a re-mint a
+            // no-op, so the do/while terminates when every in-scope
+            // legislature-bearing jurisdiction has its verify item (rows-inserted
+            // → 0, correct here because every SELECTed row IS inserted).
+            'verifying' => "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT gen_random_uuid(), ?, 'verify_scope', 'pending',
+                        s.jurisdiction_id, s.adm_level, s.jurisdiction_id::text,
+                        s.position, 0, '{}', now(), now()
+                   FROM sim_items s
+                  WHERE s.run_id = ? AND s.kind = 'cohort_scope'
+                    AND EXISTS (
+                        SELECT 1 FROM legislatures l
+                         WHERE l.jurisdiction_id = s.jurisdiction_id
+                           AND l.deleted_at IS NULL
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1 FROM sim_items x
+                         WHERE x.run_id = ? AND x.kind = 'verify_scope'
+                           AND x.unit_key = s.jurisdiction_id::text
+                    )
+                  LIMIT ".self::MINT_CHUNK,
+
             default => null,
         };
 
@@ -545,9 +574,11 @@ class SimPumpCommand extends Command
     {
         $kinds = $run->currentKinds();
 
-        // An empty-kind phase (W7 item 3: enumerating / profiling / verifying)
-        // has nothing to wait for, so it must ADVANCE, not return. Only a phase
-        // with open items of its own kinds blocks the advance.
+        // An empty-kind phase (enumerating / profiling) has nothing to wait for,
+        // so it must ADVANCE, not return. A phase with declared kinds — now
+        // including verifying (G1) — blocks the advance until its own items
+        // settle; a scope with no chambers mints zero verify items and advances
+        // straight through, so a chamberless world never deadlocks here.
         $open = $kinds !== [] && DB::table('sim_items')
             ->where('run_id', $run->id)
             ->whereIn('kind', $kinds)

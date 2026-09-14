@@ -50,6 +50,7 @@ class SimSnapshot
         'civics_scope' => 'Modelling civic life',
         'training_scope' => 'Training the fleet',
         'stipend_scope' => 'Paying the civic stipend',
+        'verify_scope' => 'Verifying the world',
     ];
 
     /** The one unfinished run, else the newest — the same one the pump acts on. */

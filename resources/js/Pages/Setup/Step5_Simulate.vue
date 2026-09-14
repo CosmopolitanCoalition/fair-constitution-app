@@ -43,6 +43,7 @@ const lanes  = computed(() => data.value?.lanes ?? [])
 const review = computed(() => data.value?.review ?? [])
 const timings = computed(() => data.value?.timings ?? [])
 const world  = computed(() => data.value?.world ?? {})
+const readiness = computed(() => data.value?.readiness ?? { run_done: false, verify_total: 0, verify_done: 0, verify_review: 0, pending: false, complete: false, unresolved: [] })
 
 // ── Timing panel: where the time goes, and the gap between claims ────────────
 // VISIBLE during Step 5 perf work (the diagnostic that shows which stage owns
@@ -62,6 +63,7 @@ const TIMING_LABELS = {
     'stage.civics_scope': 'Civics (orgs, bills)',
     'stage.training_scope': 'Training (pre-train the fleet)',
     'stage.stipend_scope': 'Stipend (the money plane)',
+    'stage.verify_scope': 'Verify (the acceptance scan)',
 }
 function timingLabel(p) { return TIMING_LABELS[p] ?? p }
 function timingTone(p) {
@@ -77,6 +79,16 @@ const runDone   = computed(() => run.value && run.value.status === 'done')
 const canStart  = computed(() => !run.value || ['failed', 'done'].includes(run.value.status))
 const locked    = computed(() => (props.settings.setup_step_completed ?? 0) >= 6)
 const refused   = computed(() => !!props.control_refusal)
+
+// ── World-readiness guard (G1) ───────────────────────────────────────────────
+// The Lock control opens only when the completion guard would pass: the run is
+// done, the acceptance scan minted verify items, and none are in review. A
+// forced finish with documented exclusions is a separate, explicit path.
+const verifyPending  = computed(() => !!readiness.value.pending)
+const verifyReview   = computed(() => (readiness.value.verify_review ?? 0) > 0)
+const guardPasses    = computed(() => !!readiness.value.complete)
+const canLock        = computed(() => locked.value || guardPasses.value)
+const canForceFinish = computed(() => !locked.value && !!readiness.value.run_done && !verifyPending.value && verifyReview.value)
 
 function fmtSecs(s) {
     if (s == null) return '—'
@@ -124,6 +136,7 @@ const KIND_LABELS = {
     civics_scope: 'Modelling civic life',
     training_scope: 'Training the fleet',
     stipend_scope: 'Paying the civic stipend',
+    verify_scope: 'Verifying the world',
 }
 function kindLabel(k) { return KIND_LABELS[k] ?? (k || 'between claims') }
 function admLabel(a) {
@@ -231,6 +244,18 @@ async function rollback() {
 }
 async function lockAndContinue() {
     const r = await post('/api/setup/wizard/step5/complete', {}, 'continue')
+    if (r?.next) router.visit(r.next)
+}
+async function finishWithExclusions() {
+    const list = (readiness.value.unresolved || []).map(u => `• ${u.name}${u.gaps ? ' — ' + u.gaps : ''}`).join('\n')
+    const total = readiness.value.verify_review ?? 0
+    const shown = (readiness.value.unresolved || []).length
+    const more = total > shown ? `\n… and ${total - shown} more` : ''
+    const msg = `Finish Step 5 with DOCUMENTED EXCLUSIONS.\n\n${total} scope(s) did not pass verification. `
+        + `The outstanding list below is recorded into the setup completion notes — it is never a silent claim of readiness.\n\n`
+        + `${list}${more}\n\nProceed?`
+    if (!confirm(msg)) return
+    const r = await post('/api/setup/wizard/step5/complete', { force: true }, 'continue')
     if (r?.next) router.visit(r.next)
 }
 
@@ -482,6 +507,44 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             </div>
         </section>
 
+        <!-- World-readiness rollup (G1): the acceptance scan's verdict -->
+        <section v-if="run" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
+            <h2 class="text-white font-semibold mb-3">World readiness
+                <span class="font-normal text-sm"
+                      :class="guardPasses ? 'text-emerald-400/80' : (verifyPending ? 'text-amber-400/80' : (verifyReview ? 'text-amber-400/80' : 'text-gray-400'))">
+                    <template v-if="guardPasses">verified — {{ n(readiness.verify_done) }} / {{ n(readiness.verify_total) }} scopes pass</template>
+                    <template v-else-if="verifyPending">verification pending — run the acceptance scan before locking</template>
+                    <template v-else-if="verifyReview">{{ n(readiness.verify_review) }} scope(s) unresolved</template>
+                    <template v-else-if="!readiness.run_done">the run must finish before verification</template>
+                    <template v-else>{{ n(readiness.verify_done) }} / {{ n(readiness.verify_total) }} scopes verified</template>
+                </span>
+            </h2>
+            <div class="grid grid-cols-3 gap-3 text-sm mb-3">
+                <div class="bg-gray-950/40 rounded p-3">
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">Verify scopes</div>
+                    <div class="text-white text-xl font-semibold tabular-nums">{{ n(readiness.verify_total) }}</div>
+                </div>
+                <div class="bg-gray-950/40 rounded p-3">
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">Passed</div>
+                    <div class="text-emerald-300 text-xl font-semibold tabular-nums">{{ n(readiness.verify_done) }}</div>
+                </div>
+                <div class="bg-gray-950/40 rounded p-3">
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">Unresolved</div>
+                    <div class="text-amber-300 text-xl font-semibold tabular-nums">{{ n(readiness.verify_review) }}</div>
+                </div>
+            </div>
+            <p v-if="verifyPending" class="text-amber-200/80 text-xs">
+                The run finished but the acceptance scan never ran. It is bounded and resumable — run the verify phase, then lock. This state cannot be forced past.
+            </p>
+            <div v-if="readiness.unresolved && readiness.unresolved.length" class="space-y-1 text-xs mt-1">
+                <div v-for="(u, i) in readiness.unresolved" :key="i" class="flex gap-3 text-gray-300">
+                    <a v-if="u.slug" :href="`/jurisdictions/${u.slug}`" target="_blank" class="text-blue-300 hover:underline shrink-0">{{ u.name }} <span class="text-gray-500">{{ admLabel(u.adm_level) }}</span></a>
+                    <span v-else class="text-gray-300 shrink-0">{{ u.name }}</span>
+                    <span class="text-gray-400 truncate">{{ u.gaps }}</span>
+                </div>
+            </div>
+        </section>
+
         <!-- Review drilldown -->
         <section v-if="review.length" class="bg-amber-900/10 border border-amber-900/40 rounded-lg p-5 mb-6">
             <h2 class="text-amber-200 font-semibold mb-3">Review <span class="text-amber-400/70 font-normal text-sm">{{ n(ledger.review) }} items · what could not be built</span></h2>
@@ -495,17 +558,29 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             </div>
         </section>
 
-        <div class="flex justify-between pt-4 border-t border-gray-800 mt-4">
+        <div class="flex justify-between items-center pt-4 border-t border-gray-800 mt-4">
             <a href="/setup/step/4" class="text-gray-400 hover:text-gray-200 text-sm px-2 py-2">← Back</a>
-            <button
-                type="button"
-                :disabled="busy !== '' || (!runDone && !locked)"
-                @click="lockAndContinue"
-                class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
-                :title="runDone || locked ? 'Lock the simulated world and continue' : 'Continue opens when the run is done'"
-            >
-                {{ busy === 'continue' ? 'Locking…' : (locked ? 'Continue →' : 'Lock and Continue →') }}
-            </button>
+            <div class="flex items-center gap-3">
+                <button
+                    v-if="canForceFinish"
+                    type="button"
+                    :disabled="busy !== ''"
+                    @click="finishWithExclusions"
+                    class="border border-amber-700/60 text-amber-200 hover:bg-amber-900/20 disabled:opacity-50 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                    title="Record the unresolved scopes into the completion notes and finish"
+                >
+                    {{ busy === 'continue' ? 'Finishing…' : 'Finish with documented exclusions' }}
+                </button>
+                <button
+                    type="button"
+                    :disabled="busy !== '' || !canLock"
+                    @click="lockAndContinue"
+                    class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
+                    :title="canLock ? 'Lock the simulated world and continue' : (verifyPending ? 'Run the acceptance scan before locking' : (verifyReview ? 'Resolve the unresolved scopes, or finish with documented exclusions' : 'Continue opens when the run is verified'))"
+                >
+                    {{ busy === 'continue' ? 'Locking…' : (locked ? 'Continue →' : 'Lock and Continue →') }}
+                </button>
+            </div>
         </div>
     </div>
 </template>

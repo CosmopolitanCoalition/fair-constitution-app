@@ -160,7 +160,17 @@ class SimWorkerJob implements ShouldQueue
                 try {
                     $metrics = $this->execute($run, $item, $token);
                     SimTimer::close($part);
-                    $this->settle($item->id, SimItem::STATUS_DONE, $metrics);
+                    // A stage may return a REVIEW verdict without throwing — a
+                    // scan that finds a gap is a settled review outcome, not an
+                    // error. `_verdict`/`_reason` steer the settle; absent, the
+                    // return is a plain done (every existing stage). The internal
+                    // keys never reach the stored metrics.
+                    $verdict = ($metrics['_verdict'] ?? null) === SimItem::STATUS_REVIEW
+                        ? SimItem::STATUS_REVIEW
+                        : SimItem::STATUS_DONE;
+                    $reason = $metrics['_reason'] ?? null;
+                    unset($metrics['_verdict'], $metrics['_reason']);
+                    $this->settle($item->id, $verdict, $metrics, $reason);
                     $failures = 0;
                 } catch (\Throwable $e) {
                     SimTimer::close($part); // no-op if already closed
@@ -310,6 +320,16 @@ class SimWorkerJob implements ShouldQueue
             // The money plane (W7 item 8): the civic stipend for this
             // jurisdiction's residents, through the real F-TRE-004.
             'stipend_scope' => \App\Services\Demo\Stages\StipendStage::run(
+                (string) $item->jurisdiction_id,
+                (string) $run->id,
+                $version,
+                $beat,
+            ),
+            // The acceptance scan (G1): read this jurisdiction's OWN artifacts
+            // and return done, or review-with-gaps via `_verdict`/`_reason` in
+            // the result. It files no constitutional act (the audit batch
+            // commits nothing) — a pure read that settles the item.
+            'verify_scope' => \App\Services\Demo\Stages\VerifyStage::run(
                 (string) $item->jurisdiction_id,
                 (string) $run->id,
                 $version,

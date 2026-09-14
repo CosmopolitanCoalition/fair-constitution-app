@@ -24,6 +24,7 @@ use App\Services\Demo\SimRunControl;
 use App\Services\Demo\SimSnapshot;
 use App\Services\Provision\ProvisionRunControl;
 use App\Support\SetupLadder;
+use App\Support\WorldReadiness;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -3913,21 +3914,77 @@ class SetupController extends Controller
     }
 
     /**
-     * POST /api/setup/wizard/step5/complete — Step 5 (Simulate) done. The
-     * simulation page itself is Wave 7's; this closes the step on the ladder.
+     * POST /api/setup/wizard/step5/complete — Step 5 (Simulate) done. GATED by
+     * the world-readiness guard (G1, operator ruling step5-readiness-guard = A):
+     * the ladder cannot advance past a world the acceptance scan never verified.
+     *
+     *  - Run not done              → 422 (the run must finish first).
+     *  - Done but zero verify items → 422 "verification pending" — the bounded
+     *    verify phase was never run (a legacy run, or one closed before the
+     *    phase existed). force does NOT bypass this: there is nothing verified.
+     *  - Verify items in review     → 422 unless force=true. With force, the
+     *    outstanding list is RECORDED into setup_completion_notes (documented
+     *    exclusions, never a silent claim) and the step proceeds.
+     *  - All verify items settled done → passes.
+     *
+     * On any pass, a step5_verification stamp is folded into
+     * setup_completion_notes so completeStep6 can confirm the guard ran.
      */
     public function completeStep5(Request $request): JsonResponse
     {
         abort_unless((bool) $request->user()?->is_operator, 403);
 
+        $report = app(WorldReadiness::class)->report();
+        $force  = $request->boolean('force');
+
+        if (! $report['run_done']) {
+            return response()->json([
+                'ok'        => false,
+                'error'     => 'The simulation run is not done yet. Let it finish before locking Step 5.',
+                'readiness' => $report,
+            ], 422);
+        }
+
+        if ($report['pending']) {
+            return response()->json([
+                'ok'        => false,
+                'error'     => 'Verification pending — the run finished but the acceptance scan (the verifying phase) never ran. Run the verify phase before locking. This cannot be forced past: nothing has been verified.',
+                'readiness' => $report,
+            ], 422);
+        }
+
+        if ($report['verify_review'] > 0 && ! $force) {
+            return response()->json([
+                'ok'        => false,
+                'error'     => $report['verify_review'].' scope(s) did not pass verification. Resolve them, or finish with documented exclusions to record the outstanding list and proceed.',
+                'readiness' => $report,
+            ], 422);
+        }
+
         $settings = InstanceSettings::current();
-        $settings->setup_step_completed = SetupLadder::completed(5, $settings);
+
+        // Fold the verification stamp into setup_completion_notes (merged, not
+        // overwritten — D3). It records what the guard saw and, when forced, the
+        // outstanding review list so the exclusions are documented, never silent.
+        $notes = $settings->setup_completion_notes ?? [];
+        $notes['step5_verification'] = [
+            'passed_at'     => now()->toIso8601String(),
+            'run_id'        => $report['run_id'],
+            'verify_total'  => $report['verify_total'],
+            'verify_done'   => $report['verify_done'],
+            'verify_review' => $report['verify_review'],
+            'forced'        => $force && $report['verify_review'] > 0,
+            'outstanding'   => $force ? $report['unresolved'] : [],
+        ];
+        $settings->setup_completion_notes = $notes;
+        $settings->setup_step_completed   = SetupLadder::completed(5, $settings);
         $settings->save();
 
         return response()->json([
-            'ok'       => true,
-            'settings' => $this->serializeSettings($settings->fresh()),
-            'next'     => '/setup/step/'.min(SetupLadder::LAST, SetupLadder::next($settings->fresh())),
+            'ok'        => true,
+            'settings'  => $this->serializeSettings($settings->fresh()),
+            'readiness' => $report,
+            'next'      => '/setup/step/'.min(SetupLadder::LAST, SetupLadder::next($settings->fresh())),
         ]);
     }
 
@@ -3945,13 +4002,33 @@ class SetupController extends Controller
         abort_unless((bool) $request->user()?->is_operator, 403);
 
         $settings = InstanceSettings::current();
+
+        // GUARD (G1): when Step 5 applies to this instance, setup cannot close
+        // until Step 5 passed the world-readiness guard, which stamps
+        // step5_verification into the notes. Its absence means the acceptance
+        // scan was bypassed — refuse rather than assert an unverified readiness.
+        $existingNotes = $settings->setup_completion_notes ?? [];
+        if (SetupLadder::applies(5, $settings) && empty($existingNotes['step5_verification'])) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Complete Step 5 verification first — the world-readiness scan must pass (or finish with documented exclusions) before setup can close.',
+            ], 422);
+        }
+
         $settings->setup_districts_confirmed_at = $settings->setup_districts_confirmed_at ?? now();
         $settings->setup_step_completed         = SetupLadder::completed(6, $settings);
         $settings->setup_completed_at           = now();
         // Capture the data-quality review snapshot at completion time so a
-        // future audit can see what issues were outstanding when the
-        // operator finished setup. Top-level summary only — no row drill.
-        $settings->setup_completion_notes       = $this->buildStep4Review();
+        // future audit can see what issues were outstanding when the operator
+        // finished setup. Folded into (not over) the existing notes, so the
+        // Step 5 verification stamp survives, plus a completion-time readiness
+        // snapshot.
+        $notes = $existingNotes;
+        foreach ($this->buildStep4Review() as $k => $v) {
+            $notes[$k] = $v;
+        }
+        $notes['world_readiness'] = app(WorldReadiness::class)->report();
+        $settings->setup_completion_notes       = $notes;
         $settings->save();
 
         return response()->json([
@@ -4209,6 +4286,7 @@ class SetupController extends Controller
                 'review'  => [],
                 'timings' => [],
                 'world'   => $snap->world(),
+                'readiness' => app(WorldReadiness::class)->report(null),
                 'control' => app(SimRunControl::class)->control(),
             ];
         }
@@ -4255,6 +4333,7 @@ class SetupController extends Controller
             'review'  => $snap->reviewItems($run),
             'timings' => $snap->timings($run),
             'world'   => $snap->world(),
+            'readiness' => app(WorldReadiness::class)->report($run),
             'control' => app(SimRunControl::class)->control(),
         ];
     }
