@@ -184,6 +184,7 @@ const canSubmit = computed(() =>
                         <div class="flex items-center gap-2">
                             <select
                                 v-model.number="timeScaleSeconds"
+                                aria-label="Seconds per simulated year"
                                 class="bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-100"
                             >
                                 <option v-for="p in TIME_SCALE_PRESETS" :key="p.seconds" :value="p.seconds">

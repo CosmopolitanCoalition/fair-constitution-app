@@ -363,7 +363,7 @@
                         <template v-else>
                         <!-- THE THREE ACTIVATION MODES (2026-08-08): chooses
                              what acceptance STARTS, not whether it accepts. -->
-                        <select v-model="scaleMode"
+                        <select v-model="scaleMode" aria-label="Activation mode"
                                 class="mb-2 w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
                             <option v-for="o in MODE_OPTS" :key="o.v" :value="o.v">{{ o.t }}</option>
                         </select>

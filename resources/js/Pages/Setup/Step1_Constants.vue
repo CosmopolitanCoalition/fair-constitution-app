@@ -332,7 +332,7 @@ async function onSubmit() {
                                 Minimum seats per legislature
                             </label>
                             <input
-                                v-model.number="minSeats"
+                                v-model.number="minSeats" aria-label="Minimum seats per legislature"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -346,7 +346,7 @@ async function onSubmit() {
                                 Maximum seats per legislature
                             </label>
                             <input
-                                v-model.number="maxSeats"
+                                v-model.number="maxSeats" aria-label="Maximum seats per legislature"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -362,7 +362,7 @@ async function onSubmit() {
                             Legislature Sizing Law
                         </label>
                         <select
-                            v-model="sizingLaw"
+                            v-model="sizingLaw" aria-label="Legislature Sizing Law"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100"
                         >
                             <option v-for="law in SIZING_LAWS" :key="law.id" :value="law.id" :disabled="!law.enabled">
@@ -381,7 +381,7 @@ async function onSubmit() {
                             District Auto-Draw Method (undivided areas)
                         </label>
                         <select
-                            v-model="autoseedTemplate"
+                            v-model="autoseedTemplate" aria-label="District Auto-Draw Method (undivided areas)"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100"
                         >
                             <option v-for="t in AUTOSEED_TEMPLATES" :key="t.id" :value="t.id">
@@ -401,7 +401,7 @@ async function onSubmit() {
                             Max Days Between Meetings
                         </label>
                         <input
-                            v-model.number="maxDaysBetweenMeetings"
+                            v-model.number="maxDaysBetweenMeetings" aria-label="Max Days Between Meetings"
                             type="number"
                             min="1"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -423,7 +423,7 @@ async function onSubmit() {
                                 Election Interval (months)
                             </label>
                             <input
-                                v-model.number="electionInterval"
+                                v-model.number="electionInterval" aria-label="Election Interval (months)"
                                 type="number"
                                 min="1"
                                 max="1200"
@@ -439,7 +439,7 @@ async function onSubmit() {
                                 Voting Method
                             </label>
                             <select
-                                v-model="votingMethod"
+                                v-model="votingMethod" aria-label="Voting Method"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100"
                             >
                                 <option v-for="m in VOTING_METHODS" :key="m.id" :value="m.id" :disabled="!m.enabled">
@@ -459,7 +459,7 @@ async function onSubmit() {
                                 Special Election — Min Days After Vacancy
                             </label>
                             <input
-                                v-model.number="specialElectionMinDays"
+                                v-model.number="specialElectionMinDays" aria-label="Special Election — Min Days After Vacancy"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -473,7 +473,7 @@ async function onSubmit() {
                                 Special Election — Max Days After Vacancy
                             </label>
                             <input
-                                v-model.number="specialElectionMaxDays"
+                                v-model.number="specialElectionMaxDays" aria-label="Special Election — Max Days After Vacancy"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -503,14 +503,14 @@ async function onSubmit() {
                             </label>
                             <div class="flex items-center gap-2">
                                 <input
-                                    v-model.number="supermajorityN"
+                                    v-model.number="supermajorityN" aria-label="Supermajority numerator"
                                     type="number"
                                     min="1"
                                     class="w-16 bg-gray-950 border border-gray-700 rounded-md px-2 py-2 text-gray-100 text-center"
                                 />
                                 <span class="text-gray-500">/</span>
                                 <input
-                                    v-model.number="supermajorityD"
+                                    v-model.number="supermajorityD" aria-label="Supermajority denominator"
                                     type="number"
                                     min="2"
                                     class="w-16 bg-gray-950 border border-gray-700 rounded-md px-2 py-2 text-gray-100 text-center"
@@ -532,7 +532,7 @@ async function onSubmit() {
                                 Emergency Powers Max Duration (days)
                             </label>
                             <input
-                                v-model.number="emergencyPowersMaxDays"
+                                v-model.number="emergencyPowersMaxDays" aria-label="Emergency Powers Max Duration (days)"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -548,7 +548,7 @@ async function onSubmit() {
                             Citizen Initiative Petition Threshold (% of population)
                         </label>
                         <input
-                            v-model.number="initiativePetitionThresholdPct"
+                            v-model.number="initiativePetitionThresholdPct" aria-label="Citizen Initiative Petition Threshold (% of population)"
                             type="number"
                             min="0.01"
                             max="100"
@@ -572,7 +572,7 @@ async function onSubmit() {
                                 Civil Appointment Term (years)
                             </label>
                             <input
-                                v-model.number="civilAppointmentYears"
+                                v-model.number="civilAppointmentYears" aria-label="Civil Appointment Term (years)"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -586,7 +586,7 @@ async function onSubmit() {
                                 Judicial Appointment Term (years)
                             </label>
                             <input
-                                v-model.number="judicialAppointmentYears"
+                                v-model.number="judicialAppointmentYears" aria-label="Judicial Appointment Term (years)"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -603,7 +603,7 @@ async function onSubmit() {
                                 Minimum Judges per Race
                             </label>
                             <input
-                                v-model.number="judiciaryMinJudgesPerRace"
+                                v-model.number="judiciaryMinJudgesPerRace" aria-label="Minimum Judges per Race"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -653,7 +653,7 @@ async function onSubmit() {
                             Worker Rep — First Seat Threshold (employees)
                         </label>
                         <input
-                            v-model.number="workerRepMinEmployees"
+                            v-model.number="workerRepMinEmployees" aria-label="Worker Rep — First Seat Threshold (employees)"
                             type="number"
                             min="1"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -667,7 +667,7 @@ async function onSubmit() {
                             Worker : Shareholder Parity (employees)
                         </label>
                         <input
-                            v-model.number="workerRepParityEmployees"
+                            v-model.number="workerRepParityEmployees" aria-label="Worker : Shareholder Parity (employees)"
                             type="number"
                             min="1"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -693,7 +693,7 @@ async function onSubmit() {
                         Residency Confirmation Window (days)
                     </label>
                     <input
-                        v-model.number="residencyConfirmationDays"
+                        v-model.number="residencyConfirmationDays" aria-label="Residency Confirmation Window (days)"
                         type="number"
                         min="1"
                         class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -719,7 +719,7 @@ async function onSubmit() {
                                 Currency name
                             </label>
                             <input
-                                v-model="currencyName"
+                                v-model="currencyName" aria-label="Currency name"
                                 type="text"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
@@ -730,7 +730,7 @@ async function onSubmit() {
                                 Currency symbol
                             </label>
                             <input
-                                v-model="currencySymbol"
+                                v-model="currencySymbol" aria-label="Currency symbol"
                                 type="text"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
@@ -741,7 +741,7 @@ async function onSubmit() {
                                 Currency code
                             </label>
                             <input
-                                v-model="currencyCode"
+                                v-model="currencyCode" aria-label="Currency code"
                                 type="text"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
@@ -755,7 +755,7 @@ async function onSubmit() {
                                 Civic stipend — residency floor
                             </label>
                             <input
-                                v-model.number="civicStipendFloor"
+                                v-model.number="civicStipendFloor" aria-label="Civic stipend — residency floor"
                                 type="number"
                                 min="0"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -769,7 +769,7 @@ async function onSubmit() {
                                 Stipend bump cap (max stacked)
                             </label>
                             <input
-                                v-model.number="stipendBumpCap"
+                                v-model.number="stipendBumpCap" aria-label="Stipend bump cap (max stacked)"
                                 type="number"
                                 min="0"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -788,7 +788,7 @@ async function onSubmit() {
                                     Node operators
                                 </label>
                                 <input
-                                    v-model.number="payNodeOperator"
+                                    v-model.number="payNodeOperator" aria-label="Node operators pay"
                                     type="number"
                                     min="0"
                                     class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -802,7 +802,7 @@ async function onSubmit() {
                                     Social moderators
                                 </label>
                                 <input
-                                    v-model.number="paySocialModerator"
+                                    v-model.number="paySocialModerator" aria-label="Social moderators pay"
                                     type="number"
                                     min="0"
                                     class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -816,7 +816,7 @@ async function onSubmit() {
                                     Civic office-holders
                                 </label>
                                 <input
-                                    v-model.number="payOfficeHolder"
+                                    v-model.number="payOfficeHolder" aria-label="Civic office-holders pay"
                                     type="number"
                                     min="0"
                                     class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -833,7 +833,7 @@ async function onSubmit() {
                             Stipend interval
                         </label>
                         <select
-                            v-model="stipendInterval"
+                            v-model="stipendInterval" aria-label="Stipend interval"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100"
                         >
                             <option v-for="i in STIPEND_INTERVALS" :key="i.id" :value="i.id">

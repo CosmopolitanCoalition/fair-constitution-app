@@ -132,9 +132,9 @@ const fmtEpoch = (n) => (n ? new Date(n * 1000).toLocaleDateString() : '—');
                     it makes this box able to broker the domain.
                 </p>
                 <div class="cluster">
-                    <input v-model="credDomain" type="text" placeholder="domain (example.org)" data-no-i18n />
-                    <input v-model="credZone" type="text" placeholder="zone id" data-no-i18n />
-                    <input v-model="credToken" type="password" placeholder="API token (write-only)" data-no-i18n />
+                    <input v-model="credDomain" type="text" aria-label="Broker domain" placeholder="domain (example.org)" data-no-i18n />
+                    <input v-model="credZone" type="text" aria-label="Cloudflare zone id" placeholder="zone id" data-no-i18n />
+                    <input v-model="credToken" type="password" aria-label="API token" placeholder="API token (write-only)" data-no-i18n />
                     <Btn :disabled="busy || !credDomain || !credZone || !credToken" @click="setCredential">Set</Btn>
                 </div>
             </Card>

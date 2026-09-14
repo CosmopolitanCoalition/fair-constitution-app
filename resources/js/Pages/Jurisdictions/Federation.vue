@@ -290,11 +290,11 @@ const forgetBrokerCred = (domain) => {
             </div>
 
             <form @submit.prevent="setBrokerCred" class="mt-3 grid gap-2 sm:grid-cols-2">
-                <input v-model="brokerCredForm.domain" type="text" placeholder="domain (e.g. worldofstatecraft.org)"
+                <input v-model="brokerCredForm.domain" type="text" aria-label="Broker domain" placeholder="domain (e.g. worldofstatecraft.org)"
                        class="rounded border border-slate-300 px-2 py-1 text-sm" />
-                <input v-model="brokerCredForm.zone_id" type="text" placeholder="Cloudflare zone id"
+                <input v-model="brokerCredForm.zone_id" type="text" aria-label="Cloudflare zone id" placeholder="Cloudflare zone id"
                        class="rounded border border-slate-300 px-2 py-1 text-sm" />
-                <input v-model="brokerCredForm.cloudflare_token" type="password" autocomplete="off"
+                <input v-model="brokerCredForm.cloudflare_token" type="password" autocomplete="off" aria-label="Cloudflare DNS-edit token"
                        placeholder="Cloudflare DNS-edit token (stored encrypted; never shown again)"
                        class="rounded border border-slate-300 px-2 py-1 text-sm sm:col-span-2" />
                 <div class="sm:col-span-2">
@@ -349,7 +349,7 @@ const forgetBrokerCred = (domain) => {
                     <form @submit.prevent="discover" class="space-y-1">
                         <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Discover a peer (URL)</label>
                         <div class="flex gap-2">
-                            <input v-model="discoverForm.url" type="text" placeholder="http://[200:…]:8080"
+                            <input v-model="discoverForm.url" type="text" aria-label="Peer URL to discover" placeholder="http://[200:…]:8080"
                                    class="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
                             <button type="submit" :disabled="discoverForm.processing"
                                     class="rounded bg-slate-800 px-3 py-1 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">
@@ -360,7 +360,7 @@ const forgetBrokerCred = (domain) => {
                     <form @submit.prevent="handshake" class="space-y-1">
                         <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Handshake (server_id or URL)</label>
                         <div class="flex gap-2">
-                            <input v-model="handshakeForm.peer" type="text" placeholder="server_id or url"
+                            <input v-model="handshakeForm.peer" type="text" aria-label="Peer server id or URL to handshake" placeholder="server_id or url"
                                    class="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
                             <button type="submit" :disabled="handshakeForm.processing"
                                     class="rounded bg-slate-800 px-3 py-1 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">
@@ -373,7 +373,7 @@ const forgetBrokerCred = (domain) => {
                 <form @submit.prevent="probe" class="space-y-1">
                     <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Probe a peer over every transport (mesh:doctor)</label>
                     <div class="flex gap-2">
-                        <input v-model="probeForm.target" type="text" placeholder="server_id or url"
+                        <input v-model="probeForm.target" type="text" aria-label="Peer server id or URL to probe" placeholder="server_id or url"
                                class="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
                         <button type="submit" :disabled="probeForm.processing"
                                 class="rounded bg-sky-700 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50">
@@ -411,14 +411,14 @@ const forgetBrokerCred = (domain) => {
                         </span>
                     </div>
                     <form @submit.prevent="registerTransport" class="mt-2 flex flex-wrap items-end gap-2">
-                        <select v-model="transportForm.transport" class="rounded border border-slate-300 px-2 py-1 text-sm">
+                        <select v-model="transportForm.transport" aria-label="Transport type" class="rounded border border-slate-300 px-2 py-1 text-sm">
                             <option value="https">https</option>
                             <option value="tailnet">tailnet</option>
                             <option value="onion">onion</option>
                             <option value="yggdrasil">yggdrasil</option>
                             <option value="sneakernet">sneakernet</option>
                         </select>
-                        <input v-model="transportForm.address" type="text" placeholder="address / url"
+                        <input v-model="transportForm.address" type="text" aria-label="Transport address" placeholder="address / url"
                                class="w-56 rounded border border-slate-300 px-2 py-1 text-sm" />
                         <button type="submit" :disabled="transportForm.processing"
                                 class="rounded bg-slate-800 px-3 py-1 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">Advertise</button>
@@ -541,7 +541,7 @@ const forgetBrokerCred = (domain) => {
                             <input type="radio" value="subtree" v-model="joinScopeMode" /> A specific jurisdiction subtree
                         </label>
                         <input v-if="joinScopeMode === 'subtree'" v-model="joinForm.requested_scope_jurisdiction_id"
-                               type="text" placeholder="jurisdiction UUID"
+                               type="text" aria-label="Jurisdiction subtree UUID" placeholder="jurisdiction UUID"
                                class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 font-mono text-xs focus:border-sky-400 focus:outline-none" />
                     </fieldset>
 

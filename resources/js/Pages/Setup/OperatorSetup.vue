@@ -286,13 +286,13 @@ function continueNext() {
                     Your physical-operator credentials; the password works on this box only.
                 </p>
                 <div class="space-y-3">
-                    <input v-model="founderName" type="text" placeholder="Your name"
+                    <input v-model="founderName" type="text" aria-label="Your name" placeholder="Your name"
                         class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
-                    <input v-model="founderEmail" type="email" placeholder="Email"
+                    <input v-model="founderEmail" type="email" aria-label="Email" placeholder="Email"
                         class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
-                    <input v-model="founderPassword" type="password" placeholder="Password (8+ characters)"
+                    <input v-model="founderPassword" type="password" aria-label="Password" placeholder="Password (8+ characters)"
                         class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
-                    <input v-model="founderPasswordConfirm" type="password" placeholder="Confirm password"
+                    <input v-model="founderPasswordConfirm" type="password" aria-label="Confirm password" placeholder="Confirm password"
                         class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
                 </div>
                 <div v-if="founderError" class="mt-3 text-sm text-red-400">{{ founderError }}</div>

@@ -63,6 +63,7 @@
                     v-model="search"
                     @input="onSearch"
                     type="text"
+                    aria-label="Search jurisdictions by name"
                     placeholder="Search by name…"
                     class="w-64 bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                 />
@@ -71,6 +72,7 @@
                 <select
                     v-model="activeFilter"
                     @change="onFilter"
+                    aria-label="Filter by activation"
                     class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-blue-500"
                 >
                     <option value="">Active &amp; inactive</option>
@@ -82,6 +84,7 @@
                 <select
                     v-model="admLevel"
                     @change="onFilter"
+                    aria-label="Filter by administrative level"
                     class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-blue-500"
                 >
                     <option value="">All levels</option>
@@ -122,7 +125,7 @@
                             class="border-b border-gray-800/60 hover:bg-gray-800/50 cursor-pointer transition-colors"
                         >
                             <td v-if="isOperator" class="px-2 py-2" @click.stop>
-                                <input type="checkbox" v-model="selected[j.id]" class="accent-emerald-600" />
+                                <input type="checkbox" v-model="selected[j.id]" aria-label="Select this jurisdiction" class="accent-emerald-600" />
                             </td>
                             <td class="px-4 py-2">
                                 <span class="inline-block text-xs px-2 py-0.5 rounded-full bg-blue-900/60 text-blue-300">

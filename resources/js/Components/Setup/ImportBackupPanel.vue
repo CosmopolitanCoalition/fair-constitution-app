@@ -194,6 +194,7 @@ function startImport() {
         <div class="flex flex-wrap items-center gap-3">
             <input type="file"
                    accept=".tar.gz,.tgz,application/gzip,application/x-gzip"
+                   aria-label="Choose a backup archive to import"
                    @change="onImportFile"
                    :disabled="disabled || importing"
                    class="text-xs text-gray-300 file:mr-3 file:px-3 file:py-1.5 file:rounded

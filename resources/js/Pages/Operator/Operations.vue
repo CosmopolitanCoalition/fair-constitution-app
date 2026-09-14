@@ -183,7 +183,7 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
 
                         <!-- Editable int / text (instant-tier override) -->
                         <template v-else-if="it.editable">
-                            <input :value="draftVal(it)" @input="drafts[it.key] = $event.target.value"
+                            <input :value="draftVal(it)" @input="drafts[it.key] = $event.target.value" :aria-label="it.label"
                                    :type="it.control === 'int' ? 'number' : 'text'"
                                    class="w-44 rounded border border-slate-300 px-2 py-0.5 font-mono text-sm" />
                             <button type="button" @click="saveTuning(it)"
@@ -259,7 +259,7 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
                 <div class="mt-3 space-y-2">
                     <div v-for="a in APPLYABLE" :key="a.key" class="flex flex-wrap items-center gap-2">
                         <span class="w-56 shrink-0 text-sm text-slate-700">{{ a.label }}</span>
-                        <input :value="applyVal(a)" @input="applyDrafts[a.key] = $event.target.value"
+                        <input :value="applyVal(a)" @input="applyDrafts[a.key] = $event.target.value" :aria-label="a.label"
                                class="w-72 rounded border border-slate-300 px-2 py-0.5 font-mono text-sm" />
                     </div>
                 </div>

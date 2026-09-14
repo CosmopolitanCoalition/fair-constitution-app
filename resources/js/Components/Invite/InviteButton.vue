@@ -62,7 +62,7 @@ async function share() {
         </Btn>
 
         <div v-else class="invite-link">
-            <input class="field-input invite-url" readonly :value="url" @focus="$event.target.select()" />
+            <input class="field-input invite-url" readonly :value="url" aria-label="Invite link" @focus="$event.target.select()" />
             <Btn variant="secondary" size="sm" @click="copy">{{ copied ? 'Copied!' : 'Copy' }}</Btn>
             <Btn v-if="canShare" variant="ghost" size="sm" @click="share">Share</Btn>
         </div>
