@@ -647,15 +647,30 @@ class ConstitutionalValidator
      * race is created (F-ELB-001 handler with the resolved max; payload
      * pre-check below with the hardened ceiling):
      *
-     *  - chamber races (type_a / type_b) carry 5–9 seats (hardened band);
+     *  - type_a DISTRICT races carry 5–9 seats (the hardened district band);
+     *  - type_b AT-LARGE races carry 1 to type_b_seats_per_child seats. The
+     *    equal-representation ladder sets a uniform rep_floor (5 → 4 → 3 → 2).
+     *    A child of population 5 or below contributes min(population, rep_floor)
+     *    instead, so a single-resident child's own per-child race carries 1
+     *    seat. The 5–9 district band does NOT bind a Type B race (Bicameral
+     *    Support, operator ruling 2026-07-29). Type B is one at-large race per
+     *    child or per clump, and the generator
+     *    (ElectionLifecycleService::createRaces) writes those ladder seats
+     *    directly. The validator accepts the same shape;
      *  - `single` races carry exactly 1 seat (individual-executive
      *    exception — fired by Phase D);
-     *  - an AT-LARGE race (district_id NULL) may never exceed the
+     *  - an at-large type_a race (district_id NULL) may never exceed the
      *    legislature's max seats: above the max, subdivision into a
      *    district map is MANDATORY (Art. II §8) — a 10+-seat at-large
      *    race is unconstitutional on its face.
+     *
+     * $maxSeats is the resolved type_a district ceiling (legislature_max_seats,
+     * capped at the hardened 9). $typeBMax is the resolved
+     * type_b_seats_per_child (capped at the hardened 9); null uses the hardened
+     * ceiling for the F-ELB-001 payload pre-check, and the handler re-checks
+     * with the per-jurisdiction resolved value.
      */
-    public function checkRaceStructure(string $seatKind, int $seats, ?string $districtId, ?int $maxSeats = null): void
+    public function checkRaceStructure(string $seatKind, int $seats, ?string $districtId, ?int $maxSeats = null, ?int $typeBMax = null): void
     {
         // The amendable max can never exceed the hardened ceiling.
         $max = min($maxSeats ?? ConstitutionalDefaults::HARD_CEILING, ConstitutionalDefaults::HARD_CEILING);
@@ -685,7 +700,35 @@ class ConstitutionalValidator
             return;
         }
 
-        if (! in_array($seatKind, ['type_a', 'type_b'], true)) {
+        // Type B at-large race (equal representation). The 5–9 district band
+        // does NOT bind it (Bicameral Support, operator ruling 2026-07-29). Its
+        // seats are the child's ladder contribution: rep_floor for an ordinary
+        // child, min(population, rep_floor) for a child of population 5 or
+        // below. The uniform rep_floor never drops below 2, but a
+        // single-resident child's own per-child race lawfully carries 1 seat.
+        // The generator (ElectionLifecycleService::createRaces) emits it, so
+        // the validator accepts it. The ceiling is type_b_seats_per_child
+        // (hardened 9). No district-band check and no at-large-max check apply.
+        // Those are Type A district rules.
+        if ($seatKind === 'type_b') {
+            $tbMax = min($typeBMax ?? ConstitutionalDefaults::HARD_CEILING, ConstitutionalDefaults::HARD_CEILING);
+
+            if ($seats < 1 || $seats > $tbMax) {
+                throw new ConstitutionalViolation(
+                    sprintf(
+                        'A Type B race elects 1 to %d seats (got %d). The equal-representation '
+                        .'ladder does not bind it to the 5 to 9 district band.',
+                        $tbMax,
+                        $seats
+                    ),
+                    'Art. V §3'
+                );
+            }
+
+            return;
+        }
+
+        if ($seatKind !== 'type_a') {
             throw new ConstitutionalViolation(
                 "Unknown race seat_kind [{$seatKind}].",
                 'Art. II §2'

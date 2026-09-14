@@ -437,10 +437,18 @@ class ElectionSchedulingOrder implements FormHandler
                 \App\Services\ConstitutionalDefaults::HARD_CEILING
             );
 
+            // The Type B ladder ceiling (equal representation), separate from
+            // the Type A district ceiling above.
+            $typeBMax = $this->settings->resolveInt(
+                (string) $election->jurisdiction_id,
+                'type_b_seats_per_child',
+                \App\Services\ConstitutionalDefaults::HARD_CEILING
+            );
+
             $summaries = [];
 
             foreach ($specs as $spec) {
-                $summaries[] = $this->createRace($election, (array) $spec, $maxSeats);
+                $summaries[] = $this->createRace($election, (array) $spec, $maxSeats, $typeBMax);
             }
 
             return $summaries;
@@ -462,13 +470,13 @@ class ElectionSchedulingOrder implements FormHandler
     }
 
     /** @return array{race_id: string, district_id: string|null, seats: int, finalist_count: int} */
-    private function createRace(Election $election, array $spec, int $maxSeats): array
+    private function createRace(Election $election, array $spec, int $maxSeats, int $typeBMax): array
     {
         $seatKind = (string) ($spec['seat_kind'] ?? ElectionRace::SEAT_KIND_TYPE_A);
         $seats = (int) ($spec['seats'] ?? 0);
         $districtId = $spec['district_id'] ?? null;
 
-        $this->validator->checkRaceStructure($seatKind, $seats, $districtId, $maxSeats);
+        $this->validator->checkRaceStructure($seatKind, $seats, $districtId, $maxSeats, $typeBMax);
 
         // Footprint: the district's parent scope, or the election's
         // jurisdiction for at-large races (design §A B-4).
