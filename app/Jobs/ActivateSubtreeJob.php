@@ -33,6 +33,10 @@ class ActivateSubtreeJob implements ShouldQueue
 
     public function __construct(public readonly string $rootJurisdictionId)
     {
+        // A DEDICATED LONG QUEUE, not default (W-0253). The boot enumerates a
+        // whole subtree and can run for a long time; the default queue serves
+        // short web-tier work. redis-long carries the long-running supervisor.
+        $this->onQueue('long-running');
     }
 
     /** The cache key this job publishes progress to, and the UI reads. */

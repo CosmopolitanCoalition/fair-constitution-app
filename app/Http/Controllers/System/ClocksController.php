@@ -21,7 +21,7 @@ use Inertia\Response;
  *
  * READ-ONLY BY DESIGN — zero actions. The clocks registry is reference
  * data (definitions change via ClockRegistrySeeder, never at runtime);
- * this page doubles as the scheduler spec — the 21 canonical records the
+ * this page doubles as the scheduler spec — the 22 canonical records the
  * production scheduler implements, one row, one trigger source — plus a
  * LIVE column showing what the scheduler is actually holding right now
  * (armed clock_timers per clock, real fires_at, never recomputed dates).

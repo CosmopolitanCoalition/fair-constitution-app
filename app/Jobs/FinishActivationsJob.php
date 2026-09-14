@@ -31,8 +31,25 @@ class FinishActivationsJob implements ShouldQueue
 
     public int $timeout = 0;
 
+    public function __construct()
+    {
+        // OFF THE DEFAULT QUEUE (W-0253). This is a long bulk pass over every
+        // half-activated place. The default queue serves short web-tier work,
+        // so this runs on the dedicated long-running supervisor, the same
+        // queue the subtree-boot coordinator uses.
+        $this->onQueue('long-running');
+    }
+
     public function handle(): void
     {
+        // HONOUR THE MODE (W-0253). Prebuild activates to READY, not to
+        // ELECTING: only population mode schedules a founding election (the
+        // player arriving fires CLK-06). manual and eager stop at ready. This
+        // is the same rule ActivateSubtreeJob and JurisdictionController apply,
+        // so a bulk finish never arms a clock on an empty planet.
+        $skipElections = \App\Models\InstanceSettings::query()
+            ->whereNull('deleted_at')->value('institution_scale_mode') !== 'population';
+
         // Cheap id/slug roster first (THE ETL RULE: bound the INPUT).
         $roster = DB::table('jurisdictions as j')
             ->join('legislatures as l', function ($join) {
@@ -52,7 +69,11 @@ class FinishActivationsJob implements ShouldQueue
             // One bad node must never end the pass — 419 places behind it
             // still deserve their boards (the all-or-nothing-is-a-bug law).
             try {
-                $exit = Artisan::call('jurisdiction:activate', ['slug' => $slug, '--force' => true]);
+                $exit = Artisan::call('jurisdiction:activate', array_filter([
+                    'slug'          => $slug,
+                    '--force'       => true,
+                    '--no-election' => $skipElections,
+                ]));
                 $exit === 0 ? $booted++ : $failed++;
                 if ($exit !== 0) {
                     Log::warning(sprintf('FinishActivationsJob: %s exited %d', $slug, $exit));

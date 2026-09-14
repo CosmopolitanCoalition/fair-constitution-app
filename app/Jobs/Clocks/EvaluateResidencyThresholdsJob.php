@@ -5,12 +5,14 @@ namespace App\Jobs\Clocks;
 use App\Models\ResidencyClaim;
 use App\Services\AuditService;
 use App\Services\ResidencyService;
+use App\Support\HostCapacity;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * CLK-05 — Residency Verification Threshold (accumulating threshold,
@@ -34,6 +36,13 @@ use Illuminate\Support\Facades\DB;
  * whose inline evaluation was missed. Idempotent — a claim already past
  * ping_monitoring is never touched, re-runs cannot double-transition
  * (state recheck under row lock).
+ *
+ * KEYSET-CHUNKED, RESUMABLE, HOST-SIZED (W-0187, THE ETL RULE). The old
+ * unbounded ->cursor() over every ping_monitoring claim held one server-side
+ * cursor open for the whole pass. This walks the id keyset in host-sized
+ * chunks: each chunk is bounded, its work committed per claim, and a kill
+ * costs one chunk. A crossed claim leaves ping_monitoring, so a resume never
+ * repeats it and never skips one; progress is logged per chunk.
  */
 class EvaluateResidencyThresholdsJob implements ShouldQueue
 {
@@ -43,12 +52,46 @@ class EvaluateResidencyThresholdsJob implements ShouldQueue
 
     public function handle(ResidencyService $residency, AuditService $audit): void
     {
+        $limit   = HostCapacity::sweepChunk();
+        $afterId = null;
+        $seen    = 0;
+
+        while (true) {
+            $cursor = $this->runChunk($residency, $audit, $afterId, $limit, $seen);
+
+            if ($cursor === null) {
+                break;
+            }
+
+            $afterId = $cursor;
+            Log::info('EvaluateResidencyThresholdsJob: chunk done', ['seen' => $seen, 'after' => $afterId]);
+        }
+    }
+
+    /**
+     * Process ONE keyset chunk of ping_monitoring claims after $afterId.
+     * Returns the last claim id seen (the next cursor), or null when the
+     * chunk was empty (the pass is complete). $seen accumulates by reference
+     * so the caller can log real progress.
+     */
+    public function runChunk(ResidencyService $residency, AuditService $audit, ?string $afterId, int $limit, int &$seen = 0): ?string
+    {
         $claims = ResidencyClaim::query()
             ->where('status', ResidencyClaim::STATUS_PING_MONITORING)
-            ->orderBy('declared_at')
-            ->cursor();
+            ->when($afterId !== null, fn ($q) => $q->where('id', '>', $afterId))
+            ->orderBy('id')
+            ->limit($limit)
+            ->get();
 
+        if ($claims->isEmpty()) {
+            return null;
+        }
+
+        $lastId = null;
         foreach ($claims as $claim) {
+            $lastId = (string) $claim->id;
+            $seen++;
+
             $days      = $residency->qualifyingDays($claim);
             $threshold = $residency->thresholdDays($claim);
 
@@ -92,5 +135,7 @@ class EvaluateResidencyThresholdsJob implements ShouldQueue
                 );
             });
         }
+
+        return $lastId;
     }
 }

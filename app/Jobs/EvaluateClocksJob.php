@@ -8,6 +8,7 @@ use App\Jobs\Clocks\EvaluateResidencyThresholdsJob;
 use App\Models\ClockTimer;
 use App\Services\ClockService;
 use App\Services\Cluster\LeaderProbe;
+use App\Support\HostCapacity;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -36,9 +37,6 @@ class EvaluateClocksJob implements ShouldQueue
 
     public int $tries = 1;
 
-    /** Per-sweep ceiling on deadline fires (backlog drains across sweeps). */
-    private const MAX_FIRES_PER_SWEEP = 500;
-
     public function handle(ClockService $clocks): void
     {
         // HA (Phase G, Patroni): fire clocks on the WRITE-LEADER only. A demoted
@@ -51,14 +49,54 @@ class EvaluateClocksJob implements ShouldQueue
             return;
         }
 
-        $due = ClockTimer::query()
-            ->due()
-            ->orderBy('fires_at')
-            ->limit(self::MAX_FIRES_PER_SWEEP)
-            ->get();
+        // HOST-SIZED, CHUNKED, NO STARVATION (W-0187, THE ETL RULE). The old
+        // fixed 500-per-sweep ceiling made a 940k-chamber pass take about 31
+        // hours. The budget now derives from the host (bigger on a big host,
+        // 500 floor on a Pi) and the fetch is keyset-chunked so the working
+        // set is bounded, each timer firing in its own transaction. Order by
+        // fires_at then id fires the oldest due timers first, so no timer
+        // starves; a fired timer leaves due(), so the keyset only moves
+        // forward. The backlog still drains across sweeps, host-sized.
+        $budget = HostCapacity::clockSweepBudget();
+        $chunk  = HostCapacity::sweepChunk();
+        $fired  = 0;
+        $afterFires = null;
+        $afterId    = null;
 
-        foreach ($due as $timer) {
-            $clocks->fire($timer);
+        while ($fired < $budget) {
+            $query = ClockTimer::query()
+                ->due()
+                ->orderBy('fires_at')
+                ->orderBy('id');
+
+            if ($afterFires !== null) {
+                $query->where(function ($w) use ($afterFires, $afterId) {
+                    $w->where('fires_at', '>', $afterFires)
+                        ->orWhere(function ($x) use ($afterFires, $afterId) {
+                            $x->where('fires_at', $afterFires)->where('id', '>', $afterId);
+                        });
+                });
+            }
+
+            $batch = $query->limit((int) min($chunk, $budget - $fired))->get();
+
+            if ($batch->isEmpty()) {
+                break;
+            }
+
+            foreach ($batch as $timer) {
+                $afterFires = $timer->fires_at;
+                $afterId    = $timer->id;
+                if ($clocks->fire($timer)) {
+                    $fired++;
+                }
+            }
+
+            \Illuminate\Support\Facades\Log::info('EvaluateClocksJob: fired chunk', [
+                'fired'  => $fired,
+                'budget' => $budget,
+                'chunk'  => $batch->count(),
+            ]);
         }
 
         EvaluateResidencyThresholdsJob::dispatch();

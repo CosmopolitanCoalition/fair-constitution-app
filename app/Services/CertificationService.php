@@ -246,6 +246,12 @@ class CertificationService implements CertificationPipeline
         } else {
             $this->advanceLegislatureTerm($legislature, $window);
 
+            // CLK-02 (W-0187, Art. II §2): the 90-day meeting deadline starts
+            // when the chamber is seated at certification, not only after its
+            // first adjournment. Idempotent — a chamber already carrying an
+            // armed CLK-02 is left untouched.
+            app(\App\Services\SessionService::class)->armInitialMeetingClock($legislature, $certifiedAt);
+
             // CLK-01: cancel any leftover armed cycle timer, then arm the
             // next cycle — certification is the ONLY (re)arm point.
             foreach ($this->armedTimers('legislature', (string) $legislature->id, 'CLK-01') as $stale) {

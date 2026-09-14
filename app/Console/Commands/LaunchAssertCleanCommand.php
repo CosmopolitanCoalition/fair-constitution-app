@@ -204,9 +204,10 @@ class LaunchAssertCleanCommand extends Command
     }
 
     /**
-     * The 21-clock registry does not ride in the schema dump, so a bare `migrate` leaves it
+     * The 22-clock registry does not ride in the schema dump, so a bare `migrate` leaves it
      * empty — and federation:init throws without it, with an error that does not obviously
-     * point here. Cheap to check, expensive to diagnose.
+     * point here. Cheap to check, expensive to diagnose. CLK-22 (civic stipend, W-0201) is
+     * seeded by ClockRegistrySeeder and by its own additive migration.
      */
     private function assertClocks(): void
     {
@@ -219,12 +220,12 @@ class LaunchAssertCleanCommand extends Command
         $count = DB::table('clocks')->count();
         $this->facts['clocks'] = $count;
 
-        if ($count !== 21) {
+        if ($count !== 22) {
             $this->addFailure(
-                "The constitutional clock registry holds {$count} clocks, expected 21.",
+                "The constitutional clock registry holds {$count} clocks, expected 22.",
                 $count === 0
                     ? 'Run: php artisan db:seed --class=ClockRegistrySeeder --force'
-                    : 'The registry has drifted from CLK-01…CLK-21 — investigate before launch.'
+                    : 'The registry has drifted from CLK-01…CLK-22 — investigate before launch.'
             );
         }
     }

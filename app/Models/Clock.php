@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Registry row for one constitutional clock (CLK-01…CLK-21). Seeded by
+ * Registry row for one constitutional clock (CLK-01…CLK-22). Seeded by
  * ClockRegistrySeeder from the canonical scheduler spec — application code
  * treats the registry as read-only reference data (definitions change via
  * the seeder, never at runtime).

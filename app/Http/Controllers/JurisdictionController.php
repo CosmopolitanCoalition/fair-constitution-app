@@ -1088,6 +1088,21 @@ class JurisdictionController extends Controller
     }
 
     /**
+     * POST /api/jurisdictions/{jurisdiction}/reset-subtree-boot — the boot
+     * escape hatch (W-0253). It SEIZES: it clears the pile and the progress
+     * cache regardless of any stuck or running lane, so a wedged boot never
+     * blocks a fresh one. Operator-only.
+     */
+    public function resetSubtreeBoot(Request $request, Jurisdiction $jurisdiction, \App\Services\SubtreeBootService $pile): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $removed = $pile->reset((string) $jurisdiction->id);
+
+        return response()->json(['ok' => true, 'cleared' => $removed]);
+    }
+
+    /**
      * PREBUILD ACTIVATES TO READY, NOT TO ELECTING (operator ruling
      * 2026-08-08: "The Game clock starts at the end of setup when the first
      * player (simulated or real) arrives"). Scheduling an election ARMS

@@ -476,6 +476,8 @@ Route::post('/api/jurisdictions/{jurisdiction}/simulate', [JurisdictionControlle
 Route::post('/api/jurisdictions/finish-activations', [JurisdictionController::class, 'finishActivations'])->name('jurisdictions.finish-activations');
 Route::get('/api/jurisdictions/activation-status', [JurisdictionController::class, 'activationStatus'])->name('jurisdictions.activation-status');
 Route::get('/api/jurisdictions/{jurisdiction}/subtree-progress', [JurisdictionController::class, 'subtreeProgress'])->name('jurisdictions.subtree-progress');
+// W-0253: the boot escape hatch. Seizes and clears a wedged subtree boot.
+Route::post('/api/jurisdictions/{jurisdiction}/reset-subtree-boot', [JurisdictionController::class, 'resetSubtreeBoot'])->name('jurisdictions.reset-subtree-boot');
 
 // P.9: export/import endpoints for the portable-archive paradigm. Export
 // streams a tar.gz of jurisdictions + worldpop + meta tables; import

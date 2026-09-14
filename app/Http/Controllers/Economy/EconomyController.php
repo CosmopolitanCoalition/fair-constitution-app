@@ -653,13 +653,33 @@ class EconomyController extends Controller
                     'total'      => (string) $lastRun->total,
                     'short_paid' => (bool) $lastRun->short_paid,
                 ],
-                'next_run_estimate' => ($lastRun === null || $periodDays === null)
-                    ? null
-                    : \Illuminate\Support\Carbon::parse((string) $lastRun->ran_at)->addDays($periodDays)->toIso8601String(),
+                // W-0201: the next run reads the REAL armed CLK-22 timer. It
+                // falls back to the period estimate only when no timer is
+                // armed (a world before the stipend clock exists).
+                'next_run_estimate' => $this->stipendNextRun($rootId, $lastRun, $periodDays),
             ],
             'k_anon_floor' => StipendService::K_ANON_FLOOR,
             'examples'     => $examples,
         ]);
+    }
+
+    /**
+     * The stipend next-run instant (W-0201). The real armed CLK-22 timer is
+     * authoritative; the period estimate is only the fallback for a world
+     * that has no stipend clock armed yet.
+     */
+    private function stipendNextRun(?string $rootId, ?object $lastRun, ?int $periodDays): ?string
+    {
+        $timerAt = app(\App\Services\Economy\StipendClockService::class)->nextRunAt($rootId);
+        if ($timerAt !== null) {
+            return $timerAt->toIso8601String();
+        }
+
+        if ($lastRun === null || $periodDays === null) {
+            return null;
+        }
+
+        return \Illuminate\Support\Carbon::parse((string) $lastRun->ran_at)->addDays($periodDays)->toIso8601String();
     }
 
     /**
@@ -1190,8 +1210,11 @@ class EconomyController extends Controller
     /**
      * The economic clock — the stipend disbursement cycle, derived (never
      * stored): the last run from ubi_disbursements, the interval from the
-     * amendable setting, the next run projected from the two. Honestly null
-     * where a world has not run its first disbursement or set no period.
+     * amendable setting. The next run reads the REAL armed CLK-22 timer
+     * (W-0201), the same source the stipend surface uses, and falls back to
+     * the period estimate only when no timer is armed. So the treasury page
+     * shows the next fire even before the first disbursement, when the clock
+     * is armed but last_run is still null.
      *
      * @return array{interval: string, period_days: int|null, last_run: string|null, next_run: string|null}
      */
@@ -1212,9 +1235,7 @@ class EconomyController extends Controller
             'interval'    => $interval,
             'period_days' => $periodDays,
             'last_run'    => $last === null ? null : $this->iso($last->ran_at),
-            'next_run'    => ($last === null || $periodDays === null)
-                ? null
-                : \Illuminate\Support\Carbon::parse((string) $last->ran_at)->addDays($periodDays)->toIso8601String(),
+            'next_run'    => $this->stipendNextRun($rootId, $last, $periodDays),
         ];
     }
 
