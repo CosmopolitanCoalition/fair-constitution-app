@@ -169,7 +169,8 @@ class FoundationServeService
             'rows' => array_map(fn (array $r) => $this->orderRow($r, $columns), $rows),
             'from_key' => $fromKey !== null ? array_values($fromKey) : null,
             'next_from_key' => $nextFromKey,
-            'total_rows' => $this->totalRows($table),
+            'total_rows' => $this->totalRows($table), // APPROXIMATE — a bounded bar denominator (reltuples), not the completion gate
+
             'complete' => $complete,
         ];
 
@@ -270,10 +271,38 @@ class FoundationServeService
     private function totalRows(string $table): int
     {
         try {
-            return (int) Cache::remember("foundation:count:{$table}", 300, static fn () => (int) DB::table($table)->count());
+            return (int) Cache::remember("foundation:count:{$table}", 300, fn () => $this->estimatedRowCount($table));
         } catch (\Throwable) {
             return 0; // a count hiccup must never fail a page; the bar just lacks a denominator briefly
         }
+    }
+
+    /**
+     * Bounded, APPROXIMATE row count for the progress-bar denominator. On pgsql it reads
+     * pg_class.reltuples — the planner's estimate, ONE catalog row, no scan — instead of an exact
+     * count(*) over ~951k jurisdictions. A progress denominator does not need exactness; the value is
+     * labelled approximate at every use. A never-analyzed table reports reltuples = -1 on PostgreSQL
+     * 14+ (the stack is PG17); that is clamped to 0 here so the bar simply lacks a denominator briefly
+     * (SyncProgressService treats a non-positive total as indeterminate) until autovacuum/ANALYZE
+     * refreshes it — never a negative percentage. Other drivers (sqlite test fixtures) have no catalog
+     * estimate, so they fall back to an exact count().
+     */
+    public function estimatedRowCount(string $table): int
+    {
+        $connection = DB::connection();
+
+        if ($connection->getDriverName() === 'pgsql') {
+            $row = $connection->selectOne(
+                'SELECT reltuples::bigint AS n FROM pg_class WHERE oid = to_regclass(?)',
+                [$table]
+            );
+
+            $n = (int) ($row->n ?? 0);
+
+            return $n < 0 ? 0 : $n; // reltuples is -1 on a never-analyzed table — clamp to 0
+        }
+
+        return (int) $connection->table($table)->count();
     }
 
     private function pageMaxBytes(): int
