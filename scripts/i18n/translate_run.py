@@ -142,9 +142,10 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Run several translation workers and publish live state.")
     ap.add_argument("--locales", default="all")
     ap.add_argument("--workers", type=int, default=2)
-    ap.add_argument("--provider", default="nllb", choices=["stub", "nllb", "claude"])
+    ap.add_argument("--provider", default="nllb", choices=["stub", "nllb", "claude", "ollama"])
     ap.add_argument("--chunk", type=int, default=16)
     ap.add_argument("--device", choices=["cuda", "cpu"])
+    ap.add_argument("--model", help="ollama model tag, passed to each worker")
     ap.add_argument("--halt", action="store_true")
     ap.add_argument("--status", action="store_true")
     args = ap.parse_args()
@@ -195,6 +196,12 @@ def main() -> int:
     def launch(locale: str) -> None:
         cmd = [sys.executable, str(WORKER), "--locale", locale,
                "--provider", args.provider, "--chunk", str(args.chunk)]
+        if args.model:
+            cmd += ["--model", args.model]
+        # The orchestrator is the operator's explicit invocation, so a full
+        # ollama pass through it carries the GO to each worker.
+        if args.provider == "ollama":
+            cmd += ["--yes-run"]
         env = dict(os.environ, PYTHONIOENCODING="utf-8")
         if args.device:
             env["CGA_TRANSLATE_DEVICE"] = args.device
