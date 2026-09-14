@@ -12,10 +12,10 @@ Fixed baseline: commit `8bf59184`, immediately before this development batch. Cl
 
 | List | At baseline | New confirmed items | Closed | Remaining |
 |---|---:|---:|---:|---:|
-| Build punch list | 29 | 9 | 33 | 5 |
+| Build punch list | 29 | 10 | 35 | 4 |
 | Internal review register | 29 | 0 | 16 | 13 |
 
-Four new items were confirmed by the 14 September reviews: LG-1, LG-2 and LG-3 (conference-language catalogs and the player) and DP-1 (the Windows public-deploy gate, pending a ruling). The accessibility passes added A11Y-1. All thirty-three earlier builds are closed: are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2, EO-3, B6, EO-4, EO-5, IO-1, IO-2, IO-3, IO-4, IO-7, IO-5, S2, LE-2, LE-3, AC-1, G1, G2, G3, M3, M4, M5 and M6. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5, EO-8 and B6 (already closed), and IO-7 (open), each tied to a demonstrated defect or missing action. EO-4 nomination, committee designation, confirmation and seating are now integrated and internally tested. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
+Four new items were confirmed by the 14 September reviews: LG-1, LG-2 and LG-3 (conference-language catalogs and the player) and DP-1 (the Windows public-deploy gate, pending a ruling). The accessibility passes added A11Y-1. On 14 September DP-1 closed (Windows public-deploy gate, merge b691d84b) and LG-0 (the translation export and import tooling) was confirmed and closed in one step; LG-1 and LG-2 now wait only on the operator's GO for the machine first pass. All thirty-three earlier builds are closed: are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2, EO-3, B6, EO-4, EO-5, IO-1, IO-2, IO-3, IO-4, IO-7, IO-5, S2, LE-2, LE-3, AC-1, G1, G2, G3, M3, M4, M5 and M6. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5, EO-8 and B6 (already closed), and IO-7 (open), each tied to a demonstrated defect or missing action. EO-4 nomination, committee designation, confirmation and seating are now integrated and internally tested. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
 
 ## 1. Complete the institutional action paths
 
@@ -39,7 +39,6 @@ Evidence: [education/achievement checks](../2026-09-13/EDUCATION_ACHIEVEMENT_CHE
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| DP-1 | Pending rubric `windows-public-deploy-policy`: add the public-Matrix configuration-generation gate to `deploy.ps1` (matrix:setup plus the bundle check that `deploy.sh` runs at lines 452 and 456) and a Windows configuration-failure case to `tests/deploy/test_installer_contracts.ps1`. If the ruling is that Windows never hosts a public deploy, record that instead and close. | A Windows public deploy refuses to start public Matrix after a failed or missing configuration bundle, or the policy records that Windows is development-only. |
 
 Evidence: [setup/scenario audit](SETUP_AND_SCENARIO_AUDIT.md), [mesh/setup checks](../2026-09-13/MESH_SETUP_CHECKS.md). The public Matrix state/configuration repairs M1/M2 and term-creation repair Q1 are archived after their targeted passes; full fresh-install and two-node acceptance remain internal checks.
 
