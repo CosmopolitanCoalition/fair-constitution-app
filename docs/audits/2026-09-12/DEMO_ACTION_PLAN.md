@@ -13,7 +13,7 @@ Fixed baseline: commit `8bf59184`, immediately before this development batch. Cl
 | List | At baseline | New confirmed items | Closed | Remaining |
 |---|---:|---:|---:|---:|
 | Build punch list | 29 | 4 | 33 | 0 |
-| Internal review register | 29 | 0 | 2 | 27 |
+| Internal review register | 29 | 0 | 5 | 24 |
 
 All thirty-three builds are closed: are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2, EO-3, B6, EO-4, EO-5, IO-1, IO-2, IO-3, IO-4, IO-7, IO-5, S2, LE-2, LE-3, AC-1, G1, G2, G3, M3, M4, M5 and M6. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5, EO-8 and B6 (already closed), and IO-7 (open), each tied to a demonstrated defect or missing action. EO-4 nomination, committee designation, confirmation and seating are now integrated and internally tested. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
 
