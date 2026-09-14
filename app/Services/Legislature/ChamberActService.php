@@ -172,6 +172,95 @@ class ChamberActService
     }
 
     /**
+     * F-LEG-039 — Budget Enactment. A member moves a drafted budget to
+     * enactment on the floor (procedural_motion, ordinary majority of all
+     * serving — an appropriation is enacted by act). On adoption the budget's
+     * lines become appropriations under the enacting act (BudgetService::enact).
+     * The budget must belong to this chamber's jurisdiction and be in draft,
+     * and the jurisdiction must have an executive to administer the money.
+     */
+    public function proposeBudgetEnactment(Legislature $legislature, LegislatureMember $proposer, string $budgetId): array
+    {
+        $budget = DB::table('budgets')->where('id', $budgetId)->whereNull('deleted_at')->first();
+
+        if ($budget === null) {
+            throw new ConstitutionalViolation("Unknown budget [{$budgetId}].", 'CGA Forms Catalog (F-LEG-039)');
+        }
+
+        if ((string) $budget->jurisdiction_id !== (string) $legislature->jurisdiction_id) {
+            throw new ConstitutionalViolation('A chamber enacts a budget of its own jurisdiction.', 'Art. II §9 · as implemented');
+        }
+
+        if ($budget->status !== 'draft') {
+            throw new ConstitutionalViolation('Only a drafted budget is moved to enactment.', 'Art. II §9 · as implemented');
+        }
+
+        if ($this->jurisdictionExecutive((string) $legislature->jurisdiction_id) === null) {
+            throw new ConstitutionalViolation(
+                'A budget needs an executive to administer its appropriations.',
+                'Art. II §9 · as implemented'
+            );
+        }
+
+        return $this->propose(
+            $legislature,
+            $proposer,
+            ChamberVoteProposal::KIND_BUDGET_ENACTMENT,
+            ['budget_id' => $budgetId],
+            'procedural_motion',
+        );
+    }
+
+    /**
+     * F-LEG-039 adoption effect: write the enacting act and turn the budget's
+     * lines into appropriations under it. Called only from an adopted vote, so
+     * enactDirect's adopted-vote guard holds. Returns the [result_type,
+     * result_id] tuple the adoption dispatch records.
+     *
+     * @return array{0:string, 1:string}
+     */
+    public function enactBudgetFromProposal(Legislature $legislature, string $budgetId, ChamberVote $vote): array
+    {
+        $budget = DB::table('budgets')->where('id', $budgetId)->whereNull('deleted_at')->first();
+
+        if ($budget === null) {
+            throw new ConstitutionalViolation("Unknown budget [{$budgetId}].", 'Art. II §9 · as implemented');
+        }
+
+        $executive = $this->jurisdictionExecutive((string) $legislature->jurisdiction_id);
+
+        if ($executive === null) {
+            throw new ConstitutionalViolation(
+                'A budget needs an executive to administer its appropriations.',
+                'Art. II §9 · as implemented'
+            );
+        }
+
+        $law = $this->enactments->enactDirect(
+            $legislature,
+            'ordinary',
+            'Appropriations act — '.(string) $budget->fiscal_label,
+            'Enacts budget '.$budgetId.' ('.(string) $budget->fiscal_label.'). Each budget line stands as an appropriation administered by the executive.',
+            $vote,
+        );
+
+        app(\App\Services\Economy\BudgetService::class)->enact($budgetId, $law, $executive);
+
+        return ['budgets', $budgetId];
+    }
+
+    /** The jurisdiction's serving executive, or null when none stands. */
+    private function jurisdictionExecutive(string $jurisdictionId): ?\App\Models\Executive
+    {
+        return \App\Models\Executive::query()
+            ->where('jurisdiction_id', $jurisdictionId)
+            ->whereNull('deleted_at')
+            ->whereNotIn('status', [\App\Models\Executive::STATUS_DISSOLVED, \App\Models\Executive::STATUS_REVERTED])
+            ->orderBy('created_at')
+            ->first();
+    }
+
+    /**
      * F-LEG-028 — Cultural Institution Recognition (Art. V §2, supermajority).
      * On adoption a POWERLESS row is recorded.
      */
@@ -500,6 +589,14 @@ class ChamberActService
             ChamberVoteProposal::KIND_UNION => app(\App\Services\Jurisdictions\UnionService::class)->adoptOpen($proposal, $vote),
 
             ChamberVoteProposal::KIND_DISINTERMEDIATION => app(\App\Services\Jurisdictions\DisintermediationService::class)->adoptOpen($proposal, $vote),
+
+            // F-LEG-039 — on adoption the enacting act is written and the
+            // budget's lines become appropriations under it (BudgetService::enact).
+            ChamberVoteProposal::KIND_BUDGET_ENACTMENT => $this->enactBudgetFromProposal(
+                $legislature,
+                (string) ($payload['budget_id'] ?? ''),
+                $vote,
+            ),
 
             default => throw new ConstitutionalViolation(
                 "Unknown proposal kind [{$proposal->proposal_kind}].",

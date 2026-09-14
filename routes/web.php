@@ -989,6 +989,11 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('legislature')->name('committees.assign');                // F-SPK-005
     Route::get('/committees/{committee}', [\App\Http\Controllers\Legislature\CommitteeController::class, 'show'])
         ->whereUuid('committee')->name('committees.show');
+    // F-LEG-039 — budget act doors (draft, then move to enactment).
+    Route::post('/legislatures/{legislature}/budgets', [\App\Http\Controllers\Legislature\BudgetController::class, 'draft'])
+        ->whereUuid('legislature')->name('budgets.draft');                    // F-LEG-039 (draft)
+    Route::post('/legislatures/{legislature}/budgets/{budget}/enact', [\App\Http\Controllers\Legislature\BudgetController::class, 'enact'])
+        ->whereUuid(['legislature', 'budget'])->name('budgets.enact');        // F-LEG-039 (enact)
     // Slice 6 — THE LIVE CIVIC ROOM (committee variant; the exit-test path). Public
     // gallery read — a committee hearing is a public proceeding (Art. II §2).
     Route::get('/rooms', [\App\Http\Controllers\Rooms\RoomDirectoryController::class, 'index'])
@@ -1167,6 +1172,9 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('organization')->name('organizations.economy');
     Route::post('/organizations/{organization}/shares', [\App\Http\Controllers\Organizations\OrgEconomyController::class, 'issueShares'])
         ->whereUuid('organization')->name('organizations.shares.issue');
+    // A member pays membership dues (F-IND-023, kind='dues').
+    Route::post('/organizations/{organization}/dues', [\App\Http\Controllers\Organizations\OrgEconomyController::class, 'payDues'])
+        ->whereUuid('organization')->name('organizations.dues.pay');
     Route::patch('/organizations/{organization}', [\App\Http\Controllers\Organizations\OrganizationController::class, 'update'])
         ->whereUuid('organization')->name('organizations.update');                 // F-ORG-001
     Route::get('/organizations/{organization}/cgc', [\App\Http\Controllers\Organizations\CgcController::class, 'show'])

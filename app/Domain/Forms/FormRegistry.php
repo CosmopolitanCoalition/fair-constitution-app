@@ -204,6 +204,7 @@ class FormRegistry
         'F-LEG-034' => ['name' => 'Referendum Act Modification Vote',           'roles' => ['R-09']],
         'F-LEG-035' => ['name' => 'Judiciary Override Vote',                    'roles' => ['R-09']],
         'F-LEG-036' => ['name' => 'Vacancy Declaration',                        'roles' => ['R-09', 'R-10']],
+        'F-LEG-039' => ['name' => 'Budget Act',                                 'roles' => ['R-09']],
 
         // ── F-SPK — Speaker Forms (9) ───────────────────────────────────────
         'F-SPK-001' => ['name' => 'Session Call / Opening',                     'roles' => ['R-10']],
@@ -457,6 +458,7 @@ class FormRegistry
         'F-LEG-017' => Handlers\JudiciaryCreationAct::class,
         'F-LEG-037' => Handlers\JudicialNominationProposal::class,
         'F-LEG-038' => Handlers\JudicialCommitteeDesignation::class,
+        'F-LEG-039' => Handlers\BudgetAct::class,
         'F-LEG-018' => Handlers\JudiciaryConversionAct::class,
 
         // ── Phase E — cases / juries / advocates scope

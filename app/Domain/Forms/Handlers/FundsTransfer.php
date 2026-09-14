@@ -5,9 +5,12 @@ namespace App\Domain\Forms\Handlers;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\FormHandler;
 use App\Models\Economy\Currency;
+use App\Models\OrgMembership;
+use App\Models\Organization;
 use App\Models\User;
 use App\Services\Economy\AccountService;
 use App\Services\Economy\JointLedgerService;
+use App\Services\Organizations\OrgSettingsService;
 
 /**
  * F-IND-023 — Funds Transfer · Joint-Ledger Movement (R-01). Art. I —
@@ -77,6 +80,10 @@ class FundsTransfer implements FormHandler
 
         $action = (string) ($payload['action'] ?? 'transfer');
 
+        if ($action === 'dues') {
+            return $this->duesPayment($actor, $payload);
+        }
+
         if ($action !== 'transfer') {
             return $this->jointAction($actor, $action, $payload);
         }
@@ -128,6 +135,97 @@ class FundsTransfer implements FormHandler
             'to_account_id'   => $toAccountId,
             'currency_id'     => (string) $currency->id,
             'amount'          => $amount,
+        ];
+    }
+
+    /**
+     * A membership dues payment (kind='dues'). Dues are a subscription
+     * obligation, not a tax and not a share. The member pays the
+     * organization's published dues amount into the organization's own
+     * account. Dues are voluntary and never gate a civic right (Art. I).
+     * The recipient is resolved from the organization id, never named as a
+     * person, so the reader-privacy rule holds on this path too.
+     *
+     * @return array<string, mixed>
+     */
+    private function duesPayment(User $actor, array $payload): array
+    {
+        $organizationId = (string) ($payload['organization_id'] ?? '');
+
+        if ($organizationId === '') {
+            throw new ConstitutionalViolation('A dues payment names the organization.', 'CGA Forms Catalog (F-IND-023)');
+        }
+
+        $organization = Organization::query()->whereNull('deleted_at')->find($organizationId);
+
+        if ($organization === null) {
+            throw new ConstitutionalViolation('Unknown organization.', 'CGA Forms Catalog (F-IND-023)');
+        }
+
+        // Dues follow membership. A non-member owes nothing, so a non-member
+        // cannot pay dues to an organization.
+        $isMember = OrgMembership::query()
+            ->where('organization_id', $organization->id)
+            ->where('user_id', (string) $actor->id)
+            ->where('status', OrgMembership::STATUS_ACTIVE)
+            ->whereNull('deleted_at')
+            ->exists();
+
+        if (! $isMember) {
+            throw new ConstitutionalViolation('Only an active member pays dues to an organization.', 'Art. II §8 · as implemented');
+        }
+
+        $amount = app(OrgSettingsService::class)->get($organization, 'dues_amount');
+
+        if ($amount === null) {
+            throw new ConstitutionalViolation('This organization charges no dues.', 'Art. II §8 · as implemented');
+        }
+
+        $amount = (string) $amount;
+
+        if (bccomp($amount, '0', 6) !== 1) {
+            throw new ConstitutionalViolation('A dues amount is positive.', 'CGA Forms Catalog (F-IND-023)');
+        }
+
+        $currency = $this->resolveCurrency($payload);
+
+        $fromAccountId = $this->accounts->accountIdFor('users', (string) $actor->id, $currency->id);
+
+        if ($fromAccountId === null) {
+            throw new ConstitutionalViolation(
+                'You have no wallet in this currency yet — a wallet opens with confirmed residency.',
+                'Art. I · as implemented'
+            );
+        }
+
+        // The organization's treasury account. Open-or-resolve keeps the door
+        // working for an organization that has not transacted yet; opening is
+        // idempotent.
+        $toAccountId = $this->accounts->accountIdFor('organizations', (string) $organization->id, $currency->id)
+            ?? (string) $this->accounts->open('organizations', (string) $organization->id, (string) $currency->id, 'organization')->id;
+
+        try {
+            $entryGroup = $this->accounts->transfer(
+                $fromAccountId,
+                $toAccountId,
+                $currency->id,
+                $amount,
+                'dues',
+                'Membership dues',
+            );
+        } catch (\InvalidArgumentException $e) {
+            throw new ConstitutionalViolation($e->getMessage(), 'Art. I · as implemented');
+        }
+
+        return [
+            'action'          => 'dues_paid',
+            'entry_group'     => $entryGroup,
+            'organization_id' => (string) $organization->id,
+            'from_account_id' => $fromAccountId,
+            'to_account_id'   => $toAccountId,
+            'currency_id'     => (string) $currency->id,
+            'amount'          => $amount,
+            'kind'            => 'dues',
         ];
     }
 

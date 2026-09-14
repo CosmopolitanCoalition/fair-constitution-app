@@ -114,7 +114,7 @@ class AuditChainSmokeTest extends TestCase
     // FormRegistry
     // -------------------------------------------------------------------------
 
-    public function test_registry_holds_exactly_131_canonical_forms(): void
+    public function test_registry_holds_exactly_132_canonical_forms(): void
     {
         // 103 Template forms + F-ELB-008 (Manual District Draw, Phase H) + the
         // Phase K-1 civic-commons trio F-SOC-001/002/003 (public square / halls
@@ -175,8 +175,8 @@ class AuditChainSmokeTest extends TestCase
         //   a coarse task bucket to a named person; the delegate derives R-31
         //   and holds no constitutional office. Grant and revoke are audited
         //   acts, so the count rises to 131 deliberately.
-        $this->assertCount(131, FormRegistry::FORMS);
-        $this->assertCount(131, FormRegistry::ids());
+        $this->assertCount(132, FormRegistry::FORMS);
+        $this->assertCount(132, FormRegistry::ids());
     }
 
     public function test_pure_aliases_resolve_to_canonical_ids(): void
