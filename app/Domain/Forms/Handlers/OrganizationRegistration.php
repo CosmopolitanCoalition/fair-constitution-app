@@ -51,6 +51,10 @@ class OrganizationRegistration implements FormHandler
             );
         }
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-ORG-001');
+        }
+
         return $this->registry->register($actor, $payload);
     }
 }

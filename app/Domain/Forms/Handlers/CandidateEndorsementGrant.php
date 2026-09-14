@@ -149,6 +149,18 @@ class CandidateEndorsementGrant implements FormHandler
         // R-07 derives from this row — flush the candidate's cache.
         $this->roles->flushUser((string) $candidacy->user_id);
 
+        // AC-1 achievement wiring (engine-transaction-coupled). The org AGENT
+        // who granted the endorsement earns ORG-005 (self); the CANDIDATE the
+        // endorsement names earns CAN-004 (EARNER_SUBJECT — resolved from the
+        // candidacy row, never the filer, the ACH-CAN-005 lesson).
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-ORG-005');
+        }
+        $candidate = \App\Models\User::find((string) $candidacy->user_id);
+        if ($candidate !== null) {
+            app(\App\Services\AchievementService::class)->awardSubject($candidate, 'ACH-CAN-004');
+        }
+
         return [
             'request_id'      => (string) $request->id,
             'decision'        => 'granted',

@@ -65,6 +65,10 @@ class BoardElectionAdministration implements FormHandler
 
         $action = (string) ($payload['action'] ?? '');
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-ORG-006');
+        }
+
         return ['action' => $action, 'organization_id' => (string) $org->id] + match ($action) {
             'provision_board' => (function () use ($org, $payload) {
                 $ownerSeats = (int) ($payload['owner_seats'] ?? 0);

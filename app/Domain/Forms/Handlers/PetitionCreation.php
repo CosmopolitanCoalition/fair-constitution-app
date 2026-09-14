@@ -57,6 +57,10 @@ class PetitionCreation implements FormHandler
 
         $petition = $this->petitions->create($actor, $payload);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-VOX-002');
+        }
+
         return [
             'petition_id'      => (string) $petition->id,
             'title'            => $petition->title,

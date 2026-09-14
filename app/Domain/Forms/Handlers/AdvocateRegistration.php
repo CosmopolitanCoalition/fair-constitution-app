@@ -60,6 +60,10 @@ class AdvocateRegistration implements FormHandler
             isset($payload['qualifications_note']) ? (string) $payload['qualifications_note'] : null,
         );
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-JUD-001');
+        }
+
         return [
             'advocate_id' => (string) $advocate->id,
             'judiciary_id' => (string) $advocate->judiciary_id,

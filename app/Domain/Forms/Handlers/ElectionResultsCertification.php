@@ -67,6 +67,10 @@ class ElectionResultsCertification implements FormHandler
 
     public function handle(?User $actor, array $payload): array
     {
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-ELB-003');
+        }
+
         return DB::transaction(fn () => $this->certifyWithinTransaction($actor, $payload));
     }
 

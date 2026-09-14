@@ -77,6 +77,10 @@ class CampaignProfileSetup implements FormHandler
 
         $candidacy->save();
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-CAN-002');
+        }
+
         return [
             'candidacy_id'   => (string) $candidacy->id,
             'election_id'    => (string) $candidacy->election_id,

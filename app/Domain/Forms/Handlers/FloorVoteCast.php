@@ -76,6 +76,16 @@ class FloorVoteCast implements FormHandler
 
         $vote->refresh();
 
+        // AC-1 achievement wiring (self, engine-transaction-coupled): a
+        // refused/rolled-back cast never reaches here. LEG-015 rides the
+        // SAME act when the vote carries a 2/3 threshold basis (Art. VII).
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-LEG-004');
+            if ($vote->threshold_basis === \App\Models\ChamberVote::BASIS_SUPERMAJORITY) {
+                app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-LEG-015');
+            }
+        }
+
         return [
             'vote_id'          => (string) $vote->id,
             'vote_type'        => $vote->vote_type,

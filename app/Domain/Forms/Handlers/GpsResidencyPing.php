@@ -62,6 +62,10 @@ class GpsResidencyPing implements FormHandler
         $source = $payload['source'] ?? 'manual';
 
         // Coordinates deliberately NOT recorded — count-bump only.
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-CIV-004');
+        }
+
         return [
             'ping_recorded' => true,
             'source'        => is_string($source) ? $source : 'manual',

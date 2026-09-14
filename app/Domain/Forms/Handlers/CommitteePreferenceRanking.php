@@ -75,6 +75,10 @@ class CommitteePreferenceRanking implements FormHandler
             ['rankings' => $rankings, 'submitted_at' => now()],
         );
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-LEG-008');
+        }
+
         return [
             'legislature_id' => (string) $legislature->id,
             'member_id'      => (string) $member->id,

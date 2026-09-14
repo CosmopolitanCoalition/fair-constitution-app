@@ -26,12 +26,18 @@ const props = defineProps({
     surface: { type: Object, required: true },
     videos: { type: Array, default: () => [] },
     baseUrl: { type: String, default: null },
+    // LE-3: a catalog id to open on (from ?v=), validated server-side. Null
+    // opens the first film.
+    preselect: { type: String, default: null },
 });
 
 const page = usePage();
 const locale = computed(() => page.props.locale || 'en');
 
-const currentId = ref(props.videos[0]?.id ?? null);
+const initialId = props.preselect && props.videos.some((v) => v.id === props.preselect)
+    ? props.preselect
+    : (props.videos[0]?.id ?? null);
+const currentId = ref(initialId);
 const current = computed(() => props.videos.find((v) => v.id === currentId.value) ?? null);
 
 function fmt(s) {

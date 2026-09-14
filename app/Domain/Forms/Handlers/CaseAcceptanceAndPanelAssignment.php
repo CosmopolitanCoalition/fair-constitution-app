@@ -93,6 +93,10 @@ class CaseAcceptanceAndPanelAssignment implements FormHandler
             'enforce_attach_window' => false,
         ]);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-JUD-009');
+        }
+
         return [
             'action' => 'accept',
             'case_id' => (string) $case->id,

@@ -66,6 +66,10 @@ class DepartmentRuleImplementation implements FormHandler
 
         $rule = $this->departments->fileRule($department, $seat, $payload);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-BOG-002');
+        }
+
         return [
             'department_id' => (string) $department->id,
             'rule_id' => (string) $rule->id,

@@ -86,14 +86,26 @@ const reportHref = computed(() => {
     const ref = surface.value?.id || String(page.url ?? '/').split('?')[0];
     return '/support/report?ref=' + encodeURIComponent(ref);
 });
+
+/* LE-3: deep-link the video library chip to this surface's assigned film
+   (?v=<id>, preselected by VideoLibraryController). Falls back to the plain
+   library when the surface has no authored entry. The demo note shows only
+   when the fallback film stands in for a not-yet-recorded lesson film. */
+const videoHref = computed(() => {
+    const id = education.value?.video?.id;
+    return id ? '/videos?v=' + encodeURIComponent(id) : '/videos';
+});
+const videoIsDefault = computed(() => education.value?.video?.source === 'default');
 </script>
 
 <template>
     <div class="ld-body">
         <nav class="cluster" :aria-label="text('resources', 'Learning resources')" style="gap: var(--space-1)">
             <Link class="form-chip" href="/learn"><Icon name="graduation-cap" size="sm" /> {{ text('full_lessons', 'Full lessons') }}</Link>
-            <Link class="form-chip" href="/videos"><Icon name="play" size="sm" /> {{ text('video_library', 'Video library') }}</Link>
+            <Link class="form-chip" :href="videoHref"><Icon name="play" size="sm" /> {{ text('video_library', 'Video library') }}</Link>
         </nav>
+        <!-- LE-3: honest note when the deep-linked film is the demo fallback. -->
+        <p v-if="videoIsDefault" class="gloss ld-video-note">{{ text('lesson_video_demo_note', 'This lesson uses the demo recording; a lesson-specific video is planned.') }}</p>
         <!-- The learn sentence (authored) — or the module fallback line. -->
         <p v-if="education" class="ld-learn">{{ t(education.learn) }}</p>
         <p v-else class="gloss">{{ about }}</p>
@@ -175,6 +187,11 @@ const reportHref = computed(() => {
 .ld-learn {
     color: var(--gov-fg);
     margin: 0;
+}
+.ld-video-note {
+    margin: 0;
+    font-size: var(--text-xs);
+    color: var(--gov-fg-subtle);
 }
 .ld-page-content { display: grid; gap: var(--space-3); }
 .ld-page-content:empty { display: none; }

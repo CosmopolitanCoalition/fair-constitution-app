@@ -390,6 +390,16 @@ Route::get('/achievements', [\App\Http\Controllers\Social\AchievementsController
 // — retakes stay unlimited; the limit protects the item bank from brute force).
 Route::get('/learn', [\App\Http\Controllers\Education\LearnController::class, 'home'])->name('learn.home');
 Route::get('/learn/guides', [\App\Http\Controllers\Education\LearnController::class, 'guides'])->name('learn.guides');
+// The material manager (F-EDU-002). Reading is open (the read-everywhere rule);
+// filing is R-23's, enforced by the engine on store. These sit BEFORE the
+// /learn/{track}/{module?} catch-all so "manage" is never read as a track.
+Route::get('/learn/manage', [\App\Http\Controllers\Education\MaterialController::class, 'index'])->name('learn.manage');
+Route::get('/learn/manage/{module}', [\App\Http\Controllers\Education\MaterialController::class, 'edit'])
+    ->where('module', '[a-z0-9_-]+')
+    ->name('learn.manage.edit');
+Route::post('/learn/manage', [\App\Http\Controllers\Education\MaterialController::class, 'store'])
+    ->middleware(['auth', 'throttle:30,1'])
+    ->name('learn.manage.store');
 Route::get('/learn/{track}/{module?}', [\App\Http\Controllers\Education\LearnController::class, 'lesson'])
     ->where(['track' => '[a-z0-9_-]+', 'module' => '[a-z0-9_-]+'])
     ->name('learn.lesson');

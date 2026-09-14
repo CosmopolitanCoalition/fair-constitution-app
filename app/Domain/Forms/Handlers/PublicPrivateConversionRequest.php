@@ -76,6 +76,10 @@ class PublicPrivateConversionRequest implements FormHandler
             isset($payload['rationale']) ? (string) $payload['rationale'] : null,
         );
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-ORG-012');
+        }
+
         return [
             'conversion_id' => (string) $conversion->id,
             'organization_id' => (string) $org->id,

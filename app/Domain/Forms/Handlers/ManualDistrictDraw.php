@@ -428,6 +428,10 @@ class ManualDistrictDraw implements FormHandler
             [$subdivisionId, $districtId]
         );
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-ELB-004');
+        }
+
         return [
             'legislature_id' => $legislatureId,
             'jurisdiction_id' => $scopeId,

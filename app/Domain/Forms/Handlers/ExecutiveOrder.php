@@ -72,6 +72,10 @@ class ExecutiveOrder implements FormHandler
             'issued_by_member_id' => (string) $member->id,
         ]));
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-EXE-005');
+        }
+
         return [
             'action'        => 'issue',
             'order_id'      => (string) $order->id,

@@ -130,6 +130,10 @@ class ElectionSchedulingOrder implements FormHandler
         $this->scheduling->armPhaseTimers($election);
 
         // X pre-published with the order (design §C).
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-ELB-002');
+        }
+
         return [
             'election_id' => (string) $election->id,
             'kind' => $election->kind,

@@ -104,6 +104,10 @@ class ProfileManagement implements FormHandler
         }
 
         // The chain payload: user field names+values, social field NAMES ONLY.
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-CIV-002');
+        }
+
         return [
             'changed_fields' => array_values(array_unique([
                 ...array_keys($userChanges),

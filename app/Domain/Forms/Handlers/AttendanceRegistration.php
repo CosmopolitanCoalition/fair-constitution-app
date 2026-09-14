@@ -57,6 +57,10 @@ class AttendanceRegistration implements FormHandler
 
         $row = $this->sessions->registerAttendance($session, $member);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-LEG-002');
+        }
+
         return [
             'session_id'      => (string) $session->id,
             'session_no'      => $session->session_no,

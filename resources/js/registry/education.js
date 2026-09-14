@@ -27,7 +27,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-002 · Art. I"
             }
         ],
-        why: "c_education.education_auth_register.why"
+        why: "c_education.education_auth_register.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "build/progress": {
         learn: "c_education.education_build_progress.learn",
@@ -48,7 +52,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "CLK-06"
             }
         ],
-        why: "c_education.education_build_progress.why"
+        why: "c_education.education_build_progress.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/commons-halls": {
         learn: "c_education.education_civic_commons_halls.learn",
@@ -64,7 +72,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-SOC-002"
             }
         ],
-        why: "c_education.education_civic_commons_halls.why"
+        why: "c_education.education_civic_commons_halls.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/commons-square": {
         learn: "c_education.education_civic_commons_square.learn",
@@ -80,7 +92,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: "c_education.education_civic_commons_square.why"
+        why: "c_education.education_civic_commons_square.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/halls": {
         learn: "c_education.education_civic_halls.learn",
@@ -101,7 +117,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-SOC-002 · R-03"
             }
         ],
-        why: "c_education.education_civic_halls.why"
+        why: "c_education.education_civic_halls.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/home": {
         learn: "c_education.education_civic_home.learn",
@@ -122,7 +142,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: "c_education.education_civic_home.why"
+        why: "c_education.education_civic_home.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/identity-verification": {
         learn: "c_education.education_civic_identity_verification.learn",
@@ -138,7 +162,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: "c_education.education_civic_identity_verification.why"
+        why: "c_education.education_civic_identity_verification.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/journey": {
         learn: "c_education.education_civic_journey.learn",
@@ -159,7 +187,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/journeys": {
         learn: "c_education.education_civic_journeys.learn",
@@ -180,7 +212,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: "c_education.education_civic_journeys.why"
+        why: "c_education.education_civic_journeys.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/live-room": {
         learn: "c_education.education_civic_live_room.learn",
@@ -206,7 +242,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-LEG-004 · Art. II §2"
             }
         ],
-        why: "c_education.education_civic_live_room.why"
+        why: "c_education.education_civic_live_room.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/my-record": {
         learn: "c_education.education_civic_my_record.learn",
@@ -227,7 +267,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: "c_education.education_civic_my_record.why"
+        why: "c_education.education_civic_my_record.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/petition-detail": {
         learn: "c_education.education_civic_petition_detail.learn",
@@ -248,7 +292,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-ELB-005 · F-JDG-008"
             }
         ],
-        why: "c_education.education_civic_petition_detail.why"
+        why: "c_education.education_civic_petition_detail.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/petitions": {
         learn: "c_education.education_civic_petitions.learn",
@@ -269,7 +317,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-009"
             }
         ],
-        why: "c_education.education_civic_petitions.why"
+        why: "c_education.education_civic_petitions.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/public-square": {
         learn: "c_education.education_civic_public_square.learn",
@@ -290,7 +342,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: "c_education.education_civic_public_square.why"
+        why: "c_education.education_civic_public_square.why",
+        video: {
+            id: "v-community",
+            source: "surface"
+        }
     },
     "civic/relocation": {
         learn: "c_education.education_civic_relocation.learn",
@@ -311,7 +367,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: "c_education.education_civic_relocation.why"
+        why: "c_education.education_civic_relocation.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/residency": {
         learn: "c_education.education_civic_residency.learn",
@@ -337,7 +397,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I; Art. V §1"
             }
         ],
-        why: "c_education.education_civic_residency.why"
+        why: "c_education.education_civic_residency.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "civic/rooms": {
         learn: "c_education.education_civic_rooms.learn",
@@ -363,27 +427,47 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-SOC-001 · Art. I"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "dev/electoral-kit": {
         learn: "c_education.education_dev_electoral_kit.learn",
         steps: [],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "dev/executive-kit": {
         learn: "c_education.education_dev_executive_kit.learn",
         steps: [],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "dev/judiciary-kit": {
         learn: "c_education.education_dev_judiciary_kit.learn",
         steps: [],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "dev/legislature-kit": {
         learn: "c_education.education_dev_legislature_kit.learn",
         steps: [],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/agreement-detail": {
         learn: "c_education.education_economy_agreement_detail.learn",
@@ -409,7 +493,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-014 · Art. III §6"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/agreements": {
         learn: "c_education.education_economy_agreements.learn",
@@ -435,7 +523,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: "c_education.education_economy_agreements.why"
+        why: "c_education.education_economy_agreements.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/exchange": {
         learn: "c_education.education_economy_exchange.learn",
@@ -461,7 +553,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-022"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/help": {
         learn: "c_education.education_economy_help.learn",
@@ -487,7 +583,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/help-detail": {
         learn: "c_education.education_economy_help_detail.learn",
@@ -513,7 +613,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/home": {
         learn: "c_education.education_economy_home.learn",
@@ -534,7 +638,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. VII"
             }
         ],
-        why: "c_education.education_economy_home.why"
+        why: "c_education.education_economy_home.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/joint-ledgers": {
         learn: "c_education.education_economy_joint_ledgers.learn",
@@ -560,7 +668,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/listing-detail": {
         learn: "c_education.education_economy_listing_detail.learn",
@@ -586,7 +698,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/marketplace": {
         learn: "c_education.education_economy_marketplace.learn",
@@ -612,7 +728,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/org-settings": {
         learn: "c_education.education_economy_org_settings.learn",
@@ -638,7 +758,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/request-detail": {
         learn: "c_education.education_economy_request_detail.learn",
@@ -664,7 +788,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. III §6"
             }
         ],
-        why: "c_education.education_economy_request_detail.why"
+        why: "c_education.education_economy_request_detail.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/resident-agreements": {
         learn: "c_education.education_economy_resident_agreements.learn",
@@ -685,7 +813,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-020 · Art. I"
             }
         ],
-        why: "c_education.education_economy_resident_agreements.why"
+        why: "c_education.education_economy_resident_agreements.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/stipend": {
         learn: "c_education.education_economy_stipend.learn",
@@ -711,7 +843,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-LEG-031 · Art. IV §3"
             }
         ],
-        why: "c_education.education_economy_stipend.why"
+        why: "c_education.education_economy_stipend.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/treasury": {
         learn: "c_education.education_economy_treasury.learn",
@@ -737,7 +873,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. III §4 · Art. II §8"
             }
         ],
-        why: "c_education.education_economy_treasury.why"
+        why: "c_education.education_economy_treasury.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/units": {
         learn: "c_education.education_economy_units.learn",
@@ -763,7 +903,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-LEG-031"
             }
         ],
-        why: "c_education.education_economy_units.why"
+        why: "c_education.education_economy_units.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/wallet": {
         learn: "c_education.education_economy_wallet.learn",
@@ -784,7 +928,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-023"
             }
         ],
-        why: "c_education.education_economy_wallet.why"
+        why: "c_education.education_economy_wallet.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "economy/work": {
         learn: "c_education.education_economy_work.learn",
@@ -810,7 +958,61 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: "c_education.education_economy_work.why"
+        why: "c_education.education_economy_work.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
+    },
+    "education/material-edit": {
+        learn: "c_education.education_education_material_edit.learn",
+        steps: [
+            {
+                do: "c_education.education_education_material_edit.s1_do",
+                detail: "c_education.education_education_material_edit.s1_detail",
+                cite: "F-EDU-002"
+            },
+            {
+                do: "c_education.education_education_material_edit.s2_do",
+                detail: "c_education.education_education_material_edit.s2_detail",
+                cite: "Art. III §5"
+            },
+            {
+                do: "c_education.education_education_material_edit.s3_do",
+                detail: "c_education.education_education_material_edit.s3_detail",
+                cite: "Art. III §5"
+            }
+        ],
+        why: "c_education.education_education_material_edit.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
+    },
+    "education/material-manager": {
+        learn: "c_education.education_education_material_manager.learn",
+        steps: [
+            {
+                do: "c_education.education_education_material_manager.s1_do",
+                detail: "c_education.education_education_material_manager.s1_detail",
+                cite: "Art. III §5"
+            },
+            {
+                do: "c_education.education_education_material_manager.s2_do",
+                detail: "c_education.education_education_material_manager.s2_detail",
+                cite: "F-EDU-002"
+            },
+            {
+                do: "c_education.education_education_material_manager.s3_do",
+                detail: "c_education.education_education_material_manager.s3_detail",
+                cite: "Art. III §5"
+            }
+        ],
+        why: "c_education.education_education_material_manager.why",
+        video: {
+            id: "v-education",
+            source: "surface"
+        }
     },
     "elections/board-console": {
         learn: "c_education.education_elections_board_console.learn",
@@ -831,7 +1033,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-ELB-004 · F-ELB-005 · F-ELB-006"
             }
         ],
-        why: "c_education.education_elections_board_console.why"
+        why: "c_education.education_elections_board_console.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "elections/candidacy-registration": {
         learn: "c_education.education_elections_candidacy_registration.learn",
@@ -852,7 +1058,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-025 · Art. I"
             }
         ],
-        why: "c_education.education_elections_candidacy_registration.why"
+        why: "c_education.education_elections_candidacy_registration.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "elections/detail": {
         learn: "c_education.education_elections_detail.learn",
@@ -873,7 +1083,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-ELB-004 · F-ELB-006"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-proportional-ranked-choice-voting",
+            source: "surface"
+        }
     },
     "elections/open-ballot": {
         learn: "c_education.education_elections_open_ballot.learn",
@@ -894,7 +1108,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "CLK-21"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "elections/ranked-ballot": {
         learn: "c_education.education_elections_ranked_ballot.learn",
@@ -915,7 +1133,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-007"
             }
         ],
-        why: "c_education.education_elections_ranked_ballot.why"
+        why: "c_education.education_elections_ranked_ballot.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "elections/results": {
         learn: "c_education.education_elections_results.learn",
@@ -936,7 +1158,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-ELB-004 · F-ELB-006"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "elections/vacancy-countback": {
         learn: "c_education.education_elections_vacancy_countback.learn",
@@ -957,7 +1183,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-ELB-001"
             }
         ],
-        why: "c_education.education_elections_vacancy_countback.why"
+        why: "c_education.education_elections_vacancy_countback.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "executive/department-detail": {
         learn: "c_education.education_executive_department_detail.learn",
@@ -978,7 +1208,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-BOG-001"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "executive/department-reporting": {
         learn: "c_education.education_executive_department_reporting.learn",
@@ -994,7 +1228,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. III §4"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "executive/departments": {
         learn: "c_education.education_executive_departments.learn",
@@ -1010,7 +1248,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. II §9 · CLK-09"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "executive/executive-actions": {
         learn: "c_education.education_executive_executive_actions.learn",
@@ -1031,7 +1273,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-EXE-004 · F-EXE-001"
             }
         ],
-        why: "c_education.education_executive_executive_actions.why"
+        why: "c_education.education_executive_executive_actions.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "executive/executive-home": {
         learn: "c_education.education_executive_executive_home.learn",
@@ -1052,7 +1298,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. III §1"
             }
         ],
-        why: "c_education.education_executive_executive_home.why"
+        why: "c_education.education_executive_executive_home.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "groups/create": {
         learn: "c_education.education_groups_create.learn",
@@ -1078,7 +1328,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-012 · Art. III"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "groups/detail": {
         learn: "c_education.education_groups_detail.learn",
@@ -1104,7 +1358,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-012"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "invite/landing": {
         learn: "c_education.education_invite_landing.learn",
@@ -1125,7 +1383,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: "c_education.education_invite_landing.why"
+        why: "c_education.education_invite_landing.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "judiciary/advocate-console": {
         learn: "c_education.education_judiciary_advocate_console.learn",
@@ -1141,7 +1403,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-ADV-001 · F-ADV-002 · F-ADV-003 · F-ADV-004"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "judiciary/case-detail": {
         learn: "c_education.education_judiciary_case_detail.learn",
@@ -1202,7 +1468,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. II §8"
             }
         ],
-        why: "c_education.education_judiciary_case_detail.why"
+        why: "c_education.education_judiciary_case_detail.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "judiciary/case-docket": {
         learn: "c_education.education_judiciary_case_docket.learn",
@@ -1223,7 +1493,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-JDG-001"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "judiciary/constitutional-challenge": {
         learn: "c_education.education_judiciary_constitutional_challenge.learn",
@@ -1259,7 +1533,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-JDG-006 · Art. IV §5.5"
             }
         ],
-        why: "c_education.education_judiciary_constitutional_challenge.why"
+        why: "c_education.education_judiciary_constitutional_challenge.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "judiciary/judiciary-home": {
         learn: "c_education.education_judiciary_judiciary_home.learn",
@@ -1280,7 +1558,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-LEG-018"
             }
         ],
-        why: "c_education.education_judiciary_judiciary_home.why"
+        why: "c_education.education_judiciary_judiciary_home.why",
+        video: {
+            id: "v-judiciaries",
+            source: "surface"
+        }
     },
     "judiciary/juror-view": {
         learn: "c_education.education_judiciary_juror_view.learn",
@@ -1296,7 +1578,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "jurisdictions/bootstrap": {
         learn: "c_education.education_jurisdictions_bootstrap.learn",
@@ -1322,7 +1608,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "R-08"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "jurisdictions/disintermediation": {
         learn: "c_education.education_jurisdictions_disintermediation.learn",
@@ -1353,7 +1643,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-LEG-030 · Art. V §8"
             }
         ],
-        why: "c_education.education_jurisdictions_disintermediation.why"
+        why: "c_education.education_jurisdictions_disintermediation.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "jurisdictions/federation": {
         learn: "c_education.education_jurisdictions_federation.learn",
@@ -1384,7 +1678,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. V §2"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "jurisdictions/place": {
         learn: "c_education.education_jurisdictions_place.learn",
@@ -1410,7 +1708,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I; F-IND-003"
             }
         ],
-        why: "c_education.education_jurisdictions_place.why"
+        why: "c_education.education_jurisdictions_place.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "jurisdictions/restoration": {
         learn: "c_education.education_jurisdictions_restoration.learn",
@@ -1441,7 +1743,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "WF-JUR-07 · Art. VI §3"
             }
         ],
-        why: "c_education.education_jurisdictions_restoration.why"
+        why: "c_education.education_jurisdictions_restoration.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "jurisdictions/union-formation": {
         learn: "c_education.education_jurisdictions_union_formation.learn",
@@ -1472,7 +1778,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-LEG-029 · Art. V §7"
             }
         ],
-        why: "c_education.education_jurisdictions_union_formation.why"
+        why: "c_education.education_jurisdictions_union_formation.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "jurisdictions/viewer": {
         learn: "c_education.education_jurisdictions_viewer.learn",
@@ -1493,7 +1803,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. V §1"
             }
         ],
-        why: "c_education.education_jurisdictions_viewer.why"
+        why: "c_education.education_jurisdictions_viewer.why",
+        video: {
+            id: "v-jurisdictions1",
+            source: "surface"
+        }
     },
     "learn/guides": {
         learn: "c_education.education_learn_guides.learn",
@@ -1514,7 +1828,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "learn/home": {
         learn: "c_education.education_learn_home.learn",
@@ -1540,7 +1858,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: "c_education.education_learn_home.why"
+        why: "c_education.education_learn_home.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "learn/lesson": {
         learn: "c_education.education_learn_lesson.learn",
@@ -1566,7 +1888,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: "c_education.education_learn_lesson.why"
+        why: "c_education.education_learn_lesson.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "learn/video-library": {
         learn: "c_education.education_learn_video_library.learn",
@@ -1592,7 +1918,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/bill-conversation": {
         learn: "c_education.education_legislature_bill_conversation.learn",
@@ -1618,7 +1948,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-016 · Art. IV §5"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/bill-detail": {
         learn: "c_education.education_legislature_bill_detail.learn",
@@ -1639,7 +1973,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. VII"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/bills": {
         learn: "c_education.education_legislature_bills.learn",
@@ -1660,7 +1998,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. V §4"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/committee-detail": {
         learn: "c_education.education_legislature_committee_detail.learn",
@@ -1681,7 +2023,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-CHR-003 · F-CHR-004"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/committees": {
         learn: "c_education.education_legislature_committees.learn",
@@ -1702,7 +2048,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-SPK-005 · Art. II §4"
             }
         ],
-        why: "c_education.education_legislature_committees.why"
+        why: "c_education.education_legislature_committees.why",
+        video: {
+            id: "v-committees",
+            source: "surface"
+        }
     },
     "legislature/districts": {
         learn: "c_education.education_legislature_districts.learn",
@@ -1723,7 +2073,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-ELB-003 · F-ELB-008"
             }
         ],
-        why: "c_education.education_legislature_districts.why"
+        why: "c_education.education_legislature_districts.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/emergency-powers": {
         learn: "c_education.education_legislature_emergency_powers.learn",
@@ -1749,7 +2103,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-JDG-007"
             }
         ],
-        why: "c_education.education_legislature_emergency_powers.why"
+        why: "c_education.education_legislature_emergency_powers.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/index": {
         learn: "c_education.education_legislature_index.learn",
@@ -1765,7 +2123,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. II §2"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/institution-acts": {
         learn: "c_education.education_legislature_institution_acts.learn",
@@ -1786,7 +2148,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-LEG-015 · F-LEG-018"
             }
         ],
-        why: "c_education.education_legislature_institution_acts.why"
+        why: "c_education.education_legislature_institution_acts.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/legislature-home": {
         learn: "c_education.education_legislature_legislature_home.learn",
@@ -1812,7 +2178,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-LEG-009 · F-LEG-012 · F-LEG-013"
             }
         ],
-        why: "c_education.education_legislature_legislature_home.why"
+        why: "c_education.education_legislature_legislature_home.why",
+        video: {
+            id: "v-legislatures1",
+            source: "surface"
+        }
     },
     "legislature/oversight": {
         learn: "c_education.education_legislature_oversight.learn",
@@ -1833,7 +2203,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-LEG-036"
             }
         ],
-        why: "c_education.education_legislature_oversight.why"
+        why: "c_education.education_legislature_oversight.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/overview": {
         learn: "c_education.education_legislature_overview.learn",
@@ -1849,7 +2223,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. VII"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/referendums": {
         learn: "c_education.education_legislature_referendums.learn",
@@ -1870,7 +2248,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-LEG-034"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/session-console": {
         learn: "c_education.education_legislature_session_console.learn",
@@ -1891,7 +2273,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-LEG-007 · F-LEG-006 · F-LEG-004"
             }
         ],
-        why: "c_education.education_legislature_session_console.why"
+        why: "c_education.education_legislature_session_console.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/settings": {
         learn: "c_education.education_legislature_settings.learn",
@@ -1912,7 +2298,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. VII"
             }
         ],
-        why: "c_education.education_legislature_settings.why"
+        why: "c_education.education_legislature_settings.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "legislature/speaker-tools": {
         learn: "c_education.education_legislature_speaker_tools.learn",
@@ -1938,7 +2328,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-SPK-007"
             }
         ],
-        why: "c_education.education_legislature_speaker_tools.why"
+        why: "c_education.education_legislature_speaker_tools.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "operator/console": {
         learn: "c_education.education_operator_console.learn",
@@ -1954,7 +2348,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "operator/dns": {
         learn: "c_education.education_operator_dns.learn",
@@ -1980,7 +2378,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "operator/home": {
         learn: "c_education.education_operator_home.learn",
@@ -1996,7 +2398,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: "c_education.education_operator_home.why"
+        why: "c_education.education_operator_home.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "operator/identity": {
         learn: "c_education.education_operator_identity.learn",
@@ -2012,7 +2418,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "operator/mesh": {
         learn: "c_education.education_operator_mesh.learn",
@@ -2028,7 +2438,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I; Art. II §2"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "operator/moderation": {
         learn: "c_education.education_operator_moderation.learn",
@@ -2054,7 +2468,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-SOC-004"
             }
         ],
-        why: "c_education.education_operator_moderation.why"
+        why: "c_education.education_operator_moderation.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "operator/roles": {
         learn: "c_education.education_operator_roles.learn",
@@ -2070,7 +2488,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "operator/setup": {
         learn: "c_education.education_operator_setup.learn",
@@ -2096,7 +2518,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: "c_education.education_operator_setup.why"
+        why: "c_education.education_operator_setup.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "operator/versioning": {
         learn: "c_education.education_operator_versioning.learn",
@@ -2112,7 +2538,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. VII"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "organizations/board-elections": {
         learn: "c_education.education_organizations_board_elections.learn",
@@ -2133,7 +2563,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. III §6"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "organizations/cgc-detail": {
         learn: "c_education.education_organizations_cgc_detail.learn",
@@ -2159,7 +2593,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-EXE-003 · Art. III §5"
             }
         ],
-        why: "c_education.education_organizations_cgc_detail.why"
+        why: "c_education.education_organizations_cgc_detail.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "organizations/co-determination": {
         learn: "c_education.education_organizations_co_determination.learn",
@@ -2180,7 +2618,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "CLK-13 · CLK-14"
             }
         ],
-        why: "c_education.education_organizations_co_determination.why"
+        why: "c_education.education_organizations_co_determination.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "organizations/org-detail": {
         learn: "c_education.education_organizations_org_detail.learn",
@@ -2211,7 +2653,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-ORG-011"
             }
         ],
-        why: "c_education.education_organizations_org_detail.why"
+        why: "c_education.education_organizations_org_detail.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "organizations/org-registry": {
         learn: "c_education.education_organizations_org_registry.learn",
@@ -2232,7 +2678,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-ORG-002"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "organizations/transfers-conversions": {
         learn: "c_education.education_organizations_transfers_conversions.learn",
@@ -2253,7 +2703,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-ORG-007"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "rooms/directory": {
         learn: "c_education.education_rooms_directory.learn",
@@ -2279,7 +2733,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "shared/accessibility": {
         learn: "c_education.education_shared_accessibility.learn",
@@ -2300,7 +2758,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: "c_education.education_shared_accessibility.why"
+        why: "c_education.education_shared_accessibility.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "shared/atlas": {
         learn: "c_education.education_shared_atlas.learn",
@@ -2326,7 +2788,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-IND-011 · Art. I"
             }
         ],
-        why: "c_education.education_shared_atlas.why"
+        why: "c_education.education_shared_atlas.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "shared/constitutional-questions": {
         learn: "c_education.education_shared_constitutional_questions.learn",
@@ -2347,7 +2813,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. VII"
             }
         ],
-        why: "c_education.education_shared_constitutional_questions.why"
+        why: "c_education.education_shared_constitutional_questions.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "shared/coverage": {
         learn: "c_education.education_shared_coverage.learn",
@@ -2368,7 +2838,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "R-01"
             }
         ],
-        why: "c_education.education_shared_coverage.why"
+        why: "c_education.education_shared_coverage.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "shared/coverage-ops": {
         learn: "c_education.education_shared_coverage_ops.learn",
@@ -2389,7 +2863,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "R-01"
             }
         ],
-        why: "c_education.education_shared_coverage_ops.why"
+        why: "c_education.education_shared_coverage_ops.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "shared/launchpad": {
         learn: "c_education.education_shared_launchpad.learn",
@@ -2415,7 +2893,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "shared/tour": {
         learn: "c_education.education_shared_tour.learn",
@@ -2436,7 +2918,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "social/achievements": {
         learn: "c_education.education_social_achievements.learn",
@@ -2462,7 +2948,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: "c_education.education_social_achievements.why"
+        why: "c_education.education_social_achievements.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "social/legitimacy": {
         learn: "c_education.education_social_legitimacy.learn",
@@ -2483,7 +2973,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: "c_education.education_social_legitimacy.why"
+        why: "c_education.education_social_legitimacy.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "social/profile": {
         learn: "c_education.education_social_profile.learn",
@@ -2509,7 +3003,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: "c_education.education_social_profile.why"
+        why: "c_education.education_social_profile.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "support/report": {
         learn: "c_education.education_support_report.learn",
@@ -2535,7 +3033,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "F-SOC-003 · F-SOC-004 · Art. I"
             }
         ],
-        why: "c_education.education_support_report.why"
+        why: "c_education.education_support_report.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "support/ticket": {
         learn: "c_education.education_support_ticket.learn",
@@ -2561,7 +3063,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "support/tickets": {
         learn: "c_education.education_support_tickets.learn",
@@ -2582,7 +3088,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "system/amendments": {
         learn: "c_education.education_system_amendments.learn",
@@ -2603,7 +3113,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. VII"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "system/atlas": {
         learn: "c_education.education_system_atlas.learn",
@@ -2624,7 +3138,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I"
             }
         ],
-        why: "c_education.education_system_atlas.why"
+        why: "c_education.education_system_atlas.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "system/audit-chain": {
         learn: "c_education.education_system_audit_chain.learn",
@@ -2645,7 +3163,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. II §2"
             }
         ],
-        why: "c_education.education_system_audit_chain.why"
+        why: "c_education.education_system_audit_chain.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "system/clocks": {
         learn: "c_education.education_system_clocks.learn",
@@ -2666,7 +3188,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "system/public-records": {
         learn: "c_education.education_system_public_records.learn",
@@ -2682,7 +3208,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. I; Art. II §2"
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "system/term-sync": {
         learn: "c_education.education_system_term_sync.learn",
@@ -2698,7 +3228,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: "Art. VII"
             }
         ],
-        why: "c_education.education_system_term_sync.why"
+        why: "c_education.education_system_term_sync.why",
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "system/translation-review": {
         learn: "c_education.education_system_translation_review.learn",
@@ -2724,7 +3258,11 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     },
     "system/translations": {
         learn: "c_education.education_system_translations.learn",
@@ -2740,6 +3278,10 @@ export const EDUCATION_BY_SURFACE = {
                 cite: null
             }
         ],
-        why: null
+        why: null,
+        video: {
+            id: "v-introduction-to-the-coalition1",
+            source: "default"
+        }
     }
 };

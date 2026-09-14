@@ -74,6 +74,10 @@ class EndorsementRequest implements FormHandler
             'requested_at'    => now(),
         ]);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-CAN-003');
+        }
+
         return [
             'request_id'      => (string) $request->id,
             'candidacy_id'    => (string) $candidacy->id,

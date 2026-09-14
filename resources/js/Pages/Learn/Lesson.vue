@@ -18,6 +18,7 @@ import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import MultiTrackVideoPlayer from '@/Components/Media/MultiTrackVideoPlayer.vue';
 import { lessonContentFor } from '@/composables/lessonContent.js';
 
 defineOptions({ layout: AppShellV2 });
@@ -28,15 +29,22 @@ const props = defineProps({
     modules: { type: Array, default: () => [] },
     module: { type: Object, required: true },
     questions: { type: Array, default: () => [] },
+    // LE-3: the enriched MediaMeta record for the lesson's film, or null. The
+    // base URL is null in demo mode -> the player renders its own poster.
+    video: { type: Object, default: null },
+    videoBaseUrl: { type: String, default: null },
     required: { type: Boolean, default: false },
     quiz: { type: Object, default: null },
     auth: { type: Object, default: () => ({}) },
 });
 
-const { t } = useI18n({ useScope: 'global' });
+const { t, locale } = useI18n({ useScope: 'global' });
 
 const chosen = reactive({});
 const lesson = computed(() => lessonContentFor(props.module.surface_id));
+// The film's source label rides the same registry entry the lesson text does.
+// 'default' means the demo fallback stands in for a not-yet-recorded film.
+const videoIsDefault = computed(() => lesson.value?.video?.source === 'default');
 watch(() => props.module.key, () => {
     for (const key of Object.keys(chosen)) delete chosen[key];
 });
@@ -68,6 +76,19 @@ const next = computed(() => {
 
         <Banner v-if="required" tone="warn">{{ t('c_learn.ui.required_banner') }}</Banner>
         <StatusBadge v-if="module.completed" tone="success">{{ t('c_learn.ui.completed') }}</StatusBadge>
+
+        <!-- LE-3: the lesson's library film, above the authored steps. The
+             player carries its own poster and caption/error repairs. The note
+             appears only when the demo fallback stands in for this surface. -->
+        <section v-if="video" class="stack">
+            <MultiTrackVideoPlayer
+                :key="video.id"
+                :video="video"
+                :base-url="videoBaseUrl"
+                :initial-locale="locale"
+            />
+            <p v-if="videoIsDefault" class="gloss">{{ t('c_learn.ui.lesson_video_demo_note', 'This lesson uses the demo recording; a lesson-specific video is planned.') }}</p>
+        </section>
 
         <section v-if="lesson" class="stack" aria-labelledby="lesson-h">
             <h2 id="lesson-h">{{ t('c_learn.ui.lesson_heading', 'Before you begin') }}</h2>

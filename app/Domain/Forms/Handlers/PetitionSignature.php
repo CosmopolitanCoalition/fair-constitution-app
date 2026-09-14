@@ -71,6 +71,23 @@ class PetitionSignature implements FormHandler
 
         $petition->refresh();
 
+        // AC-1 achievement wiring (engine-transaction-coupled). The signer
+        // earns VOX-001 for the act of signing (never on a revoke). When
+        // this signature is the one that carries the petition to threshold,
+        // the petition's CREATOR earns VOX-003 (EARNER_SUBJECT, resolved
+        // from the petition row) — idempotent, so awarding on every
+        // threshold-reached signature writes the creator's medal once.
+        if ($actor !== null && ! $revoke) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-VOX-001');
+        }
+
+        if (! $revoke && $petition->status === Petition::STATUS_THRESHOLD_REACHED) {
+            $creator = User::find((string) $petition->creator_user_id);
+            if ($creator !== null) {
+                app(\App\Services\AchievementService::class)->awardSubject($creator, 'ACH-VOX-003');
+            }
+        }
+
         return [
             'petition_id'     => (string) $petition->id,
             'signature_id'    => (string) $signature->id,

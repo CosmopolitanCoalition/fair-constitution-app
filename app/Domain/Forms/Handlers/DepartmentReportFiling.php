@@ -56,6 +56,10 @@ class DepartmentReportFiling implements FormHandler
 
         $report = $this->departments->fileReport($department, $seat, $payload);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-BOG-003');
+        }
+
         return [
             'department_id' => (string) $department->id,
             'report_id' => (string) $report->id,

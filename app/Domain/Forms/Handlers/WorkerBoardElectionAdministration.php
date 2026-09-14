@@ -70,6 +70,10 @@ class WorkerBoardElectionAdministration implements FormHandler
 
         $action = (string) ($payload['action'] ?? '');
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-ORG-007');
+        }
+
         return ['action' => $action, 'board_id' => (string) $board->id] + match ($action) {
             'open_worker_election' => (function () use ($board, $payload) {
                 $election = $this->elections->openWorkerElection(

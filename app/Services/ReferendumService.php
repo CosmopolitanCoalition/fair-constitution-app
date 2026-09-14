@@ -195,6 +195,14 @@ class ReferendumService
             jurisdictionId: (string) $petition->jurisdiction_id,
         );
 
+        // AC-1 achievement wiring. A petition reaching the ballot is the
+        // petition CREATOR's achievement (VOX-004, EARNER_SUBJECT — resolved
+        // from the petition row, not the actor who queued it). Idempotent.
+        $creator = \App\Models\User::find((string) $petition->creator_user_id);
+        if ($creator !== null) {
+            app(\App\Services\AchievementService::class)->awardSubject($creator, 'ACH-VOX-004');
+        }
+
         return $question;
     }
 

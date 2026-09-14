@@ -67,6 +67,10 @@ class ConstitutionalChallengeFiling implements FormHandler
             $caseId = (string) $case->id;
         }
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-VOX-007');
+        }
+
         return [
             'challenge_id' => (string) $challenge->id,
             'challenged_law_id' => (string) $challenge->challenged_law_id,

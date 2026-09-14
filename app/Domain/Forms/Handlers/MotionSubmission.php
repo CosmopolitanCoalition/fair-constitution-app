@@ -69,6 +69,10 @@ class MotionSubmission implements FormHandler
             committeeId: isset($payload['committee_id']) ? (string) $payload['committee_id'] : null,
         );
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-LEG-006');
+        }
+
         return [
             'motion_id'       => (string) $motion->id,
             'session_id'      => (string) $session->id,
