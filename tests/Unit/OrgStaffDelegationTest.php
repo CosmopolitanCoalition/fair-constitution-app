@@ -17,6 +17,7 @@ use App\Models\OrgStaffGrant;
 use App\Models\User;
 use App\Services\Organizations\CoDeterminationService;
 use App\Services\Organizations\OrgDelegationService;
+use App\Services\Economy\LaborBoardService;
 use App\Services\Organizations\OrgMembershipService;
 use App\Services\Organizations\OrgSettingsService;
 use App\Services\RoleService;
@@ -435,5 +436,133 @@ class OrgStaffDelegationTest extends TestCase
 
         self::assertSame([20, 20, 3], $sizes, 'bounded 20-per-page cursor pages');
         self::assertCount(43, array_unique($seen), 'every active grant appears once across the pages');
+    }
+
+    // ── S1 · organization authority — one combined multi-actor journey ───────
+
+    /**
+     * The whole register row in one ordered walk, every step through a REAL
+     * rail on the named private SQLite fixture. Four separate actors:
+     *  - the applicant (user 30) applies for membership (real
+     *    OrgMembershipService::apply, F-IND-013);
+     *  - the agent (user 1) accepts the application (real F-ORG-001
+     *    accept_member handler — a SEPARATE actor decides membership);
+     *  - the agent grants the delegate (user 20) the HIRING bucket (real
+     *    F-ORG-011 grant_task handler — grant a permitted task);
+     *  - the delegate opens a work posting (real LaborBoardService::postFor,
+     *    whose assertEmployer consults the one mayPerform rail — the delegate
+     *    acts within the granted bucket);
+     *  - the delegate is refused reassign_agent (never delegable — staff
+     *    permissions confer no agency) and accept_member (out of bucket — the
+     *    HIRING grant does not reach MEMBERSHIP);
+     *  - the agent revokes the HIRING grant (real F-ORG-011 revoke_task) and
+     *    the delegate can no longer open a posting (removed delegate cannot
+     *    act, enforced at act time);
+     *  - the agent grants a fresh MEMBERSHIP bucket, transfers agency to the
+     *    third agent (user 9, real F-ORG-001 reassign_agent), the grant
+     *    survives the transfer, and the NEW agent revokes it.
+     */
+    public function test_the_full_organization_authority_journey_runs_through_real_rails(): void
+    {
+        // The hiring rail needs the market posting table on this fixture.
+        $s = DB::connection()->getSchemaBuilder();
+        $s->create('work_postings', function (Blueprint $t) {
+            $t->uuid('id')->primary(); $t->uuid('organization_id'); $t->string('title'); $t->text('terms');
+            $t->string('rate')->nullable(); $t->uuid('currency_id')->nullable(); $t->string('status')->default('open');
+            $t->timestamps(); $t->softDeletes();
+        });
+
+        $roles = new RoleService;
+        $memberships = new OrgMembershipService($roles, app(CoDeterminationService::class));
+        $delegation = $this->delegation();
+        $del11 = new OrganizationStaffDelegation;                 // F-ORG-011
+        $profile = $this->profileHandler();                       // F-ORG-001
+        $board = new LaborBoardService(Mockery::mock(ConstitutionalEngine::class)); // postFor never calls the engine
+
+        // 1. F-ORG-001 apply — the applicant applies for the member-owned class.
+        $membership = $memberships->apply($this->user(30), $this->org(50), null);
+        self::assertSame(OrgMembership::STATUS_APPLIED, $membership->status);
+
+        // 2. accept_member — the AGENT (a separate actor) accepts through the
+        //    real F-ORG-001 handler.
+        $accepted = $profile->handle($this->user(1), [
+            'action' => 'accept_member', 'organization_id' => $this->id(50), 'membership_id' => (string) $membership->id,
+        ]);
+        self::assertSame(OrgMembership::STATUS_ACTIVE, $accepted['status']);
+        self::assertSame(OrgMembership::STATUS_ACTIVE, OrgMembership::find($membership->id)->status);
+
+        // 3. F-ORG-011 grant_task — the agent grants the delegate the HIRING
+        //    bucket. The delegate now derives R-31.
+        self::assertFalse($this->hasDelegation($this->id(20)));
+        $granted = $del11->handle($this->user(1), [
+            'action' => 'grant_task', 'organization_id' => $this->id(50),
+            'grantee_user_id' => $this->id(20), 'bucket' => StaffTask::HIRING,
+        ]);
+        self::assertSame('active', $granted['status']);
+        self::assertTrue($this->hasDelegation($this->id(20)), 'the grantee derives R-31');
+        self::assertTrue($delegation->mayPerform($this->org(50), $this->user(20), StaffTask::HIRING));
+
+        // 4. The delegate opens a posting through the real hiring rail.
+        $postingId = $board->postFor($this->user(20), $this->id(50), 'Records clerk', 'Full civic terms.');
+        self::assertSame('open', (string) DB::table('work_postings')->where('id', $postingId)->value('status'));
+
+        // 5. reassign_agent is never delegable — the delegate cannot seize
+        //    agency (staff permission confers no constitutional office/agency).
+        $this->refused(fn () => $profile->handle($this->user(20), [
+            'action' => 'reassign_agent', 'organization_id' => $this->id(50), 'agent_user_id' => $this->id(9),
+        ]), 'never delegable');
+        self::assertSame($this->id(1), (string) $this->org(50)->agent_user_id, 'agency unchanged');
+
+        // 6. Out of bucket — a HIRING grant does not reach MEMBERSHIP. A fresh
+        //    application; the delegate's accept_member is refused, no write.
+        DB::table('users')->insert(['id' => $this->id(31), 'display_name' => 'Applicant Two']);
+        $mId2 = $this->applied(50, 31);
+        $this->refused(fn () => $profile->handle($this->user(20), [
+            'action' => 'accept_member', 'organization_id' => $this->id(50), 'membership_id' => $mId2,
+        ]), 'delegate');
+        self::assertSame(OrgMembership::STATUS_APPLIED, OrgMembership::find($mId2)->status, 'no state change out of bucket');
+
+        // 7. F-ORG-011 revoke_task — the agent revokes the HIRING grant.
+        $revoked = $del11->handle($this->user(1), [
+            'action' => 'revoke_task', 'organization_id' => $this->id(50),
+            'grantee_user_id' => $this->id(20), 'bucket' => StaffTask::HIRING,
+        ]);
+        self::assertTrue($revoked['revoked']);
+        self::assertFalse($this->hasDelegation($this->id(20)), 'R-31 drops after revoke');
+
+        // 8. Post-revoke, the removed delegate cannot open another posting —
+        //    refused at ACT time by the same rail (403 abort).
+        try {
+            $board->postFor($this->user(20), $this->id(50), 'Second clerk', 'Full civic terms.');
+            self::fail('Expected a 403 for the revoked hiring delegate.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            self::assertSame(403, $e->getStatusCode());
+        }
+        self::assertSame(1, (int) DB::table('work_postings')->count(), 'no second posting written after revoke');
+
+        // 9. The agent grants a fresh MEMBERSHIP bucket (a permitted task), so
+        //    there is an active grant to carry across the agency transfer.
+        $del11->handle($this->user(1), [
+            'action' => 'grant_task', 'organization_id' => $this->id(50),
+            'grantee_user_id' => $this->id(20), 'bucket' => StaffTask::MEMBERSHIP,
+        ]);
+        self::assertTrue($this->hasDelegation($this->id(20)));
+
+        // 10. F-ORG-001 reassign_agent — the agent transfers agency to the
+        //     third agent (user 9). The grant survives the transfer.
+        $profile->handle($this->user(1), [
+            'action' => 'reassign_agent', 'organization_id' => $this->id(50), 'agent_user_id' => $this->id(9),
+        ]);
+        self::assertSame($this->id(9), (string) $this->org(50)->agent_user_id, 'agency transferred');
+        self::assertTrue($this->hasDelegation($this->id(20)), 'the grant survives the agent change');
+        self::assertTrue($delegation->mayPerform($this->org(50), $this->user(20), StaffTask::MEMBERSHIP));
+
+        // 11. The NEW agent revokes the inherited grant through F-ORG-011.
+        $del11->handle($this->user(9), [
+            'action' => 'revoke_task', 'organization_id' => $this->id(50),
+            'grantee_user_id' => $this->id(20), 'bucket' => StaffTask::MEMBERSHIP,
+        ]);
+        self::assertFalse($this->hasDelegation($this->id(20)), 'the new agent revoked the inherited grant');
+        self::assertFalse($delegation->mayPerform($this->org(50), $this->user(20), StaffTask::MEMBERSHIP));
     }
 }
