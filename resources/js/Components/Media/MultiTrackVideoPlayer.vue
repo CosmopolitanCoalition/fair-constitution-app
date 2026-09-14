@@ -549,7 +549,7 @@ onBeforeUnmount(() => {
                 @error="onVideoError"
                 style="inline-size: 100%; block-size: 100%; object-fit: contain; background: #000"
             ></video>
-            <audio ref="audioEl" :src="audioUrl(selAudio)" preload="metadata"
+            <audio ref="audioEl" aria-hidden="true" :src="audioUrl(selAudio)" preload="metadata"
                 @loadeddata="onAudioLoaded" @playing="audioState = 'playing'"
                 @waiting="audioState = 'buffering'" @error="onAudioError"></audio>
             <div v-if="captionsOn && activeCue" class="vplayer-cc" :dir="capDir">{{ activeCue }}</div>
