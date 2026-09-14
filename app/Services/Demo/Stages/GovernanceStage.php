@@ -3,13 +3,16 @@
 namespace App\Services\Demo\Stages;
 
 use App\Domain\Engine\ConstitutionalEngine;
+use App\Models\BoardSeat;
 use App\Models\ChamberVote;
 use App\Models\Department;
 use App\Models\Executive;
+use App\Models\ExecutiveMember;
 use App\Models\Legislature;
 use App\Models\LegislatureMember;
 use App\Models\User;
 use App\Services\ChamberVoteService;
+use App\Services\Executive\BoardGovernorService;
 use App\Services\InstitutionScaleService;
 use App\Support\SimTimer;
 use Illuminate\Support\Collection;
@@ -89,6 +92,7 @@ final class GovernanceStage
      * @return array{
      *     committees: array{created:int, target:?int, existing:?int, skipped:?string},
      *     departments: array{created:int, target:?int, existing:?int, delegated:bool, skipped:?string},
+     *     governors: array{departments:int, nominated:int, seated:int, skipped:?string},
      *     skipped: ?string
      * }
      */
@@ -118,11 +122,155 @@ final class GovernanceStage
             return self::bothSkip('no seated member with a user to hold the pen');
         }
 
+        // Same order as before: committees, then departments. The governor
+        // half runs LAST, after the departments are chartered — every chartered
+        // department carries a vacant governor seat, and a delegated executive
+        // supplies the principal who nominates.
+        $committees = self::growCommittees($legislature, $serving, $proposerUser, $beat);
+        $departments = self::growDepartments($legislature, $serving, $proposerUser);
+
         return [
-            'committees' => self::growCommittees($legislature, $serving, $proposerUser, $beat),
-            'departments' => self::growDepartments($legislature, $serving, $proposerUser),
+            'committees' => $committees,
+            'departments' => $departments,
+            // The department board of governors: F-EXE-001 → F-LEG-020 consent
+            // → seat, CLK-09 armed per seat.
+            'governors' => self::seatDepartmentGovernors($legislature, $serving, $beat),
             'skipped' => null,
         ];
+    }
+
+    /**
+     * Seat each chartered department's board of governors through the REAL
+     * consent pipeline: a seated principal of the overseeing executive files
+     * F-EXE-001 (via BoardGovernorService::nominate — the same service the
+     * handler calls), the F-LEG-020 consent vote opens, and the seated chamber
+     * carries it to adoption; the adoption dispatch seats the governor with a
+     * 10-year civil term and arms CLK-09 per seat.
+     *
+     * It MATERIALISES NOTHING. Every seat is written by the consent adoption
+     * path, exactly as a live nomination would seat it, so a walker sees a
+     * governed department board rather than an empty forming shell.
+     *
+     * EVERY GATE DEFERS-WITH-REASON. A department with no vacant governor seat
+     * (already seated — idempotent), no seated executive principal to nominate,
+     * or no active resident to name, is skipped; nothing is forced.
+     *
+     * @return array{departments:int, nominated:int, seated:int, skipped:?string}
+     */
+    public static function seatDepartmentGovernors(Legislature $legislature, Collection $serving, ?\Closure $beat = null): array
+    {
+        $out = ['departments' => 0, 'nominated' => 0, 'seated' => 0, 'skipped' => null];
+
+        $mGovern = hrtime(true);
+
+        $departments = Department::query()
+            ->where('jurisdiction_id', $legislature->jurisdiction_id)
+            ->where('status', '!=', Department::STATUS_DISSOLVED)
+            ->whereNull('deleted_at')
+            ->whereNotNull('board_id')
+            ->whereNotNull('executive_id')
+            ->orderBy('id')
+            ->get();
+
+        if ($departments->isEmpty()) {
+            SimTimer::record('gov.governors', (int) ((hrtime(true) - $mGovern) / 1000));
+
+            return ['departments' => 0, 'nominated' => 0, 'seated' => 0, 'skipped' => 'no department to govern'];
+        }
+
+        $governors = app(BoardGovernorService::class);
+        $votes = app(ChamberVoteService::class);
+
+        // One active resident of the jurisdiction as the nominee — association
+        // is the ONLY eligibility test (Art. I; neutrality is a duty of office).
+        $nomineeUserId = DB::table('residency_confirmations')
+            ->where('jurisdiction_id', $legislature->jurisdiction_id)
+            ->where('is_active', true)
+            ->orderBy('user_id')
+            ->value('user_id');
+
+        if ($nomineeUserId === null) {
+            SimTimer::record('gov.governors', (int) ((hrtime(true) - $mGovern) / 1000));
+
+            return ['departments' => 0, 'nominated' => 0, 'seated' => 0, 'skipped' => 'no active resident to nominate'];
+        }
+
+        foreach ($departments as $department) {
+            $beat && $beat();
+
+            if (! self::hasVacantGovernorSeat((string) $department->board_id)) {
+                continue; // already seated (idempotent) or none minted
+            }
+
+            // A seated principal of THIS department's overseeing executive holds
+            // the pen (R-14/15/16). No principal yet means the executive is not
+            // delegated — defer, do not force.
+            $principal = ExecutiveMember::query()
+                ->where('executive_id', $department->executive_id)
+                ->where('role', ExecutiveMember::ROLE_PRINCIPAL)
+                ->where('status', ExecutiveMember::STATUS_SEATED)
+                ->whereNotNull('user_id')
+                ->whereNull('deleted_at')
+                ->orderBy('id')
+                ->first();
+
+            if ($principal === null) {
+                continue;
+            }
+
+            $out['departments']++;
+
+            // Seat every vacant governor seat of this board, one consent at a
+            // time. nominate() picks the next vacant seat, so the loop ends
+            // when none remain; a vote that does not adopt leaves a NOMINATED
+            // seat and stops this board (no spin). Every step defers to the
+            // guard on any refusal — the stage never throws (the sim's
+            // defer-to-the-guard doctrine keeps the item completing).
+            while (self::hasVacantGovernorSeat((string) $department->board_id)) {
+                try {
+                    $result = $governors->nominate($department, $principal, (string) $nomineeUserId);
+                    $out['nominated']++;
+
+                    $vote = ChamberVote::query()->find($result['consent_vote_id'] ?? null);
+
+                    if ($vote === null) {
+                        break;
+                    }
+
+                    // Every serving member casts yes in one locked pass; the
+                    // vote auto-closes at full participation and the adoption
+                    // dispatch seats the governor (CLK-09 armed via
+                    // CivilAppointmentService).
+                    $votes->castManyYes($vote, $serving);
+                } catch (\Throwable $e) {
+                    break; // defers to the guard, never fights it
+                }
+
+                $seat = BoardSeat::query()->whereKey($result['seat_id'] ?? null)->first();
+
+                if ($seat !== null && $seat->status === BoardSeat::STATUS_SEATED) {
+                    $out['seated']++;
+
+                    continue;
+                }
+
+                break; // consent did not adopt — stop this board
+            }
+        }
+
+        SimTimer::record('gov.governors', (int) ((hrtime(true) - $mGovern) / 1000));
+
+        return $out;
+    }
+
+    /** A board still carrying at least one vacant governor seat. */
+    private static function hasVacantGovernorSeat(string $boardId): bool
+    {
+        return BoardSeat::query()
+            ->where('board_id', $boardId)
+            ->where('seat_class', BoardSeat::CLASS_GOVERNOR)
+            ->where('status', BoardSeat::STATUS_VACANT)
+            ->exists();
     }
 
     /**
@@ -418,6 +566,7 @@ final class GovernanceStage
         return [
             'committees' => self::half(0, null, null, $why),
             'departments' => self::deptHalf(0, null, null, false, $why),
+            'governors' => ['departments' => 0, 'nominated' => 0, 'seated' => 0, 'skipped' => $why],
             'skipped' => $why,
         ];
     }
