@@ -1,12 +1,27 @@
 # -*- coding: utf-8 -*-
-"""Rubric v3 — five views: UI Screens, Capabilities, Tech Debt, Fleet & Waves, Open Questions.
-Native-feeling drill (search / filter / expand-all) with per-item punch detail, per the operator's
-beloved v3_gap_dashboard, extended to carry the whole plan to a tested playable game."""
+"""Rubric v4 — one work list, one question list, one archive, one file.
+
+The operator's order: one list of work, one list of open questions, default to
+showing only open questions, consolidate the fleets and waves, carry the
+sortable order of operations, one file to pay attention to.
+
+Three tabs render from work.json (built by migrate_to_work.py) plus the
+QUESTIONS/_ANS decision channel kept in this file unchanged:
+  WORK      the sortable order of operations. Default. Done and moot hidden.
+  QUESTIONS the operator's decision channel. Copy and Export unchanged.
+  ARCHIVE   done and moot items grouped by original list and wave.
+
+Run:       python3 docs/plans/ui/tools/gen_app_rubric.py
+Validate:  python3 docs/plans/ui/tools/gen_app_rubric.py --check
+Self-test: python3 docs/plans/ui/tools/gen_app_rubric.py --selftest
+
+--check validates work.json (unique ids, unique order among open items, known
+phases, resolvable depends_on, a done_when on every open item). The generator
+refuses to write when --check fails.
+"""
 import json, io, sys, os
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
-from wave4_data import FLEET
-# Structured, fillable open-questions (options + owning lane). Resolved ones are read-only.
 QUESTIONS = [
   {"id":"translation-first-pass-provider","q":"Conference languages (LG-1, LG-2): which provider runs the machine first pass over the 14 absent namespace catalogs and the 10,597 untranslated keys for ar, es, fr, hi, pt and zh-Hans?","status":"open","lane":"edu",
    "detail":"The 14 September languages review measured the gap with tests/js/i18nCoverage.test.mjs. scripts/i18n/translate_run.py exists and is resumable per chunk; its providers are a local NLLB-200 model (free, needs the model and a GPU or a slow CPU run on box E), Claude Haiku (needs ANTHROPIC_API_KEY and an explicit --yes-spend), or the offline stub (marks strings, never a translation). A run is a run: nothing starts without the operator's GO. Human naturalness review stays a separate register concern.",
@@ -542,13 +557,55 @@ for _q in QUESTIONS:
         _q['detail'] = 'RULED = %s. %s%s · %s' % (k, txt, (' [operator: '+note+']') if note else '', _q['detail'])
         _q.pop('options', None)
 
-# Screens / caps / debt all come from the enriched, badged corpus in this dir (repo-stable).
-_enr = json.load(open(os.path.join(_HERE, 'badged.json'), encoding='utf-8'))
-screens = _enr['screens']; caps = _enr['caps']; debt = _enr['debt']
-DATA = {'asOf': '2026-09-14', 'head': '229af248', 'forms': 120,
-        'screens': screens, 'caps': caps, 'debt': debt, 'fleet': FLEET, 'questions': QUESTIONS}
 
-TEMPLATE = r"""<title>App Progress Rubric — CGA</title>
+# ---------------------------------------------------------------------------
+# work.json load and validation
+# ---------------------------------------------------------------------------
+ACTIONABLE = ('open', 'blocked', 'awaiting_go', 'deferred')
+
+
+def check_work(work):
+    """Return a list of fault strings. Empty list means valid."""
+    faults = []
+    items = work.get('items', [])
+    ids = [it.get('id') for it in items]
+    seen = set()
+    dup = set()
+    for i in ids:
+        if i in seen:
+            dup.add(i)
+        seen.add(i)
+    if dup:
+        faults.append('duplicate ids: ' + ', '.join(sorted(str(x) for x in dup)))
+    phase_ids = {p.get('id') for p in work.get('phases', [])}
+    order_seen = {}
+    for it in items:
+        if it.get('phase') not in phase_ids:
+            faults.append('%s: unknown phase %r' % (it.get('id'), it.get('phase')))
+        st = it.get('status')
+        if st in ACTIONABLE:
+            o = it.get('order')
+            if not isinstance(o, int):
+                faults.append('%s: open item has no integer order' % it.get('id'))
+            else:
+                if o in order_seen:
+                    faults.append('duplicate order %s among open items (%s, %s)' % (o, order_seen[o], it.get('id')))
+                order_seen[o] = it.get('id')
+            if not (it.get('done_when') or '').strip():
+                faults.append('%s: open item has no done_when' % it.get('id'))
+    idset = set(ids)
+    for it in items:
+        for d in it.get('depends_on', []):
+            if d not in idset:
+                faults.append('%s: depends_on %s does not resolve' % (it.get('id'), d))
+    return faults
+
+
+def load_work():
+    return json.load(open(os.path.join(_HERE, 'work.json'), encoding='utf-8'))
+
+
+TEMPLATE = r"""<meta charset="utf-8"><title>App Progress Rubric — CGA</title>
 <style>
 :root{--bg:#F6F6F3;--surface:#FFFFFF;--ink:#1B1E28;--muted:#5C6070;--faint:#8B8F9E;--line:rgba(27,30,40,.12);--line-strong:rgba(27,30,40,.22);--accent:#3B4A8C;--accent-soft:rgba(59,74,140,.08);--good:#1D8A47;--warn:#C98500;--bad:#C4553B;--block:#7A46B8;--good-s:rgba(29,138,71,.12);--warn-s:rgba(201,133,0,.14);--bad-s:rgba(196,85,59,.13);--block-s:rgba(122,70,184,.14);--mono:"Cascadia Code",Consolas,ui-monospace,monospace;--sans:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;}
 @media (prefers-color-scheme:dark){:root{--bg:#14161D;--surface:#1C1F29;--ink:#ECEDF2;--muted:#9BA0B0;--faint:#6E7385;--line:rgba(236,237,242,.12);--line-strong:rgba(236,237,242,.25);--accent:#8C9AD9;--accent-soft:rgba(140,154,217,.12);--good:#3FBF74;--warn:#E8A23D;--bad:#E07856;--block:#B189E0;--good-s:rgba(63,191,116,.14);--warn-s:rgba(232,162,61,.15);--bad-s:rgba(224,120,86,.15);--block-s:rgba(177,137,224,.16);}}
@@ -635,144 +692,280 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 .ok{color:var(--good)}.hidden{display:none}mark{background:var(--warn-s);color:inherit;border-radius:3px}
 .foot{font-size:.76rem;color:var(--faint);margin-top:2rem;border-top:1px solid var(--line);padding-top:.8rem}
 @media (max-width:46rem){.area-head{grid-template-columns:1fr 6rem 1rem;grid-template-rows:auto auto}.area-head .bar{grid-column:1/-1;grid-row:2}.scr-head{grid-template-columns:auto 1fr auto}}
+.wtable{width:100%;border-collapse:collapse;font-size:.85rem}
+.wtable th{text-align:start;background:var(--surface);border-bottom:2px solid var(--line-strong);padding:.45rem .5rem;cursor:pointer;white-space:nowrap;font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);position:sticky;top:0;z-index:1}
+.wtable th:hover{color:var(--ink)}.wtable th .ar{color:var(--accent);font-weight:700}
+.wtable td{padding:.45rem .5rem;border-bottom:1px solid var(--line);vertical-align:top}
+.wtable tr.wrow{cursor:pointer}.wtable tr.wrow:hover td{background:var(--accent-soft)}
+.wtable .c-order{font-family:var(--mono);color:var(--faint);text-align:end;width:2.6rem}
+.wtable .c-id{font-family:var(--mono);font-size:.74rem;color:var(--accent);white-space:nowrap}
+.wtable .c-title{min-width:13rem}
+.srcbadge{font-family:var(--mono);font-size:.64rem;background:var(--accent-soft);color:var(--accent);padding:.1em .4em;border-radius:4px;margin-inline-end:.25rem;white-space:nowrap}
+.kindb{font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.drow>td{background:var(--bg);padding:.2rem 1rem 1rem 1rem}
+.p-awaiting_go{background:var(--warn-s);color:var(--warn)}
+.p-moot{background:var(--accent-soft);color:var(--muted)}
+.flab{font-size:.8rem;color:var(--muted);display:inline-flex;gap:.3rem;align-items:center}
+.flab select{background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;color:var(--ink);font:inherit;font-size:.82rem;padding:.3rem .5rem}
+.wgrp-h{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);padding:.4rem .95rem;background:var(--accent-soft);border-top:1px solid var(--line)}
+.tblwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
 </style>
 <div class="wrap">
-<p class="eyebrow">Fair Constitution App · App Progress Rubric</p>
-<h1>Where does the app stand — and what's the road to a playable game?</h1>
-<p class="stamp">%%STAMP%% · verified against live code · click a group, then a row, for the detail · search + filter + expand-all below</p>
+<p class="eyebrow">Fair Constitution App · Consolidated Work</p>
+<h1>One list of work. One list of questions.</h1>
+<p class="stamp">%%STAMP%% · click a column to sort · click a row for the detail · done and moot are hidden until you toggle them</p>
 <div class="tiles" id="tiles"></div>
-<div class="note" style="border-inline-start-color:var(--good)"><b>Maps done (2026-09-05):</b> 940,327 Type A maps and 36,810 Type B panel maps, 0 review, map quality card live on Step 3. <b>Wave 6 = the conference demo:</b> a read-only scaled demo mesh with simulated data, public and walkable, for the 25th OIDP Conference, Kraków, 21–23 September 2026 (operator in Kraków by 09-18). Not built: institution shells at scale (boards 1 of 940,327), seat minting, wizard Steps 4 to 6, the read-only lock, the cloud host. The verified deep dive is the page <a href="https://claude.ai/code/artifact/949d44b2-ee67-4a9b-a75a-61bf1ff9529c">Setup Surface Atlas</a>. <b>The Desk work list (operator order 2026-09-05):</b> one lane, the Desk, works Waves W6 to W11 in order to the conference demo. Waves 1 to 5 are history. Every remaining screen, capability and debt row carries its wave badge (Desk · W6 … W11); pick a wave in the selector to see one batch across all tabs. Box E is the development and test box: items describe code to write so the feature runs as intended on any box; counts from box E appear only as evidence; one-off box repairs sit outside the waves. All 15 Wave 6 decisions are ruled. Screens, capabilities and debt were re-verified against the code on 2026-09-05 (33 readers, each checked by a skeptic). <b>Re-audit 2026-09-06:</b> the W7-and-beyond rows were re-derived from the code again (10 independent agents); 70 of 129 badges were UNDERSTATED (the code was more built than shown) and 0 overstated — those badges are now corrected here. The demo-path engines and the Step 5/6 pages were built and had been badged partial/absent in error. <b>Re-verified 2026-09-08:</b> every open row (108 across screens, capabilities, debt and the Desk list) was re-read against the code at main 9c51cb80 by 11 batch readers with 2 skeptics over every upgrade; 5 rows closed, 1 upgraded, 0 overstated, and each open row now carries a dated note of exactly what code remains. The beta box (beta.worldofstatecraft.org) is live; its cloud-lane findings landed as nine commits the same day; three were verified live on the box before this stamp (Lakshadweep zero-population arm, the Horizon prewarm gate, Type B idempotence).</div>
+<div class="note" style="border-inline-start-color:var(--good)"><b>One file to pay attention to.</b> The Work tab is the whole punch list in one sortable table: past waves, fleets and the demo lists consolidated. Every closed item is kept as done, so nothing is lost. Open items carry the order of operations. The Open Questions tab is the operator's decision channel, unchanged. The Archive tab holds every done and moot item, grouped by its original list and wave. Source of the rows is <code>work.json</code>, built by <code>migrate_to_work.py</code> from the screens, capabilities, debt, fleet, punch and review lists.</div>
 <div class="views" role="tablist">
-  <button class="view-btn" role="tab" data-v="screens" aria-selected="true">UI Screens</button>
-  <button class="view-btn" role="tab" data-v="caps" aria-selected="false">Capabilities</button>
-  <button class="view-btn" role="tab" data-v="debt" aria-selected="false">Tech Debt</button>
-  <button class="view-btn" role="tab" data-v="ops" aria-selected="false">Ops &amp; Deploy</button>
-  <button class="view-btn" role="tab" data-v="fleet" aria-selected="false">Desk &amp; Waves</button>
+  <button class="view-btn" role="tab" data-v="work" aria-selected="true">Work</button>
   <button class="view-btn" role="tab" data-v="questions" aria-selected="false">Open Questions</button>
+  <button class="view-btn" role="tab" data-v="archive" aria-selected="false">Archive</button>
 </div>
 <div class="controls">
   <input type="search" id="q" placeholder="Search…" aria-label="Search">
   <span id="filters"></span>
-  <select id="wave" aria-label="Wave"><option value="all">All waves</option><option value="W6">W6 · Step 4 engine and page</option><option value="W7">W7 · Step 5 simulation</option><option value="W8">W8 · Step 6 + read-only world</option><option value="W9">W9 · Cloud build + demo mesh</option><option value="W10">W10 · Demo polish</option><option value="W11">W11 · Live mesh readiness</option><option value="history">Waves 1–5 (done)</option></select>
-  <span class="expanders"><button class="chip" id="exAll">Expand all</button><button class="chip" id="coAll">Collapse all</button></span>
 </div>
 <div id="body"></div>
-<p class="foot">Generated from <code>badged.json</code> (the 107 <code>mockups/v3</code> screens plus the Wave 6 rows; capabilities; debt), <code>wave4_data.py</code> (fleet and waves) and the questions in the generator. Re-verified against the code on 2026-09-05 by 33 readers, each checked by a skeptic; W7+ re-audited 2026-09-06 (10 independent agents), correcting 70 understated badges. Reorganised into the Desk work list (Waves W6 to W11) by operator order. Re-verified 2026-09-14 against main 229af248 after the demo punch list and the review campaign (6 batch readers, 2 skeptics): 7 rows moved, 61 re-confirmed with dated notes.</p>
+<p class="foot">Generated from <code>work.json</code> (built by <code>migrate_to_work.py</code>) and the QUESTIONS list in this generator. The Work tab carries the sortable order of operations. Validate with <code>--check</code>.</p>
 </div>
 <script>
 const D=%%DATA%%;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const CO={superseded:'low',built:'good',working:'good',partial:'warn',absent:'bad',blocked:'block',high:'bad',medium:'warn',low:'low',done:'good',next:'warn',held:'block',resolved:'good',open:'bad',active:'warn',deferred:'low'};
-const LB={superseded:'superseded',built:'built',working:'working',partial:'partial',absent:'absent',blocked:'blocked',high:'high',medium:'medium',low:'low',done:'done',next:'next',held:'held',resolved:'resolved',open:'open',active:'active',deferred:'deferred'};
-let view='screens',q='',filter='all',wave='all';
-const inWave=r=>{if(wave==='all')return true;const w=r.wave||'';if(wave==='history')return !/^W(6|7|8|9|10|11)$/.test(w);return w===wave;};
+const ACT=['open','blocked','awaiting_go','deferred'];
+const SCO={open:'bad',blocked:'block',awaiting_go:'warn',deferred:'low',done:'good',moot:'low'};
+const SLB={open:'open',blocked:'blocked',awaiting_go:'awaiting GO',deferred:'deferred',done:'done',moot:'moot'};
+const items=D.items;
+const phaseName={};D.phases.forEach(p=>phaseName[p.id]=p.name);
+const isAct=it=>ACT.indexOf(it.status)>=0;
+let view='work',q='',showDone=false,sortKey='order',sortDir=1,qShowResolved=false;
+let flt={phase:'all',kind:'all',status:'all',blocker:'all'};
+const tilesEl=document.getElementById('tiles');
+function hi(t){if(!q)return esc(t);const s=String(t==null?'':t);const i=s.toLowerCase().indexOf(q);if(i<0)return esc(s);return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+q.length))+'</mark>'+esc(s.slice(i+q.length));}
+// open-question answers persist in the page, unchanged from prior versions.
 let ANS={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('cga4qs_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].sel=localStorage.getItem(k);}if(k&&k.indexOf('cga4qn_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].notes=localStorage.getItem(k);}}}catch(e){}
 function saveAns(id,f,v){ANS[id]=ANS[id]||{};ANS[id][f]=v;try{localStorage.setItem('cga4q'+(f==='sel'?'s':'n')+'_'+id,v);}catch(e){}}
-const FILTERS={screens:['all','built','partial','absent'],caps:['all','working','partial','blocked','absent'],debt:['all','open','deferred','resolved'],ops:['all'],fleet:['all','next','done','held','deferred','superseded'],questions:['all','open','resolved']};
-const NOP=r=>!r.ops;const OPS=[...D.screens,...D.caps,...D.debt].filter(r=>r.ops);
-const sc=t=>D.screens.filter(r=>r.bucket===t&&NOP(r)).length,cc=t=>D.caps.filter(r=>r.maturity===t&&NOP(r)).length,dc=t=>D.debt.filter(r=>r.severity===t&&NOP(r)).length,ds=t=>D.debt.filter(r=>(r.state||'open')===t&&NOP(r)).length;
-const qOpen=D.questions.filter(x=>x.status==='open').length,qRes=D.questions.filter(x=>x.status==='resolved').length;
-function meter(parts){return parts.map(p=>p[0]?`<span class="s-${p[1]}" style="flex:${p[0]}"></span>`:'').join('');}
-const remain=w=>D.screens.filter(r=>r.wave===w&&r.bucket!=='built'&&NOP(r)).length+D.caps.filter(r=>r.wave===w&&r.maturity!=='working'&&NOP(r)).length+D.debt.filter(r=>r.wave===w&&(r.state||'open')!=='resolved'&&NOP(r)).length;
-const opsRemain=w=>OPS.filter(r=>r.wave===w&&(r.bucket||r.maturity||r.state||'open')!=='built'&&(r.maturity||'')!=='working').length;
-const deskItems=w=>{const l=D.fleet.lanes.find(x=>x.id===w);return l?l.items.filter(i=>i.status==='next').length:0;};
-document.getElementById('tiles').innerHTML=`
- <div class="tile"><p class="lbl">UI Screens</p><div class="num">${sc('built')} / ${D.screens.filter(NOP).length}</div><div class="sub">${sc('partial')} partial · ${sc('absent')} absent</div><div class="meter">${meter([[sc('built'),'good'],[sc('partial'),'warn'],[sc('absent'),'bad']])}</div></div>
- <div class="tile"><p class="lbl">Capabilities</p><div class="num">${cc('working')} / ${D.caps.filter(NOP).length}</div><div class="sub">${cc('partial')} part · ${cc('blocked')} blocked · ${cc('absent')} absent</div><div class="meter">${meter([[cc('working'),'good'],[cc('partial'),'warn'],[cc('blocked'),'block'],[cc('absent'),'bad']])}</div></div>
- <div class="tile"><p class="lbl">Technical Debt</p><div class="num">${ds('open')+ds('deferred')} outstanding</div><div class="sub">${ds('open')} open · ${ds('deferred')} deferred · ${ds('resolved')} resolved</div><div class="meter">${meter([[ds('open'),'bad'],[ds('deferred'),'warn'],[ds('resolved'),'good']])}</div></div>
- <div class="tile"><p class="lbl">Open Questions</p><div class="num">${qOpen} open</div><div class="sub">${qRes} resolved</div><div class="meter">${meter([[qRes,'good'],[qOpen,'bad']])}</div></div>`;
-document.getElementById('tiles').insertAdjacentHTML('afterend',`<p class="stamp" style="margin-top:8px">Remaining rows by wave (screens + capabilities + debt) · Desk items: ${['W6','W7','W8','W9','W10','W11'].map(w=>`<b>${w}</b> ${remain(w)} rows · ${deskItems(w)} items`).join(' &nbsp;·&nbsp; ')}</p>`);
-function hi(t){if(!q)return esc(t);const i=String(t).toLowerCase().indexOf(q);if(i<0)return esc(t);const s=String(t);return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+q.length))+'</mark>'+esc(s.slice(i+q.length));}
-function screenDetail(r){const li=x=>x.map(i=>`<li>${hi(i)}</li>`).join('');let h='<dl>';
-  h+=`<dt>Where</dt><dd class="meta">${r.page?esc(r.page):'<em>no page</em>'}${r.route?' · '+esc(r.route):''} · props: ${esc(r.props)} · backend: ${esc(r.backend)}${r.owner?' · owner '+esc(r.owner):''}</dd>`;
-  if(r.propsMissing.length)h+=`<dt>Props missing</dt><dd><ul>${li(r.propsMissing)}</ul></dd>`;
-  if(r.backendMissing.length)h+=`<dt>Backend missing</dt><dd><ul>${li(r.backendMissing)}</ul></dd>`;
-  if(r.specHas.length)h+=`<dt>Spec has · app lacks</dt><dd><ul>${li(r.specHas)}</ul></dd>`;
-  if(r.appAhead.length)h+=`<dt>App has · spec lacks (reconcile, don't strip)</dt><dd><ul>${li(r.appAhead)}</ul></dd>`;
-  if(r.notes)h+=`<dt>Notes</dt><dd>${hi(r.notes)}</dd>`;
-  if(!r.propsMissing.length&&!r.backendMissing.length&&!r.specHas.length&&!r.notes)h+=`<dd class="ok">Conformant — nothing outstanding.</dd>`;return h+'</dl>';}
-function groupView(items,areaKey,barKeys,matchFn,rowHTML,valKey){
-  const order=[...new Set(items.map(i=>i[areaKey]))];const byA={};order.forEach(a=>byA[a]=items.filter(i=>i[areaKey]===a));
-  const rank=a=>{const g=byA[a];const good=g.filter(x=>['built','working','done'].includes(x[valKey])).length;return g.filter(matchFn).length?good/g.length:-1;};
-  order.sort((a,b)=>rank(b)-rank(a));let html='';
-  order.forEach(a=>{const g=byA[a],vis=g.filter(matchFn);if(!vis.length)return;const c={};barKeys.forEach(k=>c[k]=0);g.forEach(r=>{const v=r[valKey];if(v in c)c[v]++;});
-    const bar=barKeys.map(k=>c[k]?`<span class="s-${CO[k]}" style="flex:${c[k]}"></span>`:'').join('');const cnt=barKeys.map(k=>c[k]).join(' / ');
-    html+=`<section class="area"><button class="area-head" aria-expanded="false"><span class="area-name">${esc(a)}</span><span class="bar">${bar}</span><span class="counts">${cnt}</span><span class="chev">›</span></button><div class="rows hidden">${vis.map(rowHTML).join('')}</div></section>`;});
-  return html;}
-function render(){const b=document.getElementById('body');
-  if(view==='screens'){b.innerHTML=groupView(D.screens,'area',['built','partial','absent'],r=>inWave(r)&&NOP(r)&&(filter==='all'||r.bucket===filter)&&(!q||(r.badge+' '+r.file+' '+r.title+' '+r.notes+' '+r.specHas.join(' ')+' '+r.appAhead.join(' ')+' '+r.propsMissing.join(' ')+' '+r.backendMissing.join(' ')).toLowerCase().includes(q)),r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.bucket]}"></span><span><span class="scr-title">${hi(r.title)}</span><span class="scr-file">${esc(r.file)}</span></span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.bucket}">${LB[r.bucket]}</span><span class="eff">${r.effort==='none'?'—':r.effort}</span></button><div class="detail hidden">${screenDetail(r)}</div></div>`,'bucket');}
-  else if(view==='caps'){b.innerHTML=groupView(D.caps,'area',['working','partial','blocked','absent'],r=>inWave(r)&&NOP(r)&&(filter==='all'||r.maturity===filter)&&(!q||(r.badge+' '+r.capability+' '+r.scaleNote+' '+r.blocker).toLowerCase().includes(q)),r=>{let d='<dl>';if(r.blocker)d+=`<dt class="blk">⛔ Blocker</dt><dd>${hi(r.blocker)}</dd>`;if(r.scaleNote)d+=`<dt>At scale</dt><dd>${hi(r.scaleNote)}</dd>`;if(!r.blocker&&!r.scaleNote)d+='<dd class="ok">Working.</dd>';d+='</dl>';return `<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.maturity]}"></span><span class="scr-title">${hi(r.capability)}</span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.maturity}">${LB[r.maturity]}</span><span class="eff"></span></button><div class="detail hidden">${d}</div></div>`;},'maturity');}
-  else if(view==='debt'){
-    const STATES=[['open','Outstanding — not yet addressed'],['deferred','Deferred — intentionally later (post-alpha / a future slot)'],['resolved','Resolved this wave']];
-    let html='';
-    STATES.forEach(([st,label])=>{
-      const g=D.debt.filter(r=>inWave(r)&&NOP(r)&&(r.state||'open')===st&&(filter==='all'||(r.state||'open')===filter)&&(!q||(r.badge+' '+r.title+' '+r.owner+' '+r.location+' '+r.status+' '+(r.note||'')).toLowerCase().includes(q)));
-      if(!g.length)return;
-      const op=st!=='resolved';
-      html+=`<section class="area"><button class="area-head" aria-expanded="${op}"><span class="area-name"><span class="pill p-${st}">${LB[st]||st}</span> ${esc(label)}</span><span class="counts">${g.length}</span><span class="chev">›</span></button><div class="rows${op?'':' hidden'}">`+g.map(r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.state||'open']}"></span><span class="scr-title">${hi(r.title)}</span><span class="lwbadge">${esc(r.badge)}</span><span class="eff">${esc(r.severity)} sev</span></button><div class="detail hidden"><dl><dt>Status</dt><dd>${hi(r.status)}</dd><dt>Owner</dt><dd>${hi(r.owner)}</dd><dt>Where</dt><dd class="meta">${hi(r.location)}</dd>${r.note?`<dt>Note</dt><dd>${hi(r.note)}</dd>`:''}<dt>Severity if unresolved</dt><dd>${esc(r.severity)}</dd></dl></div></div>`).join('')+`</div></section>`;
-    });
-    b.innerHTML=html||'<div class="detail">No matches.</div>';
-  }
-  else if(view==='ops'){
-    const g=OPS.filter(r=>inWave(r)&&(!q||((r.capability||r.title||'')+' '+(r.scaleNote||'')+' '+(r.blocker||'')+' '+(r.notes||'')+' '+(r.status||'')).toLowerCase().includes(q)));
-    let html='<div class="note" style="border-inline-start-color:var(--warn)"><b>Ops &amp; Deploy — NOT code.</b> Infrastructure, hosting and deploy deliverables (cloud build, DNS, TLS, the Europe mirror). They carry no repo artifact, so they are kept OUT of the UI Screens / Capabilities / Tech Debt code-readiness tabs and their counts. They still have to be done before the demo runs on a hosted box.</div>';
-    if(!g.length) html+='<div class="detail">No ops items in this wave.</div>';
-    else html+=g.map(r=>{const title=r.capability||r.title||'';const st=r.bucket||r.maturity||r.state||'open';const ctx=r.scaleNote||r.blocker||r.notes||r.status||r.note||'';return `<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[st]||'bad'}"></span><span class="scr-title">${hi(title)}</span><span class="lwbadge">${esc(r.badge||r.wave||'')}</span><span class="pill p-${st}">${LB[st]||st}</span><span class="eff">ops</span></button><div class="detail hidden"><dl><dt>What it needs</dt><dd>${hi(ctx)}</dd><dt>Kind</dt><dd>Infrastructure / deploy — no repo code to write</dd></dl></div></div>`;}).join('');
-    b.innerHTML=html;
-  }
-  else if(view==='fleet'){
-    const waves=D.fleet.waves.map(w=>`<span class="wv">${w.id}</span> ${esc(w.name)} <span class="pill p-${w.status}">${LB[w.status]}</span>`).join(' &nbsp;·&nbsp; ');
-    let html=`<div class="note" style="border-inline-start-color:var(--good)"><b>The Desk works one wave at a time, top to bottom.</b> Each wave is one ordered batch; the last item of a wave is its test step. Items name the ruling they carry and the code they change. Waves 1 to 5 are history and collapse at the bottom; box E one-offs sit outside the waves.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
-    const bk=['next','done','held','deferred','superseded'];
-    D.fleet.lanes.forEach(l=>{
-      if(wave!=='all'&&!(wave==='history'?l.id==='history':l.id===wave))return;
-      const items=l.items||[];
-      const vis=items.filter(it=>(filter==='all'||it.status===filter)&&(!q||(l.id+' '+l.name+' '+it.label+' '+(it.note||'')).toLowerCase().includes(q)));
-      if(!vis.length)return;
-      const c={};bk.forEach(k=>c[k]=0);items.forEach(it=>{if(it.status in c)c[it.status]++;});
-      const bar=bk.map(k=>c[k]?`<span class="s-${CO[k]||'low'}" style="flex:${c[k]}"></span>`:'').join('');
-      const cnt=bk.filter(k=>c[k]).map(k=>c[k]+' '+k).join(' · ')||'—';
-      const open=/^W(6|7|8|9|10|11)$/.test(l.id)&&l.status==='next'&&(wave!=='all'||l.id==='W6');
-      html+=`<section class="area"><button class="area-head" aria-expanded="${open}"><span class="area-name"><span class="lwbadge">${esc(l.id)}</span> ${esc(l.name)} <span class="pill p-${l.status}">${LB[l.status]||esc(l.status)}</span></span><span class="bar">${bar}</span><span class="counts">${esc(cnt)}</span><span class="chev">›</span></button><div class="rows${open?'':' hidden'}">`;
-      vis.forEach(it=>{html+=`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[it.status]||'low'}"></span><span class="scr-title">${hi(it.label)}</span><span class="pill p-${it.status}">${LB[it.status]||esc(it.status)}</span></button><div class="detail hidden"><dl>${it.note?`<dt>Detail</dt><dd>${hi(it.note)}</dd>`:'<dd class="ok">—</dd>'}</dl></div></div>`;});
-      html+=`</div></section>`;
-    });
-    b.innerHTML=html;
-  }
-  else if(view==='questions'){
-    const vis=D.questions.filter(r=>(filter==='all'||r.status===filter)&&(!q||(r.q+' '+r.detail).toLowerCase().includes(q)));
-    let html='<div class="qbar"><button class="chip" id="qexport">⭳ Export answers</button><span class="qhint">Pick an option and add notes on each open question — your answers save in the page. When done, click Export (copies to clipboard) or screenshot; either lets the desk read them and update the fleet orders.</span></div><div id="qexport-wrap" class="qexport-wrap hidden"><button class="qcopy" id="qexport-copy" title="Copy answers to clipboard">⧉ Copy</button><pre id="qexport-out" class="qexport"></pre></div>';
-    vis.forEach(r=>{
-      if(r.status==='resolved'){html+=`<div class="qcard resolved"><div class="qhead"><span class="lwbadge">${/^\d+$/.test(String(r.lane))?'L':''}${esc(r.lane)}</span><span class="qtext">${hi(r.q)}</span><span class="pill p-resolved">resolved</span></div><div class="qdetail">${hi(r.detail)}</div></div>`;}
-      else{const a=ANS[r.id]||{};const sel=a.sel||'';const nt=a.notes||'';
-        html+=`<div class="qcard open"><div class="qhead"><span class="lwbadge">${/^\d+$/.test(String(r.lane))?'L':''}${esc(r.lane)}</span><span class="qtext">${hi(r.q)}</span><span class="pill p-open">open</span></div><div class="qdetail">${hi(r.detail)}</div><div class="qopts">`+r.options.map(o=>`<label class="qopt${sel===o.k?' on':''}"><input type="radio" name="q_${r.id}" value="${o.k}"${sel===o.k?' checked':''}><span class="qk">${o.k}</span><span>${esc(o.t)}</span></label>`).join('')+`</div><textarea class="qnotes" data-id="${r.id}" placeholder="Notes / your own answer…">${esc(nt)}</textarea></div>`;}
-    });
-    b.innerHTML=html;
-    b.querySelectorAll('input[type=radio]').forEach(inp=>inp.addEventListener('change',e=>{const id=e.target.name.slice(2);saveAns(id,'sel',e.target.value);e.target.closest('.qopts').querySelectorAll('.qopt').forEach(l=>l.classList.toggle('on',l.querySelector('input').checked));}));
-    b.querySelectorAll('.qnotes').forEach(ta=>ta.addEventListener('input',e=>saveAns(e.target.dataset.id,'notes',e.target.value)));
-    const ex=document.getElementById('qexport');if(ex)ex.addEventListener('click',()=>{const L=['CGA OPEN-QUESTIONS — operator answers'];D.questions.filter(x=>x.status==='open').forEach(x=>{const a=ANS[x.id]||{};const s=a.sel||'(none)';const ot=(x.options.find(o=>o.k===s)||{}).t||'';L.push('\n[L'+x.lane+'] '+x.q+'\n  = '+s+(ot?' — '+ot:'')+(a.notes?'\n  notes: '+a.notes:''));});const txt=L.join('\n');const o=document.getElementById('qexport-out');o.textContent=txt;document.getElementById('qexport-wrap').classList.remove('hidden');try{navigator.clipboard.writeText(txt);}catch(e){}});const cp=document.getElementById('qexport-copy');if(cp)cp.addEventListener('click',()=>{const t=document.getElementById('qexport-out').textContent;const done=()=>{cp.textContent='\u2713 Copied';cp.classList.add('ok');setTimeout(()=>{cp.textContent='\u29c9 Copy';cp.classList.remove('ok');},1400);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(()=>{});}else{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}ta.remove();}});
-    return;
-  }
-  b.querySelectorAll('.area-head').forEach(h=>{const list=h.nextElementSibling;if(!list)return;h.addEventListener('click',()=>{const hid=list.classList.toggle('hidden');h.setAttribute('aria-expanded',String(!hid));});});
-  b.querySelectorAll('.scr-head').forEach(h=>{const dt=h.nextElementSibling;h.addEventListener('click',()=>{const hid=dt.classList.toggle('hidden');h.setAttribute('aria-expanded',String(!hid));});});
-  if(q||filter!=='all')b.querySelectorAll('.rows').forEach(x=>x.classList.remove('hidden'));
+// tiles: open items per phase, awaiting-GO, blocked, open questions
+function tile(lbl,num,sub){return `<div class="tile"><p class="lbl">${esc(lbl)}</p><div class="num">${num}</div><div class="sub">${esc(sub)}</div></div>`;}
+function renderTiles(){
+  const acts=items.filter(isAct);
+  let h='';
+  D.phases.filter(p=>p.id!=='done').forEach(p=>{const n=acts.filter(it=>it.phase===p.id).length;h+=tile(p.name,n,'open items');});
+  h+=tile('Awaiting GO',acts.filter(it=>it.status==='awaiting_go').length,'operator go');
+  h+=tile('Blocked',acts.filter(it=>it.status==='blocked').length,'host or ruling');
+  h+=tile('Open questions',D.questions.filter(x=>x.status==='open').length,'decisions');
+  tilesEl.innerHTML=h;
 }
-function buildFilters(){document.getElementById('filters').innerHTML=FILTERS[view].map(f=>`<button class="chip" data-f="${f}" aria-pressed="${f===filter}">${f[0].toUpperCase()+f.slice(1)}</button>`).join('');
-  document.querySelectorAll('.chip[data-f]').forEach(ch=>ch.addEventListener('click',()=>{filter=ch.dataset.f;document.querySelectorAll('.chip[data-f]').forEach(x=>x.setAttribute('aria-pressed',String(x===ch)));render();}));}
-document.querySelectorAll('.view-btn').forEach(vb=>vb.addEventListener('click',()=>{view=vb.dataset.v;filter='all';document.querySelectorAll('.view-btn').forEach(x=>x.setAttribute('aria-selected',String(x===vb)));buildFilters();render();}));
+function ctrlHTML(){
+  if(view==='work'){
+    const sel=(id,cur,vals,lab)=>`<label class="flab">${id[0].toUpperCase()+id.slice(1)} <select id="f_${id}">`+vals.map(v=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(v==='all'?'all':(lab?lab(v):v))}</option>`).join('')+`</select></label>`;
+    const phs=['all'].concat(D.phases.filter(p=>p.id!=='done').map(p=>p.id));
+    const kinds=['all'].concat([...new Set(items.map(i=>i.kind))].sort());
+    const stats=['all'].concat([...new Set(items.map(i=>i.status))].sort());
+    const blks=['all'].concat([...new Set(items.map(i=>i.blocker))].sort());
+    return sel('phase',flt.phase,phs,v=>phaseName[v]||v)+sel('kind',flt.kind,kinds)+sel('status',flt.status,stats,v=>SLB[v]||v)+sel('blocker',flt.blocker,blks)+`<button class="chip" id="showdone" aria-pressed="${showDone}">Show done and moot</button>`;
+  }
+  if(view==='questions'){return `<button class="chip" id="qres" aria-pressed="${qShowResolved}">Show resolved</button>`;}
+  return '';
+}
+const COLS=[['order','#'],['id','id'],['title','title'],['phase','phase'],['kind','kind'],['status','status'],['blocker','blocker'],['sources','sources']];
+function cmp(a,b){
+  let x,y;
+  if(sortKey==='sources'){x=(a.sources[0]||{}).list||'';y=(b.sources[0]||{}).list||'';}
+  else if(sortKey==='order'){x=a.order==null?1e9:a.order;y=b.order==null?1e9:b.order;}
+  else{x=(a[sortKey]==null?'':a[sortKey]);y=(b[sortKey]==null?'':b[sortKey]);}
+  if(x<y)return -sortDir;if(x>y)return sortDir;
+  const ao=a.order==null?1e9:a.order,bo=b.order==null?1e9:b.order;
+  if(ao!==bo)return ao-bo;return a.id<b.id?-1:1;
+}
+function workRows(){
+  const wantSt=flt.status!=='all';
+  return items.filter(it=>{
+    if(!showDone&&!isAct(it)&&!(wantSt&&flt.status===it.status))return false;
+    if(flt.phase!=='all'&&it.phase!==flt.phase)return false;
+    if(flt.kind!=='all'&&it.kind!==flt.kind)return false;
+    if(flt.status!=='all'&&it.status!==flt.status)return false;
+    if(flt.blocker!=='all'&&it.blocker!==flt.blocker)return false;
+    if(q){const hay=(it.id+' '+it.title+' '+it.detail+' '+it.done_when+' '+it.sources.map(s=>s.list+' '+s.ref).join(' ')).toLowerCase();if(hay.indexOf(q)<0)return false;}
+    return true;
+  }).sort(cmp);
+}
+function detailHTML(it){
+  const idmap={};items.forEach(x=>idmap[x.id]=x.title);
+  let h='<dl>';
+  h+=`<dt>Done when</dt><dd>${hi(it.done_when)||'<em>-</em>'}</dd>`;
+  if(it.detail)h+=`<dt>Detail</dt><dd>${hi(it.detail)}</dd>`;
+  if(it.depends_on&&it.depends_on.length)h+=`<dt>Depends on</dt><dd>${it.depends_on.map(d=>`<span class="srcbadge">${esc(d)}</span>${esc(idmap[d]||'')}`).join(' · ')}</dd>`;
+  if(it.sources&&it.sources.length)h+=`<dt>Sources</dt><dd>${it.sources.map(s=>`<span class="srcbadge">${esc(s.list)}${s.wave?' '+esc(s.wave):''}</span>${esc(s.ref)}`).join('<br>')}</dd>`;
+  if(it.evidence&&it.evidence.length)h+=`<dt>Evidence</dt><dd>${it.evidence.map(e=>`<a href="${esc(e.href)}">${esc(e.label)}</a>`).join(' · ')}</dd>`;
+  if(it.history&&it.history.length)h+=`<dt>History</dt><dd><ul>${it.history.map(x=>`<li><span class="meta">${esc(x.date)}</span> ${hi(x.note)}</li>`).join('')}</ul></dd>`;
+  return h+'</dl>';
+}
+function workView(){
+  const rows=workRows();
+  const th=COLS.map(([k,l])=>`<th data-k="${k}">${esc(l)}${sortKey===k?` <span class="ar">${sortDir>0?'▲':'▼'}</span>`:''}</th>`).join('');
+  let h=`<p class="stamp">${rows.length} of ${items.length} items shown</p><div class="tblwrap"><table class="wtable"><thead><tr>${th}</tr></thead><tbody>`;
+  rows.forEach(it=>{
+    const src=it.sources.map(s=>`<span class="srcbadge">${esc(s.list)}</span>`).join('');
+    h+=`<tr class="wrow" data-id="${esc(it.id)}"><td class="c-order">${it.order==null?'—':it.order}</td><td class="c-id">${esc(it.id)}</td><td class="c-title">${hi(it.title)}</td><td>${esc(phaseName[it.phase]||it.phase)}</td><td class="kindb">${esc(it.kind)}</td><td><span class="pill p-${it.status}">${SLB[it.status]||it.status}</span></td><td>${esc(it.blocker==='none'?'-':it.blocker)}</td><td>${src}</td></tr>`;
+    h+=`<tr class="drow hidden" data-for="${esc(it.id)}"><td colspan="${COLS.length}"><div class="detail" style="border:0;padding:0">${detailHTML(it)}</div></td></tr>`;
+  });
+  h+='</tbody></table></div>';
+  if(!rows.length)h+='<div class="detail">No items match.</div>';
+  return h;
+}
+function archiveView(){
+  const LORD=['screens','caps','debt','fleet','punch','review'];
+  const arch=items.filter(it=>it.status==='done'||it.status==='moot').filter(it=>{if(!q)return true;const hay=(it.id+' '+it.title+' '+it.detail+' '+it.sources.map(s=>s.list+' '+s.ref).join(' ')).toLowerCase();return hay.indexOf(q)>=0;});
+  const g={};
+  arch.forEach(it=>{const l=(it.sources[0]||{}).list||'other';const w=(it.sources[0]||{}).wave||'—';g[l]=g[l]||{};(g[l][w]=g[l][w]||[]).push(it);});
+  let h=`<p class="stamp">${arch.length} done and moot items · grouped by original list and wave · collapsed</p>`;
+  const order=LORD.concat(Object.keys(g).filter(l=>LORD.indexOf(l)<0));
+  order.forEach(l=>{
+    if(!g[l])return;
+    const waves=Object.keys(g[l]).sort();
+    const tot=waves.reduce((n,w)=>n+g[l][w].length,0);
+    h+=`<section class="area"><button class="area-head" aria-expanded="false"><span class="area-name">${esc(l)}</span><span class="bar"></span><span class="counts">${tot}</span><span class="chev">›</span></button><div class="rows hidden">`;
+    waves.forEach(w=>{
+      h+=`<div class="wgrp-h">wave ${esc(w)} · ${g[l][w].length}</div>`;
+      g[l][w].forEach(it=>{
+        const ev=(it.evidence||[]).map(e=>`<a href="${esc(e.href)}">${esc(e.label)}</a>`).join(' · ');
+        h+=`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${SCO[it.status]}"></span><span class="scr-title">${hi(it.title)}</span><span class="pill p-${it.status}">${SLB[it.status]}</span></button><div class="detail hidden"><dl><dt>Detail</dt><dd>${hi(it.detail)}</dd>${ev?`<dt>Evidence</dt><dd>${ev}</dd>`:''}<dt>Id</dt><dd class="meta">${esc(it.id)}</dd></dl></div></div>`;
+      });
+    });
+    h+='</div></section>';
+  });
+  return h||'<div class="detail">No archived items.</div>';
+}
+function questionsView(){
+  const vis=D.questions.filter(r=>(r.status==='open'||(qShowResolved&&r.status==='resolved'))&&(!q||(r.q+' '+r.detail).toLowerCase().includes(q)));
+  let html='<div class="qbar"><button class="chip" id="qexport">⭳ Export answers</button><span class="qhint">Pick an option and add notes on each open question — your answers save in the page. When done, click Export (copies to clipboard) or screenshot; either lets the desk read them and update the fleet orders.</span></div><div id="qexport-wrap" class="qexport-wrap hidden"><button class="qcopy" id="qexport-copy" title="Copy answers to clipboard">⧉ Copy</button><pre id="qexport-out" class="qexport"></pre></div>';
+  vis.forEach(r=>{
+    if(r.status==='resolved'){html+=`<div class="qcard resolved"><div class="qhead"><span class="lwbadge">${/^\d+$/.test(String(r.lane))?'L':''}${esc(r.lane)}</span><span class="qtext">${hi(r.q)}</span><span class="pill p-resolved">resolved</span></div><div class="qdetail">${hi(r.detail)}</div></div>`;}
+    else{const a=ANS[r.id]||{};const sel=a.sel||'';const nt=a.notes||'';
+      html+=`<div class="qcard open"><div class="qhead"><span class="lwbadge">${/^\d+$/.test(String(r.lane))?'L':''}${esc(r.lane)}</span><span class="qtext">${hi(r.q)}</span><span class="pill p-open">open</span></div><div class="qdetail">${hi(r.detail)}</div><div class="qopts">`+r.options.map(o=>`<label class="qopt${sel===o.k?' on':''}"><input type="radio" name="q_${r.id}" value="${o.k}"${sel===o.k?' checked':''}><span class="qk">${o.k}</span><span>${esc(o.t)}</span></label>`).join('')+`</div><textarea class="qnotes" data-id="${r.id}" placeholder="Notes / your own answer…">${esc(nt)}</textarea></div>`;}
+  });
+  return html;
+}
+function render(){
+  const b=document.getElementById('body');
+  if(view==='work'){b.innerHTML=workView();
+    b.querySelectorAll('.wtable th').forEach(th=>th.addEventListener('click',()=>{const k=th.dataset.k;if(sortKey===k)sortDir=-sortDir;else{sortKey=k;sortDir=1;}render();}));
+    b.querySelectorAll('tr.wrow').forEach(tr=>tr.addEventListener('click',()=>{const dr=b.querySelector('tr.drow[data-for="'+CSS.escape(tr.dataset.id)+'"]');if(dr)dr.classList.toggle('hidden');}));
+    return;}
+  if(view==='archive'){b.innerHTML=archiveView();
+    b.querySelectorAll('.area-head').forEach(hh=>{const list=hh.nextElementSibling;if(!list)return;hh.addEventListener('click',()=>{const hid=list.classList.toggle('hidden');hh.setAttribute('aria-expanded',String(!hid));});});
+    b.querySelectorAll('.scr-head').forEach(hh=>{const dt=hh.nextElementSibling;hh.addEventListener('click',()=>{const hid=dt.classList.toggle('hidden');hh.setAttribute('aria-expanded',String(!hid));});});
+    return;}
+  // questions
+  b.innerHTML=questionsView();
+  b.querySelectorAll('input[type=radio]').forEach(inp=>inp.addEventListener('change',e=>{const id=e.target.name.slice(2);saveAns(id,'sel',e.target.value);e.target.closest('.qopts').querySelectorAll('.qopt').forEach(l=>l.classList.toggle('on',l.querySelector('input').checked));}));
+  b.querySelectorAll('.qnotes').forEach(ta=>ta.addEventListener('input',e=>saveAns(e.target.dataset.id,'notes',e.target.value)));
+  const ex=document.getElementById('qexport');if(ex)ex.addEventListener('click',()=>{const L=['CGA OPEN-QUESTIONS — operator answers'];D.questions.filter(x=>x.status==='open').forEach(x=>{const a=ANS[x.id]||{};const s=a.sel||'(none)';const ot=(x.options.find(o=>o.k===s)||{}).t||'';L.push('\n[L'+x.lane+'] '+x.q+'\n  = '+s+(ot?' — '+ot:'')+(a.notes?'\n  notes: '+a.notes:''));});const txt=L.join('\n');const o=document.getElementById('qexport-out');o.textContent=txt;document.getElementById('qexport-wrap').classList.remove('hidden');try{navigator.clipboard.writeText(txt);}catch(e){}});
+  const cp=document.getElementById('qexport-copy');if(cp)cp.addEventListener('click',()=>{const t=document.getElementById('qexport-out').textContent;const done=()=>{cp.textContent='✓ Copied';cp.classList.add('ok');setTimeout(()=>{cp.textContent='⧉ Copy';cp.classList.remove('ok');},1400);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(()=>{});}else{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}ta.remove();}});
+}
+function buildControls(){
+  document.getElementById('filters').innerHTML=ctrlHTML();
+  const wire=(id,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener('change',fn);};
+  wire('f_phase',e=>{flt.phase=e.target.value;render();});
+  wire('f_kind',e=>{flt.kind=e.target.value;render();});
+  wire('f_status',e=>{flt.status=e.target.value;render();});
+  wire('f_blocker',e=>{flt.blocker=e.target.value;render();});
+  const sd=document.getElementById('showdone');if(sd)sd.addEventListener('click',()=>{showDone=!showDone;sd.setAttribute('aria-pressed',String(showDone));render();});
+  const qr=document.getElementById('qres');if(qr)qr.addEventListener('click',()=>{qShowResolved=!qShowResolved;qr.setAttribute('aria-pressed',String(qShowResolved));render();});
+}
+document.querySelectorAll('.view-btn').forEach(vb=>vb.addEventListener('click',()=>{view=vb.dataset.v;document.querySelectorAll('.view-btn').forEach(x=>x.setAttribute('aria-selected',String(x===vb)));buildControls();render();}));
 document.getElementById('q').addEventListener('input',e=>{q=e.target.value.trim().toLowerCase();render();});
-document.getElementById('wave').addEventListener('change',e=>{wave=e.target.value;render();});
-document.getElementById('exAll').addEventListener('click',()=>{document.querySelectorAll('#body .rows,#body .detail').forEach(x=>x.classList.remove('hidden'));document.querySelectorAll('#body .area-head,#body .scr-head').forEach(x=>x.setAttribute('aria-expanded','true'));});
-document.getElementById('coAll').addEventListener('click',()=>{document.querySelectorAll('#body .rows,#body .detail').forEach(x=>x.classList.add('hidden'));document.querySelectorAll('#body .area-head,#body .scr-head').forEach(x=>x.setAttribute('aria-expanded','false'));});
-buildFilters();render();
+renderTiles();buildControls();render();
 </script>
 """
 
-stamp = "As of %s · main @ <code>%s</code> · maps done · the Desk works W6 to W11 in order · 15 decisions ruled 2026-09-05 · corpus re-verified 2026-09-05" % (DATA['asOf'], DATA['head'])
-html = TEMPLATE.replace('%%DATA%%', json.dumps(DATA, separators=(',', ':'))).replace('%%STAMP%%', stamp)
-# Output next to the script, not a hard-coded box path — the generator now
-# runs on whichever checkout you are in (this regen ran on the GAME box).
-out = os.path.join(_HERE, 'app_progress_rubric.html')
-with io.open(out, 'w', encoding='utf-8') as f:
-    f.write(html)
-print('wrote', out, len(html), 'bytes ·', len(screens), 'screens', len(caps), 'caps', len(debt), 'debt', len(FLEET['lanes']), 'lanes', len(QUESTIONS), 'questions')
+
+def build_html(work):
+    data = {'asOf': work.get('asOf'), 'head': work.get('head'),
+            'phases': work.get('phases', []), 'items': work.get('items', []),
+            'questions': QUESTIONS}
+    acts = [it for it in work.get('items', []) if it.get('status') in ACTIONABLE]
+    qopen = len([x for x in QUESTIONS if x['status'] == 'open'])
+    stamp = ('As of %s · main @ %s · %d open work items · %d open questions · one file'
+             % (work.get('asOf'), work.get('head'), len(acts), qopen))
+    return (TEMPLATE
+            .replace('%%DATA%%', json.dumps(data, separators=(',', ':')))
+            .replace('%%STAMP%%', stamp))
+
+
+def selftest():
+    good = {
+        'asOf': 'x', 'head': 'h',
+        'phases': [{'id': 'P1', 'name': 'One', 'goal': ''}, {'id': 'done', 'name': 'Done', 'goal': ''}],
+        'items': [
+            {'id': 'W-0001', 'title': 't', 'phase': 'P1', 'order': 1, 'kind': 'build',
+             'status': 'open', 'blocker': 'none', 'detail': 'd', 'done_when': 'ok',
+             'depends_on': [], 'sources': [], 'evidence': [], 'history': []},
+            {'id': 'W-0002', 'title': 'd', 'phase': 'done', 'order': None, 'kind': 'build',
+             'status': 'done', 'blocker': 'none', 'detail': '', 'done_when': '',
+             'depends_on': ['W-0001'], 'sources': [], 'evidence': [], 'history': []},
+        ],
+    }
+    assert check_work(good) == [], ('good fixture should pass', check_work(good))
+    bad = {
+        'asOf': 'x', 'head': 'h',
+        'phases': [{'id': 'P1', 'name': 'One', 'goal': ''}],
+        'items': [
+            {'id': 'W-1', 'title': 't', 'phase': 'P1', 'order': 1, 'kind': 'build',
+             'status': 'open', 'blocker': 'none', 'detail': 'd', 'done_when': '',
+             'depends_on': ['W-9'], 'sources': [], 'evidence': [], 'history': []},
+            {'id': 'W-1', 'title': 't2', 'phase': 'NOPE', 'order': 1, 'kind': 'build',
+             'status': 'open', 'blocker': 'none', 'detail': 'd', 'done_when': 'x',
+             'depends_on': [], 'sources': [], 'evidence': [], 'history': []},
+        ],
+    }
+    f = check_work(bad)
+    assert any('duplicate ids' in x for x in f), f
+    assert any('unknown phase' in x for x in f), f
+    assert any('duplicate order' in x for x in f), f
+    assert any('does not resolve' in x for x in f), f
+    assert any('done_when' in x for x in f), f
+    # the real file, if present, must pass
+    p = os.path.join(_HERE, 'work.json')
+    if os.path.exists(p):
+        real = json.load(open(p, encoding='utf-8'))
+        rf = check_work(real)
+        assert rf == [], ('real work.json failed --check', rf[:10])
+        # and it must render
+        h = build_html(real)
+        assert '<title>' in h and '%%DATA%%' not in h
+    print('gen_app_rubric selftest OK')
+
+
+def main():
+    argv = sys.argv[1:]
+    if '--selftest' in argv:
+        selftest()
+        return
+    work = load_work()
+    faults = check_work(work)
+    if '--check' in argv:
+        if faults:
+            print('work.json FAILED --check:')
+            for x in faults:
+                print('  -', x)
+            sys.exit(1)
+        print('work.json OK ·', len(work.get('items', [])), 'items ·',
+              sum(1 for it in work['items'] if it['status'] in ACTIONABLE), 'open ·',
+              len(work.get('phases', [])), 'phases')
+        return
+    if faults:
+        print('REFUSING TO WRITE: work.json failed --check:')
+        for x in faults:
+            print('  -', x)
+        sys.exit(1)
+    html = build_html(work)
+    out = os.path.join(_HERE, 'app_progress_rubric.html')
+    with io.open(out, 'w', encoding='utf-8') as f:
+        f.write(html)
+    print('wrote', out, len(html), 'bytes ·', len(work.get('items', [])), 'items ·',
+          len(QUESTIONS), 'questions')
+
+
+if __name__ == '__main__':
+    main()
