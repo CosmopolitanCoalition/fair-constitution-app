@@ -461,6 +461,10 @@ function submitWithdrawEndorsement() {
             aria-labelledby="ptab-record"
         >
             <Card as="section" title="Public record">
+                <p v-if="isSelf" class="gloss" data-testid="open-full-record">
+                    This tab shows your public record. Your private half and settings are on the full record.
+                    <Link href="/civic/record">Open the full record</Link>
+                </p>
                 <h3>Confirmed residencies</h3>
                 <p v-if="record.associations.length" class="cluster" style="gap: var(--space-1)">
                     <TagChip v-for="a in record.associations" :key="a.id">{{ a.name }}</TagChip>
