@@ -6,7 +6,7 @@ import * as Vue from 'vue';
 import { renderToString } from '@vue/server-renderer';
 import { parse, compileScript } from '@vue/compiler-sfc';
 
-// W-0222 part 3 — the Record tab carries an "open the full record" link.
+// W-0222 part 3: the Record tab carries an "open the full record" link.
 // The link is self only: the full record at /civic/record is the viewer's
 // own private half, so a stranger's Record tab must not show it.
 

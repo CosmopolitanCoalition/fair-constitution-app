@@ -7769,10 +7769,10 @@
     {
       "id": "W-0222",
       "title": "Build DM primitive, profile self-edit and record-tab link",
-      "phase": "P5",
-      "order": 63,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "social/profile surfaces; F-IND-002 extension; /civic/rooms (low). Three: (1) per-user DM flow — Message button links to /civic/rooms; NO per-user primitive exists; (2) social-profile self-EDIT write path — handle/bio/visibility have no HTTP door (an F-IND-002 extension decision); (3) record-tab 'open the full record' link. Also: 'jurisdiction' visibility = not-public in v1. Challenge-tracker 'simulate' + judiciary-home consent sliders were DROPPED (a client-side fake contradicts the engine-snapshot rail).",
       "done_when": "A per-user DM route exists; profile handle, bio and visibility have a write door; the record tab carries an open-full-record link; all three verified in the browser.",
@@ -7815,6 +7815,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: Are we saying Direct USer messaging/calls dont exist? If so this needs to stay open."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Answer to the 2026-09-14 note: per-user direct messaging exists. POST /people/{user}/message (PersonProfileController::message, routes/web.php:388) opens an idempotent two-person private room; calls ride the same room plane through PrivateCallTokenController gated by room membership. Profile self-edit exists: POST /people/profile (updateProfile) files F-IND-002 with handle, bio, visibility. The missing part, the Record tab open-full-record link, was built by the dm lane, commit cd4cc871, merged c43b2f3c. Pinned by PersonProfileDoorsTest (3) and personProfileRecordLink.test.mjs (2); Vite gate 200 on PersonProfile.vue. Browser verification is owed with the post-lane sweep."
         }
       ]
     },

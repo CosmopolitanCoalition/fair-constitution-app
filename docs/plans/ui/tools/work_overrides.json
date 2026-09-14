@@ -73,9 +73,10 @@
    "title": "Add agenda_items schema and AgendaService for per-item progression"
   },
   "W-0222": {
-   "note": "Are we saying Direct USer messaging/calls dont exist? If so this needs to stay open.",
+   "note": "Answer to the 2026-09-14 note: per-user direct messaging exists. POST /people/{user}/message (PersonProfileController::message, routes/web.php:388) opens an idempotent two-person private room; calls ride the same room plane through PrivateCallTokenController gated by room membership. Profile self-edit exists: POST /people/profile (updateProfile) files F-IND-002 with handle, bio, visibility. The missing part, the Record tab open-full-record link, was built by the dm lane, commit cd4cc871, merged c43b2f3c. Pinned by PersonProfileDoorsTest (3) and personProfileRecordLink.test.mjs (2); Vite gate 200 on PersonProfile.vue. Browser verification is owed with the post-lane sweep.",
    "date": "2026-09-14",
-   "title": "Build DM primitive, profile self-edit and record-tab link"
+   "title": "Build DM primitive, profile self-edit and record-tab link",
+   "status": "done"
   },
   "W-0086": {
    "note": "This is already built in a different form.",
