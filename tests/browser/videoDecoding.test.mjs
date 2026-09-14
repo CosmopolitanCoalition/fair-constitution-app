@@ -532,7 +532,9 @@ test('live /videos page renders as guest without console errors', async ({ page 
     // header for the nginx origin is supplied.
     await page.route('http://localhost:5173/**', async (route) => {
         const resp = await route.fetch();
-        const headers = { ...resp.headers(), 'access-control-allow-origin': 'http://nginx' };
+        let origin = 'http://nginx';
+        try { origin = new URL(page.url()).origin; } catch {}
+        const headers = { ...resp.headers(), 'access-control-allow-origin': origin };
         route.fulfill({ response: resp, headers });
     });
 

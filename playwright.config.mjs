@@ -14,7 +14,10 @@ export default defineConfig({
     workers: 1,
     reporter: [['list']],
     use: {
-        baseURL: 'http://nginx',
+        // Host run (operator order 2026-09-14): CGA_BROWSER_BASE_URL=http://localhost:8080
+        // and CGA_BROWSER_CHANNEL=msedge drive the installed Edge on Windows; no browser in Docker.
+        baseURL: process.env.CGA_BROWSER_BASE_URL || 'http://nginx',
+        channel: process.env.CGA_BROWSER_CHANNEL || undefined,
         headless: true,
         // The video review generates media with canvas.captureStream +
         // MediaRecorder; a fake device is not required, but the flags keep
