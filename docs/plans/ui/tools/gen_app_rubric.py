@@ -751,6 +751,13 @@ let OVR={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i
 function saveOvr(id,f,v){OVR[id]=OVR[id]||{};if(v){OVR[id][f]=v;}else{delete OVR[id][f];}try{if(v)localStorage.setItem('cga4w'+(f==='sel'?'s':'n')+'_'+id,v);else localStorage.removeItem('cga4w'+(f==='sel'?'s':'n')+'_'+id);}catch(e){}if(!OVR[id].sel&&!OVR[id].notes)delete OVR[id];}
 const changed=id=>!!(OVR[id]&&(OVR[id].sel||OVR[id].notes));
 let showChanged=false;
+// A change the desk has already folded into the list clears itself: the item now carries that status
+// and the note is in its history, so the next export holds only what is still pending.
+(function reconcileFolded(){const byId={};D.items.forEach(it=>byId[it.id]=it);
+  Object.keys(OVR).forEach(id=>{const o=OVR[id],it=byId[id];if(!it)return;
+    const statusIn=!o.sel||it.status===o.sel;
+    const noteIn=!o.notes||(it.history||[]).some(h=>String(h.note||'').indexOf(o.notes.trim())>=0);
+    if(statusIn&&noteIn){saveOvr(id,'sel','');saveOvr(id,'notes','');}});})();
 // tiles: open items per phase, awaiting-GO, blocked, open questions
 function tile(lbl,num,sub){return `<div class="tile"><p class="lbl">${esc(lbl)}</p><div class="num">${num}</div><div class="sub">${esc(sub)}</div></div>`;}
 function renderTiles(){
@@ -823,7 +830,7 @@ function workView(){
   const rows=workRows();
   const th=COLS.map(([k,l])=>`<th data-k="${k}">${esc(l)}${sortKey===k?` <span class="ar">${sortDir>0?'▲':'▼'}</span>`:''}</th>`).join('');
   const nchg=Object.keys(OVR).filter(changed).length;
-  let h=`<div class="qbar"><button class="chip" id="wexport">⭳ Export changes${nchg?' ('+nchg+')':''}</button><span class="qhint">Open a row, set a status and add notes; changes save in this page. Export copies a block to paste to the desk, which folds it into the list.</span></div><div id="wexport-wrap" class="qexport-wrap hidden"><button class="qcopy" id="wexport-copy" title="Copy changes to clipboard">⧉ Copy</button><pre id="wexport-out" class="qexport"></pre></div>`;
+  let h=`<div class="qbar"><button class="chip" id="wexport">⭳ Export changes${nchg?' ('+nchg+')':''}</button><span class="qhint">Open a row, set a status and add notes; changes save in this page. Export copies a block of the changes still pending; a change the desk has folded in clears itself on the next reload.</span></div><div id="wexport-wrap" class="qexport-wrap hidden"><button class="qcopy" id="wexport-copy" title="Copy changes to clipboard">⧉ Copy</button><pre id="wexport-out" class="qexport"></pre></div>`;
   h+=`<p class="stamp">${rows.length} of ${items.length} items shown</p><div class="tblwrap"><table class="wtable"><thead><tr>${th}</tr></thead><tbody>`;
   rows.forEach(it=>{
     const src=it.sources.map(s=>`<span class="srcbadge">${esc(s.list)}</span>`).join('');
