@@ -315,6 +315,18 @@
    "note": "Built (commit 46b74cfe): user_media_prefs table (migration 2026_09_14_120000, applied on box E), GET and PUT /api/me/video-prefs behind auth with key validation, page props seed the player and server preferences win over browser storage; PUT debounced once per change window. Pinned by tests/Unit/VideoPrefsControllerTest.php (5 tests) and the compiled player tests.",
    "date": "2026-09-14",
    "title": "Account-saved player preferences for signed-in people"
+  },
+  "W-0270": {
+   "status": "done",
+   "note": "Keyset walk and stored-options resume were already in place (8bd09a08); the gap was run selection: sim:start --resume adopted the newest run while the pump keeps the oldest. Built (commit aaa2daf7): a --run option and a pure selection seam (named unfinished run, else the oldest active run, else start fresh). Pinned by tests/Unit/SimResumeEnumerationTest.php. Flag: the pump has no run argument, so a named newer run is still superseded by an older active one.",
+   "date": "2026-09-14",
+   "title": "Rebuild sim start: keyset pagination, stored options, single run selection"
+  },
+  "W-0285": {
+   "status": "done",
+   "note": "Built (commit dbb5ebdf): a shared MapAcceptanceService (verifier gate, mode write, run creation) now serves the wizard endpoint, maps:accept, the backup-upload restore and, after a reviewer finding, the maps:import and legacy tarball seed path. Pinned by tests/Unit/MapAcceptanceServiceTest.php; 22 tests / 132 assertions on main. Flag: MirrorService::seedFromHostPaginated (federation seed, Phase 6) still stamps directly.",
+   "date": "2026-09-14",
+   "title": "Align maps:accept CLI and restore path with the wizard acceptance endpoint"
   }
  }
 }

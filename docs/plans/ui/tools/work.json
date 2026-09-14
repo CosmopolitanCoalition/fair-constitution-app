@@ -9950,10 +9950,10 @@
     {
       "id": "W-0270",
       "title": "Rebuild sim start: keyset pagination, stored options, single run selection",
-      "phase": "P2",
-      "order": 23,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (next): Still unbuilt. SimStartCommand.php:251 and 271 still paginate with LIMIT+OFFSET. The --resume path reads command-line adm-max/limit, not stored run options. SimRunControl::activeRun() orders oldest-first while --resume orders newest-first. Evidence: app/Console/Commands/SimStartCommand.php:251,271 still use LIMIT ? OFFSET ? in both the root-scope and roster-scope INSERT paths. On --resume (line 84), command-line adm-max/limit are used rather than stored run.options. SimRunControl::activeRun() (SimRunControl.php) uses orderBy('created_at') while SimStartCommand --re…",
       "done_when": "SimStartCommand uses NOT EXISTS with LIMIT and no OFFSET for both scope inserts; --resume reads the stored run.options; SimRunControl and --resume select the same run.",
@@ -9984,6 +9984,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Unblocked build that enables the cloud and box-E sim runs downstream."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Keyset walk and stored-options resume were already in place (8bd09a08); the gap was run selection: sim:start --resume adopted the newest run while the pump keeps the oldest. Built (commit aaa2daf7): a --run option and a pure selection seam (named unfinished run, else the oldest active run, else start fresh). Pinned by tests/Unit/SimResumeEnumerationTest.php. Flag: the pump has no run argument, so a named newer run is still superseded by an older active one."
         }
       ]
     },
@@ -10654,10 +10658,10 @@
     {
       "id": "W-0285",
       "title": "Align maps:accept CLI and restore path with the wizard acceptance endpoint",
-      "phase": "P2",
-      "order": 24,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (next): CLI gaps confirmed. MapsAcceptCommand.php:80 stamps setup_step_completed=max(2) with no world-build dispatch or mode write. The restore-from-backup branch stamps only map_accepted_at. No setup:complete CLI command exists. Evidence: MapsAcceptCommand stamps only setup_step_completed=max(2) and map_accepted_at with no world-build dispatch or scale mode write (MapsAcceptCommand.php:80-83). MapDataImportService stamps only map_accepted_at with no run or simulate writes. No setup:complete CLI command found in app/Console/Commands/. W8 item 1 is partial, not done. | maps…",
       "done_when": "maps:accept calls the WorldBuildVerifier gate, stamps scale_mode and creates the run with totals matching the acceptance endpoint; the restore path stamps run state and scale_mode from the bundle.",
@@ -10712,6 +10716,10 @@
         {
           "date": "2026-09-14",
           "note": "Owner: lane 2"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built (commit dbb5ebdf): a shared MapAcceptanceService (verifier gate, mode write, run creation) now serves the wizard endpoint, maps:accept, the backup-upload restore and, after a reviewer finding, the maps:import and legacy tarball seed path. Pinned by tests/Unit/MapAcceptanceServiceTest.php; 22 tests / 132 assertions on main. Flag: MirrorService::seedFromHostPaginated (federation seed, Phase 6) still stamps directly."
         }
       ]
     },
