@@ -274,7 +274,7 @@ const domains = computed(() => {
             key: 'world',
             title: 'The world',
             icon: 'globe',
-            accent: 'tier-planetary',
+            accent: 'adm-0-fg',
             tiles: [
                 { n: dash(w.jurisdictions), label: 'jurisdictions' },
                 { n: dash(byAdm[0]), label: admLabel(0) },
@@ -302,7 +302,7 @@ const domains = computed(() => {
             key: 'representation',
             title: 'Representation',
             icon: 'landmark',
-            accent: 'tier-national',
+            accent: 'adm-2-fg',
             tiles: [
                 { n: dash(rep.legislatures), label: 'legislatures' },
                 { n: dash(rep.seats), label: 'seats' },
@@ -382,7 +382,7 @@ const domains = computed(() => {
             key: 'people',
             title: 'People & achievements',
             icon: 'users',
-            accent: 'tier-municipal',
+            accent: 'adm-4-fg',
             planned: true,
             lead: 'Individual achievements are private by default and confer no governance advantage — hard-separated from votes, seats, and money.',
             tiles: [
@@ -683,9 +683,9 @@ const heroStats = computed(() => {
         <div class="grid-2 atlas-grid">
             <section v-for="d in domains" :key="d.key" class="card atlas-domain">
                 <div class="card-title atlas-domain-head">
-                    <span class="eyebrow" :style="{ color: `var(--${d.accent})` }">
+                    <h3 class="eyebrow" :style="{ color: `var(--${d.accent})` }">
                         <Icon :name="d.icon" size="sm" /> {{ d.title }}
-                    </span>
+                    </h3>
                     <span v-if="d.planned" class="pill pill--planned">Planned</span>
                 </div>
 
@@ -844,14 +844,14 @@ const heroStats = computed(() => {
                 <table>
                     <thead>
                         <tr>
-                            <th>Node</th>
-                            <th>Where</th>
-                            <th>Operator</th>
-                            <th>Status</th>
-                            <th>Role</th>
-                            <th>Residents</th>
-                            <th>Uptime</th>
-                            <th>Sync</th>
+                            <th scope="col">Node</th>
+                            <th scope="col">Where</th>
+                            <th scope="col">Operator</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Role</th>
+                            <th scope="col">Residents</th>
+                            <th scope="col">Uptime</th>
+                            <th scope="col">Sync</th>
                         </tr>
                     </thead>
                     <tbody>

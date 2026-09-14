@@ -86,7 +86,7 @@ const title = (entry) => achievementTitle(entry.title_key, t);
                     v-for="entry in verified"
                     :key="entry.key"
                     class="role-card"
-                    :style="earnedAt(entry.key) ? '' : 'opacity: 0.72'"
+                    :class="{ 'role-card--unearned': !earnedAt(entry.key) }"
                 >
                     <Icon name="award" />
                     <div>
@@ -116,7 +116,7 @@ const title = (entry) => achievementTitle(entry.title_key, t);
                     v-for="entry in arcs"
                     :key="entry.key"
                     class="role-card"
-                    :style="earnedAt(entry.key) ? '' : 'opacity: 0.72'"
+                    :class="{ 'role-card--unearned': !earnedAt(entry.key) }"
                 >
                     <Icon name="list-checks" />
                     <div>
@@ -142,7 +142,7 @@ const title = (entry) => achievementTitle(entry.title_key, t);
                 side by side; people are never ranked against each other (PI-1).
             </p>
             <div class="role-grid">
-                <div v-for="entry in catalog.jurisdiction" :key="entry.key" class="role-card" style="opacity: 0.72">
+                <div v-for="entry in catalog.jurisdiction" :key="entry.key" class="role-card role-card--unearned">
                     <Icon name="landmark" />
                     <div>
                         <strong>{{ title(entry) }}</strong>
@@ -155,7 +155,7 @@ const title = (entry) => achievementTitle(entry.title_key, t);
         <!-- ─────────────────────────────────────────── system milestones -->
         <Card as="section" title="System milestones — the whole instance">
             <div class="role-grid">
-                <div v-for="entry in catalog.system" :key="entry.key" class="role-card" style="opacity: 0.72">
+                <div v-for="entry in catalog.system" :key="entry.key" class="role-card role-card--unearned">
                     <Icon name="globe" />
                     <div>
                         <strong>{{ title(entry) }}</strong>

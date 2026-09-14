@@ -145,7 +145,7 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
                 />
             </div>
 
-            <p class="mt-3 text-xs text-gray-500">
+            <p class="mt-3 text-xs" style="color: var(--gov-fg-subtle)">
                 {{ world.binding_label }}.
                 <template v-if="world.skipped">
                     Places with no people and no smaller places inside them get nothing at all —

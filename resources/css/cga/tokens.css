@@ -87,11 +87,13 @@
   --gov-fg:            var(--cc-white);       /* headings                      */
   --gov-fg-strong:     var(--cc-gray-200);    /* labels                        */
   --gov-fg-muted:      var(--cc-gray-400);    /* body copy                     */
-  /* Hints / citations. Raw gray-500 measures 3.67:1 on the gray-900 card
-     surface — below the 4.5:1 AA floor for the 12px text this tier carries.
-     This mix measures 4.91:1 on cards and 5.57:1 on the page, while staying
-     visibly quieter than --gov-fg-muted (6.82:1 / 7.74:1). */
-  --gov-fg-subtle:     color-mix(in oklch, var(--cc-gray-400) 45%, var(--cc-gray-500));
+  /* Hints / citations. The old 45% mix passed on the page (gray-950) but fell
+     to about 4.06:1 on the lightest surface this tier lands on (gray-800),
+     below the 4.5:1 AA floor for the 12px text it carries. The 80% mix clears
+     the floor on every surface it lands on: about 6.85:1 on the page
+     (gray-950), 6.04:1 on cards (gray-900) and 4.99:1 on a gray-800 inset,
+     while staying visibly quieter than --gov-fg-muted (7.74:1 / 6.82:1). */
+  --gov-fg-subtle:     color-mix(in oklch, var(--cc-gray-400) 80%, var(--cc-gray-500));
   /* Brand-aligned primary action. The shipping code uses --cc-blue-600;
      the canonical brand theme promotes purple. Swap per instance. */
   --gov-primary:       var(--cc-purple-600);

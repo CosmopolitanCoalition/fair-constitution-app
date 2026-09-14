@@ -11,7 +11,7 @@
  * Same page also handles future delta migrations on an existing box.
  */
 import { computed, ref } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import { csrfFetch } from '@/lib/csrf'
 
@@ -81,6 +81,7 @@ const schemaCardOk   = computed(() => status.value.schema_state === 'up_to_date'
 </script>
 
 <template>
+    <Head><title>Set up this node</title></Head>
     <div class="max-w-3xl mx-auto w-full px-6 py-12 space-y-8">
         <header>
             <h1 class="text-3xl font-bold text-white">Set up this node</h1>
@@ -137,7 +138,7 @@ const schemaCardOk   = computed(() => status.value.schema_state === 'up_to_date'
         <section v-if="schemaCardOk" class="flex justify-end">
             <button
                 @click="continueToFork"
-                class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md font-semibold transition"
+                class="px-6 py-3 bg-emerald-700 hover:bg-emerald-600 text-white rounded-md font-semibold transition"
             >
                 Continue →
             </button>
