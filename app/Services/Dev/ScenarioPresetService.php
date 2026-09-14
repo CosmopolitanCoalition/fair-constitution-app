@@ -115,6 +115,15 @@ class ScenarioPresetService
                 'detail' => 'San Marino\'s civic commons on Matrix — #square + #halls topology, a sealed testimony, '
                     .'and the legitimacy flip. Runs --offline (Plane-A artifacts only) so it never blocks on a homeserver.',
             ],
+            'committee-hearing' => [
+                'label' => 'Open a live committee hearing (the tour room)',
+                'command' => 'institutions:demo-room',
+                'args' => [],
+                'lights' => [],
+                'detail' => 'San Marino\'s Committee on Public Works, seated with a chair and a scheduled hearing at '
+                    .'the tour meeting UUID. Opens /rooms/committee without a prior sim run; mints its own members '
+                    .'when the chamber is unseated.',
+            ],
         ];
     }
 
@@ -184,6 +193,12 @@ class ScenarioPresetService
             'matrix-commons' => ($sm)() !== null
                 ? [true, null]
                 : [false, 'San Marino is not on this world — found a world with real geodata first.'],
+
+            // institutions:demo-room is self-sufficient: it seats its own chamber
+            // when the sim has not. It needs only a founded world to seed onto.
+            'committee-hearing' => DB::table('jurisdictions')->whereNull('deleted_at')->exists()
+                ? [true, null]
+                : [false, 'No jurisdiction on this world yet — found a world first.'],
 
             default => [false, 'Unknown preset.'],
         };
