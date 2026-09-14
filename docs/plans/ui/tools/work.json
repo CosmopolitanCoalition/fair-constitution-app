@@ -2999,10 +2999,10 @@
     {
       "id": "W-0086",
       "title": "Build the SOP registry and a Guides page rendering steps and videos",
-      "phase": "P5",
-      "order": 64,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "resources/js/Pages/Learn/Guides.vue. VERIFIED 2026-09-05: Page and route exist and render 14 real journey rows from config. It is a journey index, not an SOP index: no separate guide or help corpus exists in the code. | Static data + one page; config/cga/journeys.php and surfaces.php are natural seeds for the registry. The 'report an issue' escape hatch it links to is already live. | VERIFIED 2026-09-08 (partial): Page and route exist and render 14 journey rows from config. No SOP registry with procedure steps, rule-behind-each-step, linked video, or journey ids exists anywhere in the codebas…",
       "done_when": "A structured SOP registry with steps, rule references, linked video and journey id exists in config or the registry; a Guides page renders it.",
@@ -3037,6 +3037,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: How is the SOP registry different than the LEarning MAterial already deployed?"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is already built in a different form."
         }
       ]
     },
@@ -8179,10 +8183,10 @@
     {
       "id": "W-0232",
       "title": "Apply reviewed fr and pt shell-chrome catalogs after operator GO",
-      "phase": "P1",
-      "order": 13,
+      "phase": "done",
+      "order": null,
       "kind": "content",
-      "status": "awaiting_go",
+      "status": "moot",
       "blocker": "operator_go",
       "detail": "translate_monolith.py output -> review queue (low). Page bodies render for all 6 locales; chrome falls back to English. Refusal-is-the-answer.",
       "done_when": "Operator GO received; fr.json and pt.json shell-chrome catalogs are committed and render in-language with no raw NLLB output.",
@@ -8239,16 +8243,20 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (deferred): Operator ruling i18n A stands: English chrome only. No fr/pt work was committed. Status remains deferred. Evidence: No commit in the leads list adds fr/pt chrome strings. Operator ruling 'i18n A for the playtest: English chrome' is intact. The deferred status is operator-authored. | Ruled i18n A for the playtest: English chrome. A reader pass on the fr/pt chrome only if time allows; never raw NLLB navigation."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This sounds moot and rolled into other objects."
         }
       ]
     },
     {
       "id": "W-0233",
       "title": "Add constituent_requests and room read-position schema for honest-empty pages",
-      "phase": "P1",
-      "order": 8,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "L6W4_SCREEN_GAP_PLAN.md section 5 (low). Surfaced by the 14-agent gap analysis; honest-empty until built.",
       "done_when": "constituent_requests table and a room read-position column exist via a real-dated additive migration; the dependent guest pages render honest-empty without errors.",
@@ -8305,6 +8313,10 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (next): No code found for any item in this row. Agenda_items migration is absent. constituent_requests table is not defined. LIVE_PG_DATABASE per-lane config is not in the codebase. Mobile app (Capacitor) is not present. All items remain deferred. Evidence: grep for agenda_items, constituent_requests, LIVE_PG_DATABASE, and Capacitor across app/ and database/ returned no results. No migration for agenda_items exists. Social primitives explicitly marked not built. No per-lane LIVE_PG_DATABASE config found. Mobile app (Capacitor) not present. | Agenda per-item schema (agenda_items migration not on main); constituent_requests + room read position; the deliberately-not-built social primitives; per-lane LIVE_PG_DATABASE (retire the quiet-window freeze); the mobile app (Capacitor, Phase 6)."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This seems moot."
         }
       ]
     },
@@ -9201,6 +9213,10 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (next): CLAUDE.md:585 lists ElectionTriggerService.php which does not exist. fc_scheduler is absent from docker-compose.yml. No commit in the recent set corrects any of the listed documentation gaps. Evidence: CLAUDE.md:585 lists app/Services/ElectionTriggerService.php in the protected files table; the file does not exist on disk (confirmed absent). ConstitutionalVersionService.php exists. fc_scheduler is absent from docker-compose.yml. No commit in the leads list updates CLAUDE.md or any of the other cited stale docs entries. | CLAUDE.md protected files list ElectionTriggerService.php which does not exist (also ConstitutionalVersionService.php:33); the scheduler container fc_scheduler (docker-compose.yml:503-526) is absent from the service table; config/horizon.php:257-260 describes the retired lane law; SetupController.php:42, 3858 name the retired AutoscaleOrchestratorJob; EvaluateSocialStructureJob docblock says unscheduled while routes/console.php:113 schedules it."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: I think this might have been handled by Codex. Recheck and clean up the detial to be coherent."
         }
       ]
     },
@@ -9430,10 +9446,10 @@
     {
       "id": "W-0256",
       "title": "Complete the federation toggle: mint identity and arm CLK-20",
-      "phase": "P4",
-      "order": 57,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "app/Http/Controllers/Operator/OperatorConsoleController.php:58-62 sets the boolean and saves; nothing else. app/Console/Commands/FederationInitCommand.php:41 mints or ensures the identity, :52-62 retires stale CLK-20 timers and arms a new one, :71-75 fails loud if the persisted row is enabled without server_id or public_key; its docblock at :34-40 names the half-state as a live defect class. Live box: federation_enabled=false, clock_timers=0. (medium). The operator console toggle sets federation_enabled alone, producing exactly the enabled-but-unminted, no-heartbeat half-state the CLI command…",
       "done_when": "The operator-console federation toggle mints server_id and public_key and arms CLK-20 as well as setting the flag; enabling federation leaves no half-state.",
@@ -9472,6 +9488,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Removes the enabled-but-unminted half-state on the toggle."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. I thought this was resolved via the choice in setup."
         }
       ]
     },
@@ -9481,7 +9501,7 @@
       "phase": "P3",
       "order": 52,
       "kind": "ops",
-      "status": "awaiting_go",
+      "status": "open",
       "blocker": "operator_go",
       "detail": "Live single-table counts: currencies 0, economic_accounts 0, marketplace_listings 0, work_postings 0, ledger_entries 0, share_offers 0. The only caller of CurrencyService::create (app/Services/Economy/CurrencyService.php:52) is app/Console/Commands/TreasuryDemoCommand.php:49. (medium). Partly addressed 2026-09-06: the Step 4 shell batch now founds the root currency and one public treasury per jurisdiction at planet scale (923,092 treasuries, balance 0). Resident wallets, the mint, stipend runs and account balances remain Wave 7 (the simulation), so the account-level economy surfaces stay empt…",
       "done_when": "A planet-scale sim run completes; currencies, wallets, stipend entries and ledger rows are non-zero on the box.",
@@ -9520,6 +9540,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition awaiting_go: Economy surfaces populate only after a sim run, which needs the operator's GO."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set open. This will be done when we make a new fresh linux box. If it is built this is moot. If iti s not built then this is moot as it will be done in Testing."
         }
       ]
     },
@@ -10310,10 +10334,10 @@
     {
       "id": "W-0281",
       "title": "Close Step 6: write founding-window audit entry and add setup:complete CLI",
-      "phase": "P1",
-      "order": 4,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (next): Core page, route, and handler are built. Step6_Confirm.vue calls POST /api/setup/wizard/step6/complete, which stamps setup_completed_at (SetupController.php:3940). Route widened in 20dca711. Two items remain: no audit log entry for the founding window close, and no CLI twin setup:complete command. Evidence: Step6_Confirm.vue exists (resources/js/Pages/Setup/Step6_Confirm.vue). Route POST /api/setup/wizard/step6/complete exists (routes/web.php:227). completeStep6 stamps setup_completed_at and setup_step_completed (SetupController.php:3940-3962). Route widened to ste…",
       "done_when": "completeStep6 writes a founding-window audit entry; a setup:complete artisan command stamps setup_completed_at; a re-POST is idempotent.",
@@ -10344,6 +10368,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Small enabler the guest-walk verify and the CLI-parity cluster both need."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This feelsl ike a Duplicate. Will readdress if its an active issue when I spin up a new fresh box."
         }
       ]
     },
@@ -10600,6 +10628,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Gates P1 done; depends on the Step 6 close, the read-open and the write-door close."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: Not needed for E specifically."
         }
       ]
     },
@@ -11072,16 +11104,20 @@
         {
           "date": "2026-09-14",
           "note": "Note: The translation board has no sidebar row. The code records the gap rather than fixing it. | VERIFIED 2026-09-08 (absent): resources/js/registry/surfaces.js has no entry for /system/translations. No commits since 563c4899 add a sidebar nav row for the translation board. The board is reachable only through a button on the translation review UI. Evidence: Grep of resources/js/registry/surfaces.js for 'translat' returned no output. No commits in leads file add a nav registry entry for /system/translations. | VERIFIED 2026-09-14 (absent): surfaces.js has no entry for /system/translations. Unchanged from prior verification."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: I think the LEarn management system already exists for this. If not that all comes together so the learn drawer has the video as well. The v3 Mockups already have this in place and are the model for use."
         }
       ]
     },
     {
       "id": "W-0295",
       "title": "Fix setup wizard copy and numbering, remove dead controls, fix autoscale bypass",
-      "phase": "P1",
-      "order": 7,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (next): Commits 77da9b69 (grind shunt removed) and 42dc5c7a (requeue never hidden) closed two Step 3 sub-items. Step 1 and Step 2 copy/control items, the two AutoscaleRunControl bypass doors, and the reach items remain open. Evidence: Commit 77da9b69 removed the grind-box shunt entirely (AutoscaleRunControl.php, AutoscalePumpCommand.php), closing the 'grind shunt config key' sub-item. Commit 42dc5c7a fixed the requeue-never-hide issue (Step3_Districts.vue), closing 'requeueDriftMaps surface'. Remaining open: Step1_Constants.vue:373-375 clamped caption, Step2_MapData.vue po…",
       "done_when": "Step 1 clamp copy corrected; Step 2 headings numbered 1,2,3,4; dead setup controls removed or wired; autoscaleRevert routes through AutoscaleRunControl and requeueDriftMaps is reachable from the UI.",
@@ -11156,6 +11192,10 @@
         {
           "date": "2026-09-14",
           "note": "Owner: lane 6"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This seems moot at best. At worst this cleanup is done post development and thus deffered unti lthe end."
         }
       ]
     },
@@ -11608,6 +11648,10 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (deferred): Deferred. No CHECK(balance>=0) constraint exists in any migration or schema file. The app-layer row-lock defense is still the only overdraft guard. Evidence: database/migrations/2026_07_25_000030_create_economy_plane.php:160-161 adds only kind_check and status_check constraints on economic_accounts. No CHECK(balance>=0) in any migration file or schema dump. | optional; if it takes the migration slot — the app-layer buyer-account row lock already closes the overdraft hole"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: This might already exist. Reconfirm."
         }
       ]
     },
@@ -12660,7 +12704,7 @@
       "phase": "P1",
       "order": 10,
       "kind": "content",
-      "status": "open",
+      "status": "deferred",
       "blocker": "none",
       "detail": "Author the fourteen English namespace catalogs absent from every conference locale (c_bill, c_community, c_explore, c_host, c_learn, c_legislature_workspace, c_live_commons, c_loading, c_navigation, c_references, c_rooms, c_term_sync, flows, places) for ar, es, fr, hi, pt and zh-Hans; fr and pt additionally c_shell, c_shellv2, chrome and registry. Machine first pass through `scripts/i18n/translate_run.py` once the provider is ruled (rubric `translation-first-pass-provider`).",
       "done_when": "Every English namespace catalog file exists for ar, es, fr, hi, pt and zh-Hans; the i18nCoverage absence check passes.",
@@ -12687,6 +12731,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: English base catalogs are desk authoring; the machine fill depends on them. Provider ruled 2026-09-14 (local model on box E)."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set deferred. Waiting for the Surfaces to Settle before making translations and feels like duplicate of the untraslated keys jsut the reverse in that the calalog needs the keys. Combine if needed."
         }
       ]
     },
@@ -12696,7 +12744,7 @@
       "phase": "P1",
       "order": 11,
       "kind": "content",
-      "status": "awaiting_go",
+      "status": "deferred",
       "blocker": "operator_go",
       "detail": "Complete the untranslated keys in the namespaces that exist per conference locale (10,597 keys on 14 September; c_education the largest at 165 to 259 keys per locale). Same machine first pass, then the human naturalness review that the register keeps separate.",
       "done_when": "i18nCoverage reports zero missing keys for the six conference locales after the machine first pass runs.",
@@ -12725,6 +12773,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition awaiting_go: The machine first pass provider is ruled (local model on box E) but a run needs the operator's GO."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set deferred. Waiting for the Surfaces to Settle before making translations."
         }
       ]
     },
@@ -12761,6 +12813,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Unblocked markup i18n for the video player; small, feeds the i18n coverage verify."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: There is PHP and HTML.Javascript Code I built for the international player. Do you have access to that? That is the mdoel we will be using for multimodal translation."
         }
       ]
     },
@@ -12955,10 +13011,10 @@
     {
       "id": "W-0340",
       "title": "Verify DOM acceptance of 27 uncovered action-door pages",
-      "phase": "P1",
-      "order": 19,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "Care and usability across the above surfaces Dependency: Compiled prop-driven companions for the 27 S1 action-door pages that have none (Executive has none); browser-level checks belong to L2",
       "done_when": "NavRoleGateParityTest covers all 27 previously uncovered action-door pages; navigation, loading, error, disabled and return-path conventions are confirmed on each.",
@@ -12989,16 +13045,20 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Unblocked consistency verify over the swept surfaces."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is a given and done when they land. Roll verifications into their correcpsonding builds."
         }
       ]
     },
     {
       "id": "W-0341",
       "title": "Re-run i18n coverage test green after catalog work lands",
-      "phase": "P1",
-      "order": 20,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "awaiting_go",
+      "status": "moot",
       "blocker": "operator_go",
       "detail": "Settled conference-language scenario coverage Dependency: Punch list LG-1, LG-2 and LG-3 (absent namespace catalogs, untranslated keys, player internationalization); rubric `translation-first-pass-provider`",
       "done_when": "Every English namespace file is present per conference locale, zero keys missing, player strings through vue-i18n; i18nCoverage passes. Human naturalness stays separate.",
@@ -13033,16 +13093,20 @@
         {
           "date": "2026-09-14",
           "note": "Disposition awaiting_go: Coverage gate; waits on the catalog fill, which awaits the operator's GO for the machine pass."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is a given and done when they land. Roll verifications into their correcpsonding builds."
         }
       ]
     },
     {
       "id": "W-0342",
       "title": "Re-run accessibility scans green after A11Y repairs land",
-      "phase": "P1",
-      "order": 21,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "Accessibility and modalities Dependency: Punch list A11Y-1 (67 static accessible-name gaps), A11Y-2 (contrast token and opacity), A11Y-3 (prose links), A11Y-4 (table focus, bootstrap title); a host with more browser memory for four routes",
       "done_when": "Zero axe nodes on every established guest route at desktop and 375px; a11y-baseline.json empty.",
@@ -13078,6 +13142,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: a11y gate; waits on the four A11Y repairs."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is a given and done when they land. Roll verifications into their correcpsonding builds."
         }
       ]
     },

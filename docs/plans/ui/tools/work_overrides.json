@@ -78,9 +78,10 @@
    "title": "Build DM primitive, profile self-edit and record-tab link"
   },
   "W-0086": {
-   "note": "How is the SOP registry different than the LEarning MAterial already deployed?",
+   "note": "This is already built in a different form.",
    "date": "2026-09-14",
-   "title": "Build the SOP registry and a Guides page rendering steps and videos"
+   "title": "Build the SOP registry and a Guides page rendering steps and videos",
+   "status": "moot"
   },
   "W-0053": {
    "status": "moot",
@@ -195,6 +196,97 @@
    "note": "No.",
    "date": "2026-09-14",
    "title": "Add an acceptance scan to the verifying sim phase before done"
+  },
+  "W-0281": {
+   "status": "moot",
+   "note": "This feelsl ike a Duplicate. Will readdress if its an active issue when I spin up a new fresh box.",
+   "date": "2026-09-14",
+   "title": "Close Step 6: write founding-window audit entry and add setup:complete CLI"
+  },
+  "W-0294": {
+   "note": "I think the LEarn management system already exists for this. If not that all comes together so the learn drawer has the video as well. The v3 Mockups already have this in place and are the model for use.",
+   "date": "2026-09-14",
+   "title": "Add video and translation nav rows and seed the education catalog"
+  },
+  "W-0295": {
+   "status": "moot",
+   "note": "This seems moot at best. At worst this cleanup is done post development and thus deffered unti lthe end.",
+   "date": "2026-09-14",
+   "title": "Fix setup wizard copy and numbering, remove dead controls, fix autoscale bypass"
+  },
+  "W-0233": {
+   "status": "moot",
+   "note": "This seems moot.",
+   "date": "2026-09-14",
+   "title": "Add constituent_requests and room read-position schema for honest-empty pages"
+  },
+  "W-0334": {
+   "note": "There is PHP and HTML.Javascript Code I built for the international player. Do you have access to that? That is the mdoel we will be using for multimodal translation.",
+   "date": "2026-09-14",
+   "title": "Internationalize MultiTrackVideoPlayer labels, aria-labels and error messages"
+  },
+  "W-0332": {
+   "status": "deferred",
+   "note": "Waiting for the Surfaces to Settle before making translations and feels like duplicate of the untraslated keys jsut the reverse in that the calalog needs the keys. Combine if needed.",
+   "date": "2026-09-14",
+   "title": "Author the 14 namespace catalogs absent from the six conference locales"
+  },
+  "W-0333": {
+   "status": "deferred",
+   "note": "Waiting for the Surfaces to Settle before making translations.",
+   "date": "2026-09-14",
+   "title": "Fill 10,597 untranslated keys across six conference locales"
+  },
+  "W-0232": {
+   "status": "moot",
+   "note": "This sounds moot and rolled into other objects.",
+   "date": "2026-09-14",
+   "title": "Apply reviewed fr and pt shell-chrome catalogs after operator GO"
+  },
+  "W-0340": {
+   "status": "moot",
+   "note": "This is a given and done when they land. Roll verifications into their correcpsonding builds.",
+   "date": "2026-09-14",
+   "title": "Verify DOM acceptance of 27 uncovered action-door pages"
+  },
+  "W-0341": {
+   "status": "moot",
+   "note": "This is a given and done when they land. Roll verifications into their correcpsonding builds.",
+   "date": "2026-09-14",
+   "title": "Re-run i18n coverage test green after catalog work lands"
+  },
+  "W-0342": {
+   "status": "moot",
+   "note": "This is a given and done when they land. Roll verifications into their correcpsonding builds.",
+   "date": "2026-09-14",
+   "title": "Re-run accessibility scans green after A11Y repairs land"
+  },
+  "W-0284": {
+   "note": "Not needed for E specifically.",
+   "date": "2026-09-14",
+   "title": "Verify guest walk on box E and session-scoped write purge"
+  },
+  "W-0299": {
+   "note": "This might already exist. Reconfirm.",
+   "date": "2026-09-14",
+   "title": "Wire budget form, record dues as dues, add balance-floor constraint"
+  },
+  "W-0257": {
+   "status": "open",
+   "note": "This will be done when we make a new fresh linux box. If it is built this is moot. If iti s not built then this is moot as it will be done in Testing.",
+   "date": "2026-09-14",
+   "title": "Run the simulation to populate economy surfaces"
+  },
+  "W-0256": {
+   "status": "moot",
+   "note": "I thought this was resolved via the choice in setup.",
+   "date": "2026-09-14",
+   "title": "Complete the federation toggle: mint identity and arm CLK-20"
+  },
+  "W-0251": {
+   "note": "I think this might have been handled by Codex. Recheck and clean up the detial to be coherent.",
+   "date": "2026-09-14",
+   "title": "Fix stale class references and outdated comments; add scheduler to docs"
   }
  }
 }
