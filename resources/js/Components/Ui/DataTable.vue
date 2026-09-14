@@ -16,7 +16,9 @@
  * columns: [{ key, label, mono?, align? }]
  * Cell content overridable per column via scoped slots: #cell-{key}="{ row, value }".
  */
-defineProps({
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+
+const props = defineProps({
     columns: { type: Array, required: true },
     rows: { type: Array, required: true },
     /** Row property used as :key; falls back to the row index. */
@@ -24,10 +26,43 @@ defineProps({
     /** Visually-hidden table caption for screen readers. */
     caption: { type: String, default: null },
 });
+
+// A scroll container that overflows is a scrollable region. WCAG 2.1.1 wants
+// it reachable by keyboard, so give it tabindex 0 and an accessible name WHEN
+// it overflows, and neither when it does not. Measured with a ResizeObserver
+// so the state follows the viewport, not just the first paint.
+const wrap = ref(null);
+const overflowing = ref(false);
+
+function measure() {
+    const el = wrap.value;
+    if (!el) return;
+    overflowing.value = el.scrollWidth > el.clientWidth + 1;
+}
+
+let ro = null;
+onMounted(() => {
+    measure();
+    if (typeof ResizeObserver !== 'undefined' && wrap.value) {
+        ro = new ResizeObserver(() => measure());
+        ro.observe(wrap.value);
+    }
+    if (typeof window !== 'undefined') window.addEventListener('resize', measure);
+});
+onBeforeUnmount(() => {
+    if (ro) ro.disconnect();
+    if (typeof window !== 'undefined') window.removeEventListener('resize', measure);
+});
 </script>
 
 <template>
-    <div class="table-wrap">
+    <div
+        ref="wrap"
+        class="table-wrap"
+        :tabindex="overflowing ? 0 : undefined"
+        :role="overflowing ? 'region' : undefined"
+        :aria-label="overflowing ? (caption ? `${caption} (scrollable)` : 'Scrollable table') : undefined"
+    >
         <table class="table">
             <caption v-if="caption" class="visually-hidden">{{ caption }}</caption>
             <thead>

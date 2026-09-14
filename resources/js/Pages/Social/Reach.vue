@@ -164,7 +164,7 @@ function selectJurisdiction(event) {
             <svg viewBox="0 0 100 30" preserveAspectRatio="none" class="w-full h-16" aria-hidden="true">
                 <polyline :points="sparkline" fill="none" stroke="currentColor" stroke-width="1" class="text-amber-500" />
             </svg>
-            <p class="text-xs text-gray-500 mt-1">
+            <p class="text-xs mt-1" style="color: var(--gov-fg-subtle)">
                 Nightly snapshots. On any night the count was too small to be safe, the curve simply
                 stops rather than showing a zero.
             </p>
@@ -189,7 +189,7 @@ function selectJurisdiction(event) {
                 needed without revealing how many are already here.
             </p>
 
-            <p class="text-xs text-gray-500 mt-3">
+            <p class="text-xs mt-3" style="color: var(--gov-fg-subtle)">
                 <template v-if="tier.enabled">
                     The threshold comes from the population: about the cube root of how many people
                     live here, held between {{ tier.params.floor }} and {{ tier.params.cap }}.

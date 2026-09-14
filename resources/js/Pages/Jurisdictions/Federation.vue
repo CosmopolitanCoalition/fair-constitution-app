@@ -620,7 +620,7 @@ const forgetBrokerCred = (domain) => {
             <!-- Not signed in as an operator -->
             <p v-if="!host.authed" class="mt-3 text-sm text-slate-600">
                 Minting and approving invite keys is an operator action.
-                <a href="/operator/login" class="font-medium text-sky-700 hover:underline">Sign in as an operator →</a>
+                <a href="/operator/login" class="font-medium text-sky-700 underline">Sign in as an operator →</a>
             </p>
 
             <div v-else class="mt-3 space-y-5">
