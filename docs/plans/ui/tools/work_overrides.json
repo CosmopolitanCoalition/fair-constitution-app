@@ -1,0 +1,116 @@
+{
+ "items": {
+  "W-0252": {
+   "status": "moot",
+   "note": "mooted. Lots of development took care of this already.",
+   "date": "2026-09-14",
+   "title": "Pin the boot and simulation jobs in tests"
+  },
+  "W-0330": {
+   "status": "moot",
+   "note": "This is moot. Education was already built and solidified by codex.",
+   "date": "2026-09-14",
+   "title": "Arm the game box with education:seed on operator trigger"
+  },
+  "W-0279": {
+   "status": "moot",
+   "note": "Not doing that again.",
+   "date": "2026-09-14",
+   "title": "Run full-planet sim on box E: halt, resume, rollback, lock"
+  },
+  "W-0280": {
+   "status": "moot",
+   "note": "This is already handled.",
+   "date": "2026-09-14",
+   "title": "Run the Niue Type B election walk: 10 seats across 5 panels"
+  },
+  "W-0254": {
+   "status": "moot",
+   "note": "this is excessive and was already done on build up the first time.",
+   "date": "2026-09-14",
+   "title": "Measure clock-sweep timing on the cloud run"
+  },
+  "W-0293": {
+   "status": "moot",
+   "note": "this is excessive and already handled on the fly",
+   "date": "2026-09-14",
+   "title": "Re-grade data-dependent screens after sim data lands"
+  },
+  "W-0298": {
+   "status": "moot",
+   "note": "Not releveant to the rubric.",
+   "date": "2026-09-14",
+   "title": "Provision the writable beta and run Steps 5 and 6"
+  },
+  "W-0297": {
+   "status": "moot",
+   "note": "I am pretty sure this is handled and your verification is just parroting the 9/8 as evidence.",
+   "date": "2026-09-14",
+   "title": "Harden federation: page push tail, chunk authority-flip, gate cluster join and leave"
+  },
+  "W-0347": {
+   "status": "moot",
+   "note": "this is excessive. We already do this on the linux boxes that can self resize.",
+   "date": "2026-09-14",
+   "title": "Measure provisioning and sim performance on a disposable host"
+  },
+  "W-0345": {
+   "status": "deferred",
+   "note": "We will readdress on actual mesh joining.",
+   "date": "2026-09-14",
+   "title": "Verify two-node mesh join, signed transfer and rejoin"
+  },
+  "W-0250": {
+   "status": "moot",
+   "note": "I think the work Codex did motted a lot of this. Close. We can reopen if we notice problems.",
+   "date": "2026-09-14",
+   "title": "Remove or wire dead configuration dials and unreachable code"
+  },
+  "W-0211": {
+   "status": "moot",
+   "note": "I think this is supplanted by committee work done in Codex.",
+   "date": "2026-09-14",
+   "title": "Add agenda_items schema and AgendaService for per-item progression"
+  },
+  "W-0222": {
+   "note": "Are we saying Direct USer messaging/calls dont exist? If so this needs to stay open.",
+   "date": "2026-09-14",
+   "title": "Build DM primitive, profile self-edit and record-tab link"
+  },
+  "W-0086": {
+   "note": "How is the SOP registry different than the LEarning MAterial already deployed?",
+   "date": "2026-09-14",
+   "title": "Build the SOP registry and a Guides page rendering steps and videos"
+  },
+  "W-0053": {
+   "status": "moot",
+   "note": "Not sure this is relevent. We can reopen if something comes up.",
+   "date": "2026-09-14",
+   "title": "Add restore-from-records to ModeFork with version-check and run stamps"
+  },
+  "W-0231": {
+   "status": "moot",
+   "note": "We arent doign lanes anymore. One chat that can internally fan out.",
+   "date": "2026-09-14",
+   "title": "Add per-lane test database to retire the freeze-window gate"
+  },
+  "W-0172": {
+   "status": "deferred",
+   "note": "Not going to do this for now.",
+   "date": "2026-09-14",
+   "title": "Build the Capacitor iOS and Android wrapper with geofenced GPS"
+  },
+  "W-0301": {
+   "status": "moot",
+   "note": "dont worry about this.",
+   "date": "2026-09-14",
+   "title": "Delete the two duplicate legislature rows on box E"
+  },
+  "W-0302": {
+   "status": "moot",
+   "note": "Dont worry about this.",
+   "date": "2026-09-14",
+   "title": "Redraw the nine box-E maps that hold a zero-seat district"
+  }
+ }
+}

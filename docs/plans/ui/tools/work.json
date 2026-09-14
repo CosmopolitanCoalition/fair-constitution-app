@@ -1833,10 +1833,10 @@
     {
       "id": "W-0053",
       "title": "Add restore-from-records to ModeFork with version-check and run stamps",
-      "phase": "P5",
-      "order": 65,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "resources/js/Pages/Setup/Step0_CosmicAddress.vue (+ Step1_Constants, Step2_MapData, Step3_Districts, Step4_Confirm, ModeFork, OperatorSetup, JoinHost, Bootstrap). Built 2026-09-06 (Wave 6). Wizard ladder Steps 0 to 6 (App\\Support\\SetupLadder): Steps 4 and 5 open by the scale and simulate choices, else skip to 6; Step 6 (Confirm and Close) stamps setup_completed_at and dispatches nothing. Step 5 is a placeholder page with Continue until Wave 7 lands the simulation page. | VERIFIED 2026-09-08 (partial): ModeFork.vue (lines 64-80) offers two choices: Solo and Join. A Restore-from-records first-c…",
       "done_when": "ModeFork shows a Restore-from-records option; a version-check runs before accepting a bundle; the restore path stamps run state, scale_mode and world-build status.",
@@ -1897,6 +1897,10 @@
         {
           "date": "2026-09-14",
           "note": "Owner: lane 6"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. Not sure this is relevent. We can reopen if something comes up."
         }
       ]
     },
@@ -3029,6 +3033,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Guides SOP index; the front-door Learn bar already covers the demo."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: How is the SOP registry different than the LEarning MAterial already deployed?"
         }
       ]
     },
@@ -5781,7 +5789,7 @@
       "phase": "P5",
       "order": 67,
       "kind": "build",
-      "status": "blocked",
+      "status": "deferred",
       "blocker": "linux_host",
       "detail": "blocker: VERIFIED 2026-09-14 (absent): No mobile code added. Phase 6 (Weeks 61-76) not started. | VERIFIED 2026-09-08 (absent): No Capacitor config or native mobile directories exist in the repository. This capability is not started. Phase 6 (Weeks 61-76) covers mobile; it has not begun. Evidence: No Capacitor config files, no ios/ or android/ directories, no native wrapper code found in the repository. No commits since 563c4899 added mobile code. | Phase 6 (Weeks 61–76) — NEXT, not started. Phone GPS (G-V1) parked. Unbuilt at any scale.",
       "done_when": "ios/ and android/ Capacitor project directories exist; GPS pinging works from a native mobile build on a device.",
@@ -5816,6 +5824,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Phase 6 mobile; native builds need a Linux/macOS host."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set deferred. Not going to do this for now."
         }
       ]
     },
@@ -7269,10 +7281,10 @@
     {
       "id": "W-0211",
       "title": "Add agenda_items schema and AgendaService for per-item progression",
-      "phase": "P5",
-      "order": 62,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "committee_meetings.agenda is a plain string list; Pages/Legislature/LiveCivicRoom.vue floor is ephemeral cache (no schema) (medium). Per-item progression through a meeting (advance/complete each agenda item) needs a structured agenda, not a flat string array. Blocks the live-room molecule from driving an agenda item-by-item. Lane 3's floor primitive (raise-hand -> FIFO/named recognition -> yield, 3c107cf) is ephemeral and deliberately schema-free for now.",
       "done_when": "A real-dated additive agenda_items migration exists with per-item status; AgendaService advances and completes each item; LiveRoomController::advance walks per-item rows and the FLAGGED comment is gone; the pinned test is green.",
@@ -7329,6 +7341,10 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (next): Still unbuilt. LiveRoomController.php:164-174 explicitly notes the schema gap: no per-item status column exists. No migration for per-item agenda rows was added. The advance() method only yields the floor. Evidence: app/Http/Controllers/Rooms/LiveRoomController.php:164-174: advance() comment reads 'The agenda is a plain string list with no per-item status column ... a schema question — FLAGGED, not written'. Last commit to this file is 0f6ea403, not in the 97-commit range. No agenda migration appears in database/migrations/. | VERIFIED 2026-09-05: still unbuilt; the migration slot was granted by the desk (c97dacb9), so the 'flag the desk' step is finished. Today committee_meetings.agenda is a jsonb string list and LiveRoomController::advance() only yields the floor (comment: 'a schema question — FLAGGED, not written'). Needs a real-dated additive migration (>= 2026-07-05) for per-item rows with status, plus an advance() that walks them. | the deferred keystone debt; flag the desk for the migration slot; completes the Live Civic Room's agenda"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. I think this is supplanted by committee work done in Codex."
         }
       ]
     },
@@ -7767,6 +7783,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Deferred social primitives; secondary to the governance demo."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: Are we saying Direct USer messaging/calls dont exist? If so this needs to stay open."
         }
       ]
     },
@@ -8085,10 +8105,10 @@
     {
       "id": "W-0231",
       "title": "Add per-lane test database to retire the freeze-window gate",
-      "phase": "P5",
-      "order": 66,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "AuditService::APPEND_LOCK_KEY 0x4155444954; instance_settings singleton (medium). Adopted permanently; the 1343/0 gate ran in a quiet window. Per-lane test DB retires the freeze.",
       "done_when": "Each test lane gets an isolated LIVE_PG_DATABASE; the suite composes without a freeze window; the freeze-window gate is retired.",
@@ -8145,6 +8165,10 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (deferred): Deferred. No per-lane database connection was built. No code in app/ or config/ references LIVE_PG_DATABASE. Post-alpha infra change only. Evidence: grep -rn LIVE_PG_DATABASE returns no results anywhere in app/ or config/. No migration or code change in the 97 commits addresses per-lane database wiring. | post-alpha infra; a config change (LivePgConnection already takes a conn name), not a refactor"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. We arent doign lanes anymore. One chat that can internally fan out."
         }
       ]
     },
@@ -9043,10 +9067,10 @@
     {
       "id": "W-0250",
       "title": "Remove or wire dead configuration dials and unreachable code",
-      "phase": "P5",
-      "order": 60,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "config/cga.php:26, 35, 188; app/Models/InstanceSettings.php:32-33; app/Services/InstitutionScaleService.php:221-256; app/Services/Demo/Stages/CohortStage.php:125-158 (low).",
       "done_when": "time_mode, time_scale_seconds_per_year and cga.activate_subtree_batch are wired to a behavior or removed; extraRooms, courtTiers and other dead callers removed or wired; no test regressions.",
@@ -9099,6 +9123,10 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (next): All listed dead dials remain. time_mode is stored but not consumed. extraRooms is defined but never called. courtTiers has no definition in app/. No commit addressed any item. Evidence: time_mode written by SetupController:804 but has no downstream reader outside setup storage. extraRooms defined at InstitutionScaleService.php:219 but grep finds no caller. courtTiers not found in app/ or config/. cga.critical_population_default (config/cga.php:194) and cga.activate_subtree_batch (config/cga.php:35) have no wired consumers. No commit in the leads list removes or wires any of these. | time_mode and seconds per year (no reader); cga.critical_population_default and cga.activate_subtree_batch (no reader); cga.autoscale_adm_max (stamp only); instance_class and population_binding (no writer); courtTiers and extraRooms (no caller); cohort clusters and candidacy priors (never read). Remove or wire each."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. I think the work Codex did motted a lot of this. Close. We can reopen if we notice problems."
         }
       ]
     },
@@ -9167,10 +9195,10 @@
     {
       "id": "W-0252",
       "title": "Pin the boot and simulation jobs in tests",
-      "phase": "P3",
-      "order": 48,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "tests/ (grep, 0 hits); tests/Constitutional/AutoscalePinTest.php:844-852 (medium). Built 2026-09-06 (Wave 6). Pinned now: the mode choices and the wizard state machine (SetupLadderTest), the ledger claim order and reclaim (ProvisionEnginePinTest, live PG), the bench and quorum laws (BenchLawTest). Still unpinned: ActivateSubtreeJob, SubtreeBootLaneJob, FinishActivationsJob, ScheduleFoundingElectionJob, StartSimulationJob, SimulateJurisdictionJob — the boot and simulation jobs (W7 / W11).",
       "done_when": "ActivateSubtreeJob, SubtreeBootLaneJob, FinishActivationsJob, ScheduleFoundingElectionJob, StartSimulationJob and SimulateJurisdictionJob each have a pin test.",
@@ -9211,6 +9239,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Pins the boot/sim jobs after the subtree-boot fix lands."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. mooted. Lots of development took care of this already."
         }
       ]
     },
@@ -9301,10 +9333,10 @@
     {
       "id": "W-0254",
       "title": "Measure clock-sweep timing on the cloud run",
-      "phase": "P3",
-      "order": 53,
+      "phase": "done",
+      "order": null,
       "kind": "ops",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "cloud_box",
       "detail": "routes/console.php:26, 136; app/Jobs/EvaluateClocksJob.php:55-70; config/horizon.php:207-217 (low).",
       "done_when": "Sweep timing is recorded on the cloud run; the operator accepts the result or issues a new ruling.",
@@ -9341,6 +9373,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Deferred measurement of the default-queue sweeps; needs the cloud box on."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. this is excessive and was already done on build up the first time."
         }
       ]
     },
@@ -10154,10 +10190,10 @@
     {
       "id": "W-0279",
       "title": "Run full-planet sim on box E: halt, resume, rollback, lock",
-      "phase": "P3",
-      "order": 50,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "awaiting_go",
+      "status": "moot",
       "blocker": "operator_go",
       "detail": "VERIFIED 2026-09-08 (next): Still not executed. No commit shows a full-planet run with halt, resume, rollback, and lock completed on box E. The sim pipeline code exists but this test has not been run. Evidence: No commit in the 97-commit range records a full-planet sim run with halt, resume, rollback, and lock cycle completion. sim:revert (SimRevertCommand.php) exists. Row 073's OFFSET defect is also not fixed, which is a prerequisite for a clean resume. | Ruled sim-scope B. Measure, do not assume: the serial audit lock is about 28.6 appends per second (app/Services/TabulationRecorder.php:273…",
       "done_when": "A full planet sim run completes; the halt and resume cycle is verified; sim:revert rolls back sim-layer state; the result is locked with zero drift.",
@@ -10190,16 +10226,20 @@
         {
           "date": "2026-09-14",
           "note": "Disposition awaiting_go: Full sim run; needs the sim-start build and the operator's GO."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. Not doing that again."
         }
       ]
     },
     {
       "id": "W-0280",
       "title": "Run the Niue Type B election walk: 10 seats across 5 panels",
-      "phase": "P3",
-      "order": 51,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "awaiting_go",
+      "status": "moot",
       "blocker": "operator_go",
       "detail": "VERIFIED 2026-09-08 (held): Held for the operator's trigger. Fielding pin stands at tests/Constitutional/ElectionStageTest.php:201 (commit 80b5e3a). Precondition is W6 boards and seats. No trigger issued. Evidence: Held for operator trigger. Fielding pin confirmed at tests/Constitutional/ElectionStageTest.php:201. No commit in the 97-commit range shows the operator triggered a live Niue walk. | Held for your trigger: a live Type B election electing 10 seats across 5 panels (tests/Constitutional/ElectionStageTest.php:201, commit 80b5e3a). Precondition: Niue's board and seats from W6. Your stan…",
       "done_when": "The operator triggers; the Niue Type B election runs and elects 10 seats across 5 panels; ElectionStageTest:201 passes.",
@@ -10248,6 +10288,10 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (held): Held for the operator's trigger. Fielding pin stands at tests/Constitutional/ElectionStageTest.php:201. Step 4 complete (commit 586e4e51) satisfies the board-seating precondition. No operator trigger issued. Evidence: Fielding pin confirmed at tests/Constitutional/ElectionStageTest.php:201 (test_a_per_clump_chamber_fields_its_election_end_to_end, commit 80b5e3a). Step 4 closed by commit 586e4e51. No commit since 563c4899 shows an operator trigger for the Niue walk. | VERIFIED 2026-09-05: Held for the operator's trigger. The fielding pin stands: tests/Constitutional/ElectionStageTest.php:201 test_a_per_clump_chamber_fields_its_election_end_to_end (80b5e3a). Box E today: Niue legislature 96268bbf is forming, 11 Type A + 10 Type B seats, one active grouping of 5 panels / 10 seats; 0 elections for it; 0 election boards for Niue (jurisdiction 056fb95c). ElectionStage refuses with no_election_board when the jurisdiction has no active board (app/Services/Demo/Stages/ElectionStage.php:96-109). Precondition before his trigger: a Step 4 lane seats Niue's board (Wave 6 ruling, institution scale-up). | approved + fielding-pinned (80b5e3a); a live Type B election electing 10 seats across 5 panels for the operator's walk — his trigger"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is already handled."
         }
       ]
     },
@@ -10887,10 +10931,10 @@
     {
       "id": "W-0293",
       "title": "Re-grade data-dependent screens after sim data lands",
-      "phase": "P3",
-      "order": 54,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "awaiting_go",
+      "status": "moot",
       "blocker": "operator_go",
       "detail": "VERIFIED 2026-09-08 (next): No re-verification pass has been committed. W7 sim data exists, but this review task has not been executed. Status remains next. Evidence: This is a meta-task pass over data-dependent screens after W7 world build. No commit in the leads list performs or records a re-verification pass. The task remains pending. | After W7 the world holds elections, ballots, members, committees, departments, courts and cases. Re-grade: candidacy, election detail, approval and ranked ballots, results, vacancy countback, department detail and reporting, your courts; Type A and Type B r…",
       "done_when": "All data-dependent screens are re-graded with live sim data and any new gaps are filed.",
@@ -10924,6 +10968,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition awaiting_go: Re-grade blocked until the sim run lands; needs the operator's GO."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. this is excessive and already handled on the fly"
         }
       ]
     },
@@ -11178,10 +11226,10 @@
     {
       "id": "W-0297",
       "title": "Harden federation: page push tail, chunk authority-flip, gate cluster join and leave",
-      "phase": "P4",
-      "order": 56,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (next): Three gaps remain. pushTo sends the full audit tail in one body with no paging (FederationSyncService.php:236). AuthorityFlipService uses whereIn on the full descendant set without chunking, which exceeds the 65,535-parameter limit for large subtrees (AuthorityFlipService.php:81). ClusterJoinCommand and ClusterLeaveCommand have no operator confirmation gate. The prior note's claim that FederationInitCommand skips identity minting and CLK-20 is no longer accurate: ensureIdentity() and CLK-20 arming are in place (FederationInitCommand.php:43,62). Evidence: app/Servic…",
       "done_when": "FederationSyncService::pushTo pages the outbound tail like ColdSyncService so a first push sends one page; AuthorityFlipService and PartitionExportService chunk all whereIn and manifest below the PDO bind limit; cluster join and leave require auth:operator.",
@@ -11312,16 +11360,20 @@
         {
           "date": "2026-09-14",
           "note": "Owner: lane 2"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. I am pretty sure this is handled and your verification is just parroting the 9/8 as evidence."
         }
       ]
     },
     {
       "id": "W-0298",
       "title": "Provision the writable beta and run Steps 5 and 6",
-      "phase": "P3",
-      "order": 55,
+      "phase": "done",
+      "order": null,
       "kind": "ops",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "cloud_box",
       "detail": "UPDATE 2026-09-08: beta.worldofstatecraft.org is LIVE as the writable instance: public TLS, MAS login, rooms and voice (operator in a live call 2026-09-08), a cloud-box test account created. REMAINING: the live-mesh items above (W11 1 to 4); registration policy and the read-only flag confirmed at acceptance; the operator's flagged demo concern (the 30-day residency confirmation) is an open question in the rubric. | VERIFIED 2026-09-08 (next): Commits 080d389c and d9298482 fix Matrix, MAS, and LiveKit secret synchronisation in deploy.sh so a pull plus --public-url lands a working live room. Th…",
       "done_when": "beta.worldofstatecraft.org runs with setup completed through Step 6; registration open; demo mode confirmed; the boot and clock fixes verified on the live box.",
@@ -11356,6 +11408,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: The writable beta; needs the boot fixes and the cloud box. Its done_when also cites W11:3, but only the cluster-join gate is beta-relevant and is already covered by the write-door gating."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. Not releveant to the rubric."
         }
       ]
     },
@@ -11592,10 +11648,10 @@
     {
       "id": "W-0301",
       "title": "Delete the two duplicate legislature rows on box E",
-      "phase": "P5",
-      "order": 69,
+      "phase": "done",
+      "order": null,
       "kind": "ops",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (deferred): The unique index fix landed in 2026_09_06_000001_provision_engine.php:127. The data repair on box E is a one-off not yet done. Operator deferred this until it blocks W6 or W7 testing. Evidence: The code fix (unique index legislatures_live_jurisdiction_uq) landed in migration 2026_09_06_000001_provision_engine.php:127. The data repair (deleting duplicate rows on box E) is a one-off task not addressed in any commit. Operator deferred it until it blocks testing. | Githunguri and Kalmar each hold two identical rows from 2026-08-29 16:05:47. One-off data repair on t…",
       "done_when": "The two duplicate legislature rows (Githunguri, Kalmar) are deleted on box E; the unique index holds.",
@@ -11621,16 +11677,20 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Reconciled work item missing from dispositions; dev-box one-off data repair, the code fix already landed."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. dont worry about this."
         }
       ]
     },
     {
       "id": "W-0302",
       "title": "Redraw the nine box-E maps that hold a zero-seat district",
-      "phase": "P5",
-      "order": 70,
+      "phase": "done",
+      "order": null,
       "kind": "ops",
-      "status": "open",
+      "status": "moot",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (deferred): The zero-bin rule fix is in DistrictingService.php:2463. Fresh builds no longer produce zero-seat districts. The data repair for the 9 existing maps on box E is still a one-off. Operator deferred it. Evidence: The rule fix (zero-bin, DistrictingService.php:2463) prevents zero-seat districts in fresh builds. The data repair for the 9 existing maps on box E is a one-off not addressed in any commit. No operator ruling lifted the deferral. | One-off after the W6 rule fix; a fresh build never produces them once the rule changes.",
       "done_when": "The nine active box-E maps that hold a zero-seat district are redrawn with no zero-seat district.",
@@ -11656,6 +11716,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Reconciled work item missing from dispositions; dev-box one-off, the zero-bin rule fix already landed."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. Dont worry about this."
         }
       ]
     },
@@ -12499,10 +12563,10 @@
     {
       "id": "W-0330",
       "title": "Arm the game box with education:seed on operator trigger",
-      "phase": "P3",
-      "order": 49,
+      "phase": "done",
+      "order": null,
       "kind": "ops",
-      "status": "awaiting_go",
+      "status": "moot",
       "blocker": "operator_go",
       "detail": "VERIFIED 2026-09-08 (held): Held for the operator's trigger. The education:seed command is built at app/Console/Commands/EducationSeedCommand.php:41. No trigger was issued in the commits since 563c4899. Evidence: app/Console/Commands/EducationSeedCommand.php:41 confirms education:seed exists with --force and --no-pretrain options. No commit in the 97-commit range shows the operator triggered arming on the game box. | pre-train arming is built (seeders file F-EDU-001, then education:seed); seeds the training gate on the game box when the operator is ready to walk. Do NOT seed the dev box",
       "done_when": "On the operator's trigger, education:seed arms the training gate on the game/beta box; the dev box is not seeded.",
@@ -12528,6 +12592,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition awaiting_go: Reconciled work item missing from dispositions; distinct from the P1 demo-box catalog seed (different box; do not seed the dev box)."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. This is moot. Education was already built and solidified by codex."
         }
       ]
     },
@@ -13071,7 +13139,7 @@
       "phase": "P4",
       "order": 59,
       "kind": "verify",
-      "status": "blocked",
+      "status": "deferred",
       "blocker": "linux_host",
       "detail": "Two-node volunteer admission/replication Dependency: Distinct app/signing identities, small isolated app/PostGIS fixtures, queues/caches/endpoints; M3/M5/M6",
       "done_when": "A keyed join is accepted; signed foundation and audit transfer complete; authority is preserved on the origin; tampered pages are refused; disconnect resumes membership with no duplicate identities.",
@@ -13104,6 +13172,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Two-node join verify; depends on the federation hardening and needs two hosts."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set deferred. We will readdress on actual mesh joining."
         }
       ]
     },
@@ -13152,10 +13224,10 @@
     {
       "id": "W-0347",
       "title": "Measure provisioning and sim performance on a disposable host",
-      "phase": "P4",
-      "order": 58,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "blocked",
+      "status": "moot",
       "blocker": "linux_host",
       "detail": "Geodata, maps, provisioning, simulation and progress Dependency: Deterministic small fixtures, then larger disposable-host fixtures; bounded stage/item timers",
       "done_when": "Cold preparation, partial resume and geometry reuse are measured on deterministic fixtures; peak memory, statement duration, throughput and progress-poller latency are recorded on a larger disposable host; correctness and apportionment preserved.",
@@ -13186,6 +13258,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition blocked: Scale measurement under the ETL paradigm; needs a larger disposable host."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set moot. this is excessive. We already do this on the linux boxes that can self resize."
         }
       ]
     },
