@@ -82,7 +82,7 @@ class ClockService
         // then re-arm for the next interval (recurring; armed by
         // federation:init). No-op when federation is disabled.
         'CLK-20' => \App\Jobs\Federation\FederationHeartbeatJob::class,
-        // CLK-22 — Civic Stipend Period (W-0201): on fire, run the chunked
+        // CLK-22, Civic Stipend Period (W-0201): on fire, run the chunked
         // resumable standalone stipend pass (F-TRE-004 through the shared
         // StipendService), then re-arm the next period. Armed on treasury
         // mint; re-derived when stipend_period_days changes.

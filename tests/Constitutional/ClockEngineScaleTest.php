@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
- * PIN — W-0187 clock engine at planet scale.
+ * PIN, W-0187 clock engine at planet scale.
  *
  * The clock sweep and the standings rollups must scale under the ETL rule,
  * and a newly seated chamber must carry its meeting clock. This pins:
@@ -36,7 +36,7 @@ use Tests\TestCase;
  *  3. CLK-02 arms at SEATING, not only after the first adjournment, so the
  *     90-day meeting ceiling binds a chamber that has never met.
  *
- * If an edit breaks these, the edit is the violation — fix the edit.
+ * If an edit breaks these, the edit is the violation, fix the edit.
  */
 class ClockEngineScaleTest extends TestCase
 {

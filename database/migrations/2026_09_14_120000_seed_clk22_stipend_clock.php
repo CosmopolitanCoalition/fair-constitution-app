@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\DB;
  * W-0201: register CLK-22 (Civic Stipend Period) so the standalone civic
  * stipend has a clock to arm and fire from.
  *
- * The clock registry is DEFINITION data — the same rows on every instance,
- * changed only by shipping code — so a migration is its home, exactly like
+ * The clock registry is DEFINITION data, the same rows on every instance,
+ * changed only by shipping code, so a migration is its home, exactly like
  * 2026_08_08_220000_seed_clock_registry. Additive and idempotent: it upserts
  * the single new row on the string PK, touching no armed clock_timers and no
  * existing definitions.

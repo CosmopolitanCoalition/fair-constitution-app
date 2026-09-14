@@ -563,7 +563,7 @@ class SessionService
      * within max_days_between_meetings of being seated, so the 90-day clock
      * starts at certification, not only after the first adjournment. This
      * arms next_meeting_due_by from the seating moment WITHOUT stamping
-     * last_met_on — the chamber has not met yet. Idempotent: a chamber that
+     * last_met_on, the chamber has not met yet. Idempotent: a chamber that
      * already carries an armed CLK-02 (re-certification, or a chamber that
      * has since met) is left untouched.
      */

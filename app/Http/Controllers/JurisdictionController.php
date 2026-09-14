@@ -1088,7 +1088,7 @@ class JurisdictionController extends Controller
     }
 
     /**
-     * POST /api/jurisdictions/{jurisdiction}/reset-subtree-boot — the boot
+     * POST /api/jurisdictions/{jurisdiction}/reset-subtree-boot, the boot
      * escape hatch (W-0253). It SEIZES: it clears the pile and the progress
      * cache regardless of any stuck or running lane, so a wedged boot never
      * blocks a fresh one. Operator-only.

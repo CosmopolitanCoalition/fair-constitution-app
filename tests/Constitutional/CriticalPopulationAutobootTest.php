@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
- * PIN — W-0296 population-mode autoboot (operator ruling A, 2026-09-14).
+ * PIN, W-0296 population-mode autoboot (operator ruling A, 2026-09-14).
  *
  * A CLK-06 critical-population crossing must BOOT the place. Before the fix
  * onCriticalPopulation() wrote the crossing state and stopped, so a place
@@ -30,7 +30,7 @@ use Tests\TestCase;
  *   - a real crossing calls activate() once, scheduleElection true;
  *   - a repeat crossing (already past boundary_loaded) boots nothing.
  *
- * If an edit breaks these, the edit is the violation — fix the edit.
+ * If an edit breaks these, the edit is the violation, fix the edit.
  */
 class CriticalPopulationAutobootTest extends TestCase
 {

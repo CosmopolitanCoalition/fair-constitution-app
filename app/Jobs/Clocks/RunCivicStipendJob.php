@@ -15,12 +15,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * CLK-22 — the STANDALONE civic stipend pass (W-0201, F-TRE-004).
+ * CLK-22, the STANDALONE civic stipend pass (W-0201, F-TRE-004).
  *
  * Fired by the clock engine when the stipend period lapses. It runs the same
  * per-account credit the simulation runs, through the SAME service
- * (SimEconomyService::runStipendFor → StipendService::run) — never a parallel
- * write path — then re-arms CLK-22 for the next period.
+ * (SimEconomyService::runStipendFor → StipendService::run), never a parallel
+ * write path, then re-arms CLK-22 for the next period.
  *
  * KEYSET-CHUNKED, RESUMABLE, HOST-SIZED (THE ETL RULE). The roster is the
  * jurisdictions where active residents actually exist (bound the INPUT, not a
@@ -106,7 +106,7 @@ class RunCivicStipendJob implements ShouldQueue
             ->exists();
 
         if ($alreadyPaid) {
-            return false; // one run per period — never double-pay
+            return false; // one run per period. never double-pay
         }
 
         $result = app(SimEconomyService::class)->runStipendFor($jurisdictionId);

@@ -6300,10 +6300,10 @@
     {
       "id": "W-0187",
       "title": "Scale the clock engine: chunk all sweeps and rollups, arm CLK-02 at seating",
-      "phase": "P3",
-      "order": 39,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "blocker: VERIFIED 2026-09-14 (partial): EvaluateClocksJob unchanged. 500-timer/sweep cap still limits a 940k-chamber pass to ~31 hours. EvaluateResidencyThresholdsJob still unbounded cursor with tries=1. | VERIFIED 2026-09-08 (partial): EvaluateClocksJob fires at most 500 due timers per minute (MAX_FIRES_PER_SWEEP line 40). EvaluateResidencyThresholdsJob uses an unbounded cursor with tries=1. EvaluateCriticalPopulationJob is keyset chunked (CHUNK=5000). Planet-scale throughput for the deadline-fire path and the residency sweep remain insufficient. Evidence: EvaluateClocksJob.php: MAX_FIRES_PE…",
       "done_when": "EvaluateClocksJob throughput drains 940k due timers within its window and CLK-01 fires across all chambers; EvaluateResidencyThresholdsJob and both standings rollup jobs are keyset-chunked, committed per chunk and resumable; ElectionResultsCertification arms CLK-02 at seating.",
@@ -6444,6 +6444,10 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (next): CLK-01 and CLK-02 jobs are built. RankedStandingsRollupJob uses cursor() over all ranked_open elections in one pass (RankedStandingsRollupJob.php:58), which is not restartable if killed mid-run at scale. Planet-scale sizing for residency, critical-population, and petition sweeps and the nightly world-stats job has not been measured or verified. This item remains open pending the operator's measure-first ruling (default-queue-sweeps C). Evidence: app/Jobs/Clocks/AdvanceElectionPhaseJob.php (CLK-01) and app/Jobs/Clocks/MeetingDeadlineJob.php (CLK-02) exist. app/Jobs/Elections/RankedStandingsRollupJob.php:58-60: uses cursor() over all ranked_open elections in one job invocation; not restartable mid-run. Planet-scale sweep sizing and the nightly world-stats job are not verified as chunked and resumable for 940,327 jurisdictions. No operator action recorded in commits since 563c4899 to close this item. | CLK-01 general-election timers armed and fired at scale (500 fires per minute today); CLK-02 meeting deadline armed at seating; the residency, critical-population and petition sweeps and the nightly world stats sized for 940,327 jurisdictions (ruled default-queue-sweeps C: measure first, then act on evidence); standings rollups chunked and resumable (RankedStandingsRollupJob cursors every ranked_open election in one job)."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the clocks lane, commit bc5b0dc6, merged 49ccda01. EvaluateClocksJob drains a host-derived budget in keyset chunks; approval and ranked rollups and the residency sweep are keyset, per-chunk committed, resumable; CLK-02 arms at seating from CertificationService. Pinned by ClockEngineScaleTest (7). A live 940k timing run is operator-triggered and not run."
         }
       ]
     },
@@ -6909,10 +6913,10 @@
     {
       "id": "W-0201",
       "title": "Arm a clock to fire the standalone stipend pass in bounded chunks",
-      "phase": "P3",
-      "order": 40,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "blocker: VERIFIED 2026-09-14 (partial): Stipend runs inside the sim via StipendStage. No clock arms the standalone stipend path. The treasury page shows a next-run date without an actual clock trigger. Gap stands. | VERIFIED 2026-09-08 (partial): The sim runs the stipend per jurisdiction as a bounded chunk via StipendStage (commit e5dd8999) and the pump makes it resumable. The standalone StipendService.run() executes in one transaction bounded to STIPEND_SAMPLE recipients per place. No schedule or clock entry fires the stipend outside the sim. The treasury page shows a next_run_estimate but n…",
       "done_when": "A clock or scheduler entry fires the stipend pass periodically in bounded chunks; the treasury next_run_estimate reflects the actual next fire time.",
@@ -6947,6 +6951,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Distinct clock-arming for the stipend pass."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the clocks lane, commit bc5b0dc6, merged 49ccda01. CLK-22 Civic Stipend Period registered (handler RunCivicStipendJob, seeder, migration 2026_09_14_120000 applied on box E, 22 clocks), armed at mint, fired in keyset chunks, re-armed each period; treasury next_run reads the armed timer. Pinned by CivicStipendClockTest (10). Clocks lane tests on main: 42 tests, 245 assertions."
         }
       ]
     },
@@ -9317,10 +9325,10 @@
     {
       "id": "W-0253",
       "title": "Fix subtree boot: depth barrier, stuck lanes, reset control, queue, dispatch",
-      "phase": "P3",
-      "order": 37,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "app/Jobs/ActivateSubtreeJob.php:62-93; app/Jobs/SubtreeBootLaneJob.php:33, 57-78, 114-127; app/Jobs/FinishActivationsJob.php:37-56; app/Http/Controllers/JurisdictionController.php:949-1028 (medium).",
       "done_when": "The depth-barrier MIN scan excludes rows at max attempts; lanes expand past one after the root wave; a reset control releases stuck lanes; FinishActivationsJob routes off the default queue and honors simulate mode; activate runs async from the request path.",
@@ -9395,6 +9403,10 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (next): Three gaps confirmed in code. Lanes collapse to one after the root wave because N-1 lanes find no pending item at depth 0 and exit without redispatching (SubtreeBootLaneJob.php:134). A running row at attempts=3 cannot be reclaimed and pins the depth barrier forever (line 70-77). FinishActivationsJob always fires elections regardless of instance_scale_mode (FinishActivationsJob.php:54). No reset control and no demand-priority path exist for the subtree boot queue. Evidence: app/Jobs/SubtreeBootLaneJob.php:59-88: the claim query gates on attempts < MAX_ATTEMPTS (3). A row stuck in 'running' at attempts=3 stays open indefinitely and blocks depth-wave advancement. The depth barrier query (line 70) counts 'running' rows. app/Jobs/FinishActivationsJob.php:54: always calls jurisdiction:activate without --no-election, ignoring instance_scale_mode. app/Jobs/ActivateSubtreeJob.php:87-93: dispatches host-derived lanes, but only 1 item exists at depth 0 (root), so N-1 lanes exit after finding no claimable work. No reset endpoint found. AutoscaleClaims demand priority (app/Support/AutoscaleClaims.php:89-99) applies to districting only. | Lanes collapse to one after the root wave; a three-strike running row pins the depth barrier; no reset control; FinishActivationsJob schedules elections in every mode on the default queue; the enumeration and the single Activate run inline in the request (app/Jobs/ActivateSubtreeJob.php:62-93; SubtreeBootLaneJob.php:33, 57-78, 114-127; FinishActivationsJob.php:37-56; JurisdictionController.php:949-1028). Demand priority (ruled) does not exist."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the clocks lane, commit bc5b0dc6, merged 49ccda01. SubtreeBootService: per-parent readiness claim excluding max-attempt rows, stuck-row reclaim, lanes re-dispatch while work is open, reset seizes, POST reset-subtree-boot, both coordinators off the default queue, FinishActivationsJob honours the mode. Pinned by SubtreeBootRecoveryTest (6)."
         }
       ]
     },
@@ -11266,10 +11278,10 @@
     {
       "id": "W-0296",
       "title": "Boot a place on CLK-06 population crossing by calling activate()",
-      "phase": "P3",
-      "order": 38,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (next): EvaluateCriticalPopulationJob calls onCriticalPopulation (app/Services/ActivationService.php:260-305), which records the crossing and writes an audit row only. Nothing dispatches activate() from the sweep. The founding election, bootstrap board, and seat mint do not follow automatically. Close the loop: activate() must be called on the crossing. Evidence: app/Jobs/Clocks/EvaluateCriticalPopulationJob.php:61-126: the job calls ActivationService::onCriticalPopulation(), which writes the critical_population state and an audit row but never calls activate(). Activation…",
       "done_when": "onCriticalPopulation() calls activate() after writing the crossing; a population threshold crossing boots seats, board and founding election without manual intervention.",
@@ -11348,6 +11360,10 @@
         {
           "date": "2026-09-14",
           "note": "Owner: lane 3"
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the clocks lane, commit bc5b0dc6, merged 49ccda01. onCriticalPopulation writes the crossing then calls activate(scheduleElection true) once. Pinned by CriticalPopulationAutobootTest (3)."
         }
       ]
     },
@@ -16559,6 +16575,44 @@
       "evidence": [],
       "history": [
         "Opened 2026-09-14 by the desk after the siminst lane reported the failure; reproduced on main 778eeb57."
+      ]
+    },
+    {
+      "id": "W-0435",
+      "title": "Fix ReferendumShieldTest: the shielded-act refusal no longer cites Art. II §6",
+      "phase": "P1",
+      "order": 71,
+      "kind": "debt",
+      "status": "open",
+      "blocker": "",
+      "detail": "tests/Constitutional/ReferendumShieldTest.php:197 (test_shielded_act_rejects_modification_until_the_shield_election_certifies) expects the refusal reason Art. II §6 and receives GOVERNING EFFECTIVELY (ruling A5) · as implemented. Reproduced on main 49ccda01: Tests 1, Assertions 1, Failures 1. Either the modification is now refused for a different reason before the shield check runs (a behaviour change to confirm against ruling A5) or only the message changed. Pre-existing before the 2026-09-14 lanes; first seen by the clocks lane.",
+      "done_when": "ReferendumShieldTest passes on main. The shield refusal for a modification during the shield window cites Art. II §6, or the test is corrected to the ruled refusal with the ruling cited and the shield behaviour itself is shown still enforced by a passing assertion.",
+      "depends_on": [],
+      "sources": [
+        "desk: clocks lane report 2026-09-14"
+      ],
+      "evidence": [],
+      "history": [
+        "Opened 2026-09-14 by the desk after the clocks lane reported the failure; reproduced on main 49ccda01."
+      ]
+    },
+    {
+      "id": "W-0436",
+      "title": "Fix JurisdictionActivateParityTest: the dev-gate pin matches activate-legislature instead of the dev activate route",
+      "phase": "P5",
+      "order": 72,
+      "kind": "debt",
+      "status": "open",
+      "blocker": "",
+      "detail": "tests/Constitutional/JurisdictionActivateParityTest.php:43 (test_the_web_activate_door_is_dev_gated) asserts DevToolsEnabled on the first route whose URI contains jurisdictions/{jurisdiction}/activate. The first match is api/jurisdictions/{jurisdiction}/activate-legislature (routes/web.php:473, not dev-gated), not the dev activate route. Reproduced on main 49ccda01: Tests 1, Assertions 2, Failures 1. Pre-existing; first seen by the clocks lane safety reviewer.",
+      "done_when": "JurisdictionActivateParityTest passes on main: the pin matches the exact dev activate URI, and a separate assertion states the intended gate of activate-legislature (dev-gated or operator-gated) so the collision cannot recur.",
+      "depends_on": [],
+      "sources": [
+        "desk: clocks lane safety review 2026-09-14"
+      ],
+      "evidence": [],
+      "history": [
+        "Opened 2026-09-14 by the desk after the clocks lane reported the failure; reproduced on main 49ccda01."
       ]
     }
   ]

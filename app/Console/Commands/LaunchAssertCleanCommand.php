@@ -225,7 +225,7 @@ class LaunchAssertCleanCommand extends Command
                 "The constitutional clock registry holds {$count} clocks, expected 22.",
                 $count === 0
                     ? 'Run: php artisan db:seed --class=ClockRegistrySeeder --force'
-                    : 'The registry has drifted from CLK-01…CLK-22 — investigate before launch.'
+                    : 'The registry has drifted from CLK-01…CLK-22. Investigate before launch.'
             );
         }
     }

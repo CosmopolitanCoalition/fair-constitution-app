@@ -9,7 +9,7 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 
 /**
- * W-0201 — the clock that drives the STANDALONE civic stipend.
+ * W-0201, the clock that drives the STANDALONE civic stipend.
  *
  * The stipend already runs inside the simulation (StipendStage). This arms a
  * real CLK-22 timer for the root so the stipend also runs on its own period
@@ -20,7 +20,7 @@ use Carbon\CarbonInterface;
  * The period resolves from stipend_period_days through ClockService (registry
  * default 30). CLK-22 carries a derive payload with unit 'days', so a
  * stipend_period_days change re-derives the armed timer through the existing
- * ClockRederivationService path — no second owner of the deadline.
+ * ClockRederivationService path, no second owner of the deadline.
  *
  * Root-scoped: ONE armed CLK-22 per world. Arming is idempotent (a world that
  * already carries an armed CLK-22 is left alone); reArm() cancels and arms a
@@ -82,7 +82,7 @@ class StipendClockService
         }
 
         if ($this->armedTimer($rootId) !== null) {
-            return null; // already armed — idempotent
+            return null; // already armed. idempotent
         }
 
         return $this->arm($rootId, $from);
@@ -105,7 +105,7 @@ class StipendClockService
             ->where('subject_type', 'jurisdiction')
             ->where('subject_id', $rootId)
             ->get() as $stale) {
-            $this->clocks->cancel($stale, 'stipend period rolled — CLK-22 re-armed');
+            $this->clocks->cancel($stale, 'stipend period rolled. CLK-22 re-armed');
         }
 
         return $this->arm($rootId, $from);
@@ -115,7 +115,7 @@ class StipendClockService
     private function arm(string $rootId, ?CarbonInterface $from): ?ClockTimer
     {
         // The registry row must exist first. A box that has not yet applied
-        // the CLK-22 seed migration arms nothing rather than throwing —
+        // the CLK-22 seed migration arms nothing rather than throwing -
         // self-healing once the migration lands.
         if (! \App\Models\Clock::query()->whereKey('CLK-22')->exists()) {
             return null;

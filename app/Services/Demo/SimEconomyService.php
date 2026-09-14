@@ -115,7 +115,7 @@ class SimEconomyService
 
         // W-0201: the treasury is minted, so arm the standalone stipend clock
         // (CLK-22) once for the root. Idempotent, and a no-op before the
-        // registry migration lands — never breaks the money plane.
+        // registry migration lands, never breaks the money plane.
         try {
             app(\App\Services\Economy\StipendClockService::class)->armForRoot();
         } catch (\Throwable $e) {

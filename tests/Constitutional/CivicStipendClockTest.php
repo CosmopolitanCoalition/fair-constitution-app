@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
- * PIN — W-0201 civic stipend clock (CLK-22).
+ * PIN, W-0201 civic stipend clock (CLK-22).
  *
  * The stipend runs inside the simulation. Outside a sim nothing fired it, so
  * the treasury page showed a next-run date with no clock behind it. CLK-22 is
@@ -24,7 +24,7 @@ use Tests\TestCase;
  *
  * A named sqlite fixture drives the arming and the chunked roster; the
  * registry route is a source-level pin. If an edit breaks these, the edit is
- * the violation — fix the edit.
+ * the violation, fix the edit.
  */
 class CivicStipendClockTest extends TestCase
 {

@@ -383,6 +383,30 @@
    "note": "Built by the reads lane, commit f8110d93, merged c3efbb88. DemoSessionBanner in AppShellV2 on scale_demo instances; DemoSessionService::void holds the SimPumpCommand exec lock while it reverses. Pinned by demoSessionBanner.test.mjs (4) and DemoVoidPumpPauseTest. Reads lane tests on main: 81 PHP tests green (12 live-pg skips).",
    "date": "2026-09-14",
    "title": "Complete demo mode: add session-scoped banner and a pump-pause path"
+  },
+  "W-0253": {
+   "status": "done",
+   "note": "Built by the clocks lane, commit bc5b0dc6, merged 49ccda01. SubtreeBootService: per-parent readiness claim excluding max-attempt rows, stuck-row reclaim, lanes re-dispatch while work is open, reset seizes, POST reset-subtree-boot, both coordinators off the default queue, FinishActivationsJob honours the mode. Pinned by SubtreeBootRecoveryTest (6).",
+   "date": "2026-09-14",
+   "title": "Fix subtree boot: depth barrier, stuck lanes, reset control, queue, dispatch"
+  },
+  "W-0296": {
+   "status": "done",
+   "note": "Built by the clocks lane, commit bc5b0dc6, merged 49ccda01. onCriticalPopulation writes the crossing then calls activate(scheduleElection true) once. Pinned by CriticalPopulationAutobootTest (3).",
+   "date": "2026-09-14",
+   "title": "Boot a place on CLK-06 population crossing by calling activate()"
+  },
+  "W-0187": {
+   "status": "done",
+   "note": "Built by the clocks lane, commit bc5b0dc6, merged 49ccda01. EvaluateClocksJob drains a host-derived budget in keyset chunks; approval and ranked rollups and the residency sweep are keyset, per-chunk committed, resumable; CLK-02 arms at seating from CertificationService. Pinned by ClockEngineScaleTest (7). A live 940k timing run is operator-triggered and not run.",
+   "date": "2026-09-14",
+   "title": "Scale the clock engine: chunk all sweeps and rollups, arm CLK-02 at seating"
+  },
+  "W-0201": {
+   "status": "done",
+   "note": "Built by the clocks lane, commit bc5b0dc6, merged 49ccda01. CLK-22 Civic Stipend Period registered (handler RunCivicStipendJob, seeder, migration 2026_09_14_120000 applied on box E, 22 clocks), armed at mint, fired in keyset chunks, re-armed each period; treasury next_run reads the armed timer. Pinned by CivicStipendClockTest (10). Clocks lane tests on main: 42 tests, 245 assertions.",
+   "date": "2026-09-14",
+   "title": "Arm a clock to fire the standalone stipend pass in bounded chunks"
   }
  }
 }

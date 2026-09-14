@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
- * PIN — W-0253 subtree-boot recovery.
+ * PIN, W-0253 subtree-boot recovery.
  *
  * The multi-lane subtree boot had three defects. This pins the fixes in
  * SubtreeBootService and the two coordinator jobs:
@@ -30,7 +30,7 @@ use Tests\TestCase;
  * off the default queue, and the finish honours the scale mode.
  *
  * A NAMED sqlite fixture (never the live world). If an edit breaks these,
- * the edit is the violation — fix the edit.
+ * the edit is the violation, fix the edit.
  */
 class SubtreeBootRecoveryTest extends TestCase
 {
@@ -146,7 +146,7 @@ class SubtreeBootRecoveryTest extends TestCase
         $this->item($childA, 1, 'pending');
         $this->item($childB, 1, 'pending');
 
-        // While the root is pending, only the root is claimable — a child
+        // While the root is pending, only the root is claimable, a child
         // never boots before its parent.
         $first = $this->pile->claim(self::ROOT);
         $this->assertNotNull($first);
@@ -164,7 +164,7 @@ class SubtreeBootRecoveryTest extends TestCase
         $this->assertNotNull($claimB);
         $ids = [$claimA->jurisdiction_id, $claimB->jurisdiction_id];
         sort($ids);
-        $this->assertSame([$childA, $childB], $ids, 'both ready siblings open at once — lanes do not collapse to one');
+        $this->assertSame([$childA, $childB], $ids, 'both ready siblings open at once. lanes do not collapse to one');
     }
 
     public function test_reset_seizes_the_pile_and_clears_progress_even_with_a_running_row(): void

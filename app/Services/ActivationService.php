@@ -256,7 +256,7 @@ class ActivationService
      * CLK-06 crossing: upsert the activation row → critical_population, then
      * BOOT the place.
      *
-     * Idempotent — a row already past boundary_loaded is returned untouched
+     * Idempotent, a row already past boundary_loaded is returned untouched
      * (re-runs never double-fire).
      *
      * POPULATION-MODE AUTOBOOT (operator ruling A, 2026-09-14). The crossing
@@ -316,7 +316,7 @@ class ActivationService
 
         // Only a real crossing boots. A repeat crossing returns above with
         // $crossed false, so the place is never booted twice. The boot runs
-        // OUTSIDE the state transaction — activate() opens its own
+        // OUTSIDE the state transaction, activate() opens its own
         // transactions and shells out to apportionment:seed. One failed boot
         // is logged and never aborts the caller's sweep (the ETL
         // all-or-nothing law); jurisdiction:activate heals a stuck place.

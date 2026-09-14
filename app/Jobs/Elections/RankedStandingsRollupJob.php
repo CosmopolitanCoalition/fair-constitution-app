@@ -106,13 +106,13 @@ class RankedStandingsRollupJob implements ShouldQueue
             $aggregate = $projection->computeForRace($race);
 
             if ($aggregate === null) {
-                continue; // no ballots yet — leave the card null
+                continue; // no ballots yet. leave the card null
             }
 
             Cache::put(self::CACHE_PREFIX.$race->id, $aggregate, self::TTL_SECONDS);
 
             // Counts-only audit parity (mirrors ApprovalService standings.rolled):
-            // candidacy ids + a counts hash only — no voter linkage ever leaves.
+            // candidacy ids + a counts hash only, no voter linkage ever leaves.
             $audit->append(
                 module: 'elections',
                 event: 'ranked_standings.rolled',
