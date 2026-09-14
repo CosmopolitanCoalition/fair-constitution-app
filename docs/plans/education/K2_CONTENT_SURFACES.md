@@ -763,6 +763,7 @@ every other company.
 | 1 | See its charter | Created by an act of a legislature, to serve a public purpose. | F-LEG-019 |
 | 2 | **Read its intellectual property register** | Everything a CGC creates — patents, trade secrets, copyrighted works — is **universally and eternally in the public domain**. | Art. III §5 |
 | 3 | Note what cannot happen | That status is permanent. It cannot be sold, licensed away, or reversed by any later act. | Art. III §5 |
+| 4 | As a principal of the overseeing executive, request a governor's removal | A seated principal of the overseeing executive files the grounds; the creating legislature decides by an ordinary majority of all serving members. Removal is hiring and firing, never the supermajority machinery. | F-EXE-003 · Art. III §5 |
 
 > **The why:** this is the sharpest single clause in the constitution. A public-purpose company's
 > work belongs to everyone, forever, with no mechanism anywhere to privatise it.

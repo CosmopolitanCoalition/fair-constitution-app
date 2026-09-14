@@ -213,6 +213,9 @@ class WorkerRepresentationTest extends TestCase
                 'Http/Controllers/Executive/ExecutiveController.php',
                 'Http/Controllers/Organizations/CoDeterminationController.php',
                 'Http/Controllers/Organizations/OrganizationController.php',
+                // The bounded organization directory (Codex, 2026-09-12) serializes
+                // the same board snapshot for its listing rows: a display READ.
+                'Support/OrganizationDirectory.php',
             ]
         );
 

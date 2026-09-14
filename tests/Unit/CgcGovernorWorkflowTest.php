@@ -566,6 +566,158 @@ final class CgcGovernorWorkflowTest extends TestCase
         self::assertSame(0, ChamberVote::count());
     }
 
+    // =========================================================================
+    // IO-7 — CGC governor removal through the overseeing executive and the
+    // creating legislature (operator ruling 2026-09-13 · shape A). F-EXE-003
+    // is reused with owner-neutral routing; the vote stays procedural_motion
+    // (ordinary majority of all serving), and it opens in the CGC's
+    // created_by_legislature_id — never the first chamber of the jurisdiction.
+    // =========================================================================
+
+    public function test_overseeing_executive_removes_a_cgc_governor_through_the_creating_legislature(): void
+    {
+        $nomination = $this->seatGovernor();
+        self::assertSame('seated', BoardSeat::findOrFail($nomination['seat_id'])->status);
+        $term = Term::findOrFail(Appointment::findOrFail($nomination['appointment_id'])->term_id);
+        $chair = ChamberVote::where('vote_type', 'board_chair_elect')->sole();
+        $seatCount = BoardSeat::count();
+
+        // The overseeing executive's seated principal (user 100 on executive 5)
+        // files; the vote opens in the CREATING legislature (id 4), proving the
+        // first-by-jurisdiction chamber (id 3) is not used.
+        $removal = $this->fileRemoval(100, $nomination['seat_id']);
+        $vote = ChamberVote::findOrFail($removal['vote_id']);
+        self::assertSame($this->id(4), $vote->body_id);
+        self::assertNotSame($this->id(3), $vote->body_id);
+        self::assertSame('procedural_motion', $vote->vote_type);
+        self::assertSame(3, $vote->serving_snapshot);
+        self::assertSame(2, $vote->tallies->sole()->required_yes);
+        self::assertSame('removal_requested', BoardSeat::findOrFail($nomination['seat_id'])->status);
+
+        // Ordinary majority of all serving carries it.
+        $this->vote($vote, ['yes', 'yes', 'no']);
+        self::assertSame('adopted', $vote->refresh()->outcome);
+        self::assertSame('removed', BoardSeat::findOrFail($nomination['seat_id'])->status);
+        self::assertSame('removed', $term->refresh()->status);
+        self::assertSame('removed', GovernorRemovalRequest::findOrFail($removal['request_id'])->outcome);
+
+        // A vacant governor seat reopens on the SAME board; no other board touched.
+        self::assertSame($seatCount + 1, BoardSeat::count());
+        $vacant = BoardSeat::where('status', 'vacant')->where('seat_class', 'governor')->sole();
+        self::assertSame($this->id(6), $vacant->board_id);
+
+        // CLK-09 is cancelled; onCompositionChange voids the open chair ballot.
+        self::assertSame(0, ClockTimer::where('state', 'armed')->count());
+        self::assertSame('void', $chair->refresh()->status);
+        self::assertSame(0, PublicRecord::whereNull('audit_seq')->count());
+    }
+
+    public function test_a_failed_removal_vote_restores_the_seat_and_creates_no_vacancy(): void
+    {
+        $nomination = $this->seatGovernor();
+        $seatCount = BoardSeat::count();
+        $removal = $this->fileRemoval(100, $nomination['seat_id']);
+        $vote = ChamberVote::findOrFail($removal['vote_id']);
+        $this->vote($vote, ['no', 'no', 'yes']);
+        self::assertSame('failed', $vote->refresh()->outcome);
+        self::assertSame('seated', BoardSeat::findOrFail($nomination['seat_id'])->status);
+        self::assertSame('retained', GovernorRemovalRequest::findOrFail($removal['request_id'])->outcome);
+        self::assertSame($seatCount, BoardSeat::count());
+        self::assertSame('active', Term::sole()->status);
+    }
+
+    public function test_only_a_seated_principal_of_the_overseeing_executive_may_file_and_refusals_write_nothing(): void
+    {
+        $nomination = $this->seatGovernor();
+        $records = PublicRecord::count();
+        $votes = ChamberVote::count();
+
+        // A seated principal of a DIFFERENT executive.
+        Executive::create(['id' => $this->id(80), 'jurisdiction_id' => $this->id(2), 'status' => 'delegated', 'type' => 'committee']);
+        (new User)->forceFill(['id' => $this->id(90), 'name' => 'Other principal'])->save();
+        ExecutiveMember::create(['id' => $this->id(81), 'executive_id' => $this->id(80), 'user_id' => $this->id(90), 'status' => 'seated', 'role' => 'principal']);
+        $this->refused(fn () => $this->fileRemoval(90, $nomination['seat_id']));
+
+        // A seated ADVISOR of the overseeing executive (member, not principal).
+        (new User)->forceFill(['id' => $this->id(93), 'name' => 'Advisor'])->save();
+        ExecutiveMember::create(['id' => $this->id(92), 'executive_id' => $this->id(5), 'user_id' => $this->id(93), 'status' => 'seated', 'role' => 'advisor']);
+        $this->refused(fn () => $this->fileRemoval(93, $nomination['seat_id']));
+
+        // A person seated on no executive at all.
+        (new User)->forceFill(['id' => $this->id(94), 'name' => 'Bystander'])->save();
+        $this->refused(fn () => $this->fileRemoval(94, $nomination['seat_id']));
+
+        self::assertSame(0, GovernorRemovalRequest::count());
+        self::assertSame($votes, ChamberVote::count());
+        self::assertSame($records, PublicRecord::count());
+        self::assertSame('seated', BoardSeat::findOrFail($nomination['seat_id'])->status);
+    }
+
+    public function test_a_vacant_or_already_pending_governor_seat_refuses(): void
+    {
+        // The governor seat is vacant before any seating.
+        $this->refused(fn () => $this->fileRemoval(100, $this->id(7)));
+        self::assertSame(0, GovernorRemovalRequest::count());
+
+        $nomination = $this->seatGovernor();
+        $this->fileRemoval(100, $nomination['seat_id']);
+        self::assertSame(1, GovernorRemovalRequest::count());
+        self::assertSame('removal_requested', BoardSeat::findOrFail($nomination['seat_id'])->status);
+
+        // A second filing against the same seat, now under removal, refuses.
+        $this->refused(fn () => $this->fileRemoval(100, $nomination['seat_id']));
+        self::assertSame(1, GovernorRemovalRequest::count());
+    }
+
+    public function test_a_stale_removal_outcome_after_expiry_revives_no_seat_and_touches_nothing(): void
+    {
+        $nomination = $this->seatGovernor();
+        $removal = $this->fileRemoval(100, $nomination['seat_id']);
+        $vote = ChamberVote::findOrFail($removal['vote_id']);
+        $term = Term::sole();
+
+        // CLK-09 fires first: the seat term-ends (expiry accepts removal_requested).
+        $this->travelTo($term->ends_on->addHour());
+        $timer = ClockTimer::where('subject_id', $term->id)->sole();
+        $this->clocks->fire($timer);
+        $this->expire($timer);
+        self::assertSame('term_ended', BoardSeat::findOrFail($nomination['seat_id'])->status);
+        $seatCount = BoardSeat::count();
+
+        // The removal vote now carries, but the seat-status guard refuses to act.
+        $this->vote($vote, ['yes', 'yes', 'no']);
+        self::assertSame('adopted', $vote->refresh()->outcome);
+        self::assertSame('term_ended', BoardSeat::findOrFail($nomination['seat_id'])->status);
+        self::assertSame($seatCount, BoardSeat::count());
+        self::assertSame('pending', GovernorRemovalRequest::findOrFail($removal['request_id'])->outcome);
+    }
+
+    public function test_a_superseded_board_refuses_a_removal_filing(): void
+    {
+        $nomination = $this->seatGovernor();
+        // The corporation's board pointer moves to a later board.
+        Organization::whereKey($this->id(1))->update(['board_id' => $this->id(60)]);
+        $this->refused(fn () => $this->fileRemoval(100, $nomination['seat_id']));
+        self::assertSame(0, GovernorRemovalRequest::count());
+        self::assertSame('seated', BoardSeat::findOrFail($nomination['seat_id'])->status);
+    }
+
+    private function seatGovernor(): array
+    {
+        $nomination = $this->nominate();
+        $this->vote(ChamberVote::findOrFail($nomination['consent_vote_id']), ['yes', 'yes', 'yes']);
+
+        return $nomination;
+    }
+
+    /** File F-EXE-003 through the engine as the given fixture user. */
+    private function fileRemoval(int $actor, string $seatId, string $grounds = 'Public competence grounds'): array
+    {
+        return $this->engine->file('F-EXE-003', User::findOrFail($this->id($actor)), [
+            'board_seat_id' => $seatId, 'jurisdiction_id' => $this->id(2), 'grounds' => $grounds,
+        ])->recorded;
+    }
+
     private function nominate(array $changes = []): array
     {
         return $this->engine->file('F-EXE-001', User::findOrFail($this->id(100)), [

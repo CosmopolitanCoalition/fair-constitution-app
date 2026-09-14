@@ -8,6 +8,7 @@ use App\Domain\Forms\Support\ExecutiveActor;
 use App\Models\Board;
 use App\Models\BoardSeat;
 use App\Models\Department;
+use App\Models\Organization;
 use App\Models\User;
 use App\Services\Executive\BoardGovernorService;
 
@@ -56,11 +57,25 @@ class BoardMemberRemovalRequest implements FormHandler
 
         $board = Board::query()->findOrFail((string) $seat->board_id);
 
-        if ($board->boardable_type !== Board::BOARDABLE_DEPARTMENTS) {
-            throw new ConstitutionalViolation(
-                'F-EXE-003 runs against DEPARTMENT board seats — org boards remove through their own tracks.',
-                'Art. III §4'
+        // F-EXE-003 runs against a department OR a Common Good Corporation
+        // governor seat: the overseeing executive resolves from the board's
+        // owner (a CGC through overseen_by_executive_id, a department through
+        // executive_id), mirroring the F-EXE-001 dual-owner routing.
+        if ($board->boardable_type === Board::BOARDABLE_ORGANIZATIONS) {
+            $organization = Organization::query()->findOrFail((string) $board->boardable_id);
+            $member = ExecutiveActor::member($actor, (string) $organization->overseen_by_executive_id, 'F-EXE-003');
+
+            $result = $this->governors->requestRemoval(
+                $seat,
+                $member,
+                (string) ($payload['grounds'] ?? ''),
             );
+
+            return [
+                'board_seat_id'   => (string) $seat->id,
+                'organization_id' => (string) $organization->id,
+                'requested_by'    => (string) $member->id,
+            ] + $result;
         }
 
         $department = Department::query()->findOrFail((string) $board->boardable_id);

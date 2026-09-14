@@ -45,7 +45,7 @@ const props = defineProps({
     ipRegister: { type: Array, default: () => [] },
     actionsDeepLinks: { type: Object, default: () => ({}) },
     conversions: { type: Array, default: () => [] },
-    can: { type: Object, default: () => ({ registerIp: false }) },
+    can: { type: Object, default: () => ({ registerIp: false, requestRemoval: false }) },
     urls: { type: Object, default: () => ({}) },
 });
 
@@ -88,6 +88,34 @@ function submitIp() {
     ipForm.post(props.urls.ipRegister, {
         preserveScroll: true,
         onSuccess: () => ipForm.reset(),
+    });
+}
+
+/* F-EXE-003 — a CGC governor is removed through its overseeing executive and
+   creating legislature (IO-7). Only a seated principal of the overseeing
+   executive sees this form; the service is the real wall. */
+const removal = useForm({ board_seat_id: '', grounds: '' });
+
+/* Removal runs against a currently SEATED governor seat only. */
+const removableSeats = computed(() =>
+    (props.board?.seats ?? []).filter((s) => s.seat_class === 'governor' && s.status === 'seated'),
+);
+
+const removalDisabledReason = computed(() => {
+    if (props.organization.status !== 'active') {
+        return 'This corporation is not active — its governors cannot be removed.';
+    }
+    if (!removableSeats.value.length) {
+        return 'There is no seated governor to file a removal against.';
+    }
+    return null;
+});
+
+function submitRemoval() {
+    if (!props.urls.governorRemovals) return;
+    removal.post(props.urls.governorRemovals, {
+        preserveScroll: true,
+        onSuccess: () => removal.reset(),
     });
 }
 </script>
@@ -168,6 +196,77 @@ function submitIp() {
             <p style="margin-block-start: var(--space-3)">
                 <Link :href="`/organizations/co-determination?org=${organization.id}`">How worker representation is determined →</Link>
             </p>
+        </Card>
+
+        <!-- ================================ F-EXE-003 governor removal === -->
+        <Card v-if="can.requestRemoval" as="section" title="Remove a governor">
+            <p class="gloss" style="margin-block-end: var(--space-3)">
+                A governor is removed through this corporation's overseeing executive: the creating
+                legislature decides by an <strong>ordinary majority of all serving members</strong>
+                — hiring and firing, never the supermajority machinery.
+            </p>
+            <FormCard
+                :form="surface.forms.find((f) => f.id === 'F-EXE-003')"
+                :inertia-form="removal"
+                submit-label="Request removal"
+                processing-label="Filing…"
+                :disabled="!!removalDisabledReason"
+                @submit="submitRemoval"
+            >
+                <Field
+                    label="Governor"
+                    hint="Removal runs against a currently seated governor of this corporation."
+                    :error="removal.errors.board_seat_id"
+                    required
+                >
+                    <template #control="{ id, describedBy, invalid }">
+                        <select
+                            :id="id"
+                            v-model="removal.board_seat_id"
+                            class="select"
+                            :aria-invalid="invalid ? 'true' : undefined"
+                            :aria-describedby="describedBy"
+                        >
+                            <option value="" disabled>Select a seated governor…</option>
+                            <option v-for="seat in removableSeats" :key="seat.id" :value="seat.id">
+                                {{ seat.holder?.name ?? 'Seat' }} — appointed governor
+                            </option>
+                        </select>
+                    </template>
+                </Field>
+
+                <Field
+                    label="Grounds"
+                    hint="A good-faith competence/ethics finding — published at filing."
+                    :error="removal.errors.grounds"
+                    required
+                >
+                    <template #control="{ id, describedBy, invalid }">
+                        <textarea
+                            :id="id"
+                            v-model="removal.grounds"
+                            class="field-input"
+                            rows="4"
+                            maxlength="20000"
+                            :aria-invalid="invalid ? 'true' : undefined"
+                            :aria-describedby="describedBy"
+                        ></textarea>
+                    </template>
+                </Field>
+
+                <p class="citation" style="margin-block-start: var(--space-2)">
+                    Opens a vote in the creating legislature requiring an ordinary majority of all serving members · Art. III §5.
+                </p>
+                <Banner
+                    v-if="removalDisabledReason"
+                    tone="info"
+                    role="status"
+                    title="Removal is not available."
+                    style="margin-block-start: var(--space-2)"
+                >
+                    {{ removalDisabledReason }}
+                </Banner>
+            </FormCard>
         </Card>
 
         <!-- ================================ public-domain IP register === -->

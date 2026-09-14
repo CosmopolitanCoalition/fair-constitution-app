@@ -717,6 +717,7 @@ return [
         'workflows' => ['WF-ORG-08', 'WF-ORG-09', 'WF-ORG-04'],
         'forms'     => [
             ['id' => 'F-LEG-019', 'availableTo' => ['R-09'], 'citation' => 'Art. III §5 — the legislature creates; oversight assigned at creation'],
+            ['id' => 'F-EXE-003', 'availableTo' => ['R-14', 'R-15', 'R-16'], 'citation' => 'Art. III §5 — removal by ordinary majority of all serving through the creating legislature'],
         ],
         'clocks'    => ['CLK-13', 'CLK-14'],
         'citation'  => 'Regulated identically to private peers · IP perpetually public domain · Art. III §5',

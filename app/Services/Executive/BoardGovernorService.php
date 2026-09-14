@@ -364,9 +364,18 @@ class BoardGovernorService
         }
 
         $board = Board::query()->whereKey($seat->board_id)->firstOrFail();
-        $department = $this->departmentOf($board);
+        // Owner-neutral: the owner (department or CGC), its CURRENT board and
+        // its consenting legislature all resolve from the board's owner. For a
+        // CGC that legislature is created_by_legislature_id; for a department
+        // it is the jurisdiction chamber (context returns the same
+        // legislatureOf result, so the department path is unchanged and the
+        // first-by-jurisdiction lookup is no longer used here).
+        [$owner, $board, $legislature] = $this->context($this->ownerOf($board));
+        $overseeingExecutiveId = $owner instanceof Organization
+            ? (string) $owner->overseen_by_executive_id
+            : (string) $owner->executive_id;
 
-        if ((string) $requester->executive_id !== (string) $department->executive_id
+        if ((string) $requester->executive_id !== $overseeingExecutiveId
             || $requester->status !== ExecutiveMember::STATUS_SEATED || $requester->role !== ExecutiveMember::ROLE_PRINCIPAL) {
             throw new ConstitutionalViolation(
                 'F-EXE-003 is filed by a seated principal of the OVERSEEING executive (good-faith finding).',
@@ -381,8 +390,6 @@ class BoardGovernorService
             );
         }
 
-        $legislature = $this->legislatureOf((string) $department->jurisdiction_id);
-
         $request = GovernorRemovalRequest::create([
             'board_seat_id' => (string) $seat->id,
             'requested_by_member_id' => (string) $requester->id,
@@ -392,11 +399,11 @@ class BoardGovernorService
 
         $record = $this->records->publish(
             kind: 'other',
-            title: sprintf('Governor removal requested — %s, seat %d', $department->name, (int) $seat->seat_no),
+            title: sprintf('Governor removal requested — %s, seat %d', $owner->name, (int) $seat->seat_no),
             body: $grounds,
             attrs: [
                 'actor_user_id' => $requester->user_id !== null ? (string) $requester->user_id : null,
-                'jurisdiction_id' => (string) $department->jurisdiction_id,
+                'jurisdiction_id' => (string) $owner->jurisdiction_id,
                 'legislature_id' => (string) $legislature->id,
                 'via_form' => 'F-EXE-003',
                 'subject_type' => 'governor_removal_requests',
@@ -434,7 +441,10 @@ class BoardGovernorService
             return; // Expiry or another completed lifecycle event already ended this request's seat.
         }
         $board = Board::query()->whereKey($seat->board_id)->firstOrFail();
-        $department = $this->departmentOf($board);
+        // Owner-neutral, and the current-board guard refuses a superseded
+        // board (a stale outcome cannot reopen a seat on a board that is no
+        // longer the owner's).
+        $owner = $this->ownerOf($board);
 
         if ($outcome !== ChamberVote::OUTCOME_ADOPTED) {
             $request->forceFill(['outcome' => GovernorRemovalRequest::OUTCOME_RETAINED, 'decided_at' => now()])->save();
@@ -485,16 +495,23 @@ class BoardGovernorService
             $this->roles->flushUser($holder);
         }
 
+        // A CGC board recomputes co-determination composition and supersedes
+        // any open chair ballot after the seat changes (matching CLK-09
+        // expiry); a department board needs neither.
+        if ($owner instanceof Organization) {
+            app(OrgBoardService::class)->onCompositionChange($board);
+        }
+
         $this->records->publish(
             kind: 'act',
-            title: sprintf('Governor removed — %s, seat %d', $department->name, (int) $seat->seat_no),
+            title: sprintf('Governor removed — %s, seat %d', $owner->name, (int) $seat->seat_no),
             body: sprintf(
                 'Removal carried by ordinary majority of all serving (hiring-and-firing — never the '
                 .'impeachment machinery). Grounds on record %s. Renomination open.',
                 (string) $request->record_id
             ),
             attrs: [
-                'jurisdiction_id' => (string) $department->jurisdiction_id,
+                'jurisdiction_id' => (string) $owner->jurisdiction_id,
                 'via_form' => 'F-EXE-003',
                 'subject_type' => 'board_seats',
                 'subject_id' => (string) $seat->id,
@@ -580,19 +597,6 @@ class BoardGovernorService
     // =========================================================================
     // Internals
     // =========================================================================
-
-    private function departmentOf(Board $board): Department
-    {
-        if ($board->boardable_type !== Board::BOARDABLE_DEPARTMENTS) {
-            throw new ConstitutionalViolation(
-                'The governor pipeline serves DEPARTMENT boards; org boards seat through their '
-                .'own election tracks (Art. III §6).',
-                'Art. III §4'
-            );
-        }
-
-        return Department::query()->whereKey($board->boardable_id)->firstOrFail();
-    }
 
     private function legislatureOf(string $jurisdictionId): Legislature
     {

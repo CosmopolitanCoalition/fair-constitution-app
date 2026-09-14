@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Organizations;
 
+use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Controller;
 use App\Models\Board;
 use App\Models\BoardSeat;
 use App\Models\CgcIpRegisterEntry;
 use App\Models\Department;
+use App\Models\ExecutiveMember;
 use App\Models\Law;
 use App\Models\Organization;
 use App\Models\OrgConversion;
@@ -46,6 +48,7 @@ class CgcController extends Controller
         private readonly CgcIpRegisterService $ipRegister,
         private readonly RoleService $roles,
         private readonly \App\Services\SettingsResolver $settings,
+        private readonly ConstitutionalEngine $engine,
     ) {}
 
     public function show(Request $request, Organization $organization): Response
@@ -106,9 +109,15 @@ class CgcController extends Controller
                 // wall (Art. III §5 — non-CGC rejected, kind validated).
                 'registerIp' => $request->user() !== null
                     && (in_array('R-18', $roles, true) || in_array('R-23', $roles, true)),
+                // A CGC governor is removed through its overseeing executive:
+                // only a SEATED PRINCIPAL of overseen_by_executive_id may file
+                // F-EXE-003 (the SERVICE is the real wall — this only gates the
+                // control's visibility · Art. III §5 · IO-7).
+                'requestRemoval' => $this->canRequestRemoval($request, $organization),
             ],
             'urls' => [
                 'ipRegister' => "/organizations/{$organization->id}/ip-register",
+                'governorRemovals' => "/organizations/{$organization->id}/governor-removals",
             ],
         ]);
     }
@@ -144,9 +153,48 @@ class CgcController extends Controller
         );
     }
 
+    /**
+     * F-EXE-003 — remove a CGC governor through its overseeing executive and
+     * creating legislature (IO-7). A seated principal of the overseeing
+     * executive files; the creating legislature decides by ordinary majority
+     * of all serving (never a supermajority · owner ruling #14). The engine
+     * and BoardGovernorService are the real walls — the seat, the current
+     * board, the requester's authority and the consenting chamber are all
+     * resolved and enforced there.
+     */
+    public function requestRemoval(Request $request, Organization $organization): RedirectResponse
+    {
+        $this->engine->file('F-EXE-003', $request->user(), [
+            'board_seat_id' => (string) $request->input('board_seat_id', ''),
+            'jurisdiction_id' => (string) $organization->jurisdiction_id,
+            'grounds' => (string) $request->input('grounds', ''),
+        ]);
+
+        return back()->with(
+            'status',
+            'Removal requested (F-EXE-003) — grounds published; the creating legislature decides by '
+            .'ordinary majority of all serving members (hiring and firing — never the supermajority machinery).'
+        );
+    }
+
     // =========================================================================
     // Presentation internals
     // =========================================================================
+
+    /** A seated principal of the overseeing executive may file F-EXE-003. */
+    private function canRequestRemoval(Request $request, Organization $organization): bool
+    {
+        if ($request->user() === null || $organization->overseen_by_executive_id === null) {
+            return false;
+        }
+
+        return ExecutiveMember::query()
+            ->where('executive_id', (string) $organization->overseen_by_executive_id)
+            ->where('user_id', (string) $request->user()->getKey())
+            ->where('status', ExecutiveMember::STATUS_SEATED)
+            ->where('role', ExecutiveMember::ROLE_PRINCIPAL)
+            ->exists();
+    }
 
     /** The overseeing department + executive, resolved through the act. */
     private function oversight(Organization $organization): ?array

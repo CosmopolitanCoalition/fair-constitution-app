@@ -1137,6 +1137,8 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('organization')->name('organizations.board-chair');
     Route::post('/organizations/{organization}/governor-nominations', [\App\Http\Controllers\Organizations\BoardElectionController::class, 'nominateGovernor'])
         ->whereUuid('organization')->name('organizations.governor-nominations');
+    Route::post('/organizations/{organization}/governor-removals', [\App\Http\Controllers\Organizations\CgcController::class, 'requestRemoval'])
+        ->whereUuid('organization')->name('organizations.governor-removals.store'); // F-EXE-003 (ordinary majority through the creating legislature)
 
     // ── FE-D9 — Transfers / conversions / dissolution ───────────────────────
     Route::post('/organizations/{organization}/transfers', [\App\Http\Controllers\Organizations\TransferController::class, 'transfer'])
