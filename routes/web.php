@@ -108,7 +108,8 @@ Route::get('/setup/mode', [SetupController::class, 'mode'])->name('setup.mode');
 Route::get('/setup/operator', [SetupController::class, 'operatorSetupPage'])->name('setup.operator');
 Route::get('/setup/join', [SetupController::class, 'join'])->name('setup.join');
 Route::post('/api/setup/mode', [SetupController::class, 'setMode'])->name('api.setup.mode');
-Route::post('/api/setup/join', [SetupController::class, 'joinFromSetup'])->name('api.setup.join');
+Route::post('/api/setup/join', [SetupController::class, 'joinFromSetup'])
+    ->middleware('auth')->name('api.setup.join'); // adopts this box as a mirror; auth + operator check in the handler
 // Zero-foreknowledge auto-discovery — the JOIN screen asks the node to FIND a federation (front door +
 // opt-in LAN sweep) instead of the operator having to know a host address up front. AUTH-gated: this
 // drives server-side outbound probing (incl. an opt-in LAN sweep), so it must never be an unauthenticated
@@ -508,7 +509,8 @@ Route::post('/api/export/jurisdictions/{exportId}/halt', [JurisdictionController
 Route::delete('/api/export/jurisdictions/{exportId}', [JurisdictionController::class, 'exportMapsDelete'])
     ->where('exportId', '[A-Za-z0-9._-]+')
     ->name('jurisdictions.export.delete');
-Route::post('/api/import/jurisdictions', [JurisdictionController::class, 'importMaps'])->name('jurisdictions.import');
+Route::post('/api/import/jurisdictions', [JurisdictionController::class, 'importMaps'])
+    ->middleware('auth')->name('jurisdictions.import'); // restore runs pg_restore; auth + operator check in the handler
 
 // Legislature browser
 // WI-9: /legislatures is the multi-legislature index (the sidebar's entry
@@ -787,22 +789,22 @@ Route::middleware('auth')->group(function () {
     // Moved from /federation (ruling §10 item 9) — the join-a-cluster wizard
     // and mesh tooling live under the operator plane now.
     Route::get('/operator/federation', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'show'])
-        ->name('federation.show');
+        ->name('federation.show')->withoutMiddleware('auth'); // public read (Art. II §2) (host block is operator-gated inside)
     // ── Phase O — the simulated-world populate console. The surface an
     // operator leaves OPEN while a generation run happens, the way Step-3 is
     // left open while the district mapper works. Public-read like /federation
     // (Art. II §2 — a citizen may watch the machinery); it exposes counts and
     // place names only, never a synthetic person's row.
     Route::get('/simworld', [\App\Http\Controllers\Demo\SimConsoleController::class, 'show'])
-        ->name('simworld.console');
+        ->name('simworld.console')->withoutMiddleware('auth'); // public read (Art. II §2) (drive endpoints stay operator-gated)
     Route::get('/api/simworld/progress', [\App\Http\Controllers\Demo\SimConsoleController::class, 'progress'])
-        ->name('api.simworld.progress');
+        ->name('api.simworld.progress')->withoutMiddleware('auth'); // read poll; counts and place names only
 
     // Operator Operations console (Phase 1, read-only): the infra & identity inventory.
     // Public shell; the inventory is operator-gated inside the controller (like the
     // host block on /federation) — a citizen sees only a sign-in prompt.
     Route::get('/operator/operations', [\App\Http\Controllers\Operator\OperatorConsoleController::class, 'operations'])
-        ->name('operator.operations');
+        ->name('operator.operations')->withoutMiddleware('auth'); // public shell; inventory is operator-gated inside
     // G3b — "Join a cluster": adopt this instance as a read-only mirror, or leave.
     Route::post('/federation/cluster/join', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'join'])
         ->name('federation.cluster.join');
@@ -811,7 +813,7 @@ Route::middleware('auth')->group(function () {
     // G3b — live seed/drain progress poll for the "Join a cluster" panel (public-read
     // mesh state, Art. II §2; byte + record counts only, no secrets).
     Route::get('/federation/cluster/sync-progress', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'syncProgress'])
-        ->name('federation.cluster.sync-progress');
+        ->name('federation.cluster.sync-progress')->withoutMiddleware('auth'); // public-read mesh state (Art. II §2)
 
     // The /legislature/* resolver prefix: nav hrefs stay literal while the
     // canonical surfaces are legislature-scoped (§B shared conventions).
@@ -821,7 +823,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-C2 — Chamber (legislature/legislature-home) ──────────────────────
     Route::get('/legislatures/{legislature}/chamber', [ChamberController::class, 'show'])
-        ->whereUuid('legislature')->name('chamber.show')->withoutMiddleware('auth'); // public read — Art. II §2
+        ->whereUuid('legislature')->name('chamber.show')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/members/{member}/oath', [ChamberController::class, 'oath'])
         ->whereUuid('member')->name('members.oath');                          // F-LEG-001
 
@@ -866,7 +868,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-C4 — Bills + BillDetail (legislature/bills, bill-detail) ─────────
     Route::get('/legislatures/{legislature}/bills', [BillController::class, 'index'])
-        ->whereUuid('legislature')->name('bills.index')->withoutMiddleware('auth'); // public read — Art. II §2
+        ->whereUuid('legislature')->name('bills.index')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/legislatures/{legislature}/bills', [BillController::class, 'store'])
         ->whereUuid('legislature')->name('bills.store');                      // F-LEG-003
     Route::post('/legislatures/{legislature}/bills/validate', [BillController::class, 'validateSetting'])
@@ -874,7 +876,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/legislatures/{legislature}/cultural-institutions', [BillController::class, 'proposeCulturalInstitution'])
         ->whereUuid('legislature')->name('cultural-institutions.propose');    // F-LEG-028
     Route::get('/bills/{bill}', [BillController::class, 'show'])
-        ->whereUuid('bill')->name('bills.show')->withoutMiddleware('auth'); // public read — Art. II §2
+        ->whereUuid('bill')->name('bills.show')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/bills/{bill}/refer', [BillController::class, 'refer'])
         ->whereUuid('bill')->name('bills.refer');                             // F-LEG-007 / F-CHR-003
     Route::get('/bills/{bill}/conversation', [\App\Http\Controllers\Legislature\BillConversationController::class, 'show'])
@@ -887,13 +889,13 @@ Route::middleware('auth')->group(function () {
     // docs/plans/economy/ECONOMY_PROP_CONTRACT.md and pinned by
     // EconomyPropContractTest, so @lane-06's pages can be built against a
     // contract that cannot silently drift.
-    Route::get('/economy', [\App\Http\Controllers\Economy\EconomyController::class, 'home'])->name('economy.home');
-    Route::get('/economy/wallet', [\App\Http\Controllers\Economy\EconomyController::class, 'wallet'])->name('economy.wallet');
-    Route::get('/economy/market', [\App\Http\Controllers\Economy\EconomyController::class, 'market'])->name('economy.market');
-    Route::get('/economy/work', [\App\Http\Controllers\Economy\WorkController::class, 'index'])->name('economy.work');
-    Route::get('/economy/help', [\App\Http\Controllers\Economy\AssistanceController::class, 'index'])->name('economy.help');
+    Route::get('/economy', [\App\Http\Controllers\Economy\EconomyController::class, 'home'])->name('economy.home')->withoutMiddleware('auth'); // public read (Art. II §2)
+    Route::get('/economy/wallet', [\App\Http\Controllers\Economy\EconomyController::class, 'wallet'])->name('economy.wallet')->withoutMiddleware('auth'); // public read (Art. II §2)
+    Route::get('/economy/market', [\App\Http\Controllers\Economy\EconomyController::class, 'market'])->name('economy.market')->withoutMiddleware('auth'); // public read (Art. II §2)
+    Route::get('/economy/work', [\App\Http\Controllers\Economy\WorkController::class, 'index'])->name('economy.work')->withoutMiddleware('auth'); // public read (Art. II §2)
+    Route::get('/economy/help', [\App\Http\Controllers\Economy\AssistanceController::class, 'index'])->name('economy.help')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/economy/help', [\App\Http\Controllers\Economy\AssistanceController::class, 'store'])->name('economy.help.store');
-    Route::get('/economy/help/{assistance}', [\App\Http\Controllers\Economy\AssistanceController::class, 'show'])->whereUuid('assistance')->name('economy.help.show');
+    Route::get('/economy/help/{assistance}', [\App\Http\Controllers\Economy\AssistanceController::class, 'show'])->whereUuid('assistance')->name('economy.help.show')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/economy/help/{assistance}/publish', [\App\Http\Controllers\Economy\AssistanceController::class, 'publish'])->whereUuid('assistance')->name('economy.help.publish');
     Route::post('/economy/help/{assistance}/withdraw', [\App\Http\Controllers\Economy\AssistanceController::class, 'withdraw'])->whereUuid('assistance')->name('economy.help.withdraw');
     Route::post('/economy/help/{assistance}/resolve', [\App\Http\Controllers\Economy\AssistanceController::class, 'resolve'])->whereUuid('assistance')->name('economy.help.resolve');
@@ -913,22 +915,22 @@ Route::middleware('auth')->group(function () {
     Route::post('/economy/work/applications/{application}/withdraw', [\App\Http\Controllers\Economy\WorkController::class, 'withdraw'])
         ->whereUuid('application')->name('economy.work.withdraw');
     Route::get('/economy/market/{listing}', [\App\Http\Controllers\Economy\EconomyController::class, 'listing'])
-        ->whereUuid('listing')->name('economy.listing');
-    Route::get('/economy/treasury', [\App\Http\Controllers\Economy\EconomyController::class, 'treasury'])->name('economy.treasury');
-    Route::get('/economy/units', [\App\Http\Controllers\Economy\EconomyController::class, 'units'])->name('economy.units');
+        ->whereUuid('listing')->name('economy.listing')->withoutMiddleware('auth'); // public read (Art. II §2)
+    Route::get('/economy/treasury', [\App\Http\Controllers\Economy\EconomyController::class, 'treasury'])->name('economy.treasury')->withoutMiddleware('auth'); // public read (Art. II §2)
+    Route::get('/economy/units', [\App\Http\Controllers\Economy\EconomyController::class, 'units'])->name('economy.units')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/economy/units/report', [\App\Http\Controllers\Economy\EconomyController::class, 'refreshReport'])
         ->middleware('throttle:6,1')->name('economy.units.report');
-    Route::get('/economy/stipend', [\App\Http\Controllers\Economy\EconomyController::class, 'stipend'])->name('economy.stipend');
+    Route::get('/economy/stipend', [\App\Http\Controllers\Economy\EconomyController::class, 'stipend'])->name('economy.stipend')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::get('/economy/requests/{posting}', [\App\Http\Controllers\Economy\EconomyController::class, 'workPosting'])
-        ->whereUuid('posting')->name('economy.request');
-    Route::get('/economy/agreements', [\App\Http\Controllers\Economy\EconomyController::class, 'agreements'])->name('economy.agreements');
+        ->whereUuid('posting')->name('economy.request')->withoutMiddleware('auth'); // public read (Art. II §2)
+    Route::get('/economy/agreements', [\App\Http\Controllers\Economy\EconomyController::class, 'agreements'])->name('economy.agreements')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::get('/economy/agreements/{contract}', [\App\Http\Controllers\Economy\EconomyController::class, 'agreement'])
-        ->whereUuid('contract')->name('economy.agreement');
-    Route::get('/economy/joint-ledgers', [\App\Http\Controllers\Economy\EconomyController::class, 'jointLedgers'])->name('economy.joint');
+        ->whereUuid('contract')->name('economy.agreement')->withoutMiddleware('auth'); // public read (Art. II §2)
+    Route::get('/economy/joint-ledgers', [\App\Http\Controllers\Economy\EconomyController::class, 'jointLedgers'])->name('economy.joint')->withoutMiddleware('auth'); // public read (Art. II §2)
     // Design Round 2 build: the exchange (① instruments venue) and the resident
     // consent plane (③ person-to-person / N-party agreements + redlines).
-    Route::get('/economy/exchange', [\App\Http\Controllers\Economy\EconomyController::class, 'exchange'])->name('economy.exchange');
-    Route::get('/economy/resident-agreements', [\App\Http\Controllers\Economy\EconomyController::class, 'residentAgreements'])->name('economy.resident-agreements');
+    Route::get('/economy/exchange', [\App\Http\Controllers\Economy\EconomyController::class, 'exchange'])->name('economy.exchange')->withoutMiddleware('auth'); // public read (Art. II §2)
+    Route::get('/economy/resident-agreements', [\App\Http\Controllers\Economy\EconomyController::class, 'residentAgreements'])->name('economy.resident-agreements')->withoutMiddleware('auth'); // public read (Art. II §2)
 
     // The write path (F-IND-022/023/024). These POST to the ENGINE, not to a
     // REST resource — EconomyActionController validates shape and files, and
@@ -980,7 +982,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-C6 — Committees + CommitteeDetail (parallel batch) ───────────────
     Route::get('/legislatures/{legislature}/committees', [\App\Http\Controllers\Legislature\CommitteeController::class, 'index'])
-        ->whereUuid('legislature')->name('committees.index');
+        ->whereUuid('legislature')->name('committees.index')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/legislatures/{legislature}/committees', [\App\Http\Controllers\Legislature\CommitteeController::class, 'store'])
         ->whereUuid('legislature')->name('committees.store');                 // F-LEG-009
     Route::post('/legislatures/{legislature}/committee-preferences', [\App\Http\Controllers\Legislature\CommitteeController::class, 'storePreferences'])
@@ -988,8 +990,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/legislatures/{legislature}/committees/assign', [\App\Http\Controllers\Legislature\CommitteeController::class, 'assign'])
         ->whereUuid('legislature')->name('committees.assign');                // F-SPK-005
     Route::get('/committees/{committee}', [\App\Http\Controllers\Legislature\CommitteeController::class, 'show'])
-        ->whereUuid('committee')->name('committees.show');
-    // F-LEG-039 — budget act doors (draft, then move to enactment).
+        ->whereUuid('committee')->name('committees.show')->withoutMiddleware('auth'); // public read (Art. II §2)
+    // F-LEG-039 budget act doors (draft, then move to enactment).
     Route::post('/legislatures/{legislature}/budgets', [\App\Http\Controllers\Legislature\BudgetController::class, 'draft'])
         ->whereUuid('legislature')->name('budgets.draft');                    // F-LEG-039 (draft)
     Route::post('/legislatures/{legislature}/budgets/{budget}/enact', [\App\Http\Controllers\Legislature\BudgetController::class, 'enact'])
@@ -1074,13 +1076,13 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-C9 — Referendums + EmergencyPowers (batch 3) ─────────────────────
     Route::get('/legislatures/{legislature}/referendums', [\App\Http\Controllers\Legislature\ReferendumController::class, 'index'])
-        ->whereUuid('legislature')->name('referendums.index');
+        ->whereUuid('legislature')->name('referendums.index')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/legislatures/{legislature}/referendums', [\App\Http\Controllers\Legislature\ReferendumController::class, 'store'])
         ->whereUuid('legislature')->name('referendums.store');                // F-LEG-023
     Route::post('/laws/{law}/referendum-modification', [\App\Http\Controllers\Legislature\ReferendumController::class, 'modify'])
         ->whereUuid('law')->name('laws.referendum-modification');             // F-LEG-034 (CLK-19 gate)
     Route::get('/legislatures/{legislature}/emergency-powers', [\App\Http\Controllers\Legislature\EmergencyPowerController::class, 'index'])
-        ->whereUuid('legislature')->name('emergency-powers.index');
+        ->whereUuid('legislature')->name('emergency-powers.index')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/legislatures/{legislature}/emergency-powers', [\App\Http\Controllers\Legislature\EmergencyPowerController::class, 'store'])
         ->whereUuid('legislature')->name('emergency-powers.store');           // F-LEG-024
     Route::post('/emergency-powers/{power}/renewals', [\App\Http\Controllers\Legislature\EmergencyPowerController::class, 'renew'])
@@ -1104,7 +1106,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-C11 — PublicRecords + TermSync (batch 3) ─────────────────────────
     Route::get('/system/public-records', [\App\Http\Controllers\System\PublicRecordsController::class, 'index'])
-        ->name('system.public-records')->withoutMiddleware('auth'); // public read — Art. II §2
+        ->name('system.public-records')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/system/public-records/statements', [\App\Http\Controllers\System\PublicRecordsController::class, 'statement'])
         ->name('system.public-records.statements');                           // F-LEG-006
     Route::get('/system/term-sync', [\App\Http\Controllers\System\TermSyncController::class, 'show'])
@@ -1123,13 +1125,13 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-D2 — Executive/Home ──────────────────────────────────────────────
     Route::get('/executives/{executive}', [\App\Http\Controllers\Executive\ExecutiveController::class, 'show'])
-        ->whereUuid('executive')->name('executives.show')->withoutMiddleware('auth'); // public read — Art. II §2
+        ->whereUuid('executive')->name('executives.show')->withoutMiddleware('auth'); // public read (Art. II §2)
 
     // ── FE-D3 — Departments + DepartmentDetail (BoG-consent exit surface) ────
     Route::get('/executives/{executive}/departments', [\App\Http\Controllers\Executive\DepartmentController::class, 'index'])
-        ->whereUuid('executive')->name('executive.departments')->withoutMiddleware('auth'); // public read — Art. II §2
+        ->whereUuid('executive')->name('executive.departments')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::get('/departments/{department}', [\App\Http\Controllers\Executive\DepartmentController::class, 'show'])
-        ->whereUuid('department')->name('executive.department-detail');
+        ->whereUuid('department')->name('executive.department-detail')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/departments/{department}/nominations', [\App\Http\Controllers\Executive\DepartmentController::class, 'nominate'])
         ->whereUuid('department')->name('executive.departments.nominate');         // F-EXE-001
     Route::post('/departments/{department}/removal-requests', [\App\Http\Controllers\Executive\DepartmentController::class, 'requestRemoval'])
@@ -1137,7 +1139,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-D5 — DepartmentReporting ─────────────────────────────────────────
     Route::get('/departments/{department}/reporting', [\App\Http\Controllers\Executive\DepartmentReportingController::class, 'show'])
-        ->whereUuid('department')->name('departments.reporting');
+        ->whereUuid('department')->name('departments.reporting')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/departments/{department}/rules', [\App\Http\Controllers\Executive\DepartmentReportingController::class, 'fileRule'])
         ->whereUuid('department')->name('departments.rules');                      // F-BOG-001
     Route::post('/departments/{department}/reports', [\App\Http\Controllers\Executive\DepartmentReportingController::class, 'fileReport'])
@@ -1145,7 +1147,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-D4 — Actions (order-rejection exit surface) ──────────────────────
     Route::get('/executives/{executive}/actions', [\App\Http\Controllers\Executive\ExecutiveActionController::class, 'index'])
-        ->whereUuid('executive')->name('executive.actions')->withoutMiddleware('auth'); // public read — Art. II §2
+        ->whereUuid('executive')->name('executive.actions')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/executives/{executive}/orders', [\App\Http\Controllers\Executive\ExecutiveActionController::class, 'storeOrder'])
         ->whereUuid('executive')->name('executive.orders.store');                  // F-EXE-005
     Route::post('/executives/{executive}/policy-proposals', [\App\Http\Controllers\Executive\ExecutiveActionController::class, 'storeProposal'])
@@ -1259,7 +1261,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-E2 — Judiciary/Home ──────────────────────────────────────────────
     Route::get('/judiciaries/{judiciary}', [\App\Http\Controllers\Judiciary\JudiciaryController::class, 'show'])
-        ->whereUuid('judiciary')->name('judiciaries.show')->withoutMiddleware('auth'); // public read — Art. II §2
+        ->whereUuid('judiciary')->name('judiciaries.show')->withoutMiddleware('auth'); // public read (Art. II §2)
 
     Route::post('/judiciaries/{judiciary}/nomination-proposals', [\App\Http\Controllers\Judiciary\JudicialNominationController::class, 'nominate'])
         ->whereUuid('judiciary')->name('judiciaries.nominate');
@@ -1268,11 +1270,11 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-E3 — Docket + CaseDetail ─────────────────────────────────────────
     Route::get('/judiciaries/{judiciary}/docket', [\App\Http\Controllers\Judiciary\DocketController::class, 'index'])
-        ->whereUuid('judiciary')->name('judiciary.docket')->withoutMiddleware('auth'); // public read — Art. II §2
+        ->whereUuid('judiciary')->name('judiciary.docket')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/judiciaries/{judiciary}/cases', [\App\Http\Controllers\Judiciary\DocketController::class, 'store'])
         ->whereUuid('judiciary')->name('judiciary.cases.store');                  // F-IND-017 / F-ADV-001
     Route::get('/cases/{case}', [\App\Http\Controllers\Judiciary\CaseController::class, 'show'])
-        ->whereUuid('case')->name('judiciary.cases.show')->withoutMiddleware('auth'); // public read — Art. II §2
+        ->whereUuid('case')->name('judiciary.cases.show')->withoutMiddleware('auth'); // public read (Art. II §2)
     Route::post('/cases/{case}/acceptance', [\App\Http\Controllers\Judiciary\CaseController::class, 'acceptance'])
         ->whereUuid('case')->name('judiciary.cases.acceptance');                  // F-JDG-001
     Route::post('/cases/{case}/jury-orders', [\App\Http\Controllers\Judiciary\CaseController::class, 'juryOrder'])

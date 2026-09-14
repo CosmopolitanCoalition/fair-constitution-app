@@ -25,13 +25,32 @@ use Symfony\Component\HttpFoundation\Response;
 class RedirectIfSetupIncomplete
 {
     /**
-     * Setup-tool PAGE prefixes reachable during setup. Only pages need listing:
-     * every API/XHR/tile is let through by the wantsHtml gate below, so this is
-     * just the set of full pages the wizard sends the operator to — the wizard
-     * itself, the operator console, the district mapper + jurisdiction viewer
-     * (step 3 / step 2 tools), the federation join screen, and the auth routes.
+     * PAGE prefixes reachable during setup.
+     *
+     * Two kinds live here. First, the wizard spine: the wizard itself, the
+     * operator console, the district mapper + jurisdiction viewer (step 3 /
+     * step 2 tools), the federation join screen, and the auth routes.
+     *
+     * Second, the public read surfaces (operator ruling 2026-09-10 — every
+     * page is readable by anyone, a role gates actions never the page). A read
+     * page stays reachable while a box is still building, the way a citizen may
+     * watch the machinery. Only the top-level prefix is listed; every API/XHR/
+     * tile is let through by the wantsHtml gate below.
+     *
+     * Reads only. Every write door stays gated by its own auth + operator
+     * checks, never by this list.
      */
-    private const ALLOW = ['setup', 'operator', 'legislatures', 'jurisdictions', 'federation', 'login', 'logout', 'register'];
+    private const ALLOW = [
+        // Wizard spine + auth. 'register' is deliberately NOT here: while setup
+        // is incomplete no citizen account may be minted on a public box, so a
+        // guest hitting /register lands on the wizard. The founder account is
+        // created through /setup/bootstrap, never /register. Once setup
+        // completes this middleware is a no-op and /register opens normally.
+        'setup', 'operator', 'legislatures', 'jurisdictions', 'federation', 'login', 'logout',
+        // Public read surfaces (operator ruling 2026-09-10).
+        'simworld', 'building', 'economy', 'executives', 'departments', 'committees',
+        'learn', 'support', 'videos', 'launchpad', 'tour', 'atlas', 'coverage', 'coverage-ops', 'system',
+    ];
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -81,6 +100,15 @@ class RedirectIfSetupIncomplete
     private function allowed(Request $request): bool
     {
         $path = $request->path(); // 'civic', 'setup/mode', '/' → ''
+
+        // Root is the guest cover page (Home). It is a public read surface, so
+        // it stays reachable while a box is still building (operator ruling
+        // 2026-09-10). request()->path() returns '' for '/', which matches no
+        // prefix below, so admit it here.
+        if ($path === '' || $path === '/') {
+            return true;
+        }
+
         foreach (self::ALLOW as $prefix) {
             if ($path === $prefix || str_starts_with($path, $prefix.'/')) {
                 return true;

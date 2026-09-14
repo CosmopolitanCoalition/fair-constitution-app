@@ -188,7 +188,10 @@ final class AssistanceWorkflowTest extends TestCase
         $this->denied(fn () => $this->help->match($this->user(12), $id, $offer));
         $this->denied(fn () => $this->help->withdrawResponse($this->user(12), $id, $offer));
         $this->denied(fn () => $this->help->match($this->user(12), $other, $offer), 404);
-        $this->denied(fn () => $this->controller->index(Request::create('/economy/help')));
+        // A guest reads the public board (operator ruling 2026-09-10) but
+        // cannot participate; a personal tab renders empty without an account.
+        self::assertFalse($this->props($this->controller->index(Request::create('/economy/help')))['canParticipate']);
+        self::assertSame([], $this->props($this->controller->index(Request::create('/economy/help?tab=mine')))['requests']['data']);
         $this->refused(fn () => $this->help->respond($this->user(11), $id, 'Self offer'));
         $this->refused(fn () => $this->make(99));
         self::assertFalse($this->page(99)['canParticipate']);

@@ -732,6 +732,10 @@ class JurisdictionController extends Controller
      */
     public function importMaps(Request $request): JsonResponse
     {
+        // Operator only. The restore runs pg_restore over an uploaded bundle
+        // and replaces map data, so it belongs to the operator alone. Refuse
+        // before any read. A guest is stopped at the 'auth' middleware (401).
+        abort_unless((bool) $request->user()?->is_operator, 403);
         $request->validate([
             'archive' => ['required', 'file', 'mimetypes:application/gzip,application/x-gzip,application/octet-stream'],
         ]);

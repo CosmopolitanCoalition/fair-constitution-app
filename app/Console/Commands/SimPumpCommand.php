@@ -43,6 +43,14 @@ class SimPumpCommand extends Command
     protected $description = 'Advance the active simulated-world run: phase transitions, stale-claim reclaims, counters';
 
     /**
+     * The single lock every pump run serializes behind (the scheduled tick and
+     * the on-demand kick). A holder pauses the pump: a tick that cannot get the
+     * lock just returns. DemoSessionService::void takes it so a pump cannot
+     * advance the world into rows the void is reversing.
+     */
+    public const EXEC_LOCK = 'sim:pump:exec';
+
+    /**
      * ABSOLUTE-AGE BACKSTOP (tuned 2026-09-07, operator order). The primary reap
      * is the dead-heartbeat check in reclaim() (120 s), which catches a killed
      * worker fast because a live one heartbeats its lease even mid-item. This
@@ -78,7 +86,7 @@ class SimPumpCommand extends Command
         // advance a run, so the kick must share the tick's gate. A run that
         // cannot get the lock just returns: another pump already holds the
         // engine, and the work it would have done is being done.
-        $lock = Cache::lock('sim:pump:exec', 120);
+        $lock = Cache::lock(self::EXEC_LOCK, 120);
 
         if (! $lock->get()) {
             return self::SUCCESS;

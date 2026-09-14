@@ -21,6 +21,7 @@ import { computed, onBeforeUnmount, onMounted, provide, useId, watch } from 'vue
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppFooter from '@/Components/Shell/AppFooter.vue';
+import DemoSessionBanner from '@/Components/ShellV2/DemoSessionBanner.vue';
 import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
 import JurisdictionSwitcher from '@/Components/Shell/JurisdictionSwitcher.vue';
 import SchemaUpdateBanner from '@/Components/SchemaUpdateBanner.vue';
@@ -330,6 +331,7 @@ onBeforeUnmount(() => {
         <main id="main" class="main-content" :class="mainClass">
             <div class="shell-banners" style="flex-shrink: 0">
                 <SchemaUpdateBanner />
+                <DemoSessionBanner />
                 <EmergencyBanner :emergencies="activeEmergencies" />
                 <!-- The guest notice is a full-width banner on document
                      surfaces, but on a FLUSH tool surface it is pure cost: it
