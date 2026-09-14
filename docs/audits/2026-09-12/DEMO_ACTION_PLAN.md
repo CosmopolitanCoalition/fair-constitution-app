@@ -12,10 +12,10 @@ Fixed baseline: commit `8bf59184`, immediately before this development batch. Cl
 
 | List | At baseline | New confirmed items | Closed | Remaining |
 |---|---:|---:|---:|---:|
-| Build punch list | 29 | 4 | 23 | 10 |
+| Build punch list | 29 | 4 | 32 | 1 |
 | Internal review register | 29 | 0 | 2 | 27 |
 
-The twenty-three closed builds are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2, EO-3, B6, EO-4, EO-5, IO-1, IO-2, IO-3, IO-4, IO-7, IO-5 and S2. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5, EO-8 and B6 (already closed), and IO-7 (open), each tied to a demonstrated defect or missing action. EO-4 nomination, committee designation, confirmation and seating are now integrated and internally tested. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
+The thirty-two closed builds are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2, EO-3, B6, EO-4, EO-5, IO-1, IO-2, IO-3, IO-4, IO-7, IO-5, S2, LE-2, LE-3, AC-1, G1, G2, G3, M3, M4 and M5. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5, EO-8 and B6 (already closed), and IO-7 (open), each tied to a demonstrated defect or missing action. EO-4 nomination, committee designation, confirmation and seating are now integrated and internally tested. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
 
 ## 1. Complete the institutional action paths
 
@@ -28,9 +28,6 @@ Evidence: [board audit](ORGANIZATION_BOARD_AUDIT.md), [election and institutiona
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| LE-2 | Build educational material management and persistent publication. | Authorized editors can save/manage lessons and publish retrievable content through the existing publication boundary; it does more than return an audit payload. |
-| LE-3 | Associate lessons/surfaces with multilingual videos. | Learn can play the relevant library material with its audio/subtitle choices; absent media has useful feedback. The player and its caption/error repairs already exist. |
-| AC-1 | Wire the broader achievement catalog to actual civic/economic actions and state changes. | Successful actions award once, rejected/rolled-back actions do not, and earned items appear under profile privacy rules. Update stale catalog availability flags after their triggers work. |
 
 Evidence: [education/achievement checks](../2026-09-13/EDUCATION_ACHIEVEMENT_CHECKS.md). The existing profile tab, catalog, lesson registry and video selectors are recorded as implemented and checked where evidence supports it. Do not rebuild them. Full language, lesson accuracy and accessibility checking is in the review register; demonstrated failures become specific repairs here.
 
@@ -38,12 +35,6 @@ Evidence: [education/achievement checks](../2026-09-13/EDUCATION_ACHIEVEMENT_CHE
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| G1 | Implement real world-readiness verification and Step 5 completion guards. | Bounded verification records required artifacts and unresolved scopes. Step 5 cannot claim readiness without them. Demo and beta outcomes cover usable institutions, representatives, ownership structures, chairs and scenario prerequisites. |
-| G2 | Repair simulation resume enumeration. | Stable scanned-row/cursor progress reaches missing later cohorts even when earlier pages were already inserted; repeat resumes do not skip or duplicate work. |
-| G3 | Bound expensive preparation, progress polling and board backstops. | Whole-world preparation/polling statements and eager backstop loads become bounded/resumable work with saved progress. Failures are visible; demo timing uses configured clocks. Host-derived capacity and apportionment rules are preserved. |
-| M3 | Preserve identity during Linux/Windows join reruns. | Ordinary update/resume retains APP_KEY and federation identity and resumes the current membership without reusing a consumed join key. Explicit clone re-key remains separate. |
-| M4 | Use the resolved Compose project throughout Linux bootstrap. | Deployment and subsequent registration target the same project, including custom and previously configured project names; failures cannot report success. |
-| M5 | Bring up join progress while foundation transfer runs asynchronously. | The node serves its UI while resumable sync proceeds, preserves admission state and recovers interruptions without replaying completed pages. |
 | M6 | Bound foundation import finalization and progress totals. | Authority stamping and completion verification run in bounded pages/checkpoints; total progress does not require repeated world-table scans. Mirrors claim no authority. |
 
 Evidence: [setup/scenario audit](SETUP_AND_SCENARIO_AUDIT.md), [mesh/setup checks](../2026-09-13/MESH_SETUP_CHECKS.md). The public Matrix state/configuration repairs M1/M2 and term-creation repair Q1 are archived after their targeted passes; full fresh-install and two-node acceptance remain internal checks.
