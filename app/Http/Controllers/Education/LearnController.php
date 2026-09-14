@@ -6,6 +6,7 @@ use App\Domain\Engine\ConstitutionalEngine;
 use App\Domain\Engine\Contracts\ResolvesRoles;
 use App\Http\Controllers\Controller;
 use App\Services\Education\GradingService;
+use App\Support\MediaMeta;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -98,6 +99,14 @@ class LearnController extends Controller
             ->pluck('education_modules.key')
             ->all();
 
+        // LE-3: the lesson's library film. The assignment is authored in the
+        // K-2 corpus and emitted (with the demo fallback resolved) to
+        // resources/js/registry/education.videos.json. The client reads the
+        // same registry for the film's source label (surface vs default note);
+        // here the server hands the player a ready MediaMeta record + base URL.
+        $videoId = $this->lessonVideoId($current->surface_id);
+        $video = $videoId === null ? null : MediaMeta::for($videoId);
+
         return Inertia::render('Learn/Lesson', [
             'surface' => SurfaceMeta::for('learn/lesson'),
             'track' => ['key' => $trackRow->key, 'title' => $trackRow->title],
@@ -111,11 +120,69 @@ class LearnController extends Controller
                 'completed' => in_array($current->key, $completed, true),
             ],
             'questions' => $questions,
+            // The lesson film for the multi-track player, or null when the
+            // surface resolves to no film. baseUrl null => the player's poster.
+            'video' => $video,
+            'videoBaseUrl' => $video === null ? null : MediaMeta::baseUrl(),
             // ?required=1 rides the act-gate's redirect — the banner says why
             // the learner landed here. Informational; it gates nothing.
             'required' => (string) $request->query('required') === '1',
             'quiz' => session('quiz'),
         ]);
+    }
+
+    /**
+     * The catalog id of the lesson's library film for a surface, or null.
+     *
+     * Reads the generated {surfaceId: videoId} map
+     * (resources/js/registry/education.videos.json, LE-3). The map is keyed by
+     * the corpus surface ids; older seeded curricula carry the pre-rename
+     * surface ids, so the same legacy aliases as
+     * resources/js/composables/lessonContent.js are applied before the lookup.
+     * The id is confirmed against the catalog so a drifted map never lets
+     * MediaMeta::for() throw onto the lesson page.
+     */
+    private function lessonVideoId(?string $surfaceId): ?string
+    {
+        if ($surfaceId === null) {
+            return null;
+        }
+
+        // Mirror of composables/lessonContent.js LEGACY_SURFACES.
+        $legacy = [
+            'legislature/floor' => 'legislature/session-console',
+            'elections/board' => 'elections/board-console',
+            'executive/office' => 'executive/executive-home',
+            'judiciary/court' => 'judiciary/judiciary-home',
+            'judiciary/cases' => 'judiciary/advocate-console',
+        ];
+
+        $map = $this->videoAssignments();
+        $id = $map[$surfaceId] ?? ($map[$legacy[$surfaceId] ?? ''] ?? null);
+
+        if ($id === null || ! in_array($id, MediaMeta::ids(), true)) {
+            return null;
+        }
+
+        return $id;
+    }
+
+    /**
+     * The generated surface->video map, or an empty map when it is absent.
+     *
+     * @return array<string, string>
+     */
+    private function videoAssignments(): array
+    {
+        $path = resource_path('js/registry/education.videos.json');
+
+        if (! is_file($path)) {
+            return [];
+        }
+
+        $decoded = json_decode((string) file_get_contents($path), true);
+
+        return is_array($decoded) ? $decoded : [];
     }
 
     /** POST /learn/{track}/{module}/check — grade server-side; a pass files F-EDU-001. */

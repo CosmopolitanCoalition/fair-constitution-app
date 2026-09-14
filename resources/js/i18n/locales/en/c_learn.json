@@ -124,5 +124,6 @@
   "ui.learning_paths": "Ways to learn",
   "ui.guided_journeys": "Guided journeys",
   "ui.watch_videos": "Watch videos",
-  "ui.lesson_heading": "Before you begin"
+  "ui.lesson_heading": "Before you begin",
+  "ui.lesson_video_demo_note": "This lesson uses the demo recording; a lesson-specific video is planned."
 }

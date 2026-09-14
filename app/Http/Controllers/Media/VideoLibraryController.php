@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Media;
 use App\Http\Controllers\Controller;
 use App\Support\MediaMeta;
 use App\Support\SurfaceMeta;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,12 +23,19 @@ use Inertia\Response;
  */
 class VideoLibraryController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        // LE-3: ?v=<id> preselects a film (the Learn flyout deep-links the
+        // lesson's assigned video here). An unknown id is ignored — the page
+        // opens on the first film, never errors.
+        $requested = (string) $request->query('v', '');
+        $preselect = in_array($requested, MediaMeta::ids(), true) ? $requested : null;
+
         return Inertia::render('Learn/VideoLibrary', [
-            'surface' => SurfaceMeta::for('learn/video-library'),
-            'videos'  => MediaMeta::all(),
-            'baseUrl' => MediaMeta::baseUrl(),
+            'surface'   => SurfaceMeta::for('learn/video-library'),
+            'videos'    => MediaMeta::all(),
+            'baseUrl'   => MediaMeta::baseUrl(),
+            'preselect' => $preselect,
         ]);
     }
 }

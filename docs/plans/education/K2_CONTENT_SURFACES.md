@@ -9,6 +9,17 @@ So it's the shape for everything."**
 Waves 1-7: civic 14 · legislature 12 · electoral 9 · judiciary 7 · executive 6 · organizations 6 ·
 system 6 · operator 6 · jurisdictions 4. Four dev harnesses excluded by design.
 
+**default video:** v-introduction-to-the-coalition1
+<!-- LE-3 lesson-video association. Every lesson plays a library film. This is
+     the demo fallback: the most general game-introduction video in the catalog
+     (config/cga/media.php). The OPERATOR swaps this id for his recorded demo
+     video. Surfaces with a clean per-surface match carry their own `**video:**`
+     line below, which overrides this default; every other surface falls back to
+     this id. The generator emits `video: {id, source}` so the lesson page shows
+     an honest note when the default film stands in. Ids are validated against
+     the catalog at generate time — a typo breaks the build, not runtime. -->
+
+
 **⚑ EXTRACTED TO CODE 2026-07-28 (V3 synthesis Wave 1, L1).** This file is now the SOURCE for a
 generated payload: `scripts/education/build_education_payload.mjs` parses every
 `K2_CONTENT_*.md` in this folder and emits `resources/js/i18n/locales/en/c_education.json`,
@@ -204,6 +215,7 @@ what you can change.
 ### 8. `civic/public-square` — Public Square
 **learn:** The open public forum for your jurisdiction. It cannot be censored — and that is a
 constitutional rule, not a policy the operators chose.
+**video:** v-community
 
 | # | do | detail | cite |
 |---|---|---|---|
@@ -306,6 +318,7 @@ becoming law, a court case from filing to opinion.
 ### 15. `legislature/legislature-home` — Chamber
 **learn:** The legislature for one place: who holds its seats, what it has adopted, and what it is
 working on.
+**video:** v-legislatures1
 
 | # | do | detail | cite |
 |---|---|---|---|
@@ -359,6 +372,7 @@ is cast.
 
 ### 19. `legislature/committees` — Committees
 **learn:** How the chamber splits its work up, and how members end up on the committees they are on.
+**video:** v-committees
 
 | # | do | detail | cite |
 |---|---|---|---|
@@ -466,6 +480,7 @@ is not part of anyone's civic life and carries no education content.
 ### 27. `elections/detail` — Election detail
 **learn:** One election end to end: when it was called, who is standing, how it will be counted,
 and when each stage closes.
+**video:** v-proportional-ranked-choice-voting
 
 | # | do | detail | cite |
 |---|---|---|---|
@@ -576,6 +591,7 @@ touch.
 ### 36. `judiciary/judiciary-home` — Judiciary home
 **learn:** The courts for this jurisdiction: how they were created, who sits on them, and how they
 are chosen.
+**video:** v-judiciaries
 
 | # | do | detail | cite |
 |---|---|---|---|
@@ -992,6 +1008,7 @@ public fact.
 ### 70. `jurisdictions/viewer` — A jurisdiction
 **learn:** One place: its boundaries, its population, its institutions, and whether its government
 has woken up yet.
+**video:** v-jurisdictions1
 
 | # | do | detail | cite |
 |---|---|---|---|
@@ -1007,6 +1024,7 @@ has woken up yet.
 ### 71. `education/material-manager` — Manage training material
 **learn:** The authoring body's shelf: every training track and its modules, with each module's
 status, revision, and who last published it.
+**video:** v-education
 
 | # | do | detail | cite |
 |---|---|---|---|

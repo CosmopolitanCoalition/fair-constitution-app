@@ -118,8 +118,24 @@ test('page guidance and references render inside Learn; the main page keeps its 
     assert.match(f.text(f.one('#cmd-learn')), /Page-specific guidance/);
     assert.match(f.text(f.one('#cmd-learn')), /Employment agreement/);
     assert.ok(f.nodes().some(el => el.tag === 'a' && el.props.href === '/learn' && f.text(el).includes('Full lessons')));
-    assert.ok(f.nodes().some(el => el.tag === 'a' && el.props.href === '/videos'));
+    assert.ok(f.nodes().some(el => el.tag === 'a' && String(el.props.href ?? '').startsWith('/videos')));
     assert.doesNotMatch(f.text(), /Planned.*Phase 7/);
+    assert.deepEqual(f.warnings, []);
+});
+
+test('the video chip deep-links the surface film and notes the demo fallback', async t => {
+    const f = await fixture(t);
+    // economy/work has no per-surface film -> the demo default, so the chip
+    // carries that id and the honest demo note appears.
+    const chip = f.nodes().find(el => el.tag === 'a' && String(el.props.href ?? '').startsWith('/videos?v='));
+    assert.ok(chip, 'the video chip must deep-link to a film');
+    assert.match(chip.props.href, /^\/videos\?v=v-/);
+    assert.match(f.text(f.one('#cmd-learn')), /demo recording/);
+    // A surface with its own film deep-links that film and drops the note.
+    f.page.props.surface = { id: 'legislature/committees' }; await flush();
+    const own = f.nodes().find(el => el.tag === 'a' && String(el.props.href ?? '').startsWith('/videos?v='));
+    assert.equal(own.props.href, '/videos?v=v-committees');
+    assert.doesNotMatch(f.text(f.one('#cmd-learn')), /demo recording/);
     assert.deepEqual(f.warnings, []);
 });
 
