@@ -389,7 +389,7 @@ def build_work(raw, dispositions, asof=ASOF_DEFAULT):
                 phase = (s or {}).get('phase') or 'P5'
         it = {
             'id': id_by_key[k],
-            'title': r['title'],
+            'title': ((disp_by_key.get(k, {}).get('work_title') if not r['closed'] else None) or r['title']),
             'phase': phase if phase in phase_ids else 'P5',
             'order': None,
             'kind': (disp_by_key.get(k, {}).get('kind') if not r['closed'] else None) or r['kind'],

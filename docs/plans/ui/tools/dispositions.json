@@ -1,0 +1,1876 @@
+{
+ "head": "4fc4538d",
+ "asOf": "2026-09-14",
+ "items": [
+  {
+   "src": "screens",
+   "i": "52",
+   "final": "work",
+   "work_title": "Add restore-from-records to ModeFork with version-check and run stamps",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "ModeFork shows a Restore-from-records option; a version-check runs before accepting a bundle; the restore path stamps run state, scale_mode and world-build status.",
+   "depends_on": [],
+   "evidence": "resources/js/Pages/Setup/ModeFork.vue lines 64-80 show only Solo and Join choices; no version-check code anywhere in the setup flow; confirmed 2026-09-14.",
+   "reason": "The restore feature: the ModeFork entry point plus the backend run/mode/world-build stamp; its stamp overlaps the P2 W9:0 CLI restore parity.",
+   "merged": [
+    "debt:51"
+   ]
+  },
+  {
+   "src": "screens",
+   "i": "85",
+   "final": "work",
+   "work_title": "Build the SOP registry and a Guides page rendering steps and videos",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "A structured SOP registry with steps, rule references, linked video and journey id exists in config or the registry; a Guides page renders it.",
+   "depends_on": [],
+   "evidence": "app/Http/Controllers/LearnController.php:220-222 redirects guides to journeys.index; no SOP registry in config/ or resources/js/registry; confirmed 2026-09-14.",
+   "reason": "Guides SOP index; the front-door Learn bar already covers the demo.",
+   "merged": []
+  },
+  {
+   "src": "screens",
+   "i": "112",
+   "final": "moot",
+   "reason": "Ruling C (2026-09-10, commit a1a23600) replaced read-only-lock-A. The engine now uses session-scoped real writes captured by PG trigger and purged at logout via DemoSessionService. Engine refusals and registration-close are not part of the new design.",
+   "evidence": "app/Services/Demo/DemoSessionService.php:128-192 implements the compensating-purge design; DemoFlyout.vue exists in AppShell; the old read-only-lock-A spec is superseded."
+  },
+  {
+   "src": "screens",
+   "i": "113",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W8#2",
+   "reason": "Merged into fleet:W8:2: Open every read surface to guests: widen setup allow list, ungate read routes",
+   "evidence": "routes/web.php:773-788 places /simworld inside Route::middleware('auth') group; RedirectIfSetupIncomplete.php:34 ALLOW list does not include simworld; confirmed 2026-09-14."
+  },
+  {
+   "src": "screens",
+   "i": "114",
+   "final": "moot",
+   "reason": "Ruling C (2026-09-10, commit a1a23600) replaced read-only-lock-A. Demo mode uses session-scoped writes with compensating purge. No instance lock toggle is required in the new design.",
+   "evidence": "app/Services/Demo/DemoSessionService.php implements the ruling-C design; no lock toggle exists or is needed; confirmed 2026-09-14."
+  },
+  {
+   "src": "screens",
+   "i": "124",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W10#5",
+   "reason": "Merged into fleet:W10:5: Add video and translation nav rows and seed the education catalog",
+   "evidence": "grep of resources/js/registry/surfaces.js for 'videos' returns no output; confirmed 2026-09-14."
+  },
+  {
+   "src": "screens",
+   "i": "125",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W10#5",
+   "reason": "Merged into fleet:W10:5: Add video and translation nav rows and seed the education catalog",
+   "evidence": "grep of resources/js/registry/surfaces.js for 'translat' returns no output; confirmed 2026-09-14."
+  },
+  {
+   "src": "screens",
+   "i": "126",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W8#2",
+   "reason": "Merged into fleet:W8:2: Open every read surface to guests: widen setup allow list, ungate read routes",
+   "evidence": "app/Http/Middleware/RedirectIfSetupIncomplete.php line 34 ALLOW list confirmed unchanged (setup, operator, legislatures, jurisdictions, federation, login, logout, register only) as of 2026-09-14."
+  },
+  {
+   "src": "caps",
+   "i": "32",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#5",
+   "reason": "Merged into fleet:W11:5: Wire budget form, record dues as dues, add balance-floor constraint",
+   "evidence": "grep of all PHP files for 'BudgetService' finds no callers outside the service itself. FormRegistry.php has no budget form. Confirmed 2026-09-14."
+  },
+  {
+   "src": "caps",
+   "i": "33",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#5",
+   "reason": "Merged into fleet:W11:5: Wire budget form, record dues as dues, add balance-floor constraint",
+   "evidence": "app/Domain/Forms/Handlers/FundsTransfer.php line 118 hardcodes kind='transfer'; action-dispatch switch accepts only transfer, joint_open, joint_propose, joint_approve; confirmed 2026-09-14."
+  },
+  {
+   "src": "caps",
+   "i": "43",
+   "final": "duplicate",
+   "duplicate_of": "caps:87",
+   "reason": "Merged into caps:87: Seed a committee meeting for the tour and add a civic room index",
+   "evidence": "resources/js/registry/surfaces.js:289 hardcodes a committee meeting UUID with no matching seed or factory file. routes/web.php:1179 routes /rooms to PrivateRoomController (private inbox). committee_meetings=0 on demo box. Confirmed 2026-09-14."
+  },
+  {
+   "src": "caps",
+   "i": "44",
+   "final": "work",
+   "work_title": "Chunk EvaluateSocialStructureJob halls binding with keyset commits",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "civicallyActiveJurisdictions() walks active legislatures with a keyset cursor and commits per chunk with logged progress; social spaces compose when legislatures are active.",
+   "depends_on": [],
+   "evidence": "app/Jobs/EvaluateSocialStructureJob.php civicallyActiveJurisdictions() lines 69-82 pluck all active legislature jurisdiction_ids with no cursor or chunking; confirmed 2026-09-14.",
+   "reason": "ETL-paradigm fix so social spaces compose at scale once legislatures activate.",
+   "merged": []
+  },
+  {
+   "src": "caps",
+   "i": "48",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#3",
+   "reason": "Merged into fleet:W11:3: Harden federation: page push tail, chunk authority-flip, gate cluster join and leave",
+   "evidence": "app/Services/Federation/FederationSyncService.php line 236 calls buildAuditTail($fromSeq) with no limit; line 69 confirms limit=0 skips LIMIT clause; ColdSyncService.php:36-48 has the paged pattern to copy; confirmed 2026-09-14."
+  },
+  {
+   "src": "caps",
+   "i": "51",
+   "final": "work",
+   "work_title": "Wire useI18n into civic, legislature and election page bodies",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "The major civic, legislature and election page bodies call useI18n() for body text; the coverage report shows the majority of page components using useI18n.",
+   "depends_on": [],
+   "evidence": "24 of 145 Page .vue files call useI18n as of 2026-09-14. Locale catalog files exist for ar, es, fr, hi, pt, zh-Hans but page bodies are hardcoded English.",
+   "reason": "Markup wiring so page bodies are translatable; distinct from catalog authoring.",
+   "merged": []
+  },
+  {
+   "src": "caps",
+   "i": "52",
+   "final": "work",
+   "work_title": "Build the Capacitor iOS and Android wrapper with geofenced GPS",
+   "kind": "build",
+   "blocker": "linux_host",
+   "done_when": "ios/ and android/ Capacitor project directories exist; GPS pinging works from a native mobile build on a device.",
+   "depends_on": [],
+   "evidence": "No Capacitor config files, no ios/ or android/ directories in the repository. Phase 6 (Weeks 61-76) scope not started. Confirmed 2026-09-14.",
+   "reason": "Phase 6 mobile; native builds need a Linux/macOS host.",
+   "merged": []
+  },
+  {
+   "src": "caps",
+   "i": "61",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#0",
+   "reason": "Merged into fleet:W11:0: Boot a place on CLK-06 population crossing by calling activate()",
+   "evidence": "app/Services/ActivationService.php lines 260-302 onCriticalPopulation() writes state row and audit entry only; activate() has exactly two callers and neither is the CLK-06 path; confirmed 2026-09-14."
+  },
+  {
+   "src": "caps",
+   "i": "62",
+   "final": "duplicate",
+   "duplicate_of": "debt:53",
+   "reason": "Merged into debt:53: Fix subtree boot: depth barrier, stuck lanes, reset control, queue, dispatch",
+   "evidence": "app/Jobs/SubtreeBootLaneJob.php lines 57-78 depth barrier MIN query includes status IN ('pending','running') with no exclusion for attempts at MAX_ATTEMPTS; no reset function in JurisdictionController.php or BackgroundJobsController.php; confirmed 2026-09-14."
+  },
+  {
+   "src": "caps",
+   "i": "65",
+   "final": "work",
+   "work_title": "Complete demo mode: add session-scoped banner and a pump-pause path",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "AppShell shows a banner on scale_demo instances stating writes are session-scoped and reversed at logout; a pump-pause path exists for demo mode.",
+   "depends_on": [
+    "fleet:W8#2",
+    "debt:46"
+   ],
+   "evidence": "app/Http/Middleware/RedirectIfSetupIncomplete.php:34 still includes 'register'; no banner text in DemoFlyout.vue stating changes are session-scoped; no pump-pause path in the codebase; /simworld inside auth group at routes/web.php:773; confirmed 2026-09-14.",
+   "reason": "Demo-mode completion; its /register and /simworld gaps are already closed by the read-open and write-door clusters, so scope here is banner plus pump-pause.",
+   "merged": []
+  },
+  {
+   "src": "caps",
+   "i": "66",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W8#2",
+   "reason": "Merged into fleet:W8:2: Open every read surface to guests: widen setup allow list, ungate read routes",
+   "evidence": "routes/web.php:773-788 /simworld inside Route::middleware('auth') group; RedirectIfSetupIncomplete.php:34 ALLOW list does not include simworld or building; confirmed 2026-09-14."
+  },
+  {
+   "src": "caps",
+   "i": "67",
+   "final": "duplicate",
+   "duplicate_of": "debt:46",
+   "reason": "Merged into debt:46: Close three open write doors: gate import and join, drop register from allow list",
+   "evidence": "routes/web.php:500 /api/import/jurisdictions has no middleware; routes/web.php:99 /api/setup/join has no auth; RedirectIfSetupIncomplete.php:34 ALLOW list includes 'register'; JurisdictionController::importMaps line 637 has no is_operator check; confirmed 2026-09-14."
+  },
+  {
+   "src": "caps",
+   "i": "71",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W9#1",
+   "reason": "Merged into fleet:W9:1: Run Steps 5 and 6 on the Azure box and record per-step baselines",
+   "evidence": "VERIFIED 2026-09-14 (partial): no Europe mirror or demo domain committed; cloud box OFF per 09-10 order; beta.worldofstatecraft.org live at Step 4 only."
+  },
+  {
+   "src": "caps",
+   "i": "72",
+   "final": "work",
+   "work_title": "Scale the clock engine: chunk all sweeps and rollups, arm CLK-02 at seating",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "EvaluateClocksJob throughput drains 940k due timers within its window and CLK-01 fires across all chambers; EvaluateResidencyThresholdsJob and both standings rollup jobs are keyset-chunked, committed per chunk and resumable; ElectionResultsCertification arms CLK-02 at seating.",
+   "depends_on": [],
+   "evidence": "EvaluateClocksJob.php:40 MAX_FIRES_PER_SWEEP=500; EvaluateResidencyThresholdsJob.php:49 unbounded cursor(), tries=1. VERIFIED 2026-09-14: unchanged.",
+   "reason": "The clock-engine-at-planet-scale deliverable (W11:2) bundles the sweep throughput, the residency sweep, CLK-01 fire, the rollup jobs and the CLK-02 seating arm under one done_when.",
+   "merged": [
+    "caps:74",
+    "caps:80",
+    "caps:81",
+    "caps:84",
+    "fleet:W11#2"
+   ]
+  },
+  {
+   "src": "caps",
+   "i": "74",
+   "final": "duplicate",
+   "duplicate_of": "caps:72",
+   "reason": "Merged into caps:72: Scale the clock engine: chunk all sweeps and rollups, arm CLK-02 at seating",
+   "evidence": "EvaluateResidencyThresholdsJob.php:46-49 cursor() over all ping_monitoring, tries=1, no chunk. VERIFIED 2026-09-14: unchanged."
+  },
+  {
+   "src": "caps",
+   "i": "80",
+   "final": "duplicate",
+   "duplicate_of": "caps:72",
+   "reason": "Merged into caps:72: Scale the clock engine: chunk all sweeps and rollups, arm CLK-02 at seating",
+   "evidence": "ElectionResultsCertification.php:37 armPhaseTimers(); EvaluateClocksJob.php:40 MAX_FIRES_PER_SWEEP=500. VERIFIED 2026-09-14: unchanged."
+  },
+  {
+   "src": "caps",
+   "i": "81",
+   "final": "duplicate",
+   "duplicate_of": "caps:72",
+   "reason": "Merged into caps:72: Scale the clock engine: chunk all sweeps and rollups, arm CLK-02 at seating",
+   "evidence": "ApprovalStandingsRollupJob.php:43 cursor() all APPROVAL_OPEN; RankedStandingsRollupJob.php:53 cursor() all RANKED_OPEN; both tries=1. VERIFIED 2026-09-14: unchanged."
+  },
+  {
+   "src": "caps",
+   "i": "84",
+   "final": "duplicate",
+   "duplicate_of": "caps:72",
+   "reason": "Merged into caps:72: Scale the clock engine: chunk all sweeps and rollups, arm CLK-02 at seating",
+   "evidence": "SessionService.php:566 resetMeetingClock() defined; line 555 only caller is adjourn(); grep of all PHP returns no other callers. VERIFIED 2026-09-14: unchanged."
+  },
+  {
+   "src": "caps",
+   "i": "85",
+   "final": "work",
+   "work_title": "Add the F-EXE-001 department board-of-governors path to the sim",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "A sim stage files F-EXE-001 to nominate and seat department BoG members with CLK-09 armed per seat; department BoG rows exist after a sim run.",
+   "depends_on": [],
+   "evidence": "CivicsStage.php:177-178 seatCgcGovernors only; FormRegistry.php:201 F-EXE-001 not called in any sim stage file. VERIFIED 2026-09-14: unchanged.",
+   "reason": "Distinct sim-stage gap; CGC governor boards seat but department BoG does not.",
+   "merged": []
+  },
+  {
+   "src": "caps",
+   "i": "86",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W8#2",
+   "reason": "Merged into fleet:W8:2: Open every read surface to guests: widen setup allow list, ungate read routes",
+   "evidence": "RedirectIfSetupIncomplete.php:34 ALLOW list confirmed; routes/web.php:1110,1114 withoutMiddleware('auth'). VERIFIED 2026-09-14: unchanged."
+  },
+  {
+   "src": "caps",
+   "i": "87",
+   "final": "work",
+   "work_title": "Seed a committee meeting for the tour and add a civic room index",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "A seed creates the committee meeting matching the tour UUID, or the tour links to a data-driven room index; a civic room index route distinct from the private inbox exists; the room opens on the demo box without a prior sim run.",
+   "depends_on": [],
+   "evidence": "resources/js/registry/surfaces.js:290 hardcodes UUID 019fae79; grep of database/ for that UUID returns zero hits. VERIFIED 2026-09-14: unchanged.",
+   "reason": "Demo-visible tour stop; two keys describe the same seed and room directory.",
+   "merged": [
+    "caps:43"
+   ]
+  },
+  {
+   "src": "caps",
+   "i": "91",
+   "final": "work",
+   "work_title": "Arm a clock to fire the standalone stipend pass in bounded chunks",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "A clock or scheduler entry fires the stipend pass periodically in bounded chunks; the treasury next_run_estimate reflects the actual next fire time.",
+   "depends_on": [],
+   "evidence": "app/Services/Economy/StipendService.php has no clock arming; TreasuryDemoCommand is the only caller; StipendStage is sim-only. VERIFIED 2026-09-14: unchanged.",
+   "reason": "Distinct clock-arming for the stipend pass.",
+   "merged": []
+  },
+  {
+   "src": "caps",
+   "i": "92",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#5",
+   "reason": "Merged into fleet:W11:5: Wire budget form, record dues as dues, add balance-floor constraint",
+   "evidence": "BudgetService.php exists; grep of app/ for BudgetService finds no callers outside the file; FormRegistry.php has no budget form. VERIFIED 2026-09-14: unchanged."
+  },
+  {
+   "src": "caps",
+   "i": "93",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#5",
+   "reason": "Merged into fleet:W11:5: Wire budget form, record dues as dues, add balance-floor constraint",
+   "evidence": "FundsTransfer.php single-signer path passes literal 'transfer'; AccountService::transfer() accepts kind='dues' but no caller supplies it. VERIFIED 2026-09-14: unchanged."
+  },
+  {
+   "src": "debt",
+   "i": "3",
+   "final": "work",
+   "work_title": "Capture pixel after-shots of demo surfaces on the live host",
+   "kind": "verify",
+   "blocker": "cloud_box",
+   "done_when": "After-pixel screenshots are captured via Claude in Chrome on the live host for every surface that received a DOM-only fix and attached to the review records.",
+   "depends_on": [],
+   "evidence": "debt/3 status 2026-09-14: browser pane compositing limitation unchanged; no screenshot tooling added; pixel proof owed at operator-present review time",
+   "reason": "Fleet-wide pixel proof owed at operator-present review; the browser pane cannot composite on box E.",
+   "merged": []
+  },
+  {
+   "src": "debt",
+   "i": "7",
+   "final": "work",
+   "work_title": "Add agenda_items schema and AgendaService for per-item progression",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "A real-dated additive agenda_items migration exists with per-item status; AgendaService advances and completes each item; LiveRoomController::advance walks per-item rows and the FLAGGED comment is gone; the pinned test is green.",
+   "depends_on": [],
+   "evidence": "LiveRoomController.php:168-170 comment 'a schema question — FLAGGED, not written'; no agenda_items migration; pgsql-schema.sql:1191 agenda is plain jsonb",
+   "reason": "Three keys name the same agenda keystone; the constituent_requests half of W11:6 is delivered by its own P1 cluster (debt:29), and its LIVE_PG/mobile defers map to debt:27 and caps:52.",
+   "merged": [
+    "fleet:history#14",
+    "fleet:history#14"
+   ]
+  },
+  {
+   "src": "debt",
+   "i": "18",
+   "final": "work",
+   "work_title": "Build DM primitive, profile self-edit and record-tab link",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "A per-user DM route exists; profile handle, bio and visibility have a write door; the record tab carries an open-full-record link; all three verified in the browser.",
+   "depends_on": [],
+   "evidence": "debt/18 status 2026-09-14: unchanged; no commits since 563c4899 build DM flow, profile-edit write path, or record-tab link",
+   "reason": "Deferred social primitives; secondary to the governance demo.",
+   "merged": []
+  },
+  {
+   "src": "debt",
+   "i": "27",
+   "final": "work",
+   "work_title": "Add per-lane test database to retire the freeze-window gate",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "Each test lane gets an isolated LIVE_PG_DATABASE; the suite composes without a freeze window; the freeze-window gate is retired.",
+   "depends_on": [],
+   "evidence": "AuditService::APPEND_LOCK_KEY 0x4155444954 present; no per-lane test DB migration; debt/27 status 2026-09-14: freeze-window gate unchanged",
+   "reason": "Two keys name the same post-alpha test-infra change.",
+   "merged": [
+    "fleet:history#6",
+    "fleet:history#6"
+   ]
+  },
+  {
+   "src": "debt",
+   "i": "28",
+   "final": "work",
+   "work_title": "Apply reviewed fr and pt shell-chrome catalogs after operator GO",
+   "kind": "content",
+   "blocker": "operator_go",
+   "done_when": "Operator GO received; fr.json and pt.json shell-chrome catalogs are committed and render in-language with no raw NLLB output.",
+   "depends_on": [],
+   "evidence": "debt/28 status 2026-09-14: fr.json and pt.json still absent; translate_monolith.py output withheld pending stronger-model pass",
+   "reason": "Same fr/pt shell chrome as the mooted W10:10 row; the current framing awaits GO for the machine pass, superseding the English-only playtest note.",
+   "merged": [
+    "fleet:W10#10"
+   ]
+  },
+  {
+   "src": "debt",
+   "i": "29",
+   "final": "work",
+   "work_title": "Add constituent_requests and room read-position schema for honest-empty pages",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "constituent_requests table and a room read-position column exist via a real-dated additive migration; the dependent guest pages render honest-empty without errors.",
+   "depends_on": [],
+   "evidence": "debt/29 status 2026-09-14: unchanged; no constituent_requests table or read-position column in migrations or pgsql-schema.sql",
+   "reason": "Guest pages must render honest-empty rather than error during the demo; split from the agenda schema, which is a P5 keystone.",
+   "merged": [
+    "fleet:W11#6"
+   ]
+  },
+  {
+   "src": "debt",
+   "i": "30",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#5",
+   "reason": "Merged into fleet:W11:5: Wire budget form, record dues as dues, add balance-floor constraint",
+   "evidence": "debt/30 status 2026-09-14: app-layer lock still the only guard; no CHECK constraint in pgsql-schema.sql"
+  },
+  {
+   "src": "debt",
+   "i": "31",
+   "final": "work",
+   "work_title": "Apply Atlas accessibility findings: card headings, th scope, targets, contrast",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "Atlas vital-signs and domain cards carry an h3 or aria-labelledby; th elements carry scope; touch targets are at least 24px at 375px; the off-toggle meets contrast; the axe scan of Atlas passes with zero violations. After-screenshots are captured for every fixed Atlas surface.",
+   "depends_on": [],
+   "evidence": "debt/31 status 2026-09-14: no commits touch Atlas.vue a11y since 563c4899; docs/plans/ui/L6W5_ATLAS_A11Y_FINDINGS.md findings unapplied",
+   "reason": "Three keys name the same L6 W5 Atlas findings (F1/F2 are a subset); the owed after-shots ride with debt:3.",
+   "merged": [
+    "debt:65",
+    "fleet:W10#8"
+   ]
+  },
+  {
+   "src": "debt",
+   "i": "39",
+   "final": "work",
+   "work_title": "Align Type B seat-band validation across generator and ballot paths",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "Type B seat-band validation agrees between the generator path and the explicit ballot path; ConstitutionalValidatorTest confirms no asymmetry.",
+   "depends_on": [],
+   "evidence": "ConstitutionalValidator.php:695 assertSeatsInRange for type_b; ElectionLifecycleService.php:941-946 writes seats from ladder directly with no validator call",
+   "reason": "Removes the validator asymmetry that would reject a generator-produced 2-seat race.",
+   "merged": []
+  },
+  {
+   "src": "debt",
+   "i": "43",
+   "final": "work",
+   "work_title": "Bound the counting-mint query to the target election",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "The counting-mint query is scoped to the target election with no full scan over all open elections; a targeted test confirms the scope.",
+   "depends_on": [],
+   "evidence": "debt/43 status 2026-09-14: clause 2 unchanged; clause 1 resolved per 09-08 record (commit 17d67180)",
+   "reason": "Remaining clause of debt:43; the 25k-band claim clause is already resolved.",
+   "merged": []
+  },
+  {
+   "src": "debt",
+   "i": "44",
+   "final": "work",
+   "work_title": "Add an acceptance scan to the verifying sim phase before done",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "The verifying phase runs an acceptance scan; the run advances to done only when the scan passes or failures are recorded as review items.",
+   "depends_on": [],
+   "evidence": "debt/44 status 2026-09-14: mechanical breakage and missing command fixed; acceptance scan explicitly deferred; run passes verifying to done with no scan",
+   "reason": "Remaining verifying-phase gap; the mechanical breakage and sim:revert are resolved.",
+   "merged": []
+  },
+  {
+   "src": "debt",
+   "i": "45",
+   "final": "work",
+   "work_title": "Subtract the network sub-cap from the workers_target display",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "SimConsoleController subtracts the network sub-cap before passing workers_target; the displayed count matches the available lane budget.",
+   "depends_on": [],
+   "evidence": "SimConsoleController.php:144 shows full autoscaleWorkers() pool as workers_target; debt/45 status 2026-09-14 confirms gap unchanged",
+   "reason": "Remaining sim-console gap; the other three issues are resolved.",
+   "merged": []
+  },
+  {
+   "src": "debt",
+   "i": "46",
+   "final": "work",
+   "work_title": "Close three open write doors: gate import and join, drop register from allow list",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "POST /api/import/jurisdictions carries auth and an operator check; POST /api/setup/join carries a user check; register is removed from the RedirectIfSetupIncomplete ALLOW list; the setup smoke test still passes.",
+   "depends_on": [
+    "fleet:W8#2"
+   ],
+   "evidence": "routes/web.php:456 /api/import/jurisdictions no auth; routes/web.php:99 /api/setup/join no user check; RedirectIfSetupIncomplete.php:34 ALLOW list includes register",
+   "reason": "Same three-door close under three keys; touches the same allow-list file as the read-open, so it follows it.",
+   "merged": [
+    "caps:67",
+    "fleet:W8#3"
+   ]
+  },
+  {
+   "src": "debt",
+   "i": "47",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W9#0",
+   "reason": "Merged into fleet:W9:0: Align maps:accept CLI and restore path with the wizard acceptance endpoint",
+   "evidence": "MapsAcceptCommand.php:74-126 vs JurisdictionController.php:699-750; debt/47 status 2026-09-14: drift unchanged"
+  },
+  {
+   "src": "debt",
+   "i": "48",
+   "final": "work",
+   "work_title": "Remove or wire dead configuration dials and unreachable code",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "time_mode, time_scale_seconds_per_year and cga.activate_subtree_batch are wired to a behavior or removed; extraRooms, courtTiers and other dead callers removed or wired; no test regressions.",
+   "depends_on": [],
+   "evidence": "InstanceSettings.php:32-33 time_mode and time_scale_seconds_per_year stored; config/cga.php:35 activate_subtree_batch has no reader per debt/48 status 2026-09-14",
+   "reason": "Two keys name the same dead-dial cleanup.",
+   "merged": [
+    "fleet:W10#7"
+   ]
+  },
+  {
+   "src": "debt",
+   "i": "49",
+   "final": "work",
+   "work_title": "Fix stale class references and outdated comments; add scheduler to docs",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "ConstitutionalVersionService no longer names the absent ElectionTriggerService.php; horizon.php reflects the current lane law; SetupController docblocks drop AutoscaleOrchestratorJob; the scheduler container is in the CLAUDE.md service table.",
+   "depends_on": [],
+   "evidence": "ConstitutionalVersionService.php:33 lists absent file; horizon.php:259 retired comment; SetupController.php:46,:4485 name retired job; debt/49 status 2026-09-14: all unchanged",
+   "reason": "Two keys name the same stale-reference cleanup.",
+   "merged": [
+    "fleet:W10#9"
+   ]
+  },
+  {
+   "src": "debt",
+   "i": "50",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W10#6",
+   "reason": "Merged into fleet:W10:6: Fix setup wizard copy and numbering, remove dead controls, fix autoscale bypass",
+   "evidence": "app/Http/Controllers/SetupController.php:3718 (Artisan::call direct); app/Services/Autoscale/AutoscaleRunControl.php:185 (requeueDriftMaps, no route caller)"
+  },
+  {
+   "src": "debt",
+   "i": "51",
+   "final": "duplicate",
+   "duplicate_of": "screens:52",
+   "reason": "Merged into screens:52: Add restore-from-records to ModeFork with version-check and run stamps",
+   "evidence": "app/Services/MapDataImportService.php:164-168 (stamps map_accepted_at only; no run creation, no mode write)"
+  },
+  {
+   "src": "debt",
+   "i": "52",
+   "final": "work",
+   "work_title": "Pin the boot and simulation jobs in tests",
+   "kind": "verify",
+   "blocker": "none",
+   "done_when": "ActivateSubtreeJob, SubtreeBootLaneJob, FinishActivationsJob, ScheduleFoundingElectionJob, StartSimulationJob and SimulateJurisdictionJob each have a pin test.",
+   "depends_on": [
+    "debt:53"
+   ],
+   "evidence": "tests/ grep for ActivateSubtreeJob, SubtreeBootLaneJob, FinishActivationsJob, ScheduleFoundingElectionJob, StartSimulationJob, SimulateJurisdictionJob returns zero hits (verified 2026-09-14)",
+   "reason": "Pins the boot/sim jobs after the subtree-boot fix lands.",
+   "merged": []
+  },
+  {
+   "src": "debt",
+   "i": "53",
+   "final": "work",
+   "work_title": "Fix subtree boot: depth barrier, stuck lanes, reset control, queue, dispatch",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "The depth-barrier MIN scan excludes rows at max attempts; lanes expand past one after the root wave; a reset control releases stuck lanes; FinishActivationsJob routes off the default queue and honors simulate mode; activate runs async from the request path.",
+   "depends_on": [],
+   "evidence": "app/Jobs/SubtreeBootLaneJob.php:57-78 (depth barrier includes running rows); app/Jobs/FinishActivationsJob.php:37-56 (no onQueue, default queue); app/Http/Controllers/JurisdictionController.php:949-1028 (inline Artisan call)",
+   "reason": "Three keys name the same subtree-boot recovery; boot must work before the sim populates places.",
+   "merged": [
+    "caps:62",
+    "fleet:W11#1"
+   ]
+  },
+  {
+   "src": "debt",
+   "i": "54",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#0",
+   "reason": "Merged into fleet:W11:0: Boot a place on CLK-06 population crossing by calling activate()",
+   "evidence": "app/Jobs/Clocks/EvaluateCriticalPopulationJob.php:120-126 (calls onCriticalPopulation only); app/Services/ActivationService.php:262-305 (onCriticalPopulation writes state, never calls activate())"
+  },
+  {
+   "src": "debt",
+   "i": "55",
+   "final": "work",
+   "work_title": "Measure clock-sweep timing on the cloud run",
+   "kind": "ops",
+   "blocker": "cloud_box",
+   "done_when": "Sweep timing is recorded on the cloud run; the operator accepts the result or issues a new ruling.",
+   "depends_on": [
+    "caps:72"
+   ],
+   "evidence": "routes/console.php:26; app/Jobs/EvaluateClocksJob.php:55-70 (dispatches three sub-sweeps on default queue); operator ruling default-queue-sweeps C on record",
+   "reason": "Deferred measurement of the default-queue sweeps; needs the cloud box on.",
+   "merged": []
+  },
+  {
+   "src": "debt",
+   "i": "57",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W10#6",
+   "reason": "Merged into fleet:W10:6: Fix setup wizard copy and numbering, remove dead controls, fix autoscale bypass",
+   "evidence": "resources/js/Pages/Setup/Step2_MapData.vue:770,1252,1276,1329 (section headings 1,2,2,4); resources/js/Pages/Setup/Step1_Constants.vue:373-375 (clamped copy); GeodataPullPanel.vue:425 (adds third '2' heading)"
+  },
+  {
+   "src": "debt",
+   "i": "58",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#3",
+   "reason": "Merged into fleet:W11:3: Harden federation: page push tail, chunk authority-flip, gate cluster join and leave",
+   "evidence": "routes/web.php (cluster join/leave inside middleware('auth') only); app/Http/Controllers/Federation/FederationConsoleController.php:211 (no operator check)"
+  },
+  {
+   "src": "debt",
+   "i": "59",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#3",
+   "reason": "Merged into fleet:W11:3: Harden federation: page push tail, chunk authority-flip, gate cluster join and leave",
+   "evidence": "app/Services/Federation/FederationSyncService.php:236 (buildAuditTail with no limit); app/Services/Federation/ColdSyncService.php:36-48 (paged pattern to copy)"
+  },
+  {
+   "src": "debt",
+   "i": "60",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#3",
+   "reason": "Merged into fleet:W11:3: Harden federation: page push tail, chunk authority-flip, gate cluster join and leave",
+   "evidence": "app/Services/Federation/AuthorityFlipService.php:81,124,127,168,175 (unbounded whereIn); app/Services/Federation/PartitionExportService.php:46,55 (full descendant array in one manifest)"
+  },
+  {
+   "src": "debt",
+   "i": "61",
+   "final": "work",
+   "work_title": "Complete the federation toggle: mint identity and arm CLK-20",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "The operator-console federation toggle mints server_id and public_key and arms CLK-20 as well as setting the flag; enabling federation leaves no half-state.",
+   "depends_on": [],
+   "evidence": "app/Http/Controllers/Operator/OperatorConsoleController.php:58-62 (sets flag only); app/Console/Commands/FederationInitCommand.php:41-62 (mints and arms CLK-20, not called by toggle)",
+   "reason": "Removes the enabled-but-unminted half-state on the toggle.",
+   "merged": []
+  },
+  {
+   "src": "debt",
+   "i": "62",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W8#2",
+   "reason": "Merged into fleet:W8:2: Open every read surface to guests: widen setup allow list, ungate read routes",
+   "evidence": "routes/web.php (GET /operator/federation inside Route::middleware('auth') group, line ~716); comment at ~713 reads 'Public-read (Art. II §2)'"
+  },
+  {
+   "src": "debt",
+   "i": "63",
+   "final": "work",
+   "work_title": "Run the simulation to populate economy surfaces",
+   "kind": "ops",
+   "blocker": "operator_go",
+   "done_when": "A planet-scale sim run completes; currencies, wallets, stipend entries and ledger rows are non-zero on the box.",
+   "depends_on": [],
+   "evidence": "app/Services/Demo/Stages/StipendStage.php (sim money plane built); live counts: currencies 0, economic_accounts 0, ledger_entries 0 (verified 2026-09-14)",
+   "reason": "Economy surfaces populate only after a sim run, which needs the operator's GO.",
+   "merged": []
+  },
+  {
+   "src": "debt",
+   "i": "64",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W8#2",
+   "reason": "Merged into fleet:W8:2: Open every read surface to guests: widen setup allow list, ungate read routes",
+   "evidence": "app/Http/Middleware/RedirectIfSetupIncomplete.php:35 (ALLOW list has no 'economy'); routes/web.php:784-801 (economy routes inside auth group)"
+  },
+  {
+   "src": "debt",
+   "i": "65",
+   "final": "duplicate",
+   "duplicate_of": "debt:31",
+   "reason": "Merged into debt:31: Apply Atlas accessibility findings: card headings, th scope, targets, contrast",
+   "evidence": "resources/js/Pages/System/Atlas.vue:684-685 (domain cards as bare section with no heading or aria-labelledby); docs/plans/ui/L6W5_ATLAS_A11Y_FINDINGS.md (F1 and F2 findings open)"
+  },
+  {
+   "src": "fleet",
+   "i": "W7#1",
+   "final": "work",
+   "work_title": "Rebuild sim start: keyset pagination, stored options, single run selection",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "SimStartCommand uses NOT EXISTS with LIMIT and no OFFSET for both scope inserts; --resume reads the stored run.options; SimRunControl and --resume select the same run.",
+   "depends_on": [],
+   "evidence": "app/Console/Commands/SimStartCommand.php:251,271 (LIMIT ? OFFSET ?); app/Console/Commands/SimStartCommand.php:84 (--resume reads adm-max/limit from CLI); SimRunControl.php (orderBy created_at) vs SimStartCommand.php:81-83 (orderByDesc)",
+   "reason": "Unblocked build that enables the cloud and box-E sim runs downstream.",
+   "merged": []
+  },
+  {
+   "src": "fleet",
+   "i": "W7#10",
+   "final": "work",
+   "work_title": "Run full-planet sim on box E: halt, resume, rollback, lock",
+   "kind": "verify",
+   "blocker": "operator_go",
+   "done_when": "A full planet sim run completes; the halt and resume cycle is verified; sim:revert rolls back sim-layer state; the result is locked with zero drift.",
+   "depends_on": [
+    "fleet:W7#1"
+   ],
+   "evidence": "app/Console/Commands/SimRevertCommand.php (exists). No commit in the 4fc4538d window records a completed run.",
+   "reason": "Full sim run; needs the sim-start build and the operator's GO.",
+   "merged": []
+  },
+  {
+   "src": "fleet",
+   "i": "W7#11",
+   "final": "work",
+   "work_title": "Run the Niue Type B election walk: 10 seats across 5 panels",
+   "kind": "verify",
+   "blocker": "operator_go",
+   "done_when": "The operator triggers; the Niue Type B election runs and elects 10 seats across 5 panels; ElectionStageTest:201 passes.",
+   "depends_on": [],
+   "evidence": "tests/Constitutional/ElectionStageTest.php:201 (test_a_per_clump_chamber_fields_its_election_end_to_end, commit 80b5e3a). Held flag in fleet row note.",
+   "reason": "Two keys name the same held Niue walk; awaits the operator's trigger.",
+   "merged": [
+    "fleet:history#0",
+    "fleet:history#0"
+   ]
+  },
+  {
+   "src": "fleet",
+   "i": "W8#0",
+   "final": "work",
+   "work_title": "Close Step 6: write founding-window audit entry and add setup:complete CLI",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "completeStep6 writes a founding-window audit entry; a setup:complete artisan command stamps setup_completed_at; a re-POST is idempotent.",
+   "depends_on": [],
+   "evidence": "app/Http/Controllers/SetupController.php:3940-3962 (no audit entry in completeStep6); no setup:complete file in app/Console/Commands/",
+   "reason": "Small enabler the guest-walk verify and the CLI-parity cluster both need.",
+   "merged": []
+  },
+  {
+   "src": "fleet",
+   "i": "W8#1",
+   "final": "moot",
+   "reason": "The read-only-lock-A design (operator toggle, engine discards writes globally, registration closed, pumps paused) was superseded by ruling C: real writes tagged by the cga.demo_session GUC and purged at session end. Ruling C was built in commit a1a23600. The screens:112 VERIFIED 2026-09-14 note confirms the ruling-C design replaced read-only-lock A. Remaining gaps in ruling C are tracked in caps:65.",
+   "evidence": "app/Services/Demo/DemoSessionService.php (ruling C built, a1a23600); screens:112 VERIFIED 2026-09-14: 'Ruling C built instead of the read-only-lock-A design'"
+  },
+  {
+   "src": "fleet",
+   "i": "W8#2",
+   "final": "work",
+   "work_title": "Open every read surface to guests: widen setup allow list, ungate read routes",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "Every read surface (/simworld, /building, economy pages, /executives, /departments, committees, referendums, emergency-powers, /learn, /support, federation console) loads for an unauthenticated guest with setup incomplete; sim and engine drive endpoints stay operator-gated. The setup-lock allow list also admits /, /launchpad, /tour, /atlas, /coverage, /coverage-ops and the /system/* read pages named by screen 126.",
+   "depends_on": [],
+   "evidence": "routes/web.php:773 (/simworld inside middleware('auth')); app/Http/Middleware/RedirectIfSetupIncomplete.php:34 (ALLOW list unchanged)",
+   "reason": "Root allow-list enabler; the guest walk and demo mode depend on it. Absorbs the executives/departments, economy and federation-console read-open sub-tasks and the caps:66 /simworld enabler.",
+   "merged": [
+    "caps:66",
+    "screens:126",
+    "screens:113",
+    "caps:86",
+    "debt:64",
+    "debt:62"
+   ]
+  },
+  {
+   "src": "fleet",
+   "i": "W8#3",
+   "final": "duplicate",
+   "duplicate_of": "debt:46",
+   "reason": "Merged into debt:46: Close three open write doors: gate import and join, drop register from allow list",
+   "evidence": "routes/web.php:500 (no middleware on import); app/Http/Controllers/JurisdictionController.php:637 (no operator check); routes/web.php:99 (join, no auth); app/Http/Middleware/RedirectIfSetupIncomplete.php:34 (register on ALLOW list)"
+  },
+  {
+   "src": "fleet",
+   "i": "W8#4",
+   "final": "work",
+   "work_title": "Verify guest walk on box E and session-scoped write purge",
+   "kind": "verify",
+   "blocker": "none",
+   "done_when": "A signed-out walk reaches every read surface without redirect; write attempts return the session-scoped message; no write persists after the session ends.",
+   "depends_on": [
+    "fleet:W8#0",
+    "fleet:W8#2",
+    "debt:46"
+   ],
+   "evidence": "Manual test; cannot verify from code. Prerequisites confirmed open at 2026-09-14.",
+   "reason": "Gates P1 done; depends on the Step 6 close, the read-open and the write-door close.",
+   "merged": []
+  },
+  {
+   "src": "fleet",
+   "i": "W9#0",
+   "final": "work",
+   "work_title": "Align maps:accept CLI and restore path with the wizard acceptance endpoint",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "maps:accept calls the WorldBuildVerifier gate, stamps scale_mode and creates the run with totals matching the acceptance endpoint; the restore path stamps run state and scale_mode from the bundle.",
+   "depends_on": [
+    "fleet:W8#0"
+   ],
+   "evidence": "app/Console/Commands/MapsAcceptCommand.php:74-126 (no verifier gate, no mode write, run created as queued); app/Services/MapDataImportService.php:164-168 (stamps only map_accepted_at)",
+   "reason": "CLI parity for the fresh cloud build; the restore-stamp portion overlaps the P5 restore-feature cluster (screens:52/debt:51).",
+   "merged": [
+    "debt:47"
+   ]
+  },
+  {
+   "src": "fleet",
+   "i": "W9#1",
+   "final": "work",
+   "work_title": "Run Steps 5 and 6 on the Azure box and record per-step baselines",
+   "kind": "ops",
+   "blocker": "cloud_box",
+   "done_when": "Steps 5 and 6 complete on the Azure box; per-step baselines and a clock-sweep measurement are recorded; no zero-seat leaf chambers. Together with the Europe mirror (fleet:W9:2) this closes capability 71 (fresh cloud build and the mirror behind demo.worldofstatecraft.org).",
+   "depends_on": [
+    "fleet:W8#0"
+   ],
+   "evidence": "Cloud box OFF (09-10 order). Steps 0-4 done at beta.worldofstatecraft.org. Steps 5-6 and remaining measurements absent from any commit in the 4fc4538d window.",
+   "reason": "Populates the demo backend for the conference; blocked while the cloud box is off.",
+   "merged": [
+    "caps:71"
+   ]
+  },
+  {
+   "src": "fleet",
+   "i": "W9#2",
+   "final": "work",
+   "work_title": "Provision Europe mirror node and demo.worldofstatecraft.org DNS and TLS",
+   "kind": "ops",
+   "blocker": "linux_host",
+   "done_when": "The Europe mirror node runs and joins the Azure authoritative box; demo.worldofstatecraft.org resolves with valid TLS; Full-Faith-and-Credit sync is active.",
+   "depends_on": [
+    "fleet:W9#1"
+   ],
+   "evidence": "No Europe mirror node provisioned. demo.worldofstatecraft.org absent. beta.worldofstatecraft.org live (confirmed 09-08).",
+   "reason": "Two keys name the same Europe mirror and demo domain; needs a distinct Linux host.",
+   "merged": []
+  },
+  {
+   "src": "fleet",
+   "i": "W9#3",
+   "final": "work",
+   "work_title": "Smoke-walk demo.worldofstatecraft.org and match counts to Azure",
+   "kind": "verify",
+   "blocker": "linux_host",
+   "done_when": "A guest walk on demo.worldofstatecraft.org reaches all read surfaces; jurisdiction and election counts match the Azure box; sync lag is recorded.",
+   "depends_on": [
+    "fleet:W9#1",
+    "fleet:W9#2"
+   ],
+   "evidence": "Mirror not provisioned. Manual test pending W9:1 and W9:2.",
+   "reason": "Mirror smoke walk; depends on the Azure run and the mirror provisioning.",
+   "merged": []
+  },
+  {
+   "src": "fleet",
+   "i": "W10#4",
+   "final": "work",
+   "work_title": "Re-grade data-dependent screens after sim data lands",
+   "kind": "verify",
+   "blocker": "operator_go",
+   "done_when": "All data-dependent screens are re-graded with live sim data and any new gaps are filed.",
+   "depends_on": [
+    "fleet:W7#1",
+    "fleet:W7#10"
+   ],
+   "evidence": "No commit records a re-verification pass. W7 sim not run as of 4fc4538d. Operator gate on sim runs is active (MEMORY.md ANSWERS NOT RETESTS standing rule).",
+   "reason": "Re-grade blocked until the sim run lands; needs the operator's GO.",
+   "merged": []
+  },
+  {
+   "src": "fleet",
+   "i": "W10#5",
+   "final": "work",
+   "work_title": "Add video and translation nav rows and seed the education catalog",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "surfaces.js has nav entries for /videos and /system/translations; education:seed runs; Learn, lesson and video pages render real content.",
+   "depends_on": [],
+   "evidence": "resources/js/registry/surfaces.js: no entry for 'videos' or 'system/translations' (verified 2026-09-08 and 2026-09-14). No education:seed call in routes/console.php or database/seeders/.",
+   "reason": "Two nav-row keys plus the demo-box catalog seed are one deliverable so Learn surfaces are reachable and non-empty.",
+   "merged": [
+    "screens:124",
+    "screens:125"
+   ]
+  },
+  {
+   "src": "fleet",
+   "i": "W10#6",
+   "final": "work",
+   "work_title": "Fix setup wizard copy and numbering, remove dead controls, fix autoscale bypass",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "Step 1 clamp copy corrected; Step 2 headings numbered 1,2,3,4; dead setup controls removed or wired; autoscaleRevert routes through AutoscaleRunControl and requeueDriftMaps is reachable from the UI.",
+   "depends_on": [],
+   "evidence": "Step1_Constants.vue:373-375 still says 'clamped to [min, max]'. Step2_MapData.vue h2 headings number 1,2,2,4 at lines 770,1252,1276,1329. SetupController.php:3718 calls Artisan::call('autoscale:revert') directly. AutoscaleRunControl.php:185 requeueDriftMaps has no route.",
+   "reason": "One fleet row unifies the visible wizard copy/dead-control fixes and the Step-3 autoscale control plumbing.",
+   "merged": [
+    "debt:57",
+    "debt:50"
+   ]
+  },
+  {
+   "src": "fleet",
+   "i": "W10#7",
+   "final": "duplicate",
+   "duplicate_of": "debt:48",
+   "reason": "Merged into debt:48: Remove or wire dead configuration dials and unreachable code",
+   "evidence": "time_mode written by SetupController:804; no downstream reader outside setup storage. InstitutionScaleService.php:219 defines extraRooms with no caller. config/cga.php:35 cga.activate_subtree_batch has no reader (verified 2026-09-08 and 2026-09-14)."
+  },
+  {
+   "src": "fleet",
+   "i": "W10#8",
+   "final": "duplicate",
+   "duplicate_of": "debt:31",
+   "reason": "Merged into debt:31: Apply Atlas accessibility findings: card headings, th scope, targets, contrast",
+   "evidence": "Atlas.vue:684 renders domain cards as <section class=\"card atlas-domain\"> with no heading and no aria-labelledby. docs/plans/ui/L6W5_ATLAS_A11Y_FINDINGS.md carries open F1 and F2 findings. No a11y commits since 563c4899."
+  },
+  {
+   "src": "fleet",
+   "i": "W10#9",
+   "final": "duplicate",
+   "duplicate_of": "debt:49",
+   "reason": "Merged into debt:49: Fix stale class references and outdated comments; add scheduler to docs",
+   "evidence": "CLAUDE.md:585 lists app/Services/ElectionTriggerService.php which is absent from disk. config/horizon.php:259 reads 'processes = concurrency. cores-2, capped 12'. SetupController.php:46 and :4485 name AutoscaleOrchestratorJob in docblocks (verified 2026-09-08 and 2026-09-14)."
+  },
+  {
+   "src": "fleet",
+   "i": "W10#10",
+   "final": "duplicate",
+   "duplicate_of": "debt:28",
+   "reason": "Merged into debt:28: Apply reviewed fr and pt shell-chrome catalogs after operator GO",
+   "evidence": "Fleet note for W10:10: 'Operator ruling i18n A for the playtest: English chrome.' Status=deferred by operator. No fr/pt chrome commits since 563c4899."
+  },
+  {
+   "src": "fleet",
+   "i": "W11#0",
+   "final": "work",
+   "work_title": "Boot a place on CLK-06 population crossing by calling activate()",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "onCriticalPopulation() calls activate() after writing the crossing; a population threshold crossing boots seats, board and founding election without manual intervention.",
+   "depends_on": [],
+   "evidence": "EvaluateCriticalPopulationJob.php:121 calls onCriticalPopulation() only. ActivationService.php:260-302 writes critical_population state and audit row; never calls activate(). ActivationService::activate() has two callers (JurisdictionActivateCommand, ElectionsDemoCommand) and neither is the CLK-06 path (verified 2026-09-14).",
+   "reason": "Three keys name the same missing crossing-to-activate hop.",
+   "merged": [
+    "caps:61",
+    "debt:54"
+   ]
+  },
+  {
+   "src": "fleet",
+   "i": "W11#1",
+   "final": "duplicate",
+   "duplicate_of": "debt:53",
+   "reason": "Merged into debt:53: Fix subtree boot: depth barrier, stuck lanes, reset control, queue, dispatch",
+   "evidence": "SubtreeBootLaneJob.php:70-77 depth barrier counts 'running' rows; a row stuck at attempts=3 pins the barrier forever. FinishActivationsJob.php:54 calls activate without --no-election regardless of mode. No reset endpoint found in JurisdictionController.php or BackgroundJobsController.php (verified 2026-09-14)."
+  },
+  {
+   "src": "fleet",
+   "i": "W11#2",
+   "final": "duplicate",
+   "duplicate_of": "caps:72",
+   "reason": "Merged into caps:72: Scale the clock engine: chunk all sweeps and rollups, arm CLK-02 at seating",
+   "evidence": "SessionService.php:566 resetMeetingClock() called only from adjourn() at :555; no certification path calls it (verified 2026-09-14). EvaluateClocksJob.php:40 MAX_FIRES_PER_SWEEP=500. ApprovalStandingsRollupJob.php cursor() over all APPROVAL_OPEN elections, tries=1, no chunking (verified 2026-09-14)."
+  },
+  {
+   "src": "fleet",
+   "i": "W11#3",
+   "final": "work",
+   "work_title": "Harden federation: page push tail, chunk authority-flip, gate cluster join and leave",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "FederationSyncService::pushTo pages the outbound tail like ColdSyncService so a first push sends one page; AuthorityFlipService and PartitionExportService chunk all whereIn and manifest below the PDO bind limit; cluster join and leave require auth:operator.",
+   "depends_on": [],
+   "evidence": "FederationSyncService.php:236 calls buildAuditTail($fromSeq) with no limit; :69 default limit=0 skips LIMIT clause. AuthorityFlipService.php:81,124,127,168,175 unbounded whereIn on full descendant ID array. routes/web.php:733-737 cluster join/leave inside auth-only group; FederationConsoleController.php:211 join() has no operator check (verified 2026-09-14).",
+   "reason": "The federation-hardening deliverable (W11:3) bundles the FFC push-tail paging (caps:48/debt:59), the authority-flip chunking (debt:60) and the cluster join/leave operator gate (debt:58).",
+   "merged": [
+    "caps:48",
+    "debt:59",
+    "debt:60",
+    "debt:58"
+   ]
+  },
+  {
+   "src": "fleet",
+   "i": "W11#4",
+   "final": "work",
+   "work_title": "Provision the writable beta and run Steps 5 and 6",
+   "kind": "ops",
+   "blocker": "cloud_box",
+   "done_when": "beta.worldofstatecraft.org runs with setup completed through Step 6; registration open; demo mode confirmed; the boot and clock fixes verified on the live box.",
+   "depends_on": [
+    "fleet:W11#0",
+    "debt:53",
+    "caps:72"
+   ],
+   "evidence": "Cloud box OFF until further notice (MEMORY.md 09-10 order). No infrastructure commits since 9c51cb80. beta.worldofstatecraft.org last confirmed live at Step 4 only (2026-09-08 report).",
+   "reason": "The writable beta; needs the boot fixes and the cloud box. Its done_when also cites W11:3, but only the cluster-join gate is beta-relevant and is already covered by the write-door gating.",
+   "merged": []
+  },
+  {
+   "src": "fleet",
+   "i": "W11#5",
+   "final": "work",
+   "work_title": "Wire budget form, record dues as dues, add balance-floor constraint",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "A legislature drafts and enacts a budget through a registered ConstitutionalEngine form and the treasury shows it; a dues payment records as kind='dues'; economic_accounts carries CHECK(balance>=0).",
+   "depends_on": [],
+   "evidence": "BudgetService.php::draft() and ::enact() have no callers outside the service itself. FundsTransfer.php:118 hardcodes kind='transfer'. No CHECK(balance>=0) constraint in database/schema/pgsql-schema.sql or migrations (verified 2026-09-14).",
+   "reason": "The economy-doors deliverable (W11:5) bundles the budget-form wiring (caps:32/92), the dues ledger kind (caps:33/93) and the balance-floor constraint (debt:30) under one done_when.",
+   "merged": [
+    "caps:32",
+    "caps:92",
+    "caps:33",
+    "caps:93",
+    "debt:30",
+    "fleet:history#28"
+   ]
+  },
+  {
+   "src": "fleet",
+   "i": "W11#6",
+   "final": "duplicate",
+   "duplicate_of": "debt:29",
+   "reason": "Merged into debt:29: Add constituent_requests and room read-position schema for honest-empty pages",
+   "evidence": "database/migrations/ has no agenda_items migration. LiveRoomController.php:164-174 flags the schema gap as 'FLAGGED, not written'. No constituent_requests table in database/schema/pgsql-schema.sql. No Capacitor config or ios/android directories in the repo (verified 2026-09-14)."
+  },
+  {
+   "src": "fleet",
+   "i": "W11#7",
+   "final": "work",
+   "work_title": "Build Coalition Organization Phase J; never build the Action Fund",
+   "kind": "build",
+   "blocker": "operator_go",
+   "done_when": "The Foundation 501(c)(3) parent org and the Coalition project-child org are modeled and functional; the Action Fund is never built.",
+   "depends_on": [],
+   "evidence": "No Phase J code found in app/. Operator hold in MEMORY.md (project_phase_j_coalition_orgs.md): 'Foundation = 501(c)(3) parent, Coalition = project child, Action Fund = DO NOT BUILD.' No commits since 563c4899 touch Phase J.",
+   "reason": "Two keys name the same held Phase J; resumes on the operator's word.",
+   "merged": [
+    "fleet:history#32",
+    "fleet:history#32"
+   ]
+  },
+  {
+   "src": "fleet",
+   "i": "boxE#0",
+   "final": "work",
+   "work_title": "Delete the two duplicate legislature rows on box E",
+   "kind": "ops",
+   "blocker": "none",
+   "done_when": "The two duplicate legislature rows (Githunguri, Kalmar) are deleted on box E; the unique index holds.",
+   "depends_on": [],
+   "evidence": "",
+   "reason": "Reconciled work item missing from dispositions; dev-box one-off data repair, the code fix already landed.",
+   "merged": []
+  },
+  {
+   "src": "fleet",
+   "i": "boxE#1",
+   "final": "work",
+   "work_title": "Redraw the nine box-E maps that hold a zero-seat district",
+   "kind": "ops",
+   "blocker": "none",
+   "done_when": "The nine active box-E maps that hold a zero-seat district are redrawn with no zero-seat district.",
+   "depends_on": [],
+   "evidence": "",
+   "reason": "Reconciled work item missing from dispositions; dev-box one-off, the zero-bin rule fix already landed.",
+   "merged": []
+  },
+  {
+   "src": "fleet",
+   "i": "history#0",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W7#11",
+   "reason": "Merged into fleet:W7:11: Run the Niue Type B election walk: 10 seats across 5 panels",
+   "evidence": ""
+  },
+  {
+   "src": "fleet",
+   "i": "history#6",
+   "final": "duplicate",
+   "duplicate_of": "debt:27",
+   "reason": "Merged into debt:27: Add per-lane test database to retire the freeze-window gate",
+   "evidence": ""
+  },
+  {
+   "src": "fleet",
+   "i": "history#14",
+   "final": "duplicate",
+   "duplicate_of": "debt:7",
+   "reason": "Merged into debt:7: Add agenda_items schema and AgendaService for per-item progression",
+   "evidence": ""
+  },
+  {
+   "src": "fleet",
+   "i": "history#28",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#5",
+   "reason": "Merged into fleet:W11:5: Wire budget form, record dues as dues, add balance-floor constraint",
+   "evidence": ""
+  },
+  {
+   "src": "fleet",
+   "i": "history#30",
+   "final": "work",
+   "work_title": "Arm the game box with education:seed on operator trigger",
+   "kind": "ops",
+   "blocker": "operator_go",
+   "done_when": "On the operator's trigger, education:seed arms the training gate on the game/beta box; the dev box is not seeded.",
+   "depends_on": [],
+   "evidence": "",
+   "reason": "Reconciled work item missing from dispositions; distinct from the P1 demo-box catalog seed (different box; do not seed the dev box).",
+   "merged": []
+  },
+  {
+   "src": "fleet",
+   "i": "history#32",
+   "final": "duplicate",
+   "duplicate_of": "fleet:W11#7",
+   "reason": "Merged into fleet:W11:7: Build Coalition Organization Phase J; never build the Action Fund",
+   "evidence": ""
+  },
+  {
+   "src": "punch",
+   "i": "LG-1",
+   "final": "work",
+   "work_title": "Author the 14 namespace catalogs absent from the six conference locales",
+   "kind": "content",
+   "blocker": "none",
+   "done_when": "Every English namespace catalog file exists for ar, es, fr, hi, pt and zh-Hans; the i18nCoverage absence check passes.",
+   "depends_on": [],
+   "evidence": "tests/js/i18nCoverage.test.mjs records 14 absent namespace files per conference locale as of 2026-09-14. translate_run.py exists but provider is unruled (rubric translation-first-pass-provider open).",
+   "reason": "English base catalogs are desk authoring; the machine fill depends on them. Provider ruled 2026-09-14 (local model on box E).",
+   "merged": []
+  },
+  {
+   "src": "punch",
+   "i": "LG-2",
+   "final": "work",
+   "work_title": "Fill 10,597 untranslated keys across six conference locales",
+   "kind": "content",
+   "blocker": "operator_go",
+   "done_when": "i18nCoverage reports zero missing keys for the six conference locales after the machine first pass runs.",
+   "depends_on": [
+    "punch:LG-1"
+   ],
+   "evidence": "Punch list created 2026-09-12/13: 10,597 untranslated keys reported across conference locales as of 2026-09-14. c_education is the largest gap at 165-259 keys per locale.",
+   "reason": "The machine first pass provider is ruled (local model on box E) but a run needs the operator's GO.",
+   "merged": []
+  },
+  {
+   "src": "punch",
+   "i": "LG-3",
+   "final": "work",
+   "work_title": "Internationalize MultiTrackVideoPlayer labels, aria-labels and error messages",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "No English literal remains in MultiTrackVideoPlayer labels, aria-labels or messages; keys exist in all seven locales; player tests stay green.",
+   "depends_on": [],
+   "evidence": "resources/js/Components/Media/MultiTrackVideoPlayer.vue contains hardcoded English audio/captions labels, transport aria-labels and error messages (identified in punch list 2026-09-12/13).",
+   "reason": "Unblocked markup i18n for the video player; small, feeds the i18n coverage verify.",
+   "merged": []
+  },
+  {
+   "src": "punch",
+   "i": "A11Y-1",
+   "final": "work",
+   "work_title": "Label 67 accessible-name gaps across 18 Vue files",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "a11yStaticScan reports zero baseline findings; a11y-baseline.json is empty; player and browser a11y sweeps stay green.",
+   "depends_on": [],
+   "evidence": "tests/js/a11y-baseline.json pins 67 gaps across 18 Vue files. Setup/Step1_Constants.vue has 28 label-without-for inputs and selects as the largest contributor (punch list 2026-09-13).",
+   "reason": "Distinct a11y fix (accessible names); feeds the L2 verify.",
+   "merged": []
+  },
+  {
+   "src": "punch",
+   "i": "A11Y-2",
+   "final": "work",
+   "work_title": "Fix color contrast: raise subtle-fg token, replace opacity and Tailwind dimming",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "accessibility.test.mjs reports zero color-contrast nodes on every guest route at desktop and 375px.",
+   "depends_on": [],
+   "evidence": "resources/css/cga/tokens.css:94 --gov-fg-subtle: comment claims 5.57:1 but browser renders 4.16:1 on page background. docs/audits/2026-09-14/BROWSER_REVIEW.md records 1,008 axe color-contrast nodes on six routes.",
+   "reason": "Distinct a11y fix (contrast); 1,008 axe nodes recorded.",
+   "merged": []
+  },
+  {
+   "src": "punch",
+   "i": "A11Y-3",
+   "final": "work",
+   "work_title": "Give prose links an underline or 3:1 contrast",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "The accessibility sweep reports zero link-in-text-block nodes.",
+   "depends_on": [],
+   "evidence": "docs/audits/2026-09-14/BROWSER_REVIEW.md: 30 axe link-in-text-block nodes on 11 routes; lowest value 1.41:1.",
+   "reason": "Distinct a11y fix (prose links).",
+   "merged": []
+  },
+  {
+   "src": "punch",
+   "i": "A11Y-4",
+   "final": "work",
+   "work_title": "Make DataTable scroll container focusable and add Bootstrap page title",
+   "kind": "build",
+   "blocker": "none",
+   "done_when": "The accessibility sweep reports zero scrollable-region-focusable and document-title nodes.",
+   "depends_on": [],
+   "evidence": "docs/audits/2026-09-14/BROWSER_REVIEW.md: 4 scrollable-region-focusable nodes on /system/clocks at 375px; 2 document-title nodes on /setup/bootstrap. components.css:480 scroll container lacks tabindex and aria-label.",
+   "reason": "Distinct a11y fix (semantics).",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "R2",
+   "final": "work",
+   "work_title": "Verify civic room media transport both directions with rejoin and removal",
+   "kind": "verify",
+   "blocker": "linux_host",
+   "done_when": "Media frames flow both directions; interruption and rejoin resume media; a removed member loses the live connection, all on a host where the SFU node IP is reachable.",
+   "depends_on": [],
+   "evidence": "docs/audits/2026-09-14/BROWSER_REVIEW.md: signaling established, app-minted grants accepted, three identities joined from Chromium. Media transport blocked by SFU node IP 127.0.0.1 and blocked STUN inside container.",
+   "reason": "Rooms are in the demo; signaling verified but media is blocked by the 127.0.0.1 SFU node IP inside the container.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "S1 · consistency",
+   "final": "work",
+   "work_title": "Verify DOM acceptance of 27 uncovered action-door pages",
+   "kind": "verify",
+   "blocker": "none",
+   "done_when": "NavRoleGateParityTest covers all 27 previously uncovered action-door pages; navigation, loading, error, disabled and return-path conventions are confirmed on each.",
+   "depends_on": [],
+   "evidence": "docs/audits/2026-09-14/ORGANIZATIONS_REVIEW.md: 14 swept surfaces confirmed; 27 action-door pages without compiled prop-driven companions pinned as a boundary in NavRoleGateParityTest.",
+   "reason": "Unblocked consistency verify over the swept surfaces.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "L1 · languages",
+   "final": "work",
+   "work_title": "Re-run i18n coverage test green after catalog work lands",
+   "kind": "verify",
+   "blocker": "operator_go",
+   "done_when": "Every English namespace file is present per conference locale, zero keys missing, player strings through vue-i18n; i18nCoverage passes. Human naturalness stays separate.",
+   "depends_on": [
+    "punch:LG-1",
+    "punch:LG-2",
+    "punch:LG-3"
+   ],
+   "evidence": "tests/js/i18nCoverage.test.mjs records 5 defects as of 2026-09-14. docs/audits/2026-09-14/EDUCATION_REVIEW.md is the instrument-in-place evidence.",
+   "reason": "Coverage gate; waits on the catalog fill, which awaits the operator's GO for the machine pass.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "L2",
+   "final": "work",
+   "work_title": "Re-run accessibility scans green after A11Y repairs land",
+   "kind": "verify",
+   "blocker": "none",
+   "done_when": "Zero axe nodes on every established guest route at desktop and 375px; a11y-baseline.json empty.",
+   "depends_on": [
+    "punch:A11Y-1",
+    "punch:A11Y-2",
+    "punch:A11Y-3",
+    "punch:A11Y-4"
+   ],
+   "evidence": "docs/audits/2026-09-14/BROWSER_REVIEW.md and EDUCATION_REVIEW.md: 1,044 axe nodes recorded; 67 static gaps in tests/js/a11y-baseline.json.",
+   "reason": "a11y gate; waits on the four A11Y repairs.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "Setup · schema",
+   "final": "work",
+   "work_title": "Verify federation identity survives a full Compose restart",
+   "kind": "verify",
+   "blocker": "linux_host",
+   "done_when": "The federation identity row and CLK-20 timer persist unchanged across a full stop and restart of a disposable Compose project.",
+   "depends_on": [],
+   "evidence": "docs/audits/2026-09-14/EDUCATION_REVIEW.md: baseline load, additive migrate, no-op second run, singletons and federation:init twice on a disposable database all passed. Restart persistence not verified.",
+   "reason": "Restart persistence for the Azure/mirror pair; needs a Linux host.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "Setup · installer",
+   "final": "work",
+   "work_title": "Run container installation on a disposable Linux host",
+   "kind": "verify",
+   "blocker": "linux_host",
+   "done_when": "Cold container installation completes on a disposable Linux host; failure and retry paths produce the expected errors and recoveries.",
+   "depends_on": [],
+   "evidence": "docs/audits/2026-09-14/EDUCATION_REVIEW.md: stub success contracts for deploy.sh and deploy.ps1 passed. Actual cold container install on Linux not yet run.",
+   "reason": "Pre-flight for the conference host rollout; needs a Linux host.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "Mesh · join",
+   "final": "work",
+   "work_title": "Verify two-node mesh join, signed transfer and rejoin",
+   "kind": "verify",
+   "blocker": "linux_host",
+   "done_when": "A keyed join is accepted; signed foundation and audit transfer complete; authority is preserved on the origin; tampered pages are refused; disconnect resumes membership with no duplicate identities.",
+   "depends_on": [
+    "fleet:W11#3"
+   ],
+   "evidence": "No join verification in any 2026-09-14 audit file. Two-node infrastructure not provisioned as of 4fc4538d.",
+   "reason": "Two-node join verify; depends on the federation hardening and needs two hosts.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "Setup · worlds",
+   "final": "work",
+   "work_title": "Validate demo and beta world modes separately with prerequisites",
+   "kind": "verify",
+   "blocker": "operator_go",
+   "done_when": "Demo mode shows representatives, ownership, boards and scenario prerequisites; beta mode confirmed separately; repeated resumes complete without duplicates. The player-ready beta mode is validated again under fleet:W11:4 once the writable beta exists.",
+   "depends_on": [
+    "fleet:W9#1"
+   ],
+   "evidence": "Review criterion cites G1/G2 dependencies and isolated Step 5/Dev sequences not yet executed. Sim data requires operator GO (MEMORY.md ANSWERS NOT RETESTS standing rule).",
+   "reason": "Needs sim data from P3 items; the read-only demo cannot be validated without it.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "Scale",
+   "final": "work",
+   "work_title": "Measure provisioning and sim performance on a disposable host",
+   "kind": "verify",
+   "blocker": "linux_host",
+   "done_when": "Cold preparation, partial resume and geometry reuse are measured on deterministic fixtures; peak memory, statement duration, throughput and progress-poller latency are recorded on a larger disposable host; correctness and apportionment preserved.",
+   "depends_on": [],
+   "evidence": "No scale measurement evidence in docs/audits/2026-09-14/. Larger disposable host not provisioned. ETL paradigm requires bounded, visible, resumable, host-derived measurements.",
+   "reason": "Scale measurement under the ETL paradigm; needs a larger disposable host.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "Mesh/rooms · TLS",
+   "final": "work",
+   "work_title": "Verify public-host transport on a disposable Linux host",
+   "kind": "verify",
+   "blocker": "linux_host",
+   "done_when": "Synthetic clients complete secure login, signaling, media exchange and disconnect/rejoin with Matrix history retained on a disposable Linux host.",
+   "depends_on": [
+    "review:R2"
+   ],
+   "evidence": "R2 verified signaling inside container but media blocked by SFU node IP 127.0.0.1 (docs/audits/2026-09-14/BROWSER_REVIEW.md). No public-host TLS verification evidence in any 2026-09-14 audit file.",
+   "reason": "Public-host transport harness; depends on the room media verify.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "Host · rollout",
+   "final": "work",
+   "work_title": "Install the release on the Linux conference host",
+   "kind": "ops",
+   "blocker": "linux_host",
+   "done_when": "The release is pulled, additive migrations applied, caches and workers refreshed; running revision, login, services and preserved state confirmed on the conference host.",
+   "depends_on": [
+    "review:Mesh/rooms · TLS"
+   ],
+   "evidence": "docs/audits/2026-09-14/NEXT_SESSION_HANDOFF.md referenced in review criterion. No conference host provisioned as of 4fc4538d.",
+   "reason": "Installs the intended release on the conference host; needs the Linux host.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "Host · internet",
+   "final": "work",
+   "work_title": "Verify public endpoints: connect, exchange media, recover from disconnect",
+   "kind": "verify",
+   "blocker": "linux_host",
+   "done_when": "Separate synthetic internet clients connect through public URLs, exchange media, recover from disconnect and reach retained Matrix history.",
+   "depends_on": [
+    "review:Host · rollout"
+   ],
+   "evidence": "No public endpoint connectivity evidence in any 2026-09-14 audit file. Conference host and public URLs not provisioned as of 4fc4538d.",
+   "reason": "Public-endpoint verify; depends on the host rollout.",
+   "merged": []
+  },
+  {
+   "src": "review",
+   "i": "D1",
+   "final": "work",
+   "work_title": "Execute the full simulated D1 presentation on the demo setup",
+   "kind": "verify",
+   "blocker": "operator_go",
+   "done_when": "The full simulated presentation runs on the intended demo setup: navigation, jurisdiction tree and maps, civic and economic actions, room calls, loading feedback and recovery all verified.",
+   "depends_on": [
+    "review:Setup · worlds",
+    "review:Mesh/rooms · TLS",
+    "review:Host · rollout",
+    "review:Host · internet"
+   ],
+   "evidence": "docs/audits/2026-09-14/BROWSER_REVIEW.md: docs/demo/D1_REHEARSAL_PLAN.md and scripts/demo/d1_rehearsal.mjs with --plan and --dry-run exist; action steps refuse without a demo session. Full presentation not run.",
+   "reason": "Final P2 gate; depends on the host and worlds verifies.",
+   "merged": []
+  }
+ ],
+ "sequence": {
+  "phases": [
+   {
+    "id": "P1",
+    "name": "Conference demo (box E, before 18 Sep)",
+    "goal": "Every read surface open to guests, demo mode complete, tour seed data, and conference-locale i18n and accessibility green on box E."
+   },
+   {
+    "id": "P2",
+    "name": "Conference week (Linux cloud host, 21-23 Sep)",
+    "goal": "demo.worldofstatecraft.org live with rooms, TLS, and the D1 walkthrough on the conference host."
+   },
+   {
+    "id": "P3",
+    "name": "Beta on the cloud boxes",
+    "goal": "Writable beta with sim-populated economy, booted places, and scaled clocks on the Azure and beta boxes."
+   },
+   {
+    "id": "P4",
+    "name": "Mesh and planet scale",
+    "goal": "Federation sync, authority flip, and planet-scale sweeps proven at scale on real hosts."
+   },
+   {
+    "id": "P5",
+    "name": "Backlog",
+    "goal": "Post-conference hardening, dead-code cleanup, and deferred features."
+   }
+  ],
+  "items": [
+   {
+    "key": "fleet:W8#2",
+    "order": 1,
+    "phase": "P1",
+    "rationale": "Root allow-list enabler; the guest walk and demo mode depend on it. Absorbs the executives/departments, economy and federation-console read-open sub-tasks and the caps:66 /simworld enabler."
+   },
+   {
+    "key": "debt:46",
+    "order": 2,
+    "phase": "P1",
+    "rationale": "Same three-door close under three keys; touches the same allow-list file as the read-open, so it follows it."
+   },
+   {
+    "key": "caps:65",
+    "order": 3,
+    "phase": "P1",
+    "rationale": "Demo-mode completion; its /register and /simworld gaps are already closed by the read-open and write-door clusters, so scope here is banner plus pump-pause."
+   },
+   {
+    "key": "fleet:W8#0",
+    "order": 4,
+    "phase": "P1",
+    "rationale": "Small enabler the guest-walk verify and the CLI-parity cluster both need."
+   },
+   {
+    "key": "caps:87",
+    "order": 5,
+    "phase": "P1",
+    "rationale": "Demo-visible tour stop; two keys describe the same seed and room directory."
+   },
+   {
+    "key": "fleet:W10#5",
+    "order": 6,
+    "phase": "P1",
+    "rationale": "Two nav-row keys plus the demo-box catalog seed are one deliverable so Learn surfaces are reachable and non-empty."
+   },
+   {
+    "key": "fleet:W10#6",
+    "order": 7,
+    "phase": "P1",
+    "rationale": "One fleet row unifies the visible wizard copy/dead-control fixes and the Step-3 autoscale control plumbing."
+   },
+   {
+    "key": "debt:29",
+    "order": 8,
+    "phase": "P1",
+    "rationale": "Guest pages must render honest-empty rather than error during the demo; split from the agenda schema, which is a P5 keystone."
+   },
+   {
+    "key": "punch:LG-3",
+    "order": 9,
+    "phase": "P1",
+    "rationale": "Unblocked markup i18n for the video player; small, feeds the i18n coverage verify."
+   },
+   {
+    "key": "punch:LG-1",
+    "order": 10,
+    "phase": "P1",
+    "rationale": "English base catalogs are desk authoring; the machine fill depends on them. Provider ruled 2026-09-14 (local model on box E)."
+   },
+   {
+    "key": "punch:LG-2",
+    "order": 11,
+    "phase": "P1",
+    "rationale": "The machine first pass provider is ruled (local model on box E) but a run needs the operator's GO."
+   },
+   {
+    "key": "caps:51",
+    "order": 12,
+    "phase": "P1",
+    "rationale": "Markup wiring so page bodies are translatable; distinct from catalog authoring."
+   },
+   {
+    "key": "debt:28",
+    "order": 13,
+    "phase": "P1",
+    "rationale": "Same fr/pt shell chrome as the mooted W10:10 row; the current framing awaits GO for the machine pass, superseding the English-only playtest note."
+   },
+   {
+    "key": "punch:A11Y-1",
+    "order": 14,
+    "phase": "P1",
+    "rationale": "Distinct a11y fix (accessible names); feeds the L2 verify."
+   },
+   {
+    "key": "punch:A11Y-2",
+    "order": 15,
+    "phase": "P1",
+    "rationale": "Distinct a11y fix (contrast); 1,008 axe nodes recorded."
+   },
+   {
+    "key": "punch:A11Y-3",
+    "order": 16,
+    "phase": "P1",
+    "rationale": "Distinct a11y fix (prose links)."
+   },
+   {
+    "key": "punch:A11Y-4",
+    "order": 17,
+    "phase": "P1",
+    "rationale": "Distinct a11y fix (semantics)."
+   },
+   {
+    "key": "debt:31",
+    "order": 18,
+    "phase": "P1",
+    "rationale": "Three keys name the same L6 W5 Atlas findings (F1/F2 are a subset); the owed after-shots ride with debt:3."
+   },
+   {
+    "key": "review:S1 · consistency",
+    "order": 19,
+    "phase": "P1",
+    "rationale": "Unblocked consistency verify over the swept surfaces."
+   },
+   {
+    "key": "review:L1 · languages",
+    "order": 20,
+    "phase": "P1",
+    "rationale": "Coverage gate; waits on the catalog fill, which awaits the operator's GO for the machine pass."
+   },
+   {
+    "key": "review:L2",
+    "order": 21,
+    "phase": "P1",
+    "rationale": "a11y gate; waits on the four A11Y repairs."
+   },
+   {
+    "key": "fleet:W8#4",
+    "order": 22,
+    "phase": "P1",
+    "rationale": "Gates P1 done; depends on the Step 6 close, the read-open and the write-door close."
+   },
+   {
+    "key": "fleet:W7#1",
+    "order": 23,
+    "phase": "P2",
+    "rationale": "Unblocked build that enables the cloud and box-E sim runs downstream."
+   },
+   {
+    "key": "fleet:W9#0",
+    "order": 24,
+    "phase": "P2",
+    "rationale": "CLI parity for the fresh cloud build; the restore-stamp portion overlaps the P5 restore-feature cluster (screens:52/debt:51)."
+   },
+   {
+    "key": "fleet:W9#1",
+    "order": 25,
+    "phase": "P2",
+    "rationale": "Populates the demo backend for the conference; blocked while the cloud box is off."
+   },
+   {
+    "key": "fleet:W9#2",
+    "order": 26,
+    "phase": "P2",
+    "rationale": "Two keys name the same Europe mirror and demo domain; needs a distinct Linux host."
+   },
+   {
+    "key": "review:Setup · installer",
+    "order": 27,
+    "phase": "P2",
+    "rationale": "Pre-flight for the conference host rollout; needs a Linux host."
+   },
+   {
+    "key": "review:Setup · schema",
+    "order": 28,
+    "phase": "P2",
+    "rationale": "Restart persistence for the Azure/mirror pair; needs a Linux host."
+   },
+   {
+    "key": "review:R2",
+    "order": 29,
+    "phase": "P2",
+    "rationale": "Rooms are in the demo; signaling verified but media is blocked by the 127.0.0.1 SFU node IP inside the container."
+   },
+   {
+    "key": "review:Mesh/rooms · TLS",
+    "order": 30,
+    "phase": "P2",
+    "rationale": "Public-host transport harness; depends on the room media verify."
+   },
+   {
+    "key": "review:Host · rollout",
+    "order": 31,
+    "phase": "P2",
+    "rationale": "Installs the intended release on the conference host; needs the Linux host."
+   },
+   {
+    "key": "review:Host · internet",
+    "order": 32,
+    "phase": "P2",
+    "rationale": "Public-endpoint verify; depends on the host rollout."
+   },
+   {
+    "key": "fleet:W9#3",
+    "order": 33,
+    "phase": "P2",
+    "rationale": "Mirror smoke walk; depends on the Azure run and the mirror provisioning."
+   },
+   {
+    "key": "debt:3",
+    "order": 34,
+    "phase": "P2",
+    "rationale": "Fleet-wide pixel proof owed at operator-present review; the browser pane cannot composite on box E."
+   },
+   {
+    "key": "review:Setup · worlds",
+    "order": 35,
+    "phase": "P2",
+    "rationale": "Needs sim data from P3 items; the read-only demo cannot be validated without it."
+   },
+   {
+    "key": "review:D1",
+    "order": 36,
+    "phase": "P2",
+    "rationale": "Final P2 gate; depends on the host and worlds verifies."
+   },
+   {
+    "key": "debt:53",
+    "order": 37,
+    "phase": "P3",
+    "rationale": "Three keys name the same subtree-boot recovery; boot must work before the sim populates places."
+   },
+   {
+    "key": "fleet:W11#0",
+    "order": 38,
+    "phase": "P3",
+    "rationale": "Three keys name the same missing crossing-to-activate hop."
+   },
+   {
+    "key": "caps:72",
+    "order": 39,
+    "phase": "P3",
+    "rationale": "The clock-engine-at-planet-scale deliverable (W11:2) bundles the sweep throughput, the residency sweep, CLK-01 fire, the rollup jobs and the CLK-02 seating arm under one done_when."
+   },
+   {
+    "key": "caps:91",
+    "order": 40,
+    "phase": "P3",
+    "rationale": "Distinct clock-arming for the stipend pass."
+   },
+   {
+    "key": "caps:85",
+    "order": 41,
+    "phase": "P3",
+    "rationale": "Distinct sim-stage gap; CGC governor boards seat but department BoG does not."
+   },
+   {
+    "key": "caps:44",
+    "order": 42,
+    "phase": "P3",
+    "rationale": "ETL-paradigm fix so social spaces compose at scale once legislatures activate."
+   },
+   {
+    "key": "debt:43",
+    "order": 43,
+    "phase": "P3",
+    "rationale": "Remaining clause of debt:43; the 25k-band claim clause is already resolved."
+   },
+   {
+    "key": "debt:39",
+    "order": 44,
+    "phase": "P3",
+    "rationale": "Removes the validator asymmetry that would reject a generator-produced 2-seat race."
+   },
+   {
+    "key": "debt:45",
+    "order": 45,
+    "phase": "P3",
+    "rationale": "Remaining sim-console gap; the other three issues are resolved."
+   },
+   {
+    "key": "debt:44",
+    "order": 46,
+    "phase": "P3",
+    "rationale": "Remaining verifying-phase gap; the mechanical breakage and sim:revert are resolved."
+   },
+   {
+    "key": "fleet:W11#5",
+    "order": 47,
+    "phase": "P3",
+    "rationale": "The economy-doors deliverable (W11:5) bundles the budget-form wiring (caps:32/92), the dues ledger kind (caps:33/93) and the balance-floor constraint (debt:30) under one done_when."
+   },
+   {
+    "key": "debt:52",
+    "order": 48,
+    "phase": "P3",
+    "rationale": "Pins the boot/sim jobs after the subtree-boot fix lands."
+   },
+   {
+    "key": "fleet:history#30",
+    "order": 49,
+    "phase": "P3",
+    "rationale": "Reconciled work item missing from dispositions; distinct from the P1 demo-box catalog seed (different box; do not seed the dev box)."
+   },
+   {
+    "key": "fleet:W7#10",
+    "order": 50,
+    "phase": "P3",
+    "rationale": "Full sim run; needs the sim-start build and the operator's GO."
+   },
+   {
+    "key": "fleet:W7#11",
+    "order": 51,
+    "phase": "P3",
+    "rationale": "Two keys name the same held Niue walk; awaits the operator's trigger."
+   },
+   {
+    "key": "debt:63",
+    "order": 52,
+    "phase": "P3",
+    "rationale": "Economy surfaces populate only after a sim run, which needs the operator's GO."
+   },
+   {
+    "key": "debt:55",
+    "order": 53,
+    "phase": "P3",
+    "rationale": "Deferred measurement of the default-queue sweeps; needs the cloud box on."
+   },
+   {
+    "key": "fleet:W10#4",
+    "order": 54,
+    "phase": "P3",
+    "rationale": "Re-grade blocked until the sim run lands; needs the operator's GO."
+   },
+   {
+    "key": "fleet:W11#4",
+    "order": 55,
+    "phase": "P3",
+    "rationale": "The writable beta; needs the boot fixes and the cloud box. Its done_when also cites W11:3, but only the cluster-join gate is beta-relevant and is already covered by the write-door gating."
+   },
+   {
+    "key": "fleet:W11#3",
+    "order": 56,
+    "phase": "P4",
+    "rationale": "The federation-hardening deliverable (W11:3) bundles the FFC push-tail paging (caps:48/debt:59), the authority-flip chunking (debt:60) and the cluster join/leave operator gate (debt:58)."
+   },
+   {
+    "key": "debt:61",
+    "order": 57,
+    "phase": "P4",
+    "rationale": "Removes the enabled-but-unminted half-state on the toggle."
+   },
+   {
+    "key": "review:Scale",
+    "order": 58,
+    "phase": "P4",
+    "rationale": "Scale measurement under the ETL paradigm; needs a larger disposable host."
+   },
+   {
+    "key": "review:Mesh · join",
+    "order": 59,
+    "phase": "P4",
+    "rationale": "Two-node join verify; depends on the federation hardening and needs two hosts."
+   },
+   {
+    "key": "debt:48",
+    "order": 60,
+    "phase": "P5",
+    "rationale": "Two keys name the same dead-dial cleanup."
+   },
+   {
+    "key": "debt:49",
+    "order": 61,
+    "phase": "P5",
+    "rationale": "Two keys name the same stale-reference cleanup."
+   },
+   {
+    "key": "debt:7",
+    "order": 62,
+    "phase": "P5",
+    "rationale": "Three keys name the same agenda keystone; the constituent_requests half of W11:6 is delivered by its own P1 cluster (debt:29), and its LIVE_PG/mobile defers map to debt:27 and caps:52."
+   },
+   {
+    "key": "debt:18",
+    "order": 63,
+    "phase": "P5",
+    "rationale": "Deferred social primitives; secondary to the governance demo."
+   },
+   {
+    "key": "screens:85",
+    "order": 64,
+    "phase": "P5",
+    "rationale": "Guides SOP index; the front-door Learn bar already covers the demo."
+   },
+   {
+    "key": "screens:52",
+    "order": 65,
+    "phase": "P5",
+    "rationale": "The restore feature: the ModeFork entry point plus the backend run/mode/world-build stamp; its stamp overlaps the P2 W9:0 CLI restore parity."
+   },
+   {
+    "key": "debt:27",
+    "order": 66,
+    "phase": "P5",
+    "rationale": "Two keys name the same post-alpha test-infra change."
+   },
+   {
+    "key": "caps:52",
+    "order": 67,
+    "phase": "P5",
+    "rationale": "Phase 6 mobile; native builds need a Linux/macOS host."
+   },
+   {
+    "key": "fleet:W11#7",
+    "order": 68,
+    "phase": "P5",
+    "rationale": "Two keys name the same held Phase J; resumes on the operator's word."
+   },
+   {
+    "key": "fleet:boxE#0",
+    "order": 69,
+    "phase": "P5",
+    "rationale": "Reconciled work item missing from dispositions; dev-box one-off data repair, the code fix already landed."
+   },
+   {
+    "key": "fleet:boxE#1",
+    "order": 70,
+    "phase": "P5",
+    "rationale": "Reconciled work item missing from dispositions; dev-box one-off, the zero-bin rule fix already landed."
+   }
+  ]
+ }
+}
