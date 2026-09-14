@@ -108,13 +108,72 @@ class RestorationService
             $event->forceFill([
                 'tier' => $tier,
                 'tier_election_id' => $tierElectionId,
-                'status' => $tier === 3 ? RestorationEvent::STATUS_RESTORING : RestorationEvent::STATUS_RESTORING,
+                'status' => RestorationEvent::STATUS_RESTORING,
             ])->save();
 
             $this->audit->append('jurisdictions', 'restoration.tier_entered', [
                 'restoration_event_id' => (string) $event->id,
                 'jurisdiction_id' => (string) $event->jurisdiction_id,
                 'tier' => $tier,
+            ], 'WF-JUR-07', null, (string) $event->jurisdiction_id);
+
+            return $event->refresh();
+        });
+    }
+
+    /**
+     * The cascade succeeded: a legitimate government stands again. Reachable
+     * only after the third tier has been entered (individuals self-organized
+     * from a dormant boundary — Art. VI §3), which the ordered advanceTier
+     * cascade guarantees. Writes the terminal STATUS_RESTORED that nothing set
+     * before (the degenerate tier-3 branch left every tier at RESTORING).
+     */
+    public function complete(RestorationEvent $event): RestorationEvent
+    {
+        $event = $event->refresh();
+
+        if (! $event->judicially_confirmed) {
+            throw new ConstitutionalViolation('Restoration completes only after judicial confirmation.', 'Art. VI §3');
+        }
+        if ((int) ($event->tier ?? 0) !== 3) {
+            throw new ConstitutionalViolation(
+                'Restoration completes only from the third tier — the cascade runs constituents → encompassing → individuals in order.',
+                'Art. VI §3'
+            );
+        }
+
+        return DB::transaction(function () use ($event) {
+            $event->forceFill(['status' => RestorationEvent::STATUS_RESTORED])->save();
+
+            $this->audit->append('jurisdictions', 'restoration.restored', [
+                'restoration_event_id' => (string) $event->id,
+                'jurisdiction_id' => (string) $event->jurisdiction_id,
+                'tier' => (int) $event->tier,
+            ], 'WF-JUR-07', null, (string) $event->jurisdiction_id);
+
+            return $event->refresh();
+        });
+    }
+
+    /**
+     * The cascade is abandoned before a government stands again (the condition
+     * was resolved by other means, or the effort is stood down). Terminal, and
+     * legal from any non-terminal state.
+     */
+    public function abandon(RestorationEvent $event): RestorationEvent
+    {
+        $event = $event->refresh();
+
+        if (in_array($event->status, [RestorationEvent::STATUS_RESTORED, RestorationEvent::STATUS_ABANDONED], true)) {
+            throw new ConstitutionalViolation('This restoration event has already reached a terminal state.', 'Art. VI §3');
+        }
+
+        return DB::transaction(function () use ($event) {
+            $event->forceFill(['status' => RestorationEvent::STATUS_ABANDONED])->save();
+
+            $this->audit->append('jurisdictions', 'restoration.abandoned', [
+                'restoration_event_id' => (string) $event->id,
+                'jurisdiction_id' => (string) $event->jurisdiction_id,
             ], 'WF-JUR-07', null, (string) $event->jurisdiction_id);
 
             return $event->refresh();

@@ -81,14 +81,62 @@ class DisintermediationService
         });
     }
 
-    public function recordEncompassingConsent(DisintermediationProcess $process, bool $consented, ?string $voteId = null): DisintermediationProcess
+    public function recordEncompassingConsent(DisintermediationProcess $process, bool $consented, ?string $voteId = null, ?Legislature $actingChamber = null): DisintermediationProcess
     {
+        // Art. V §8: the encompassing consent belongs to the ENCOMPASSING
+        // jurisdiction alone. When an acting chamber is supplied (the write
+        // door does), refuse any chamber that is not the encompassing one — the
+        // sibling constituent leg is gated the same way in
+        // ExecutiveFormationService::openConstituentConsentVote.
+        if ($actingChamber !== null && (string) $actingChamber->jurisdiction_id !== (string) $process->encompassing_jurisdiction_id) {
+            throw new ConstitutionalViolation(
+                'Only the encompassing jurisdiction may consent to dissolving its intermediary.',
+                'Art. V §8'
+            );
+        }
+
         $process->forceFill([
             'encompassing_consent' => $consented,
             'encompassing_consent_vote_id' => $voteId,
         ])->save();
 
         return $process->refresh();
+    }
+
+    /**
+     * The generic constituent-consent arm calls this when the intermediary's
+     * constituent MJV has closed (ExecutiveFormationService::
+     * resolveConstituentConsentVote, subject_type `disintermediation_processes`).
+     * It finalizes ONLY when constituent unanimity AND encompassing consent are
+     * both present; otherwise it leaves the process OPEN (it never marks it
+     * FAILED on a single missing meter). The finalize's own not-yet-met
+     * violation is swallowed (a race guard); any OTHER throwable propagates.
+     */
+    public function maybeFinalize(MultiJurisdictionVote $mjv): void
+    {
+        if ($mjv->status === MultiJurisdictionVote::STATUS_OPEN) {
+            return;
+        }
+
+        $process = DisintermediationProcess::query()->find((string) $mjv->subject_id);
+        if ($process === null || $process->status !== DisintermediationProcess::STATUS_OPEN) {
+            return;
+        }
+
+        $process = $process->refresh();
+        $unanimous = $process->constituentProcess !== null
+            && $process->constituentProcess->status === MultiJurisdictionVote::STATUS_PASSED;
+
+        if (! $unanimous || ! $process->encompassing_consent) {
+            return; // unanimity or encompassing consent still outstanding
+        }
+
+        try {
+            $this->finalize($process);
+        } catch (ConstitutionalViolation) {
+            // Meters closed between the check and the call — leave as finalize
+            // left it; never crash the consent vote's transaction.
+        }
     }
 
     /** Finalize: requires constituent UNANIMITY AND encompassing consent. */

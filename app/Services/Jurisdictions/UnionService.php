@@ -109,6 +109,42 @@ class UnionService
         return $process->refresh();
     }
 
+    /**
+     * The generic constituent-consent arm calls this when the union's
+     * constituent MJV has closed (ExecutiveFormationService::
+     * resolveConstituentConsentVote, subject_type `union_processes`). It
+     * finalizes ONLY when BOTH meters are already met; a not-yet-met process
+     * is left OPEN for the other meter (it never marks the union FAILED on a
+     * single missing meter). The finalize's own not-yet-met violation is
+     * swallowed here (a race guard); any OTHER throwable propagates.
+     */
+    public function maybeFinalize(MultiJurisdictionVote $mjv): void
+    {
+        if ($mjv->status === MultiJurisdictionVote::STATUS_OPEN) {
+            return;
+        }
+
+        $process = UnionProcess::query()->find((string) $mjv->subject_id);
+        if ($process === null || $process->status !== UnionProcess::STATUS_OPEN) {
+            return;
+        }
+
+        $process = $process->refresh();
+        $constituentPassed = $process->constituentProcess !== null
+            && $process->constituentProcess->status === MultiJurisdictionVote::STATUS_PASSED;
+
+        if (! $process->applicant_supermajority_met || ! $constituentPassed) {
+            return; // one meter still outstanding — do not fail, do not apply
+        }
+
+        try {
+            $this->finalize($process);
+        } catch (ConstitutionalViolation) {
+            // Meters closed between the check and the call — leave the process
+            // as finalize left it; never let this crash the consent vote's txn.
+        }
+    }
+
     /** Finalize: requires BOTH meters. Applies the union change on passage. */
     public function finalize(UnionProcess $process): UnionProcess
     {

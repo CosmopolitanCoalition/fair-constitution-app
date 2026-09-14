@@ -20,6 +20,7 @@ import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
+import HistoryPager from '@/Components/Ui/HistoryPager.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
 import { plainState } from '@/lib/plain.js';
@@ -30,10 +31,15 @@ const props = defineProps({
     surface: { type: Object, required: true },
     processes: { type: Array, default: () => [] },
     door: { type: Object, default: () => ({ seat: null, siblings: [] }) },
+    pagination: { type: Object, default: () => ({ previous: null, next: null, first: '/jurisdictions/union-formation' }) },
 });
 
 const chosenSiblings = ref([]);
 const submitting = ref(false);
+const busyId = ref('');
+const referendumVotes = ref({});
+const error = ref('');
+const notice = ref('');
 
 function propose() {
     if (!props.door.seat || chosenSiblings.value.length === 0) return;
@@ -46,6 +52,20 @@ function propose() {
         onFinish: () => { submitting.value = false; },
     });
 }
+
+function act(id, url, data) {
+    if (busyId.value) return;
+    router.post(url, data || {}, {
+        preserveScroll: true,
+        onStart: () => { busyId.value = id; error.value = ''; notice.value = ''; },
+        onFinish: () => { busyId.value = ''; },
+        onError: (errors) => { error.value = Object.values(errors)[0] || 'That action could not be completed. Please retry.'; },
+        onSuccess: () => { notice.value = 'Done. The process meters below reflect the change.'; },
+    });
+}
+const applicantReferendum = (p) => act(p.id, `/jurisdictions/union-formation/${p.id}/applicant-referendum`, { yes_votes: Number(referendumVotes.value[p.id] ?? 0) });
+const consent = (p) => act(p.id, `/jurisdictions/union-formation/${p.id}/consent`);
+const finalize = (p) => act(p.id, `/jurisdictions/union-formation/${p.id}/finalize`);
 
 const statusTone = (s) =>
     s === 'passed' ? 'success' : s === 'failed' || s === 'expired' ? 'warning' : 'info';
@@ -140,7 +160,41 @@ const diffRows = (diff) =>
                     <StatusBadge v-else tone="neutral" icon="clock">Pending</StatusBadge>
                 </template>
             </DataTable>
+
+            <div v-if="door.seat" class="door-actions">
+                <h4>Move this process forward</h4>
+                <form class="door-row" @submit.prevent="applicantReferendum(p)">
+                    <label :for="`ar-${p.id}`">Applicant population — yes votes recorded</label>
+                    <input :id="`ar-${p.id}`" v-model="referendumVotes[p.id]" type="number" min="0" inputmode="numeric" />
+                    <button type="submit" :disabled="busyId === p.id || p.status !== 'open'">Record applicant referendum</button>
+                </form>
+                <button
+                    v-if="p.consentable_by_viewer"
+                    type="button"
+                    :disabled="busyId === p.id"
+                    @click="consent(p)"
+                >
+                    Open my chamber's consent vote
+                </button>
+                <button type="button" :disabled="busyId === p.id || p.status !== 'open'" @click="finalize(p)">
+                    Finalize the union
+                </button>
+                <p v-if="p.status !== 'open'" class="hint" role="status">This process is {{ plainState(p.status) }} — its doors are closed.</p>
+                <p v-if="busyId === p.id" role="status">Working…</p>
+                <p v-if="error && busyId === ''" role="alert">{{ error }}</p>
+                <p v-if="notice && busyId === ''" role="status">{{ notice }}</p>
+            </div>
+            <p v-else class="hint">Sign in with a current legislative seat to record the referendum, open your chamber's consent vote, or finalize.</p>
         </Card>
+
+        <HistoryPager
+            v-if="processes.length"
+            :pages="pagination"
+            :first="pagination.first"
+            :only="['processes', 'pagination']"
+            cursor-key="union_cursor"
+            label="Union process history pages"
+        />
 
         <Card as="section">
             <template #title>Join and exit mirror each other</template>
@@ -153,6 +207,10 @@ const diffRows = (diff) =>
 
         <Card as="section">
             <template #title>The founding act</template>
+            <p class="union-note">
+                This world is already unioned under Earth, so no union is forming now. This door
+                is lawful and stands ready for future worlds and sub-unions.
+            </p>
             <p>
                 <FormChip form-id="F-LEG-029" />
                 A legislative representative proposes the union in their own chamber; the
@@ -198,3 +256,12 @@ const diffRows = (diff) =>
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.door-actions { border-block-start: 1px solid var(--border, #344054); margin-block-start: 1rem; padding-block-start: 1rem; display: grid; gap: .65rem; }
+.door-row { display: grid; gap: .5rem; }
+.door-actions button, .door-row input { min-block-size: 44px; font: inherit; }
+.door-row input { inline-size: 100%; max-inline-size: 20rem; }
+.door-actions button { inline-size: fit-content; }
+.hint { color: var(--gov-muted, #94a3b8); }
+</style>

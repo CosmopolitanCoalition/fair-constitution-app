@@ -11,11 +11,14 @@
  * standing drill (teaching structure) plus a real read of restoration
  * events; a world with none says so plainly.
  */
+import { router } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
+import HistoryPager from '@/Components/Ui/HistoryPager.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { plainState } from '@/lib/plain.js';
@@ -26,9 +29,44 @@ const props = defineProps({
     surface: { type: Object, required: true },
     events: { type: Array, default: () => [] },
     conditions: { type: Array, default: () => [] },
+    viewer: { type: Object, default: () => null },
+    pagination: { type: Object, default: () => ({ previous: null, next: null, first: '/jurisdictions/restoration' }) },
 });
 
-const active = props.events.filter((e) => ['declared', 'confirmed', 'restoring'].includes(e.status));
+// Reactive: HistoryPager reloads the events prop with preserveState, so setup
+// never re-runs — a plain const would leave the banner, condition badges and
+// tier cascade showing the first page's events after paging.
+const active = computed(() => props.events.filter((e) => ['declared', 'confirmed', 'restoring'].includes(e.status)));
+
+const declareJurisdiction = ref('');
+const declareCondition = ref('countermanded');
+const declareReviewCase = ref('');
+const busyId = ref('');
+const error = ref('');
+const notice = ref('');
+
+function act(id, url, data) {
+    if (busyId.value) return;
+    router.post(url, data || {}, {
+        preserveScroll: true,
+        onStart: () => { busyId.value = id; error.value = ''; notice.value = ''; },
+        onFinish: () => { busyId.value = ''; },
+        onError: (errors) => { error.value = Object.values(errors)[0] || 'That action could not be completed. Please retry.'; },
+        onSuccess: () => { notice.value = 'Done. The event list below reflects the change.'; },
+    });
+}
+function declare() {
+    act('declare', '/jurisdictions/restoration/declare', {
+        jurisdiction_id: declareJurisdiction.value.trim(),
+        condition: declareCondition.value,
+        review_case_id: declareReviewCase.value.trim() || null,
+    });
+}
+const confirm = (e) => act(e.id, `/jurisdictions/restoration/${e.id}/confirm`);
+const enterTier = (e) => act(e.id, `/jurisdictions/restoration/${e.id}/tier`, { tier: (e.tier || 0) + 1 });
+const complete = (e) => act(e.id, `/jurisdictions/restoration/${e.id}/complete`);
+const abandon = (e) => act(e.id, `/jurisdictions/restoration/${e.id}/abandon`);
+const isTerminal = (e) => ['restored', 'abandoned'].includes(e.status);
 
 const conditionCopy = {
     countermanded: {
@@ -48,7 +86,7 @@ const conditionCopy = {
     },
 };
 
-const conditionMet = (condition) => active.some((e) => e.condition === condition);
+const conditionMet = (condition) => active.value.some((e) => e.condition === condition);
 
 const tiers = [
     { n: 1, label: 'Constituent jurisdictions elect', actor: 'Constituent legislatures and populations' },
@@ -57,7 +95,7 @@ const tiers = [
 ];
 
 const tierState = (n) => {
-    const activeTiers = active.map((e) => e.tier).filter((t) => t > 0);
+    const activeTiers = active.value.map((e) => e.tier).filter((t) => t > 0);
     if (activeTiers.length === 0) return 'standby';
     const current = Math.max(...activeTiers);
     return n === current ? 'active' : n < current ? 'bypassed' : 'standby';
@@ -144,7 +182,54 @@ const tierState = (n) => {
                     </StatusBadge>
                 </template>
             </DataTable>
+
+            <div v-if="viewer" class="door-actions">
+                <h4>Move an event forward</h4>
+                <div v-for="e in events" :key="e.id" class="door-block">
+                    <p><strong>{{ e.jurisdiction }}</strong> — {{ plainState(e.status) }}<span v-if="e.tier > 0" data-no-i18n> · tier {{ e.tier }}</span></p>
+                    <template v-if="!isTerminal(e)">
+                        <button v-if="e.status === 'declared'" type="button" :disabled="busyId === e.id" @click="confirm(e)">Confirm on the judicial finding</button>
+                        <p v-if="e.status === 'declared' && !e.judicial_finding" class="hint" role="status">The tied review case has no constitutional finding yet — confirmation will be refused until it does.</p>
+                        <button v-if="e.judicially_confirmed && e.tier < 3" type="button" :disabled="busyId === e.id" @click="enterTier(e)">Enter tier {{ (e.tier || 0) + 1 }}</button>
+                        <button v-if="e.tier === 3" type="button" :disabled="busyId === e.id" @click="complete(e)">Mark restored</button>
+                        <button type="button" :disabled="busyId === e.id" @click="abandon(e)">Abandon</button>
+                    </template>
+                    <p v-else class="hint" role="status">This event is {{ plainState(e.status) }} — terminal.</p>
+                </div>
+                <p v-if="busyId" role="status">Working…</p>
+                <p v-if="error && !busyId" role="alert">{{ error }}</p>
+                <p v-if="notice && !busyId" role="status">{{ notice }}</p>
+            </div>
+
+            <HistoryPager
+                v-if="events.length"
+                :pages="pagination"
+                :first="pagination.first"
+                :only="['events', 'pagination']"
+                cursor-key="restoration_cursor"
+                label="Restoration event history pages"
+            />
         </Card>
+
+        <Card v-if="viewer" as="section">
+            <template #title>Declare a restoration condition</template>
+            <p>
+                Declaration arms nothing on its own — a court must confirm the condition on the
+                tied review case before the cascade runs (Art. VI §2).
+            </p>
+            <form class="door-actions" @submit.prevent="declare">
+                <label for="restore-jurisdiction">Jurisdiction</label>
+                <input id="restore-jurisdiction" v-model="declareJurisdiction" placeholder="UUID" />
+                <label for="restore-condition">Condition</label>
+                <select id="restore-condition" v-model="declareCondition">
+                    <option v-for="c in conditions" :key="c" :value="c">{{ plainState(c) }}</option>
+                </select>
+                <label for="restore-case">Tied review case (optional)</label>
+                <input id="restore-case" v-model="declareReviewCase" placeholder="Review case UUID" />
+                <button type="submit" :disabled="busyId === 'declare' || !declareJurisdiction.trim()">Declare the condition</button>
+            </form>
+        </Card>
+        <p v-else class="hint">Sign in with a current legislative seat to declare a condition or move an event forward.</p>
 
         <div class="grid-2">
             <Card as="section">
@@ -179,3 +264,12 @@ const tierState = (n) => {
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.door-actions { border-block-start: 1px solid var(--border, #344054); margin-block-start: 1rem; padding-block-start: 1rem; display: grid; gap: .65rem; }
+.door-block { display: grid; gap: .5rem; padding-block: .5rem; }
+.door-actions button, .door-actions input, .door-actions select { min-block-size: 44px; font: inherit; }
+.door-actions input, .door-actions select { inline-size: 100%; max-inline-size: 26rem; }
+.door-actions button { inline-size: fit-content; }
+.hint { color: var(--gov-muted, #94a3b8); }
+</style>

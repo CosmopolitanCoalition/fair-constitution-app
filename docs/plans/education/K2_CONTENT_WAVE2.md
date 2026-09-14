@@ -416,6 +416,7 @@ translation/translation-home→`system/translations`, shared/clocks→`system/cl
 | 2 | Agree one shared value for each difference | The founding act records one union value per divergence. Constituents keep their own values for their own scope where the power is joint — joining a union does not flatten local law. | F-LEG-029 · Art. V §7 |
 | 3 | Ratify on both meters | Union formation needs a two-thirds supermajority of individuals in **each** applicant population *and* a supermajority of the union's constituent jurisdictions (a founding union has none yet; that meter binds from the first join onward). Denominators are whole populations — never just those who vote. | F-LEG-029 · Art. V §7 |
 | 4 | Know the door swings both ways | Leaving runs the same process with the same supermajorities as joining. There are no one-way doors. | Art. V §7 |
+| 5 | Work the ratification doors | Once a process is open you record the applicant population's referendum result, open your own chamber's consent vote for the constituent meter, and finalize once both meters pass — finalizing before both are met is refused with its citation. **This world already sits united under Earth, so no union is forming now; the doors serve future worlds and sub-unions.** | F-LEG-029 · Art. V §7 |
 
 > **The why:** The union is born self-governing with a legislature that seats both kinds of members — seats by population and equal seats per constituent — and **both kinds must independently agree** for any act to pass. A small partner joins knowing it can never simply be outvoted out of existence.
 
@@ -430,6 +431,7 @@ translation/translation-home→`system/translations`, shared/clocks→`system/cl
 | 2 | Reach unanimity — every constituent, plus the level above | Unanimity, not a two-thirds vote: each constituent passes its own act, and **one holdout stops the dissolution**. The level above must also consent. | Art. V §8 |
 | 3 | Record the merge plan | The dissolved layer's acts do not vanish — they fold into each former constituent's own law with full version history preserved. Conflicts with existing local law are surfaced and a resolution recorded before anything takes effect, and open legal challenges travel with the merged law. | F-LEG-030 |
 | 4 | Let the chain update itself | When dissolution takes effect, each former constituent answers directly to the level above, and every resident's chain of places re-resolves automatically. | — |
+| 5 | Work the consent doors | Record the encompassing jurisdiction's decision, open each constituent chamber's own consent vote, and finalize once unanimity and encompassing consent both stand. Finalizing before both meters are met is refused with its citation, and the process finalizes itself the moment the last consent vote closes. | F-LEG-030 · Art. V §8 |
 
 > **The why:** The constituents *inherit* the removed layer's rules — and from that moment the rules are theirs. Each place can amend or repeal them like any law it passed itself. Dissolving a government never dissolves the law people were living under; it hands the pen to the people closest to it.
 
@@ -444,6 +446,7 @@ translation/translation-home→`system/translations`, shared/clocks→`system/cl
 | 2 | Follow the cascade | Tier 1: the constituents jointly elect a new legislature. Tier 2: the level above calls the elections for them. Tier 3: individuals self-organize new jurisdictions from a dormant boundary. Each tier activates only when the one above it cannot act. | Art. VI §3 · WF-JUR-07 |
 | 3 | Trust the machinery | Rebuilding elections reuse the first-election machinery — run by the system with the constitution's defaults, exactly like a place waking up for the first time. | WF-ELE-02 |
 | 4 | If rivals claim the government, legitimacy is scored | Fewest people governed without consent, no constituency privileged over another, actual ability to govern. Defensive forces are bound to the **most legitimate** claimant — not the incumbent, not the strongest. | Art. VI |
+| 5 | Work the restoration doors | Declare the condition against the tied review case, confirm it — the confirmation reads the court's finding from that case, never from a button — then enter the tiers strictly in order, and mark the event restored from the third tier or abandon it. A tier out of order and a completion before the third tier are both refused. | WF-JUR-07 · Art. VI §3 |
 
 > **The why:** Whatever still functions — elections, sessions, courts — cannot be disrupted while restoration runs, the same hard guarantee that bounds emergency powers. And restoration doubles as a founding path: standing a world up from surviving records is the same act as rebuilding a lost government.
 
@@ -458,6 +461,7 @@ translation/translation-home→`system/translations`, shared/clocks→`system/cl
 | 2 | Check the denominator | Passing takes two-thirds of the **whole affected population** — never just those who happen to vote, and never either whole jurisdiction. The affected area is the electorate and the denominator. | Art. V §2 |
 | 3 | Let your rights follow you | Once ratified, every affected resident's home association is re-checked against the new boundary. Rights re-attach automatically on the new side of the line — nobody has to re-register. | — |
 | 4 | Know what travels between servers | Different governments can run on different servers that keep each place's records in sync. Public records and achievements travel across that mesh; your ballot contents and private location pings never do, and your lesson progress stays on your own node and never federates — though a training completion you file is a constitutional act and travels like any other public record. Running a server grants zero governance power — the mesh moves records, never authority. | — |
+| 5 | Work the settlement doors | A border settlement opens here as a between-governments act — no chamber proposal: name the two neighbours and the affected sub-jurisdictions, record the affected-area referendum, then adopt. Adoption is refused unless a supermajority of the affected-area population — never either whole jurisdiction — is met. | Art. V §2 |
 
 ---
 

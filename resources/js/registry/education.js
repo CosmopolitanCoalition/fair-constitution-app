@@ -1346,6 +1346,11 @@ export const EDUCATION_BY_SURFACE = {
                 do: "c_education.education_jurisdictions_disintermediation.s4_do",
                 detail: "c_education.education_jurisdictions_disintermediation.s4_detail",
                 cite: null
+            },
+            {
+                do: "c_education.education_jurisdictions_disintermediation.s5_do",
+                detail: "c_education.education_jurisdictions_disintermediation.s5_detail",
+                cite: "F-LEG-030 · Art. V §8"
             }
         ],
         why: "c_education.education_jurisdictions_disintermediation.why"
@@ -1372,6 +1377,11 @@ export const EDUCATION_BY_SURFACE = {
                 do: "c_education.education_jurisdictions_federation.s4_do",
                 detail: "c_education.education_jurisdictions_federation.s4_detail",
                 cite: null
+            },
+            {
+                do: "c_education.education_jurisdictions_federation.s5_do",
+                detail: "c_education.education_jurisdictions_federation.s5_detail",
+                cite: "Art. V §2"
             }
         ],
         why: null
@@ -1424,6 +1434,11 @@ export const EDUCATION_BY_SURFACE = {
                 do: "c_education.education_jurisdictions_restoration.s4_do",
                 detail: "c_education.education_jurisdictions_restoration.s4_detail",
                 cite: "Art. VI"
+            },
+            {
+                do: "c_education.education_jurisdictions_restoration.s5_do",
+                detail: "c_education.education_jurisdictions_restoration.s5_detail",
+                cite: "WF-JUR-07 · Art. VI §3"
             }
         ],
         why: "c_education.education_jurisdictions_restoration.why"
@@ -1450,6 +1465,11 @@ export const EDUCATION_BY_SURFACE = {
                 do: "c_education.education_jurisdictions_union_formation.s4_do",
                 detail: "c_education.education_jurisdictions_union_formation.s4_detail",
                 cite: "Art. V §7"
+            },
+            {
+                do: "c_education.education_jurisdictions_union_formation.s5_do",
+                detail: "c_education.education_jurisdictions_union_formation.s5_detail",
+                cite: "F-LEG-029 · Art. V §7"
             }
         ],
         why: "c_education.education_jurisdictions_union_formation.why"

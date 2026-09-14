@@ -458,70 +458,70 @@
     "source_hash": "0b26066634dd7bd369ed69982250c888c0621a9a95333f4cd4cd8d9cccdd5343",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 546,
+    "line": 550,
     "status": "source"
   },
   "education_civic_live_room.s1_detail": {
     "source_hash": "6eb1e042cd13dd279a69a2367cae88d0519ed91de98e9fcce2a85410e66d2a3c",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 550,
+    "line": 554,
     "status": "source"
   },
   "education_civic_live_room.s1_do": {
     "source_hash": "164dab0c54ad9d27bdf0d0d11cb6d22de7966d1c9aca691e4fe1dce0d6e99061",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 550,
+    "line": 554,
     "status": "source"
   },
   "education_civic_live_room.s2_detail": {
     "source_hash": "386a9be74400ae6b1222f1f934e730dddf165c2be3024053d364d5b979a3360b",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 551,
+    "line": 555,
     "status": "source"
   },
   "education_civic_live_room.s2_do": {
     "source_hash": "5a9f73d6704a4fd4f6a5fc55545f72a1111c627f5a51630a467afc90cbde9c2e",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 551,
+    "line": 555,
     "status": "source"
   },
   "education_civic_live_room.s3_detail": {
     "source_hash": "b98207ac95256b97a4ee81693c5bdd07abde08f7e61a5d0f84d74266bd070702",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 552,
+    "line": 556,
     "status": "source"
   },
   "education_civic_live_room.s3_do": {
     "source_hash": "5587af223979f17df585bddbbd9d17a831ec134a34c5cd04ddd5406874385ef1",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 552,
+    "line": 556,
     "status": "source"
   },
   "education_civic_live_room.s4_detail": {
     "source_hash": "bd174dec03bcba29fbdd452145cbfebe3fd92db5b67a6c7190d1385eb55a92dc",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 553,
+    "line": 557,
     "status": "source"
   },
   "education_civic_live_room.s4_do": {
     "source_hash": "9d1dd0fd5df202dd781251679630a789b9308180a6280d90eb689df621133039",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 553,
+    "line": 557,
     "status": "source"
   },
   "education_civic_live_room.why": {
     "source_hash": "f0ace4976eb583a86559ef67b7fef4a9f2328b3c0fd8df43f04391614a37e2d9",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 555,
+    "line": 559,
     "status": "source"
   },
   "education_civic_my_record.learn": {
@@ -2789,56 +2789,56 @@
     "source_hash": "bd7480e96ddef6283bb932fbedf6744f5c8b23ce4f56cc3007a56c277d56e8ae",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 598,
+    "line": 602,
     "status": "source"
   },
   "education_invite_landing.s1_detail": {
     "source_hash": "baa782fc4a09417f9134f266a0945299e0fbaf9bb68434a279d3b9958c114ff8",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 602,
+    "line": 606,
     "status": "source"
   },
   "education_invite_landing.s1_do": {
     "source_hash": "f902d8995ddfc7033a7dd1ffc95d3cf1cf8d03e7aea827756fae1ca598f88436",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 602,
+    "line": 606,
     "status": "source"
   },
   "education_invite_landing.s2_detail": {
     "source_hash": "98e2058326a09cad955d6ecd86f862674cfeedbf3e18f3b1e36a399b9aca1d16",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 603,
+    "line": 607,
     "status": "source"
   },
   "education_invite_landing.s2_do": {
     "source_hash": "663d67897e9084fc4f8798e92bd213995bc010cdaa23f055c71a09c218c5f593",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 603,
+    "line": 607,
     "status": "source"
   },
   "education_invite_landing.s3_detail": {
     "source_hash": "bd94b15858f3f4cbfebfb758130ae3c3e217d6bca3c904bedf46910a4e223022",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 604,
+    "line": 608,
     "status": "source"
   },
   "education_invite_landing.s3_do": {
     "source_hash": "01e1128d70139b552cc3491620571889ac8d286905443700461487dc30f28e24",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 604,
+    "line": 608,
     "status": "source"
   },
   "education_invite_landing.why": {
     "source_hash": "f045eb2b79609b28cea4deac7f8c9aef7f7a9b5929baec5513468245753e1592",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 606,
+    "line": 610,
     "status": "source"
   },
   "education_judiciary_advocate_console.learn": {
@@ -3349,133 +3349,161 @@
     "source_hash": "6be978370fb508f543e557e9ee84244183040b23427c8ec1608676dd90424dda",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 425,
+    "line": 426,
     "status": "source"
   },
   "education_jurisdictions_disintermediation.s1_detail": {
     "source_hash": "9aa64374de988da1bf5e2a63cf527b05e09032b9438b7159e16fb65e8b05b13e",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 429,
+    "line": 430,
     "status": "source"
   },
   "education_jurisdictions_disintermediation.s1_do": {
     "source_hash": "f9c162e75b23ab4ad8b532e00fe3b14d79895facd1bc5a2e2f858813502844a0",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 429,
+    "line": 430,
     "status": "source"
   },
   "education_jurisdictions_disintermediation.s2_detail": {
     "source_hash": "ed5ed0c54b4edd61f5d707542819902c90500b51520f6cfc3c5b6812025a3350",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 430,
+    "line": 431,
     "status": "source"
   },
   "education_jurisdictions_disintermediation.s2_do": {
     "source_hash": "96c2e899c4bfa30412e96eb37d6720f2dc8e8ae0d9c067d2138ba5e44d7578f4",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 430,
+    "line": 431,
     "status": "source"
   },
   "education_jurisdictions_disintermediation.s3_detail": {
     "source_hash": "f32bf9e04843fb940005b024afb82559d044a73450cbe6367383c51396825e60",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 431,
+    "line": 432,
     "status": "source"
   },
   "education_jurisdictions_disintermediation.s3_do": {
     "source_hash": "a6180404d1cfdd6368594acfc8953c923f271effb86c62c522549f08d361c196",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 431,
+    "line": 432,
     "status": "source"
   },
   "education_jurisdictions_disintermediation.s4_detail": {
     "source_hash": "66ca5e9f9679b084ae0037d891c8c19280bcaef6273e251aa5bf9e9fe843b379",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 432,
+    "line": 433,
     "status": "source"
   },
   "education_jurisdictions_disintermediation.s4_do": {
     "source_hash": "ac290c4487670be485f1b7400c37f60478bebe9a28402da9478501a6a7fc1041",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 432,
+    "line": 433,
+    "status": "source"
+  },
+  "education_jurisdictions_disintermediation.s5_detail": {
+    "source_hash": "2141b90984645b0ad73430cf5acc320906a0e575b2289386343b5a527a1c0e47",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
+    "line": 434,
+    "status": "source"
+  },
+  "education_jurisdictions_disintermediation.s5_do": {
+    "source_hash": "e1899be876e8f39e7a53e67c1c1c79b896b96b9e232c0f425a93dee58788b7d9",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
+    "line": 434,
     "status": "source"
   },
   "education_jurisdictions_disintermediation.why": {
     "source_hash": "7927afefaa8fd43716cd9d527509bcab7e0cb974867ba55fa8c0ae76a765aac6",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 434,
+    "line": 436,
     "status": "source"
   },
   "education_jurisdictions_federation.learn": {
     "source_hash": "6601a07256d02b045f08453a52505e8963fe5af68023ab4a78021ff741f63345",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 453,
+    "line": 456,
     "status": "source"
   },
   "education_jurisdictions_federation.s1_detail": {
     "source_hash": "84dd07f8a128df11a734bdabca42ff61f707d6c075ab5ab4e4ab55866733d331",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 457,
+    "line": 460,
     "status": "source"
   },
   "education_jurisdictions_federation.s1_do": {
     "source_hash": "1c58d0f480235f396b5dda1bdb321c1ebf605673fa1f6e73bfd0a274be891327",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 457,
+    "line": 460,
     "status": "source"
   },
   "education_jurisdictions_federation.s2_detail": {
     "source_hash": "650e4f4722263cdb4b5105eb729f69fef42a4b920189bf8eb87258da12a432fd",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 458,
+    "line": 461,
     "status": "source"
   },
   "education_jurisdictions_federation.s2_do": {
     "source_hash": "a4ccb324d656ae9ceb48584bf1ff2f1ba5fd272d0cd8c2af0b5ddb379d101a9d",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 458,
+    "line": 461,
     "status": "source"
   },
   "education_jurisdictions_federation.s3_detail": {
     "source_hash": "3f3cbfa15deb52b398ccc4ff955eff92f15beecdfcc136488ef7a0f714b0396a",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 459,
+    "line": 462,
     "status": "source"
   },
   "education_jurisdictions_federation.s3_do": {
     "source_hash": "c11d959f3a59b0796c123a60d1808921e9384ac8c7989258cf7eb2e2b254dd2f",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 459,
+    "line": 462,
     "status": "source"
   },
   "education_jurisdictions_federation.s4_detail": {
     "source_hash": "3bd08919593e695c3336cbedd4c1f29b44a5f368db8049fa40665eac0e191986",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 460,
+    "line": 463,
     "status": "source"
   },
   "education_jurisdictions_federation.s4_do": {
     "source_hash": "f7c05ac03f24f16191f498e097711206b61e2a5b0c0d72c8cb7dca01f01d240b",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 460,
+    "line": 463,
+    "status": "source"
+  },
+  "education_jurisdictions_federation.s5_detail": {
+    "source_hash": "f72ff2bd7b4ea81600392aa5652be740bf71da773f947665f4b209351ce664f5",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
+    "line": 464,
+    "status": "source"
+  },
+  "education_jurisdictions_federation.s5_do": {
+    "source_hash": "57ed2f8986f975a594863f010e2dd511e80e024ba7110858a57c7279efd6fc12",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
+    "line": 464,
     "status": "source"
   },
   "education_jurisdictions_place.learn": {
@@ -3552,70 +3580,84 @@
     "source_hash": "b1a61aaf19b29dc83166be95a0f06eb0cbc244b50566481d8345516a45c371b9",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 439,
+    "line": 441,
     "status": "source"
   },
   "education_jurisdictions_restoration.s1_detail": {
     "source_hash": "448f0a319cccbc769a16cc7f12d50be045449eec8ea928d59717e32f21fec971",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 443,
+    "line": 445,
     "status": "source"
   },
   "education_jurisdictions_restoration.s1_do": {
     "source_hash": "046c40874d9f95d248720307d63188d55e63957651ad031f158b2a7b93a36f76",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 443,
+    "line": 445,
     "status": "source"
   },
   "education_jurisdictions_restoration.s2_detail": {
     "source_hash": "6a669f2ca3426f771696c30a655a212a465b390e5d8333b9d96f4c757c3d5e02",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 444,
+    "line": 446,
     "status": "source"
   },
   "education_jurisdictions_restoration.s2_do": {
     "source_hash": "e34f26dab4ccd8b4a038c826af78b1017180b849322b343d919e9c35f2798e00",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 444,
+    "line": 446,
     "status": "source"
   },
   "education_jurisdictions_restoration.s3_detail": {
     "source_hash": "6bfed11fc4796c0b2865b8a172c8372f5922cdfae8f51febbab57a0e0490dd85",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 445,
+    "line": 447,
     "status": "source"
   },
   "education_jurisdictions_restoration.s3_do": {
     "source_hash": "dba8ecb91a01f33dfb7f9c17fdbcf457373ef9a618c0bbb1103cb8da3fe5f40d",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 445,
+    "line": 447,
     "status": "source"
   },
   "education_jurisdictions_restoration.s4_detail": {
     "source_hash": "2ae0d5a2820204b0a1644cf8ae8d82d0cacacc5f6f6dabb6f0407cc75cdd2312",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 446,
+    "line": 448,
     "status": "source"
   },
   "education_jurisdictions_restoration.s4_do": {
     "source_hash": "b1a613f4e23f57aeec5eaedae21fdb9feed8db67850adbaf65634e2884b1f643",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 446,
+    "line": 448,
+    "status": "source"
+  },
+  "education_jurisdictions_restoration.s5_detail": {
+    "source_hash": "de44639f1069bc333a5a7dd2690da6f0ad5c00ddd0d0f604ab4e4ec2033ce0cd",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
+    "line": 449,
+    "status": "source"
+  },
+  "education_jurisdictions_restoration.s5_do": {
+    "source_hash": "ffe678d22c02afb6b818f374b59a861bd677d7d322d2de09310d8d5c8fc655fc",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
+    "line": 449,
     "status": "source"
   },
   "education_jurisdictions_restoration.why": {
     "source_hash": "6abbb919ea834a158bf5cbd630df57cfa17bcff0ce0df3aa7d9208c99fe62d49",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 448,
+    "line": 451,
     "status": "source"
   },
   "education_jurisdictions_union_formation.learn": {
@@ -3681,11 +3723,25 @@
     "line": 418,
     "status": "source"
   },
+  "education_jurisdictions_union_formation.s5_detail": {
+    "source_hash": "8474d9e01afb1fe9d5e6839fe51d7bb9cbfd1821a2eacab13deac76ef6e018d1",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
+    "line": 419,
+    "status": "source"
+  },
+  "education_jurisdictions_union_formation.s5_do": {
+    "source_hash": "9939f777e1e6a6a8a300cc0edd5885445ca71dac0f5aa7376c78f13b3e83e1d6",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
+    "line": 419,
+    "status": "source"
+  },
   "education_jurisdictions_union_formation.why": {
     "source_hash": "c419d4c40f59383fd16cd91db9b28b37982c5c9f4bb2edc3324729564fe60d6c",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 420,
+    "line": 421,
     "status": "source"
   },
   "education_jurisdictions_viewer.learn": {
@@ -4000,63 +4056,63 @@
     "source_hash": "fe3d0e2ff0bed3651c51131c86683566881178f624a0b51d5ad182a7782f08ba",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 560,
+    "line": 564,
     "status": "source"
   },
   "education_legislature_bill_conversation.s1_detail": {
     "source_hash": "720b160b648c96ad7032fd7efb4cff1f5dab3aeb4e1767468855d652efcf8684",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 564,
+    "line": 568,
     "status": "source"
   },
   "education_legislature_bill_conversation.s1_do": {
     "source_hash": "c6a0e3dbb09335dd55c4d02ca8aa2c6699da9083f092136b70ce359352b49835",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 564,
+    "line": 568,
     "status": "source"
   },
   "education_legislature_bill_conversation.s2_detail": {
     "source_hash": "49f3d3350abf0fd44b1e565282908c06b66bf4e63ae7eed6571721897dacbfca",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 565,
+    "line": 569,
     "status": "source"
   },
   "education_legislature_bill_conversation.s2_do": {
     "source_hash": "71599abc3ec1bb06ae6c65d8f361e03ff9a5592eb39efd0579d08320035be173",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 565,
+    "line": 569,
     "status": "source"
   },
   "education_legislature_bill_conversation.s3_detail": {
     "source_hash": "e1315bd3fffc6d77a72ececddd63155f04976024c8acd9a229725ff5e029d213",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 566,
+    "line": 570,
     "status": "source"
   },
   "education_legislature_bill_conversation.s3_do": {
     "source_hash": "9d6bf6dbd745034f071dbf698dc57ce560b1ac890e0bec4026d9503cc3a86fbc",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 566,
+    "line": 570,
     "status": "source"
   },
   "education_legislature_bill_conversation.s4_detail": {
     "source_hash": "acea8a34a6f560654983b130f654d1011434b64486a37e75cd3f8939b6c0a29c",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 567,
+    "line": 571,
     "status": "source"
   },
   "education_legislature_bill_conversation.s4_do": {
     "source_hash": "68fbd688ee94da5eaadf941daf30777064b1e1e28feeb77f9ac4410d1c9e1a74",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 567,
+    "line": 571,
     "status": "source"
   },
   "education_legislature_bill_detail.learn": {
@@ -4910,63 +4966,63 @@
     "source_hash": "08b77ff497142d52f5bd8ba572961f42ba7d8b9f3eed444d3e05a44797ab36d9",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 481,
+    "line": 485,
     "status": "source"
   },
   "education_operator_dns.s1_detail": {
     "source_hash": "82f1a405c6a40a353ae3f0ccd715b4b5136306e6f4abceb334b6abc03d74afac",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 485,
+    "line": 489,
     "status": "source"
   },
   "education_operator_dns.s1_do": {
     "source_hash": "34a2b950c08fdeb52ff03922a0fe16613fc30785037b0357e14077285c79caa5",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 485,
+    "line": 489,
     "status": "source"
   },
   "education_operator_dns.s2_detail": {
     "source_hash": "c422c679ce8a85a500677619281550720290957a69884e420bd1f45280c5897b",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 486,
+    "line": 490,
     "status": "source"
   },
   "education_operator_dns.s2_do": {
     "source_hash": "d02a8a6329ad803631731e50666af9e094907f568b79a51c3d4a3acc89f06550",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 486,
+    "line": 490,
     "status": "source"
   },
   "education_operator_dns.s3_detail": {
     "source_hash": "cd0940d24f1f89009167ee89f0bd52f18a1f27d9f8b65c90f1192ce796a81b1c",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 487,
+    "line": 491,
     "status": "source"
   },
   "education_operator_dns.s3_do": {
     "source_hash": "4b2262d2c14204b3a39a897e4ae3ec34376fc7ea66c19a7a5cb6f09c70ca9068",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 487,
+    "line": 491,
     "status": "source"
   },
   "education_operator_dns.s4_detail": {
     "source_hash": "9e464c290f250c8ba3d704a8deb6d2a5d753b15b8f383bc49ca4a3ce2d19c2c9",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 488,
+    "line": 492,
     "status": "source"
   },
   "education_operator_dns.s4_do": {
     "source_hash": "9a6c8762cf54770681d60397dedfcd09cc42971a58db1f6a16d6749bc6942db5",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 488,
+    "line": 492,
     "status": "source"
   },
   "education_operator_home.learn": {
@@ -5085,70 +5141,70 @@
     "source_hash": "1eb59cec6d4a4a125249df39f2b4c6ab04407e0eb3fac4de1c4163d91e317a68",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 493,
+    "line": 497,
     "status": "source"
   },
   "education_operator_moderation.s1_detail": {
     "source_hash": "c91f208b61ee784ed41726d7c043424a9586a3d5b2515666250727226f165e68",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 497,
+    "line": 501,
     "status": "source"
   },
   "education_operator_moderation.s1_do": {
     "source_hash": "72f22762b64d2d0aa8d5f6a35e9e61a9de25bd3a53518c800748b552a15ee09d",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 497,
+    "line": 501,
     "status": "source"
   },
   "education_operator_moderation.s2_detail": {
     "source_hash": "cf235331bdc53419f49de5fdc455dae443b63a2b52e2b7985057f66669c39255",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 498,
+    "line": 502,
     "status": "source"
   },
   "education_operator_moderation.s2_do": {
     "source_hash": "df4c0412f4042bcb80022a9f2e83dd53ef8f7ab1dc626a44cca2d336b77db449",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 498,
+    "line": 502,
     "status": "source"
   },
   "education_operator_moderation.s3_detail": {
     "source_hash": "7df6619ba0686edc26f06d97ca8398dcc35393e2b5457f072a197e672053a8d7",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 499,
+    "line": 503,
     "status": "source"
   },
   "education_operator_moderation.s3_do": {
     "source_hash": "aae715e394abc343f6547204017aeb2633b37f97a4452137fdf070ce94b35bb3",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 499,
+    "line": 503,
     "status": "source"
   },
   "education_operator_moderation.s4_detail": {
     "source_hash": "ab79cc0699b1280b4406bb6f0f5ca9ac9c7ca5a5f4fbb5094d085405daa8b55c",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 500,
+    "line": 504,
     "status": "source"
   },
   "education_operator_moderation.s4_do": {
     "source_hash": "267a01e3595cfc420d6092f4d24b0ad24dc5555f623209876f26944cd300c648",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 500,
+    "line": 504,
     "status": "source"
   },
   "education_operator_moderation.why": {
     "source_hash": "af6af0f5db10fb3a68572698f64dac76e1ff843f6f1e3d913a5dc41a1d69ab9a",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 502,
+    "line": 506,
     "status": "source"
   },
   "education_operator_roles.learn": {
@@ -5190,70 +5246,70 @@
     "source_hash": "c11eb36764e8b72749c999ffe5dfbb489288b96e0e3c06537c58957cc931979a",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 467,
+    "line": 471,
     "status": "source"
   },
   "education_operator_setup.s1_detail": {
     "source_hash": "91f704f111b6181ac00f5e9bbe5430dbfe732edbaafdcdfecb3ed3262139c2cb",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 471,
+    "line": 475,
     "status": "source"
   },
   "education_operator_setup.s1_do": {
     "source_hash": "5894227371bcb284d2a9dae02bae324968a010a33bc3052f01b99204d8c85245",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 471,
+    "line": 475,
     "status": "source"
   },
   "education_operator_setup.s2_detail": {
     "source_hash": "9c9813f27870d0c6b83e7bab01fb4be216652adf9de7b3d3a89cdfd4cdc1996b",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 472,
+    "line": 476,
     "status": "source"
   },
   "education_operator_setup.s2_do": {
     "source_hash": "6385adcfb87a9abcdfe8b0166e96b2d40e1f3f79adecc30696d19cd5c030cd81",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 472,
+    "line": 476,
     "status": "source"
   },
   "education_operator_setup.s3_detail": {
     "source_hash": "988b79362ff72624e54fb53e2c4ba6c4317ba7cff8494361e284363c946e0baf",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 473,
+    "line": 477,
     "status": "source"
   },
   "education_operator_setup.s3_do": {
     "source_hash": "8d1ba3589543680aebd7483d9e024b7eea10c8acfe96758e70249f2f2f909026",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 473,
+    "line": 477,
     "status": "source"
   },
   "education_operator_setup.s4_detail": {
     "source_hash": "86fdc5704fdd3b76dd16ffd0dc314a7e5de49aab6be1109acaa1f19d64cbbb8f",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 474,
+    "line": 478,
     "status": "source"
   },
   "education_operator_setup.s4_do": {
     "source_hash": "c3ff7c0f2ef2e3cb5ed5fdd649b31668e2721f271625d8659b940ed876aa1a67",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 474,
+    "line": 478,
     "status": "source"
   },
   "education_operator_setup.why": {
     "source_hash": "0684fb02522c0f2c8dd7c446c1e13012514e196e4d9ee9174a8526616642e710",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 476,
+    "line": 480,
     "status": "source"
   },
   "education_operator_versioning.learn": {
@@ -5715,182 +5771,182 @@
     "source_hash": "1c2c5a6af3d356971fc6b0710f9566a0973c7ec1c7ccbe24470aba2857036f7a",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 585,
+    "line": 589,
     "status": "source"
   },
   "education_shared_accessibility.s1_detail": {
     "source_hash": "d6892734d28f010f4567f09b8d7b37a0b2fd47286b62f6659cae17d0651bf5fc",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 589,
+    "line": 593,
     "status": "source"
   },
   "education_shared_accessibility.s1_do": {
     "source_hash": "b8a23501c7d2a777e38dc11c56efdc4bf811b5c15a14ab1b5af185095baf170b",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 589,
+    "line": 593,
     "status": "source"
   },
   "education_shared_accessibility.s2_detail": {
     "source_hash": "d222a18d0ca00f567d86ec61a167cc05eec47ab27d2b03fa13670b25c84ede1a",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 590,
+    "line": 594,
     "status": "source"
   },
   "education_shared_accessibility.s2_do": {
     "source_hash": "e9a468766abd9d748f9a284ce7939b1ab5bb5f7a9f164862ba35cc47c4b79d4c",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 590,
+    "line": 594,
     "status": "source"
   },
   "education_shared_accessibility.s3_detail": {
     "source_hash": "5788c34eee2648fd0de75fbc1be92f84787a9ca0eb3423d5c75afd05b5e56ed1",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 591,
+    "line": 595,
     "status": "source"
   },
   "education_shared_accessibility.s3_do": {
     "source_hash": "1be0bd1471525214919842d8740dbcbc4e60e3f26cee79b74ddc34463a04c4d8",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 591,
+    "line": 595,
     "status": "source"
   },
   "education_shared_accessibility.why": {
     "source_hash": "6a8104b7bfe5133ba656fd71b22633f1d089d452daae372802f02aef6e16b613",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 593,
+    "line": 597,
     "status": "source"
   },
   "education_shared_atlas.learn": {
     "source_hash": "47220c6f0ab428b797b88ba599f5f49256c8fff3e92c0ce3fdb02eb953c1fa30",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 521,
+    "line": 525,
     "status": "source"
   },
   "education_shared_atlas.s1_detail": {
     "source_hash": "7f9a57a9370260212383b82d782c4d0e9062ae1ea7523b57a52b845083838ea0",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 525,
+    "line": 529,
     "status": "source"
   },
   "education_shared_atlas.s1_do": {
     "source_hash": "ee20ec5b44a60245b9a5aff4e88930956e141fdd0f7edaa295e8245598247123",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 525,
+    "line": 529,
     "status": "source"
   },
   "education_shared_atlas.s2_detail": {
     "source_hash": "343a2c2d0b20a55940775bc86d8e51db7d6d084d80065940fddd0b47f2af7214",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 526,
+    "line": 530,
     "status": "source"
   },
   "education_shared_atlas.s2_do": {
     "source_hash": "a4e1f6574b7d85e40f4be424d4881e234c4fddebfa1ebecc2854fdd8b66123cf",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 526,
+    "line": 530,
     "status": "source"
   },
   "education_shared_atlas.s3_detail": {
     "source_hash": "4030368591046a042be7c6f300445e9b002e741ff755537dbb282b7aaa56e1bf",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 527,
+    "line": 531,
     "status": "source"
   },
   "education_shared_atlas.s3_do": {
     "source_hash": "6c431b0860f3f4329f3b3a018e9a3c990a36740d20d26ed962875ccf646864d8",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 527,
+    "line": 531,
     "status": "source"
   },
   "education_shared_atlas.s4_detail": {
     "source_hash": "80f1b62be97b43d33ae08a737c002e63943500d58f4b8100bd25dfdd11823c29",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 528,
+    "line": 532,
     "status": "source"
   },
   "education_shared_atlas.s4_do": {
     "source_hash": "04c38ded62301a51e15ad083d3122cf2d8e2b35244ba8a0c2920b602ff67bf7f",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 528,
+    "line": 532,
     "status": "source"
   },
   "education_shared_atlas.why": {
     "source_hash": "de629dc7b52a711c540472ef6e9f22a00bfae15ca4c24c7dee671472a6f37083",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 530,
+    "line": 534,
     "status": "source"
   },
   "education_shared_constitutional_questions.learn": {
     "source_hash": "965d5d51b1b503b18341ee38786a26b475dd039faa35e0a6313a6a23b798906b",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 572,
+    "line": 576,
     "status": "source"
   },
   "education_shared_constitutional_questions.s1_detail": {
     "source_hash": "dde1fa612dc923e72295ca92fe79a405c07250ecf52c16448c02619ec35c145b",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 576,
+    "line": 580,
     "status": "source"
   },
   "education_shared_constitutional_questions.s1_do": {
     "source_hash": "1506b41d0df979105d13d847b10b4f0aa876294ef2dc09a0528fab9e7e9da5e7",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 576,
+    "line": 580,
     "status": "source"
   },
   "education_shared_constitutional_questions.s2_detail": {
     "source_hash": "9a460ce6cf828e3052b23bead362aeebc72b9e7aed9aade4fc1cbf83e94225e2",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 577,
+    "line": 581,
     "status": "source"
   },
   "education_shared_constitutional_questions.s2_do": {
     "source_hash": "0b1910a7fbfec534787e82f27664130c3fd6cdf918bea250f2ea325a5cb3a471",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 577,
+    "line": 581,
     "status": "source"
   },
   "education_shared_constitutional_questions.s3_detail": {
     "source_hash": "012a188f652b7db2adebb00cda01e577ccd2dee06e86e68ebf8682176574a801",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 578,
+    "line": 582,
     "status": "source"
   },
   "education_shared_constitutional_questions.s3_do": {
     "source_hash": "7e6a79bc249f56884963c0ec8cc03a6c49e03b9f412f89e2a3819a5f0319f77a",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 578,
+    "line": 582,
     "status": "source"
   },
   "education_shared_constitutional_questions.why": {
     "source_hash": "c2a5c1c24b1bad7eccc6711bea87f29f32a556921f150661390b4e3fb84f0f80",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 580,
+    "line": 584,
     "status": "source"
   },
   "education_shared_coverage_ops.learn": {
@@ -6009,112 +6065,112 @@
     "source_hash": "5e16091655b064e0314cfe551592e181ee8cf6eb6a567c986eaf1fae776364a5",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 509,
+    "line": 513,
     "status": "source"
   },
   "education_shared_launchpad.s1_detail": {
     "source_hash": "5abee693d61aa0bfb75f1123b3ea31a873c672f8bf718de632fcf4e83645bad5",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 513,
+    "line": 517,
     "status": "source"
   },
   "education_shared_launchpad.s1_do": {
     "source_hash": "715a2231e1c31539da2c9b1ddbc681efa47c9b14e2403ac278d26414c36600b3",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 513,
+    "line": 517,
     "status": "source"
   },
   "education_shared_launchpad.s2_detail": {
     "source_hash": "6385c10faccc8e19f6c877448464bb18b7c97a9b50c594af79e202b8e4924308",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 514,
+    "line": 518,
     "status": "source"
   },
   "education_shared_launchpad.s2_do": {
     "source_hash": "3124ac7dc69708194531fd0bc67cfb7f9ece8ea4aacbdfc2f6420ad0a658b4fd",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 514,
+    "line": 518,
     "status": "source"
   },
   "education_shared_launchpad.s3_detail": {
     "source_hash": "ed12b914470eb8d3760a352d07f096bcc964d60c08f4278f205ed36fbd63678f",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 515,
+    "line": 519,
     "status": "source"
   },
   "education_shared_launchpad.s3_do": {
     "source_hash": "826748ddf3c2dc5924b9a3e0aba1f66962bb85105ffdb76b4490b665bf50325e",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 515,
+    "line": 519,
     "status": "source"
   },
   "education_shared_launchpad.s4_detail": {
     "source_hash": "c1216d3dca4ed2b0708faf939e24f77b437d32e5f95d8c4fdfbd423c6ad31720",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 516,
+    "line": 520,
     "status": "source"
   },
   "education_shared_launchpad.s4_do": {
     "source_hash": "a77dc5c6c32bb62de673c1536025e51635beaa4ad6ff783468b3f24e340cb835",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 516,
+    "line": 520,
     "status": "source"
   },
   "education_shared_tour.learn": {
     "source_hash": "4bbead76eeb1b4dfb18d115283dda9939fe6384d0b05395aac08aa9a2db7da51",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 535,
+    "line": 539,
     "status": "source"
   },
   "education_shared_tour.s1_detail": {
     "source_hash": "3aa07ab25e112c916ee8313692a741df48c4221af7e0762bdcfa0a7ecd0e0657",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 539,
+    "line": 543,
     "status": "source"
   },
   "education_shared_tour.s1_do": {
     "source_hash": "20743a335044b6db374ed2b0f7b89e47ffaa85e4113fd1bd3f6b895227fd60d7",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 539,
+    "line": 543,
     "status": "source"
   },
   "education_shared_tour.s2_detail": {
     "source_hash": "8e522245b2eb088c99c1c552eb237e34bddac8a9bccbeae7eab20f162daf55fc",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 540,
+    "line": 544,
     "status": "source"
   },
   "education_shared_tour.s2_do": {
     "source_hash": "c43b3d631ec8103687020cd3d18f5c967de39fe0bbf663bf041ec85c2294404b",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 540,
+    "line": 544,
     "status": "source"
   },
   "education_shared_tour.s3_detail": {
     "source_hash": "9957066732c3720d96a0ac42f88cd6c948fb0147874d276c5ad0f03f871ff08a",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 541,
+    "line": 545,
     "status": "source"
   },
   "education_shared_tour.s3_do": {
     "source_hash": "901d2f1d05bf383a73ba15b7681432af76c6058580832a30363a4b59f88b5691",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 541,
+    "line": 545,
     "status": "source"
   },
   "education_social_achievements.learn": {
@@ -6786,63 +6842,63 @@
     "source_hash": "11ea9fd4f0d17329791608a9ae99354c7607594b61bd8497d6efacb9b5e785ba",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 611,
+    "line": 615,
     "status": "source"
   },
   "education_system_translation_review.s1_detail": {
     "source_hash": "516a462395c086ced6bff062da7c5336eecb112db9fee90d2ae802c8047db7e0",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 615,
+    "line": 619,
     "status": "source"
   },
   "education_system_translation_review.s1_do": {
     "source_hash": "a7b9ad550bbc9e539d0a2849615a63dd8d2397dfb3b55cfb1389180722e2d1ab",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 615,
+    "line": 619,
     "status": "source"
   },
   "education_system_translation_review.s2_detail": {
     "source_hash": "6c9947074314bc16c1e7c93cf4c93781d418d3832ef2b6f2d17d9cb602b9791d",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 616,
+    "line": 620,
     "status": "source"
   },
   "education_system_translation_review.s2_do": {
     "source_hash": "10a3ab5b9ae3994fe0f3b0d9e016de4d2c52286037fa2f184bf56bfbe44b510d",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 616,
+    "line": 620,
     "status": "source"
   },
   "education_system_translation_review.s3_detail": {
     "source_hash": "dbaf63f402bc1ffdb5fe640f3ed1411adb74cdfc0e8aad9728000ccf43f5c8bf",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 617,
+    "line": 621,
     "status": "source"
   },
   "education_system_translation_review.s3_do": {
     "source_hash": "eafcc16c5631c4ffe421d9b0c4cad2ec13512ad10036f9c36f8023f4c58a2045",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 617,
+    "line": 621,
     "status": "source"
   },
   "education_system_translation_review.s4_detail": {
     "source_hash": "42cb06e5ce2b24f187da5acc170227f6fe7f785134f57f2466030fb4a2f8215b",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 618,
+    "line": 622,
     "status": "source"
   },
   "education_system_translation_review.s4_do": {
     "source_hash": "9ad365d6e04986ab261fa5b044ece0d19743bb4c55b91b5106e9ca599189329f",
     "shape": "static",
     "file": "docs/plans/education/K2_CONTENT_WAVE2.md",
-    "line": 618,
+    "line": 622,
     "status": "source"
   },
   "education_system_translations.learn": {

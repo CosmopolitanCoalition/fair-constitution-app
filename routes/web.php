@@ -287,8 +287,38 @@ Route::get('/jurisdictions/restoration', [\App\Http\Controllers\Jurisdictions\Li
 Route::middleware('auth')->group(function () {
     Route::post('/jurisdictions/union-formation/propose', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'proposeUnion'])
         ->name('jurisdictions.union.propose');
+    // S2 union lifecycle doors: applicant referendum → per-constituent consent
+    // (opens a peg-quorum chamber vote) → finalize (both meters).
+    Route::post('/jurisdictions/union-formation/{unionProcess}/applicant-referendum', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'unionApplicantReferendum'])
+        ->whereUuid('unionProcess')->name('jurisdictions.union.applicant-referendum');
+    Route::post('/jurisdictions/union-formation/{unionProcess}/consent', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'unionConsent'])
+        ->whereUuid('unionProcess')->name('jurisdictions.union.consent');
+    Route::post('/jurisdictions/union-formation/{unionProcess}/finalize', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'unionFinalize'])
+        ->whereUuid('unionProcess')->name('jurisdictions.union.finalize');
+
     Route::post('/jurisdictions/disintermediation/propose', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'proposeDisintermediation'])
         ->name('jurisdictions.disintermediation.propose');
+    // S2 disintermediation doors: encompassing consent, per-constituent consent
+    // (opens a peg-quorum chamber vote), finalize (unanimity + encompassing).
+    Route::post('/jurisdictions/disintermediation/{disintermediationProcess}/encompassing-consent', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'disintermediationEncompassingConsent'])
+        ->whereUuid('disintermediationProcess')->name('jurisdictions.disintermediation.encompassing-consent');
+    Route::post('/jurisdictions/disintermediation/{disintermediationProcess}/consent', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'disintermediationConsent'])
+        ->whereUuid('disintermediationProcess')->name('jurisdictions.disintermediation.consent');
+    Route::post('/jurisdictions/disintermediation/{disintermediationProcess}/finalize', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'disintermediationFinalize'])
+        ->whereUuid('disintermediationProcess')->name('jurisdictions.disintermediation.finalize');
+
+    // S2 restoration doors: declare → confirm (finding read from the tied case)
+    // → tier (ordered cascade) → complete / abandon (the terminal transitions).
+    Route::post('/jurisdictions/restoration/declare', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'restorationDeclare'])
+        ->name('jurisdictions.restoration.declare');
+    Route::post('/jurisdictions/restoration/{restorationEvent}/confirm', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'restorationConfirm'])
+        ->whereUuid('restorationEvent')->name('jurisdictions.restoration.confirm');
+    Route::post('/jurisdictions/restoration/{restorationEvent}/tier', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'restorationTier'])
+        ->whereUuid('restorationEvent')->name('jurisdictions.restoration.tier');
+    Route::post('/jurisdictions/restoration/{restorationEvent}/complete', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'restorationComplete'])
+        ->whereUuid('restorationEvent')->name('jurisdictions.restoration.complete');
+    Route::post('/jurisdictions/restoration/{restorationEvent}/abandon', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'restorationAbandon'])
+        ->whereUuid('restorationEvent')->name('jurisdictions.restoration.abandon');
 });
 
 // A place's own page; the full-bleed map viewer moved to /map (operator 2026-09-10:
@@ -716,6 +746,19 @@ Route::post('/receipt-check', [BallotController::class, 'receiptCheck'])->name('
 // behavior change; every /federation/* action route keeps its address.
 Route::get('/federation', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'federation'])
     ->name('federation.between');
+
+Route::middleware('auth')->group(function () {
+    // S2 border settlement (Art. V §2) — a between-governments act, opened from
+    // the Between Governments page (no chamber proposal kind): propose, then
+    // the affected-area referendum, then adopt on the affected-area
+    // supermajority. Guards live in BorderSettlementService.
+    Route::post('/federation/border/propose', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'borderPropose'])
+        ->name('federation.border.propose');
+    Route::post('/federation/border/{borderSettlement}/referendum', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'borderReferendum'])
+        ->whereUuid('borderSettlement')->name('federation.border.referendum');
+    Route::post('/federation/border/{borderSettlement}/adopt', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'borderAdopt'])
+        ->whereUuid('borderSettlement')->name('federation.border.adopt');
+});
 
 Route::middleware('auth')->group(function () {
     // ── FE-F — Federation console (Phase F, WF-JUR-06): peers, FF&C sync

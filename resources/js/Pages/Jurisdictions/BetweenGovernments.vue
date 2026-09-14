@@ -12,11 +12,14 @@
  * formation and disintermediation; the server plumbing lives on the
  * operator's mesh pages.
  */
+import { router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
+import HistoryPager from '@/Components/Ui/HistoryPager.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import Stepper from '@/Components/Ui/Stepper.vue';
 import { plainState } from '@/lib/plain.js';
@@ -26,6 +29,8 @@ defineOptions({ layout: AppShellV2 });
 const props = defineProps({
     surface: { type: Object, required: true },
     settlements: { type: Array, default: () => [] },
+    viewer: { type: Object, default: () => null },
+    pagination: { type: Object, default: () => ({ previous: null, next: null, first: '/federation' }) },
 });
 
 const steps = [
@@ -40,6 +45,35 @@ const statusBadge = (s) =>
             : s.status === 'expired' ? { tone: 'neutral', label: 'Expired' }
                 : s.supermajority_met ? { tone: 'info', label: 'Supermajority met — adoption pending' }
                     : { tone: 'neutral', label: 'Proposal open' };
+
+const jurisdictionA = ref('');
+const jurisdictionB = ref('');
+const affectedIds = ref('');
+const referendumVotes = ref({});
+const busyId = ref('');
+const error = ref('');
+const notice = ref('');
+
+function act(id, url, data) {
+    if (busyId.value) return;
+    router.post(url, data || {}, {
+        preserveScroll: true,
+        onStart: () => { busyId.value = id; error.value = ''; notice.value = ''; },
+        onFinish: () => { busyId.value = ''; },
+        onError: (errors) => { error.value = Object.values(errors)[0] || 'That action could not be completed. Please retry.'; },
+        onSuccess: () => { notice.value = 'Done. The settlement list below reflects the change.'; },
+    });
+}
+function proposeBorder() {
+    const affected = affectedIds.value.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
+    act('propose', '/federation/border/propose', {
+        jurisdiction_a_id: jurisdictionA.value.trim(),
+        jurisdiction_b_id: jurisdictionB.value.trim(),
+        affected_ids: affected,
+    });
+}
+const referendum = (s) => act(s.id, `/federation/border/${s.id}/referendum`, { yes_votes: Number(referendumVotes.value[s.id] ?? 0) });
+const adopt = (s) => act(s.id, `/federation/border/${s.id}/adopt`);
 </script>
 
 <template>
@@ -92,6 +126,47 @@ const statusBadge = (s) =>
                 </template>
             </DataTable>
 
+            <div v-if="settlements.length && viewer" class="door-actions">
+                <h4>Move a settlement forward</h4>
+                <div v-for="s in settlements" :key="s.id" class="door-block">
+                    <p><strong>{{ s.a }} ↔ {{ s.b }}</strong> — {{ statusBadge(s).label }}</p>
+                    <form class="door-row" @submit.prevent="referendum(s)">
+                        <label :for="`ref-${s.id}`">Affected-area yes votes</label>
+                        <input :id="`ref-${s.id}`" v-model="referendumVotes[s.id]" type="number" min="0" inputmode="numeric" />
+                        <button type="submit" :disabled="busyId === s.id || s.status !== 'open'">Record referendum</button>
+                    </form>
+                    <button type="button" :disabled="busyId === s.id || s.status !== 'open'" @click="adopt(s)">Adopt the boundary</button>
+                    <p v-if="s.status !== 'open'" class="hint" role="status">This settlement is {{ plainState(s.status) }} — its doors are closed.</p>
+                </div>
+                <p v-if="busyId" role="status">Working…</p>
+                <p v-if="error && !busyId" role="alert">{{ error }}</p>
+                <p v-if="notice && !busyId" role="status">{{ notice }}</p>
+            </div>
+
+            <HistoryPager
+                v-if="settlements.length"
+                :pages="pagination"
+                :first="pagination.first"
+                :only="['settlements', 'pagination']"
+                cursor-key="border_cursor"
+                label="Border settlement history pages"
+            />
+
+            <div v-if="viewer" class="door-actions">
+                <h4>Open a border settlement</h4>
+                <p>A between-governments act. Name the two neighbouring places and the affected sub-jurisdictions whose residents decide.</p>
+                <form class="door-row" @submit.prevent="proposeBorder">
+                    <label for="border-a">Jurisdiction A</label>
+                    <input id="border-a" v-model="jurisdictionA" placeholder="UUID" />
+                    <label for="border-b">Jurisdiction B</label>
+                    <input id="border-b" v-model="jurisdictionB" placeholder="UUID" />
+                    <label for="border-affected">Affected sub-jurisdictions</label>
+                    <textarea id="border-affected" v-model="affectedIds" rows="2" placeholder="One or more UUIDs, comma or space separated" />
+                    <button type="submit" :disabled="busyId === 'propose' || !jurisdictionA.trim() || !jurisdictionB.trim() || !affectedIds.trim()">Open the settlement</button>
+                </form>
+            </div>
+            <p v-else class="hint">Sign in with a current legislative seat to open a settlement, record a referendum, or adopt a boundary.</p>
+
             <p>
                 Once a settlement is ratified, every affected resident's home association is
                 re-checked against the new boundary — rights re-attach automatically on the
@@ -121,3 +196,13 @@ const statusBadge = (s) =>
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.door-actions { border-block-start: 1px solid var(--border, #344054); margin-block-start: 1rem; padding-block-start: 1rem; display: grid; gap: .65rem; }
+.door-block { display: grid; gap: .5rem; padding-block: .5rem; }
+.door-row { display: grid; gap: .5rem; }
+.door-actions button, .door-row input, .door-row textarea { min-block-size: 44px; font: inherit; }
+.door-row input, .door-row textarea { inline-size: 100%; max-inline-size: 26rem; }
+.door-actions button { inline-size: fit-content; }
+.hint { color: var(--gov-muted, #94a3b8); }
+</style>

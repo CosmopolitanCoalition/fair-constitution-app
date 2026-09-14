@@ -455,6 +455,23 @@ class ExecutiveFormationService
             return;
         }
 
+        // S2 (Art. V §7/§8): the union / disintermediation constituent legs
+        // ride the SAME generic arm. On a closed process the owner finalizes
+        // the topology change only when BOTH of its meters are met (maybe-
+        // Finalize is the not-yet-met-safe wrapper); a single missing meter
+        // leaves the process OPEN for the other one.
+        if ($process->subject_type === 'union_processes') {
+            app(\App\Services\Jurisdictions\UnionService::class)->maybeFinalize($process);
+
+            return;
+        }
+
+        if ($process->subject_type === 'disintermediation_processes') {
+            app(\App\Services\Jurisdictions\DisintermediationService::class)->maybeFinalize($process);
+
+            return;
+        }
+
         $this->onProcessEvaluated($process);
     }
 

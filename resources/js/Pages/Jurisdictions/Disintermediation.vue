@@ -20,6 +20,7 @@ import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
+import HistoryPager from '@/Components/Ui/HistoryPager.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
 import { plainState } from '@/lib/plain.js';
@@ -30,9 +31,13 @@ const props = defineProps({
     surface: { type: Object, required: true },
     processes: { type: Array, default: () => [] },
     door: { type: Object, default: () => ({ seat: null, proposable: false }) },
+    pagination: { type: Object, default: () => ({ previous: null, next: null, first: '/jurisdictions/disintermediation' }) },
 });
 
 const submitting = ref(false);
+const busyId = ref('');
+const error = ref('');
+const notice = ref('');
 
 function propose() {
     submitting.value = true;
@@ -41,6 +46,20 @@ function propose() {
         onFinish: () => { submitting.value = false; },
     });
 }
+
+function act(id, url, data) {
+    if (busyId.value) return;
+    router.post(url, data || {}, {
+        preserveScroll: true,
+        onStart: () => { busyId.value = id; error.value = ''; notice.value = ''; },
+        onFinish: () => { busyId.value = ''; },
+        onError: (errors) => { error.value = Object.values(errors)[0] || 'That action could not be completed. Please retry.'; },
+        onSuccess: () => { notice.value = 'Done. The consent meters below reflect the change.'; },
+    });
+}
+const encompassingConsent = (p, consented) => act(p.id, `/jurisdictions/disintermediation/${p.id}/encompassing-consent`, { consented });
+const consent = (p) => act(p.id, `/jurisdictions/disintermediation/${p.id}/consent`);
+const finalize = (p) => act(p.id, `/jurisdictions/disintermediation/${p.id}/finalize`);
 
 const statusTone = (s) =>
     s === 'merged' ? 'success' : s === 'failed' || s === 'expired' ? 'warning' : 'info';
@@ -131,7 +150,41 @@ const statusTone = (s) =>
                 </DataTable>
                 <p class="citation">Acts are incorporated into the former constituents, then published.</p>
             </template>
+
+            <div v-if="door.seat" class="door-actions">
+                <h4>Move this process forward</h4>
+                <div v-if="p.viewer_is_encompassing" class="door-row">
+                    <span>Encompassing jurisdiction's decision</span>
+                    <button type="button" :disabled="busyId === p.id || p.status !== 'open'" @click="encompassingConsent(p, true)">Encompassing consents</button>
+                    <button type="button" :disabled="busyId === p.id || p.status !== 'open'" @click="encompassingConsent(p, false)">Encompassing declines</button>
+                </div>
+                <button
+                    v-if="p.consentable_by_viewer"
+                    type="button"
+                    :disabled="busyId === p.id"
+                    @click="consent(p)"
+                >
+                    Open my chamber's consent vote
+                </button>
+                <button type="button" :disabled="busyId === p.id || p.status !== 'open'" @click="finalize(p)">
+                    Finalize the dissolution
+                </button>
+                <p v-if="p.status !== 'open'" class="hint" role="status">This process is {{ plainState(p.status) }} — its doors are closed.</p>
+                <p v-if="busyId === p.id" role="status">Working…</p>
+                <p v-if="error && busyId === ''" role="alert">{{ error }}</p>
+                <p v-if="notice && busyId === ''" role="status">{{ notice }}</p>
+            </div>
+            <p v-else class="hint">Sign in with a current legislative seat to record consent or finalize.</p>
         </Card>
+
+        <HistoryPager
+            v-if="processes.length"
+            :pages="pagination"
+            :first="pagination.first"
+            :only="['processes', 'pagination']"
+            cursor-key="disinter_cursor"
+            label="Disintermediation process history pages"
+        />
 
         <Card as="section">
             <template #title>The chain after dissolution</template>
@@ -185,3 +238,10 @@ const statusTone = (s) =>
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.door-actions { border-block-start: 1px solid var(--border, #344054); margin-block-start: 1rem; padding-block-start: 1rem; display: grid; gap: .65rem; }
+.door-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.door-actions button { min-block-size: 44px; font: inherit; inline-size: fit-content; }
+.hint { color: var(--gov-muted, #94a3b8); }
+</style>
