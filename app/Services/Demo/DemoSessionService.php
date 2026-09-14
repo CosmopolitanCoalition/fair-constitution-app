@@ -2,8 +2,11 @@
 
 namespace App\Services\Demo;
 
+use App\Console\Commands\SimPumpCommand;
 use App\Services\AuditService;
 use App\Support\DemoMode;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -126,6 +129,49 @@ class DemoSessionService
      * @return array{demo_session_id:string, writes:int, reversed:int, skipped:list<array{seq:int,table:string,op:string,error:string}>}
      */
     public function void(string $demoSessionId, string $reason = 'logout'): array
+    {
+        // Pause the sim pump for the whole reversal so a tick cannot advance
+        // the world into rows this void is reversing (a sweep racing the purge).
+        return $this->withPumpsPaused(fn (): array => $this->runVoid($demoSessionId, $reason));
+    }
+
+    /**
+     * Hold the sim pump's own lock while $fn runs. The pump serializes every
+     * tick behind SimPumpCommand::EXEC_LOCK and a tick that cannot get the lock
+     * just returns, so holding it here pauses the pump for the void's duration
+     * and releases it after. If a tick is mid-run we wait a bounded time; a
+     * timeout still proceeds, because reverse() already guards every row
+     * against concurrent change. Off a cache binding (never in production) the
+     * work runs unpaused.
+     *
+     * @template T
+     * @param  callable():T  $fn
+     * @return T
+     */
+    private function withPumpsPaused(callable $fn)
+    {
+        if (! app()->bound('cache')) {
+            return $fn();
+        }
+
+        $lock = Cache::lock(SimPumpCommand::EXEC_LOCK, 300);
+        $held = false;
+        try {
+            $held = $lock->block(15);
+        } catch (LockTimeoutException $e) {
+            $held = false;
+        }
+
+        try {
+            return $fn();
+        } finally {
+            if ($held) {
+                $lock->release();
+            }
+        }
+    }
+
+    private function runVoid(string $demoSessionId, string $reason): array
     {
         // Closing is durable before the first reversal. The capture trigger
         // locks this same session row and refuses new writes once closing starts.

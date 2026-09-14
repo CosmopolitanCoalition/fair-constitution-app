@@ -21,13 +21,14 @@ class AssistanceController extends Controller
 
     public function index(Request $request): Response
     {
-        abort_unless($request->user(), 403);
         $data = $request->validate(['tab' => ['nullable', 'in:public,mine,responding']]);
         $tab = $data['tab'] ?? 'public';
         $cursor = $this->cursor($request);
         $actor = $request->user();
-        $owned = $this->help->ownedAccounts($actor);
-        if ($tab !== 'public' && ! (clone $owned)->exists()) {
+        // Public read (operator ruling 2026-09-10). A guest reads the public
+        // board. The personal tabs need an account, so they render empty.
+        $owned = $actor !== null ? $this->help->ownedAccounts($actor) : null;
+        if ($tab !== 'public' && ($owned === null || ! (clone $owned)->exists())) {
             return Inertia::render('Economy/Help', [
                 'surface' => SurfaceMeta::for('economy/help'),
                 'tab' => $tab, 'requests' => ['data' => [], 'previous' => null, 'next' => null],
@@ -59,9 +60,22 @@ class AssistanceController extends Controller
 
     public function show(Request $request, string $assistance): Response
     {
-        abort_unless($request->user(), 403);
         $cursor = $this->cursor($request);
         $actor = $request->user();
+        // Public read (operator ruling 2026-09-10). A guest reads a public
+        // request only. Actions and the responder roster stay signed-in.
+        if ($actor === null) {
+            $row = DB::table('assistance_requests')->where('id', $assistance)->whereNull('deleted_at')
+                ->where('privacy', 'public')->first(['id', 'title', 'need', 'privacy', 'status', 'created_at', 'requester_account_id']);
+            abort_if($row === null, 404);
+
+            return Inertia::render('Economy/HelpDetail', [
+                'surface' => SurfaceMeta::for('economy/help-detail'),
+                'assistance' => $this->requestRow($row), 'isOwner' => false, ...$this->participation($request),
+                'canPublish' => false, 'canWithdraw' => false, 'canResolve' => false, 'canRespond' => false,
+                'responses' => ['data' => [], 'next' => null, 'previous' => null],
+            ]);
+        }
         $row = $this->help->visible($actor, $assistance);
         $owner = $this->help->owns($actor, $row->requester_account_id);
         $unfinished = in_array($row->status, ['open', 'matched'], true);
@@ -150,7 +164,7 @@ class AssistanceController extends Controller
 
     private function participation(Request $request): array
     {
-        $available = $this->help->participationAccount($request->user()) !== null;
+        $available = $request->user() !== null && $this->help->participationAccount($request->user()) !== null;
         return ['canParticipate' => $available, 'participationNotice' => $available ? null : 'An open personal wallet is required to post a request or offer help. Your account identity is kept out of these pages.'];
     }
 

@@ -32,6 +32,10 @@ class SetupJoinAsyncTest extends TestCase
         $this->onLivePg(function () {
             DB::table('instance_settings')->update(['setup_mode' => 'join', 'setup_completed_at' => null, 'mirror_of_server_id' => null]);
             Queue::fake();
+            // W-0249: joining is the operator's act (the join flow creates the
+            // operator before this POST). Sign in as the operator the wizard
+            // always has; the async wiring under test is unchanged.
+            $this->actingAs($this->founder());
 
             $membership = $this->syncingMembership();
 
@@ -58,6 +62,10 @@ class SetupJoinAsyncTest extends TestCase
             $peer = $this->makeTrustedPeer();
             DB::table('instance_settings')->update(['setup_mode' => 'join', 'setup_completed_at' => null, 'mirror_of_server_id' => $peer->server_id]);
             Queue::fake();
+            // W-0249: joining is the operator's act (the join flow creates the
+            // operator before this POST). Sign in as the operator the wizard
+            // always has; the async wiring under test is unchanged.
+            $this->actingAs($this->founder());
 
             $membership = $this->syncingMembership($peer->id);
 
@@ -79,6 +87,10 @@ class SetupJoinAsyncTest extends TestCase
             $peer = $this->makeTrustedPeer();
             DB::table('instance_settings')->update(['setup_mode' => 'join', 'setup_completed_at' => null, 'mirror_of_server_id' => $peer->server_id]);
             Queue::fake();
+            // W-0249: joining is the operator's act (the join flow creates the
+            // operator before this POST). Sign in as the operator the wizard
+            // always has; the async wiring under test is unchanged.
+            $this->actingAs($this->founder());
 
             $membership = ClusterMembership::create([
                 'peer_id' => $peer->id,
@@ -98,6 +110,14 @@ class SetupJoinAsyncTest extends TestCase
             Queue::assertNotPushed(ClusterJoinJob::class);
             $this->assertNotNull(DB::table('instance_settings')->value('setup_completed_at'));
         });
+    }
+
+    private function founder(): \App\Models\User
+    {
+        $founder = new \App\Models\User(['name' => 'Founder', 'email' => 'founder@example.test']);
+        $founder->is_operator = true;
+
+        return $founder;
     }
 
     private function syncingMembership(?string $peerId = null): ClusterMembership

@@ -22,20 +22,27 @@ class WorkController extends Controller
 
     public function index(Request $request): Response
     {
-        abort_unless($request->user(), 403);
         $input = $request->validate([
             'tab' => ['nullable', 'in:applications,hiring'], 'organization' => ['nullable', 'uuid'], 'posting' => ['nullable', 'uuid'],
         ]);
         $tab = $input['tab'] ?? 'applications';
         $cursors = [];
         foreach (['organizations', 'postings', 'applications'] as $name) $cursors[$name] = $this->cursor($request, $name.'_cursor');
-        $uid = (string) $request->user()->getKey();
+        // Public read (operator ruling 2026-09-10). A guest has no wallet or
+        // postings. Resolve the key only when signed in; writes stay gated.
+        $uid = $request->user() !== null ? (string) $request->user()->getKey() : null;
         $params = array_filter(['tab' => $tab, 'organization' => $input['organization'] ?? null, 'posting' => $input['posting'] ?? null]);
         foreach (array_keys($cursors) as $name) if ($request->filled($name.'_cursor')) $params[$name.'_cursor'] = $request->query($name.'_cursor');
         $paginate = fn ($query, string $name, array $columns) => $query->select($columns)->orderByDesc('id')->cursorPaginate(20, ['*'], $name.'_cursor', $cursors[$name])
             ->withPath('/economy/work')->appends($params);
         $empty = ['data' => [], 'next' => null, 'previous' => null];
         $props = ['surface' => SurfaceMeta::for('economy/work'), 'tab' => $tab, 'organizations' => $empty, 'organization' => null, 'postings' => $empty, 'posting' => null, 'applications' => $empty];
+
+        // A guest sees the empty read state. Every posting and application
+        // read below resolves the signed-in person's own accounts.
+        if ($uid === null) {
+            return Inertia::render('Economy/Work', $props);
+        }
 
         if ($tab === 'hiring') {
             $orgs = $paginate(DB::table('organizations')->where('agent_user_id', $uid)->where('status', 'active')->whereNull('deleted_at'), 'organizations', ['id', 'name']);

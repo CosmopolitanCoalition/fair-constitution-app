@@ -355,6 +355,11 @@ class SetupController extends Controller
      */
     public function joinFromSetup(Request $request, \App\Services\Mirror\MirrorService $mirror): JsonResponse
     {
+        // Operator only. Adopting this box as a mirror of a host is the
+        // operator's act; the join flow creates the operator account first
+        // (join() redirects to /setup/operator when no user exists). Refuse
+        // before any read. A guest is stopped at the 'auth' middleware (401).
+        abort_unless((bool) $request->user()?->is_operator, 403);
         $settings = InstanceSettings::current();
         if ($settings->setup_mode !== 'join') {
             return response()->json(['error' => 'This instance is not in join mode.'], 409);
@@ -1645,6 +1650,9 @@ class SetupController extends Controller
      */
     public function setGeodataPullOption(Request $request): JsonResponse
     {
+        // Operator only. This steers a live geodata run. Refuse before any
+        // read. A guest is stopped at the 'auth' middleware (401).
+        abort_unless((bool) $request->user()?->is_operator, 403);
         $data = $request->validate([
             'auto_scan' => ['required', 'boolean'],
         ]);
@@ -1937,6 +1945,10 @@ class SetupController extends Controller
      */
     public function geodataPullControl(Request $request): JsonResponse
     {
+        // Operator only. This halts, resumes, rewinds or rescans a live
+        // geodata run. Refuse before any read. A guest is stopped at the
+        // 'auth' middleware (401).
+        abort_unless((bool) $request->user()?->is_operator, 403);
         $data = $request->validate([
             // review_retry / review_continue added 2026-08-05: when a GROUP's
             // one automatic half-lane retry cannot clear its review residue,
@@ -4898,6 +4910,11 @@ class SetupController extends Controller
      */
     public function deployPackage(Request $request, \App\Services\Setup\DeployPackageService $packages): Response|JsonResponse
     {
+        // Operator only. The join package is pre-baked with this box's self-URL
+        // as the host and a freshly-minted join key, so it is the operator's
+        // act. Refuse before any read. A guest is stopped at the 'auth'
+        // middleware (401).
+        abort_unless((bool) $request->user()?->is_operator, 403);
         $data = $request->validate([
             'os'   => ['required', Rule::in(['windows', 'unix'])],
             'kind' => ['required', Rule::in(['solo', 'join'])],
