@@ -32,7 +32,7 @@ Defects (punch list A11Y-2 to A11Y-4):
 2. Inline prose links (A11Y-3). 30 nodes on 11 routes rely on colour alone at as low as 1.41:1 against the surrounding text with no underline (`.citation a` and the generic prose link style).
 3. Semantics (A11Y-4). The shared `DataTable` scroll container (`components.css:480`) is not keyboard focusable when it overflows (4 nodes on `/system/clocks` at 375 px); `Setup/Bootstrap.vue` paints with no page title (2 nodes).
 
-Re-check of the sign-in pages after the Learn bar landed (LE-5, merge 688627ad): pending the engine; recorded in the handoff when run.
+Re-check of the sign-in pages after the Learn bar landed (LE-5, merge 688627ad): `/login` and `/operator/login` established with 0 axe nodes and 0 focus or name gaps; `/register` established with the same 2 pre-existing link-in-text-block nodes (A11Y-3). The Learn bar added no violation.
 
 ## D1 · rehearsal runner (commit 50014c3e). Blocked; runner prepared.
 
