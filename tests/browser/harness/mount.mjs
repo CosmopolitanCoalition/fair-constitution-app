@@ -13,6 +13,11 @@ const app = createApp(MultiTrackVideoPlayer, {
     video: cfg.video,
     baseUrl: Object.prototype.hasOwnProperty.call(cfg, 'baseUrl') ? cfg.baseUrl : null,
     initialLocale: cfg.initialLocale || 'en',
+    // W-0430/W-0432: optional playlist and server-prefs plumbing. No i18n is
+    // installed in this harness, so the player uses its English fallbacks.
+    playlist: cfg.playlist ?? null,
+    serverPrefs: cfg.serverPrefs ?? null,
+    prefsEndpoint: cfg.prefsEndpoint ?? null,
 });
 app.mount('#app');
 window.__CGA_MOUNTED__ = true;

@@ -124,6 +124,9 @@ class LearnController extends Controller
             // surface resolves to no film. baseUrl null => the player's poster.
             'video' => $video,
             'videoBaseUrl' => $video === null ? null : MediaMeta::baseUrl(),
+            // W-0432 — the signed-in viewer's saved player prefs + the PUT
+            // endpoint. Null for a guest (localStorage-only).
+            ...\App\Http\Controllers\Media\VideoPrefsController::pageProps($request),
             // ?required=1 rides the act-gate's redirect — the banner says why
             // the learner landed here. Informational; it gates nothing.
             'required' => (string) $request->query('required') === '1',

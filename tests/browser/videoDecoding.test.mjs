@@ -46,6 +46,20 @@ const VIDEO = {
     ],
 };
 
+// W-0430: a second film for the playlist auto-advance test. A distinct subject
+// so the served audio/master URLs differ from the first film.
+const VIDEO2 = {
+    id: 'demo2',
+    subject: 'TestLesson2',
+    master: 'TestLesson2-Silent.webm',
+    title: 'Test lesson two',
+    summary: 'A second generated fixture.',
+    poster: 'learn',
+    seconds: 3,
+    audio: VIDEO.audio,
+    captions: VIDEO.captions,
+};
+
 const VTT_EN = 'WEBVTT\n\n00:00:00.000 --> 00:00:10.000\nEnglish caption line one.\n';
 const VTT_AR = 'WEBVTT\n\n00:00:00.000 --> 00:00:10.000\nسطر الترجمة العربية.\n';
 
@@ -446,6 +460,59 @@ test('poster placeholder path — no media base URL configured', async ({ page }
     expect(s.status).toMatch(/Video not available yet/);
     expect(s.audioOptions).toEqual([2, 2]); // language controls stay live
     expect(consoleErr).toEqual([]);
+});
+
+test('W-0431 — volume and mute act on the real dub audio, never the master', async ({ page }) => {
+    await installMedia(page);
+    await mount(page, { video: VIDEO, baseUrl: MEDIA_BASE, initialLocale: 'en' });
+    await expect.poll(async () => (await state(page)).videoReadyState, { timeout: 15000 }).toBeGreaterThanOrEqual(1);
+
+    // Start playback so the dub audio element loads its source.
+    await page.click('button[aria-label="Play or pause"]');
+    await expect.poll(async () => (await state(page)).audioReadyState, { timeout: 12000 }).toBeGreaterThanOrEqual(1);
+
+    // The master <video> is muted by design and stays muted throughout.
+    expect(await page.evaluate(() => document.querySelector('figure.vplayer video').muted)).toBe(true);
+
+    // The range control sets the real dub audio volume.
+    await page.locator('input.vplayer-volume').fill('0.5');
+    await expect.poll(async () => page.evaluate(() => document.querySelector('figure.vplayer audio').volume), { timeout: 8000 }).toBeCloseTo(0.5, 2);
+
+    // The mute button toggles the dub audio, and the master is still muted.
+    await page.click('button[aria-label="Mute audio"]');
+    await expect.poll(async () => page.evaluate(() => document.querySelector('figure.vplayer audio').muted), { timeout: 8000 }).toBe(true);
+    expect(await page.evaluate(() => document.querySelector('figure.vplayer video').muted)).toBe(true);
+
+    // Unmute again through the flipped label.
+    await page.click('button[aria-label="Unmute audio"]');
+    await expect.poll(async () => page.evaluate(() => document.querySelector('figure.vplayer audio').muted), { timeout: 8000 }).toBe(false);
+});
+
+test('W-0430 — a two-film playlist auto-advances on ended with real media', async ({ page }) => {
+    await installMedia(page);
+    await mount(page, { video: VIDEO, baseUrl: MEDIA_BASE, initialLocale: 'en', playlist: [VIDEO, VIDEO2] });
+    await expect.poll(async () => (await state(page)).videoReadyState, { timeout: 15000 }).toBeGreaterThanOrEqual(1);
+
+    // The playlist controls render and open on the first film.
+    await expect(page.locator('.vplayer-playlist select')).toHaveValue('demo');
+    await expect(page.locator('button[aria-label="Previous film"]')).toBeDisabled();
+
+    // Choose Polish audio; the choice must carry over to the next film.
+    await page.locator('.vplayer-tracks label').nth(0).locator('select').selectOption('pl');
+    await expect.poll(async () => (await state(page)).audioSrc, { timeout: 8000 }).toContain('Polish');
+
+    // Seek near the end and play out; the film ends and auto-advances.
+    await page.evaluate(() => { const v = document.querySelector('figure.vplayer video'); v.currentTime = Math.max(0, (isFinite(v.duration) ? v.duration : 3) - 0.3); });
+    await page.click('button[aria-label="Play or pause"]');
+
+    // The second film is now selected, with the same language choice.
+    await expect.poll(async () => page.locator('.vplayer-playlist select').inputValue(), { timeout: 15000 }).toBe('demo2');
+    await expect.poll(async () => (await state(page)).audioSrc, { timeout: 10000 }).toContain('TestLesson2');
+    await expect.poll(async () => (await state(page)).audioSrc, { timeout: 10000 }).toContain('Polish');
+
+    // And it decodes and plays.
+    await expect.poll(async () => (await state(page)).videoReadyState, { timeout: 15000 }).toBeGreaterThanOrEqual(1);
+    await expect.poll(async () => (await state(page)).videoCurrentTime, { timeout: 12000 }).toBeGreaterThan(0.05);
 });
 
 test('live /videos page renders as guest without console errors', async ({ page }) => {

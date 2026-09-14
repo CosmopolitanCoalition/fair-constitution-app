@@ -68,6 +68,17 @@ Route::get('/explore', \App\Http\Controllers\Civic\RoleExplorerController::class
 // never collides with the /learn/{track} catch-all below.
 Route::get('/videos', [\App\Http\Controllers\Media\VideoLibraryController::class, 'index'])->name('videos');
 
+// W-0432 — the signed-in viewer's video player preferences (audio/caption
+// language, link flag, captions-on, volume, mute). Behind `auth`: a guest has
+// no server document and the player falls back to localStorage. One document
+// per user; not audit-chained.
+Route::middleware('auth')->group(function () {
+    Route::get('/api/me/video-prefs', [\App\Http\Controllers\Media\VideoPrefsController::class, 'show'])
+        ->name('api.me.video-prefs.show');
+    Route::put('/api/me/video-prefs', [\App\Http\Controllers\Media\VideoPrefsController::class, 'update'])
+        ->name('api.me.video-prefs.update');
+});
+
 // Coverage instruments (design contracts: mockups/v3/shared/coverage.html,
 // coverage-ops.html). "For the build team" QA — public read (surface names +
 // route paths only, no user data). They cross-check the JS nav registry against

@@ -36,6 +36,9 @@ class VideoLibraryController extends Controller
             'videos'    => MediaMeta::all(),
             'baseUrl'   => MediaMeta::baseUrl(),
             'preselect' => $preselect,
+            // W-0432 — the signed-in viewer's saved player prefs + the PUT
+            // endpoint. Null for a guest (localStorage-only).
+            ...VideoPrefsController::pageProps($request),
         ]);
     }
 }

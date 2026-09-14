@@ -33,6 +33,10 @@ const props = defineProps({
     // base URL is null in demo mode -> the player renders its own poster.
     video: { type: Object, default: null },
     videoBaseUrl: { type: String, default: null },
+    // W-0432: the signed-in viewer's saved player prefs + the PUT endpoint.
+    // Null for a guest (the player uses localStorage only).
+    videoPrefs: { type: Object, default: null },
+    prefsEndpoint: { type: String, default: null },
     required: { type: Boolean, default: false },
     quiz: { type: Object, default: null },
     auth: { type: Object, default: () => ({}) },
@@ -86,6 +90,8 @@ const next = computed(() => {
                 :video="video"
                 :base-url="videoBaseUrl"
                 :initial-locale="locale"
+                :server-prefs="videoPrefs"
+                :prefs-endpoint="prefsEndpoint"
             />
             <p v-if="videoIsDefault" class="gloss">{{ t('c_learn.ui.lesson_video_demo_note', 'This lesson uses the demo recording; a lesson-specific video is planned.') }}</p>
         </section>

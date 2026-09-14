@@ -29,6 +29,10 @@ const props = defineProps({
     // LE-3: a catalog id to open on (from ?v=), validated server-side. Null
     // opens the first film.
     preselect: { type: String, default: null },
+    // W-0432: the signed-in viewer's saved player prefs + the PUT endpoint.
+    // Null for a guest (the player uses localStorage only).
+    videoPrefs: { type: Object, default: null },
+    prefsEndpoint: { type: String, default: null },
 });
 
 const page = usePage();
@@ -48,8 +52,25 @@ function fmt(s) {
     return `${m}:${r < 10 ? '0' : ''}${r}`;
 }
 
+// W-0430: keep the ?v= query on the current film without a full reload, so a
+// deep link and the browser back/forward stay in step with the playlist.
+function syncUrl(id) {
+    if (typeof window === 'undefined' || !id) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('v', id);
+    window.history.replaceState(window.history.state, '', url);
+}
+
+// The player advanced itself (next button or auto-advance on ended).
+function onPlayerChange(id) {
+    currentId.value = id;
+    syncUrl(id);
+}
+
+// A library row selected a film — drive the player through the video prop.
 function pick(id) {
     currentId.value = id;
+    syncUrl(id);
     document.getElementById('featured')?.scrollIntoView({ block: 'nearest' });
 }
 </script>
@@ -70,10 +91,13 @@ function pick(id) {
         <div id="featured">
             <MultiTrackVideoPlayer
                 v-if="current"
-                :key="current.id"
                 :video="current"
+                :playlist="videos"
                 :base-url="baseUrl"
                 :initial-locale="locale"
+                :server-prefs="videoPrefs"
+                :prefs-endpoint="prefsEndpoint"
+                @change="onPlayerChange"
             />
             <Card v-else><p class="gloss">The video catalog is empty.</p></Card>
         </div>

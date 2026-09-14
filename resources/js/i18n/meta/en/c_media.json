@@ -1,0 +1,282 @@
+{
+  "play_pause": {
+    "source_hash": "a78afaff2fdacb8b76e1dda5de4c16c187f532fa8b1f1c225b21e713775219dc",
+    "shape": "attr:aria-label",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 572,
+    "status": "source"
+  },
+  "seek": {
+    "source_hash": "67ae3405bcd4df1fdbe812a588a449a53ce65bdfb1658746237edb0a9beefa53",
+    "shape": "attr:aria-label",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 583,
+    "status": "source"
+  },
+  "captions_on": {
+    "source_hash": "095f33f08c1a1a087a2ffaa9864d96b1e1a069545ff580e53dde6427ffd953ab",
+    "shape": "attr:aria-label",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 591,
+    "status": "source"
+  },
+  "captions_off": {
+    "source_hash": "aca3eb08cd7d5f3d15cd24a66127254a322f36eb6a3c407e5ef3818e1e0e60eb",
+    "shape": "attr:aria-label",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 591,
+    "status": "source"
+  },
+  "audio_label": {
+    "source_hash": "bc1b88907d3b748af99cb9d4ffc07a0118dad5dab21a9dbdcc5a17a09641364a",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 635,
+    "status": "source"
+  },
+  "captions_label": {
+    "source_hash": "43bf6af8e2d9b895620783088525d4a4f20e3ea34508cea6e8171fb6c0abff21",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 641,
+    "status": "source"
+  },
+  "link_label": {
+    "source_hash": "d8a4bba0c066632ecaa1d254f9a121aac34c4ea5d4896d45a08c02e8771471b9",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 648,
+    "status": "source"
+  },
+  "previous_film": {
+    "source_hash": "73978b30a46ec2f09db7fc7fb1f3061a092804d3b0022c1225b272c6b5eb96a3",
+    "shape": "attr:aria-label",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 508,
+    "status": "source"
+  },
+  "next_film": {
+    "source_hash": "5f48d4a3c6a9d843b48248dbc4db3b28ed7f1f8f363a590c4fc1dacdaf435a05",
+    "shape": "attr:aria-label",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 524,
+    "status": "source"
+  },
+  "select_film": {
+    "source_hash": "f5cd74ca20532ec8234efafa8793cbb1c70823ee6f834144685a3fd036a7f0f6",
+    "shape": "attr:aria-label",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 516,
+    "status": "source"
+  },
+  "mute": {
+    "source_hash": "1690e4488fc2e83bb404f31eaae18a1ac8fe4546e5a73c4212ec71887bfd290b",
+    "shape": "attr:aria-label",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 602,
+    "status": "source"
+  },
+  "unmute": {
+    "source_hash": "c68b1dc6f1f9db12b4983b65f9b7f842a6c5acc9222332d8f3557b69d40f1eb1",
+    "shape": "attr:aria-label",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 602,
+    "status": "source"
+  },
+  "volume": {
+    "source_hash": "d8885610a2effb7db219bd3634abc86941cb5054f6e787f3ca8f24074260ba30",
+    "shape": "attr:aria-label",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 615,
+    "status": "source"
+  },
+  "status.unavailable": {
+    "source_hash": "bcdfca824e6f4f46f982de52cf73bd6644c5c7a0729dd202fda390384b58c966",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 464,
+    "status": "source"
+  },
+  "status.video_error": {
+    "source_hash": "6b9f63122898e9ecbcd004ba53ebe5fb246f952c9224256b2270c0780e92a179",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 465,
+    "status": "source"
+  },
+  "status.loading": {
+    "source_hash": "df2f0710a36d92a17a4f0612dc479c023dd3ff105ba3d2b2eab10949579f9ac2",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 466,
+    "status": "source"
+  },
+  "status.buffering": {
+    "source_hash": "85ee858a2ac7dcce2348154f7e8063794d306d05ba7b2f664d03c9d2ebec5614",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 467,
+    "status": "source"
+  },
+  "status.ended": {
+    "source_hash": "42c8d9a4ced0aeb576a0ce87589c6eff5fcbf2dc9ffdb8bbd951966b4babd597",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 468,
+    "status": "source"
+  },
+  "status.ready": {
+    "source_hash": "6dbc080db4ab65c8d76ed43cd509110d518fed52a0675d555d097a0efda98eb7",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 469,
+    "status": "source"
+  },
+  "status.playing_no_audio": {
+    "source_hash": "ad0db59c008b45f1d5325b795dddaccec30d93d00d5697dfcf730df82c288605",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 470,
+    "status": "source"
+  },
+  "status.audio_loading": {
+    "source_hash": "29d4fffac54a21d68688db6a78a8156b1ace7fe06c38531a6ae5cd9d67dba457",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 471,
+    "status": "source"
+  },
+  "status.audio_buffering": {
+    "source_hash": "355518384c24d09d61fdfedcc1fe78fbeaee7e5aa4f28c1e8ca949b0ae4f3837",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 472,
+    "status": "source"
+  },
+  "status.playing": {
+    "source_hash": "deaf6f9d23bc24d464d85c146c94995db5f73929e1fe5462d1d136516b2ad1ec",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 470,
+    "status": "source"
+  },
+  "line.audio": {
+    "source_hash": "6ed8919ce20490a5e3ad8630a4fab69475297abd07db73918dd5f36fcfaeb11b",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 653,
+    "status": "source"
+  },
+  "line.captions": {
+    "source_hash": "dcb3eeed0f2b911bb615f4707c3fa6d775624d8f2c3f4cc66924afbbe7946234",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 654,
+    "status": "source"
+  },
+  "line.off": {
+    "source_hash": "b4dc66dde806261bdda8607d8707aa727d308cd80272381a5583f63899918467",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 654,
+    "status": "source"
+  },
+  "line.linked": {
+    "source_hash": "2272bea616a05ae194c58b63752b39924a7beed67597c20dcb5586d1ee517290",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 656,
+    "status": "source"
+  },
+  "line.unlinked": {
+    "source_hash": "4396319e4137cc1ca45552cfa352610867ebcda12abc1153c5a369b228fc9882",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 656,
+    "status": "source"
+  },
+  "line.loading_captions": {
+    "source_hash": "3f1bd5dc4a5a8af4631eea0babbfa5c541f6d4aa660a1f5ecc78e541ecbd453c",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 655,
+    "status": "source"
+  },
+  "error.video": {
+    "source_hash": "9d529334802b90df846b7667cf56cb7c50fc5a6c8170d7476b178f6693ff6a5d",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 621,
+    "status": "source"
+  },
+  "error.retry_video": {
+    "source_hash": "55bbb1cfa11a83ad712c66adc83a2e92fcc0a50ce24809d8eeccd86ae9e5c0ff",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 621,
+    "status": "source"
+  },
+  "error.audio": {
+    "source_hash": "d3985781fc806beebcd4c1860752ef8f960e9cfe818f32c9fdc8441ab29b77ba",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 624,
+    "status": "source"
+  },
+  "error.retry_audio": {
+    "source_hash": "f86a12ffdfa1d7fc774c8aaf1d22c3e4f180f5f9bc796413ba1702074b9a2714",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 625,
+    "status": "source"
+  },
+  "error.captions": {
+    "source_hash": "1b8ae065c3dea1cdf1ece44b356d0a43e10f45e09e034fc8bf881c349090a198",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 628,
+    "status": "source"
+  },
+  "error.retry_captions": {
+    "source_hash": "9aa60b9900b0f44147806cc64cc535677aef2001dae0ae96949c6bcdb1d3c980",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 629,
+    "status": "source"
+  },
+  "caption_sample": {
+    "source_hash": "8eb5099b95f0f637b6e24571fec22cc3e562ecf169287b7a054a2de02b200dcf",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "poster_label": {
+    "source_hash": "392857a4fd29c2457d3750206675eb79db7ddaf64a97668c8b875066e9aa07a3",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 476,
+    "status": "source"
+  },
+  "narrated": {
+    "source_hash": "a1cc278df057f004ba9614c11264d1bcb2a444b2a2f7ba00c90c6da9fd288937",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 478,
+    "status": "source"
+  },
+  "port_note": {
+    "source_hash": "6644294337eac67db5064c23f94fc24386fd8fe4f720530bf113f45ad562730e",
+    "shape": "template",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 668,
+    "status": "source"
+  },
+  "meta_title": {
+    "source_hash": "8c61f05aa4801ffef1f8249d03231a51f4e8d18c78db4582e8f3d4102e6abf11",
+    "shape": "attr:title",
+    "file": "Components/Media/MultiTrackVideoPlayer.vue",
+    "line": 664,
+    "status": "source"
+  }
+}
