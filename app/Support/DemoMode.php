@@ -36,6 +36,15 @@ final class DemoMode
     /** The PostgreSQL setting the engine sets (transaction-local) for a demo filing. */
     public const GUC = 'cga.demo_session';
 
+    /**
+     * The PostgreSQL setting DemoSessionService::reverse sets (transaction-local)
+     * around a demo-void soft delete. An append-only ledger guard (e.g.
+     * achievements_block_mutation) permits ONLY a deleted_at stamp while this is
+     * '1', so a demo award is voided with its session like any other demo write
+     * while non-demo mutation stays blocked.
+     */
+    public const VOID_GUC = 'cga.demo_void';
+
     /** The session key that binds an HTTP session to its demo_sessions row. */
     public const SESSION_KEY = 'demo_session_id';
 

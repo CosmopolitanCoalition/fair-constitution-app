@@ -115,6 +115,10 @@ class RecountAuditOrder implements FormHandler
         // WI-B5 seam: dispatch the audit re-tabulation.
         $this->pipeline->beginAuditRerun($audit);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-ELB-005');
+        }
+
         return [
             'audit_id'    => (string) $audit->id,
             'election_id' => (string) $election->id,

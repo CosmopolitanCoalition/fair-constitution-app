@@ -88,6 +88,10 @@ class OwnershipTransferInitiation implements FormHandler
             throw new ConstitutionalViolation('F-ORG-005 targets an unknown transfer.', 'CGA Forms Catalog (F-ORG-005)');
         }
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-ORG-011');
+        }
+
         return match ($action) {
             'consent' => (function () use ($transfer, $actor) {
                 if ($actor === null) {

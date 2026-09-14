@@ -58,6 +58,10 @@ class BillIntroduction implements FormHandler
 
         $bill = $this->bills->introduce($legislature, $sponsor, $payload);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-LEG-003');
+        }
+
         return [
             'bill_id'             => (string) $bill->id,
             'title'               => $bill->title,

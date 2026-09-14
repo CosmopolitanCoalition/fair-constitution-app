@@ -379,6 +379,26 @@ class CommitteeAssignmentService
                 ]);
             }
 
+            // AC-1: a seated committee member earns LEG-009 (EARNER_STATE) the
+            // moment the seat is minted. Idempotent; the daily sweep is the
+            // backfill/repair door for seats written by other paths.
+            $memberIds = array_values(array_unique(array_map(
+                static fn (array $p): string => (string) $p['member_id'],
+                $result['placements'],
+            )));
+            if ($memberIds !== []) {
+                $ach = app(\App\Services\AchievementService::class);
+                \App\Models\LegislatureMember::query()
+                    ->whereIn('id', $memberIds)
+                    ->get(['id', 'user_id'])
+                    ->each(function ($m) use ($ach): void {
+                        $u = \App\Models\User::find((string) $m->user_id);
+                        if ($u !== null) {
+                            $ach->awardState($u, 'ACH-LEG-009');
+                        }
+                    });
+            }
+
             Committee::query()
                 ->whereIn('id', $committees->pluck('id'))
                 ->update(['status' => Committee::STATUS_SEATED, 'updated_at' => $now]);

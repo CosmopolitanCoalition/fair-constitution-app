@@ -84,6 +84,10 @@ class SessionMinutesPublication implements FormHandler
 
         $legislature = $session->legislature->refresh();
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-BOG-006');
+        }
+
         return [
             'session_id'          => (string) $session->id,
             'session_no'          => $session->session_no,

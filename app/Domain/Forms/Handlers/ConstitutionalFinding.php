@@ -92,6 +92,10 @@ class ConstitutionalFinding implements FormHandler
             'panel_snapshot' => $this->panelSnapshot($challenge),
         ]);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-JUD-011');
+        }
+
         return [
             'challenge_id' => (string) $challenge->id,
             'finding_id' => (string) $finding->id,

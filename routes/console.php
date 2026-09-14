@@ -180,3 +180,10 @@ Schedule::call(fn () => app(\App\Services\Economy\CurrencyReportService::class)-
 // Demo sessions whose Laravel session expired are voided like a logout
 // (DemoMode ruling C). The command is inert off a scale_demo box.
 Schedule::command('demo:void-expired')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
+
+// AC-1: nightly backfill/repair of EARNER_STATE achievements from the fact
+// tables. Idempotent, keyset-chunked and resumable, so a nightly pass never
+// double-awards and only writes newly-eligible holders. Write-site calls at
+// the seat services give immediate awards; this is the backfill door for
+// seats minted by other paths and for holders swept before wiring landed.
+Schedule::command('achievements:sweep')->dailyAt('01:10')->withoutOverlapping()->onOneServer();

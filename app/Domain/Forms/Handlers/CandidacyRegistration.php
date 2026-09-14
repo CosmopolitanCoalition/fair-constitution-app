@@ -167,6 +167,10 @@ class CandidacyRegistration implements FormHandler
         // R-06 derives from this row — flush the request cache.
         $this->roles->flushUser($userId);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-CAN-001');
+        }
+
         return [
             'candidacy_id'    => (string) $candidacy->id,
             'election_id'     => (string) $election->id,

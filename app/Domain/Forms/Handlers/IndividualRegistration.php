@@ -81,6 +81,8 @@ class IndividualRegistration implements FormHandler
         ]);
 
         // Audit snapshot — NEVER credential material.
+        app(\App\Services\AchievementService::class)->awardSelf($user, 'ACH-CIV-001');
+
         return [
             'user_id'        => $user->id,
             'name'           => $user->name,

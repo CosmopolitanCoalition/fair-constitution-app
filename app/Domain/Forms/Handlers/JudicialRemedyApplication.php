@@ -65,6 +65,10 @@ class JudicialRemedyApplication implements FormHandler
 
         $challenge->refresh();
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-JUD-012');
+        }
+
         return [
             'challenge_id' => (string) $challenge->id,
             'law_id' => (string) $law->id,

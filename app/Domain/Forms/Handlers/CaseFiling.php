@@ -65,6 +65,10 @@ class CaseFiling implements FormHandler
             $advocate = JudicialActor::advocate($actor, (string) ($payload['judiciary_id'] ?? ''), 'F-IND-017');
         }
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-JUD-002');
+        }
+
         return $this->openCase($actor, $payload, $advocate, 'F-IND-017');
     }
 }

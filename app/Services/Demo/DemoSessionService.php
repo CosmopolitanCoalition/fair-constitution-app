@@ -248,6 +248,12 @@ class DemoSessionService
             case 'INSERT':
                 $this->assertUnreferenced($table, $w->after);
                 if (Schema::hasColumn($table, 'deleted_at')) {
+                    // Some ledgers block ordinary UPDATE/DELETE (append-only
+                    // triggers). Signal the demo void so a matching guard
+                    // permits ONLY this deleted_at stamp. Transaction-local:
+                    // it dies with this reversal's (sub)transaction and reaches
+                    // no other table's trigger.
+                    DB::statement('SELECT set_config(?, ?, true)', [DemoMode::VOID_GUC, '1']);
                     DB::update("UPDATE \"{$table}\" SET deleted_at = now() WHERE {$where} AND deleted_at IS NULL", $bindings);
                 } else {
                     DB::delete("DELETE FROM \"{$table}\" WHERE {$where}", $bindings);

@@ -43,6 +43,10 @@ class BriefFiling implements FormHandler
 
     public function handle(?User $actor, array $payload): array
     {
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-JUD-005');
+        }
+
         return $this->docketAdvocateFiling($actor, $payload, CaseFiling::KIND_BRIEF, 'F-ADV-004');
     }
 }

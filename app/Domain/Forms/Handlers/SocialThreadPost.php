@@ -57,6 +57,10 @@ class SocialThreadPost implements FormHandler
 
         $result = $this->spaces->openThreadOrPost($actor, $payload);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-VOX-005');
+        }
+
         return [
             'thread_id' => (string) $result['thread']->id,
             'post_id' => (string) $result['post']->id,

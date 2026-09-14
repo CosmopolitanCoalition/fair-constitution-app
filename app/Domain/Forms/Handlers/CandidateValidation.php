@@ -120,6 +120,14 @@ class CandidateValidation implements FormHandler
 
             $this->roles->flushUser((string) $candidacy->user_id);
 
+            // AC-1 achievement wiring (engine-transaction-coupled). F-ELB-002
+            // is filed by a BOARD MEMBER about a candidate; the CANDIDATE earns
+            // (EARNER_SUBJECT) — resolved from the candidacy, never the filer.
+            $candidate = \App\Models\User::find((string) $candidacy->user_id);
+            if ($candidate !== null) {
+                app(\App\Services\AchievementService::class)->awardSubject($candidate, 'ACH-CAN-005');
+            }
+
             return [
                 'candidacy_id' => (string) $candidacy->id,
                 'decision'     => 'validated',

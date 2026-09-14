@@ -84,6 +84,16 @@ class CgcIpRegisterService
             jurisdictionId: (string) $org->jurisdiction_id,
         );
 
+        // AC-1 achievement wiring. Dedicating a CGC's work to the public
+        // domain (Art. III §5) is the dedicator's own act — ORG-013 (self),
+        // idempotent. Null dedicator = a system dedication, no earner.
+        if ($dedicatedByUserId !== null) {
+            $dedicator = \App\Models\User::find($dedicatedByUserId);
+            if ($dedicator !== null) {
+                app(\App\Services\AchievementService::class)->awardSelf($dedicator, 'ACH-ORG-013');
+            }
+        }
+
         return CgcIpRegisterEntry::create([
             'organization_id'      => (string) $org->id,
             'asset'                => $asset,

@@ -81,6 +81,10 @@ class ResidencyDeclaration implements FormHandler
             );
         }
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-CIV-003');
+        }
+
         return [
             'jurisdiction_id' => $jurisdictionId,
             'ping_consent'    => true,

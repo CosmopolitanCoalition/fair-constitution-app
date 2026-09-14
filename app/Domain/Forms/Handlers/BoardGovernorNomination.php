@@ -81,6 +81,10 @@ class BoardGovernorNomination implements FormHandler
             ? $this->governors->nominateCgc($owner, $member, $nominee, $dossier)
             : $this->governors->nominate($owner, $member, $nominee, $dossier);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-EXE-006');
+        }
+
         return [
             $owner instanceof Organization ? 'organization_id' : 'department_id' => (string) $owner->id,
             'jurisdiction_id' => (string) $owner->jurisdiction_id,

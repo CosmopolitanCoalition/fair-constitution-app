@@ -43,6 +43,10 @@ class MotionFiling implements FormHandler
 
     public function handle(?User $actor, array $payload): array
     {
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-JUD-003');
+        }
+
         return $this->docketAdvocateFiling($actor, $payload, CaseFiling::KIND_MOTION, 'F-ADV-002');
     }
 }

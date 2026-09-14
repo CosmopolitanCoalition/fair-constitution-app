@@ -459,6 +459,12 @@ class JudicialSeatService
                     ['step' => 'civil_term_expiry', 'ends_on' => $endsOn],
                 );
                 $this->roles->flushUser($p['uid']);
+
+                // AC-1: a seated judge earns JUD-008 (EARNER_STATE) at mint.
+                $judge = \App\Models\User::find((string) $p['uid']);
+                if ($judge !== null) {
+                    app(\App\Services\AchievementService::class)->awardState($judge, 'ACH-JUD-008');
+                }
             }
 
             // Bulk: nominations -> consented, and one publishMany for every judge's
@@ -529,6 +535,12 @@ class JudicialSeatService
             'term_ends_on' => $ends->toDateString(),
             'status' => JudicialSeat::STATUS_SEATED,
         ])->save();
+
+        // AC-1: a seated judge earns JUD-008 (EARNER_STATE) at mint. Idempotent.
+        $judge = \App\Models\User::find((string) $appointment->nominee_user_id);
+        if ($judge !== null) {
+            app(\App\Services\AchievementService::class)->awardState($judge, 'ACH-JUD-008');
+        }
 
         JudicialNomination::query()
             ->where('appointment_id', (string) $appointment->id)

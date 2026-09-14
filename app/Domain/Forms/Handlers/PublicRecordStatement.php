@@ -74,6 +74,10 @@ class PublicRecordStatement implements FormHandler
             ],
         );
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-LEG-007');
+        }
+
         return [
             'record_seq'      => (int) $record->seq,
             'record_id'       => (string) $record->id,

@@ -80,6 +80,10 @@ class OathOfOffice implements FormHandler
 
         $this->roles->flushUser((string) $member->user_id);
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-LEG-001');
+        }
+
         return [
             'legislature_id' => (string) $legislature->id,
             'member_id'      => (string) $member->id,

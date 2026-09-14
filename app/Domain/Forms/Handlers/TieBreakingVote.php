@@ -66,6 +66,10 @@ class TieBreakingVote implements FormHandler
             isset($payload['explanation']) ? (string) $payload['explanation'] : null,
         );
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-LEG-014');
+        }
+
         return [
             'vote_id'          => (string) $resolved->id,
             'value'            => (string) $payload['value'],

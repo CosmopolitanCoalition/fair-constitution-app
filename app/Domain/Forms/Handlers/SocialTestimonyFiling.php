@@ -112,6 +112,10 @@ class SocialTestimonyFiling implements FormHandler
 
         $thread->forceFill(['published_record_id' => $record->id])->save();   // THE back-pointer (uuid, not seq)
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-VOX-006');
+        }
+
         return [
             'record_seq' => (int) $record->seq,
             'record_id' => (string) $record->id,

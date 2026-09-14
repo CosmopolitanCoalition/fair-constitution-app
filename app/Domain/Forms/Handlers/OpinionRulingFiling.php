@@ -105,6 +105,10 @@ class OpinionRulingFiling implements FormHandler
         // The original this appeal decides (untouched but for a public record).
         $original = $isAppeal ? CourtCase::query()->find((string) $case->appeal_of_case_id) : null;
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-JUD-010');
+        }
+
         return DB::transaction(function () use ($case, $seat, $panel, $kind, $title, $body, $payload, $actor, $appealOutcome, $isAppeal, $original) {
             $record = $this->records->publish(
                 kind: 'opinion',

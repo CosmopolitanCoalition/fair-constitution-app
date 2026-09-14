@@ -82,6 +82,10 @@ class CommitteeVoteCast implements FormHandler
 
         $vote->refresh();
 
+        if ($actor !== null) {
+            app(\App\Services\AchievementService::class)->awardSelf($actor, 'ACH-LEG-010');
+        }
+
         return [
             'vote_id'          => (string) $vote->id,
             'vote_type'        => $vote->vote_type,
