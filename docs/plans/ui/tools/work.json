@@ -5547,10 +5547,10 @@
     {
       "id": "W-0165",
       "title": "Chunk EvaluateSocialStructureJob halls binding with keyset commits",
-      "phase": "P3",
-      "order": 42,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "blocker: VERIFIED 2026-09-14 (partial): EvaluateSocialStructureJob civicallyActiveJurisdictions() unbounded pluck confirmed at lines 69-82. No chunking committed since baseline. social_spaces=0. | VERIFIED 2026-09-08 (partial): Social space creation (squares + halls) has a chunked 25,000-row path in InstitutionProvisionService.php:57. The halls subforum binding in EvaluateSocialStructureJob::civicallyActiveJurisdictions() fetches all active legislatures at once with no chunking or cursor. social_spaces=0 because no legislature is active. Testimony (F-SOC-002) requires residency confirmation, …",
       "done_when": "civicallyActiveJurisdictions() walks active legislatures with a keyset cursor and commits per chunk with logged progress; social spaces compose when legislatures are active.",
@@ -5585,6 +5585,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: ETL-paradigm fix so social spaces compose at scale once legislatures activate."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the economy lane, commit c4b0571d, merged 74a0ea6f. Resumable keyset walk in host-derived chunks, cursor committed per chunk, logged progress. Pinned by SocialSweepChunkingTest (3)."
         }
       ]
     },
@@ -11510,10 +11514,10 @@
     {
       "id": "W-0299",
       "title": "Wire budget form, record dues as dues, add balance-floor constraint",
-      "phase": "P3",
-      "order": 47,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "VERIFIED 2026-09-08 (next): BudgetService::draft and ::enact have no form handler or controller route calling them (EconomyController.php:346 lists budgets only). The F-ORG-008 share issuance web door is absent; OrgEconomyController.php:33 marks it as future piece 4. CHECK(balance >= 0) on economic_accounts is not in any migration. F-IND-023 (FundsTransfer) is fully wired and does ship a transfer form. Evidence: app/Services/Economy/BudgetService.php:43 (draft) and :95 (enact) exist but no form handler or controller route calls them. EconomyController.php:346 only lists budgets. app/Http/Cont…",
       "done_when": "A legislature drafts and enacts a budget through a registered ConstitutionalEngine form and the treasury shows it; a dues payment records as kind='dues'; economic_accounts carries CHECK(balance>=0).",
@@ -11680,6 +11684,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: This might already exist. Reconfirm."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Built by the economy lane, commit 9d093baf, merged 74a0ea6f. F-LEG-039 Budget Act (draft and enact via chamber vote), dues payment kind=dues, CHECK(balance>=0) migration 000100 and proposal-kind migration 000200 applied on box E. Pinned by BudgetActFormTest (5), DuesPaymentTest (3), EconomicAccountsBalanceFloorTest (2), BudgetEnactmentProposalKindMigrationTest (2); form count 132."
         }
       ]
     },

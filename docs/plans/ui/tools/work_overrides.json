@@ -270,9 +270,10 @@
    "status": "moot"
   },
   "W-0299": {
-   "note": "This might already exist. Reconfirm.",
+   "note": "Built by the economy lane, commit 9d093baf, merged 74a0ea6f. F-LEG-039 Budget Act (draft and enact via chamber vote), dues payment kind=dues, CHECK(balance>=0) migration 000100 and proposal-kind migration 000200 applied on box E. Pinned by BudgetActFormTest (5), DuesPaymentTest (3), EconomicAccountsBalanceFloorTest (2), BudgetEnactmentProposalKindMigrationTest (2); form count 132.",
    "date": "2026-09-14",
-   "title": "Wire budget form, record dues as dues, add balance-floor constraint"
+   "title": "Wire budget form, record dues as dues, add balance-floor constraint",
+   "status": "done"
   },
   "W-0257": {
    "status": "moot",
@@ -327,6 +328,12 @@
    "note": "Built (commit dbb5ebdf): a shared MapAcceptanceService (verifier gate, mode write, run creation) now serves the wizard endpoint, maps:accept, the backup-upload restore and, after a reviewer finding, the maps:import and legacy tarball seed path. Pinned by tests/Unit/MapAcceptanceServiceTest.php; 22 tests / 132 assertions on main. Flag: MirrorService::seedFromHostPaginated (federation seed, Phase 6) still stamps directly.",
    "date": "2026-09-14",
    "title": "Align maps:accept CLI and restore path with the wizard acceptance endpoint"
+  },
+  "W-0165": {
+   "status": "done",
+   "note": "Built by the economy lane, commit c4b0571d, merged 74a0ea6f. Resumable keyset walk in host-derived chunks, cursor committed per chunk, logged progress. Pinned by SocialSweepChunkingTest (3).",
+   "date": "2026-09-14",
+   "title": "Chunk EvaluateSocialStructureJob halls binding with keyset commits"
   }
  }
 }

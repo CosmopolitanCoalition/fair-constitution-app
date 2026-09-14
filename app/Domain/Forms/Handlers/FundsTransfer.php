@@ -108,7 +108,7 @@ class FundsTransfer implements FormHandler
 
         if ($fromAccountId === null) {
             throw new ConstitutionalViolation(
-                'You have no wallet in this currency yet — a wallet opens with confirmed residency.',
+                'You have no wallet in this currency yet. A wallet opens with confirmed residency.',
                 'Art. I · as implemented'
             );
         }
@@ -193,7 +193,7 @@ class FundsTransfer implements FormHandler
 
         if ($fromAccountId === null) {
             throw new ConstitutionalViolation(
-                'You have no wallet in this currency yet — a wallet opens with confirmed residency.',
+                'You have no wallet in this currency yet. A wallet opens with confirmed residency.',
                 'Art. I · as implemented'
             );
         }
@@ -243,7 +243,7 @@ class FundsTransfer implements FormHandler
 
         if ($accountId === null) {
             throw new ConstitutionalViolation(
-                'You have no wallet in this currency yet — a wallet opens with confirmed residency.',
+                'You have no wallet in this currency yet. A wallet opens with confirmed residency.',
                 'Art. I · as implemented'
             );
         }
