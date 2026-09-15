@@ -73,7 +73,7 @@ export function deriveGuestPages() {
     return { pages: dedupe(pages), nonPageEndpoints: dedupe(nonPageEndpoints), viewerBound: dedupe(viewerBound) };
 }
 
-// ── THE PIN. 56 guest pages, 39 non-page endpoints and 1 viewer-bound page as
+// ── THE PIN. 55 guest pages, 39 non-page endpoints and 1 viewer-bound page as
 // resolved from the route table captured 2026-09-14 (refreshed after the reads lane
 // opened the economy, sim console and operator read pages to guests). If route-list.json is
 // refreshed and the derivation changes, these arrays must be updated
@@ -85,7 +85,6 @@ export const PIN_PAGES = [
     '/building',
     '/civic/commons/halls',
     '/civic/commons/square',
-    '/continue',
     '/coverage',
     '/coverage-ops',
     '/economy',
@@ -214,6 +213,9 @@ export function machineReason(u) {
     if (u === '/system/translations/progress') return 'translations progress poll (JSON)';
     if (u === '/dev/playtest/state' || u === '/dev/scenario/state') return 'dev state poll (JSON)';
     if (u === '/civic/jurisdictions/search') return 'jurisdiction search endpoint (JSON)';
+    // A redirector with no page of its own: it stores the intended URL and sends
+    // the visitor to /register or /login (routes/web.php, 'continue').
+    if (u === '/continue') return 'redirector to /register or /login';
     if (u === '/dev/users') return 'dev impersonation list (JSON)';
     const m = u.match(/\.(csv|geojson|png|json)$/);
     if (m) return `${m[1]} file download`;
@@ -387,7 +389,7 @@ export const PIN_PARAM = [
 
 // Machine-endpoint count (api/, _matrix/, horizon/, oauth/, storage/,
 // .well-known/, up, file suffixes, sync-progress) across param and param-free.
-export const PIN_MACHINE = 92;
+export const PIN_MACHINE = 93;
 
 // Print the derived counts when run directly: node tests/browser/roster/roster.mjs
 if (import.meta.url === `file://${process.argv[1]}` || import.meta.url === pathToFileUrlSafe(process.argv[1])) {

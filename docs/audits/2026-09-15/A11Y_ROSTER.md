@@ -251,3 +251,7 @@ Three JSON polls outside `/api` were classified as pages by the prefix rule and 
 ## Correction 2026-09-15 (pass 4)
 
 `/civic/jurisdictions/search` and `/dev/users` answer `application/json` (verified with curl, signed in); they never established as pages and are machine endpoints by name now. Classes: 56 guest, 40 signed-in, 62 parameterised, 92 machine, 1 viewer-bound; sum 251.
+
+## Correction 2026-09-15 (guest re-sweep)
+
+`/continue` is a redirector: it stores the intended URL and always sends the visitor to `/register` or `/login` (routes/web.php). It has no page of its own and is a machine endpoint by name now. Classes: 55 guest, 40 signed-in, 62 parameterised, 93 machine, 1 viewer-bound; sum 251.
