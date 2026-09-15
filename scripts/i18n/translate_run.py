@@ -31,7 +31,8 @@ Usage:
   python3 scripts/i18n/translate_run.py --status
 
 Options:
-  --locales LIST   comma-separated codes, or `all` for every enabled locale
+  --locales LIST   comma-separated codes, or `all` for every target locale
+                   (registry rows with target: true; 75 non-English today)
   --workers N      concurrent workers (default 2; the GPU is the real ceiling)
   --provider NAME  stub | nllb | claude          (default nllb)
   --chunk N        strings per committed chunk   (default 16)
@@ -91,11 +92,15 @@ def write_atomic(path: Path, payload: dict) -> None:
     return
 
 
-def enabled_locales() -> list[str]:
+def target_locales() -> list[str]:
+    """The translation target set from THE registry: rows with target: true
+    (operator order 2026-09-14: the UN six, Polish, Italian, Turkish and the
+    Coalition website's programme languages). English is the source, never a
+    target."""
     src = (I18N / "locales.generated.js").read_text(encoding="utf-8")
     import re
     out = []
-    for m in re.finditer(r'\{ code: "([\w-]+)".*?enabled: (true|false)', src):
+    for m in re.finditer(r'\{ code: "([\w-]+)".*?target: (true|false)', src):
         if m.group(2) == "true" and m.group(1) != "en":
             out.append(m.group(1))
     return out
@@ -162,7 +167,7 @@ def main() -> int:
     HALT_FILE.unlink(missing_ok=True)
     clear_stale()
 
-    locales = enabled_locales() if args.locales == "all" else [
+    locales = target_locales() if args.locales == "all" else [
         c.strip() for c in args.locales.split(",") if c.strip()
     ]
     if not locales:

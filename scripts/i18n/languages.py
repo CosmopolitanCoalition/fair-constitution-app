@@ -71,6 +71,7 @@ PLURAL_FAMILIES: dict[str, list[str]] = {
     "maltese":        ["one", "few", "many", "other"],
     "irish":          ["one", "two", "few", "many", "other"],
     "arabic":         ["zero", "one", "two", "few", "many", "other"],
+    "welsh":          ["zero", "one", "two", "few", "many", "other"],
 }
 
 # ─── The registry ─────────────────────────────────────────────────────────────
@@ -166,6 +167,19 @@ L: dict[str, tuple] = {
     "ku":      ("Kurdish",            "Kurdî",            "Latn", "ltr", "one_other"),
     "fil":     ("Filipino",           "Filipino",         "Latn", "ltr", "one_other"),
 
+    # ── on the Coalition website's translation programme, absent from the ETL
+    #    source (endonyms as the site prints them, read 2026-09-14) ─────────────
+    "cy":      ("Welsh",              "Cymraeg",          "Latn", "ltr", "welsh"),
+    "eu":      ("Basque",             "Euskara",          "Latn", "ltr", "one_other"),
+    "gl":      ("Galician",           "Galego",           "Latn", "ltr", "one_other"),
+    "gu":      ("Gujarati",           "ગુજરાતી",            "Gujr", "ltr", "zero_one_other"),
+    "jv":      ("Javanese",           "Basa Jawa",        "Latn", "ltr", "other"),
+    "kn":      ("Kannada",            "ಕನ್ನಡ",              "Knda", "ltr", "zero_one_other"),
+    "ml":      ("Malayalam",          "മലയാളം",            "Mlym", "ltr", "one_other"),
+    "mr":      ("Marathi",            "मराठी",              "Deva", "ltr", "one_other"),
+    "su":      ("Sundanese",          "Basa Sunda",       "Latn", "ltr", "other"),
+    "te":      ("Telugu",             "తెలుగు",             "Telu", "ltr", "one_other"),
+
     # ── smaller / regional; endonyms unverified are None ──────────────────────
     "ay":      ("Aymara",             None, "Latn", "ltr", "one_other"),
     "ber":     ("Berber",             None, "Latn", "ltr", "one_other"),
@@ -241,6 +255,28 @@ TIER_1 = ["en", "es", "ar", "zh-Hans", "hi"]   # what the app ships today
 # scan, so a half-built tier-2 catalog can never silently flip a locale live.
 ENABLED = TIER_1 + ["fr", "pt"]
 
+# ─── The translation target set (operator order 2026-09-14) ──────────────────
+# The languages the translation pass runs for: the six official UN languages,
+# Polish, Italian, Turkish, and every language on the Cosmopolitan Coalition
+# website's translation programme
+# (https://cosmopolitancoalition.org/about/programs/translations/, read
+# 2026-09-14: 76 languages, all 54 videos translated). The website list already
+# holds the UN six and pl/it/tr, so the union is the website list. This is a
+# second REGISTRATION source too: a website language absent from the ETL's
+# codes is registered from here. "Mandarin" on the site is zh-Hans; the site's
+# two Bengali rows (BN, IN) are one language, bn; "Norsk bokmål" is `no`.
+WEBSITE = [
+    "af", "sq", "am", "ar", "hy", "az", "bn", "eu", "bs", "bg", "my", "ca",
+    "zh-Hans", "hr", "cs", "da", "nl", "en", "et", "fil", "fi", "fr", "gl",
+    "ka", "de", "el", "gu", "he", "hi", "hu", "is", "id", "ga", "it", "ja",
+    "jv", "kn", "kk", "km", "ko", "lo", "lv", "lt", "mk", "ms", "ml", "mt",
+    "mr", "mn", "ne", "no", "ps", "fa", "pl", "pt", "ro", "ru", "sr", "si",
+    "sk", "sl", "so", "es", "su", "sw", "sv", "ta", "te", "th", "tr", "uk",
+    "ur", "uz", "vi", "cy", "zu",
+]
+UN_OFFICIAL = ["ar", "zh-Hans", "en", "fr", "ru", "es"]
+TARGET = sorted(set(WEBSITE) | set(UN_OFFICIAL) | {"pl", "it", "tr"})
+
 
 def etl_codes() -> list[str]:
     """The 115 codes in scripts/etl/languages.py — this file's only input."""
@@ -273,6 +309,10 @@ def derive() -> dict:
     delta = (len(ZH_SPLIT) - 1) if had_zh else len(ZH_SPLIT)
     steps.append((f"split 'zh' into {ZH_SPLIT} (distinct scripts)", +delta, len(registered)))
 
+    from_site = sorted(set(WEBSITE) - registered)
+    registered |= set(from_site)
+    steps.append((f"Coalition website languages absent from the ETL: {from_site}", +len(from_site), len(registered)))
+
     unknown = sorted(c for c in registered if c not in L)
     registered -= set(unknown)
     if unknown:
@@ -296,6 +336,7 @@ def derive() -> dict:
             "tier": 1 if code in TIER_1 else (2 if code in translated else 3),
             "translated": code in translated,
             "enabled": code in ENABLED,   # switchable = a shipped catalog exists
+            "target": code in TARGET,     # in the translation pass (order 2026-09-14)
         })
 
     return {
@@ -307,6 +348,7 @@ def derive() -> dict:
             "translated": len(translated),
             "display_only": len(display_only),
             "enabled": len(ENABLED),
+            "target": len(TARGET),
             "endonyms_unverified": sum(1 for r in rows if not r["endonym_verified"]),
         },
     }
@@ -403,6 +445,9 @@ const RULES = {
 
     irish: (n) => (n === 1 ? 0 : n === 2 ? 1 : n >= 3 && n <= 6 ? 2 : n >= 7 && n <= 10 ? 3 : 4),
 
+    /* Welsh: zero | one | two | few | many | other. */
+    welsh: (n) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n === 3 ? 3 : n === 6 ? 4 : 5),
+
     /* Arabic: zero | one | two | few | many | other — six, not three. */
     arabic: (n) => {
         const m100 = n % 100;
@@ -436,6 +481,10 @@ export const ENABLED = LOCALES.filter((l) => l.enabled).map((l) => l.code);
 /** Codes we intend to carry a full catalog for. */
 export const TRANSLATED = LOCALES.filter((l) => l.translated).map((l) => l.code);
 
+/** Codes in the translation pass (operator order 2026-09-14): the UN six,
+ *  Polish, Italian, Turkish and the Coalition website's programme languages. */
+export const TARGETS = LOCALES.filter((l) => l.target).map((l) => l.code);
+
 /** RTL codes — the ONLY source for direction. */
 export const RTL = LOCALES.filter((l) => l.dir === 'rtl').map((l) => l.code);
 """
@@ -455,7 +504,8 @@ def render_php(d: dict) -> str:
             f"'plural' => '{r['plural_family']}', "
             f"'tier' => {r['tier']}, "
             f"'translated' => {'true' if r['translated'] else 'false'}, "
-            f"'enabled' => {'true' if r['enabled'] else 'false'}],\n"
+            f"'enabled' => {'true' if r['enabled'] else 'false'}, "
+            f"'target' => {'true' if r['target'] else 'false'}],\n"
         )
     out.append("    ],\n];\n")
     return "".join(out)
@@ -481,7 +531,8 @@ def render_js(d: dict) -> str:
         f"pluralFamily: {json.dumps(r['plural_family'])}, "
         f"tier: {r['tier']}, "
         f"translated: {str(r['translated']).lower()}, "
-        f"enabled: {str(r['enabled']).lower()}"
+        f"enabled: {str(r['enabled']).lower()}, "
+        f"target: {str(r['target']).lower()}"
         " }"
         for r in d["rows"]
     )
@@ -532,6 +583,7 @@ def main() -> int:
     print(f"  display-only (no MT pair, not sole-official)      -{c['display_only']}")
     print(f"\n  TRANSLATED   {c['translated']}")
     print(f"  ENABLED      {c['enabled']}  (a catalog exists today)")
+    print(f"  TARGET       {c['target']}  (the translation pass, order 2026-09-14)")
     print(f"\n  endonyms not yet verified: {c['endonyms_unverified']}"
           " — these render their English name until a speaker confirms them")
     if args.write:

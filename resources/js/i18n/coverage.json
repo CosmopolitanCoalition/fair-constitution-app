@@ -1,61 +1,61 @@
 {
-  "generated_at": "2026-09-15T03:31:58.148Z",
-  "source_keys": 6536,
-  "namespaces": 52,
+  "generated_at": "2026-09-15T03:40:21.421Z",
+  "source_keys": 7264,
+  "namespaces": 54,
   "locales": [
     {
       "locale": "ar",
-      "total": 6536,
+      "total": 7264,
       "present": 4312,
-      "missing": 2224,
+      "missing": 2952,
       "orphan": 8,
       "identical": 15,
-      "pct": 66
+      "pct": 59.4
     },
     {
       "locale": "es",
-      "total": 6536,
+      "total": 7264,
       "present": 4350,
-      "missing": 2186,
+      "missing": 2914,
       "orphan": 8,
       "identical": 26,
-      "pct": 66.6
+      "pct": 59.9
     },
     {
       "locale": "fr",
-      "total": 6536,
+      "total": 7264,
       "present": 4136,
-      "missing": 2400,
+      "missing": 3128,
       "orphan": 8,
       "identical": 32,
-      "pct": 63.3
+      "pct": 56.9
     },
     {
       "locale": "hi",
-      "total": 6536,
+      "total": 7264,
       "present": 4357,
-      "missing": 2179,
+      "missing": 2907,
       "orphan": 8,
       "identical": 19,
-      "pct": 66.7
+      "pct": 60
     },
     {
       "locale": "pt",
-      "total": 6536,
+      "total": 7264,
       "present": 4139,
-      "missing": 2397,
+      "missing": 3125,
       "orphan": 8,
       "identical": 31,
-      "pct": 63.3
+      "pct": 57
     },
     {
       "locale": "zh-Hans",
-      "total": 6536,
+      "total": 7264,
       "present": 4119,
-      "missing": 2417,
+      "missing": 3145,
       "orphan": 8,
       "identical": 12,
-      "pct": 63
+      "pct": 56.7
     }
   ],
   "by_namespace": [
@@ -105,6 +105,18 @@
         "hi": 8,
         "pt": 8,
         "zh-Hans": 8
+      }
+    },
+    {
+      "namespace": "c_civic_components",
+      "total": 116,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
       }
     },
     {
@@ -408,6 +420,18 @@
       }
     },
     {
+      "namespace": "c_system",
+      "total": 612,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "c_term_sync",
       "total": 61,
       "locales": {
@@ -684,10 +708,10 @@
       }
     }
   ],
-  "failures": 13857,
+  "failures": 18225,
   "warnings": 4294,
   "failure_codes": {
-    "C1-missing": 13803,
+    "C1-missing": 18171,
     "C2-orphan": 48,
     "C4-idtoken": 6
   }
