@@ -200,9 +200,9 @@ function onLocaleChange(event) {
     locale.value = code;
     /* Persist the choice. Signed in: through the SAME F-IND-002 endpoint the
        settings panel uses, so the user row updates and server-rendered PHP
-       follows on the next request. Guest: to localStorage. The guest boot
-       restore (app.js reading the key, or SetLocale) is not wired yet, so a
-       guest choice does not yet survive a full reload. */
+       follows on the next request. Guest: recorded server-side through
+       POST /locale (session), so SetLocale resolves it on the next request and
+       the choice survives a full reload; also mirrored to localStorage. */
     persistLocale(code, { authenticated: user.value !== null, router });
 }
 watch(locale, (code) => applyDir(code));
@@ -338,6 +338,16 @@ onBeforeUnmount(() => {
                         <p class="citation" style="margin-block: var(--space-1) var(--space-2)">
                             {{ user.email }}
                         </p>
+                        <Btn
+                            as="a"
+                            href="/civic/record?tab=settings"
+                            variant="ghost"
+                            size="sm"
+                            style="inline-size: 100%; justify-content: flex-start"
+                            icon="sliders"
+                        >
+                            {{ t('c_gap_shell_operator.app_shell.settings', 'Settings') }}
+                        </Btn>
                         <Btn
                             variant="ghost"
                             size="sm"

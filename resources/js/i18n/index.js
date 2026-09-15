@@ -154,20 +154,26 @@ export const i18n = createI18n({
    authenticated viewer files it through POST /civic/record/profile (the SAME
    endpoint MyRecord.vue posts to), so the user row updates and SetLocale
    resolves that locale on the next request. Server-rendered PHP strings then
-   follow the choice, which a runtime-only i18n.locale change never did. A guest
-   keeps the choice in localStorage. NOTE: no boot-time reader restores the
-   guest key yet. app.js boots the locale from the server-resolved `locale`
-   prop, and SetLocale resolves a guest from session then Accept-Language, so
-   neither reads LOCALE_STORAGE_KEY. Guest reload-survival needs that reader
-   wired (app.js or a guest session endpoint SetLocale already expects); both
-   files are outside this lane. The `router` and `storage` are injected so this
-   is unit-testable without a live Inertia router or a browser. Returns the
-   branch taken. */
+   follow the choice, which a runtime-only i18n.locale change never did.
+
+   A guest records the choice server-side through POST /locale (LocaleController),
+   which stores it in the session under the key SetLocale reads ('locale'). The
+   next request then resolves the guest into that locale, so the choice survives
+   a full reload — the read-back that used to be missing. The choice is also
+   mirrored to localStorage for an instant client boot. The `router` is injected
+   so both paths stay unit-testable without a live Inertia router; when it is
+   absent (a pure unit test or a headless boot) only localStorage is written.
+   The `storage` is injected for the same reason. Returns the branch taken. */
 export const LOCALE_STORAGE_KEY = 'cga.locale';
 export function persistLocale(code, { authenticated = false, router = null, storage } = {}) {
     if (authenticated && router && typeof router.post === 'function') {
         router.post('/civic/record/profile', { locale: code }, { preserveScroll: true });
         return 'endpoint';
+    }
+    /* Guest: record the choice server-side so SetLocale resolves it on the next
+       request (survives a full reload), then mirror it to localStorage. */
+    if (router && typeof router.post === 'function') {
+        router.post('/locale', { locale: code }, { preserveScroll: true, preserveState: true });
     }
     const store = storage !== undefined ? storage : (typeof localStorage !== 'undefined' ? localStorage : null);
     try {

@@ -29,6 +29,7 @@ use App\Http\Controllers\Legislature\SessionController;
 use App\Http\Controllers\Legislature\SettingsController;
 use App\Http\Controllers\Legislature\TypeBMapController;
 use App\Http\Controllers\LegislatureController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MapsController;
 use App\Http\Controllers\Oidc\OidcAuthorizationController;
 use App\Http\Controllers\RasterTileController;
@@ -61,6 +62,13 @@ Route::get('/', function (Request $request) {
 Route::get('/launchpad', fn () => Inertia::render('Launchpad'))->name('launchpad');
 Route::get('/tour', fn () => Inertia::render('Tour/Index'))->name('tour');
 Route::get('/explore', \App\Http\Controllers\Civic\RoleExplorerController::class)->name('roles.explore');
+
+// Guest locale read-back (gap lane fix-guest-locale). A guest's header language
+// choice is recorded in the session under the key SetLocale resolves ('locale'),
+// so it survives a full reload. No auth: a signed-in viewer files locale through
+// POST /civic/record/profile instead. The code is validated against the enabled
+// product locales, so an unknown or display-only code is rejected.
+Route::post('/locale', [LocaleController::class, 'store'])->name('locale.store');
 
 // Video library (design contract: mockups/v3/shared/video-player.html). Public,
 // no auth — the app port of the operator's Coalition multi-track player: one
