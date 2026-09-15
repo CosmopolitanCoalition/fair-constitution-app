@@ -976,13 +976,8 @@ onBeforeUnmount(() => {
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
                             <span>{{ t('c_setup.step3_districts.sizing_pass', 'Sizing pass — parent legislatures (re-verifies every parent)') }}</span>
                             <span class="tabular-nums">
-<<<<<<< HEAD
-                                {{ run.sized_parents.toLocaleString() }} / {{ run.parents_total.toLocaleString() }}
-                                <span v-if="sizingRatePerMin"> · {{ t('c_setup.step3_districts.per_min', '{n}/min', { n: Math.round(sizingRatePerMin).toLocaleString() }) }}</span>
-=======
                                 {{ localeFmt.number(run.sized_parents) }} / {{ localeFmt.number(run.parents_total) }}
-                                <span v-if="sizingRatePerMin"> · {{ localeFmt.number(Math.round(sizingRatePerMin)) }}/min</span>
->>>>>>> build/gap-format-locale
+                                <span v-if="sizingRatePerMin"> · {{ t('c_setup.step3_districts.per_min', '{n}/min', { n: localeFmt.number(Math.round(sizingRatePerMin)) }) }}</span>
                                 <span> · {{ t('c_setup.step3_districts.eta', 'ETA') }} {{ fmtEta(sizingEtaSeconds) }}</span>
                                 <span v-if="sizingElapsed != null"> · {{ fmtEta(sizingElapsed) }} {{ t('c_setup.step3_districts.elapsed', 'elapsed') }}</span>
                             </span>
