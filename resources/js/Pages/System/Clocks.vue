@@ -169,7 +169,7 @@ const columns = computed(() => [
             <p class="cc-small">{{ fam.desc }}</p>
             <DataTable :columns="columns" :rows="fam.rows" row-key="id" :caption="fam.label">
                 <template #cell-name="{ row }">
-                    <span style="color: var(--gov-fg-strong)">{{ row.name }}</span>
+                    <span style="color: var(--gov-fg-strong)">{{ t('c_system.clocks.' + row.id, row.name) }}</span>
                     <span class="citation" style="display: block" data-no-i18n>
                         {{ row.id }} · fires {{ row.fires_workflow }}
                     </span>

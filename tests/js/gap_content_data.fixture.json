@@ -1,0 +1,227 @@
+{
+    "state_machines": {
+        "individual_onboarding": [
+            "registered",
+            "identity_verified",
+            "residency_declared",
+            "jurisdictionally_associated"
+        ],
+        "bill": [
+            "introduced",
+            "referred",
+            "in_committee",
+            "reported",
+            "on_floor",
+            "passed",
+            "enacted",
+            "tabled",
+            "failed",
+            "withdrawn"
+        ],
+        "motion": [
+            "submitted",
+            "recognized",
+            "debated",
+            "voted",
+            "adopted",
+            "failed",
+            "withdrawn"
+        ],
+        "committee_seat": [
+            "allocated",
+            "assigned",
+            "tie_broken",
+            "seated",
+            "vacated"
+        ],
+        "petition": [
+            "created",
+            "gathering",
+            "threshold_reached",
+            "signature_audit",
+            "constitutional_review",
+            "validated",
+            "on_ballot",
+            "adopted",
+            "rejected",
+            "invalidated"
+        ],
+        "referendum_question": [
+            "queued",
+            "scheduled",
+            "voted",
+            "passed",
+            "failed",
+            "invalidated"
+        ],
+        "emergency_powers": [
+            "active",
+            "renewed",
+            "expired",
+            "under_review",
+            "narrowed",
+            "struck"
+        ],
+        "executive_office": [
+            "forming",
+            "delegated",
+            "conversion_voted",
+            "elected",
+            "dissolved",
+            "reverted"
+        ],
+        "department_board": [
+            "chartered",
+            "oversight_assigned",
+            "governors_nominated",
+            "consented",
+            "operating",
+            "reporting",
+            "rechartered",
+            "dissolved"
+        ],
+        "organization": [
+            "registered",
+            "active",
+            "transfer_pending",
+            "transferred",
+            "converted",
+            "dissolved"
+        ],
+        "case": [
+            "filed",
+            "accepted",
+            "paneled",
+            "jury_empaneled",
+            "heard",
+            "deliberation",
+            "decided",
+            "sentenced",
+            "closed",
+            "dismissed",
+            "appealed"
+        ],
+        "constitutional_challenge": [
+            "filed",
+            "under_review",
+            "finding_issued",
+            "remedy_recommended",
+            "legislative_window_open",
+            "amended_by_legislature",
+            "overridden",
+            "judicial_remedy_applied",
+            "closed",
+            "dismissed"
+        ]
+    },
+    "mesh_roles": {
+        "record_keeper": {
+            "label": "Record Keeper",
+            "what": "Hold the data backbone — mirror the record read-only and host the geodata.",
+            "duty": "Keep a faithful read-only copy of the mesh and serve its heavy data to peers.",
+            "channels": [
+                "mirror",
+                "etl"
+            ],
+            "petition": null,
+            "recommended": true
+        },
+        "archivist": {
+            "label": "Archivist",
+            "what": "Serve the client and hold read-write authority for a jurisdiction.",
+            "duty": "Accept and faithfully record the writes of the jurisdictions you are authoritative for.",
+            "channels": [
+                "client.serve"
+            ],
+            "petition": "read_write",
+            "recommended": false
+        },
+        "social_moderator": {
+            "label": "Social Moderator",
+            "what": "Host the public square + halls (Matrix) and voice/video for a jurisdiction.",
+            "duty": "Keep the live commons available; moderation stays content-neutral and uncensorable by carve-out.",
+            "channels": [
+                "matrix.homeserver",
+                "voice.sfu",
+                "client.serve"
+            ],
+            "petition": null,
+            "recommended": false
+        },
+        "identity_broker": {
+            "label": "Identity Broker",
+            "what": "Create subdomains, issue TLS certs, and mint capability grants for the mesh.",
+            "duty": "Issue names + certs faithfully under the naming roots you are entrusted with.",
+            "channels": [
+                "broker.dns",
+                "broker.tls",
+                "authority.grant",
+                "client.serve"
+            ],
+            "petition": null,
+            "recommended": false
+        }
+    },
+    "mesh_channels": {
+        "mesh.member": {
+            "label": "Mesh member",
+            "what": "Join the mesh and sync public records two-way with trusted peers."
+        },
+        "mirror": {
+            "label": "Mirror",
+            "what": "Mirror a cluster read-only (authoritative for nothing) — a cold standby."
+        },
+        "etl": {
+            "label": "Geodata / ETL",
+            "what": "Host the geodata archive and run the boundary + population loader."
+        },
+        "broker.dns": {
+            "label": "DNS broker",
+            "what": "Create subdomains under a mesh naming root (Cloudflare DNS) for peers."
+        },
+        "broker.tls": {
+            "label": "TLS broker",
+            "what": "Issue TLS certificates for mesh names (ACME / Let’s Encrypt)."
+        },
+        "client.serve": {
+            "label": "Client host",
+            "what": "Serve the embedded web/app client bundle to browsers."
+        },
+        "authority.grant": {
+            "label": "Granting authority",
+            "what": "Mint signed capability grants for a jurisdiction subtree (a trust anchor)."
+        },
+        "matrix.homeserver": {
+            "label": "Matrix homeserver",
+            "what": "Host the Matrix social homeserver (the public square’s message engine)."
+        },
+        "voice.sfu": {
+            "label": "Voice / video SFU",
+            "what": "Host the LiveKit selective-forwarding unit for voice + video."
+        }
+    },
+    "clocks": {
+        "CLK-01": "General Election Interval",
+        "CLK-02": "Legislature Meeting Deadline",
+        "CLK-03": "Emergency Powers Maximum Duration",
+        "CLK-04": "Special Election Window",
+        "CLK-05": "Residency Verification Threshold",
+        "CLK-06": "Critical Population Threshold",
+        "CLK-07": "Legislature Maximum Size",
+        "CLK-08": "Legislature Minimum Size",
+        "CLK-09": "Judicial / Civil Officer Term",
+        "CLK-10": "Term Lockstep",
+        "CLK-11": "Judicial Veto Window",
+        "CLK-12": "Legislative Remedy Timeframe",
+        "CLK-13": "Co-determination Minimum",
+        "CLK-14": "Co-determination Parity",
+        "CLK-15": "Minimum Judges per Elected Race",
+        "CLK-16": "Case Panel Minimum",
+        "CLK-17": "Petition Signature Threshold",
+        "CLK-18": "Approval Phase / Registration Window",
+        "CLK-19": "Referendum Act Protection",
+        "CLK-20": "Federation Sync Heartbeat",
+        "CLK-21": "Finalist Count per Race",
+        "CLK-22": "Civic Stipend Period"
+    }
+}

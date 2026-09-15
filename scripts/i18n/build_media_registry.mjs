@@ -53,6 +53,11 @@ const CHECK = process.argv.includes('--check');
 
 const OUT_PHP = join(ROOT, 'config', 'cga', 'media.php');
 const OUT_JS = join(ROOT, 'resources', 'js', 'registry', 'media.js');
+// The English title catalog. Video titles ship as data and render raw without
+// this: VideoLibrary.vue resolves v.title_key here with the title as fallback.
+// Only the `video.*` keys are owned here; other c_media keys (player chrome)
+// are preserved as-is.
+const OUT_CATALOG = join(ROOT, 'resources', 'js', 'i18n', 'locales', 'en', 'c_media.json');
 
 function readJson(p) {
     return JSON.parse(readFileSync(p, 'utf-8'));
@@ -124,6 +129,9 @@ function build() {
         slug: s.slug,
         master: s.master,         // "<Subject>-Silent.mp4"
         title: titleFor(s.subject),
+        // Stable i18n key per video. VideoLibrary.vue resolves it through
+        // t(v.title_key, v.title); the catalog holds the English title.
+        title_key: 'c_media.video.' + s.slug,
         poster: posterFor(s.subject),
         seconds: durationFor(s.subject),
         /* subjects.json asserts a uniform 77 audio + 77 caption tracks per
@@ -212,6 +220,22 @@ export const MEDIA_COVERAGE = Object.keys(MEDIA_LANGUAGES).sort();
 `;
 }
 
+/* The English title catalog (namespace c_media). Owns only the `video.<slug>`
+   keys; every other key already in the file (player chrome) is preserved. The
+   whole map is written sorted, flat, one value per line. */
+function renderCatalog(d) {
+    const existing = existsSync(OUT_CATALOG) ? readJson(OUT_CATALOG) : {};
+    const merged = {};
+    for (const [k, v] of Object.entries(existing)) {
+        if (!k.startsWith('video.')) merged[k] = v; // keep non-title keys
+    }
+    for (const v of d.videos) merged['video.' + v.slug] = v.title;
+
+    const sorted = {};
+    for (const k of Object.keys(merged).sort()) sorted[k] = merged[k];
+    return JSON.stringify(sorted, null, 2) + '\n';
+}
+
 /* ── Main ─────────────────────────────────────────────────────────────────── */
 if (!existsSync(join(SOURCE, 'config', 'subjects.json'))) {
     console.error(`No source at ${SOURCE} — pass --source <path to video-translate>.`);
@@ -221,11 +245,13 @@ if (!existsSync(join(SOURCE, 'config', 'subjects.json'))) {
 const data = build();
 const php = renderPhp(data);
 const js = renderJs(data);
+const catalog = renderCatalog(data);
 
 if (CHECK) {
     const stalePhp = !existsSync(OUT_PHP) || readFileSync(OUT_PHP, 'utf-8') !== php;
     const staleJs = !existsSync(OUT_JS) || readFileSync(OUT_JS, 'utf-8') !== js;
-    if (stalePhp || staleJs) {
+    const staleCat = !existsSync(OUT_CATALOG) || readFileSync(OUT_CATALOG, 'utf-8') !== catalog;
+    if (stalePhp || staleJs || staleCat) {
         console.error('STALE media registry — re-run: node scripts/i18n/build_media_registry.mjs');
         process.exit(1);
     }
@@ -235,7 +261,9 @@ if (CHECK) {
 
 writeFileSync(OUT_PHP, php, 'utf-8');
 writeFileSync(OUT_JS, js, 'utf-8');
+writeFileSync(OUT_CATALOG, catalog, 'utf-8');
 console.log(`media registry written:
   ${data.videos.length} videos · ${data.coverage_count} languages
   ${OUT_PHP.replace(ROOT + '\\', '')}
-  ${OUT_JS.replace(ROOT + '\\', '')}`);
+  ${OUT_JS.replace(ROOT + '\\', '')}
+  ${OUT_CATALOG.replace(ROOT + '\\', '')}`);
