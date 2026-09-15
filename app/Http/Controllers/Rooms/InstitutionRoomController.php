@@ -222,6 +222,10 @@ class InstitutionRoomController extends Controller
         $roomHref = '/rooms/'.($variant === 'legislature' ? 'chamber' : $variant).'/'.$entityId;
         return Inertia::render('Rooms/Institution', [
             'title' => $title, 'variant' => $variant, 'private' => $tokenUrl !== null,
+            // A live, joinable call exists only when a valid room resolved.
+            // False = the room page renders in a 'no live call' state (the
+            // page still reads; joining stays gated on the POST endpoints).
+            'callAvailable' => $room !== null,
             'jurisdiction' => $place?->only(['id', 'name', 'slug']),
             'jurisdictionContext' => $place ? JurisdictionContext::forRoom($place) : null,
             'roster' => array_values($roster), 'rosterTruncated' => $truncated, 'rosterLimit' => self::ROSTER_LIMIT,

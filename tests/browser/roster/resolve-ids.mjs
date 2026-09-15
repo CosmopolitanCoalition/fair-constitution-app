@@ -44,12 +44,15 @@ function sampleMap() {
 
 // Build a URL for a param route: required params substituted from the sample,
 // optional params ({p?}) dropped. Returns { url, missing:[names] }.
-function buildUrl(uri, map) {
+// `overrides` maps a parameter name to a different sample key (e.g. the /cgc
+// route substitutes {organization} from the CGC sample 'organization_cgc').
+function buildUrl(uri, map, overrides = null) {
     const missing = [];
     // Drop optional segments entirely: "/a/{p?}" -> "/a".
     let u = uri.replace(/\/\{[^}]+\?\}/g, '');
     u = u.replace(/\{([^}?]+)\}/g, (_m, name) => {
-        const s = map.get(name);
+        const key = overrides && overrides[name] ? overrides[name] : name;
+        const s = map.get(key);
         const v = s ? s.value : null;
         if (v === null || v === undefined) {
             missing.push(name);
@@ -59,6 +62,12 @@ function buildUrl(uri, map) {
     });
     return { url: missing.length ? null : u, missing };
 }
+
+// Per-route sample overrides. The CGC profile route wants an is_cgc org so the
+// CGC page itself is swept, not the oldest (non-CGC) organization.
+const URL_OVERRIDES = {
+    '/organizations/{organization}/cgc': { organization: 'organization_cgc' },
+};
 
 const NULL_DEVICE = process.platform === 'win32' ? 'NUL' : '/dev/null';
 function httpCode(url) {
@@ -74,7 +83,7 @@ const { paramPages } = deriveRoster();
 const resolved = [];
 const noSample = [];
 for (const p of paramPages) {
-    const { url, missing } = buildUrl(p.uri, map);
+    const { url, missing } = buildUrl(p.uri, map, URL_OVERRIDES[p.uri] || null);
     if (url === null) {
         noSample.push({ uri: p.uri, missing });
         continue;

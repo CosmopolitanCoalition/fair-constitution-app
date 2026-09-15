@@ -63,6 +63,12 @@ final class A11yRosterIdsCommand extends Command
             'module' => ['db', 'education_modules', 'key', 'live'],
             'track' => ['db', 'education_tracks', 'key', 'live'],
             'organization' => ['db', 'organizations', 'id'],
+            // A second organization sample for /organizations/{organization}/cgc:
+            // a CGC organization when one exists (so the CGC profile page itself
+            // is swept), else the oldest organization. Not a route parameter —
+            // resolve-ids.mjs substitutes it into the {organization} slot of the
+            // /cgc route only.
+            'organization_cgc' => ['cgc'],
             'board' => ['db', 'boards', 'id'],
             'meeting' => ['db', 'committee_meetings', 'id'],
             'ref' => ['db', 'support_reports', 'public_id'],
@@ -126,6 +132,26 @@ final class A11yRosterIdsCommand extends Command
             return ['value' => null, 'source' => 'none'];
         }
 
+        if ($type === 'cgc') {
+            // Prefer a Common Good Corporation so the CGC profile page is the
+            // one swept. Fall back to the oldest organization otherwise.
+            if (Schema::hasTable('organizations') && Schema::hasColumn('organizations', 'is_cgc')) {
+                $q = DB::table('organizations')->whereNotNull('id')->where('is_cgc', true);
+                if (Schema::hasColumn('organizations', 'deleted_at')) {
+                    $q->whereNull('deleted_at');
+                }
+                if (Schema::hasColumn('organizations', 'created_at')) {
+                    $q->orderBy('created_at');
+                }
+                $value = $q->value('id');
+                if ($value !== null) {
+                    return ['value' => (string) $value, 'source' => 'organizations.id (is_cgc)'];
+                }
+            }
+
+            return $this->sampleFor(['db', 'organizations', 'id']);
+        }
+
         if ($type === 'config') {
             $arr = config($spec[1]);
             $key = is_array($arr) ? array_key_first($arr) : null;
@@ -169,6 +195,13 @@ final class A11yRosterIdsCommand extends Command
             }
             $s = $this->sampleFor($resolvers[$param]);
             $rows[] = ['param' => $param, 'value' => $s['value'], 'source' => $s['source']];
+        }
+
+        // Extra (non-route) sample: the CGC organization for the /cgc route.
+        // resolve-ids.mjs reads it for /organizations/{organization}/cgc only.
+        if (isset($resolvers['organization'])) {
+            $s = $this->sampleFor($resolvers['organization_cgc']);
+            $rows[] = ['param' => 'organization_cgc', 'value' => $s['value'], 'source' => $s['source']];
         }
 
         if ($this->option('json')) {
