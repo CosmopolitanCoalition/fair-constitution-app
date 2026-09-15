@@ -1450,6 +1450,18 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     // controller), because someone who cannot read it cannot confirm it.
     Route::get('/translations/review/{locale}', [\App\Http\Controllers\System\TranslationReviewController::class, 'show'])->name('translations.review');
     Route::post('/translations/review/{locale}', [\App\Http\Controllers\System\TranslationReviewController::class, 'store'])->name('translations.review.store');
+
+    // W-0446 — language packages (operator ruling 2026-09-15). Export a target
+    // locale's outstanding strings as a zip, import a translated package back,
+    // request a language nobody has opened yet. Every action and the download
+    // are operator-only (enforced in the controller, the halt/resume gate); the
+    // scripts run only in the queued jobs, never in the web request.
+    Route::get('/translations/packages', [\App\Http\Controllers\System\TranslationPackageController::class, 'status'])->name('translations.packages');
+    Route::post('/translations/packages/export', [\App\Http\Controllers\System\TranslationPackageController::class, 'export'])->name('translations.packages.export');
+    Route::post('/translations/packages/import', [\App\Http\Controllers\System\TranslationPackageController::class, 'import'])->name('translations.packages.import');
+    Route::post('/translations/packages/{run}/confirm', [\App\Http\Controllers\System\TranslationPackageController::class, 'confirm'])->name('translations.packages.confirm');
+    Route::get('/translations/packages/{run}/{locale}/download', [\App\Http\Controllers\System\TranslationPackageController::class, 'download'])->name('translations.packages.download');
+    Route::post('/translations/languages/request', [\App\Http\Controllers\System\TranslationPackageController::class, 'requestLanguage'])->name('translations.languages.request');
 });
 
 // mockups-v3-wiring Phase 1 — /support/report intake. Anyone may SEE the form

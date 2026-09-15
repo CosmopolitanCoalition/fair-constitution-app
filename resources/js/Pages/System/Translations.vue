@@ -20,6 +20,7 @@ const localeFmt = useLocaleFormat();
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import { csrfFetch } from '@/lib/csrf';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -186,6 +187,103 @@ function pctOf(part, whole) {
     if (!whole) return 0;
     return Math.round((part / whole) * 1000) / 10;
 }
+
+/* ── Language packages (W-0446, operator-only) ─────────────────────────────
+   Export a target locale's outstanding strings as a zip, import a translated
+   package back, request a language nobody has opened. The scripts run in
+   queued jobs; this card only calls the operator-gated endpoints and polls
+   the run records every 2s, the same contract the live deck uses. */
+const pkg = ref({ runs: [], requests: [], targets: [] });
+const pkgError = ref('');
+const pkgBusy = ref(false);
+const exportLocale = ref('');
+const importLocale = ref('');
+const importFile = ref(null);
+const requestLocale = ref('');
+const requestNote = ref('');
+let pkgTimer = null;
+
+const pkgRuns = computed(() => pkg.value?.runs ?? []);
+const pkgRequests = computed(() => pkg.value?.requests ?? []);
+const pkgTargets = computed(() => pkg.value?.targets ?? []);
+
+async function pollPackages() {
+    if (!props.viewer?.isOperator) return;
+    try {
+        const res = await fetch('/system/translations/packages', {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) return;
+        pkg.value = await res.json();
+    } catch { /* transient; the next tick retries */ }
+}
+
+async function pkgPost(url, body, isForm = false) {
+    pkgError.value = '';
+    pkgBusy.value = true;
+    try {
+        const opts = { method: 'POST' };
+        if (isForm) {
+            opts.body = body;
+        } else {
+            opts.headers = { 'Content-Type': 'application/json' };
+            opts.body = JSON.stringify(body ?? {});
+        }
+        const res = await csrfFetch(url, opts, t);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            pkgError.value = data.error || t('c_system.translations.pkg_error', 'The action failed. Nothing changed.');
+            return null;
+        }
+        await pollPackages();
+        return data;
+    } catch (e) {
+        pkgError.value = String(e?.message ?? e);
+        return null;
+    } finally {
+        pkgBusy.value = false;
+    }
+}
+
+async function startExport() {
+    if (!exportLocale.value) return;
+    await pkgPost('/system/translations/packages/export', { locale: exportLocale.value });
+}
+
+function onImportFile(e) {
+    importFile.value = e.target.files?.[0] ?? null;
+}
+
+async function startImport() {
+    if (!importFile.value || !importLocale.value) return;
+    const form = new FormData();
+    form.append('locale', importLocale.value);
+    form.append('package', importFile.value);
+    await pkgPost('/system/translations/packages/import', form, true);
+}
+
+async function confirmImport(run) {
+    await pkgPost(`/system/translations/packages/${encodeURIComponent(run)}/confirm`, {});
+}
+
+async function requestLanguageSubmit() {
+    if (!requestLocale.value) return;
+    const done = await pkgPost('/system/translations/languages/request', {
+        locale: requestLocale.value,
+        note: requestNote.value,
+    });
+    if (done) { requestLocale.value = ''; requestNote.value = ''; }
+}
+
+function downloadHref(run, locale) {
+    return `/system/translations/packages/${encodeURIComponent(run)}/${encodeURIComponent(locale)}/download`;
+}
+
+onMounted(() => {
+    if (props.viewer?.isOperator) { pollPackages(); pkgTimer = setInterval(pollPackages, 2000); }
+});
+onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
 </script>
 
 <template>
@@ -519,6 +617,121 @@ function pctOf(part, whole) {
             </template>
         </Card>
 
+        <!-- ── LANGUAGE PACKAGES (operator-only) ────────────────────────────
+             Export a target locale's outstanding strings, translate them
+             anywhere, import the result. Operator-only: the actions run real
+             work against the real catalogs through queued jobs. -->
+        <Card v-if="viewer.isOperator" :title="t('c_system.translations.pkg_title', 'Language packages')"
+              :eyebrow="t('c_system.translations.pkg_eyebrow', 'operator')">
+            <p class="gloss">
+                {{ t('c_system.translations.pkg_intro', 'Export the strings a language still needs, translate them anywhere, then import the result. Every action runs as a queued job, never in the page.') }}
+            </p>
+
+            <p v-if="pkgError" class="muted">
+                <StatusBadge tone="danger">{{ pkgError }}</StatusBadge>
+            </p>
+
+            <div class="pkg-grid">
+                <!-- EXPORT -->
+                <div class="pkg-panel">
+                    <h3>{{ t('c_system.translations.pkg_export_title', 'Export a package') }}</h3>
+                    <p class="gloss">{{ t('c_system.translations.pkg_export_hint', 'Pick a target language. The server collects every string that language still needs into a zip.') }}</p>
+                    <label class="pkg-label">
+                        {{ t('c_system.translations.pkg_export_select', 'Language') }}
+                        <select v-model="exportLocale" class="pkg-input">
+                            <option value="">{{ t('c_system.translations.pkg_export_placeholder', 'Choose a language') }}</option>
+                            <option v-for="code in pkgTargets" :key="code" :value="code">{{ langOf(code).name }} ({{ code }})</option>
+                        </select>
+                    </label>
+                    <button class="btn btn--primary" :disabled="pkgBusy || !exportLocale" @click="startExport">
+                        {{ pkgBusy ? t('c_system.translations.pkg_busy', 'Working') : t('c_system.translations.pkg_export_submit', 'Export') }}
+                    </button>
+                </div>
+
+                <!-- IMPORT -->
+                <div class="pkg-panel">
+                    <h3>{{ t('c_system.translations.pkg_import_title', 'Import a translation') }}</h3>
+                    <p class="gloss">{{ t('c_system.translations.pkg_import_hint', 'Upload a translated zip or a single JSON file. The server checks it first and shows what it would accept before anything is written.') }}</p>
+                    <label class="pkg-label">
+                        {{ t('c_system.translations.pkg_import_locale', 'Language') }}
+                        <select v-model="importLocale" class="pkg-input">
+                            <option value="">{{ t('c_system.translations.pkg_export_placeholder', 'Choose a language') }}</option>
+                            <option v-for="code in pkgTargets" :key="code" :value="code">{{ langOf(code).name }} ({{ code }})</option>
+                        </select>
+                    </label>
+                    <label class="pkg-label">
+                        {{ t('c_system.translations.pkg_import_file', 'Package file') }}
+                        <input type="file" accept=".zip,.json" class="pkg-input" @change="onImportFile" />
+                    </label>
+                    <button class="btn btn--primary" :disabled="pkgBusy || !importFile || !importLocale" @click="startImport">
+                        {{ pkgBusy ? t('c_system.translations.pkg_busy', 'Working') : t('c_system.translations.pkg_import_submit', 'Check') }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- RUNS -->
+            <h3>{{ t('c_system.translations.pkg_runs_title', 'Recent runs') }}</h3>
+            <p v-if="!pkgRuns.length" class="muted">{{ t('c_system.translations.pkg_no_runs', 'No package runs yet.') }}</p>
+            <table v-else class="pkg-table">
+                <thead>
+                    <tr>
+                        <th scope="col">{{ t('c_system.translations.pkg_col_kind', 'Kind') }}</th>
+                        <th scope="col">{{ t('c_system.translations.pkg_col_locale', 'Language') }}</th>
+                        <th scope="col">{{ t('c_system.translations.pkg_col_status', 'Status') }}</th>
+                        <th scope="col">{{ t('c_system.translations.pkg_col_action', 'Action') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="r in pkgRuns" :key="r.run">
+                        <td>{{ r.kind }}</td>
+                        <td><span data-no-i18n>{{ r.locale || '—' }}</span></td>
+                        <td>
+                            <StatusBadge :tone="r.status === 'ready' || r.status === 'imported' ? 'success'
+                                : r.status === 'failed' ? 'danger'
+                                : r.status === 'dry_run_ready' ? 'warning' : 'info'">{{ r.status }}</StatusBadge>
+                            <span v-if="r.report" class="gloss" data-no-i18n>
+                                · {{ t('c_system.translations.pkg_dry_report', '{accepted} accepted, {rejected} rejected', { accepted: r.report.accepted, rejected: r.report.rejected }) }}
+                            </span>
+                        </td>
+                        <td>
+                            <a v-if="r.kind === 'export' && r.status === 'ready'" class="btn btn--sm" :href="downloadHref(r.run, r.locale)">
+                                {{ t('c_system.translations.pkg_download', 'Download package') }}
+                            </a>
+                            <button v-else-if="r.kind === 'import' && r.status === 'dry_run_ready'" class="btn btn--sm btn--primary"
+                                    :disabled="pkgBusy" @click="confirmImport(r.run)">
+                                {{ t('c_system.translations.pkg_confirm', 'Confirm import') }}
+                            </button>
+                            <span v-else class="gloss">—</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- REQUEST A LANGUAGE -->
+            <h3>{{ t('c_system.translations.pkg_request_title', 'Request a language') }}</h3>
+            <p class="gloss">{{ t('c_system.translations.pkg_request_hint', 'Record a language nobody has opened yet. It appears in the list below.') }}</p>
+            <div class="pkg-request">
+                <label class="pkg-label">
+                    {{ t('c_system.translations.pkg_request_locale', 'Language or code') }}
+                    <input v-model="requestLocale" type="text" class="pkg-input" maxlength="64" />
+                </label>
+                <label class="pkg-label">
+                    {{ t('c_system.translations.pkg_request_note', 'Note (optional)') }}
+                    <input v-model="requestNote" type="text" class="pkg-input" maxlength="1000" />
+                </label>
+                <button class="btn" :disabled="pkgBusy || !requestLocale" @click="requestLanguageSubmit">
+                    {{ t('c_system.translations.pkg_request_submit', 'Record request') }}
+                </button>
+            </div>
+            <p v-if="!pkgRequests.length" class="muted">{{ t('c_system.translations.pkg_no_requests', 'No language requests yet.') }}</p>
+            <ul v-else class="pkg-requests">
+                <li v-for="req in pkgRequests" :key="req.id">
+                    <span data-no-i18n>{{ req.locale }}</span>
+                    <span v-if="req.note" class="gloss">{{ req.note }}</span>
+                </li>
+            </ul>
+        </Card>
+
         <!-- ── ADD A LANGUAGE ─────────────────────────────────────────────── -->
         <Card>
             <h2>{{ t('c_system.translations.add_language_title', 'Add a language') }}</h2>
@@ -576,4 +789,33 @@ function pctOf(part, whole) {
     color: var(--text-muted, rgba(255, 255, 255, 0.62));
     overflow-wrap: anywhere;
 }
+
+.pkg-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6, 1.5rem);
+    margin-block: var(--space-4, 1rem);
+}
+.pkg-panel { flex: 1 1 18rem; min-width: 0; }
+.pkg-label {
+    display: block;
+    margin-block: var(--space-2, 0.5rem);
+    font-size: 0.9rem;
+}
+.pkg-input {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--radius-2, 0.4rem);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.16));
+    background: var(--surface-sunken, rgba(255, 255, 255, 0.04));
+    color: inherit;
+}
+.pkg-table { width: 100%; border-collapse: collapse; margin-block: var(--space-3, 0.75rem); }
+.pkg-table th, .pkg-table td { text-align: left; padding: 0.4rem 0.5rem; vertical-align: top; }
+.pkg-request { display: flex; flex-wrap: wrap; gap: var(--space-3, 0.75rem); align-items: flex-end; }
+.pkg-request .pkg-label { flex: 1 1 12rem; }
+.pkg-requests { margin: var(--space-2, 0.5rem) 0 0; padding-inline-start: 1.1rem; }
+.btn--sm { font-size: 0.82rem; padding: 0.25rem 0.6rem; }
 </style>
