@@ -343,6 +343,7 @@
   "districts.halt_requested": "Halt requested — finishing current scope, then stopping…",
   "districts.halted": "Halted by operator. Already-committed scopes preserved.",
   "districts.halting": "Halting…",
+  "districts.head_title": "District map",
   "districts.hint_ctrl_drag": "Ctrl+drag",
   "districts.hint_drag": "Drag",
   "districts.hint_hold": "hold",

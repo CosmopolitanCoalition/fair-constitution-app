@@ -1,4 +1,5 @@
 <template>
+        <Head :title="t('c_legislature_pages.districts.head_title', 'District map')" />
         <div
             v-if="setup_mode"
             class="shrink-0 bg-blue-900/40 border-b border-blue-700 px-4 py-2 flex items-center justify-between gap-3 text-sm"
@@ -27,11 +28,11 @@
                 <div class="px-4 py-3 border-b border-gray-800 shrink-0">
                     <div class="flex items-center justify-between gap-2">
                         <div class="min-w-0">
-                            <div class="text-xs text-gray-500 mb-0.5">{{ $t('places.legislative_maps') }} · {{ $t('places.district_map') }}</div>
+                            <div class="text-xs text-gray-300 mb-0.5">{{ $t('places.legislative_maps') }} · {{ $t('places.district_map') }}</div>
                             <h1 class="text-base font-bold text-white leading-tight truncate">{{ scope.name }}</h1>
                         </div>
                         <div class="text-right shrink-0">
-                            <div class="text-xs text-gray-500 leading-tight">{{ t('c_legislature_pages.districts.legislature_seats', 'Legislature Seats') }}</div>
+                            <div class="text-xs text-gray-300 leading-tight">{{ t('c_legislature_pages.districts.legislature_seats', 'Legislature Seats') }}</div>
                             <div class="text-base font-bold text-emerald-400">{{ localeFmt.number(legislatureSeats) }}</div>
                         </div>
                     </div>
@@ -58,7 +59,7 @@
                                @click.prevent="drillTo(anc.id)" href="#"
                                class="hover:text-white transition-colors cursor-pointer">{{ anc.name }}</a>
                             <span v-else class="text-gray-200 font-medium">{{ anc.name }}</span>
-                            <span v-if="i < ancestors.length - 1" class="text-gray-600">›</span>
+                            <span v-if="i < ancestors.length - 1" class="text-gray-300">›</span>
                         </template>
                     </div>
                     <!-- FE-C2 — seated chamber: reverse link into the
@@ -76,15 +77,15 @@
                      compressed into the Seats badge here. -->
                 <div class="px-3 py-2 border-b border-gray-800 grid grid-cols-3 gap-1.5 text-center shrink-0">
                     <div class="bg-gray-800 rounded p-1.5">
-                        <div class="text-xs text-gray-500">{{ t('c_legislature_pages.districts.stat_constituents', 'Constituents') }}</div>
+                        <div class="text-xs text-gray-300">{{ t('c_legislature_pages.districts.stat_constituents', 'Constituents') }}</div>
                         <div class="text-sm font-semibold text-white">{{ childrenRef.length }}</div>
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
-                        <div class="text-xs text-gray-500">{{ t('c_legislature_pages.districts.stat_seats', 'Seats') }}</div>
+                        <div class="text-xs text-gray-300">{{ t('c_legislature_pages.districts.stat_seats', 'Seats') }}</div>
                         <div class="text-sm font-semibold text-emerald-400">{{ localeFmt.number(scope_seats) }}</div>
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
-                        <div class="text-xs text-gray-500">{{ t('c_legislature_pages.districts.stat_districts', 'Districts') }}</div>
+                        <div class="text-xs text-gray-300">{{ t('c_legislature_pages.districts.stat_districts', 'Districts') }}</div>
                         <div class="text-sm font-semibold text-white">{{ districtsRef.length }}</div>
                     </div>
                 </div>
@@ -92,7 +93,7 @@
                 <!-- Map selector bar -->
                 <div class="px-3 py-2 border-b border-gray-800 shrink-0 relative">
                     <div class="flex items-center gap-1.5">
-                        <span class="text-[10px] text-gray-500 uppercase tracking-wide shrink-0">{{ t('c_legislature_pages.districts.map_label', 'Map:') }}</span>
+                        <span class="text-[10px] text-gray-300 uppercase tracking-wide shrink-0">{{ t('c_legislature_pages.districts.map_label', 'Map:') }}</span>
                         <!-- Dropdown trigger -->
                         <button @click="mapSelectorOpen = !mapSelectorOpen; newMapFormOpen = false"
                                 class="flex-1 flex items-center justify-between gap-1.5 px-2 py-1 rounded text-xs bg-gray-800 border transition-colors min-w-0"
@@ -100,11 +101,11 @@
                             <span class="truncate">{{ props.active_map?.name ?? '—' }}</span>
                             <span class="shrink-0 text-[10px] px-1 rounded"
                                   :class="props.active_map?.status === 'active'   ? 'text-emerald-400' :
-                                          props.active_map?.status === 'archived' ? 'text-gray-600'    :
+                                          props.active_map?.status === 'archived' ? 'text-gray-300'    :
                                                                                     'text-amber-400'">
                                 {{ props.active_map?.status ?? '' }}
                             </span>
-                            <span class="text-gray-600 shrink-0 text-[10px]">▾</span>
+                            <span class="text-gray-300 shrink-0 text-[10px]">▾</span>
                         </button>
                         <!-- Activate (draft only) -->
                         <button v-if="props.active_map?.status === 'draft'"
@@ -118,7 +119,7 @@
                                 :disabled="creatingMap"
                                 :title="t('c_legislature_pages.districts.new_map_title', 'Create a new district map')"
                                 class="px-1.5 py-1 rounded text-xs border transition-colors shrink-0"
-                                :class="creatingMap ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-emerald-400 hover:border-emerald-700'">
+                                :class="creatingMap ? 'bg-gray-800 border-gray-700 text-gray-300 cursor-not-allowed' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-emerald-400 hover:border-emerald-700'">
                             +
                         </button>
                     </div>
@@ -150,7 +151,7 @@
                                 <button @click.stop="submitRename(m.id)"
                                         :disabled="!renameValue.trim()"
                                         class="px-2 py-0.5 rounded text-[10px] border shrink-0 transition-colors"
-                                        :class="renameValue.trim() ? 'bg-indigo-700 border-indigo-600 text-white hover:bg-indigo-600' : 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'">
+                                        :class="renameValue.trim() ? 'bg-indigo-700 border-indigo-600 text-white hover:bg-indigo-600' : 'bg-gray-800 border-gray-700 text-gray-300 cursor-not-allowed'">
                                     {{ t('c_legislature_pages.districts.save', 'Save') }}
                                 </button>
                                 <button @click.stop="cancelRename"
@@ -166,10 +167,10 @@
                                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'">
                                 <span @click="switchMap(m.id)" class="flex-1 truncate cursor-pointer">{{ m.name }}</span>
                                 <span class="shrink-0 text-[10px]"
-                                      :class="m.status === 'active' ? 'text-emerald-400' : m.status === 'archived' ? 'text-gray-600' : 'text-amber-400'">
+                                      :class="m.status === 'active' ? 'text-emerald-400' : m.status === 'archived' ? 'text-gray-300' : 'text-amber-400'">
                                     {{ m.status }}
                                 </span>
-                                <span class="shrink-0 text-gray-500 tabular-nums">{{ m.district_count ?? 0 }}d</span>
+                                <span class="shrink-0 text-gray-300 tabular-nums">{{ m.district_count ?? 0 }}d</span>
                                 <span v-if="countFlags(m.flags) > 0" class="shrink-0 text-red-400 text-[10px]">
                                     ⛔{{ countFlags(m.flags) }}
                                 </span>
@@ -185,7 +186,7 @@
                                             :disabled="copyingMapId === m.id"
                                             class="px-1 py-0.5 rounded text-[10px] transition-colors"
                                             :class="copyingMapId === m.id
-                                                ? 'text-gray-600 cursor-wait'
+                                                ? 'text-gray-300 cursor-wait'
                                                 : 'text-gray-400 hover:text-sky-400 hover:bg-gray-600'">
                                         ⎘
                                     </button>
@@ -202,7 +203,7 @@
                             </div>
                         </template>
                         <div v-if="props.maps.length === 0"
-                             class="px-3 py-2 text-xs text-gray-500 italic">{{ t('c_legislature_pages.districts.no_maps', 'No maps yet') }}</div>
+                             class="px-3 py-2 text-xs text-gray-300 italic">{{ t('c_legislature_pages.districts.no_maps', 'No maps yet') }}</div>
                     </div>
 
                     <!-- New map inline form -->
@@ -218,7 +219,7 @@
                                 class="px-2 py-1 rounded text-xs border transition-colors shrink-0 flex items-center gap-1"
                                 :class="newMapName.trim() && !creatingMap
                                     ? 'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600'
-                                    : 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'">
+                                    : 'bg-gray-800 border-gray-700 text-gray-300 cursor-not-allowed'">
                             <span v-if="creatingMap"
                                   class="inline-block w-2.5 h-2.5 rounded-full border border-emerald-400 border-t-transparent animate-spin shrink-0"></span>
                             {{ creatingMap ? t('c_legislature_pages.districts.creating', 'Creating…') : t('c_legislature_pages.districts.create', 'Create') }}
@@ -226,7 +227,7 @@
                         <button @click="if (!creatingMap) { newMapFormOpen = false; newMapName = '' }"
                                 :disabled="creatingMap"
                                 class="px-1.5 py-1 rounded text-xs border bg-gray-800 border-gray-700 transition-colors shrink-0"
-                                :class="creatingMap ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white'">
+                                :class="creatingMap ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-white'">
                             ✕
                         </button>
                     </div>
@@ -346,7 +347,7 @@
                             <span v-if="props.stats?.contiguity" class="text-gray-400 hidden md:inline">
                                 {{ t('c_legislature_pages.districts.pill_contig', { a: props.stats.contiguity.contiguous_count, b: props.stats.contiguity.contiguous_count + props.stats.contiguity.non_contiguous_count }) }}
                             </span>
-                            <span class="text-gray-600 transition-transform" :class="statsPanelCollapsed ? '' : 'rotate-90'">›</span>
+                            <span class="text-gray-300 transition-transform" :class="statsPanelCollapsed ? '' : 'rotate-90'">›</span>
                         </button>
                         <div v-if="!statsPanelCollapsed"
                              class="fixed z-[1100] rounded border bg-gray-900/95 shadow-2xl backdrop-blur
@@ -356,7 +357,7 @@
                             <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-800">
                                 <span class="text-xs font-semibold text-cyan-400 uppercase tracking-wide">{{ t('c_legislature_pages.districts.map_quality', 'Map Quality') }}</span>
                                 <button @click="statsPanelCollapsed = true"
-                                        class="px-1 text-xs text-gray-500 hover:text-white">✕</button>
+                                        class="px-1 text-xs text-gray-300 hover:text-white">✕</button>
                             </div>
                         <div class="px-3 py-2 space-y-2.5 text-xs max-h-[50vh] md:max-h-[65vh] overflow-y-auto">
 
@@ -365,7 +366,7 @@
                                 <div class="text-[10px] uppercase font-semibold mb-1"
                                      :class="hardFlagCount > 0 ? 'text-red-400' : 'text-amber-400'">
                                     {{ t('c_legislature_pages.districts.constitutional_flags', 'Constitutional Flags') }}
-                                    <span class="text-gray-500 normal-case font-normal ml-1">
+                                    <span class="text-gray-300 normal-case font-normal ml-1">
                                         {{ t('c_legislature_pages.districts.issue_count', { count: (props.flags.cap ? 1 : 0) + (props.flags.floor_exceptions?.length ?? 0) + (props.flags.ceiling_exceptions?.length ?? 0) + (props.flags.deep_overages?.length ?? 0) + (props.flags.incomplete_scopes?.length ?? 0) }) }}
                                     </span>
                                 </div>
@@ -420,8 +421,8 @@
                             <!-- ── 1. Community Integrity ── -->
                             <div>
                                 <div class="relative group inline-flex items-center gap-1 mb-0.5">
-                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.community_integrity', 'Community Integrity') }}</span>
-                                    <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
+                                    <span class="text-gray-300 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.community_integrity', 'Community Integrity') }}</span>
+                                    <span class="text-gray-300 text-[9px] cursor-help select-none ml-0.5">?</span>
                                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                         {{ t('c_legislature_pages.districts.community_integrity_tip', 'Districts drawn along pre-existing administrative boundaries help preserve community integrity. Manual line-drawing is only needed when a jurisdiction has more seats than the constitutional ceiling allows and has no child subdivisions. In all other cases, sub-districts can be created along existing administrative borders.') }}
                                     </div>
@@ -434,7 +435,7 @@
                                             {{ props.stats.community_integrity.good_count }}
                                             ({{ pct(props.stats.community_integrity.good_count, props.stats.community_integrity.total_count) }})
                                         </span>
-                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.community_integrity.good_population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.community_integrity.good_population, props.stats.community_integrity.total_population) }})
                                         </span>
@@ -446,20 +447,20 @@
                                             {{ props.stats.community_integrity.total_count - props.stats.community_integrity.good_count }}
                                             ({{ pct(props.stats.community_integrity.total_count - props.stats.community_integrity.good_count, props.stats.community_integrity.total_count) }})
                                         </span>
-                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.community_integrity.total_population - props.stats.community_integrity.good_population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.community_integrity.total_population - props.stats.community_integrity.good_population, props.stats.community_integrity.total_population) }})
                                         </span>
                                     </div>
                                 </div>
-                                <span v-else class="text-gray-600 text-[10px]">{{ t('c_legislature_pages.districts.not_yet_computed', '— not yet computed') }}</span>
+                                <span v-else class="text-gray-300 text-[10px]">{{ t('c_legislature_pages.districts.not_yet_computed', '— not yet computed') }}</span>
                             </div>
 
                             <!-- ── 2. Constitutional Contiguity ── -->
                             <div>
                                 <div class="relative group inline-flex items-center gap-1 mb-0.5">
-                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.constitutional_contiguity', 'Constitutional Contiguity') }}</span>
-                                    <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
+                                    <span class="text-gray-300 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.constitutional_contiguity', 'Constitutional Contiguity') }}</span>
+                                    <span class="text-gray-300 text-[9px] cursor-help select-none ml-0.5">?</span>
                                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                         {{ t('c_legislature_pages.districts.contiguity_tip', 'Contiguity is considered broken only when it was achievable in the first place. Geographic impossibilities are exempt. These include island jurisdictions with no land border to any sibling, members completely surrounded by jurisdictions too large to combine without breaching the constitutional ceiling, and single-member districts, which are never constitutionally incongruous. The same applies to similarly isolated clusters that cannot reach the constitutional floor.') }}
                                     </div>
@@ -472,7 +473,7 @@
                                             {{ props.stats.contiguity.contiguous_count }}
                                             ({{ pct(props.stats.contiguity.contiguous_count, props.stats.contiguity.checked_count) }})
                                         </span>
-                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.contiguity.contiguous_pop) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.contiguity.contiguous_pop, props.stats.contiguity.contiguous_pop + props.stats.contiguity.non_contiguous_pop + props.stats.contiguity.unchecked_pop) }})
                                         </span>
@@ -484,33 +485,33 @@
                                             {{ props.stats.contiguity.non_contiguous_count }}
                                             ({{ pct(props.stats.contiguity.non_contiguous_count, props.stats.contiguity.checked_count) }})
                                         </span>
-                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.contiguity.non_contiguous_pop) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.contiguity.non_contiguous_pop, props.stats.contiguity.contiguous_pop + props.stats.contiguity.non_contiguous_pop + props.stats.contiguity.unchecked_pop) }})
                                         </span>
                                     </div>
                                     <div v-if="props.stats.contiguity.unchecked_count > 0" class="flex items-baseline gap-1">
-                                        <span class="text-gray-600">&#9632;</span>
-                                        <span class="text-gray-500 whitespace-nowrap">{{ t('c_legislature_pages.districts.not_computed', 'Not computed:') }}</span>
-                                        <span class="text-gray-500">
+                                        <span class="text-gray-300">&#9632;</span>
+                                        <span class="text-gray-300 whitespace-nowrap">{{ t('c_legislature_pages.districts.not_computed', 'Not computed:') }}</span>
+                                        <span class="text-gray-300">
                                             {{ props.stats.contiguity.unchecked_count }}
                                             ({{ pct(props.stats.contiguity.unchecked_count, props.stats.contiguity.checked_count) }})
                                         </span>
-                                        <span class="text-gray-600 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.contiguity.unchecked_pop) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                         </span>
                                     </div>
                                 </div>
-                                <span v-else class="text-gray-600 text-[10px]">{{ t('c_legislature_pages.districts.not_yet_computed', '— not yet computed') }}</span>
+                                <span v-else class="text-gray-300 text-[10px]">{{ t('c_legislature_pages.districts.not_yet_computed', '— not yet computed') }}</span>
                             </div>
 
                             <!-- ── 3. Population Equality ── -->
                             <div v-if="props.stats?.population_equality">
                                 <div class="relative group flex items-baseline justify-between gap-2 mb-1">
                                     <div class="inline-flex items-center gap-1">
-                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.population_equality', 'Population Equality') }}</span>
-                                        <span class="text-gray-600 normal-case font-normal text-[10px]">{{ t('c_legislature_pages.districts.district_count_paren', { count: props.stats.population_equality.district_count }) }}</span>
-                                        <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
+                                        <span class="text-gray-300 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.population_equality', 'Population Equality') }}</span>
+                                        <span class="text-gray-300 normal-case font-normal text-[10px]">{{ t('c_legislature_pages.districts.district_count_paren', { count: props.stats.population_equality.district_count }) }}</span>
+                                        <span class="text-gray-300 text-[9px] cursor-help select-none ml-0.5">?</span>
                                         <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                             {{ t('c_legislature_pages.districts.equality_tip', 'Measures how evenly each district\'s population-per-seat matches the ideal "one person, one vote" standard. Lower deviation means each vote carries more equal weight.') }}
                                             <span class="block mt-1 text-gray-400">{{ t('c_legislature_pages.districts.equality_tip_sub', '(Includes all sub-national districts in this map.)') }}</span>
@@ -531,7 +532,7 @@
                                                 {{ props.stats.population_equality.tiers.good.count }}
                                                 ({{ props.stats.population_equality.tiers.good.pct }}%)
                                             </span>
-                                            <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                            <span class="text-gray-300 ml-auto whitespace-nowrap">
                                                 {{ formatPop(props.stats.population_equality.tiers.good.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                                 ({{ pct(props.stats.population_equality.tiers.good.population, props.stats.population_equality.total_population) }})
                                             </span>
@@ -543,7 +544,7 @@
                                                 {{ props.stats.population_equality.tiers.ok.count }}
                                                 ({{ props.stats.population_equality.tiers.ok.pct }}%)
                                             </span>
-                                            <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                            <span class="text-gray-300 ml-auto whitespace-nowrap">
                                                 {{ formatPop(props.stats.population_equality.tiers.ok.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                                 ({{ pct(props.stats.population_equality.tiers.ok.population, props.stats.population_equality.total_population) }})
                                             </span>
@@ -555,7 +556,7 @@
                                                 {{ props.stats.population_equality.tiers.bad.count }}
                                                 ({{ props.stats.population_equality.tiers.bad.pct }}%)
                                             </span>
-                                            <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                            <span class="text-gray-300 ml-auto whitespace-nowrap">
                                                 {{ formatPop(props.stats.population_equality.tiers.bad.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                                 ({{ pct(props.stats.population_equality.tiers.bad.population, props.stats.population_equality.total_population) }})
                                             </span>
@@ -566,7 +567,7 @@
                                 <!-- Extremes below distribution -->
                                 <div v-if="props.stats.population_equality.most_over">
                                     <div class="flex items-baseline justify-between gap-2 mb-0.5">
-                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.extremes', 'Extremes') }}</span>
+                                        <span class="text-gray-300 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.extremes', 'Extremes') }}</span>
                                         <span class="text-gray-400 text-[10px]">
                                             {{ t('c_legislature_pages.districts.range', 'Range') }}
                                             <span :class="qualityColor((props.stats.population_equality.range_ratio - 1) * 100, 5, 10)">
@@ -605,8 +606,8 @@
                             <div>
                                 <div class="relative group flex items-baseline justify-between gap-2 mb-0.5">
                                     <div class="inline-flex items-center gap-1">
-                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.shape_compactness', 'Shape Compactness') }}</span>
-                                        <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
+                                        <span class="text-gray-300 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.shape_compactness', 'Shape Compactness') }}</span>
+                                        <span class="text-gray-300 text-[9px] cursor-help select-none ml-0.5">?</span>
                                         <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                             {{ t('c_legislature_pages.districts.compactness_tip', 'Measures whether the district\'s outer boundary is compact or irregular using the Convex Hull Ratio: district area divided by the area of its convex hull (1.0 = perfectly convex).') }}
                                         </div>
@@ -620,7 +621,7 @@
                                         <span class="text-emerald-400">&#9632;</span>
                                         <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.sc_compact', 'Compact (≥0.70):') }}</span>
                                         <span class="text-gray-200">{{ props.stats.shape_compactness.tiers.good.count }} ({{ props.stats.shape_compactness.tiers.good.pct }}%)</span>
-                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.shape_compactness.tiers.good.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.shape_compactness.tiers.good.population, props.stats.shape_compactness.total_population) }})
                                         </span>
@@ -629,7 +630,7 @@
                                         <span class="text-amber-400">&#9632;</span>
                                         <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.sc_moderate', 'Moderate (0.50–0.70):') }}</span>
                                         <span class="text-gray-200">{{ props.stats.shape_compactness.tiers.ok.count }} ({{ props.stats.shape_compactness.tiers.ok.pct }}%)</span>
-                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.shape_compactness.tiers.ok.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.shape_compactness.tiers.ok.population, props.stats.shape_compactness.total_population) }})
                                         </span>
@@ -638,35 +639,35 @@
                                         <span class="text-red-400">&#9632;</span>
                                         <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.sc_irregular', 'Irregular (<0.50):') }}</span>
                                         <span class="text-gray-200">{{ props.stats.shape_compactness.tiers.bad.count }} ({{ props.stats.shape_compactness.tiers.bad.pct }}%)</span>
-                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.shape_compactness.tiers.bad.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.shape_compactness.tiers.bad.population, props.stats.shape_compactness.total_population) }})
                                         </span>
                                     </div>
                                 </div>
-                                <span v-else class="text-gray-600 text-[10px]">{{ t('c_legislature_pages.districts.not_yet_computed', '— not yet computed') }}</span>
+                                <span v-else class="text-gray-300 text-[10px]">{{ t('c_legislature_pages.districts.not_yet_computed', '— not yet computed') }}</span>
                             </div>
 
                             <!-- ── 5. Uniform Political Diversity ── -->
                             <div v-if="optimalLabel">
                                 <div class="relative group inline-flex items-center gap-1 mb-1">
-                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.uniform_political_diversity', 'Uniform Political Diversity') }}</span>
-                                    <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
+                                    <span class="text-gray-300 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.uniform_political_diversity', 'Uniform Political Diversity') }}</span>
+                                    <span class="text-gray-300 text-[9px] cursor-help select-none ml-0.5">?</span>
                                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                         {{ t('c_legislature_pages.districts.diversity_tip', 'Tracks whether the current map produces evenly-sized districts. Optimal shows the mathematically ideal grouping for this scope. Suboptimal (if shown) is the best achievable given giants and floor exceptions. Current shows what has been committed so far.') }}
                                     </div>
                                 </div>
                                 <div class="space-y-0.5">
                                     <div class="flex items-baseline gap-1">
-                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">{{ t('c_legislature_pages.districts.optimal', 'Optimal:') }}</span>
+                                        <span class="text-gray-300 text-[10px] w-16 shrink-0">{{ t('c_legislature_pages.districts.optimal', 'Optimal:') }}</span>
                                         <span class="text-cyan-400 font-medium">{{ optimalLabel }}</span>
                                     </div>
                                     <div v-if="suboptimalLabel" class="flex items-baseline gap-1">
-                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">{{ t('c_legislature_pages.districts.suboptimal', 'Suboptimal:') }}</span>
+                                        <span class="text-gray-300 text-[10px] w-16 shrink-0">{{ t('c_legislature_pages.districts.suboptimal', 'Suboptimal:') }}</span>
                                         <span class="text-violet-400 font-medium">{{ suboptimalLabel }}</span>
                                     </div>
                                     <div v-if="currentConfigLabel" class="flex items-baseline gap-1">
-                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">{{ t('c_legislature_pages.districts.current', 'Current:') }}</span>
+                                        <span class="text-gray-300 text-[10px] w-16 shrink-0">{{ t('c_legislature_pages.districts.current', 'Current:') }}</span>
                                         <span class="text-amber-400">{{ currentConfigLabel }}</span>
                                     </div>
                                 </div>
@@ -700,7 +701,7 @@
                                     : t('c_legislature_pages.districts.autoseed_propose_title', 'Propose a full plan with the selected method')"
                                 class="px-2 py-1 rounded text-xs border transition-colors shrink-0"
                                 :class="(leafTool === 'manual' || autoseedBusy || autoseedCommitBusy || !!autoseedPlan || !drawTargetIsDraft)
-                                    ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
+                                    ? 'bg-gray-800 border-gray-700 text-gray-300 cursor-not-allowed'
                                     : 'bg-indigo-900 border-indigo-700 text-indigo-300 hover:bg-indigo-800 hover:text-white'">
                             {{ autoseedBusy ? t('c_legislature_pages.districts.proposing', '⚡ Proposing…') : t('c_legislature_pages.districts.autoseed', '⚡ Autoseed') }}
                         </button>
@@ -709,7 +710,7 @@
                                 :disabled="massToolRunning || massJobRunning"
                                 class="px-2 py-1 rounded text-xs border transition-colors"
                                 :class="massToolRunning || massJobRunning
-                                    ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
+                                    ? 'bg-gray-800 border-gray-700 text-gray-300 cursor-not-allowed'
                                     : massToolPanel === 'reseed'
                                         ? 'bg-indigo-700 border-indigo-500 text-white'
                                         : 'bg-indigo-900 border-indigo-700 text-indigo-300 hover:bg-indigo-800 hover:text-white'">
@@ -719,7 +720,7 @@
                                 :disabled="massToolRunning || massJobRunning"
                                 class="px-2 py-1 rounded text-xs border transition-colors shrink-0"
                                 :class="massToolRunning || massJobRunning
-                                    ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
+                                    ? 'bg-gray-800 border-gray-700 text-gray-300 cursor-not-allowed'
                                     : massToolPanel === 'clear'
                                         ? 'bg-red-700 border-red-500 text-white'
                                         : 'bg-red-900 border-red-800 text-red-300 hover:bg-red-800 hover:text-white'">
@@ -816,7 +817,7 @@
                             <span class="text-xs font-semibold text-white">
                                 {{ massToolPanel === 'reseed' ? t('c_legislature_pages.districts.reseed', '⚡ Reseed') : t('c_legislature_pages.districts.clear', '✕ Clear') }} {{ t('c_legislature_pages.districts.choose_scope', '— choose scope') }}
                             </span>
-                            <button @click="closeMassToolPanel" class="text-xs text-gray-500 hover:text-gray-300">✕</button>
+                            <button @click="closeMassToolPanel" class="text-xs text-gray-300 hover:text-gray-300">✕</button>
                         </div>
                         <div class="flex flex-col gap-1">
                             <button v-for="opt in visibleMassScopes" :key="opt.key"
@@ -826,7 +827,7 @@
                                         ? 'bg-gray-700 border-gray-500 text-white'
                                         : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-600'">
                                 <div class="font-medium">{{ opt.label }}</div>
-                                <div class="text-gray-500 text-[10px] mt-0.5">{{ opt.desc }}</div>
+                                <div class="text-gray-300 text-[10px] mt-0.5">{{ opt.desc }}</div>
                                 <div v-if="opt.warn" class="text-amber-400 text-[10px] mt-0.5">{{ t('c_legislature_pages.districts.slow_warn', '⚠ May be slow for large legislatures') }}</div>
                             </button>
                         </div>
@@ -839,7 +840,7 @@
                                     :disabled="!massToolScope || massToolRunning"
                                     class="px-3 py-1 rounded text-xs border transition-colors"
                                     :class="!massToolScope || massToolRunning
-                                        ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
+                                        ? 'bg-gray-800 border-gray-700 text-gray-300 cursor-not-allowed'
                                         : massToolPanel === 'clear'
                                             ? 'bg-red-700 border-red-600 text-white hover:bg-red-600'
                                             : 'bg-indigo-700 border-indigo-600 text-white hover:bg-indigo-600'">
@@ -896,14 +897,14 @@
                             <div class="flex items-center justify-between gap-2 mb-1">
                                 <span class="text-amber-300 font-semibold">{{ t('c_legislature_pages.districts.autoseed_proposal', '⚡ Autoseed proposal') }}</span>
                                 <!-- Labels the PLAN's template (what commit will send), not the picker's. -->
-                                <span class="text-gray-500 tabular-nums shrink-0">
+                                <span class="text-gray-300 tabular-nums shrink-0">
                                     {{ autoseedTemplateLabel(autoseedPlan.template) }}<template v-if="autoseedPlan.cuts.length"> · {{ autoseedPlan.cuts.length }} {{ t('c_legislature_pages.districts.cut_word', 'cut') }}{{ autoseedPlan.cuts.length === 1 ? '' : 's' }}</template>
                                 </span>
                             </div>
                             <div class="text-amber-300/80 mb-1">
                                 {{ t('c_legislature_pages.districts.plan_summary', { d: autoseedPlan.districts.length, s: autoseedSeatTotal, q: formatPop(autoseedPlan.quota), p: formatPop(autoseedPlan.total_pop) }) }}
                             </div>
-                            <div class="flex items-center gap-1.5 px-1.5 text-[10px] text-gray-500">
+                            <div class="flex items-center gap-1.5 px-1.5 text-[10px] text-gray-300">
                                 <span class="w-2 shrink-0"></span>
                                 <span class="flex-1">{{ t('c_legislature_pages.districts.col_district', 'District') }}</span>
                                 <span class="w-8 text-right shrink-0">{{ t('c_legislature_pages.districts.col_seats', 'Seats') }}</span>
@@ -920,7 +921,7 @@
                                     <span class="tabular-nums text-gray-400 w-12 text-right shrink-0">{{ formatPop(d.pop) }}</span>
                                     <span class="tabular-nums w-10 text-right shrink-0"
                                           :class="qualityColor(Math.abs(d.per_seat_deviation_pct), 5, 10)">{{ d.per_seat_deviation_pct.toFixed(1) }}%</span>
-                                    <span class="tabular-nums text-gray-500 w-8 text-right shrink-0">{{ d.convex_hull_ratio.toFixed(2) }}</span>
+                                    <span class="tabular-nums text-gray-300 w-8 text-right shrink-0">{{ d.convex_hull_ratio.toFixed(2) }}</span>
                                 </div>
                             </div>
                             <!-- Committing over live drawn districts 422s without explicit
@@ -979,7 +980,7 @@
                                         <span class="tabular-nums text-gray-200">{{ formatPop(s.population) }}</span>
                                         <span class="tabular-nums shrink-0" :class="s.in_band ? 'text-emerald-400' : 'text-red-400'">
                                             {{ s.implied_seats }} {{ t('c_legislature_pages.districts.seat_word', 'seat') }}{{ s.implied_seats === 1 ? '' : 's' }}
-                                            <span class="text-gray-600">({{ s.implied_fractional_seats }})</span>
+                                            <span class="text-gray-300">({{ s.implied_fractional_seats }})</span>
                                         </span>
                                     </div>
                                     <button class="w-full mt-1 px-2 py-1 rounded border border-amber-700 bg-amber-900/40 text-amber-200 hover:bg-amber-800/40 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -990,7 +991,7 @@
                                             :disabled="!splitCommitReady || drawBusy || snapBusy || !canDraw"
                                             @click="commitSplit">{{ drawBusy ? t('c_legislature_pages.districts.saving', 'Saving…') : (splitCommitReady ? t('c_legislature_pages.districts.commit_both', 'Commit both districts') : t('c_legislature_pages.districts.out_of_band', 'A side is out of band — move the line')) }}</button>
                                 </div>
-                                <div v-else-if="drawBusy" class="text-gray-500">{{ t('c_legislature_pages.districts.measuring', 'Measuring…') }}</div>
+                                <div v-else-if="drawBusy" class="text-gray-300">{{ t('c_legislature_pages.districts.measuring', 'Measuring…') }}</div>
                             </template>
 
                             <!-- Freeform polygon (secondary). -->
@@ -1010,7 +1011,7 @@
                                         <span class="text-gray-400">{{ t('c_legislature_pages.districts.implied_seats', 'Implied seats') }}</span>
                                         <span class="tabular-nums" :class="drawProbe.in_band ? 'text-emerald-400' : 'text-red-400'">
                                             {{ drawProbe.implied_seats }}
-                                            <span class="text-gray-600">({{ drawProbe.implied_fractional_seats }})</span>
+                                            <span class="text-gray-300">({{ drawProbe.implied_fractional_seats }})</span>
                                         </span>
                                     </div>
                                     <div class="flex items-center gap-2 flex-wrap">
@@ -1024,7 +1025,7 @@
                                             :disabled="!drawCommitReady || drawBusy || !canDraw"
                                             @click="commitDraw">{{ drawBusy ? t('c_legislature_pages.districts.saving', 'Saving…') : t('c_legislature_pages.districts.commit_district', 'Commit district') }}</button>
                                 </div>
-                                <div v-else-if="drawBusy" class="text-gray-500">{{ t('c_legislature_pages.districts.measuring', 'Measuring…') }}</div>
+                                <div v-else-if="drawBusy" class="text-gray-300">{{ t('c_legislature_pages.districts.measuring', 'Measuring…') }}</div>
                             </template>
 
                             <div v-if="drawError" class="text-red-400 mt-1">{{ drawError }}</div>
@@ -1041,7 +1042,7 @@
                          prop carries the DRAWN districts (there is no children table to
                          show), so the sidebar lists them with the map layer's colors. -->
                     <template v-if="showLeafDrawnList">
-                        <div class="flex items-center gap-1.5 px-3 py-1 bg-gray-900/80 border-b border-gray-700 text-xs text-gray-500 shrink-0 sticky top-0 z-10">
+                        <div class="flex items-center gap-1.5 px-3 py-1 bg-gray-900/80 border-b border-gray-700 text-xs text-gray-300 shrink-0 sticky top-0 z-10">
                             <span class="w-2.5 shrink-0"></span><!-- dot spacer -->
                             <span class="flex-1">{{ t('c_legislature_pages.districts.drawn_district', 'Drawn district') }}</span>
                             <span class="w-8 text-right shrink-0">{{ t('c_legislature_pages.districts.col_seats', 'Seats') }}</span>
@@ -1054,7 +1055,7 @@
                                 <span class="font-mono text-gray-100 flex-1 truncate" :title="d.label">{{ d.label }}</span>
                                 <span class="tabular-nums font-semibold w-8 text-right shrink-0" :class="seatClass(d.seats)">{{ d.seats }}</span>
                                 <span class="tabular-nums text-gray-400 w-16 text-right shrink-0">{{ d.population > 0 ? formatPop(d.population) : '—' }}</span>
-                                <button class="shrink-0 w-4 text-center text-gray-600 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-wait"
+                                <button class="shrink-0 w-4 text-center text-gray-300 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-wait"
                                         :disabled="deletingDrawnId !== null"
                                         :title="t('c_legislature_pages.districts.delete_named', { label: d.label })"
                                         @click="deleteDrawnDistrict(d)">{{ deletingDrawnId === d.id ? '…' : '🗑' }}</button>
@@ -1075,7 +1076,7 @@
 
                     <template v-else>
                     <!-- Sort header -->
-                    <div class="flex items-center gap-1 px-3 py-1 bg-gray-900/80 border-b border-gray-700 text-xs text-gray-500 shrink-0 sticky top-0 z-10">
+                    <div class="flex items-center gap-1 px-3 py-1 bg-gray-900/80 border-b border-gray-700 text-xs text-gray-300 shrink-0 sticky top-0 z-10">
                         <span class="w-3 shrink-0"></span><!-- dot spacer -->
                         <button class="flex-1 text-left hover:text-gray-300 truncate" @click="toggleSort('name')">{{ t('c_legislature_pages.districts.sort_name', 'Name') }}{{ sortIndicator('name') }}</button>
                         <button class="w-12 text-right hover:text-gray-300 shrink-0" @click="toggleSort('seats')">{{ t('c_legislature_pages.districts.col_seats', 'Seats') }}{{ sortIndicator('seats') }}</button>
@@ -1112,13 +1113,13 @@
                                         return ms > 0 ? formatPop(ms) : '—'
                                     })() }}
                                 </span>
-                                <span class="text-xs text-gray-500 tabular-nums w-12 text-right shrink-0">
+                                <span class="text-xs text-gray-300 tabular-nums w-12 text-right shrink-0">
                                     {{ (row.district.fractional_seats > 0
                                         ? row.district.fractional_seats
                                         : row.district.members.reduce((s, m) => s + m.fractional_seats, 0)
                                     ).toFixed(2) }}
                                 </span>
-                                <span class="text-gray-600 text-xs transition-transform shrink-0"
+                                <span class="text-gray-300 text-xs transition-transform shrink-0"
                                       :class="selectedDistrictId === row.district.id ? 'rotate-90' : ''">›</span>
                             </div>
 
@@ -1189,7 +1190,7 @@
                                                 class="flex-1 px-2 py-1.5 rounded text-xs font-medium border transition-colors"
                                                 :class="(pendingAdd.size > 0 || pendingRemove.size > 0) && !savingEdit && pendingValid
                                                     ? 'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600'
-                                                    : 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'">
+                                                    : 'bg-gray-800 border-gray-700 text-gray-300 cursor-not-allowed'">
                                             {{ savingEdit ? t('c_legislature_pages.districts.saving', 'Saving…') : t('c_legislature_pages.districts.save_count', { n: pendingAdd.size + pendingRemove.size }) }}
                                         </button>
                                         <button @click="cancelEdit"
@@ -1201,7 +1202,7 @@
                                          giant: member edit / disband live where the draw tools are —
                                          its own scope — so no affordances here, same as the map. -->
                                     <template v-else-if="row.district.method === 'drawn'">
-                                        <span class="text-xs text-gray-500">{{ t('c_legislature_pages.districts.drawn_manage', 'Drawn district — manage it at its own scope.') }}</span>
+                                        <span class="text-xs text-gray-300">{{ t('c_legislature_pages.districts.drawn_manage', 'Drawn district — manage it at its own scope.') }}</span>
                                     </template>
                                     <template v-else>
                                         <button @click.stop="startEdit(row.district.id)"
@@ -1210,7 +1211,7 @@
                                         </button>
                                         <button v-if="deletingDistrictId !== row.district.id"
                                                 @click.stop="deletingDistrictId = row.district.id"
-                                                class="px-2 py-1.5 rounded text-xs border bg-gray-800 border-gray-700 text-gray-500 hover:text-red-400 hover:border-red-700 transition-colors">
+                                                class="px-2 py-1.5 rounded text-xs border bg-gray-800 border-gray-700 text-gray-300 hover:text-red-400 hover:border-red-700 transition-colors">
                                             {{ t('c_legislature_pages.districts.disband', '× Disband') }}
                                         </button>
                                         <template v-else>
@@ -1233,21 +1234,21 @@
                                      @mouseenter="highlightJids([member.id])"
                                      @mouseleave="unhighlightJids([member.id])">
                                     <span class="text-gray-300 truncate flex-1">{{ member.name }}</span>
-                                    <span class="text-gray-500 tabular-nums w-20 text-right shrink-0">{{ member.population > 0 ? formatPop(member.population) : '—' }}</span>
+                                    <span class="text-gray-300 tabular-nums w-20 text-right shrink-0">{{ member.population > 0 ? formatPop(member.population) : '—' }}</span>
                                     <span class="tabular-nums w-12 text-right shrink-0"
                                           :class="member.fractional_seats > SEAT_CEILING ? 'text-red-400' : 'text-gray-400'">
                                         {{ member.fractional_seats.toFixed(2) }}
                                     </span>
                                     <button v-if="isGiantChild(member) && member.child_count > 0"
                                             @click.stop="drillTo(member.id)"
-                                            class="shrink-0 text-gray-500 hover:text-emerald-400 transition-colors"
+                                            class="shrink-0 text-gray-300 hover:text-emerald-400 transition-colors"
                                             :title="t('c_legislature_pages.districts.drill_subdistricts', 'Drill into sub-districts')">▶</button>
                                     <button v-if="editingDistrictId === row.district.id"
                                             @click.stop="togglePendingRemove(member.id)"
                                             class="shrink-0 w-5 h-5 flex items-center justify-center rounded transition-colors"
                                             :class="pendingRemove.has(member.id)
                                                 ? 'bg-red-700 text-white'
-                                                : 'text-gray-600 hover:text-red-400 hover:bg-red-900/30'"
+                                                : 'text-gray-300 hover:text-red-400 hover:bg-red-900/30'"
                                             :title="t('c_legislature_pages.districts.remove_from_district', 'Remove from district')">−</button>
                                 </div>
 
@@ -1276,7 +1277,7 @@
                                 <span class="font-semibold w-12 text-right shrink-0"
                                       :class="row.district.fractional_seats < FLOOR_OVERRIDE ? 'text-amber-400' : seatClass(row.district.seats)"
                                       :title="row.district.fractional_seats < FLOOR_OVERRIDE ? t('c_legislature_pages.districts.floor_override_title', 'Floor override — fractional seats rounds below minimum without override') : undefined">{{ row.district.seats }}</span>
-                                <span class="text-gray-500 tabular-nums w-20 text-right shrink-0">
+                                <span class="text-gray-300 tabular-nums w-20 text-right shrink-0">
                                     {{ (() => {
                                         const dp = row.district.population
                                         if (dp > 0) return formatPop(dp)
@@ -1284,8 +1285,8 @@
                                         return ms > 0 ? formatPop(ms) : '—'
                                     })() }}
                                 </span>
-                                <span class="text-gray-600 tabular-nums w-12 text-right shrink-0">{{ Number(row.district.fractional_seats).toFixed(2) }}</span>
-                                <span class="text-gray-600 text-xs transition-transform w-4 text-center shrink-0"
+                                <span class="text-gray-300 tabular-nums w-12 text-right shrink-0">{{ Number(row.district.fractional_seats).toFixed(2) }}</span>
+                                <span class="text-gray-300 text-xs transition-transform w-4 text-center shrink-0"
                                       :class="expandedNestedDistricts[row.district.id] ? 'rotate-90' : ''">›</span>
                             </div>
                             <!-- Quality strip — same stats as top-level district rows -->
@@ -1334,7 +1335,7 @@
                                       :class="giantStatusCache.get(row.giant.id)?.clean        ? 'text-emerald-400'
                                             : giantStatusCache.get(row.giant.id)?.overage      ? 'text-red-400'
                                             : giantStatusCache.get(row.giant.id)?.progress === 'partial' ? 'text-amber-400'
-                                            : 'text-gray-500'"
+                                            : 'text-gray-300'"
                                       :title="giantStatusCache.get(row.giant.id)?.clean               ? t('c_legislature_pages.districts.giant_clean_title', 'All sub-districts complete, no issues')
                                             : giantStatusCache.get(row.giant.id)?.progress === 'undistricted' ? t('c_legislature_pages.districts.giant_none_title', 'No sub-districts yet')
                                             : giantStatusCache.get(row.giant.id)?.progress === 'partial'
@@ -1354,17 +1355,17 @@
                             <span class="tabular-nums w-12 text-right shrink-0"
                                   :class="seatClass(seatsOf(row.giant))">{{ seatsOf(row.giant) }}</span><!-- Seats -->
                             <span class="text-gray-400 tabular-nums w-20 text-right shrink-0">{{ row.giant.population > 0 ? formatPop(row.giant.population) : '—' }}</span><!-- Population -->
-                            <span class="text-gray-600 tabular-nums w-12 text-right shrink-0">{{ row.giant.fractional_seats.toFixed(2) }}</span>
-                            <span class="text-gray-500 text-xs transition-transform w-4 text-center shrink-0"
+                            <span class="text-gray-300 tabular-nums w-12 text-right shrink-0">{{ row.giant.fractional_seats.toFixed(2) }}</span>
+                            <span class="text-gray-300 text-xs transition-transform w-4 text-center shrink-0"
                                   :class="expandedNodes[row.giant.id] ? 'rotate-90' : ''">›</span>
                             <button @click.stop="drillTo(row.giant.id)"
-                                    class="shrink-0 text-gray-600 hover:text-emerald-400 transition-colors"
+                                    class="shrink-0 text-gray-300 hover:text-emerald-400 transition-colors"
                                     :title="t('c_legislature_pages.districts.navigate_scope', 'Navigate into this scope (change map view)')">▶</button>
                         </div>
 
                         <!-- Loading indicator -->
                         <div v-else-if="row.type === 'loading'"
-                             class="border-b border-gray-800 py-2 text-xs text-gray-600 italic"
+                             class="border-b border-gray-800 py-2 text-xs text-gray-300 italic"
                              :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }">
                             {{ t('c_legislature_pages.districts.loading', 'loading…') }}
                         </div>
@@ -1372,7 +1373,7 @@
                         <!-- Drawn-group header: surfaced drawn districts whose giant has
                              no top-level row here nest under this label (2026-08-28). -->
                         <div v-else-if="row.type === 'drawn-group'"
-                             class="border-b border-gray-800 py-1.5 text-[11px] uppercase tracking-wide text-gray-500"
+                             class="border-b border-gray-800 py-1.5 text-[11px] uppercase tracking-wide text-gray-300"
                              :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }">
                             {{ t('c_legislature_pages.districts.drawn_group', { name: row.name }) }}
                         </div>
@@ -1384,13 +1385,13 @@
                             <span class="shrink-0 w-2 h-2 rounded-full bg-gray-700 mr-0.5"></span>
                             <span class="text-gray-400 flex-1 truncate">{{ row.member.name }}</span>
                             <span class="w-12 shrink-0"></span><!-- Seats placeholder -->
-                            <span class="text-gray-600 tabular-nums w-20 text-right shrink-0">
+                            <span class="text-gray-300 tabular-nums w-20 text-right shrink-0">
                                 {{ row.member.population > 0 ? formatPop(row.member.population) : '—' }}
                             </span>
                             <span class="w-12 shrink-0"></span><!-- Rep placeholder -->
                             <button v-if="row.member.child_count > 0"
                                     @click.stop="drillTo(row.member.id)"
-                                    class="w-4 text-center text-gray-600 hover:text-emerald-400 transition-colors shrink-0"
+                                    class="w-4 text-center text-gray-300 hover:text-emerald-400 transition-colors shrink-0"
                                     :title="t('c_legislature_pages.districts.drill_subdistricts', 'Drill into sub-districts')">▶</button>
                             <span v-else class="w-4 shrink-0"></span>
                         </div>
@@ -1439,7 +1440,7 @@
                                             class="px-2 py-1 rounded text-xs border transition-colors"
                                             :class="pendingAdd.size > 0 && !savingEdit && pendingValid
                                                 ? 'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600'
-                                                : 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'">
+                                                : 'bg-gray-800 border-gray-700 text-gray-300 cursor-not-allowed'">
                                         {{ savingEdit ? t('c_legislature_pages.districts.creating', 'Creating…') : t('c_legislature_pages.districts.create_count', { n: pendingAdd.size }) }}
                                     </button>
                                 </div>
@@ -1463,8 +1464,8 @@
                             <span class="shrink-0 w-2 h-2 rounded-full transition-colors"
                                   :class="pendingAdd.has(child.id) ? 'bg-yellow-400' : 'bg-gray-700'"></span>
                             <span class="flex-1 truncate text-gray-300">{{ child.name }}</span>
-                            <span class="text-gray-500 tabular-nums shrink-0">{{ formatPop(child.population) }}</span>
-                            <span class="tabular-nums shrink-0 text-gray-500">
+                            <span class="text-gray-300 tabular-nums shrink-0">{{ formatPop(child.population) }}</span>
+                            <span class="tabular-nums shrink-0 text-gray-300">
                                 {{ child.fractional_seats.toFixed(2) }}
                             </span>
                         </div>
@@ -1611,7 +1612,7 @@
                             class="px-2 py-1 rounded text-xs border transition-colors"
                             :class="showSeatsLabels
                                 ? 'bg-indigo-700 border-indigo-500 text-white'
-                                : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                                : 'bg-gray-900/80 border-gray-700 text-gray-200 hover:text-white hover:border-gray-500'"
                             :title="t('c_legislature_pages.districts.toggle_seats', 'Toggle seat count labels')">
                         {{ t('c_legislature_pages.districts.col_seats', 'Seats') }}
                     </button>
@@ -1619,7 +1620,7 @@
                             class="px-2 py-1 rounded text-xs border transition-colors"
                             :class="showMembersLabels
                                 ? 'bg-emerald-700 border-emerald-500 text-white'
-                                : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                                : 'bg-gray-900/80 border-gray-700 text-gray-200 hover:text-white hover:border-gray-500'"
                             :title="t('c_legislature_pages.districts.toggle_pop', 'Toggle population & fractional seats labels')">
                         {{ t('c_legislature_pages.districts.col_pop', 'Pop') }}
                     </button>
@@ -1627,7 +1628,7 @@
                             class="px-2 py-1 rounded text-xs border transition-colors"
                             :class="showNameLabels
                                 ? 'bg-violet-700 border-violet-500 text-white'
-                                : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                                : 'bg-gray-900/80 border-gray-700 text-gray-200 hover:text-white hover:border-gray-500'"
                             :title="t('c_legislature_pages.districts.toggle_names', 'Toggle district name labels')">
                         {{ t('c_legislature_pages.districts.toggle_names_btn', 'Names') }}
                     </button>
@@ -1635,7 +1636,7 @@
                             class="px-2 py-1 rounded text-xs border transition-colors"
                             :class="showJurisdictionLabels
                                 ? 'bg-teal-700 border-teal-500 text-white'
-                                : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                                : 'bg-gray-900/80 border-gray-700 text-gray-200 hover:text-white hover:border-gray-500'"
                             :title="t('c_legislature_pages.districts.toggle_jurs', 'Toggle jurisdiction name labels')">
                         {{ t('c_legislature_pages.districts.toggle_jurs_btn', 'Jurs') }}
                     </button>
@@ -1643,7 +1644,7 @@
                             class="px-2 py-1 rounded text-xs border transition-colors"
                             :class="showStatsLabels
                                 ? 'bg-rose-700 border-rose-500 text-white'
-                                : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                                : 'bg-gray-900/80 border-gray-700 text-gray-200 hover:text-white hover:border-gray-500'"
                             :title="t('c_legislature_pages.districts.toggle_stats', 'Toggle per-district quality stats (CHR · contiguity)')">
                         {{ t('c_legislature_pages.districts.toggle_stats_btn', 'Stats') }}
                     </button>
@@ -1651,7 +1652,7 @@
                             class="px-2 py-1 rounded text-xs border transition-colors"
                             :class="showRaster
                                 ? 'bg-amber-700 border-amber-500 text-white'
-                                : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                                : 'bg-gray-900/80 border-gray-700 text-gray-200 hover:text-white hover:border-gray-500'"
                             :title="t('c_legislature_pages.districts.toggle_raster', 'Toggle WorldPop population heatmap underlay')">
                         {{ t('c_legislature_pages.districts.toggle_raster_btn', 'Raster') }}
                     </button>
@@ -1676,7 +1677,7 @@
                             <span class="text-blue-400">{{ t('c_legislature_pages.districts.hint_drag', 'Drag') }}</span> {{ t('c_legislature_pages.districts.hint_to_add', 'to add ·') }}
                             <span class="text-blue-300">{{ t('c_legislature_pages.districts.hint_shift_drag', 'Shift+drag') }}</span> {{ t('c_legislature_pages.districts.hint_incl_assigned', 'incl. assigned ·') }}
                             <span class="text-red-400">{{ t('c_legislature_pages.districts.hint_ctrl_drag', 'Ctrl+drag') }}</span> {{ t('c_legislature_pages.districts.hint_to_remove', 'to remove ·') }}
-                            <span class="text-gray-500">{{ t('c_legislature_pages.districts.hint_hold', 'hold') }}</span> <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">{{ t('c_legislature_pages.districts.key_space', 'Space') }}</kbd> <span class="text-gray-500">{{ t('c_legislature_pages.districts.hint_to_pan', 'to pan') }}</span>
+                            <span class="text-gray-300">{{ t('c_legislature_pages.districts.hint_hold', 'hold') }}</span> <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">{{ t('c_legislature_pages.districts.key_space', 'Space') }}</kbd> <span class="text-gray-300">{{ t('c_legislature_pages.districts.hint_to_pan', 'to pan') }}</span>
                         </template>
                     </span>
                     <button @click.stop="cancelEdit"
@@ -1715,7 +1716,7 @@ const localeFmt = useLocaleFormat();
  * pre-split file. Deep full-screen integration is Phase 5, NOT this pass.
  */
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
+import { Head, router, usePage } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import { csrfHeaders } from '@/lib/csrf'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
@@ -3448,7 +3449,7 @@ function seatClass(seats) {
     // Color bands scale with the constitutional [floor, ceiling] range.
     // At default 5/9: ≤5 blue, ≤7 emerald, ≥8 amber (matches legacy).
     // At 3/7:         ≤3 blue, ≤5 emerald, ≥6 amber.
-    if (!seats) return 'text-gray-500'
+    if (!seats) return 'text-gray-300'
     const mid = Math.max(SEAT_FLOOR + 1, SEAT_CEILING - 2)
     if (seats <= SEAT_FLOOR) return 'text-blue-400'
     if (seats <= mid)        return 'text-emerald-400'

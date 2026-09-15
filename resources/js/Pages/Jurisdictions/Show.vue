@@ -1,4 +1,5 @@
 <template>
+    <Head :title="t('c_jurisdictions.show.head_title', 'Jurisdiction map')" />
     <!-- FULL-BLEED TOOL SURFACE (operator, 2026-08-04, with the district mapper
          as the stated reference: "it takes up the whole screen and it has the
          map up in the side").
@@ -41,7 +42,7 @@
                             {{ ancestors[0].name }}
                         </a>
                         <template v-for="ancestor in ancestors.slice(1)" :key="ancestor.id">
-                            <span class="text-gray-600">›</span>
+                            <span class="text-gray-300">›</span>
                             <a :href="`/jurisdictions/${ancestor.slug}/map`" class="hover:text-white transition-colors">
                                 {{ ancestor.name }}
                             </a>
@@ -50,9 +51,9 @@
                     <template v-else>
                         <!-- On Earth itself: "World" is the implicit root,
                              no clickable parent above. Render as plain text. -->
-                        <span class="text-gray-500">{{ t('c_jurisdictions.show.breadcrumb_world', 'World') }}</span>
+                        <span class="text-gray-300">{{ t('c_jurisdictions.show.breadcrumb_world', 'World') }}</span>
                     </template>
-                    <span class="text-gray-600">›</span>
+                    <span class="text-gray-300">›</span>
                     <span class="text-gray-200">{{ jurisdiction.name }}</span>
                 </div>
 
@@ -76,14 +77,14 @@
                         <div class="flex items-baseline gap-4 mt-3">
                             <div>
                                 <span class="text-lg font-semibold tabular-nums" style="color: #E69F00">{{ formatPop(jurisdiction.population) }}</span>
-                                <span class="text-xs text-gray-500 ml-1">{{ t('c_jurisdictions.show.stat_population', 'population') }}</span>
-                                <span v-if="jurisdiction.population_year" class="text-[10px] text-gray-600 ml-1">
+                                <span class="text-xs text-gray-300 ml-1">{{ t('c_jurisdictions.show.stat_population', 'population') }}</span>
+                                <span v-if="jurisdiction.population_year" class="text-[10px] text-gray-300 ml-1">
                                     ({{ jurisdiction.population_year }})
                                 </span>
                             </div>
                             <div>
                                 <span class="text-lg font-semibold tabular-nums" style="color: #56B4E9">{{ localeFmt.number(childCount) }}</span>
-                                <span class="text-xs text-gray-500 ml-1">{{ t('c_jurisdictions.show.stat_places_within', 'places within') }}</span>
+                                <span class="text-xs text-gray-300 ml-1">{{ t('c_jurisdictions.show.stat_places_within', 'places within') }}</span>
                             </div>
                         </div>
                     </div>
@@ -135,7 +136,7 @@
                                 {{ t('c_jurisdictions.show.badge_cross_iso', 'cross-iso parent') }}
                             </span>
                         </div>
-                        <div v-if="review.parent_assigned_via && !review.parent_iso_differs" class="text-[11px] text-gray-500 mt-1">
+                        <div v-if="review.parent_assigned_via && !review.parent_iso_differs" class="text-[11px] text-gray-300 mt-1">
                             {{ t('c_jurisdictions.show.parent_via_label', 'parent assigned via') }}
                             <span class="font-mono text-gray-400">{{ review.parent_assigned_via }}</span>
                         </div>
@@ -173,26 +174,26 @@
                             {{ meta.boundary_canonical }}
                         </div>
                         <div v-if="meta?.continent" class="text-xs">
-                            <span class="text-gray-500">{{ t('c_jurisdictions.show.geo_continent', 'Continent:') }}</span>
+                            <span class="text-gray-300">{{ t('c_jurisdictions.show.geo_continent', 'Continent:') }}</span>
                             <span class="text-gray-200 ml-1">{{ meta.continent }}</span>
                         </div>
                         <div v-if="meta?.unsdg_region" class="text-xs">
-                            <span class="text-gray-500">{{ t('c_jurisdictions.show.geo_unsdg_region', 'UNSDG region:') }}</span>
+                            <span class="text-gray-300">{{ t('c_jurisdictions.show.geo_unsdg_region', 'UNSDG region:') }}</span>
                             <span class="text-gray-200 ml-1">{{ meta.unsdg_region }}</span>
                         </div>
                         <div v-if="meta?.unsdg_subregion" class="text-xs">
-                            <span class="text-gray-500">{{ t('c_jurisdictions.show.geo_subregion', 'Subregion:') }}</span>
+                            <span class="text-gray-300">{{ t('c_jurisdictions.show.geo_subregion', 'Subregion:') }}</span>
                             <span class="text-gray-200 ml-1">{{ meta.unsdg_subregion }}</span>
                         </div>
                         <div v-if="meta?.world_bank_income_group" class="text-xs">
-                            <span class="text-gray-500">{{ t('c_jurisdictions.show.geo_income', 'Income group:') }}</span>
+                            <span class="text-gray-300">{{ t('c_jurisdictions.show.geo_income', 'Income group:') }}</span>
                             <span class="text-gray-200 ml-1">{{ meta.world_bank_income_group }}</span>
                         </div>
                         <!-- Official languages (only meaningful for non-planet rows;
                              Earth's seeded ['en'] gets hidden by the adm_level gate). -->
                         <div v-if="jurisdiction.adm_level > 0 && jurisdiction.official_languages?.length"
                              class="text-xs flex items-baseline flex-wrap gap-1.5">
-                            <span class="text-gray-500">{{ t('c_jurisdictions.show.geo_languages', 'Languages:') }}</span>
+                            <span class="text-gray-300">{{ t('c_jurisdictions.show.geo_languages', 'Languages:') }}</span>
                             <span
                                 v-for="lang in jurisdiction.official_languages"
                                 :key="lang"
@@ -200,7 +201,7 @@
                             >{{ lang }}</span>
                         </div>
                         <!-- Data source — implied detail; small caption-style. -->
-                        <div v-if="jurisdiction.source" class="text-[10px] text-gray-500 mt-1">
+                        <div v-if="jurisdiction.source" class="text-[10px] text-gray-300 mt-1">
                             {{ t('c_jurisdictions.show.source_label', 'Source:') }} <span class="text-gray-400 capitalize">{{ jurisdiction.source.replace(/_/g, ' ') }}</span>
                             <span v-if="meta?.year_represented">{{ t('c_jurisdictions.show.geoboundaries_year', { year: meta.year_represented }) }}</span>
                         </div>
@@ -393,7 +394,7 @@
                     <div v-if="hoveredFeature.child_count > 0" class="text-xs text-gray-400">
                         {{ t('c_jurisdictions.show.members_n', { n: hoveredFeature.child_count }) }}
                     </div>
-                    <div v-else class="text-xs text-gray-500 italic">{{ t('c_jurisdictions.show.no_subdivisions', 'No further sub-divisions') }}</div>
+                    <div v-else class="text-xs text-gray-300 italic">{{ t('c_jurisdictions.show.no_subdivisions', 'No further sub-divisions') }}</div>
                 </div>
 
                 <!-- Hovered child -->
@@ -406,7 +407,7 @@
                     <div v-if="hoveredChild.child_count > 0" class="text-xs text-gray-400">
                         {{ t('c_jurisdictions.show.members_n', { n: hoveredChild.child_count }) }}
                     </div>
-                    <div v-else class="text-xs text-gray-500 italic">{{ t('c_jurisdictions.show.no_subdivisions', 'No further sub-divisions') }}</div>
+                    <div v-else class="text-xs text-gray-300 italic">{{ t('c_jurisdictions.show.no_subdivisions', 'No further sub-divisions') }}</div>
                 </div>
 
                 <!-- No children notice -->
@@ -448,7 +449,7 @@
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showNames
                             ? 'bg-violet-700 border-violet-500 text-white'
-                            : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                            : 'bg-gray-900/80 border-gray-700 text-gray-200 hover:text-white hover:border-gray-500'"
                     >{{ t('c_jurisdictions.show.btn_names', 'Names') }}</button>
                     <button
                         type="button"
@@ -457,7 +458,7 @@
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showPop
                             ? 'border-transparent text-white'
-                            : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                            : 'bg-gray-900/80 border-gray-700 text-gray-200 hover:text-white hover:border-gray-500'"
                         :style="showPop ? { backgroundColor: '#E69F00', borderColor: '#E69F00' } : null"
                     >{{ t('c_jurisdictions.show.btn_population', 'Population') }}</button>
                     <button
@@ -467,7 +468,7 @@
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showMembers
                             ? 'border-transparent text-white'
-                            : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                            : 'bg-gray-900/80 border-gray-700 text-gray-200 hover:text-white hover:border-gray-500'"
                         :style="showMembers ? { backgroundColor: '#56B4E9', borderColor: '#56B4E9' } : null"
                     >{{ t('c_jurisdictions.show.btn_members', 'Members') }}</button>
                     <button
@@ -477,7 +478,7 @@
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showRaster
                             ? 'bg-indigo-700 border-indigo-500 text-white'
-                            : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                            : 'bg-gray-900/80 border-gray-700 text-gray-200 hover:text-white hover:border-gray-500'"
                     >{{ t('c_jurisdictions.show.btn_raster', 'Raster') }}</button>
                 </div>
             </div>
@@ -540,7 +541,7 @@
 <script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
 const localeFmt = useLocaleFormat();
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { Link, router, usePage } from '@inertiajs/vue3'
+import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import GeodataFlagQueue from '@/Components/Geodata/GeodataFlagQueue.vue'

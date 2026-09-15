@@ -352,6 +352,7 @@
   "type_b_districts.halted_by_operator": "Halted by operator. Already-committed scopes preserved.",
   "type_b_districts.halted_cleared": "Halted — the stuck operation was cleared. You can autoseed again.",
   "type_b_districts.halting": "Halting…",
+  "type_b_districts.head_title": "Constituent panels",
   "type_b_districts.hold": "hold",
   "type_b_districts.implied_seats": "Implied seats",
   "type_b_districts.in_band": "✓ in band",

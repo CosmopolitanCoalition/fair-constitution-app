@@ -537,6 +537,7 @@
   "show.geo_subregion": "Subregion:",
   "show.geo_unsdg_region": "UNSDG region:",
   "show.geoboundaries_year": " · geoBoundaries year {year}",
+  "show.head_title": "Jurisdiction map",
   "show.hover_adjacent": "Adjacent",
   "show.hover_parent": "Parent region",
   "show.hover_wider": "Wider region",
