@@ -142,7 +142,7 @@ const c = computed(() => drift.value.counts);
             </p>
             <ul v-if="drift.navUnresolved.length" class="stack" style="gap: var(--space-1)">
                 <li v-for="d in drift.navUnresolved" :key="d.id" class="mono">
-                    <Icon name="alert-triangle" size="sm" /> {{ d.id }} <span class="citation">nav=</span><strong>{{ d.nav }}</strong> <span class="citation">{{ t('c_system.coverage.no_menu_id', '— no menu id answers it') }}</span>
+                    <Icon name="alert-triangle" size="sm" /> {{ d.id }} <span class="citation" data-no-i18n>nav=</span><strong>{{ d.nav }}</strong> <span class="citation">{{ t('c_system.coverage.no_menu_id', '— no menu id answers it') }}</span>
                 </li>
             </ul>
             <p v-else class="citation"><Icon name="check" size="sm" /> {{ t('c_system.coverage.crosscheck_ok', 'Every surface nav resolves to a menu id.') }}</p>
@@ -154,7 +154,7 @@ const c = computed(() => drift.value.counts);
                     {{ t('c_system.coverage.known_drift_note', 'Recorded, not counted against the verdict; the owning lane resolves it.') }}
                 </p>
                 <ul class="stack" style="gap: var(--space-1)">
-                    <li v-for="d in drift.navAllowlisted" :key="d.id" class="mono citation">
+                    <li v-for="d in drift.navAllowlisted" :key="d.id" class="mono citation" data-no-i18n>
                         {{ d.id }} nav=<strong>{{ d.nav }}</strong> — {{ d.note }}
                     </li>
                 </ul>

@@ -375,7 +375,7 @@ async function fetchProgress() {
             credentials: 'same-origin',
             headers: { Accept: 'application/json' },
         })
-        if (!res.ok) { error.value = `Could not load pull-engine progress (HTTP ${res.status}).`; return }
+        if (!res.ok) { error.value = t('c_shell_components.geodata_pull_panel.err_progress', 'Could not load pull-engine progress (HTTP {status}).', { status: res.status }); return }
         error.value = ''
         data.value = await res.json()
         // Let the parent react (e.g. hide the legacy bars panel while a pull
@@ -396,7 +396,7 @@ async function setAutoScan(v) {
         })
         if (!res.ok) {
             const d = await res.json().catch(() => ({}))
-            error.value = d.error || `Scan option change failed (HTTP ${res.status}).`
+            error.value = d.error || t('c_shell_components.geodata_pull_panel.err_scan_option', 'Scan option change failed (HTTP {status}).', { status: res.status })
         }
         await fetchProgress()
     } catch (e) {
@@ -414,7 +414,7 @@ async function control(action, group = null) {
         })
         if (!res.ok) {
             const d = await res.json().catch(() => ({}))
-            error.value = d.error || `Control '${action}' failed (HTTP ${res.status}).`
+            error.value = d.error || t('c_shell_components.geodata_pull_panel.err_control', "Control '{action}' failed (HTTP {status}).", { action, status: res.status })
         }
         await fetchProgress()
     } finally {

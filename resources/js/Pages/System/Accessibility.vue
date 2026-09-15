@@ -43,39 +43,39 @@ defineProps({
             <ul class="stack" style="gap: var(--space-3)">
                 <li>
                     <strong>{{ t('c_system.accessibility.keyboard_label', 'Keyboard.') }}</strong> {{ t('c_system.accessibility.keyboard_body', 'Every interaction works without a pointer: a skip link is the first focusable element on every page, header menus are native disclosure widgets (Escape closes them), the ranked ballot uses move buttons rather than drag-only ordering, and flow walkthroughs are plain buttons and links.') }}
-                    <span class="citation">WCAG 2.1.1 · 2.1.2 · 2.4.1 · 2.5.7</span>
+                    <span class="citation" data-no-i18n>WCAG 2.1.1 · 2.1.2 · 2.4.1 · 2.5.7</span>
                 </li>
                 <li>
                     <strong>{{ t('c_system.accessibility.focus_label', 'Visible focus.') }}</strong> {{ t('c_system.accessibility.focus_body', 'A 3-pixel gold ring marks focus on every control; under Windows contrast themes the same outline renders in the system highlight color. Sticky chrome reserves scroll padding so the focused element is never hidden behind it.') }}
-                    <span class="citation">WCAG 2.4.7 · 2.4.11 · 2.4.13</span>
+                    <span class="citation" data-no-i18n>WCAG 2.4.7 · 2.4.11 · 2.4.13</span>
                 </li>
                 <li>
                     <strong>{{ t('c_system.accessibility.contrast_label', 'Contrast.') }}</strong> {{ t('c_system.accessibility.contrast_body_a', 'Text and interface colors are token-pairs checked against the AA ratios (4.5:1 text, 3:1 components); the quiet text tiers step up automatically under') }} <code data-no-i18n>prefers-contrast: more</code>{{ t('c_system.accessibility.contrast_body_b', '. Color never carries meaning alone — every status pairs a label or icon with its hue, and the map layers use the Wong colorblind-safe palette.') }}
-                    <span class="citation">WCAG 1.4.1 · 1.4.3 · 1.4.11</span>
+                    <span class="citation" data-no-i18n>WCAG 1.4.1 · 1.4.3 · 1.4.11</span>
                 </li>
                 <li>
                     <strong>{{ t('c_system.accessibility.reflow_label', 'Reflow.') }}</strong> {{ t('c_system.accessibility.reflow_body', 'Layouts hold from 320 CSS pixels (and at 400% zoom) through phone, tablet, and large monitors, portrait or landscape, with no horizontal scrolling and no orientation lock.') }}
-                    <span class="citation">WCAG 1.3.4 · 1.4.4 · 1.4.10</span>
+                    <span class="citation" data-no-i18n>WCAG 1.3.4 · 1.4.4 · 1.4.10</span>
                 </li>
                 <li>
                     <strong>{{ t('c_system.accessibility.touch_label', 'Touch targets.') }}</strong> {{ t('c_system.accessibility.touch_body', 'Interactive elements are at least 24×24 CSS pixels including the compact chip controls.') }}
-                    <span class="citation">WCAG 2.5.8</span>
+                    <span class="citation" data-no-i18n>WCAG 2.5.8</span>
                 </li>
                 <li>
                     <strong>{{ t('c_system.accessibility.structure_label', 'Structure.') }}</strong> {{ t('c_system.accessibility.structure_body', 'Every page declares its language, carries a unique title, one h1, ordered heading levels, and the full landmark set (banner, navigation, main, contentinfo); status updates are announced through a persistent polite live region.') }}
-                    <span class="citation">WCAG 1.3.1 · 2.4.2 · 3.1.1 · 4.1.3</span>
+                    <span class="citation" data-no-i18n>WCAG 1.3.1 · 2.4.2 · 3.1.1 · 4.1.3</span>
                 </li>
                 <li>
                     <strong>{{ t('c_system.accessibility.motion_label', 'Motion.') }}</strong> {{ t('c_system.accessibility.motion_body_a', 'Animations are sub-300ms, nothing flashes, and') }} <code data-no-i18n>prefers-reduced-motion</code> {{ t('c_system.accessibility.motion_body_b', 'disables all non-essential transitions.') }}
-                    <span class="citation">WCAG 2.3.1 · 2.3.3</span>
+                    <span class="citation" data-no-i18n>WCAG 2.3.1 · 2.3.3</span>
                 </li>
                 <li>
                     <strong>{{ t('c_system.accessibility.timeouts_label', 'No timeouts.') }}</strong> {{ t('c_system.accessibility.timeouts_body', 'Constitutional clocks on these screens are simulated displays — nothing on the mockup site expires or auto-advances.') }}
-                    <span class="citation">WCAG 2.2.1 · 2.2.3</span>
+                    <span class="citation" data-no-i18n>WCAG 2.2.1 · 2.2.3</span>
                 </li>
                 <li>
                     <strong>{{ t('c_system.accessibility.i18n_label', 'Internationalization.') }}</strong> {{ t('c_system.accessibility.i18n_body', 'All layout uses CSS logical properties so right-to-left scripts mirror correctly (flip the direction from the Demo controls to verify); the language switcher sits in the header on every page; a pseudo-locale with 35% text expansion is part of the QA toolchain.') }}
-                    <span class="citation">WCAG 3.1.1 · 3.1.2 · UAX #9</span>
+                    <span class="citation" data-no-i18n>WCAG 3.1.1 · 3.1.2 · UAX #9</span>
                 </li>
                 <li>
                     <strong>{{ t('c_system.accessibility.offline_label', 'Offline-capable.') }}</strong> {{ t('c_system.accessibility.offline_body', 'Fonts are self-hosted (SIL OFL 1.1) and no resource loads from any external service — the site runs fully on a LAN with no internet access, on low-power hardware.') }}
