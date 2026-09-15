@@ -16952,17 +16952,17 @@
     },
     {
       "id": "W-0446",
-      "title": "Operator page: export and import a language package",
+      "title": "Export and import a language package from the translations board",
       "phase": "P1",
       "order": 11,
       "kind": "build",
       "status": "open",
       "blocker": "none",
-      "done_when": "Operator can export a language package and import a translated one from the page; dry-run report shown before write; pins cover the gate, the job and the round trip on a fixture locale.",
+      "done_when": "From the translations board the operator can export a language package and import a translated one; the dry-run report shows before any write; pins cover the operator gate, the job and a round trip on a fixture locale.",
       "depends_on": [
         "W-0445"
       ],
-      "detail": "One operator-only page under /system/translations (linked from the translations board and the operator console): Export picks a language and downloads a zip of its pending chunk files (the export_master.py output: English text, surface context, glossary); Import uploads a zip or file, shows the dry-run report from import_translated.py (accepted, rejected with reasons), then writes the catalogs and the review queue on confirm. Both run through a queued job, never inside the web request. Gated to the operator; every import is audited.",
+      "detail": "Integrated into the existing status board /system/translations (no new page): an operator-only card with Export (pick a language, download a zip of its pending chunk files, the export_master.py output with English text, surface context and glossary) and Import (upload a zip or file, see the dry-run report from import_translated.py with accepted and rejected strings and reasons, confirm, then the importer writes the catalogs and the review queue). Both run through a queued job with progress on the board's live deck, never inside the web request. Gated to the operator; every import is audited. The Add-a-language card gains the real request action.",
       "evidence": "",
       "sources": [
         {
@@ -16976,6 +16976,10 @@
         {
           "date": "2026-09-15",
           "note": "Created by the desk on the operator order of 2026-09-15 (12:45 PM Eastern)."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Operator ruling (1:40 PM Eastern): integrate into the existing translations board, not a new page."
         }
       ]
     }
