@@ -63,13 +63,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(
-            prepend: [
-                // Phase F — resolve the request locale BEFORE HandleInertiaRequests
-                // so the shared `locale` prop and the blade <html lang/dir> agree
-                // on first paint.
-                \App\Http\Middleware\SetLocale::class,
-            ],
             append: [
+                // Phase F — resolve the request locale AFTER StartSession (so a
+                // guest's POST /locale choice and the session guard's user are
+                // readable) and BEFORE HandleInertiaRequests, so the shared
+                // `locale` prop and the blade <html lang/dir> agree on first paint.
+                // It sat in prepend until 2026-09-15, which ran it before the
+                // session existed: only Accept-Language ever applied (W-0445).
+                \App\Http\Middleware\SetLocale::class,
                 \App\Http\Middleware\HandleInertiaRequests::class,
                 // Setup lock — pins every web navigation to the wizard until
                 // setup_completed_at is set (allow-listing the setup/operator/auth
