@@ -101,7 +101,7 @@ class ConstitutionalChallengeService
 
         if ($law === null) {
             throw new ConstitutionalViolation(
-                'F-IND-016 names the law it challenges (challenged_law_id).',
+                __('F-IND-016 names the law it challenges (challenged_law_id).'),
                 'Art. IV §5'
             );
         }
@@ -110,8 +110,7 @@ class ConstitutionalChallengeService
         // nothing left to remedy (the law no longer binds).
         if (! in_array($law->status, [Law::STATUS_IN_FORCE, Law::STATUS_AMENDED], true)) {
             throw new ConstitutionalViolation(
-                "Act {$law->act_number} is {$law->status} — only an in-force or amended law can be challenged "
-                .'(there is nothing to remedy in a repealed or struck law).',
+                __('Act :act_number is :status — only an in-force or amended law can be challenged (there is nothing to remedy in a repealed or struck law).', ['act_number' => $law->act_number, 'status' => $law->status]),
                 'Art. IV §5'
             );
         }
@@ -122,7 +121,7 @@ class ConstitutionalChallengeService
         // a descendant under it.
         if (! $this->jurisdictionInSubtree($jurisdictionId, (string) $law->jurisdiction_id)) {
             throw new ConstitutionalViolation(
-                'A challenge is filed in the law\'s binding jurisdiction or a descendant under it.',
+                __('A challenge is filed in the law\'s binding jurisdiction or a descendant under it.'),
                 'Art. IV §5'
             );
         }
@@ -131,7 +130,7 @@ class ConstitutionalChallengeService
 
         if ($claimText === '') {
             throw new ConstitutionalViolation(
-                'F-IND-016 records the asserted contradiction (claim_text).',
+                __('F-IND-016 records the asserted contradiction (claim_text).'),
                 'Art. IV §5'
             );
         }
@@ -140,7 +139,7 @@ class ConstitutionalChallengeService
 
         if (! in_array($basis, [ConstitutionalChallenge::BASIS_CONSTITUTION, ConstitutionalChallenge::BASIS_OTHER_LAW], true)) {
             throw new ConstitutionalViolation(
-                'A challenge alleges contradiction against the Constitution or another law (claimed_basis).',
+                __('A challenge alleges contradiction against the Constitution or another law (claimed_basis).'),
                 'Art. IV §5'
             );
         }
@@ -214,7 +213,7 @@ class ConstitutionalChallengeService
 
         if ($fresh->status !== ConstitutionalChallenge::STATUS_FILED) {
             throw new ConstitutionalViolation(
-                "Only a filed challenge opens a hearing (status: {$fresh->status}).",
+                __('Only a filed challenge opens a hearing (status: :status).', ['status' => $fresh->status]),
                 'Art. IV §5'
             );
         }
@@ -267,7 +266,7 @@ class ConstitutionalChallengeService
 
         if ($fresh->status !== ConstitutionalChallenge::STATUS_UNDER_REVIEW) {
             throw new ConstitutionalViolation(
-                "A finding is recorded on a challenge under review (status: {$fresh->status}).",
+                __('A finding is recorded on a challenge under review (status: :status).', ['status' => $fresh->status]),
                 'Art. IV §5'
             );
         }
@@ -275,14 +274,14 @@ class ConstitutionalChallengeService
         $offendingLaw = Law::query()->find((string) ($attrs['offending_law_id'] ?? $fresh->challenged_law_id));
 
         if ($offendingLaw === null) {
-            throw new ConstitutionalViolation('A finding names the offending law (Art. IV §5.2).', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('A finding names the offending law (Art. IV §5.2).'), 'Art. IV §5');
         }
 
         $findsContradiction = (bool) ($attrs['finds_contradiction'] ?? false);
         $opinionText = trim((string) ($attrs['opinion_text'] ?? ''));
 
         if ($opinionText === '') {
-            throw new ConstitutionalViolation('A finding carries its reasoning (opinion_text).', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('A finding carries its reasoning (opinion_text).'), 'Art. IV §5');
         }
 
         $against = (string) ($attrs['contradiction_against'] ?? $fresh->claimed_basis);
@@ -386,7 +385,7 @@ class ConstitutionalChallengeService
 
         if ($fresh->status !== ConstitutionalChallenge::STATUS_FINDING_ISSUED) {
             throw new ConstitutionalViolation(
-                "A remedy is recommended after a contradiction finding (status: {$fresh->status}).",
+                __('A remedy is recommended after a contradiction finding (status: :status).', ['status' => $fresh->status]),
                 'Art. IV §5'
             );
         }
@@ -394,29 +393,29 @@ class ConstitutionalChallengeService
         $finding = ConstitutionalFinding::query()->findOrFail((string) $fresh->finding_id);
 
         if (! $finding->finds_contradiction) {
-            throw new ConstitutionalViolation('No remedy attaches to a finding of no contradiction.', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('No remedy attaches to a finding of no contradiction.'), 'Art. IV §5');
         }
 
         $kind = (string) ($attrs['remedy_kind'] ?? '');
 
         if (! in_array($kind, [RemedyRecommendation::KIND_MODIFY, RemedyRecommendation::KIND_REMOVE], true)) {
-            throw new ConstitutionalViolation('A remedy modifies or removes the offending law (Art. IV §5.3).', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('A remedy modifies or removes the offending law (Art. IV §5.3).'), 'Art. IV §5');
         }
 
         $recommendedText = isset($attrs['recommended_text']) ? trim((string) $attrs['recommended_text']) : '';
 
         if ($kind === RemedyRecommendation::KIND_MODIFY && $recommendedText === '') {
-            throw new ConstitutionalViolation('A modify remedy carries the proposed replacement text.', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('A modify remedy carries the proposed replacement text.'), 'Art. IV §5');
         }
 
         if ($kind === RemedyRecommendation::KIND_REMOVE && $recommendedText !== '') {
-            throw new ConstitutionalViolation('A remove remedy carries no replacement text (it repeals).', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('A remove remedy carries no replacement text (it repeals).'), 'Art. IV §5');
         }
 
         $rationale = trim((string) ($attrs['rationale_text'] ?? ''));
 
         if ($rationale === '') {
-            throw new ConstitutionalViolation('A remedy records why it makes the law non-contradictory.', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('A remedy records why it makes the law non-contradictory.'), 'Art. IV §5');
         }
 
         $timeframeDays = (int) ($attrs['remedy_timeframe_days'] ?? 0);
@@ -424,7 +423,7 @@ class ConstitutionalChallengeService
 
         if ($timeframeDays <= 0 || $vetoDays <= 0) {
             throw new ConstitutionalViolation(
-                'The judge-set remedy timeframe and veto window are both positive durations (Art. IV §5.3/§5.4).',
+                __('The judge-set remedy timeframe and veto window are both positive durations (Art. IV §5.3/§5.4).'),
                 'Art. IV §5'
             );
         }
@@ -791,8 +790,7 @@ class ConstitutionalChallengeService
         }
 
         throw new ConstitutionalViolation(
-            'No judiciary exists in the law\'s footprint yet — a challenge waits for a court to form, '
-            .'but a court row must exist to park against (the jurisdiction has no judiciaries row).',
+            __('No judiciary exists in the law\'s footprint yet — a challenge waits for a court to form, but a court row must exist to park against (the jurisdiction has no judiciaries row).'),
             'Art. IV §5'
         );
     }

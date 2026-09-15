@@ -62,15 +62,15 @@ class OrgConversionService
     public function request(Organization $org, User $actor, string $direction, ?string $rationale): OrgConversion
     {
         if (! in_array($direction, [OrgConversion::DIRECTION_PRIVATE_TO_CGC, OrgConversion::DIRECTION_CGC_TO_PRIVATE], true)) {
-            throw new ConstitutionalViolation("Unknown conversion direction [{$direction}].", 'CGA Forms Catalog (F-ORG-006)');
+            throw new ConstitutionalViolation(__('Unknown conversion direction [:direction].', ['direction' => $direction]), 'CGA Forms Catalog (F-ORG-006)');
         }
 
         if ($direction === OrgConversion::DIRECTION_CGC_TO_PRIVATE && ! $org->is_cgc) {
-            throw new ConstitutionalViolation('Only a CGC can be sold to private ownership.', 'Art. III §5');
+            throw new ConstitutionalViolation(__('Only a CGC can be sold to private ownership.'), 'Art. III §5');
         }
 
         if ($direction === OrgConversion::DIRECTION_PRIVATE_TO_CGC && $org->is_cgc) {
-            throw new ConstitutionalViolation('This organization is already a CGC.', 'Art. III §5');
+            throw new ConstitutionalViolation(__('This organization is already a CGC.'), 'Art. III §5');
         }
 
         return OrgConversion::create([
@@ -98,7 +98,7 @@ class OrgConversionService
 
         if ($org === null || $org->is_cgc) {
             throw new ConstitutionalViolation(
-                'F-LEG-026 targets a private organization (a CGC cannot be acquired).',
+                __('F-LEG-026 targets a private organization (a CGC cannot be acquired).'),
                 'CGA Forms Catalog (F-LEG-026)'
             );
         }
@@ -110,8 +110,7 @@ class OrgConversionService
             // The validator pre-checks this too (pre-vote, rejected on the
             // chain); the service is the backstop.
             throw new ConstitutionalViolation(
-                'A monopoly acquisition records the fair-market floor and its published valuation basis '
-                . 'BEFORE any vote — fair-market compensation is the constitutional condition.',
+                __('A monopoly acquisition records the fair-market floor and its published valuation basis BEFORE any vote — fair-market compensation is the constitutional condition.'),
                 'Art. III §5'
             );
         }
@@ -190,14 +189,14 @@ class OrgConversionService
     {
         if ($conversion->status !== OrgConversion::STATUS_COMPENSATION_PENDING) {
             throw new ConstitutionalViolation(
-                "Conversion [{$conversion->id}] is not awaiting compensation (status: {$conversion->status}).",
+                __('Conversion [:id] is not awaiting compensation (status: :status).', ['id' => $conversion->id, 'status' => $conversion->status]),
                 'CGA Forms Catalog (F-LEG-026)'
             );
         }
 
         if ($conversion->authorizing_law_id === null) {
             throw new ConstitutionalViolation(
-                'A conversion proceeds only on an enacted authorizing law — CGCs are never self-converted.',
+                __('A conversion proceeds only on an enacted authorizing law — CGCs are never self-converted.'),
                 'Art. III §5'
             );
         }
@@ -339,11 +338,11 @@ class OrgConversionService
         $branch = (string) ($payload['branch'] ?? '');
 
         if ($org === null || ! $org->is_cgc) {
-            throw new ConstitutionalViolation('F-LEG-027 targets a Common Good Corporation.', 'CGA Forms Catalog (F-LEG-027)');
+            throw new ConstitutionalViolation(__('F-LEG-027 targets a Common Good Corporation.'), 'CGA Forms Catalog (F-LEG-027)');
         }
 
         if (! in_array($branch, ['reorganize', 'dissolve', 'sell'], true)) {
-            throw new ConstitutionalViolation("Unknown F-LEG-027 branch [{$branch}].", 'CGA Forms Catalog (F-LEG-027)');
+            throw new ConstitutionalViolation(__('Unknown F-LEG-027 branch [:branch].', ['branch' => $branch]), 'CGA Forms Catalog (F-LEG-027)');
         }
 
         // CONSTITUTIONAL PIN (Art. III §5): a sale can never reach the IP
@@ -352,15 +351,14 @@ class OrgConversionService
         foreach (array_keys($payload) as $key) {
             if (str_starts_with(strtolower((string) $key), 'ip_') || str_contains(strtolower((string) $key), 'reclaim')) {
                 throw new ConstitutionalViolation(
-                    'CGC public-domain dedications are irreversible — no sale or reorganization may reclaim or '
-                    . 'privatize dedicated IP.',
+                    __('CGC public-domain dedications are irreversible — no sale or reorganization may reclaim or privatize dedicated IP.'),
                     'Art. III §5'
                 );
             }
         }
 
         if ($branch === 'reorganize' && trim((string) ($payload['charter'] ?? '')) === '') {
-            throw new ConstitutionalViolation('Reorganization requires the new charter text.', 'CGA Forms Catalog (F-LEG-027)');
+            throw new ConstitutionalViolation(__('Reorganization requires the new charter text.'), 'CGA Forms Catalog (F-LEG-027)');
         }
 
         if ($branch === 'sell') {
@@ -368,7 +366,7 @@ class OrgConversionService
                 || ! is_string($payload['buyer_id'] ?? null)
                 || ! is_numeric($payload['consideration'] ?? null)) {
                 throw new ConstitutionalViolation(
-                    'A sale names the buyer (type + id) and the recorded consideration.',
+                    __('A sale names the buyer (type + id) and the recorded consideration.'),
                     'CGA Forms Catalog (F-LEG-027)'
                 );
             }
@@ -527,7 +525,7 @@ class OrgConversionService
                 return ['org_conversions', (string) $conversion->id];
             })(),
 
-            default => throw new ConstitutionalViolation('Unknown F-LEG-027 branch.', 'CGA Forms Catalog (F-LEG-027)'),
+            default => throw new ConstitutionalViolation(__('Unknown F-LEG-027 branch.'), 'CGA Forms Catalog (F-LEG-027)'),
         };
     }
 }

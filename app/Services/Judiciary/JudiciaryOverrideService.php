@@ -51,7 +51,7 @@ class JudiciaryOverrideService
     ): array {
         if ($challenge->status !== ConstitutionalChallenge::STATUS_LEGISLATIVE_WINDOW_OPEN) {
             throw new ConstitutionalViolation(
-                "An override answers a finding whose window is open (challenge status: {$challenge->status}).",
+                __('An override answers a finding whose window is open (challenge status: :status).', ['status' => $challenge->status]),
                 'Art. IV §5'
             );
         }
@@ -59,14 +59,13 @@ class JudiciaryOverrideService
         $recommendation = RemedyRecommendation::query()->find((string) $challenge->remedy_id);
 
         if ($recommendation === null) {
-            throw new ConstitutionalViolation('No remedy window is open on this challenge.', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('No remedy window is open on this challenge.'), 'Art. IV §5');
         }
 
         // §5.4 — the CLK-11 veto window must still be open at FILING time.
         if (now()->greaterThan($recommendation->veto_closes_at)) {
             throw new ConstitutionalViolation(
-                'The judicial veto window has closed — a supermajority override must be adopted within the '
-                .'set window (Art. IV §5.4); the window has expired.',
+                __('The judicial veto window has closed — a supermajority override must be adopted within the set window (Art. IV §5.4); the window has expired.'),
                 'Art. IV §5'
             );
         }

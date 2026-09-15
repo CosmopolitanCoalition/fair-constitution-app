@@ -63,14 +63,14 @@ class ExecutiveFormationService
     {
         if ($memberCount < 5) {
             throw new ConstitutionalViolation(
-                "A delegated executive committee has at least 5 members (got {$memberCount}).",
+                __('A delegated executive committee has at least 5 members (got :memberCount).', ['memberCount' => $memberCount]),
                 'Art. III §2'
             );
         }
 
         if ($memberCount > $serving) {
             throw new ConstitutionalViolation(
-                "The delegated committee ({$memberCount}) cannot exceed the chamber's serving members ({$serving}).",
+                __('The delegated committee (:memberCount) cannot exceed the chamber\'s serving members (:serving).', ['memberCount' => $memberCount, 'serving' => $serving]),
                 'Art. III §2'
             );
         }
@@ -84,15 +84,14 @@ class ExecutiveFormationService
     {
         if (! in_array($targetType, [Executive::TYPE_COMMITTEE, Executive::TYPE_INDIVIDUAL], true)) {
             throw new ConstitutionalViolation(
-                "Unknown executive target type [{$targetType}].",
+                __('Unknown executive target type [:targetType].', ['targetType' => $targetType]),
                 'Art. III §2 · §3'
             );
         }
 
         if ($targetType === Executive::TYPE_COMMITTEE && ($memberCount === null || $memberCount < 5)) {
             throw new ConstitutionalViolation(
-                'An elected executive committee has at least 5 members (Art. III §2 floors the '
-                . 'committee model at 5; there is no ceiling).',
+                __('An elected executive committee has at least 5 members (Art. III §2 floors the committee model at 5; there is no ceiling).'),
                 'Art. III §2'
             );
         }
@@ -372,7 +371,7 @@ class ExecutiveFormationService
     ): ChamberVote {
         if ($process->status !== MultiJurisdictionVote::STATUS_OPEN) {
             throw new ConstitutionalViolation(
-                'The constituent process is not open.',
+                __('The constituent process is not open.'),
                 'Art. VII · as implemented'
             );
         }
@@ -384,17 +383,17 @@ class ExecutiveFormationService
 
         if ($consent === null) {
             throw new ConstitutionalViolation(
-                'This chamber\'s jurisdiction is not a constituent of the process.',
+                __('This chamber\'s jurisdiction is not a constituent of the process.'),
                 'Art. VII · as implemented'
             );
         }
 
         if ($consent->result !== ConstituentConsent::RESULT_PENDING) {
-            throw new ConstitutionalViolation('This constituent has already decided.', 'Art. VII · as implemented');
+            throw new ConstitutionalViolation(__('This constituent has already decided.'), 'Art. VII · as implemented');
         }
 
         if ($consent->chamber_vote_id !== null) {
-            throw new ConstitutionalViolation('This constituent\'s consent vote is already open.', 'Art. VII · as implemented');
+            throw new ConstitutionalViolation(__('This constituent\'s consent vote is already open.'), 'Art. VII · as implemented');
         }
 
         $vote = $this->votes->open(
@@ -546,7 +545,7 @@ class ExecutiveFormationService
     {
         if ($executive->status !== Executive::STATUS_ELECTED) {
             throw new ConstitutionalViolation(
-                'Office alteration applies to an ELECTED executive office (Art. III §2).',
+                __('Office alteration applies to an ELECTED executive office (Art. III §2).'),
                 'Art. III §2'
             );
         }
@@ -555,7 +554,7 @@ class ExecutiveFormationService
 
         if ($constituents === []) {
             throw new ConstitutionalViolation(
-                'No constituent legislatures exist to consent to the alteration.',
+                __('No constituent legislatures exist to consent to the alteration.'),
                 'Art. III §2'
             );
         }
@@ -631,7 +630,7 @@ class ExecutiveFormationService
 
         if ($proposal === null) {
             throw new ConstitutionalViolation(
-                'The conversion process has no resolvable F-LEG-015 act payload.',
+                __('The conversion process has no resolvable F-LEG-015 act payload.'),
                 'Art. III §3 · as implemented'
             );
         }
@@ -800,7 +799,7 @@ class ExecutiveFormationService
     {
         if ($executive->type !== Executive::TYPE_INDIVIDUAL) {
             throw new ConstitutionalViolation(
-                'Succession applies to the individual executive model (Art. III §3).',
+                __('Succession applies to the individual executive model (Art. III §3).'),
                 'Art. III §3'
             );
         }

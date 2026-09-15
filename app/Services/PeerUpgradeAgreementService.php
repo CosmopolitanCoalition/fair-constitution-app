@@ -104,7 +104,7 @@ class PeerUpgradeAgreementService
 
             if ($toCv === $fromCv) {
                 throw new ConstitutionalViolation(
-                    'There is nothing to agree — the constitutional_version is unchanged.',
+                    __('There is nothing to agree — the constitutional_version is unchanged.'),
                     'Art. VII · as implemented',
                 );
             }
@@ -160,13 +160,13 @@ class PeerUpgradeAgreementService
         $proposal = $proposal->refresh();
 
         if (! $proposal->isOpen()) {
-            throw new ConstitutionalViolation('The upgrade proposal is not open.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('The upgrade proposal is not open.'), 'Art. II §2 · as implemented');
         }
 
         // Vetting rail (anti-Sybil): only an ACTIVE operator counts as board.
         if (! $operator->isActive()) {
             throw new ConstitutionalViolation(
-                'Only a vetted (active) operator may attest as the de-facto election board.',
+                __('Only a vetted (active) operator may attest as the de-facto election board.'),
                 'Art. II §2',
             );
         }
@@ -175,8 +175,7 @@ class PeerUpgradeAgreementService
         // consent on its behalf (the bootstrap-note transition, Art. II §2).
         if ($this->applicableConsentLeg($proposal->affected_root_jurisdiction_id) !== 'operator') {
             throw new ConstitutionalViolation(
-                'This jurisdiction has a seated government — its supermajority consent (Meter B) supersedes '
-                .'the operator board; an operator cannot attest on its behalf.',
+                __('This jurisdiction has a seated government — its supermajority consent (Meter B) supersedes the operator board; an operator cannot attest on its behalf.'),
                 'Art. II §2',
             );
         }
@@ -189,7 +188,7 @@ class PeerUpgradeAgreementService
             ]);
 
             if ($consent->exists && $consent->result !== PeerUpgradeConsent::RESULT_PENDING) {
-                throw new ConstitutionalViolation('This operator has already attested.', 'Art. II §2 · as implemented');
+                throw new ConstitutionalViolation(__('This operator has already attested.'), 'Art. II §2 · as implemented');
             }
 
             $consent->fill([
@@ -226,7 +225,7 @@ class PeerUpgradeAgreementService
         $proposal = $proposal->refresh();
 
         if (! $proposal->isOpen()) {
-            throw new ConstitutionalViolation('The upgrade proposal is not open.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('The upgrade proposal is not open.'), 'Art. II §2 · as implemented');
         }
 
         if ($proposal->seated_process_id !== null) {
@@ -237,8 +236,7 @@ class PeerUpgradeAgreementService
 
         if ($legislature === null) {
             throw new ConstitutionalViolation(
-                'This jurisdiction has no seated government — the operator board stands in (Meter A); '
-                .'there is no seated leg to open.',
+                __('This jurisdiction has no seated government — the operator board stands in (Meter A); there is no seated leg to open.'),
                 'Art. II §2',
             );
         }
@@ -291,7 +289,7 @@ class PeerUpgradeAgreementService
         $proposal = $proposal->refresh();
 
         if ($proposal->seated_process_id === null) {
-            throw new ConstitutionalViolation('The seated leg has not been opened.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('The seated leg has not been opened.'), 'Art. II §2 · as implemented');
         }
 
         $mjv = MultiJurisdictionVote::query()->findOrFail($proposal->seated_process_id);
@@ -319,12 +317,12 @@ class PeerUpgradeAgreementService
         $proposal = $proposal->refresh();
 
         if (! $proposal->isOpen()) {
-            throw new ConstitutionalViolation('The upgrade proposal is not open.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('The upgrade proposal is not open.'), 'Art. II §2 · as implemented');
         }
 
         if (! in_array($peerServerId, $this->coAffectedPeerServerIds($proposal->affected_root_jurisdiction_id), true)) {
             throw new ConstitutionalViolation(
-                'Only a trust-established peer authoritative for a co-affected subtree records mesh consent (Meter C).',
+                __('Only a trust-established peer authoritative for a co-affected subtree records mesh consent (Meter C).'),
                 'Art. VII',
             );
         }
@@ -337,7 +335,7 @@ class PeerUpgradeAgreementService
             ]);
 
             if ($consent->exists && $consent->result !== PeerUpgradeConsent::RESULT_PENDING) {
-                throw new ConstitutionalViolation('This peer has already recorded its mesh consent.', 'Art. VII · as implemented');
+                throw new ConstitutionalViolation(__('This peer has already recorded its mesh consent.'), 'Art. VII · as implemented');
             }
 
             $consent->fill([
@@ -395,7 +393,7 @@ class PeerUpgradeAgreementService
         $proposal = $proposal->refresh();
 
         if (! $proposal->isOpen()) {
-            throw new ConstitutionalViolation('The upgrade proposal is not open.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('The upgrade proposal is not open.'), 'Art. II §2 · as implemented');
         }
 
         if ($proposal->kind === PeerUpgradeProposal::KIND_CONSTITUTIONAL_BUMP) {
@@ -412,15 +410,13 @@ class PeerUpgradeAgreementService
             if ($leg === 'seated') {
                 if (! $this->meterBPassed($proposal)) {
                     throw new ConstitutionalViolation(
-                        'A constitutional-version upgrade to a jurisdiction with a seated government requires '
-                        .'that government\'s supermajority consent (Meter B) — it has not been reached.',
+                        __('A constitutional-version upgrade to a jurisdiction with a seated government requires that government\'s supermajority consent (Meter B) — it has not been reached.'),
                         'Art. VII',
                     );
                 }
             } elseif (! $this->meterAPassed($proposal)) {
                 throw new ConstitutionalViolation(
-                    'A constitutional-version upgrade in bootstrap mode requires the operator board\'s '
-                    .'attestation (Meter A) — the scaling-consent threshold has not been reached.',
+                    __('A constitutional-version upgrade in bootstrap mode requires the operator board\'s attestation (Meter A) — the scaling-consent threshold has not been reached.'),
                     'Art. II §2',
                 );
             }
@@ -431,9 +427,7 @@ class PeerUpgradeAgreementService
             // lone instance, or a subtree we are wholly authoritative for.
             if (! $this->meterCPassed($proposal)) {
                 throw new ConstitutionalViolation(
-                    'A constitutional-version upgrade affecting a subtree a peer is authoritative for requires '
-                    .'that peer\'s mesh consent (Meter C) before the mesh resumes cross-counting — it has not '
-                    .'been recorded for every co-affected peer.',
+                    __('A constitutional-version upgrade affecting a subtree a peer is authoritative for requires that peer\'s mesh consent (Meter C) before the mesh resumes cross-counting — it has not been recorded for every co-affected peer.'),
                     'Art. VII',
                 );
             }

@@ -163,7 +163,7 @@ class ReferendumService
     {
         if ($petition->status !== Petition::STATUS_VALIDATED) {
             throw new ConstitutionalViolation(
-                'Only a validated petition queues to the ballot (ESM-10).',
+                __('Only a validated petition queues to the ballot (ESM-10).'),
                 'Art. II §6'
             );
         }
@@ -542,7 +542,7 @@ class ReferendumService
     {
         if ($law->origin !== Law::ORIGIN_REFERENDUM) {
             throw new ConstitutionalViolation(
-                'F-LEG-034 modifies referendum-passed acts only — other laws amend through the bill path.',
+                __('F-LEG-034 modifies referendum-passed acts only — other laws amend through the bill path.'),
                 'Art. II §6'
             );
         }
@@ -554,13 +554,13 @@ class ReferendumService
 
         if ((string) $law->legislature_id !== (string) $legislature->id) {
             throw new ConstitutionalViolation(
-                'A referendum act is modified by the legislature of its own jurisdiction.',
+                __('A referendum act is modified by the legislature of its own jurisdiction.'),
                 'Art. II §6 · as implemented'
             );
         }
 
         if (trim($newText) === '') {
-            throw new ConstitutionalViolation('A modification carries replacement law text.', 'Art. II §6 · as implemented');
+            throw new ConstitutionalViolation(__('A modification carries replacement law text.'), 'Art. II §6 · as implemented');
         }
 
         $proposal = ChamberVoteProposal::create([
@@ -628,12 +628,12 @@ class ReferendumService
     private function validateQuestionPayload(array $payload): void
     {
         if (trim((string) ($payload['question'] ?? '')) === '') {
-            throw new ConstitutionalViolation('A referendum carries ballot question text.', 'Art. II §6 · as implemented');
+            throw new ConstitutionalViolation(__('A referendum carries ballot question text.'), 'Art. II §6 · as implemented');
         }
 
         if (trim((string) ($payload['law_text'] ?? '')) === '') {
             throw new ConstitutionalViolation(
-                'A referendum carries the binding law text it would enact.',
+                __('A referendum carries the binding law text it would enact.'),
                 'Art. II §6 · as implemented'
             );
         }
@@ -642,7 +642,7 @@ class ReferendumService
 
         if (! in_array($actType, ReferendumQuestion::ACT_TYPES, true)) {
             throw new ConstitutionalViolation(
-                "Unknown referendum act_type [{$actType}] — ordinary, setting_change, or supermajority.",
+                __('Unknown referendum act_type [:actType] — ordinary, setting_change, or supermajority.', ['actType' => $actType]),
                 'Art. II §6 · as implemented'
             );
         }
@@ -651,7 +651,7 @@ class ReferendumService
 
         if (($actType === 'setting_change') !== ($settingKey !== null)) {
             throw new ConstitutionalViolation(
-                'setting_change questions (and only they) target a setting key.',
+                __('setting_change questions (and only they) target a setting key.'),
                 'Art. VII'
             );
         }

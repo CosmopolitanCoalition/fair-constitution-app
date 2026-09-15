@@ -40,13 +40,13 @@ class CgcIpRegisterService
     ): CgcIpRegisterEntry {
         if (! $org->is_cgc) {
             throw new ConstitutionalViolation(
-                'IP dedications belong to Common Good Corporations — this organization is not a CGC.',
+                __('IP dedications belong to Common Good Corporations — this organization is not a CGC.'),
                 'Art. III §5'
             );
         }
 
         if (! in_array($kind, CgcIpRegisterEntry::KINDS, true)) {
-            throw new ConstitutionalViolation("Unknown IP kind [{$kind}].", 'Art. III §5 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown IP kind [:kind].', ['kind' => $kind]), 'Art. III §5 · as implemented');
         }
 
         $record = $this->records->publish(

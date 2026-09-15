@@ -265,7 +265,7 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
 
         if ($legislature === null) {
             throw new ConstitutionalViolation(
-                'Cannot open a successor approval phase for an election without a legislature.',
+                __('Cannot open a successor approval phase for an election without a legislature.'),
                 'Art. II §2'
             );
         }
@@ -347,7 +347,7 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
             ->where('election_races.seat_kind', $seatKind)->orderByDesc('owner_election.created_at')->orderByDesc('owner_election.id')
             ->value('election_races.seats') ?? $fallback);
         if ($seats < 1) {
-            throw new ConstitutionalViolation('The elected office has no published seat count for its next election.', 'CLK-01 · CLK-10');
+            throw new ConstitutionalViolation(__('The elected office has no published seat count for its next election.'), 'CLK-01 · CLK-10');
         }
 
         return $seats;
@@ -359,7 +359,7 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
         if ($companion !== null && ! in_array($companion->status, [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN], true)) {
             foreach (['approval_opens_at', 'finalist_cutoff_at', 'ranked_opens_at', 'ranked_closes_at'] as $field) {
                 if ($companion->getAttribute($field)?->toIso8601String() !== $general->getAttribute($field)?->toIso8601String()) {
-                    throw new ConstitutionalViolation('A linked office ballot is already frozen; its general cycle dates cannot be changed.', 'CLK-18 · CLK-21');
+                    throw new ConstitutionalViolation(__('A linked office ballot is already frozen; its general cycle dates cannot be changed.'), 'CLK-18 · CLK-21');
                 }
             }
             return;
@@ -430,7 +430,7 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
 
             if ($rClose->gt($windowCloses) && ! $forced) {
                 throw new ConstitutionalViolation(
-                    'Special election ranked window falls outside the constitutional window.',
+                    __('Special election ranked window falls outside the constitutional window.'),
                     'Art. II §5'
                 );
             }
@@ -944,7 +944,7 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 ->implode('; ');
 
             throw new ConstitutionalViolation(
-                "Race generation is blocked pending subdivision — {$reasons}.",
+                __('Race generation is blocked pending subdivision — :reasons.', ['reasons' => $reasons]),
                 'Art. II §8'
             );
         }
@@ -978,7 +978,7 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
         // caller (operator ruling 2026-07-25, per-kind blocking).
         if ($plan['fully_blocked']) {
             throw new ConstitutionalViolation(
-                'Race generation is blocked pending subdivision.',
+                __('Race generation is blocked pending subdivision.'),
                 'Art. II §8'
             );
         }
@@ -1358,7 +1358,7 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
 
             if (! in_array($to, self::TRANSITIONS[$from] ?? [], true)) {
                 throw new ConstitutionalViolation(
-                    "Illegal election phase move {$from} → {$to} (ESM-03).",
+                    __('Illegal election phase move :from → :to (ESM-03).', ['from' => $from, 'to' => $to]),
                     'Art. II §2 · CGA open-ballot spec'
                 );
             }
@@ -1426,7 +1426,7 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
 
             if ($cutoff->lt($opens->copy()->addDays($approvalMinDays))) {
                 throw new ConstitutionalViolation(
-                    "Finalist cutoff must fall at least {$approvalMinDays} days after the approval phase opens.",
+                    __('Finalist cutoff must fall at least :approvalMinDays days after the approval phase opens.', ['approvalMinDays' => $approvalMinDays]),
                     'Art. II §2 · CGA open-ballot spec'
                 );
             }
@@ -1434,7 +1434,7 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
 
         if (! ($opens->lt($cutoff) && $cutoff->lt($rOpen) && $rOpen->lt($rClose))) {
             throw new ConstitutionalViolation(
-                'Election schedule must be strictly ordered: approval opens < finalist cutoff < ranked opens < ranked closes.',
+                __('Election schedule must be strictly ordered: approval opens < finalist cutoff < ranked opens < ranked closes.'),
                 'Art. II §2 · CGA open-ballot spec'
             );
         }

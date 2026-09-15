@@ -77,7 +77,7 @@ class ChamberActService
     ): array {
         if ($jurisdictionId !== (string) $legislature->jurisdiction_id) {
             throw new ConstitutionalViolation(
-                'A legislature constitutes the election board of ITS OWN jurisdiction.',
+                __('A legislature constitutes the election board of ITS OWN jurisdiction.'),
                 'CGA Forms Catalog (F-LEG-012)'
             );
         }
@@ -94,7 +94,7 @@ class ChamberActService
 
         if ($existingProper) {
             throw new ConstitutionalViolation(
-                'A proper election board already exists (forming or active) for this jurisdiction.',
+                __('A proper election board already exists (forming or active) for this jurisdiction.'),
                 'WF-ELE-10'
             );
         }
@@ -124,7 +124,7 @@ class ChamberActService
 
         if ($existing) {
             throw new ConstitutionalViolation(
-                'This legislature already has a live administrative office.',
+                __('This legislature already has a live administrative office.'),
                 'CGA Forms Catalog (F-LEG-013)'
             );
         }
@@ -152,12 +152,12 @@ class ChamberActService
         string $text,
     ): array {
         if (! in_array($kind, [ChamberVoteProposal::KIND_RULES_OF_ORDER, ChamberVoteProposal::KIND_ETHICS_CODE], true)) {
-            throw new ConstitutionalViolation("Unknown direct-adoption law kind [{$kind}].", 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('Unknown direct-adoption law kind [:kind].', ['kind' => $kind]), 'CGA Forms Catalog');
         }
 
         if (trim($title) === '' || trim($text) === '') {
             throw new ConstitutionalViolation(
-                'Rules/Ethics adoption requires a non-empty title and text.',
+                __('Rules/Ethics adoption requires a non-empty title and text.'),
                 'CGA Forms Catalog (F-LEG-032/033)'
             );
         }
@@ -184,20 +184,20 @@ class ChamberActService
         $budget = DB::table('budgets')->where('id', $budgetId)->whereNull('deleted_at')->first();
 
         if ($budget === null) {
-            throw new ConstitutionalViolation("Unknown budget [{$budgetId}].", 'CGA Forms Catalog (F-LEG-039)');
+            throw new ConstitutionalViolation(__('Unknown budget [:budgetId].', ['budgetId' => $budgetId]), 'CGA Forms Catalog (F-LEG-039)');
         }
 
         if ((string) $budget->jurisdiction_id !== (string) $legislature->jurisdiction_id) {
-            throw new ConstitutionalViolation('A chamber enacts a budget of its own jurisdiction.', 'Art. II §9 · as implemented');
+            throw new ConstitutionalViolation(__('A chamber enacts a budget of its own jurisdiction.'), 'Art. II §9 · as implemented');
         }
 
         if ($budget->status !== 'draft') {
-            throw new ConstitutionalViolation('Only a drafted budget is moved to enactment.', 'Art. II §9 · as implemented');
+            throw new ConstitutionalViolation(__('Only a drafted budget is moved to enactment.'), 'Art. II §9 · as implemented');
         }
 
         if ($this->jurisdictionExecutive((string) $legislature->jurisdiction_id) === null) {
             throw new ConstitutionalViolation(
-                'A budget needs an executive to administer its appropriations.',
+                __('A budget needs an executive to administer its appropriations.'),
                 'Art. II §9 · as implemented'
             );
         }
@@ -224,14 +224,14 @@ class ChamberActService
         $budget = DB::table('budgets')->where('id', $budgetId)->whereNull('deleted_at')->first();
 
         if ($budget === null) {
-            throw new ConstitutionalViolation("Unknown budget [{$budgetId}].", 'Art. II §9 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown budget [:budgetId].', ['budgetId' => $budgetId]), 'Art. II §9 · as implemented');
         }
 
         $executive = $this->jurisdictionExecutive((string) $legislature->jurisdiction_id);
 
         if ($executive === null) {
             throw new ConstitutionalViolation(
-                'A budget needs an executive to administer its appropriations.',
+                __('A budget needs an executive to administer its appropriations.'),
                 'Art. II §9 · as implemented'
             );
         }
@@ -411,8 +411,7 @@ class ChamberActService
             // 10-year civil-appointment term — the SAME consent pipeline.
             'judicial_seats' => app(\App\Services\Judiciary\JudicialSeatService::class)->seat($appointment),
             default => throw new ConstitutionalViolation(
-                'Chamber-ops consent knows election_boards, admin_offices, board_seats, departments, '
-                ."and judicial_seats targets, not [{$appointment->appointable_type}].",
+                __('Chamber-ops consent knows election_boards, admin_offices, board_seats, departments, and judicial_seats targets, not [:appointable_type].', ['appointable_type' => $appointment->appointable_type]),
                 'WF-SYS-04'
             ),
         };
@@ -599,7 +598,7 @@ class ChamberActService
             ),
 
             default => throw new ConstitutionalViolation(
-                "Unknown proposal kind [{$proposal->proposal_kind}].",
+                __('Unknown proposal kind [:proposal_kind].', ['proposal_kind' => $proposal->proposal_kind]),
                 'WF-SYS-04'
             ),
         };
@@ -852,8 +851,7 @@ class ChamberActService
 
         if (! $associated) {
             throw new ConstitutionalViolation(
-                "{$formId} nominee [{$userId}] holds no active association with the jurisdiction — "
-                .'association is the only eligibility check (Art. I).',
+                __(':formId nominee [:userId] holds no active association with the jurisdiction — association is the only eligibility check (Art. I).', ['formId' => $formId, 'userId' => $userId]),
                 'Art. I'
             );
         }

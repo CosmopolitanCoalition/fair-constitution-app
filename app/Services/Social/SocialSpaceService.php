@@ -32,17 +32,17 @@ class SocialSpaceService
     {
         $jurisdictionId = (string) ($payload['jurisdiction_id'] ?? '');
         if ($jurisdictionId === '') {
-            throw new ConstitutionalViolation('A square post must name its jurisdiction.', 'Art. I');
+            throw new ConstitutionalViolation(__('A square post must name its jurisdiction.'), 'Art. I');
         }
 
         $spaceType = (string) ($payload['space_type'] ?? SocialSpace::TYPE_PUBLIC_SQUARE);
         if (! in_array($spaceType, [SocialSpace::TYPE_PUBLIC_SQUARE, SocialSpace::TYPE_HALLS], true)) {
-            throw new ConstitutionalViolation('Unknown space type.', 'Art. I');
+            throw new ConstitutionalViolation(__('Unknown space type.'), 'Art. I');
         }
 
         $body = trim((string) ($payload['body'] ?? ''));
         if ($body === '') {
-            throw new ConstitutionalViolation('A post needs a body.', 'Art. I');
+            throw new ConstitutionalViolation(__('A post needs a body.'), 'Art. I');
         }
 
         $display = $this->displayFor($actor);
@@ -117,7 +117,7 @@ class SocialSpaceService
 
         $title = trim((string) ($payload['title'] ?? ''));
         if ($title === '') {
-            throw new ConstitutionalViolation('A new thread needs a title.', 'Art. I');
+            throw new ConstitutionalViolation(__('A new thread needs a title.'), 'Art. I');
         }
 
         return SocialThread::query()->create([

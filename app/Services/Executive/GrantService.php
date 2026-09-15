@@ -35,13 +35,13 @@ class GrantService
     {
         if (! in_array($law->status, [Law::STATUS_IN_FORCE, Law::STATUS_AMENDED], true)) {
             throw new ConstitutionalViolation(
-                'Appropriations attach to an act in force — legislatures appropriate by act.',
+                __('Appropriations attach to an act in force — legislatures appropriate by act.'),
                 'Art. II §9 · as implemented'
             );
         }
 
         if ($amount <= 0) {
-            throw new ConstitutionalViolation('An appropriation line carries a positive amount.', 'Art. II §9 · as implemented');
+            throw new ConstitutionalViolation(__('An appropriation line carries a positive amount.'), 'Art. II §9 · as implemented');
         }
 
         $appropriation = Appropriation::create([
@@ -73,11 +73,11 @@ class GrantService
     public function apply(Appropriation $appropriation, Organization $org, float $amount, string $purpose): GrantApplication
     {
         if ($appropriation->status !== Appropriation::STATUS_ACTIVE) {
-            throw new ConstitutionalViolation('The appropriation is not active.', 'Art. II §9 · as implemented');
+            throw new ConstitutionalViolation(__('The appropriation is not active.'), 'Art. II §9 · as implemented');
         }
 
         if ($amount <= 0) {
-            throw new ConstitutionalViolation('A grant application carries a positive amount.', 'Art. II §9 · as implemented');
+            throw new ConstitutionalViolation(__('A grant application carries a positive amount.'), 'Art. II §9 · as implemented');
         }
 
         return GrantApplication::create([
@@ -102,18 +102,14 @@ class GrantService
 
             if ($application->status !== GrantApplication::STATUS_SUBMITTED) {
                 throw new ConstitutionalViolation(
-                    "Only a submitted application can be awarded (status: {$application->status}).",
+                    __('Only a submitted application can be awarded (status: :status).', ['status' => $application->status]),
                     'Art. II §9 · as implemented'
                 );
             }
 
             if ((float) $application->amount > (float) $appropriation->remaining) {
                 throw new ConstitutionalViolation(
-                    sprintf(
-                        'Award %.2f exceeds the appropriation\'s remaining %.2f — awards never exceed the act.',
-                        (float) $application->amount,
-                        (float) $appropriation->remaining
-                    ),
+                    __('Award :amount exceeds the appropriation\'s remaining :remaining — awards never exceed the act.', ['amount' => sprintf('%.2f', (float) $application->amount), 'remaining' => sprintf('%.2f', (float) $appropriation->remaining)]),
                     'Art. II §9 · as implemented'
                 );
             }
@@ -170,7 +166,7 @@ class GrantService
         $this->assertDecider($decider, $appropriation);
 
         if ($application->status !== GrantApplication::STATUS_SUBMITTED) {
-            throw new ConstitutionalViolation('Only a submitted application can be declined.', 'Art. II §9 · as implemented');
+            throw new ConstitutionalViolation(__('Only a submitted application can be declined.'), 'Art. II §9 · as implemented');
         }
 
         $application->forceFill([
@@ -194,7 +190,7 @@ class GrantService
             $this->assertDecider($member, $appropriation);
 
             if ($application->status !== GrantApplication::STATUS_AWARDED) {
-                throw new ConstitutionalViolation('Disbursements run against AWARDED applications.', 'Art. II §9 · as implemented');
+                throw new ConstitutionalViolation(__('Disbursements run against AWARDED applications.'), 'Art. II §9 · as implemented');
             }
 
             $disbursed = (float) GrantDisbursement::query()
@@ -203,12 +199,7 @@ class GrantService
 
             if ($amount <= 0 || $disbursed + $amount > (float) $application->amount) {
                 throw new ConstitutionalViolation(
-                    sprintf(
-                        'Disbursement %.2f would exceed the award (%.2f of %.2f already disbursed).',
-                        $amount,
-                        $disbursed,
-                        (float) $application->amount
-                    ),
+                    __('Disbursement :amount would exceed the award (:disbursed of :total already disbursed).', ['amount' => sprintf('%.2f', $amount), 'disbursed' => sprintf('%.2f', $disbursed), 'total' => sprintf('%.2f', (float) $application->amount)]),
                     'Art. II §9 · as implemented'
                 );
             }
@@ -258,7 +249,7 @@ class GrantService
         if ((string) $member->executive_id !== (string) $appropriation->executive_id
             || $member->status !== ExecutiveMember::STATUS_SEATED) {
             throw new ConstitutionalViolation(
-                'Grant decisions are acts of the ADMINISTERING executive\'s seated members.',
+                __('Grant decisions are acts of the ADMINISTERING executive\'s seated members.'),
                 'Art. II §9 · as implemented'
             );
         }

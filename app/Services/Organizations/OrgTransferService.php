@@ -31,20 +31,20 @@ class OrgTransferService
     {
         if ($org->is_cgc) {
             throw new ConstitutionalViolation(
-                'CGC ownership never transfers privately — reorganization/sale is a legislative act (F-LEG-027).',
+                __('CGC ownership never transfers privately — reorganization/sale is a legislative act (F-LEG-027).'),
                 'Art. III §5'
             );
         }
 
         if ($org->status !== Organization::STATUS_ACTIVE) {
             throw new ConstitutionalViolation(
-                "Organization [{$org->id}] is not active (status: {$org->status}).",
+                __('Organization [:id] is not active (status: :status).', ['id' => $org->id, 'status' => $org->status]),
                 'CGA Forms Catalog (F-ORG-005)'
             );
         }
 
         if (! in_array($toType, [OrgTransfer::PARTY_USERS, OrgTransfer::PARTY_ORGANIZATIONS], true)) {
-            throw new ConstitutionalViolation("Unknown transferee type [{$toType}].", 'CGA Forms Catalog (F-ORG-005)');
+            throw new ConstitutionalViolation(__('Unknown transferee type [:toType].', ['toType' => $toType]), 'CGA Forms Catalog (F-ORG-005)');
         }
 
         $open = OrgTransfer::query()
@@ -54,7 +54,7 @@ class OrgTransferService
 
         if ($open) {
             throw new ConstitutionalViolation(
-                'An open transfer already exists for this organization.',
+                __('An open transfer already exists for this organization.'),
                 'CGA Forms Catalog (F-ORG-005)'
             );
         }
@@ -79,7 +79,7 @@ class OrgTransferService
     {
         if ($transfer->status !== OrgTransfer::STATUS_PROPOSED) {
             throw new ConstitutionalViolation(
-                "Transfer [{$transfer->id}] is not awaiting consent (status: {$transfer->status}).",
+                __('Transfer [:id] is not awaiting consent (status: :status).', ['id' => $transfer->id, 'status' => $transfer->status]),
                 'CGA Forms Catalog (F-ORG-005)'
             );
         }
@@ -115,7 +115,7 @@ class OrgTransferService
             );
 
             throw new ConstitutionalViolation(
-                "Transfer [{$transfer->id}] is not consented (status: {$transfer->status}).",
+                __('Transfer [:id] is not consented (status: :status).', ['id' => $transfer->id, 'status' => $transfer->status]),
                 'CGA Forms Catalog (F-ORG-005)'
             );
         }
@@ -171,7 +171,7 @@ class OrgTransferService
         if ($transfer->to_party_type === OrgTransfer::PARTY_USERS) {
             if ((string) $transfer->to_party_id !== (string) $actor->getKey()) {
                 throw new ConstitutionalViolation(
-                    'Only the named transferee may consent to receive ownership.',
+                    __('Only the named transferee may consent to receive ownership.'),
                     'CGA Forms Catalog (F-ORG-005)'
                 );
             }
@@ -183,7 +183,7 @@ class OrgTransferService
 
         if ($agentId === null || (string) $agentId !== (string) $actor->getKey()) {
             throw new ConstitutionalViolation(
-                'Only the transferee organization\'s agent may consent on its behalf (R-23).',
+                __('Only the transferee organization\'s agent may consent on its behalf (R-23).'),
                 'CGA Forms Catalog (F-ORG-005)'
             );
         }

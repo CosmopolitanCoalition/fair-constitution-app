@@ -50,7 +50,7 @@ class OrgBoardElectionService
 
         if ($vacant < 1) {
             throw new ConstitutionalViolation(
-                'No vacant owner-elected seats — nothing to elect.',
+                __('No vacant owner-elected seats — nothing to elect.'),
                 'CGA Forms Catalog (F-ORG-003)'
             );
         }
@@ -74,7 +74,7 @@ class OrgBoardElectionService
 
         if ($vacant < 1 || $seats < 1) {
             throw new ConstitutionalViolation(
-                'No vacant worker-elected seats — nothing to elect.',
+                __('No vacant worker-elected seats — nothing to elect.'),
                 'CGA Forms Catalog (F-ORG-004)'
             );
         }
@@ -96,7 +96,7 @@ class OrgBoardElectionService
 
         if ($existing !== null) {
             throw new ConstitutionalViolation(
-                "An open {$kind} election already exists for this board.",
+                __('An open :kind election already exists for this board.', ['kind' => $kind]),
                 'CGA Forms Catalog (F-ORG-003/004)'
             );
         }
@@ -104,7 +104,7 @@ class OrgBoardElectionService
         $jurisdictionId = $board->jurisdictionId();
 
         if ($jurisdictionId === null) {
-            throw new ConstitutionalViolation('The board resolves to no jurisdiction.', 'WF-ORG-04');
+            throw new ConstitutionalViolation(__('The board resolves to no jurisdiction.'), 'WF-ORG-04');
         }
 
         $dates      = $this->lifecycle->defaultDates($jurisdictionId);

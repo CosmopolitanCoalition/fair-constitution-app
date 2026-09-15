@@ -40,13 +40,13 @@ class MultiJurisdictionVoteService
         ?string $subjectId = null,
     ): MultiJurisdictionVote {
         if (! in_array($kind, MultiJurisdictionVote::KINDS, true)) {
-            throw new ConstitutionalViolation("Unknown multi-jurisdiction process kind [{$kind}].", 'Art. VII · as implemented');
+            throw new ConstitutionalViolation(__('Unknown multi-jurisdiction process kind [:kind].', ['kind' => $kind]), 'Art. VII · as implemented');
         }
 
         $total = count($constituentJurisdictionIds);
 
         if ($total < 1) {
-            throw new ConstitutionalViolation('A constituent process needs at least one constituent.', 'Art. VII · as implemented');
+            throw new ConstitutionalViolation(__('A constituent process needs at least one constituent.'), 'Art. VII · as implemented');
         }
 
         $required = $basis === MultiJurisdictionVote::BASIS_UNANIMITY
@@ -105,7 +105,7 @@ class MultiJurisdictionVoteService
             $fresh = MultiJurisdictionVote::query()->whereKey($process->id)->lockForUpdate()->firstOrFail();
 
             if ($fresh->status !== MultiJurisdictionVote::STATUS_OPEN) {
-                throw new ConstitutionalViolation('The constituent process is not open.', 'Art. VII · as implemented');
+                throw new ConstitutionalViolation(__('The constituent process is not open.'), 'Art. VII · as implemented');
             }
 
             $consent = ConstituentConsent::query()
@@ -114,7 +114,7 @@ class MultiJurisdictionVoteService
                 ->firstOrFail();
 
             if ($consent->result !== ConstituentConsent::RESULT_PENDING) {
-                throw new ConstitutionalViolation('This constituent has already decided.', 'Art. VII · as implemented');
+                throw new ConstitutionalViolation(__('This constituent has already decided.'), 'Art. VII · as implemented');
             }
 
             $consent->forceFill([

@@ -76,7 +76,7 @@ class BoardGovernorService
         if ((string) $nominator->executive_id !== (string) $department->executive_id
             || $nominator->status !== ExecutiveMember::STATUS_SEATED || $nominator->role !== ExecutiveMember::ROLE_PRINCIPAL) {
             throw new ConstitutionalViolation(
-                'F-EXE-001 is filed by a seated principal of the OVERSEEING executive (R-14/15/16).',
+                __('F-EXE-001 is filed by a seated principal of the OVERSEEING executive (R-14/15/16).'),
                 'Art. III §4'
             );
         }
@@ -92,7 +92,7 @@ class BoardGovernorService
         $nominator = ExecutiveMember::query()->whereKey($nominator->id)->lockForUpdate()->firstOrFail();
         if ((string) $nominator->executive_id !== (string) $organization->overseen_by_executive_id
             || $nominator->status !== ExecutiveMember::STATUS_SEATED || $nominator->role !== ExecutiveMember::ROLE_PRINCIPAL) {
-            throw new ConstitutionalViolation('Only a seated principal of this corporation\'s overseeing executive may nominate its governors.', 'Art. III §5');
+            throw new ConstitutionalViolation(__('Only a seated principal of this corporation\'s overseeing executive may nominate its governors.'), 'Art. III §5');
         }
 
         return $this->openNomination($organization, $nomineeUserId, (string) $nominator->user_id, $dossier);
@@ -137,7 +137,7 @@ class BoardGovernorService
 
         if ($seat === null) {
             throw new ConstitutionalViolation(
-                'No vacant governor seat exists on this institution\'s current board.',
+                __('No vacant governor seat exists on this institution\'s current board.'),
                 'Art. III §4'
             );
         }
@@ -207,7 +207,7 @@ class BoardGovernorService
         $appointment = Appointment::query()->whereKey($appointment->id)->lockForUpdate()->firstOrFail();
         $vote = ChamberVote::query()->whereKey($appointment->consent_vote_id)->first();
         if ($vote === null) {
-            throw new ConstitutionalViolation('Governor seating requires its recorded consent vote.', 'Art. III §4/§5');
+            throw new ConstitutionalViolation(__('Governor seating requires its recorded consent vote.'), 'Art. III §4/§5');
         }
         $this->assertConsentVote($appointment, $vote, ChamberVote::OUTCOME_ADOPTED);
         [$department, $board, $legislature, $seat] = $this->appointmentContext($appointment);
@@ -358,7 +358,7 @@ class BoardGovernorService
     {
         if ($seat->status !== BoardSeat::STATUS_SEATED) {
             throw new ConstitutionalViolation(
-                'Removal requests run against SEATED board members.',
+                __('Removal requests run against SEATED board members.'),
                 'Art. III §4'
             );
         }
@@ -378,14 +378,14 @@ class BoardGovernorService
         if ((string) $requester->executive_id !== $overseeingExecutiveId
             || $requester->status !== ExecutiveMember::STATUS_SEATED || $requester->role !== ExecutiveMember::ROLE_PRINCIPAL) {
             throw new ConstitutionalViolation(
-                'F-EXE-003 is filed by a seated principal of the OVERSEEING executive (good-faith finding).',
+                __('F-EXE-003 is filed by a seated principal of the OVERSEEING executive (good-faith finding).'),
                 'Art. III §4'
             );
         }
 
         if (trim($grounds) === '') {
             throw new ConstitutionalViolation(
-                'A removal request states good-faith competence/ethics grounds — published at filing.',
+                __('A removal request states good-faith competence/ethics grounds — published at filing.'),
                 'Art. III §4'
             );
         }
@@ -606,7 +606,7 @@ class BoardGovernorService
 
         if ($legislature === null) {
             throw new ConstitutionalViolation(
-                'No legislature exists to consent — the BoG pipeline requires the chartering chamber.',
+                __('No legislature exists to consent — the BoG pipeline requires the chartering chamber.'),
                 'Art. III §4'
             );
         }
@@ -625,7 +625,7 @@ class BoardGovernorService
     private function assertNomineeAssociation(string $userId, string $jurisdictionId): void
     {
         if (! Str::isUuid($userId)) {
-            throw new ConstitutionalViolation('F-EXE-001 names an existing nominee.', 'Art. I');
+            throw new ConstitutionalViolation(__('F-EXE-001 names an existing nominee.'), 'Art. I');
         }
         $associated = DB::table('residency_confirmations')
             ->where('user_id', $userId)
@@ -635,8 +635,7 @@ class BoardGovernorService
 
         if (! $associated || ! User::query()->whereKey($userId)->exists()) {
             throw new ConstitutionalViolation(
-                'F-EXE-001 nominee holds no active association with the jurisdiction — association '
-                .'is the ONLY eligibility check (Art. I; neutrality is a duty of office).',
+                __('F-EXE-001 nominee holds no active association with the jurisdiction — association is the ONLY eligibility check (Art. I; neutrality is a duty of office).'),
                 'Art. I'
             );
         }
@@ -656,7 +655,7 @@ class BoardGovernorService
             || (string) $vote->jurisdiction_id !== (string) $owner->jurisdiction_id
             || $vote->status !== ChamberVote::STATUS_CLOSED || $vote->outcome !== $outcome
             || ! in_array($outcome, [ChamberVote::OUTCOME_ADOPTED, ChamberVote::OUTCOME_FAILED], true)) {
-            throw new ConstitutionalViolation('Governor consent must resolve the current nomination through its creating legislature\'s recorded vote.', 'Art. III §4/§5');
+            throw new ConstitutionalViolation(__('Governor consent must resolve the current nomination through its creating legislature\'s recorded vote.'), 'Art. III §4/§5');
         }
     }
 
@@ -665,14 +664,14 @@ class BoardGovernorService
         $seat = $appointment->appointable_type === 'board_seats' ? BoardSeat::query()->whereKey($appointment->appointable_id)->first() : null;
         $board = $seat === null ? null : Board::query()->whereKey($seat->board_id)->first();
         if ($board === null) {
-            throw new ConstitutionalViolation('This nomination no longer names a current governor seat.', 'Art. III §4/§5');
+            throw new ConstitutionalViolation(__('This nomination no longer names a current governor seat.'), 'Art. III §4/§5');
         }
         [$owner, $board, $legislature] = $this->context($this->ownerOf($board));
         $seat = BoardSeat::query()->whereKey($appointment->appointable_id)->lockForUpdate()->first();
         if ($seat === null || (string) $seat->board_id !== (string) $board->id
             || $seat->seat_class !== BoardSeat::CLASS_GOVERNOR || $seat->status !== BoardSeat::STATUS_NOMINATED
             || (string) $seat->appointment_id !== (string) $appointment->id || $seat->holder_user_id !== null || $seat->term_id !== null) {
-            throw new ConstitutionalViolation('This nomination has been replaced or its governor seat is no longer vacant.', 'Art. III §4/§5');
+            throw new ConstitutionalViolation(__('This nomination has been replaced or its governor seat is no longer vacant.'), 'Art. III §4/§5');
         }
 
         return [$owner, $board, $legislature, $seat];
@@ -685,13 +684,13 @@ class BoardGovernorService
         if ($owner === null || ($owner instanceof Department && $owner->status === Department::STATUS_DISSOLVED)
             || ($owner instanceof Organization && (! $owner->is_cgc || $owner->type !== Organization::TYPE_COMMON_GOOD_CORP
                 || $owner->status !== Organization::STATUS_ACTIVE || ! $owner->is_active || $owner->dissolved_at !== null))) {
-            throw new ConstitutionalViolation('Governor appointments require a current department or active Common Good Corporation.', 'Art. III §4/§5');
+            throw new ConstitutionalViolation(__('Governor appointments require a current department or active Common Good Corporation.'), 'Art. III §4/§5');
         }
         $board = Board::query()->whereKey($owner->board_id)->lockForUpdate()->first();
         $type = $owner instanceof Department ? Board::BOARDABLE_DEPARTMENTS : Board::BOARDABLE_ORGANIZATIONS;
         if ($board === null || ! in_array($board->status, [Board::STATUS_FORMING, Board::STATUS_ACTIVE], true)
             || $board->boardable_type !== $type || (string) $board->boardable_id !== (string) $owner->id) {
-            throw new ConstitutionalViolation('Governor appointments require this institution\'s current board.', 'Art. III §4/§5');
+            throw new ConstitutionalViolation(__('Governor appointments require this institution\'s current board.'), 'Art. III §4/§5');
         }
         $legislature = null;
         if ($requireGovernance) {
@@ -704,7 +703,7 @@ class BoardGovernorService
                     ->where('jurisdiction_id', $owner->jurisdiction_id)
                     ->whereIn('status', [Executive::STATUS_DELEGATED, Executive::STATUS_ELECTED, Executive::STATUS_CONVERSION_VOTED])->first();
                 if ($legislature === null || $executive === null) {
-                    throw new ConstitutionalViolation('This corporation needs its creating legislature and overseeing executive in the same jurisdiction.', 'Art. III §5');
+                    throw new ConstitutionalViolation(__('This corporation needs its creating legislature and overseeing executive in the same jurisdiction.'), 'Art. III §5');
                 }
             }
         }
@@ -720,7 +719,7 @@ class BoardGovernorService
             default => null,
         };
         if ($owner === null || (string) $owner->board_id !== (string) $board->id) {
-            throw new ConstitutionalViolation('This is not an institution\'s current board.', 'Art. III §4/§5');
+            throw new ConstitutionalViolation(__('This is not an institution\'s current board.'), 'Art. III §4/§5');
         }
 
         return $owner;
