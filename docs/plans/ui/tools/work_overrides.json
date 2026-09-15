@@ -509,6 +509,12 @@
    "note": "organizations.index, organizations.show and organizations.cgc.show read for a guest (withoutMiddleware auth; the controllers already treat a null viewer as holding no capability), 'organizations' joined the setup ALLOW list, PublicReadSurfaceGateTest pins the three routes and both paths, the roster gained /organizations (56 guest pages). Guest probes on box E: registry 200, Foundation profile 200, Coalition profile 200. Registry swept alone in Edge: PASS 19.9 s; Foundation profile scanned alone: 0 nodes at both widths. Slug resolution dropped from scope: slugs are unique per jurisdiction, not globally, so a bare slug route would be ambiguous; pages link by id.",
    "date": "2026-09-14",
    "title": "Open the organization page to guests (organizations.show is auth-walled)"
+  },
+  "W-0447": {
+   "status": "done",
+   "note": "Close",
+   "date": "2026-09-15",
+   "title": "Accessibility: sweep every page (guest, signed-in, parameterised) from a route-table roster and repair to zero findings"
   }
  }
 }

@@ -17048,10 +17048,10 @@
     {
       "id": "W-0447",
       "title": "Accessibility: sweep every page (guest, signed-in, parameterised) from a route-table roster and repair to zero findings",
-      "phase": "P1",
-      "order": 8,
+      "phase": "done",
+      "order": null,
       "kind": "verify",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "done_when": "A pinned roster derived from the route table classifies every GET route as page or machine endpoint with a reason; every page route (guest, signed-in via a throwaway sweep account, parameterised with one sampled id per template) has a run file on box E; zero axe violations at 1280 and 375, no horizontal overflow at 375, clean Tab walk on every page; findings repaired, pinned and re-run; the report states N of N with the evidence path.",
       "depends_on": [],
@@ -17129,6 +17129,10 @@
         {
           "date": "2026-09-15",
           "note": "DONE-WHEN MET 7:39 PM Eastern: boardroom URL passes after ruling B (public bodies read for every resident; floor view fixed 187bd536). Signed-in roster 152 of 152 pass; guest roster 55 of 55 pass; axe WCAG 2.1 A and AA at 1280 and 375, no horizontal overflow at 375, keyboard walk clean on every route. Manual screen-reader review excluded by ruling. Ready for the operator to set done."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Operator set done. Close"
         }
       ]
     }
