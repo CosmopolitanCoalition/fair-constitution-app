@@ -428,6 +428,18 @@
    "note": "Host sweep 2026-09-14: document-title clean on every tested route. scrollable-region-focusable remains on /coverage-ops at 375 px: 3 nodes, .card:nth-child(4..6) > .table-wrap.",
    "date": "2026-09-14",
    "title": "Make DataTable scroll container focusable and add Bootstrap page title"
+  },
+  "W-0434": {
+   "status": "done",
+   "note": "Test defect, not a stage defect. Commit c1db6f48 moved the stage to the canonical singular endorser_type (organization, user) and the test still asserted the legacy plural. Tests lane commit 26198c28, merged 82f86b8e. On main in fc_app: CivicsStageTest and SubforumReconcilerTest together OK, 8 tests, 45 assertions.",
+   "date": "2026-09-14",
+   "title": "Fix CivicsStageTest: the sim civics stage no longer records organization endorsements"
+  },
+  "W-0433": {
+   "status": "done",
+   "note": "The live pin now creates its own jurisdiction inside the rolled-back transaction, so no live legislature can collide; the old skip path is gone so it runs on a virgin database too. Tests lane commit 2eff65be, merged 82f86b8e. On main in fc_app: OK, 3 tests, 20 assertions (in the 8-test run above).",
+   "date": "2026-09-14",
+   "title": "Fix SubforumReconcilerTest collision with live box data (23505 on legislatures_live_jurisdiction_uq)"
   }
  }
 }
