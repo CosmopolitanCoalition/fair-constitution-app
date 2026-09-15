@@ -70,7 +70,7 @@ const title = (entry) => achievementTitle(entry.title_key, t);
         </Banner>
 
         <Banner v-if="!signedIn" tone="info">
-            You are browsing the public catalog. <Link href="/login">Sign in</Link> to see your
+            You are browsing the public catalog. <Link href="/login" class="prose-link">Sign in</Link> to see your
             own earned marks — they are yours alone until you choose to show them on your profile.
         </Banner>
 

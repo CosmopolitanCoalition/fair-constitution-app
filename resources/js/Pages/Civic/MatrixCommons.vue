@@ -112,7 +112,7 @@ useLiveRoom({
             <strong>{{ selectedPlace.name }}</strong>
             <Link :href="roomsHref">{{ text('back_rooms') }}</Link>
             <Link :href="`/jurisdictions/${selectedPlace.slug}`">{{ text('place_overview') }}</Link>
-            <Link href="/jurisdictions">{{ text('browse_world') }}</Link>
+            <Link href="/jurisdictions" class="prose-link">{{ text('browse_world') }}</Link>
         </nav>
 
         <Banner v-if="flashStatus" tone="success" class="mb-4">{{ flashStatus }}</Banner>
@@ -128,7 +128,7 @@ useLiveRoom({
 
         <Banner v-if="!selectedPlace" tone="info" class="mb-4">
             {{ text('choose_place') }}
-            <Link href="/jurisdictions">{{ text('browse_world') }}</Link>
+            <Link href="/jurisdictions" class="prose-link">{{ text('browse_world') }}</Link>
         </Banner>
         <Banner v-else-if="roomState === 'waiting_for_government'" tone="info" class="mb-4">
             {{ text('waiting_for_government') }}

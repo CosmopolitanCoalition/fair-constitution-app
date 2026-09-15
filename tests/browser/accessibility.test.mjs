@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
 import path from 'node:path';
-import { deriveGuestPages, PIN_PAGES, PIN_NONPAGE, AUTH_WALLS } from './roster/roster.mjs';
+import { deriveGuestPages, PIN_PAGES, PIN_NONPAGE, PIN_VIEWER_BOUND, AUTH_WALLS } from './roster/roster.mjs';
 
 /**
  * L2 · accessibility (pass 2, browser). Register criterion:
@@ -336,15 +336,19 @@ test.beforeEach(async ({ page }) => {
 test('guest-page roster derives from the route table and matches the pin', () => {
     const pageUris = DERIVED.pages.map((p) => p.uri);
     const nonPageUris = DERIVED.nonPageEndpoints.map((p) => p.uri);
+    const viewerBoundUris = DERIVED.viewerBound.map((p) => p.uri);
     writeResult('roster-pin', {
         check: 'roster-pin',
         derivedPages: pageUris,
         derivedNonPageEndpoints: nonPageUris,
+        derivedViewerBound: viewerBoundUris,
         pinnedPageCount: PIN_PAGES.length,
         pinnedNonPageCount: PIN_NONPAGE.length,
+        pinnedViewerBoundCount: PIN_VIEWER_BOUND.length,
     });
     expect(pageUris, 'derived guest pages drifted from PIN_PAGES — refresh route-list.json and update the pin deliberately').toEqual(PIN_PAGES);
     expect(nonPageUris, 'derived non-page endpoints drifted from PIN_NONPAGE — update the pin deliberately').toEqual(PIN_NONPAGE);
+    expect(viewerBoundUris, 'derived viewer-bound pages drifted from PIN_VIEWER_BOUND — update the pin deliberately').toEqual(PIN_VIEWER_BOUND);
 });
 
 // ─────────────────────────────────────────────────────────────────────────

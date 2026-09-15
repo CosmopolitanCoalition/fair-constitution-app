@@ -415,19 +415,22 @@
    "title": "Apply Atlas accessibility findings: card headings, th scope, targets, contrast"
   },
   "W-0336": {
-   "note": "Host sweep 2026-09-14: 39 of 41 guest routes tested; 26 clean. color-contrast remains on /building only: 14 nodes at each width, the seven step cards (.rounded-lg.border.p-3 heading row and the .mt-1.5.text-gray-500 line). /jurisdictions and /legislatures skipped on operator order pending pagination.",
+   "note": "StageBars.vue step cards use the subtle token (was raw gray-500). Host Edge re-sweep 2026-09-14: /building clean at 1280 and 375 px; color-contrast reports zero nodes on all 39 swept routes. Pinned by a11yContrastFixes. /jurisdictions and /legislatures skipped on operator order.",
    "date": "2026-09-14",
-   "title": "Fix color contrast: raise subtle-fg token, replace opacity and Tailwind dimming"
+   "title": "Fix color contrast: raise subtle-fg token, replace opacity and Tailwind dimming",
+   "status": "done"
   },
   "W-0337": {
-   "note": "Host sweep 2026-09-14: link-in-text-block remains on 5 routes at both widths: /achievements, /register, /support/report (the sign-in link a[href$=login]) and /civic/commons/halls, /civic/commons/square (a[href$=jurisdictions]). One node each.",
+   "note": "Sentence links in Achievements, Register, Report, MatrixCommons (2) and PublicRecords carry prose-link; the shared rule covers a.prose-link. Host Edge re-sweep 2026-09-14: link-in-text-block reports zero nodes on all 39 swept routes. Pinned by a11yProseLinks.",
    "date": "2026-09-14",
-   "title": "Give prose links an underline or 3:1 contrast"
+   "title": "Give prose links an underline or 3:1 contrast",
+   "status": "done"
   },
   "W-0338": {
-   "note": "Host sweep 2026-09-14: document-title clean on every tested route. scrollable-region-focusable remains on /coverage-ops at 375 px: 3 nodes, .card:nth-child(4..6) > .table-wrap.",
+   "note": "CoverageOps table wrappers are named focusable regions. Host Edge re-sweep 2026-09-14: scrollable-region-focusable and document-title report zero nodes on all 39 swept routes. Pinned by a11yTableFocusTitle.",
    "date": "2026-09-14",
-   "title": "Make DataTable scroll container focusable and add Bootstrap page title"
+   "title": "Make DataTable scroll container focusable and add Bootstrap page title",
+   "status": "done"
   },
   "W-0434": {
    "status": "done",
@@ -440,6 +443,24 @@
    "note": "The live pin now creates its own jurisdiction inside the rolled-back transaction, so no live legislature can collide; the old skip path is gone so it runs on a virgin database too. Tests lane commit 2eff65be, merged 82f86b8e. On main in fc_app: OK, 3 tests, 20 assertions (in the 8-test run above).",
    "date": "2026-09-14",
    "title": "Fix SubforumReconcilerTest collision with live box data (23505 on legislatures_live_jurisdiction_uq)"
+  },
+  "W-0437": {
+   "status": "done",
+   "note": "Cause: the legislature facet joined all 940,328 legislatures to jurisdictions on every request and four counts scanned 16.7 million public_records inline. Fix: facet holds the active legislature only, total is the seq high-water mark, per-kind counts cached 15 minutes. Guest GET 5.9 s cold, 0.9 s warm (was 502 at 70 s). Pinned by PublicRecordsFacetTest (3). Follow-up W-0440 for a typed search with a name index.",
+   "date": "2026-09-14",
+   "title": "Fix /system/public-records: nginx answers 502 for a guest"
+  },
+  "W-0438": {
+   "status": "done",
+   "note": "MaterialManager heading row wraps and titles wrap in the column; the player transport row wraps and the volume slider is bounded. Host Edge re-sweep 2026-09-14: overflow 0 on both routes at 375 px.",
+   "date": "2026-09-14",
+   "title": "Fix 375 px horizontal overflow on /learn/manage and /videos"
+  },
+  "W-0439": {
+   "status": "done",
+   "note": "/people with no id is the viewer's own profile, so the sign-in redirect is correct. The roster now derives viewer-bound pages as a third pinned list (PIN_VIEWER_BOUND) and never scans them; 40 guest pages remain. Roster pin passes in the host sweep.",
+   "date": "2026-09-14",
+   "title": "Decide /people: guest roster lists it, the app walls it behind /login"
   }
  }
 }

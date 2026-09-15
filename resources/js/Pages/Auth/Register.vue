@@ -258,7 +258,7 @@ function submit() {
                         </Btn>
                         <span class="cc-small">
                             Already have an account?
-                            <Link href="/login">Log in</Link>
+                            <Link href="/login" class="prose-link">Log in</Link>
                         </span>
                     </div>
                 </form>

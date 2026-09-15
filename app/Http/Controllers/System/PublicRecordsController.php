@@ -86,22 +86,11 @@ class PublicRecordsController extends Controller
             ],
             'filters' => [
                 'modules'      => [], // record rows carry via-ids, not modules — module facet deferred with the Phase F pipeline
-                'legislatures' => DB::table('legislatures as l')
-                    ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
-                    ->whereNull('l.deleted_at')
-                    ->orderBy('j.name')
-                    ->get(['l.id', 'j.name'])
-                    ->map(fn ($row) => ['id' => (string) $row->id, 'name' => $row->name . ' legislature'])
-                    ->all(),
+                'legislatures' => $this->legislatureFacet($legislatureId),
                 'kinds'  => PublicRecord::KINDS,
                 'active' => ['q' => $q, 'kinds' => $kinds, 'legislature' => $legislatureId],
             ],
-            'stats' => [
-                'total'      => PublicRecord::query()->count(),
-                'acts'       => PublicRecord::query()->where('kind', 'act')->count(),
-                'votes'      => PublicRecord::query()->where('kind', 'vote')->count(),
-                'statements' => PublicRecord::query()->where('kind', 'statement')->count(),
-            ],
+            'stats' => $this->stats(),
             'composer' => [
                 // R-09 only — the engine enforces; the page hides the
                 // composer entirely for non-members (§B.15).
@@ -115,6 +104,63 @@ class PublicRecordsController extends Controller
                 'statement' => '/system/public-records/statements',
             ],
         ]);
+    }
+
+    /**
+     * The legislature filter option list: the active legislature only.
+     *
+     * W-0437: the facet used to join every legislature on the box (940,328 rows
+     * on a planet) to jurisdictions and sort them by name on every page load,
+     * one planet-wide statement inside a web request (the ETL paradigm's first
+     * corollary). PHP-FPM died at about 70 s and nginx answered 502. Listing
+     * the chambers that hold a record is no better: 923,075 of them do. The
+     * filter is reached by id from a chamber page (?legislature=<id>), so the
+     * page needs one name, for the active id, or nothing. A typed name search
+     * needs an index on jurisdictions.name and is a separate item.
+     *
+     * @return list<array{id: string, name: string}>
+     */
+    private function legislatureFacet(string $legislatureId): array
+    {
+        if ($legislatureId === '' || ! \Illuminate\Support\Str::isUuid($legislatureId)) {
+            return [];
+        }
+
+        $row = DB::table('legislatures as l')
+            ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
+            ->where('l.id', $legislatureId)
+            ->whereNull('l.deleted_at')
+            ->first(['l.id', 'j.name']);
+
+        return $row === null ? [] : [['id' => (string) $row->id, 'name' => $row->name . ' legislature']];
+    }
+
+    /**
+     * Register statistics, bounded.
+     *
+     * The total is the sealed sequence high-water mark (public_records is
+     * append-only and seq is its primary key), one index read. The per-kind
+     * counts each walk an index over millions of rows (2 to 6 s on 16.7 million
+     * records), so they are computed at most once per window and served from
+     * the cache in between; the window is the only thing the page pays for.
+     *
+     * @return array{total: int, acts: int, votes: int, statements: int}
+     */
+    private function stats(): array
+    {
+        $total = (int) (PublicRecord::query()->max('seq') ?? 0);
+
+        $byKind = \Illuminate\Support\Facades\Cache::remember(
+            'public_records.stats.by_kind',
+            now()->addMinutes(15),
+            fn () => [
+                'acts'       => PublicRecord::query()->where('kind', 'act')->count(),
+                'votes'      => PublicRecord::query()->where('kind', 'vote')->count(),
+                'statements' => PublicRecord::query()->where('kind', 'statement')->count(),
+            ],
+        );
+
+        return ['total' => $total] + $byKind;
     }
 
     /** F-LEG-006 — Public Record Statement (the SessionConsole handler, reused). */

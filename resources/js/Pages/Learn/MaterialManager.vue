@@ -132,7 +132,9 @@ button, input, select { min-block-size: 44px; font: inherit; }
 input, select { inline-size: 100%; max-inline-size: 42rem; }
 button { inline-size: fit-content; }
 .module-row { border-block-start: 1px solid var(--border, #344054); padding-block: .65rem; }
-.module-row h3 { display: flex; gap: .75rem; align-items: baseline; }
+.module-row h3 { display: flex; flex-wrap: wrap; gap: .25rem .75rem; align-items: baseline; max-inline-size: 100%; }
+/* W-0438: a long module title must wrap inside the 375 px column, never widen the page. */
+.module-row h3 a { min-inline-size: 0; white-space: normal; overflow-wrap: anywhere; }
 .status { font-size: .8rem; text-transform: uppercase; }
 .meta { font-size: .9rem; }
 .gloss { opacity: .8; }

@@ -44,27 +44,36 @@ function isNonPage(u) {
     return u === '/up' || NON_PAGE_RE.some((re) => re.test(u));
 }
 
+// Viewer-bound pages: the URL names no subject, so the controller resolves the
+// signed-in viewer and sends a guest to /login itself. The route table shows no
+// auth middleware on them, so the derivation would list them as guest pages and
+// the sweep would record a false NOT ESTABLISHED (W-0439). They are recorded
+// here, never scanned, and pinned like the other two lists.
+const VIEWER_BOUND = new Set(['/people']);
+
 export function deriveGuestPages() {
     const pages = [];
     const nonPageEndpoints = [];
+    const viewerBound = [];
     for (const r of TABLE) {
         const u = r.uri.startsWith('/') ? r.uri : '/' + r.uri;
         if (u.includes('{')) continue; // param-free pages only
         if ((r.middleware || []).some(isAuthClass)) continue; // authless only
         const rec = { uri: u, name: r.name || (u === '/' ? 'root' : u) };
-        (isNonPage(u) ? nonPageEndpoints : pages).push(rec);
+        (VIEWER_BOUND.has(u) ? viewerBound : isNonPage(u) ? nonPageEndpoints : pages).push(rec);
     }
     const byUri = (a, b) => (a.uri < b.uri ? -1 : a.uri > b.uri ? 1 : 0);
     const dedupe = (arr) => {
         const seen = new Set();
         return arr.filter((x) => (seen.has(x.uri) ? false : (seen.add(x.uri), true))).sort(byUri);
     };
-    return { pages: dedupe(pages), nonPageEndpoints: dedupe(nonPageEndpoints) };
+    return { pages: dedupe(pages), nonPageEndpoints: dedupe(nonPageEndpoints), viewerBound: dedupe(viewerBound) };
 }
 
-// ── THE PIN. 41 guest pages, 35 non-page endpoints as resolved from the route
-// table captured 2026-09-14. If route-list.json is refreshed and the derivation
-// changes, these arrays must be updated deliberately (that is the point). ──
+// ── THE PIN. 40 guest pages, 35 non-page endpoints and 1 viewer-bound page as
+// resolved from the route table captured 2026-09-14. If route-list.json is
+// refreshed and the derivation changes, these arrays must be updated
+// deliberately (that is the point). ──
 export const PIN_PAGES = [
     '/',
     '/achievements',
@@ -90,7 +99,6 @@ export const PIN_PAGES = [
     '/legislatures',
     '/login',
     '/operator/login',
-    '/people',
     '/reach',
     '/register',
     '/rooms',
@@ -146,6 +154,8 @@ export const PIN_NONPAGE = [
     '/oauth/userinfo',
     '/up',
 ];
+
+export const PIN_VIEWER_BOUND = ['/people'];
 
 // Auth walls: a guest page that redirects here needs a signed-in session and is
 // recorded NOT ESTABLISHED by name.

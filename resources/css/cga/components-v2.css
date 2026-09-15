@@ -786,7 +786,9 @@ a.tour-stop:hover { border-color: var(--gov-border-strong); text-decoration: non
   background: color-mix(in oklch, var(--gov-bg) 72%, transparent);
   border-radius: var(--radius-sm); padding: var(--space-1) var(--space-2); line-height: 1.4;
 }
-.vplayer-transport { display: flex; align-items: center; gap: var(--space-2); }
+.vplayer-transport { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+/* W-0438: the volume slider shares the transport row; at 375 px it wraps under the seek bar instead of running past the screen. */
+.vplayer-volume { flex: 0 1 6rem; min-inline-size: 3rem; max-inline-size: 100%; accent-color: var(--gov-primary); block-size: 1.5rem; }
 .iconbtn {
   inline-size: 2.25rem; block-size: 2.25rem; flex-shrink: 0;
   display: inline-flex; align-items: center; justify-content: center;

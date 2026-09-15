@@ -79,6 +79,23 @@ test('W-0338 DataTable wrapper is focusable and named only when it overflows', a
     assert.equal(wrap.props['aria-label'], undefined, 'name dropped when it fits again');
 });
 
+test('W-0338 CoverageOps table wrappers are named focusable regions', async () => {
+    // The host sweep of 2026-09-14 found scrollable-region-focusable on
+    // /coverage-ops at 375 px: three plain table-wrap divs outside DataTable.
+    // Each is a keyboard-reachable named region; the page compiles.
+    const rel = 'resources/js/Pages/System/' + 'CoverageOps.vue';
+    const source = await readFile(new URL('../../' + rel, import.meta.url), 'utf8');
+    const wrappers = source.match(/<div class="table-wrap"[^>]*>/g) || [];
+    assert.equal(wrappers.length, 3, 'three table wrappers');
+    for (const w of wrappers) {
+        assert.match(w, /tabindex="0"/, w + ' is focusable');
+        assert.match(w, /role="region"/, w + ' is a region');
+        assert.match(w, /aria-label="[^"]+\(scrollable\)"/, w + ' is named');
+    }
+    const { descriptor } = parse(source);
+    compileScript(descriptor, { id: 'cov', inlineTemplate: true });
+});
+
 test('W-0338 Bootstrap renders a non-empty document title', async (t) => {
     const element = makeElement();
     const { mod, context: ctx } = await compile('resources/js/Pages/Setup/Bootstrap.vue', 'boot');

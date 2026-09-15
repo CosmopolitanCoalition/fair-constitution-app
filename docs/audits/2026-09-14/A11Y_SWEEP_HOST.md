@@ -49,7 +49,29 @@ No focus-ring gaps and no accessible-name gaps on any route. No document-title f
 | /people | redirects a guest to /login (auth wall; the roster derives it as a guest page) |
 | /system/public-records | HTTP 502 from nginx |
 
-## Consequence for the work list
+## Repairs and the closing re-sweep (same evening, 8:45 to 9:25 PM Eastern)
+
+Every finding above was repaired at the desk and the touched routes were swept again in Edge on the host
+(result files `storage/logs/a11y_host3/*.json` and `a11y_host4/*.json`):
+
+| Route | Repair | Re-sweep |
+|---|---|---|
+| /building | `Components/Progress/StageBars.vue`: the step-card kind label, note and empty line use the subtle token instead of raw gray-500 | clean |
+| /achievements, /register, /support/report, /civic/commons/halls, /civic/commons/square | the sentence links carry `class="prose-link"`; the shared rule in `components.css` now covers `a.prose-link` | clean |
+| /coverage-ops | `System/CoverageOps.vue`: the three table wrappers are named focusable regions (`tabindex="0" role="region" aria-label`) | clean |
+| /learn/manage | `Learn/MaterialManager.vue`: the module heading row wraps and long titles wrap inside the column | clean |
+| /videos | `components-v2.css`: the transport row wraps and the volume slider is bounded | clean |
+| /system/public-records | `PublicRecordsController`: the legislature facet no longer joins every legislature on the box (940,328 rows) on every request, and the four register counts no longer scan 16.7 million rows inline. The total is the sealed sequence high-water mark; the per-kind counts are cached for 15 minutes; the facet holds the active legislature only. Guest GET: 5.9 s cold, 0.9 s warm, was 502 at 70 s. The page then showed one link-in-text-block node (the audit-chain link), fixed the same way | clean |
+| /people | `tests/browser/roster/roster.mjs`: viewer-bound pages are a third pinned list, never scanned (40 guest pages, 1 viewer-bound) | roster pin passes |
+
+Pins: `a11yContrastFixes` (StageBars), `a11yProseLinks` (the six files and the selector), `a11yTableFocusTitle`
+(CoverageOps wrappers), `PublicRecordsFacetTest` (no legislature scan, no inline counts, one row by id,
+high-water mark plus cached kind counts).
+
+Follow-up filed: a typed legislature search for the public-records filter needs an index on
+`jurisdictions.name` (a prefix search over 951,626 rows takes 3 to 6 s without one).
+
+## Consequence for the work list (as first assessed, before the repairs)
 
 - W-0234 (Atlas): `/atlas` clean at both widths; the semantics are pinned by the a11y lane's tests; after-shot taken in the operator's Edge. Done.
 - W-0336 (color contrast): open, `/building` carries 14 nodes at each width.

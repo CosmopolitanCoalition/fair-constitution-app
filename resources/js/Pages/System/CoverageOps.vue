@@ -94,7 +94,8 @@ const tone = (s) =>
 
         <!-- ─────────────────────────────── registry nav rows ── -->
         <Card as="section" title="Registry nav rows → routes">
-            <div class="table-wrap">
+            <!-- W-0338: these tables scroll sideways at narrow widths; the wrapper is a named, focusable region. -->
+            <div class="table-wrap" tabindex="0" role="region" aria-label="Registry nav rows (scrollable)">
                 <table class="table">
                     <thead><tr><th>ID</th><th>Section</th><th>Href</th><th>Roles</th><th>Status</th></tr></thead>
                     <tbody>
@@ -112,7 +113,7 @@ const tone = (s) =>
 
         <!-- ─────────────────────────────── surfaces → nav ── -->
         <Card as="section" title="Registered surfaces → menu id (SurfaceMeta::ids())">
-            <div class="table-wrap">
+            <div class="table-wrap" tabindex="0" role="region" aria-label="Registered surfaces (scrollable)">
                 <table class="table">
                     <thead><tr><th>Surface id</th><th>Module</th><th>Nav</th><th>Status</th></tr></thead>
                     <tbody>
@@ -129,7 +130,7 @@ const tone = (s) =>
 
         <!-- ─────────────────────────────── tour stops → routes ── -->
         <Card as="section" title="Tour stops → routes">
-            <div class="table-wrap">
+            <div class="table-wrap" tabindex="0" role="region" aria-label="Tour stops (scrollable)">
                 <table class="table">
                     <thead><tr><th>#</th><th>Act</th><th>Stop</th><th>Href</th><th>Status</th></tr></thead>
                     <tbody>

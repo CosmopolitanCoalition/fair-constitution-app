@@ -67,7 +67,7 @@ function submit() {
 
         <Banner v-if="isGuest" tone="info">
             You need to be signed in to file a report —
-            <Link href="/login">log in</Link> and come back to this page.
+            <Link href="/login" class="prose-link">log in</Link> and come back to this page.
         </Banner>
 
         <Card as="section" title="File a report">

@@ -104,7 +104,7 @@ function isSettled(s) {
                         aria-hidden="true"
                     />
                     <span class="text-sm text-gray-200">{{ s.label }}</span>
-                    <span class="font-mono text-xs text-gray-500">{{ s.kind }}</span>
+                    <span class="font-mono text-xs" style="color: var(--gov-fg-subtle)">{{ s.kind }}</span>
                 </div>
                 <div class="font-mono text-xs text-gray-400 tabular-nums">
                     {{ fmt(shown[s.kind] ?? s.done) }}/{{ fmt(s.total) }}
@@ -127,10 +127,10 @@ function isSettled(s) {
                 />
             </div>
 
-            <p v-if="s.note" class="mt-1.5 text-xs text-gray-500">{{ s.note }}</p>
+            <p v-if="s.note" class="mt-1.5 text-xs" style="color: var(--gov-fg-subtle)">{{ s.note }}</p>
         </div>
 
-        <p v-if="!stages.length" class="text-sm text-gray-500">
+        <p v-if="!stages.length" class="text-sm" style="color: var(--gov-fg-subtle)">
             Nothing to build yet — this fills in once the world has boundaries.
         </p>
     </div>

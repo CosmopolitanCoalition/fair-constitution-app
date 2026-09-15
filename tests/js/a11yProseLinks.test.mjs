@@ -23,6 +23,28 @@ test('W-0337 shared stylesheet underlines prose and citation links', () => {
     const sel = css.slice(css.indexOf(':where(p, li'), css.indexOf(':where(p, li') + 260);
     assert.match(sel, /\.citation a/, 'covers .citation a');
     assert.match(sel, /\.gloss a/, 'covers .gloss a');
+    assert.match(sel, /a\.prose-link/, 'covers the opt-in a.prose-link');
+});
+
+test('W-0337 sentence links outside p elements opt in with prose-link', () => {
+    // The host sweep of 2026-09-14 found link-in-text-block on five routes:
+    // sign-in links inside a div or banner and the browse-the-world link in a
+    // nav and a banner. Each carries the opt-in class so the underline rule
+    // reaches it. Paths are built in two segments (see the census note above).
+    const cases = [
+        ['resources/js/Pages/Social/' + 'Achievements.vue', '<Link href="/login" class="prose-link">'],
+        ['resources/js/Pages/Auth/' + 'Register.vue', '<Link href="/login" class="prose-link">'],
+        ['resources/js/Pages/Support/' + 'Report.vue', '<Link href="/login" class="prose-link">'],
+        ['resources/js/Pages/Civic/' + 'MatrixCommons.vue', '<Link href="/jurisdictions" class="prose-link">'],
+        ['resources/js/Pages/System/' + 'PublicRecords.vue', '<Link href="/system/audit-chain" class="prose-link">cryptographically'],
+    ];
+    for (const [rel, needle] of cases) {
+        const src = read(rel);
+        assert.ok(src.includes(needle), rel + ' carries ' + needle);
+    }
+    const commons = read('resources/js/Pages/Civic/' + 'MatrixCommons.vue');
+    assert.equal((commons.match(/<Link href="\/jurisdictions" class="prose-link">/g) || []).length, 2, 'both browse-the-world links opt in');
+    assert.ok(!commons.includes('<Link href="/jurisdictions">'), 'no bare browse-the-world link remains');
 });
 
 test('W-0337 Federation prose link is not hover-only underline', () => {

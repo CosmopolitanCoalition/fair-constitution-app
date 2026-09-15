@@ -80,7 +80,10 @@ test('W-0336 role cards no longer dim with opacity, labels no longer gray-500', 
     const css = read('resources/css/cga/components.css');
     const rule = css.match(/\.role-card--planned, \.role-card--unearned \{[^}]*\}/);
     assert.ok(rule && !/opacity/.test(rule[0]), 'planned/unearned rule uses no opacity');
-    for (const rel of ['resources/js/Pages/Build/Progress.vue', 'resources/js/Pages/Social/Reach.vue']) {
+    // StageBars renders the seven step cards on /building; the host sweep of
+    // 2026-09-14 found 14 color-contrast nodes there (the kind label and the
+    // note line were raw gray-500 on the card ground).
+    for (const rel of ['resources/js/Pages/Build/Progress.vue', 'resources/js/Pages/Social/Reach.vue', 'resources/js/Components/Progress/StageBars.vue']) {
         const src = read(rel);
         assert.ok(!src.includes('text-gray-500'), rel + ' drops text-gray-500');
         assert.ok(src.includes('var(--gov-fg-subtle)'), rel + ' uses the subtle token');
@@ -88,7 +91,7 @@ test('W-0336 role cards no longer dim with opacity, labels no longer gray-500', 
 });
 
 test('W-0336 every affected SFC compiles (template + script)', () => {
-    for (const rel of ['resources/js/Pages/Social/Achievements.vue', 'resources/js/Pages/Build/Progress.vue', 'resources/js/Pages/Social/Reach.vue', 'resources/js/Pages/System/Atlas.vue', 'resources/js/Pages/Setup/Bootstrap.vue']) {
+    for (const rel of ['resources/js/Pages/Social/Achievements.vue', 'resources/js/Pages/Build/Progress.vue', 'resources/js/Pages/Social/Reach.vue', 'resources/js/Pages/System/Atlas.vue', 'resources/js/Pages/Setup/Bootstrap.vue', 'resources/js/Components/Progress/StageBars.vue']) {
         const { descriptor } = parse(read(rel), { filename: rel });
         const id = 'pin';
         compileScript(descriptor, { id });

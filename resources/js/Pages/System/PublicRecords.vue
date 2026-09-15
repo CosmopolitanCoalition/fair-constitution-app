@@ -138,7 +138,7 @@ function dateOf(iso) {
 
         <Banner tone="info" icon="lock" title="This record is append-only.">
             Corrections append a superseding entry; nothing is deleted or rewritten. Every entry is
-            sealed into the <Link href="/system/audit-chain">cryptographically chained audit log</Link>
+            sealed into the <Link href="/system/audit-chain" class="prose-link">cryptographically chained audit log</Link>
             at commit time. <span class="citation">Art. II §2 · WF-SYS-03 · WF-SYS-04</span>
         </Banner>
 

@@ -12985,10 +12985,10 @@
     {
       "id": "W-0336",
       "title": "Fix color contrast: raise subtle-fg token, replace opacity and Tailwind dimming",
-      "phase": "P1",
-      "order": 15,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "Contrast. Raise `--gov-fg-subtle` (`resources/css/cga/tokens.css:94`, renders 4.16:1 on the page background, comment claims 5.57:1) to at least 4.5:1 on the darkest surface it lands on and correct the comment; stop dimming role-card text with opacity in `resources/js/Pages/Social/Achievements.vue` (lines 89, 119, 145, 158) and `.role-card--planned` (`components.css:818`), use a token instead; replace Tailwind `text-gray-500` labels in `Setup/Progress.vue:148` and `Social/Reach.vue` (167, 192) with a passing token; give the Atlas eyebrow (`Atlas.vue:686`) a passing colour; fix the two `/setup/…",
       "done_when": "accessibility.test.mjs reports zero color-contrast nodes on every guest route at desktop and 375px.",
@@ -13019,16 +13019,20 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: Host sweep 2026-09-14: 39 of 41 guest routes tested; 26 clean. color-contrast remains on /building only: 14 nodes at each width, the seven step cards (.rounded-lg.border.p-3 heading row and the .mt-1.5.text-gray-500 line). /jurisdictions and /legislatures skipped on operator order pending pagination."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. StageBars.vue step cards use the subtle token (was raw gray-500). Host Edge re-sweep 2026-09-14: /building clean at 1280 and 375 px; color-contrast reports zero nodes on all 39 swept routes. Pinned by a11yContrastFixes. /jurisdictions and /legislatures skipped on operator order."
         }
       ]
     },
     {
       "id": "W-0337",
       "title": "Give prose links an underline or 3:1 contrast",
-      "phase": "P1",
-      "order": 16,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "Inline prose links. Give `.citation a` and the generic prose link style an underline or a 3:1 contrast against the surrounding text (30 axe link-in-text-block nodes on 11 routes, lowest 1.41:1).",
       "done_when": "The accessibility sweep reports zero link-in-text-block nodes.",
@@ -13059,16 +13063,20 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: Host sweep 2026-09-14: link-in-text-block remains on 5 routes at both widths: /achievements, /register, /support/report (the sign-in link a[href$=login]) and /civic/commons/halls, /civic/commons/square (a[href$=jurisdictions]). One node each."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Sentence links in Achievements, Register, Report, MatrixCommons (2) and PublicRecords carry prose-link; the shared rule covers a.prose-link. Host Edge re-sweep 2026-09-14: link-in-text-block reports zero nodes on all 39 swept routes. Pinned by a11yProseLinks."
         }
       ]
     },
     {
       "id": "W-0338",
       "title": "Make DataTable scroll container focusable and add Bootstrap page title",
-      "phase": "P1",
-      "order": 17,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "Semantics. Make the shared `DataTable` scroll container (`components.css:480`) keyboard focusable with a name only when it overflows (4 scrollable-region-focusable nodes on `/system/clocks` at 375 px); add an Inertia page title to `Setup/Bootstrap.vue` (2 document-title nodes).",
       "done_when": "The accessibility sweep reports zero scrollable-region-focusable and document-title nodes.",
@@ -13099,6 +13107,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: Host sweep 2026-09-14: document-title clean on every tested route. scrollable-region-focusable remains on /coverage-ops at 375 px: 3 nodes, .card:nth-child(4..6) > .table-wrap."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. CoverageOps table wrappers are named focusable regions. Host Edge re-sweep 2026-09-14: scrollable-region-focusable and document-title report zero nodes on all 39 swept routes. Pinned by a11yTableFocusTitle."
         }
       ]
     },
@@ -16654,10 +16666,10 @@
     {
       "id": "W-0437",
       "title": "Fix /system/public-records: nginx answers 502 for a guest",
-      "phase": "P1",
-      "order": 73,
+      "phase": "done",
+      "order": null,
       "kind": "debt",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "The host browser sweep of 2026-09-14 (docs/audits/2026-09-14/A11Y_SWEEP_HOST.md) recorded HTTP 502 from nginx on GET /system/public-records as a guest. A 502 means PHP-FPM died or timed out on the request. Not reproduced by hand yet; the route is on the guest roster.",
       "done_when": "GET /system/public-records answers 200 for a guest within the nginx timeout on box E, and the a11y sweep establishes the route.",
@@ -16670,16 +16682,20 @@
         {
           "date": "2026-09-14",
           "note": "Opened 2026-09-14 by the desk from the host browser sweep."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Cause: the legislature facet joined all 940,328 legislatures to jurisdictions on every request and four counts scanned 16.7 million public_records inline. Fix: facet holds the active legislature only, total is the seq high-water mark, per-kind counts cached 15 minutes. Guest GET 5.9 s cold, 0.9 s warm (was 502 at 70 s). Pinned by PublicRecordsFacetTest (3). Follow-up W-0440 for a typed search with a name index."
         }
       ]
     },
     {
       "id": "W-0438",
       "title": "Fix 375 px horizontal overflow on /learn/manage and /videos",
-      "phase": "P1",
-      "order": 74,
+      "phase": "done",
+      "order": null,
       "kind": "debt",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "Host sweep 2026-09-14: /learn/manage overflows by 88 px at 375 px (span.status, right edge 463 px); /videos overflows by 8 px (input.vplayer-volume, right edge 383 px). The register criterion is no horizontal overflow at 375 px.",
       "done_when": "The accessibility sweep reports overflow 0 at 375 px on /learn/manage and /videos.",
@@ -16692,16 +16708,20 @@
         {
           "date": "2026-09-14",
           "note": "Opened 2026-09-14 by the desk from the host browser sweep."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. MaterialManager heading row wraps and titles wrap in the column; the player transport row wraps and the volume slider is bounded. Host Edge re-sweep 2026-09-14: overflow 0 on both routes at 375 px."
         }
       ]
     },
     {
       "id": "W-0439",
       "title": "Decide /people: guest roster lists it, the app walls it behind /login",
-      "phase": "P5",
-      "order": 75,
+      "phase": "done",
+      "order": null,
       "kind": "debt",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "Host sweep 2026-09-14: GET /people redirects a guest to /login, while tests/browser/roster derives it as a guest page from the route table. Either the people directory is a read surface that W-0283 should have opened, or the roster pin is wrong.",
       "done_when": "Either /people renders for a guest, or the roster excludes it and the pin is updated deliberately, with the ruling recorded.",
@@ -16714,6 +16734,34 @@
         {
           "date": "2026-09-14",
           "note": "Opened 2026-09-14 by the desk from the host browser sweep."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. /people with no id is the viewer's own profile, so the sign-in redirect is correct. The roster now derives viewer-bound pages as a third pinned list (PIN_VIEWER_BOUND) and never scans them; 40 guest pages remain. Roster pin passes in the host sweep."
+        }
+      ]
+    },
+    {
+      "id": "W-0440",
+      "title": "Public records: typed legislature search backed by a jurisdictions.name index",
+      "phase": "P5",
+      "order": 76,
+      "kind": "build",
+      "status": "open",
+      "blocker": "",
+      "detail": "W-0437 removed the planet-wide legislature dropdown from /system/public-records (940,328 rows joined and sorted on every request). The filter still works by id from a chamber page, but a visitor cannot type a legislature name. A bounded search endpoint (name prefix, LIMIT 20) takes 3 to 6 s without an index: jurisdictions has no index on name (measured 2026-09-14 on 951,626 rows). Needs a real-dated additive migration adding an index on lower(name) text_pattern_ops, a GET endpoint bounded by prefix and limit, and a typeahead in PublicRecords.vue.",
+      "done_when": "A typed name search on /system/public-records answers in under 200 ms on box E for any prefix, returns at most 20 rows, and the index migration is pinned; the page keeps the id filter for deep links.",
+      "depends_on": [
+        "W-0437"
+      ],
+      "sources": [
+        "desk: W-0437 repair 2026-09-14"
+      ],
+      "evidence": [],
+      "history": [
+        {
+          "date": "2026-09-14",
+          "note": "Opened by the desk while repairing W-0437."
         }
       ]
     }
