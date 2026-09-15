@@ -17,6 +17,9 @@
  * Cell content overridable per column via scoped slots: #cell-{key}="{ row, value }".
  */
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     columns: { type: Array, required: true },
@@ -61,7 +64,7 @@ onBeforeUnmount(() => {
         class="table-wrap"
         :tabindex="overflowing ? 0 : undefined"
         :role="overflowing ? 'region' : undefined"
-        :aria-label="overflowing ? (caption ? `${caption} (scrollable)` : 'Scrollable table') : undefined"
+        :aria-label="overflowing ? (caption ? t('c_ui_a.data_table.caption_scrollable', '{caption} (scrollable)', { named: { caption } }) : t('c_ui_a.data_table.scrollable_table', 'Scrollable table')) : undefined"
     >
         <table class="table">
             <caption v-if="caption" class="visually-hidden">{{ caption }}</caption>

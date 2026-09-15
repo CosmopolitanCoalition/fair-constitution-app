@@ -4,7 +4,10 @@
  * `implemented` appends an honest "as implemented" link to the constitutional
  * questions ledger (use `anchor` for the specific entry).
  */
+import { useI18n } from 'vue-i18n';
 import ReferenceText from './ReferenceText.vue';
+
+const { t } = useI18n();
 
 defineProps({
     text: { type: String, required: true },
@@ -19,7 +22,7 @@ defineProps({
     <span class="citation" :class="{ 'citation--implemented': implemented }">
         <ReferenceText>{{ text }}</ReferenceText><template v-if="implemented">
             ·
-            <a :href="anchor || '#'">as implemented</a>
+            <a :href="anchor || '#'">{{ t('c_ui_a.citation_line.as_implemented', 'as implemented') }}</a>
         </template>
     </span>
 </template>
