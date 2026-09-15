@@ -151,20 +151,20 @@ class MeshConsoleController extends Controller
             'meters' => [
                 'consent_leg' => $leg,
                 'a' => [
-                    'label' => 'Meter A — the operator board',
-                    'explain' => 'While no government is seated for the scope, the vetted operator board attests. Scaling consent: 1 operator ⇒ 1, 2 ⇒ both, 3+ ⇒ two-thirds of active operators.',
+                    'label' => __('Meter A — the operator board'),
+                    'explain' => __('While no government is seated for the scope, the vetted operator board attests. Scaling consent: 1 operator ⇒ 1, 2 ⇒ both, 3+ ⇒ two-thirds of active operators.'),
                     'applies' => $leg === 'operator',
                     'active_operators' => OperatorAccount::query()
                         ->where('status', OperatorAccount::STATUS_ACTIVE)->whereNull('deleted_at')->count(),
                 ],
                 'b' => [
-                    'label' => 'Meter B — the seated government',
-                    'explain' => 'Once a government seats for the scope, its supermajority consent supersedes the operator board — operators can no longer attest on its behalf.',
+                    'label' => __('Meter B — the seated government'),
+                    'explain' => __('Once a government seats for the scope, its supermajority consent supersedes the operator board — operators can no longer attest on its behalf.'),
                     'applies' => $leg === 'seated',
                 ],
                 'c' => [
-                    'label' => 'Meter C — co-affected peers',
-                    'explain' => 'Every trust-established peer that holds the home copy of a co-affected place must consent (unanimity). It auto-passes when no such peer exists.',
+                    'label' => __('Meter C — co-affected peers'),
+                    'explain' => __('Every trust-established peer that holds the home copy of a co-affected place must consent (unanimity). It auto-passes when no such peer exists.'),
                     'applies' => $coAffected > 0,
                     'co_affected_peers' => $coAffected,
                 ],

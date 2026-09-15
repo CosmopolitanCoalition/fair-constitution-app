@@ -179,10 +179,10 @@ class MatrixCommonsController extends Controller
         try {
             $this->posting->post($request->user(), $validated['jurisdiction_id'], $validated['room_id'], $validated['body']);
         } catch (ConnectionException|RequestException $e) {
-            return back()->withErrors(['body' => 'Posting could not be confirmed. Your draft has been kept; try again.']);
+            return back()->withErrors(['body' => __('Posting could not be confirmed. Your draft has been kept; try again.')]);
         }
 
-        return back()->with('status', 'Posted to the live commons.');
+        return back()->with('status', __('Posted to the live commons.'));
     }
 
     /** File a live #halls message as testimony — the Plane B → Plane A seal (F-SOC-002). */
@@ -196,9 +196,9 @@ class MatrixCommonsController extends Controller
         try {
             $this->testimony->fileTestimony($request->user(), $validated['room_id'], $validated['event_id']);
         } catch (ConnectionException|RequestException $e) {
-            return back()->withErrors(['room' => 'The live message could not be read. Try filing it again when the room is available.']);
+            return back()->withErrors(['room' => __('The live message could not be read. Try filing it again when the room is available.')]);
         }
 
-        return back()->with('status', 'Filed as testimony — sealed into the append-only record (Art. II §2).');
+        return back()->with('status', __('Filed as testimony — sealed into the append-only record (Art. II §2).'));
     }
 }

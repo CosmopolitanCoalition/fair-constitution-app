@@ -221,12 +221,12 @@ class MyRecordController extends Controller
         }
 
         if ($payload === []) {
-            return back()->with('status', 'No changes — nothing was filed.');
+            return back()->with('status', __('No changes — nothing was filed.'));
         }
 
         $this->engine->file('F-IND-002', $user, $payload);
 
-        return back()->with('status', 'Profile updated — the change is on your record.');
+        return back()->with('status', __('Profile updated — the change is on your record.'));
     }
 
     /**
@@ -242,10 +242,21 @@ class MyRecordController extends Controller
         $kind  = $candidacy->election?->kind;
         $seats = $candidacy->race?->seats;
 
+        $kindLabel = $kind !== null
+            ? __(':kind election', ['kind' => str_replace('_', ' ', $kind)])
+            : __('election');
+
+        $seatLabel = null;
+        if ($seats !== null) {
+            $seatLabel = $seats === 1
+                ? __(':count seat', ['count' => $seats])
+                : __(':count seats', ['count' => $seats]);
+        }
+
         $parts = array_filter([
             $jurisdiction,
-            ($kind !== null ? str_replace('_', ' ', $kind) . ' ' : '') . 'election',
-            $seats !== null ? $seats . ' seat' . ($seats === 1 ? '' : 's') : null,
+            $kindLabel,
+            $seatLabel,
         ]);
 
         return implode(' · ', $parts);

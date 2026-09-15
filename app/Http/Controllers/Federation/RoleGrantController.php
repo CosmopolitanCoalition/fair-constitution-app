@@ -38,7 +38,7 @@ class RoleGrantController extends Controller
 
         if (! is_array($grant) || $grantSig === ''
             || ($grant['type'] ?? null) !== 'capability_grant' || ($grant['v'] ?? null) !== 1) {
-            return response()->json(['error' => 'malformed capability_grant'], 422);
+            return response()->json(['error' => __('malformed capability_grant')], 422);
         }
 
         $authorityServerId = (string) ($grant['authority_server_id'] ?? '');
@@ -46,21 +46,21 @@ class RoleGrantController extends Controller
         $pinned = $this->pinnedKey($authorityServerId, $from);
 
         if ($pinned === null || ! hash_equals($pinned, $authorityPub)) {
-            return response()->json(['error' => 'authority not pinned, or pubkey mismatch'], 403);
+            return response()->json(['error' => __('authority not pinned, or pubkey mismatch')], 403);
         }
         if (! InstanceIdentityService::verify($pinned, AuditService::canonicalJson($grant), $grantSig)) {
-            return response()->json(['error' => 'grant signature invalid'], 403);
+            return response()->json(['error' => __('grant signature invalid')], 403);
         }
 
         // The grant must be addressed to THIS box — never apply a grant minted for another grantee.
         if ((string) ($grant['peer_server_id'] ?? '') !== $this->identity->serverId()
             || (string) ($grant['peer_pubkey'] ?? '') !== $this->identity->publicKey()) {
-            return response()->json(['error' => 'grant is not addressed to this box'], 403);
+            return response()->json(['error' => __('grant is not addressed to this box')], 403);
         }
 
         $capability = (string) ($grant['capability'] ?? '');
         if (! InstanceCapability::isGoverned($capability)) {
-            return response()->json(['error' => 'not a governed capability'], 422);
+            return response()->json(['error' => __('not a governed capability')], 422);
         }
 
         // JOIN — apply the grant locally, flipping the channel enabled with its receipt on the row.

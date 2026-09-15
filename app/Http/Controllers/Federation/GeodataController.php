@@ -30,13 +30,13 @@ class GeodataController extends Controller
         $dataset = (string) $request->query('dataset', '');
 
         if ($dataset === '') {
-            return response()->json(['error' => 'dataset is required'], 422);
+            return response()->json(['error' => __('dataset is required')], 422);
         }
 
         $wire = $this->manifests->serveWire($dataset);
 
         if ($wire === null) {
-            return response()->json(['error' => 'dataset not found'], 404);
+            return response()->json(['error' => __('dataset not found')], 404);
         }
 
         return response()->json($wire);

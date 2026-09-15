@@ -47,7 +47,7 @@ class LiveFloorService
             }
             // An operational payload bound, not a limit on institutional membership.
             if (count($s['queue']) >= 200) {
-                throw ValidationException::withMessages(['floor' => 'The speaking queue is full. Please try again after a speaker is recognized.']);
+                throw ValidationException::withMessages(['floor' => __('The speaking queue is full. Please try again after a speaker is recognized.')]);
             }
             $s['queue'][] = ['handle' => $handle, 'reason' => $reason];
             return $s;
@@ -101,7 +101,7 @@ class LiveFloorService
         $handle ??= $s['queue'][0]['handle'] ?? null;
         if ($handle === null) return $s;
         if (! in_array($handle, array_column($s['queue'], 'handle'), true)) {
-            throw ValidationException::withMessages(['floor' => 'That person is no longer waiting in this room. Refresh the queue and try again.']);
+            throw ValidationException::withMessages(['floor' => __('That person is no longer waiting in this room. Refresh the queue and try again.')]);
         }
         $s['queue'] = array_values(array_filter($s['queue'], fn ($q) => $q['handle'] !== $handle));
         $s['floorHolder'] = $handle;
@@ -127,7 +127,7 @@ class LiveFloorService
             // One shared-cache lock per room: concurrent hands cannot overwrite each other.
             return Cache::lock($key.':lock', 5)->block(2, $change);
         } catch (LockTimeoutException) {
-            throw ValidationException::withMessages(['floor' => 'The room is updating its speaking queue. Please try again.']);
+            throw ValidationException::withMessages(['floor' => __('The room is updating its speaking queue. Please try again.')]);
         }
     }
 }

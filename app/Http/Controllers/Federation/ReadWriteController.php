@@ -28,7 +28,7 @@ class ReadWriteController extends Controller
         $rootJurisdictionId = (string) ($body['root_jurisdiction_id'] ?? '');
 
         if ($rootJurisdictionId === '') {
-            return response()->json(['error' => 'root_jurisdiction_id is required'], 422);
+            return response()->json(['error' => __('root_jurisdiction_id is required')], 422);
         }
 
         $req = $this->rw->submit(

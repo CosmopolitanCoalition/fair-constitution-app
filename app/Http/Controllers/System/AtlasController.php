@@ -61,7 +61,7 @@ class AtlasController extends Controller
             'instance' => [
                 'synthetic' => InstanceClass::isScaleDemo(),
                 'label' => InstanceClass::isScaleDemo()
-                    ? 'These are the vital signs of a demonstration world, not a live civilization.'
+                    ? __('These are the vital signs of a demonstration world, not a live civilization.')
                     : null,
             ],
 
@@ -88,18 +88,15 @@ class AtlasController extends Controller
                 'available' => false,
                 'on' => false,
                 'url' => null,
-                'note' => 'Putting yourself on the map is not wired up yet. When it is, you will '
-                    .'appear as a single approximate, nameless pixel — and never before you ask.',
+                'note' => __('Putting yourself on the map is not wired up yet. When it is, you will appear as a single approximate, nameless pixel — and never before you ask.'),
             ],
             'privacy' => [
-                'note' => 'Appearing on the map is opt-in. A person shows as a single pixel snapped to a '
-                    .'coarse grid — an approximate place, never a real coordinate, never a name. Where you '
-                    .'actually are is private, like a ballot.',
+                'note' => __('Appearing on the map is opt-in. A person shows as a single pixel snapped to a coarse grid — an approximate place, never a real coordinate, never a name. Where you actually are is private, like a ballot.'),
                 'rails' => [
-                    'Opt-in only — nobody is placed on the map without choosing to be',
-                    'A single pixel, snapped to a coarse grid — approximate, never precise',
-                    'No name, no link from a person-pixel — identity stays private',
-                    'Being on the map confers no vote, no seat, no advantage',
+                    __('Opt-in only — nobody is placed on the map without choosing to be'),
+                    __('A single pixel, snapped to a coarse grid — approximate, never precise'),
+                    __('No name, no link from a person-pixel — identity stays private'),
+                    __('Being on the map confers no vote, no seat, no advantage'),
                 ],
             ],
         ]);
@@ -420,39 +417,39 @@ class AtlasController extends Controller
         if (($rep['seatsOpen'] ?? 0) > 0) {
             $out[] = [
                 'icon' => 'landmark', 'tone' => 'danger',
-                'text' => $rep['seatsOpen'].' seats are open in a legislature — anyone resident may stand.',
-                'cta' => 'Stand for office', 'href' => '/elections',
+                'text' => __(':count seats are open in a legislature — anyone resident may stand.', ['count' => $rep['seatsOpen']]),
+                'cta' => __('Stand for office'), 'href' => '/elections',
             ];
         }
 
         if (($rep['electionsOpen'] ?? 0) > 0) {
             $out[] = [
                 'icon' => 'vote', 'tone' => 'info',
-                'text' => $rep['electionsOpen'].' elections are open right now — the approval phase is the moment to weigh in.',
-                'cta' => 'Find your ballot', 'href' => '/elections',
+                'text' => __(':count elections are open right now — the approval phase is the moment to weigh in.', ['count' => $rep['electionsOpen']]),
+                'cta' => __('Find your ballot'), 'href' => '/elections',
             ];
         }
 
         if (($rep['petitionsGathering'] ?? 0) > 0) {
             $out[] = [
                 'icon' => 'file-text', 'tone' => 'warning',
-                'text' => $rep['petitionsGathering'].' petitions are gathering signatures toward a referendum.',
-                'cta' => 'See petitions', 'href' => '/civic/petitions',
+                'text' => __(':count petitions are gathering signatures toward a referendum.', ['count' => $rep['petitionsGathering']]),
+                'cta' => __('See petitions'), 'href' => '/civic/petitions',
             ];
         }
 
         if (($ju['constitutionalChallenges'] ?? 0) > 0) {
             $out[] = [
                 'icon' => 'scale', 'tone' => 'info',
-                'text' => $ju['constitutionalChallenges'].' constitutional challenges are before a court.',
-                'cta' => 'Open the docket', 'href' => '/judiciary/cases',
+                'text' => __(':count constitutional challenges are before a court.', ['count' => $ju['constitutionalChallenges']]),
+                'cta' => __('Open the docket'), 'href' => '/judiciary/cases',
             ];
         }
 
         $out[] = [
             'icon' => 'globe', 'tone' => 'info',
-            'text' => 'Run a node and keep the mesh alive — it confers no power, only stewardship.',
-            'cta' => 'Run a node', 'href' => '/federation',
+            'text' => __('Run a node and keep the mesh alive — it confers no power, only stewardship.'),
+            'cta' => __('Run a node'), 'href' => '/federation',
         ];
 
         return $out;
@@ -485,7 +482,7 @@ class AtlasController extends Controller
             ->limit(self::MAX_NODES)
             ->get(['server_id', 'name', 'url', 'status', 'relation', 'last_synced_seq'])
             ->map(fn ($p) => [
-                'label' => (string) ($p->name ?? 'node'),
+                'label' => (string) ($p->name ?? __('node')),
                 'name' => (string) ($p->url ?? ''),
                 'place' => null,
                 'operator' => null,

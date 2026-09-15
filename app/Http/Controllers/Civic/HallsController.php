@@ -96,7 +96,7 @@ class HallsController extends Controller
             'thread_id'       => $validated['thread_id'] ?? null,
         ]);
 
-        return back()->with('status', 'Posted to the halls (F-SOC-001). File it as testimony to seal it into the append-only record (Art. II §2).');
+        return back()->with('status', __('Posted to the halls (F-SOC-001). File it as testimony to seal it into the append-only record (Art. II §2).'));
     }
 
     /** F-SOC-002 — seal your own hall post into the append-only public register. */
@@ -118,8 +118,8 @@ class HallsController extends Controller
 
         return back()->with(
             'status',
-            'Testimony filed (F-SOC-002) — sealed into the append-only record (Art. II §2).'
-            .($recordId !== null ? " Record {$recordId}." : '')
+            __('Testimony filed (F-SOC-002) — sealed into the append-only record (Art. II §2).')
+            .($recordId !== null ? ' '.__('Record :id.', ['id' => $recordId]) : '')
         );
     }
 }

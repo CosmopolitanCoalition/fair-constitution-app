@@ -148,8 +148,7 @@ class CgcController extends Controller
 
         return back()->with(
             'status',
-            'Dedicated to the public domain, irreversibly (Art. III §5). The entry is appended to the '
-            .'register and sealed to the public record — it can never be edited or revoked.'
+            __('Dedicated to the public domain, irreversibly (Art. III §5). The entry is appended to the register and sealed to the public record — it can never be edited or revoked.')
         );
     }
 
@@ -172,8 +171,7 @@ class CgcController extends Controller
 
         return back()->with(
             'status',
-            'Removal requested (F-EXE-003) — grounds published; the creating legislature decides by '
-            .'ordinary majority of all serving members (hiring and firing — never the supermajority machinery).'
+            __('Removal requested (F-EXE-003) — grounds published; the creating legislature decides by ordinary majority of all serving members (hiring and firing — never the supermajority machinery).')
         );
     }
 
@@ -217,7 +215,7 @@ class CgcController extends Controller
                 'href' => "/departments/{$department->id}",
             ] : null,
             'executive' => [
-                'name' => 'Executive of '.($organization->jurisdiction?->name ?? 'the jurisdiction'),
+                'name' => __('Executive of :place', ['place' => $organization->jurisdiction?->name ?? __('the jurisdiction')]),
                 'href' => "/executives/{$organization->overseen_by_executive_id}",
             ],
             'reporting_interval' => $department?->reporting_interval_months,

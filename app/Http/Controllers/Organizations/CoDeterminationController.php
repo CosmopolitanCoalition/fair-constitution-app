@@ -65,8 +65,8 @@ class CoDeterminationController extends Controller
                     'name' => $entity->name,
                     'href' => ($entity instanceof Organization ? '/organizations/' : '/departments/').$entity->id,
                     'kind' => $entity instanceof Organization
-                        ? ($entity->is_cgc ? 'Common Good Corporation' : ($entity->type ?? 'Organization'))
-                        : 'Executive department',
+                        ? ($entity->is_cgc ? __('Common Good Corporation') : ($entity->type ?? __('Organization')))
+                        : __('Executive department'),
                 ],
                 'scale' => $board ? $this->scaleProps($board) : null,
             ];
@@ -91,16 +91,16 @@ class CoDeterminationController extends Controller
                 'worker_rep_min_employees',
                 $explorerThresholds['min'],
                 100,
-                'CLK-13 · Art. III §6',
-                'must stay below the parity threshold',
+                __('CLK-13 · Art. III §6'),
+                __('must stay below the parity threshold'),
             ),
             'clk14' => $this->amendableCard(
                 $jurisdictionId,
                 'worker_rep_parity_employees',
                 $explorerThresholds['parity'],
                 2000,
-                'CLK-14 · Art. III §6',
-                'must stay above the minimum threshold',
+                __('CLK-14 · Art. III §6'),
+                __('must stay above the minimum threshold'),
             ),
             'jointChairForm' => SurfaceMeta::for('organizations/co-determination')['forms'][0] ?? null,
         ]);
@@ -189,7 +189,7 @@ class CoDeterminationController extends Controller
             'workers' => $workers,
             'owner_side' => [
                 'seats' => (int) $board->owner_seats,
-                'label' => $isAppointed ? 'appointed governors' : 'shareholder-elected',
+                'label' => $isAppointed ? __('appointed governors') : __('shareholder-elected'),
             ],
             'worker_seats' => $workerSeats,
             'state' => $this->stateFor($workers, $workerSeats, $thresholds),
@@ -245,23 +245,23 @@ class CoDeterminationController extends Controller
             $department = Department::query()->whereKey($board->boardable_id)->first();
 
             return [
-                $department?->name ?? 'Department',
+                $department?->name ?? __('Department'),
                 $department !== null ? '/departments/'.$department->id : null,
-                'Executive department',
+                __('Executive department'),
             ];
         }
 
         $org = Organization::query()->whereKey($board->boardable_id)->first();
 
         if ($org === null) {
-            return ['Organization', null, 'Organization'];
+            return [__('Organization'), null, __('Organization')];
         }
 
         $kind = $org->is_cgc
-            ? 'Common Good Corporation'
+            ? __('Common Good Corporation')
             : ($org->structure === Organization::STRUCTURE_STOCK
-                ? 'Private enterprise (stock)'
-                : 'Private enterprise');
+                ? __('Private enterprise (stock)')
+                : __('Private enterprise'));
 
         return [$org->name, '/organizations/'.$org->id, $kind];
     }

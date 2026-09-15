@@ -41,7 +41,7 @@ class TranslationReviewController extends Controller
     public function show(Request $request, string $locale): Response
     {
         $registry = config('locales.locales', []);
-        abort_unless(isset($registry[$locale]), 404, "Unknown locale [{$locale}].");
+        abort_unless(isset($registry[$locale]), 404, __('Unknown locale [:locale].', ['locale' => $locale]));
 
         $modality = (string) $request->query('m', 'ui');
         $ids = array_column(TranslationReviewService::MODALITIES, 'id');
@@ -77,8 +77,7 @@ class TranslationReviewController extends Controller
     {
         if (! $this->canVerify($request, $locale)) {
             throw ValidationException::withMessages([
-                'verdict' => 'Only people who read this language can verify it. '
-                    . 'Add it to your languages on your record and you can help.',
+                'verdict' => __('Only people who read this language can verify it. Add it to your languages on your record and you can help.'),
             ]);
         }
 
@@ -102,7 +101,7 @@ class TranslationReviewController extends Controller
         if ($data['verdict'] === TranslationVerification::VERDICT_EDITED
             && trim((string) ($data['text'] ?? '')) === '') {
             throw ValidationException::withMessages([
-                'text' => 'An edit needs the wording you want instead.',
+                'text' => __('An edit needs the wording you want instead.'),
             ]);
         }
 

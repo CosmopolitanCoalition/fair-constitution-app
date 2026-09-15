@@ -50,7 +50,7 @@ class MeshRolesController extends Controller
         // report it qualified rather than probing against a jurisdiction that
         // may not exist yet.
         if (\App\Support\FoundingContext::isFounding()) {
-            return back()->with('status', "[QUALIFIED] {$validated['capability']} — founding node self-asserts every role.");
+            return back()->with('status', __('[QUALIFIED] :capability — founding node self-asserts every role.', ['capability' => $validated['capability']]));
         }
 
         $result = $prober->probe($validated['capability'], $this->scope($validated));
@@ -58,12 +58,12 @@ class MeshRolesController extends Controller
         if ($result['ok']) {
             return back()
                 ->with('roles_probe', $result)
-                ->with('status', "[QUALIFIED] {$validated['capability']} — {$result['detail']}");
+                ->with('status', __('[QUALIFIED] :capability — :detail', ['capability' => $validated['capability'], 'detail' => $result['detail']]));
         }
 
         return back()
             ->with('roles_probe', $result)
-            ->withErrors(['roles' => "[NOT QUALIFIED] {$validated['capability']} — {$result['detail']}"]);
+            ->withErrors(['roles' => __('[NOT QUALIFIED] :capability — :detail', ['capability' => $validated['capability'], 'detail' => $result['detail']])]);
     }
 
     /**
@@ -96,25 +96,25 @@ class MeshRolesController extends Controller
                     $caps->registerSelf($capability);
                 }
 
-                return back()->with('status', "[ESTABLISHED] {$capability} (self-asserted — founding node).");
+                return back()->with('status', __('[ESTABLISHED] :capability (self-asserted — founding node).', ['capability' => $capability]));
             }
 
             if (! InstanceCapability::isGoverned($capability)) {
                 $caps->registerSelf($capability);
 
-                return back()->with('status', "[ESTABLISHED] {$capability} (self-asserted — no consent needed).");
+                return back()->with('status', __('[ESTABLISHED] :capability (self-asserted — no consent needed).', ['capability' => $capability]));
             }
 
             // Governed, post-founding: a grant attaches to a PLACE. If none
             // exists we say so plainly rather than crash on an empty-uuid lookup.
             $scope = $this->scope($validated);
             if ($scope === null) {
-                return back()->withErrors(['roles' => 'A governed role attaches to a jurisdiction, and none exists yet. Finish founding first, or pass an explicit scope.']);
+                return back()->withErrors(['roles' => __('A governed role attaches to a jurisdiction, and none exists yet. Finish founding first, or pass an explicit scope.')]);
             }
 
             $proposal = $grants->request($capability, $scope);
 
-            return back()->with('status', "[REQUESTED] {$capability} — proposal ".substr((string) $proposal->id, 0, 8).'…. The dual-meter consent decides; approve it from the pending list.');
+            return back()->with('status', __('[REQUESTED] :capability — proposal :id…. The dual-meter consent decides; approve it from the pending list.', ['capability' => $capability, 'id' => substr((string) $proposal->id, 0, 8)]));
         } catch (Throwable $e) {
             return back()->withErrors(['roles' => $e->getMessage()]);
         }
@@ -133,7 +133,7 @@ class MeshRolesController extends Controller
 
         $proposal = PeerUpgradeProposal::query()->find($validated['proposal_id']);
         if ($proposal === null || $proposal->kind !== PeerUpgradeProposal::KIND_ROLE_GRANT) {
-            return back()->withErrors(['roles' => 'No such open role-grant request.']);
+            return back()->withErrors(['roles' => __('No such open role-grant request.')]);
         }
 
         $identity->ensureIdentity();
@@ -142,14 +142,14 @@ class MeshRolesController extends Controller
             if ($agreement->applicableConsentLeg($proposal->affected_root_jurisdiction_id) === 'operator') {
                 $operator = Auth::guard('operator')->user();
                 if ($operator === null) {
-                    return back()->withErrors(['roles' => 'No operator account to attest as (Meter A).']);
+                    return back()->withErrors(['roles' => __('No operator account to attest as (Meter A).')]);
                 }
                 $agreement->recordOperatorConsent($proposal, $operator, true);
             }
 
             $ratified = $grants->ratify($proposal);
 
-            return back()->with('status', "[GRANTED] {$ratified->capability} — channel enabled, grant minted ({$ratified->status}).");
+            return back()->with('status', __('[GRANTED] :capability — channel enabled, grant minted (:status).', ['capability' => $ratified->capability, 'status' => $ratified->status]));
         } catch (Throwable $e) {
             return back()->withErrors(['roles' => $e->getMessage()]);
         }
@@ -164,8 +164,8 @@ class MeshRolesController extends Controller
         $dropped = $grants->revoke($validated['capability'], 'operator-revoked via operator console');
 
         return back()->with('status', $dropped
-            ? "[DROPPED] {$validated['capability']}."
-            : "No enabled channel {$validated['capability']} to drop.");
+            ? __('[DROPPED] :capability.', ['capability' => $validated['capability']])
+            : __('No enabled channel :capability to drop.', ['capability' => $validated['capability']]));
     }
 
     /**

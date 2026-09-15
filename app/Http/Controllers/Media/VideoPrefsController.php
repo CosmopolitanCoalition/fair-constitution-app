@@ -64,7 +64,7 @@ class VideoPrefsController extends Controller
 
         // Reject any key outside the known set before validating the rest.
         $unknown = array_diff(array_keys($request->all()), self::ALLOWED);
-        abort_if($unknown !== [], 422, 'Unknown preference keys: '.implode(', ', $unknown));
+        abort_if($unknown !== [], 422, __('Unknown preference keys: :keys', ['keys' => implode(', ', $unknown)]));
 
         $validated = $request->validate([
             'audio' => ['sometimes', 'nullable', 'string', 'max:35'],

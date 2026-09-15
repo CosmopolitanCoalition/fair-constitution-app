@@ -47,7 +47,7 @@ class EconomyActionController extends Controller
             'to_account_id' => ['required', 'uuid'],
             'memo'          => ['nullable', 'string', 'max:280'],
         ], [
-            'amount.regex' => 'An amount is a number, up to six decimal places.',
+            'amount.regex' => __('An amount is a number, up to six decimal places.'),
         ]);
 
         $this->engine->file('F-IND-023', $request->user(), [
@@ -56,7 +56,7 @@ class EconomyActionController extends Controller
             'memo'          => $validated['memo'] ?? null,
         ]);
 
-        return back()->with('status', 'Sent (F-IND-023). It is on the ledger, and the ledger is append-only — a transfer cannot be unsent, only sent back.');
+        return back()->with('status', __('Sent (F-IND-023). It is on the ledger, and the ledger is append-only — a transfer cannot be unsent, only sent back.'));
     }
 
     /** F-IND-020 — open a person-to-person / N-party agreement. */
@@ -76,7 +76,7 @@ class EconomyActionController extends Controller
             'signers' => $validated['signers'],
         ]);
 
-        return back()->with('status', 'Agreement offered (F-IND-020). It takes effect only when every party has signed — a one-sided contract never takes effect (Art. I).');
+        return back()->with('status', __('Agreement offered (F-IND-020). It takes effect only when every party has signed — a one-sided contract never takes effect (Art. I).'));
     }
 
     /** F-IND-020 — a named party signs. */
@@ -87,7 +87,7 @@ class EconomyActionController extends Controller
             'agreement_id' => $agreement,
         ]);
 
-        return back()->with('status', 'Signed (F-IND-020). When the last party signs, the agreement becomes active in the same act.');
+        return back()->with('status', __('Signed (F-IND-020). When the last party signs, the agreement becomes active in the same act.'));
     }
 
     /** F-IND-020 — propose a clause redline on an agreement you are party to. */
@@ -116,7 +116,7 @@ class EconomyActionController extends Controller
             'rights_flag'  => $validated['rights_flag'] ?? null,
         ]);
 
-        return back()->with('status', 'Redline proposed (F-IND-020). The other party accepts, rejects, or counters.');
+        return back()->with('status', __('Redline proposed (F-IND-020). The other party accepts, rejects, or counters.'));
     }
 
     /** F-IND-020 — resolve a redline (accept clears the signatures). */
@@ -129,7 +129,7 @@ class EconomyActionController extends Controller
             'redline_id' => $redline,
         ]);
 
-        return back()->with('status', 'Redline resolved (F-IND-020). An accepted change voids the signatures — the parties re-sign the changed text.');
+        return back()->with('status', __('Redline resolved (F-IND-020). An accepted change voids the signatures — the parties re-sign the changed text.'));
     }
 
     /** F-IND-024 — bring a thing into the world, or hand one on. */
@@ -149,7 +149,7 @@ class EconomyActionController extends Controller
             'price_per_unit'  => (string) $validated['price_per_unit'],
         ]);
 
-        return back()->with('status', 'Offered (F-IND-021). Your shares are listed at a fixed price — a buyer takes the whole offer, money and units moving together or not at all.');
+        return back()->with('status', __('Offered (F-IND-021). Your shares are listed at a fixed price — a buyer takes the whole offer, money and units moving together or not at all.'));
     }
 
     /** F-IND-021 — buy an open share offer (the whole offer, one act). */
@@ -160,7 +160,7 @@ class EconomyActionController extends Controller
             'offer_id' => $offer,
         ]);
 
-        return back()->with('status', 'Bought (F-IND-021). Units moved on the named ownership plane, money on the wallet ledger — in one act, both or neither. No overdraft.');
+        return back()->with('status', __('Bought (F-IND-021). Units moved on the named ownership plane, money on the wallet ledger — in one act, both or neither. No overdraft.'));
     }
 
     /** F-IND-021 — withdraw your own open offer. */
@@ -171,7 +171,7 @@ class EconomyActionController extends Controller
             'offer_id' => $offer,
         ]);
 
-        return back()->with('status', 'Withdrawn (F-IND-021). The offer is off the floor; nothing moved.');
+        return back()->with('status', __('Withdrawn (F-IND-021). The offer is off the floor; nothing moved.'));
     }
 
     public function registerAsset(Request $request): RedirectResponse
@@ -192,7 +192,7 @@ class EconomyActionController extends Controller
             'quantity'    => $validated['quantity'] ?? '1',
         ]);
 
-        return back()->with('status', 'Registered (F-IND-024). It is yours, it has its own provenance, and every hand it passes through is recorded.');
+        return back()->with('status', __('Registered (F-IND-024). It is yours, it has its own provenance, and every hand it passes through is recorded.'));
     }
 
     /** F-IND-022 — offer something on the open market. */
@@ -215,7 +215,7 @@ class EconomyActionController extends Controller
             'description' => $validated['description'] ?? null,
         ]);
 
-        return back()->with('status', 'Listed (F-IND-022). Anyone in this world can see it and order it — the market is open (Art. III §5).');
+        return back()->with('status', __('Listed (F-IND-022). Anyone in this world can see it and order it — the market is open (Art. III §5).'));
     }
 
     /** F-IND-022 — order against a listing. */
@@ -226,7 +226,7 @@ class EconomyActionController extends Controller
             'listing_id' => $listing,
         ]);
 
-        return back()->with('status', 'Ordered (F-IND-022). Nothing has moved yet — the seller accepts, and money and thing move together or not at all.');
+        return back()->with('status', __('Ordered (F-IND-022). Nothing has moved yet — the seller accepts, and money and thing move together or not at all.'));
     }
 
     /**
@@ -242,7 +242,7 @@ class EconomyActionController extends Controller
             'order_id' => $order,
         ]);
 
-        return back()->with('status', 'Settled (F-IND-022). Money and thing moved in ONE transaction — both, or neither.');
+        return back()->with('status', __('Settled (F-IND-022). Money and thing moved in ONE transaction — both, or neither.'));
     }
 
     /**
@@ -262,7 +262,7 @@ class EconomyActionController extends Controller
             'note'       => $validated['note'] ?? null,
         ]);
 
-        return back()->with('status', 'Applied (F-IND-019). The organization decides — if it accepts, the work agreement is recorded with both signatures, never one.');
+        return back()->with('status', __('Applied (F-IND-019). The organization decides — if it accepts, the work agreement is recorded with both signatures, never one.'));
     }
 
     /** F-IND-023 · joint_open — open a co-owned ledger, rule named up front. */
@@ -286,7 +286,7 @@ class EconomyActionController extends Controller
             'party_account_ids' => $validated['party_account_ids'],
         ]);
 
-        return back()->with('status', 'Opened (F-IND-023). Fund it with a plain transfer to its account — and from here on, no movement leaves it without the agreed signatures.');
+        return back()->with('status', __('Opened (F-IND-023). Fund it with a plain transfer to its account — and from here on, no movement leaves it without the agreed signatures.'));
     }
 
     /** F-IND-023 · joint_propose — propose a movement out; proposing is your signature. */
@@ -297,7 +297,7 @@ class EconomyActionController extends Controller
             'amount'        => ['required', 'string', 'regex:/^\d{1,18}(\.\d{1,6})?$/'],
             'memo'          => ['nullable', 'string', 'max:240'],
         ], [
-            'amount.regex' => 'An amount is a number, up to six decimal places.',
+            'amount.regex' => __('An amount is a number, up to six decimal places.'),
         ]);
 
         $this->engine->file('F-IND-023', $request->user(), [
@@ -308,7 +308,7 @@ class EconomyActionController extends Controller
             'memo'          => $validated['memo'] ?? null,
         ]);
 
-        return back()->with('status', 'Proposed (F-IND-023). Your signature is on it; the movement waits until the ledger\'s rule is met — one signer never moves shared money alone.');
+        return back()->with('status', __('Proposed (F-IND-023). Your signature is on it; the movement waits until the ledger\'s rule is met — one signer never moves shared money alone.'));
     }
 
     /** F-IND-023 · joint_approve — the approval that meets the rule settles it. */
@@ -319,6 +319,6 @@ class EconomyActionController extends Controller
             'movement_id' => $movement,
         ]);
 
-        return back()->with('status', 'Approved (F-IND-023). If yours was the signature that completed the rule, the movement has settled — money moved in the same act as the consent.');
+        return back()->with('status', __('Approved (F-IND-023). If yours was the signature that completed the rule, the movement has settled — money moved in the same act as the consent.'));
     }
 }

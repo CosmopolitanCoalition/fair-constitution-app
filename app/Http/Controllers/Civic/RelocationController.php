@@ -114,8 +114,7 @@ class RelocationController extends Controller
 
         return back()->with(
             'status',
-            'Marked as travel — nothing changes. Your residency and every association in your chain '
-            . 'stay active; the system only asks again if a new sustained pattern forms (Art. V §1 · CLK-05).'
+            __('Marked as travel — nothing changes. Your residency and every association in your chain stay active; the system only asks again if a new sustained pattern forms (Art. V §1 · CLK-05).')
         );
     }
 
@@ -138,11 +137,10 @@ class RelocationController extends Controller
             ->get()
             ->map(fn (LegislatureMember $member) => [
                 'kind'  => 'legislature_seat',
-                'label' => sprintf(
-                    'Seat %s · %s legislature',
-                    $member->seat_no ?? '—',
-                    $member->legislature?->jurisdiction?->name ?? 'Unknown'
-                ),
+                'label' => __('Seat :seat · :place legislature', [
+                    'seat' => $member->seat_no ?? '—',
+                    'place' => $member->legislature?->jurisdiction?->name ?? __('Unknown'),
+                ]),
                 'grace' => $newClaim !== null ? [
                     'day' => (int) $newClaim['qualifying_days'],
                     'of'  => (int) $newClaim['threshold_days'],

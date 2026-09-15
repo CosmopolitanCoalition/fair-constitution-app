@@ -83,7 +83,7 @@ class AmendmentsController extends Controller
                     'bounds'     => $keyBounds !== null
                         ? array_intersect_key($keyBounds, array_flip(['min', 'max', 'allowed']))
                         : null,
-                    'basis'      => $keyBounds['citation'] ?? 'Art. VII',
+                    'basis'      => $keyBounds['citation'] ?? __('Art. VII'),
                     'enacted_by' => $change !== null && $change->law !== null ? [
                         'act_number'   => $change->law->act_number,
                         'href'         => $change->law->enacting_bill_id !== null

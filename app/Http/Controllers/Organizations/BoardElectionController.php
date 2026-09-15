@@ -152,9 +152,9 @@ class BoardElectionController extends Controller
             ], fn ($v) => $v !== null));
 
             return back()->with('status', match ($validated['action']) {
-                'provision_board' => 'Board established. Its seats can now be filled through the applicable elections.',
-                'open_owner_election' => 'Owner-seat election opened. Eligible owners or members can now nominate candidates and vote.',
-                default => 'Owner-seat election result certified.',
+                'provision_board' => __('Board established. Its seats can now be filled through the applicable elections.'),
+                'open_owner_election' => __('Owner-seat election opened. Eligible owners or members can now nominate candidates and vote.'),
+                default => __('Owner-seat election result certified.'),
             });
         }
 
@@ -165,7 +165,7 @@ class BoardElectionController extends Controller
 
         if ($board === null) {
             return back()->withErrors([
-                'constitution' => 'This organization has no board yet — provision the board on the owner track first (F-ORG-003).',
+                'constitution' => __('This organization has no board yet — provision the board on the owner track first (F-ORG-003).'),
             ]);
         }
 
@@ -176,8 +176,8 @@ class BoardElectionController extends Controller
         ], fn ($v) => $v !== null));
 
         return back()->with('status', $validated['action'] === 'certify'
-            ? 'Worker-seat election result certified.'
-            : 'Worker-seat election opened. Eligible workers can now nominate candidates and vote.');
+            ? __('Worker-seat election result certified.')
+            : __('Worker-seat election opened. Eligible workers can now nominate candidates and vote.'));
     }
 
     // =========================================================================
@@ -195,7 +195,7 @@ class BoardElectionController extends Controller
         ]);
 
         return redirect('/organizations/'.$organization->id.'/board-elections#governor-appointments')
-            ->with('status', 'Governor nominated. The dossier is public and the creating legislature’s consent vote is open below.');
+            ->with('status', __('Governor nominated. The dossier is public and the creating legislature’s consent vote is open below.'));
     }
 
     /** @return array<string, mixed> */
@@ -427,7 +427,7 @@ class BoardElectionController extends Controller
             'jurisdiction_id' => (string) $organization->jurisdiction_id,
         ]);
 
-        return back()->with('status', $validated['action'] === 'open' ? 'Chair ballot is open.' : 'Your chair ranking has been recorded.');
+        return back()->with('status', $validated['action'] === 'open' ? __('Chair ballot is open.') : __('Your chair ranking has been recorded.'));
     }
 
     /**
@@ -515,7 +515,7 @@ class BoardElectionController extends Controller
         $seat->loadMissing('holder:id,display_name');
         $user = $seat->holder;
 
-        return $user === null ? 'Seated member' : ($this->holderNames[$user->id] ??= CandidacyPanel::displayName($user));
+        return $user === null ? __('Seated member') : ($this->holderNames[$user->id] ??= CandidacyPanel::displayName($user));
     }
 
     /**

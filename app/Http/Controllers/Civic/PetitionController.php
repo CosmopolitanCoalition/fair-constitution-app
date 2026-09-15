@@ -132,9 +132,9 @@ class PetitionController extends Controller
 
         return back()->with(
             'status',
-            'Petition registered (F-IND-009) — signature gathering opens immediately.'
-            . ($threshold !== null ? " Threshold snapshot: {$threshold} signatures (CLK-17)." : '')
-            . ($petitionId !== null ? " Track it at /civic/petitions/{$petitionId}." : '')
+            __('Petition registered (F-IND-009) — signature gathering opens immediately.')
+            . ($threshold !== null ? ' '.__('Threshold snapshot: :count signatures (CLK-17).', ['count' => $threshold]) : '')
+            . ($petitionId !== null ? ' '.__('Track it at /civic/petitions/:id.', ['id' => $petitionId]) : '')
         );
     }
 
@@ -188,7 +188,7 @@ class PetitionController extends Controller
                     'pct_valid'   => (string) ($petition->audit_result['pct'] ?? '0.0'),
                     'still_above' => (bool) ($petition->audit_result['passed'] ?? false),
                 ],
-                'board_name'   => ($petition->jurisdiction?->name ?? 'The') . ' election board',
+                'board_name'   => __(':place election board', ['place' => $petition->jurisdiction?->name ?? __('The')]),
                 'completed_at' => $auditRecord?->published_at?->toDayDateTimeString(),
                 'record_href'  => $auditRecord?->audit_seq !== null
                     ? '/system/audit-chain?seq=' . (int) $auditRecord->audit_seq
@@ -197,7 +197,7 @@ class PetitionController extends Controller
             'review' => $this->reviewProps($petition),
             'ballot' => $question !== null && $election !== null ? [
                 'election_id' => (string) $election->id,
-                'label'       => ucfirst((string) $election->kind) . ' election · ' . $election->status,
+                'label'       => __(':kind election · :status', ['kind' => ucfirst((string) $election->kind), 'status' => $election->status]),
                 'href'        => "/elections/{$election->id}",
             ] : null,
             'urls' => [
@@ -215,7 +215,7 @@ class PetitionController extends Controller
             'revoke'          => false,
         ]);
 
-        return back()->with('status', 'Signature appended to the record (F-IND-010) — revocable while the petition gathers.');
+        return back()->with('status', __('Signature appended to the record (F-IND-010) — revocable while the petition gathers.'));
     }
 
     /** F-IND-010 — revoke the live signature (same form, revoke: true). */
@@ -227,7 +227,7 @@ class PetitionController extends Controller
             'revoke'          => true,
         ]);
 
-        return back()->with('status', 'Signature revoked (F-IND-010) — signatures stay revocable until the audited count freezes.');
+        return back()->with('status', __('Signature revoked (F-IND-010) — signatures stay revocable until the audited count freezes.'));
     }
 
     // =========================================================================
@@ -279,8 +279,9 @@ class PetitionController extends Controller
         // No judiciary exists in Phase C (scope_judiciary_id stays null) —
         // the honest default: disputes go to the scale's own judiciary
         // once Phase E seats one.
-        return ($petition->jurisdiction?->name ?? 'The jurisdiction')
-            . ' judiciary hears disputes (forming · Phase E)';
+        return __(':place judiciary hears disputes (forming · Phase E)', [
+            'place' => $petition->jurisdiction?->name ?? __('The jurisdiction'),
+        ]);
     }
 
     private function signedByMe(Petition $petition, ?User $user): bool
@@ -321,7 +322,7 @@ class PetitionController extends Controller
 
         return [
             'status'              => $status,
-            'court_label'         => ($petition->jurisdiction?->name ?? 'The') . ' judiciary (forming)',
+            'court_label'         => __(':place judiciary (forming)', ['place' => $petition->jurisdiction?->name ?? __('The')]),
             'opinion_record_href' => null,
             'stubbed'             => $status === 'pending' || (bool) $petition->review_stub,
         ];

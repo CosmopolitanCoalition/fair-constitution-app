@@ -292,13 +292,13 @@ class LifecycleController extends Controller
     {
         $data = $request->validate(['yes_votes' => ['required', 'integer', 'min:0']]);
         [$legislature] = $this->requireSeat($request->user()?->getKey());
-        abort_unless($unionProcess->status === UnionProcess::STATUS_OPEN, 422, 'This union process is already resolved.');
+        abort_unless($unionProcess->status === UnionProcess::STATUS_OPEN, 422, __('This union process is already resolved.'));
         // The applicant referendum is the APPLICANT population's own vote — only
         // a chamber of an applicant jurisdiction may record its outcome.
         abort_unless(
             in_array((string) $legislature->jurisdiction_id, array_map('strval', (array) $unionProcess->applicant_jurisdiction_ids), true),
             403,
-            'Only an applicant jurisdiction may record its population referendum.',
+            __('Only an applicant jurisdiction may record its population referendum.'),
         );
 
         $union->markApplicantReferendum($unionProcess, (int) $data['yes_votes']);
@@ -311,7 +311,7 @@ class LifecycleController extends Controller
     {
         [$legislature, $member] = $this->requireSeat($request->user()?->getKey());
         $mjv = $unionProcess->constituentProcess()->first();
-        abort_unless($mjv !== null, 422, 'This union process has no constituent vote to consent to.');
+        abort_unless($mjv !== null, 422, __('This union process has no constituent vote to consent to.'));
 
         $formation->openConstituentConsentVote($mjv, $legislature, $member);
 
@@ -322,9 +322,9 @@ class LifecycleController extends Controller
     public function unionFinalize(Request $request, UnionProcess $unionProcess, UnionService $union): RedirectResponse
     {
         $this->requireSeat($request->user()?->getKey());
-        abort_unless($unionProcess->status === UnionProcess::STATUS_OPEN, 422, 'This union process is already resolved.');
+        abort_unless($unionProcess->status === UnionProcess::STATUS_OPEN, 422, __('This union process is already resolved.'));
         $mjv = $unionProcess->constituentProcess()->first();
-        abort_unless($mjv !== null, 422, 'This union process has no constituent vote to close.');
+        abort_unless($mjv !== null, 422, __('This union process has no constituent vote to close.'));
 
         // maybeFinalize is the not-yet-met-safe path: it applies the union change
         // only when BOTH meters are met and leaves the process OPEN otherwise —
@@ -342,7 +342,7 @@ class LifecycleController extends Controller
     {
         $data = $request->validate(['consented' => ['required', 'boolean']]);
         [$legislature] = $this->requireSeat($request->user()?->getKey());
-        abort_unless($disintermediationProcess->status === DisintermediationProcess::STATUS_OPEN, 422, 'This process is already resolved.');
+        abort_unless($disintermediationProcess->status === DisintermediationProcess::STATUS_OPEN, 422, __('This process is already resolved.'));
 
         // Art. V §8: the ENCOMPASSING jurisdiction consents to dissolving its
         // intermediary. The acting chamber is passed to the service, which
@@ -358,7 +358,7 @@ class LifecycleController extends Controller
     {
         [$legislature, $member] = $this->requireSeat($request->user()?->getKey());
         $mjv = $disintermediationProcess->constituentProcess()->first();
-        abort_unless($mjv !== null, 422, 'This process has no constituent vote to consent to.');
+        abort_unless($mjv !== null, 422, __('This process has no constituent vote to consent to.'));
 
         $formation->openConstituentConsentVote($mjv, $legislature, $member);
 
@@ -369,9 +369,9 @@ class LifecycleController extends Controller
     public function disintermediationFinalize(Request $request, DisintermediationProcess $disintermediationProcess, DisintermediationService $service): RedirectResponse
     {
         $this->requireSeat($request->user()?->getKey());
-        abort_unless($disintermediationProcess->status === DisintermediationProcess::STATUS_OPEN, 422, 'This process is already resolved.');
+        abort_unless($disintermediationProcess->status === DisintermediationProcess::STATUS_OPEN, 422, __('This process is already resolved.'));
         $mjv = $disintermediationProcess->constituentProcess()->first();
-        abort_unless($mjv !== null, 422, 'This process has no constituent vote to close.');
+        abort_unless($mjv !== null, 422, __('This process has no constituent vote to close.'));
 
         // maybeFinalize applies the dissolution only when constituent unanimity
         // AND encompassing consent are both met, leaving the process OPEN
@@ -408,13 +408,13 @@ class LifecycleController extends Controller
     {
         $data = $request->validate(['yes_votes' => ['required', 'integer', 'min:0']]);
         [$legislature] = $this->requireSeat($request->user()?->getKey());
-        abort_unless($borderSettlement->status === BorderSettlement::STATUS_OPEN, 422, 'This settlement is already resolved.');
+        abort_unless($borderSettlement->status === BorderSettlement::STATUS_OPEN, 422, __('This settlement is already resolved.'));
         // The referendum is the AFFECTED area's own vote — only a chamber of an
         // affected sub-jurisdiction may record its outcome.
         abort_unless(
             in_array((string) $legislature->jurisdiction_id, array_map('strval', (array) $borderSettlement->affected_jurisdiction_ids), true),
             403,
-            'Only a jurisdiction in the affected area may record its referendum.',
+            __('Only a jurisdiction in the affected area may record its referendum.'),
         );
 
         $service->recordReferendum($borderSettlement, (int) $data['yes_votes']);
@@ -426,11 +426,11 @@ class LifecycleController extends Controller
     public function borderAdopt(Request $request, BorderSettlement $borderSettlement, BorderSettlementService $service): RedirectResponse
     {
         $this->requireSeat($request->user()?->getKey());
-        abort_unless($borderSettlement->status === BorderSettlement::STATUS_OPEN, 422, 'This settlement is already resolved.');
+        abort_unless($borderSettlement->status === BorderSettlement::STATUS_OPEN, 422, __('This settlement is already resolved.'));
         // Refuse a premature press WITHOUT invoking adopt() — adopt() marks the
         // settlement REJECTED when the meter is unmet, which would irreversibly
         // kill a settlement whose affected-area referendum is still pending.
-        abort_unless((bool) $borderSettlement->affected_supermajority_met, 422, 'The affected-area supermajority has not been met yet.');
+        abort_unless((bool) $borderSettlement->affected_supermajority_met, 422, __('The affected-area supermajority has not been met yet.'));
 
         $service->adopt($borderSettlement);
 
@@ -590,13 +590,13 @@ class LifecycleController extends Controller
         ];
 
         $labels = [
-            ['System genesis', 'The boundary is loaded and the place is tracked.'],
-            ['Population onboarding', 'Verified residents accumulate toward the critical population threshold.'],
-            ['First election', 'A bootstrap election board stands and the first general election is called.'],
-            ['Legislature constitutes', 'The certified winners take their seats.'],
-            ['Executive branch established', 'The legislature delegates or elects its executive.'],
-            ['Judiciary established', 'The courts are appointed.'],
-            ['Full governance achieved', 'Every branch stands; the place is self-governing.'],
+            [__('System genesis'), __('The boundary is loaded and the place is tracked.')],
+            [__('Population onboarding'), __('Verified residents accumulate toward the critical population threshold.')],
+            [__('First election'), __('A bootstrap election board stands and the first general election is called.')],
+            [__('Legislature constitutes'), __('The certified winners take their seats.')],
+            [__('Executive branch established'), __('The legislature delegates or elects its executive.')],
+            [__('Judiciary established'), __('The courts are appointed.')],
+            [__('Full governance achieved'), __('Every branch stands; the place is self-governing.')],
         ];
 
         $firstPending = null;
@@ -792,7 +792,7 @@ class LifecycleController extends Controller
     {
         [$legislature, $member] = $this->currentSeatPair($userId);
 
-        abort_unless($legislature !== null && $member !== null, 422, 'Proposing requires a current legislative seat.');
+        abort_unless($legislature !== null && $member !== null, 422, __('Proposing requires a current legislative seat.'));
 
         return [$legislature, $member];
     }

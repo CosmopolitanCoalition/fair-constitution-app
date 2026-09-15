@@ -112,8 +112,8 @@ class OrgEconomyController extends Controller
         abort_unless($request->user()
             && app(\App\Services\Organizations\OrgDelegationService::class)
                 ->mayPerform($organization, $request->user(), \App\Domain\Organizations\StaffTask::SHARES), 403);
-        abort_unless($organization->structure === Organization::STRUCTURE_STOCK, 422, 'Only stock organizations issue shares.');
-        abort_if($organization->status === Organization::STATUS_DISSOLVED, 422, 'A dissolved organization cannot issue shares.');
+        abort_unless($organization->structure === Organization::STRUCTURE_STOCK, 422, __('Only stock organizations issue shares.'));
+        abort_if($organization->status === Organization::STATUS_DISSOLVED, 422, __('A dissolved organization cannot issue shares.'));
         $data = $request->validate([
             'holder_type' => ['required', Rule::in(['users', 'organizations'])],
             'holder_id' => ['required', 'uuid'],
@@ -132,10 +132,10 @@ class OrgEconomyController extends Controller
 
         $recipient = DB::table($data['holder_type'])->where('id', $data['holder_id'])->whereNull('deleted_at')
             ->first($data['holder_type'] === 'users' ? ['display_name', 'name'] : ['name']);
-        $name = trim((string) ($recipient->display_name ?? '')) ?: ($recipient->name ?? 'the selected recipient');
+        $name = trim((string) ($recipient->display_name ?? '')) ?: ($recipient->name ?? __('the selected recipient'));
 
         return redirect('/organizations/'.$organization->id.'/economy')
-            ->with('status', 'Shares issued: '.$units.' units to '.$name.'. Public ownership is recorded; no payment was made.');
+            ->with('status', __('Shares issued: :units units to :name. Public ownership is recorded; no payment was made.', ['units' => $units, 'name' => $name]));
     }
 
     /**
@@ -155,7 +155,7 @@ class OrgEconomyController extends Controller
         ]);
 
         return redirect('/organizations/'.$organization->id.'/economy')
-            ->with('status', 'Dues paid. The payment is on the public ledger, recorded as dues.');
+            ->with('status', __('Dues paid. The payment is on the public ledger, recorded as dues.'));
     }
 
     /**
