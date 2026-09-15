@@ -95,6 +95,11 @@ class PhpCatalogue_php_machineryTest extends TestCase
         $this->assertSame($sorted, $keys, 'lang/en.json keys are sorted');
 
         foreach ($catalog as $k => $v) {
+            // Lines flattened from lang/en/*.php (php artisan i18n:lang-flatten) carry a
+            // dotted group key and the English text; the identity rule is for literal-string lines.
+            if (preg_match('/^(auth|pagination|passwords|validation)\./', $k)) {
+                continue;
+            }
             $this->assertSame($k, $v, "lang/en.json value equals key for [$k]");
         }
     }

@@ -135,6 +135,10 @@ def halted() -> bool:
 # ─── Rails ────────────────────────────────────────────────────────────────────
 # Reserved by vue-i18n. A translated message must not invent or lose these.
 PLACEHOLDER = re.compile(r"(?<!\{')\{([A-Za-z_$][\w$]*)\}")
+# Laravel replacement tokens in the lang namespace (lang/<locale>.json):
+# ":attribute", ":Attribute", ":min". A colon inside a word (https://, ::),
+# before a digit (10:30) or before a space ("Note: ...") is not a token.
+LARAVEL_TOKEN = re.compile(r"(?<![\w:]):[A-Za-z_]\w*")
 ID_TOKEN = re.compile(r"\b(?:R|WF|F|I|CLK)-[\dA-Z][\dA-Z-]*\b")
 # Citations carry section RANGES with an en-dash in this repo's copy
 # ("Art. V §1–2 · CLK-05"), and a regex that stops at §1 leaves "–2" exposed to
@@ -201,7 +205,7 @@ NLLB_TAG = {
 # "leave Art. II §2 alone" and then rejecting its output when it doesn't is a
 # worse design than never showing it the citation: it turns a preventable defect
 # into human review queue volume.
-_MASKABLE = [ESCAPED, ID_TOKEN, CITATION, PLACEHOLDER]
+_MASKABLE = [ESCAPED, ID_TOKEN, CITATION, PLACEHOLDER, LARAVEL_TOKEN]
 
 
 def mask(text: str) -> tuple[str, list[str]]:
@@ -593,6 +597,8 @@ def qa(source: str, out: str | None, script: str = "Latn") -> str | None:
         return "empty"   # includes output that is only zero-width/bidi controls
     if sorted(PLACEHOLDER.findall(source)) != sorted(PLACEHOLDER.findall(out)):
         return "placeholder mismatch"
+    if sorted(LARAVEL_TOKEN.findall(source)) != sorted(LARAVEL_TOKEN.findall(out)):
+        return "laravel token mismatch"
     if sorted(ID_TOKEN.findall(source)) != sorted(ID_TOKEN.findall(out)):
         return "ID token altered"
     if sorted(CITATION.findall(source)) != sorted(CITATION.findall(out)):
@@ -776,6 +782,15 @@ def self_test() -> int:
     check("mask hides the citation from the model", "Art." not in m, m)
     check("mask hides the ID token", "F-IND-003" not in m, m)
     check("mask hides the placeholder", "{name}" not in m, m)
+    lv = "The :attribute field must be at least :min characters. See https://x.test at 10:30. Note: :Other."
+    lm, lk = mask(lv)
+    check("mask hides Laravel tokens", ":attribute" not in lm and ":min" not in lm and ":Other" not in lm, lm)
+    check("mask leaves URLs, clock times and prose colons alone", "https://x.test" in lm and "10:30" in lm and "Note:" in lm, lm)
+    check("mask/unmask round-trips Laravel tokens", unmask(lm, lk) == lv)
+    check("Laravel token loss is caught",
+          qa("The :attribute field is required.", "Le champ est obligatoire.") is not None)
+    check("Laravel token kept passes",
+          qa("The :attribute field is required.", "Le champ :attribute est obligatoire.") is None)
 
     # the rails
     check("placeholder loss is caught",

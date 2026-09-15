@@ -196,6 +196,11 @@ class PhpCatalogue_php_refusals_bTest extends TestCase
         sort($sorted, SORT_STRING);
         $this->assertSame($sorted, $keys, 'lang/en.json keys are not sorted (SORT_STRING).');
         foreach ($catalog as $k => $v) {
+            // Lines flattened from lang/en/*.php (php artisan i18n:lang-flatten) carry a
+            // dotted group key and the English text; the identity rule is for literal-string lines.
+            if (preg_match('/^(auth|pagination|passwords|validation)\./', $k)) {
+                continue;
+            }
             $this->assertSame($k, $v, "catalog value must equal key for: [$k]");
         }
     }
