@@ -16975,6 +16975,10 @@
         {
           "date": "2026-09-15",
           "note": "INCIDENT 5:34 PM Eastern: the desk escaped the @ in person_profile.handle_hint and broke the PersonProfile.vue template compile for about three minutes on main (efc5eac6, pushed); fixed at 56df9bcf (JS unicode escapes for the quotes); civic-social pin 9/9 and raw-scan pin green after. Cause: a shell heredoc mangled the backslashes in the edit; edits now use explicit byte sequences."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "5:40 PM Eastern: SetLocale ran BEFORE the session (prepended to the web group), so neither a guest POST /locale choice nor the signed-in stored locale was ever read server-side; only Accept-Language applied. Moved to the append list before HandleInertiaRequests (13849b76), pinned by tests/Unit/MiddlewareOrderTest.php, verified live: POST /locale es then GET renders <html lang=\"es\">. Guest read-back complete; Settings entry in both flyouts merged; header select kept (ruling)."
         }
       ]
     },
@@ -17059,6 +17063,10 @@
         {
           "date": "2026-09-15",
           "note": "Pass 2 complete 5:22 PM Eastern (78 routes at 60 s, one retry after a hold): 26 passed (12 on the retry), 4 held, 36 failed; 28 of the 36 failures were the sweep session expiring at 5:00 PM (SESSION_LIFETIME 120 min), not defects; they re-run in pass 3 with a fresh sign-in. Real findings grouped: mapper pages (districts, panels, type-b-map: 34 contrast nodes each on Tailwind grey utilities over the dark shell; no <Head title>), jurisdiction map (8 + title), commons square (6 contrast) and halls (2 in-text links), residency (Leaflet attribution + nested-interactive), executive actions (in-text link), private room (opacity dimming). Merged: fix-a11y-ui (5b3e9f54), fix-access (1c07cba9: delegations page reads for any resident; board room renders a no-live-call state; resolver picks a CGC org). Running: fix-mapper-contrast, fix-commons-contrast, fix-guest-locale (repair). Three JSON polls outside /api moved to the machine class (18ddcad5). Pass 3 started 5:33 PM."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "5:45 PM Eastern: all six fix lanes merged (fix-a11y-ui 5b3e9f54, fix-access 1c07cba9, fix-guest-locale 51cf1a97, fix-mapper-contrast 4b733719, fix-commons-contrast 879223d2, w0446 d3f08d42); setup step 0 title and helper contrast fixed and the roster now samples wizard steps 0 to 6 (ed2a7c7e; 56 of 62 parameterised templates resolved, 12 with no row). Pass 3 running over 49 routes with a fresh session (square and halls now pass: the community-nav fix confirmed live). Remaining after pass 3: a pass 4 over whatever still fails plus the six new wizard-step URLs, then the report N of N."
         }
       ]
     }
