@@ -50,10 +50,10 @@ class TypeBMapController extends Controller
     public function show(Request $request, string $legislature_id)
     {
         $legId = $this->resolveLegislatureId($legislature_id);
-        abort_unless($legId !== null, 404, 'No legislature found for that identifier.');
+        abort_unless($legId !== null, 404, __('No legislature found for that identifier.'));
 
         $props = $this->buildProps($legId, $request->query('map'));
-        abort_unless($props !== null, 404, 'This jurisdiction has no Type B chamber — a leaf has no constituents to group.');
+        abort_unless($props !== null, 404, __('This jurisdiction has no Type B chamber — a leaf has no constituents to group.'));
 
         $props['jurisdictionContext'] = ($ctxJ = \App\Models\Legislature::find($legId)?->jurisdiction) ? \App\Support\JurisdictionContext::for($ctxJ) : null;
 
@@ -210,7 +210,7 @@ class TypeBMapController extends Controller
                 'status'            => $status,
                 'color_index'       => $colorByPanel[$pn] ?? (($pn - 1) % 7),
                 'district_number'   => $pn,
-                'name'              => 'Panel ' . $pn,
+                'name'              => __('Panel :n', ['n' => $pn]),
                 'population'        => (int) $p['population'],
                 // Equal seats read as on-target (frac/seats - 1 = 0) in the strip.
                 'fractional_seats'  => (float) $p['seats'],
@@ -219,7 +219,7 @@ class TypeBMapController extends Controller
                 'has_integrity'     => true,
                 'scope_iso'         => null,
                 'scope_adm'         => (int) $leg['adm_level'],
-                'scope_name'        => 'Panel ' . $pn,
+                'scope_name'        => __('Panel :n', ['n' => $pn]),
                 'deviation_pct'     => null,
                 'members'           => $members,
                 'centroid'          => null,
@@ -295,7 +295,7 @@ class TypeBMapController extends Controller
         // The map is called PANELS here (not Districts) — override the shared
         // surface title so the tab / any chrome reads Type B's own term.
         $surface = \App\Support\SurfaceMeta::for('legislature/districts');
-        $surface['title'] = 'Type B Panels';
+        $surface['title'] = __('Type B Panels');
 
         return [
             'surface' => $surface,
@@ -385,15 +385,15 @@ class TypeBMapController extends Controller
             'most_over'  => $panelCount > 0 ? [
                 'district_id'    => "{$groupKey}:{$overPn}",
                 'scope_id'       => "{$groupKey}:{$overPn}",
-                'scope_name'     => 'Panel ' . $overPn,
-                'district_label' => 'Panel ' . $overPn,
+                'scope_name'     => __('Panel :n', ['n' => $overPn]),
+                'district_label' => __('Panel :n', ['n' => $overPn]),
                 'deviation_pct'  => $overDev,
             ] : null,
             'most_under' => $panelCount > 0 ? [
                 'district_id'    => "{$groupKey}:{$underPn}",
                 'scope_id'       => "{$groupKey}:{$underPn}",
-                'scope_name'     => 'Panel ' . $underPn,
-                'district_label' => 'Panel ' . $underPn,
+                'scope_name'     => __('Panel :n', ['n' => $underPn]),
+                'district_label' => __('Panel :n', ['n' => $underPn]),
                 'deviation_pct'  => $underDev,
             ] : null,
             'tiers'            => $eq['tiers'],
@@ -490,7 +490,7 @@ class TypeBMapController extends Controller
         $g = DB::table('legislature_type_b_groupings')
             ->where('id', $map_id)->where('legislature_id', $legId)->whereNull('deleted_at')->first(['id']);
         if (! $g) {
-            return response()->json(['error' => 'Grouping not found.'], 404);
+            return response()->json(['error' => __('Grouping not found.')], 404);
         }
 
         $name = trim((string) $request->input('name', ''));
@@ -515,7 +515,7 @@ class TypeBMapController extends Controller
         $src = DB::table('legislature_type_b_groupings')
             ->where('id', $map_id)->where('legislature_id', $legId)->whereNull('deleted_at')->first();
         if (! $src) {
-            return response()->json(['error' => 'Grouping not found.'], 404);
+            return response()->json(['error' => __('Grouping not found.')], 404);
         }
 
         $copyName = 'Copy of ' . $this->mapName($src);
@@ -591,10 +591,10 @@ class TypeBMapController extends Controller
         $g = DB::table('legislature_type_b_groupings')
             ->where('id', $map_id)->where('legislature_id', $legId)->whereNull('deleted_at')->first(['id', 'status']);
         if (! $g) {
-            return response()->json(['error' => 'Grouping not found.'], 404);
+            return response()->json(['error' => __('Grouping not found.')], 404);
         }
         if ($g->status === 'active') {
-            return response()->json(['error' => 'The active grouping is seated. Activate another grouping first.'], 422);
+            return response()->json(['error' => __('The active grouping is seated. Activate another grouping first.')], 422);
         }
 
         DB::table('legislature_type_b_panel_jurisdictions')->where('grouping_id', $map_id)->delete();
@@ -621,20 +621,20 @@ class TypeBMapController extends Controller
         // operator selected. Refuse before the UUID column query (which would
         // otherwise 22P02 on 'preview'). Autoseed is the compute step.
         if (! Str::isUuid($map_id)) {
-            return response()->json(['error' => 'Save this grouping first (New map or Autoseed), then activate it.'], 422);
+            return response()->json(['error' => __('Save this grouping first (New map or Autoseed), then activate it.')], 422);
         }
 
         $g = DB::table('legislature_type_b_groupings')
             ->where('id', $map_id)->where('legislature_id', $legId)->whereNull('deleted_at')->first();
 
         if (! $g) {
-            return response()->json(['error' => 'Save this grouping first (New map or Autoseed), then activate it.'], 422);
+            return response()->json(['error' => __('Save this grouping first (New map or Autoseed), then activate it.')], 422);
         }
         if ($g->status === 'active') {
             return response()->json(['ok' => true, 'maps' => $this->groupingList($legId)]);
         }
         if ((int) $g->panel_count < 1) {
-            return response()->json(['error' => 'This map has no panels. Autoseed or build panels before activating.'], 422);
+            return response()->json(['error' => __('This map has no panels. Autoseed or build panels before activating.')], 422);
         }
 
         $this->promoteToActive($legId, $g);
@@ -659,7 +659,7 @@ class TypeBMapController extends Controller
         $jids  = array_values(array_filter((array) $request->input('jurisdiction_ids', [])));
         $mapId = (string) $request->input('map_id', '');
         if ($jids === []) {
-            return response()->json(['error' => 'No constituents selected.'], 422);
+            return response()->json(['error' => __('No constituents selected.')], 422);
         }
 
         $grouping = $this->editableDraft($legId, $mapId);
@@ -710,7 +710,7 @@ class TypeBMapController extends Controller
                 'color_index'       => ($district['number'] - 1) % 7,
                 'status'            => 'draft',
                 'district_number'   => $district['number'],
-                'name'              => 'Panel ' . $district['number'],
+                'name'              => __('Panel :n', ['n' => $district['number']]),
                 'convex_hull_ratio' => null,
                 'is_contiguous'     => null,
                 'has_integrity'     => true,
@@ -740,7 +740,7 @@ class TypeBMapController extends Controller
         $panel = DB::table('legislature_type_b_panels')
             ->where('grouping_id', $grouping->id)->where('panel_number', $panelNumber)->whereNull('deleted_at')->first();
         if (! $panel) {
-            return response()->json(['error' => 'Panel not found.'], 404);
+            return response()->json(['error' => __('Panel not found.')], 404);
         }
 
         $add    = array_values(array_filter((array) $request->input('add', [])));
@@ -779,7 +779,7 @@ class TypeBMapController extends Controller
                 'color_index'       => ($panelNumber - 1) % 7,
                 'status'            => 'draft',
                 'district_number'   => $panelNumber,
-                'name'              => 'Panel ' . $panelNumber,
+                'name'              => __('Panel :n', ['n' => $panelNumber]),
                 'convex_hull_ratio' => null,
                 'is_contiguous'     => null,
                 'has_integrity'     => true,
@@ -809,7 +809,7 @@ class TypeBMapController extends Controller
         $panel = DB::table('legislature_type_b_panels')
             ->where('grouping_id', $grouping->id)->where('panel_number', $panelNumber)->whereNull('deleted_at')->first();
         if (! $panel) {
-            return response()->json(['error' => 'Panel not found.'], 404);
+            return response()->json(['error' => __('Panel not found.')], 404);
         }
 
         $populations = $this->constituentPopulations($legId);
@@ -1004,7 +1004,7 @@ class TypeBMapController extends Controller
             return $blank(0);
         }
         if ($g->status !== 'draft') {
-            return response()->json(['error' => 'Only a draft map can be cleared. The active map is seated — deactivate it first.'], 422);
+            return response()->json(['error' => __('Only a draft map can be cleared. The active map is seated — deactivate it first.')], 422);
         }
 
         $panelCount = (int) DB::table('legislature_type_b_panels')
@@ -1069,15 +1069,15 @@ class TypeBMapController extends Controller
     private function editableDraft(string $legId, string $groupingId)
     {
         if ($groupingId === '' || $groupingId === 'preview') {
-            return response()->json(['error' => 'Save this grouping first (New map or Autoseed), then edit it.'], 422);
+            return response()->json(['error' => __('Save this grouping first (New map or Autoseed), then edit it.')], 422);
         }
         $g = DB::table('legislature_type_b_groupings')
             ->where('id', $groupingId)->where('legislature_id', $legId)->whereNull('deleted_at')->first();
         if (! $g) {
-            return response()->json(['error' => 'Grouping not found.'], 404);
+            return response()->json(['error' => __('Grouping not found.')], 404);
         }
         if ($g->status !== 'draft') {
-            return response()->json(['error' => 'Only a draft grouping can be edited. Edit a draft, then activate it.'], 422);
+            return response()->json(['error' => __('Only a draft grouping can be edited. Edit a draft, then activate it.')], 422);
         }
 
         return $g;
@@ -1274,7 +1274,9 @@ class TypeBMapController extends Controller
         }
         $when = ! empty($g->created_at) ? \Illuminate\Support\Carbon::parse($g->created_at)->format('Y-m-d') : '';
 
-        return ucfirst((string) $g->status) . ' grouping' . ($when !== '' ? " · {$when}" : '');
+        return $when !== ''
+            ? __(':status grouping · :when', ['status' => ucfirst((string) $g->status), 'when' => $when])
+            : __(':status grouping', ['status' => ucfirst((string) $g->status)]);
     }
 
     /** The chamber's groupings as rows (active, then drafts, then archived). */

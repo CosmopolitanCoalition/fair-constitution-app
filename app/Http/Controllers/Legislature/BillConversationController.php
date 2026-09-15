@@ -86,7 +86,7 @@ class BillConversationController extends Controller
             ->first();
 
         if ($subforum === null || $subforum->space === null) {
-            return back()->with('status', 'This bill has no discussion space yet — it opens when the bill is live in the halls.');
+            return back()->with('status', __('This bill has no discussion space yet — it opens when the bill is live in the halls.'));
         }
 
         // One canonical "discussion" thread per bill subforum: created on the first comment, appended
@@ -107,6 +107,6 @@ class BillConversationController extends Controller
             'thread_id'       => $thread?->id,
         ]);
 
-        return back()->with('status', 'Comment posted in this bill’s discussion.');
+        return back()->with('status', __('Comment posted in this bill’s discussion.'));
     }
 }

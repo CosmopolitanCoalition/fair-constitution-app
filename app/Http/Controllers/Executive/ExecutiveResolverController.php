@@ -57,7 +57,7 @@ class ExecutiveResolverController extends Controller
         if ($executiveId === null) {
             return redirect('/civic')->with(
                 'status',
-                'No executive office in your association chain yet — offices form when a legislature delegates one · F-LEG-014.'
+                __('No executive office in your association chain yet — offices form when a legislature delegates one · F-LEG-014.')
             );
         }
 
@@ -67,7 +67,7 @@ class ExecutiveResolverController extends Controller
         $redirect = redirect($path);
 
         if ($seats->count() > 1) {
-            $redirect->with('status', 'You hold a seat in more than one executive — showing one; switch from the office page.');
+            $redirect->with('status', __('You hold a seat in more than one executive — showing one; switch from the office page.'));
         }
 
         return $redirect;
@@ -92,7 +92,7 @@ class ExecutiveResolverController extends Controller
         if ($departmentIds->count() > 1) {
             return redirect("/departments/{$departmentIds->first()}/reporting")->with(
                 'status',
-                'You sit on more than one department board — showing one; pick another from its department page.'
+                __('You sit on more than one department board — showing one; pick another from its department page.')
             );
         }
 
@@ -102,7 +102,7 @@ class ExecutiveResolverController extends Controller
         if ($executiveId === null) {
             return redirect('/civic')->with(
                 'status',
-                'No executive office in your association chain yet — F-LEG-014.'
+                __('No executive office in your association chain yet — F-LEG-014.')
             );
         }
 

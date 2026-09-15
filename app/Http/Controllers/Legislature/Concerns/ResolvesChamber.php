@@ -75,7 +75,7 @@ trait ResolvesChamber
 
         return [
             'id'               => (string) $legislature->id,
-            'name'             => ($legislature->jurisdiction?->name ?? 'Unknown') . ' legislature',
+            'name'             => __(':name legislature', ['name' => $legislature->jurisdiction?->name ?? __('Unknown')]),
             'jurisdiction'     => [
                 'id'   => $jid,
                 'name' => $legislature->jurisdiction?->name,
@@ -115,6 +115,6 @@ trait ResolvesChamber
 
     protected function memberDisplayName(?LegislatureMember $member): string
     {
-        return $member?->user?->display_name ?: ($member?->user?->name ?? 'Unknown member');
+        return $member?->user?->display_name ?: ($member?->user?->name ?? __('Unknown member'));
     }
 }

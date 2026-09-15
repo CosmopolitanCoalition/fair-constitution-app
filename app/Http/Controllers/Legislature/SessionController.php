@@ -133,7 +133,7 @@ class SessionController extends Controller
     {
         $legislature->loadMissing('jurisdiction:id,name,slug,parent_id,adm_level');
         return [
-            'legislature' => ['id' => (string) $legislature->id, 'name' => ($legislature->jurisdiction?->name ?? 'Legislature').' sessions'],
+            'legislature' => ['id' => (string) $legislature->id, 'name' => __(':name sessions', ['name' => $legislature->jurisdiction?->name ?? __('Legislature')])],
             'workspace' => \App\Support\LegislatureWorkspace::for($legislature, $legislature->jurisdiction, false),
             'jurisdictionContext' => $legislature->jurisdiction ? \App\Support\JurisdictionContext::forRoom($legislature->jurisdiction) : null,
         ];
@@ -153,7 +153,7 @@ class SessionController extends Controller
             'open_now'        => (bool) $request->boolean('open_now', true),
         ]);
 
-        return back()->with('status', 'Session called and opened (F-SPK-001) — attendance and the quorum call are live.');
+        return back()->with('status', __('Session called and opened (F-SPK-001) — attendance and the quorum call are live.'));
     }
 
     /**
@@ -166,11 +166,11 @@ class SessionController extends Controller
     {
         $viewer = $this->viewerMember($legislature, $request->user());
 
-        abort_unless($viewer !== null, 403, 'Speaker ballotings concern chamber members.');
+        abort_unless($viewer !== null, 403, __('Speaker ballotings concern chamber members.'));
         abort_unless(
             $legislature->speaker_id === null,
             422,
-            'The chamber has a Speaker — replacement runs through a replace_speaker motion (Art. II §3).'
+            __('The chamber has a Speaker — replacement runs through a replace_speaker motion (Art. II §3).')
         );
 
         $this->engine->file('F-LEG-008', null, [
@@ -179,7 +179,7 @@ class SessionController extends Controller
             'jurisdiction_id' => (string) $legislature->jurisdiction_id,
         ]);
 
-        return back()->with('status', 'Speaker balloting opened — every serving member files their ranking (F-LEG-008, supermajority RCV).');
+        return back()->with('status', __('Speaker balloting opened — every serving member files their ranking (F-LEG-008, supermajority RCV).'));
     }
 
     /** F-LEG-002 — own attendance. */
@@ -190,7 +190,7 @@ class SessionController extends Controller
             'jurisdiction_id' => (string) $session->legislature?->jurisdiction_id,
         ]);
 
-        return back()->with('status', 'Attendance registered (F-LEG-002) — feeds the quorum call, never a vote denominator.');
+        return back()->with('status', __('Attendance registered (F-LEG-002) — feeds the quorum call, never a vote denominator.'));
     }
 
     /** F-SPK-003 — quorum count publication. */
@@ -204,8 +204,8 @@ class SessionController extends Controller
         $met = (bool) ($result->recorded['met'] ?? false);
 
         return back()->with('status', $met
-            ? 'Quorum met — published to the public record (F-SPK-003).'
-            : 'Quorum NOT met — WF-LEG-20: compel attendance (F-SPK-008), then re-count or adjourn & reschedule.');
+            ? __('Quorum met — published to the public record (F-SPK-003).')
+            : __('Quorum NOT met — WF-LEG-20: compel attendance (F-SPK-008), then re-count or adjourn & reschedule.'));
     }
 
     /** F-SPK-002 — agenda tail reorder / slot-1 acknowledgment. */
@@ -218,7 +218,7 @@ class SessionController extends Controller
             'mark_addressed_ref_id' => $request->input('mark_addressed_ref_id'),
         ]);
 
-        return back()->with('status', 'Agenda updated (F-SPK-002) — the locked head is engine-composed and immutable.');
+        return back()->with('status', __('Agenda updated (F-SPK-002) — the locked head is engine-composed and immutable.'));
     }
 
     /** F-LEG-007 — motion (opens its procedural_motion vote in the same filing). */
@@ -234,7 +234,7 @@ class SessionController extends Controller
             'amendment_text'  => $request->input('amendment_text'),
         ]);
 
-        return back()->with('status', 'Motion submitted (F-LEG-007) — its majority vote is open; every cast publishes.');
+        return back()->with('status', __('Motion submitted (F-LEG-007) — its majority vote is open; every cast publishes.'));
     }
 
     /** F-LEG-006 — statement into the immutable public record. */
@@ -249,7 +249,7 @@ class SessionController extends Controller
             'subject_id'      => (string) $session->id,
         ]);
 
-        return back()->with('status', 'Statement entered verbatim into the immutable public record (F-LEG-006 · WF-SYS-03).');
+        return back()->with('status', __('Statement entered verbatim into the immutable public record (F-LEG-006 · WF-SYS-03).'));
     }
 
     /** F-SPK-008 — attendance compulsion (WF-LEG-20). */
@@ -260,7 +260,7 @@ class SessionController extends Controller
             'jurisdiction_id' => (string) $session->legislature?->jurisdiction_id,
         ]);
 
-        return back()->with('status', 'Compulsion order issued (F-SPK-008) — recorded publicly; re-publish the quorum count when members arrive.');
+        return back()->with('status', __('Compulsion order issued (F-SPK-008) — recorded publicly; re-publish the quorum count when members arrive.'));
     }
 
     /** F-SPK-009 — minutes + adjournment; CLK-02 re-arms from the meeting. */
@@ -275,10 +275,9 @@ class SessionController extends Controller
 
         $dueBy = $session->legislature?->fresh()?->next_meeting_due_by?->toDateString();
 
-        return back()->with('status', sprintf(
-            'Session adjourned — minutes sealed to the public record (F-SPK-009).%s',
-            $dueBy !== null ? " CLK-02 re-armed: next meeting due by {$dueBy}." : ''
-        ));
+        return back()->with('status', $dueBy !== null
+            ? __('Session adjourned — minutes sealed to the public record (F-SPK-009). CLK-02 re-armed: next meeting due by :due.', ['due' => $dueBy])
+            : __('Session adjourned — minutes sealed to the public record (F-SPK-009).'));
     }
 
     /**
@@ -303,7 +302,7 @@ class SessionController extends Controller
                 'explanation'     => $explanation,
             ]);
 
-            return back()->with('status', 'Ranking filed (F-LEG-008) — the ballot closes when every serving member has cast.');
+            return back()->with('status', __('Ranking filed (F-LEG-008) — the ballot closes when every serving member has cast.'));
         }
 
         if (in_array($vote->vote_type, ['committee_chair', 'committee_seat_fill'], true)) {
@@ -314,7 +313,7 @@ class SessionController extends Controller
                 'explanation'     => $explanation,
             ]);
 
-            return back()->with('status', 'Ranking filed (F-LEG-011).');
+            return back()->with('status', __('Ranking filed (F-LEG-011).'));
         }
 
         $formId = $vote->body_type === ChamberVote::BODY_COMMITTEE ? 'F-LEG-005' : 'F-LEG-004';
@@ -327,7 +326,9 @@ class SessionController extends Controller
             'explanation'     => $explanation,
         ]);
 
-        return back()->with('status', "Vote cast ({$formId}) — published with your name" . ($explanation ? ' and explanation' : '') . ' (Art. II §2).');
+        return back()->with('status', $explanation
+            ? __('Vote cast (:form) — published with your name and explanation (Art. II §2).', ['form' => $formId])
+            : __('Vote cast (:form) — published with your name (Art. II §2).', ['form' => $formId]));
     }
 
     /** F-SPK-004 — the only Speaker vote. */
@@ -340,7 +341,7 @@ class SessionController extends Controller
             'explanation'     => $request->input('explanation'),
         ]);
 
-        return back()->with('status', 'Tie broken (F-SPK-004) — recomputed against the unchanged peg threshold.');
+        return back()->with('status', __('Tie broken (F-SPK-004) — recomputed against the unchanged peg threshold.'));
     }
 
     // =========================================================================
@@ -359,7 +360,7 @@ class SessionController extends Controller
             ->values()
             ->map(fn (SessionAttendance $row) => [
                 'member_id' => (string) $row->member_id,
-                'name'      => ($row->member?->user?->display_name ?: 'Member'),
+                'name'      => ($row->member?->user?->display_name ?: __('Member')),
                 'seat_no'   => $row->member?->seat_no,
                 'seat_kind' => $row->member?->seatKind(),
                 'status'    => $row->status,
@@ -424,7 +425,7 @@ class SessionController extends Controller
         if ($emergencies->isEmpty()) {
             $items[] = [
                 'position' => 1, 'locked' => true, 'kind' => 'emergency_powers',
-                'title'    => 'No outstanding emergency powers', 'subject' => null,
+                'title'    => __('No outstanding emergency powers'), 'subject' => null,
                 'status'   => 'none', 'ref_id' => null,
             ];
         } else {
@@ -433,7 +434,7 @@ class SessionController extends Controller
                     'position' => 1,
                     'locked'   => true,
                     'kind'     => 'emergency_powers',
-                    'title'    => (string) ($item['title'] ?? 'Emergency powers review'),
+                    'title'    => (string) ($item['title'] ?? __('Emergency powers review')),
                     'subject'  => null,
                     'status'   => ($item['status'] ?? 'pending') === 'addressed' ? 'done' : ($item['status'] ?? 'pending'),
                     'ref_id'   => $item['ref_id'] ?? null,
@@ -443,7 +444,7 @@ class SessionController extends Controller
 
         $items[] = [
             'position' => 2, 'locked' => true, 'kind' => 'constitutional_matters',
-            'title'    => 'No constitutional matters before the chamber (Art. IV §5 challenges arrive in Phase E)',
+            'title'    => __('No constitutional matters before the chamber (Art. IV §5 challenges arrive in Phase E)'),
             'subject'  => null, 'status' => 'none', 'ref_id' => null,
         ];
 
@@ -480,7 +481,7 @@ class SessionController extends Controller
                 'text'    => $motion->text,
                 'status'  => $motion->status,
                 'bill_id' => $motion->bill_id !== null ? (string) $motion->bill_id : null,
-                'moved_by' => ($motion->movedBy?->user?->display_name ?: 'Member'),
+                'moved_by' => ($motion->movedBy?->user?->display_name ?: __('Member')),
                 'vote'    => $motion->vote !== null ? $this->votes->tallyProps($motion->vote) : null,
                 'casts'   => $motion->vote !== null ? $this->votes->casts($motion->vote) : null,
             ])
@@ -510,7 +511,7 @@ class SessionController extends Controller
             ->get()
             ->map(fn ($member) => [
                 'id'   => (string) $member->id,
-                'name' => ($member?->user?->display_name ?: 'Member'),
+                'name' => ($member?->user?->display_name ?: __('Member')),
             ])
             ->values()
             ->all();

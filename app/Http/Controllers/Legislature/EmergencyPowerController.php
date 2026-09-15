@@ -107,8 +107,7 @@ class EmergencyPowerController extends Controller
 
         return back()->with(
             'status',
-            'Invocation validated and sent to a supermajority vote (F-LEG-024) — the power activates '
-            . 'only on adoption; CLK-03 auto-expiry arms with it (Art. II §7).'
+            __('Invocation validated and sent to a supermajority vote (F-LEG-024) — the power activates only on adoption; CLK-03 auto-expiry arms with it (Art. II §7).')
         );
     }
 
@@ -127,8 +126,7 @@ class EmergencyPowerController extends Controller
 
         return back()->with(
             'status',
-            'Renewal filed (F-LEG-025) — a fresh supermajority with its own ≤ 90-day ceiling; '
-            . 'nothing rolls over silently (Art. II §7 · CLK-03).'
+            __('Renewal filed (F-LEG-025) — a fresh supermajority with its own ≤ 90-day ceiling; nothing rolls over silently (Art. II §7 · CLK-03).')
         );
     }
 
@@ -160,15 +158,14 @@ class EmergencyPowerController extends Controller
                     'id'      => (string) $proposal->id,
                     'kind'    => $proposal->proposal_kind,
                     'label'   => $invocation
-                        ? (string) ($payload['label'] ?? 'Emergency declaration')
-                        : 'Renewal — extension of ' . (int) ($payload['extension_days'] ?? 0) . ' day(s)',
+                        ? (string) ($payload['label'] ?? __('Emergency declaration'))
+                        : __('Renewal — extension of :days day(s)', ['days' => (int) ($payload['extension_days'] ?? 0)]),
                     'summary' => $invocation
-                        ? sprintf(
-                            'cause: %s · duration %d day(s) · methods stated',
-                            (string) ($payload['cause'] ?? ''),
-                            (int) ($payload['duration_days'] ?? 0)
-                        )
-                        : 'fresh supermajority · fresh ≤ 90-day maximum',
+                        ? __('cause: :cause · duration :days day(s) · methods stated', [
+                            'cause' => (string) ($payload['cause'] ?? ''),
+                            'days' => (int) ($payload['duration_days'] ?? 0),
+                        ])
+                        : __('fresh supermajority · fresh ≤ 90-day maximum'),
                     'vote' => $vote !== null ? [
                         'tally'    => $this->votes->tallyProps($vote),
                         'casts'    => $this->votes->casts($vote),
@@ -212,7 +209,7 @@ class EmergencyPowerController extends Controller
                     'max_days'   => $maxDays,
                     'expires_at' => $expires->toIso8601String(),
                     'area'       => [
-                        'label'     => $power->areaJurisdiction?->name ?? 'Whole jurisdiction',
+                        'label'     => $power->areaJurisdiction?->name ?? __('Whole jurisdiction'),
                         'geom_href' => $power->areaJurisdiction?->slug !== null
                             ? "/jurisdictions/{$power->areaJurisdiction->slug}"
                             : null,
@@ -222,11 +219,10 @@ class EmergencyPowerController extends Controller
                     'renewals'    => $power->renewals()->orderBy('created_at')->get()
                         ->map(fn ($renewal) => [
                             'extension_days' => (int) $renewal->extension_days,
-                            'vote_summary'   => sprintf(
-                                'fresh supermajority · %s → %s',
-                                CarbonImmutable::parse($renewal->previous_expires_at)->toDateString(),
-                                CarbonImmutable::parse($renewal->new_expires_at)->toDateString()
-                            ),
+                            'vote_summary'   => __('fresh supermajority · :from → :to', [
+                                'from' => CarbonImmutable::parse($renewal->previous_expires_at)->toDateString(),
+                                'to' => CarbonImmutable::parse($renewal->new_expires_at)->toDateString(),
+                            ]),
                         ])->all(),
                     'renewal_window' => [
                         'opens_day' => max(1, $maxDays - max(1, $windowDays)),

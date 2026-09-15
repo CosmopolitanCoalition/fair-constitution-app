@@ -134,7 +134,7 @@ class ExecutiveActionController extends Controller
 
         return back()->with(
             'status',
-            'Order issued — scope validated pre-issuance; judicially reviewable at any time (F-EXE-005 · Art. IV §5).'
+            __('Order issued — scope validated pre-issuance; judicially reviewable at any time (F-EXE-005 · Art. IV §5).')
         );
     }
 
@@ -151,7 +151,7 @@ class ExecutiveActionController extends Controller
 
         return back()->with(
             'status',
-            'Policy proposed (F-EXE-002) — the board adopts, amends, or declines; proposals never bypass the board.'
+            __('Policy proposed (F-EXE-002) — the board adopts, amends, or declines; proposals never bypass the board.')
         );
     }
 
@@ -169,7 +169,7 @@ class ExecutiveActionController extends Controller
 
         return back()->with(
             'status',
-            'Investigation opened (F-EXE-004) — full and equal investigative power; findings publish to the public record.'
+            __('Investigation opened (F-EXE-004) — full and equal investigative power; findings publish to the public record.')
         );
     }
 
@@ -189,7 +189,7 @@ class ExecutiveActionController extends Controller
             (string) $request->input('purpose', ''),
         );
 
-        return back()->with('status', 'Grant application submitted against '.$appropriation->line.'.');
+        return back()->with('status', __('Grant application submitted against :line.', ['line' => $appropriation->line]));
     }
 
     // =========================================================================
@@ -254,7 +254,7 @@ class ExecutiveActionController extends Controller
         if ($executive->delegationLaw !== null) {
             $law = $executive->delegationLaw;
             $delegationAct = [
-                'label' => $law->act_number.' — delegation',
+                'label' => __(':act — delegation', ['act' => $law->act_number]),
                 'href' => $this->lawHref($law),
             ];
         }
@@ -316,7 +316,7 @@ class ExecutiveActionController extends Controller
             $seq = $order->record_id !== null ? ($seqs[$order->record_id] ?? null) : null;
 
             return [
-                'id_display' => $order->order_no ?? 'EO — pending',
+                'id_display' => $order->order_no ?? __('EO — pending'),
                 'title' => $order->title,
                 'department' => $order->department !== null ? ['name' => $order->department->name] : null,
                 'issued_at_display' => $order->issued_at?->format('Y-m-d H:i')
@@ -325,7 +325,7 @@ class ExecutiveActionController extends Controller
                 'enabling' => $enabling,
                 'rejection_citation' => $order->rejection_citation,
                 'note' => $order->status === ExecutiveOrder::STATUS_ISSUED
-                    ? 'Within delegated scope · validated pre-issuance'
+                    ? __('Within delegated scope · validated pre-issuance')
                     : null,
                 'public_record' => $seq !== null
                     ? ['seq' => (int) $seq, 'href' => '/system/public-records?seq='.$seq]
@@ -343,7 +343,7 @@ class ExecutiveActionController extends Controller
 
             return [
                 'type' => 'emergency_power',
-                'label' => $power?->label ?? 'Emergency power',
+                'label' => $power?->label ?? __('Emergency power'),
                 'href' => $power !== null
                     ? '/legislatures/'.$power->legislature_id.'/emergency-powers'
                     : '#',
@@ -356,11 +356,11 @@ class ExecutiveActionController extends Controller
             return null;
         }
 
-        $suffix = $order->enabling_type === ExecutiveOrder::ENABLING_CHARTER ? ' — charter function' : ' — delegation';
-
         return [
             'type' => 'law',
-            'label' => $law->act_number.$suffix,
+            'label' => $order->enabling_type === ExecutiveOrder::ENABLING_CHARTER
+                ? __(':act — charter function', ['act' => $law->act_number])
+                : __(':act — delegation', ['act' => $law->act_number]),
             'href' => $this->lawHref($law),
         ];
     }
@@ -379,7 +379,7 @@ class ExecutiveActionController extends Controller
             $options[] = [
                 'type' => ExecutiveOrder::ENABLING_LAW,
                 'id' => (string) $executive->delegationLaw->id,
-                'label' => $executive->delegationLaw->act_number.' — delegation act',
+                'label' => __(':act — delegation act', ['act' => $executive->delegationLaw->act_number]),
             ];
         }
 
@@ -397,7 +397,7 @@ class ExecutiveActionController extends Controller
             $options[] = [
                 'type' => ExecutiveOrder::ENABLING_CHARTER,
                 'id' => (string) $charter->id,
-                'label' => $charter->act_number.' — charter',
+                'label' => __(':act — charter', ['act' => $charter->act_number]),
             ];
         }
 
@@ -415,7 +415,7 @@ class ExecutiveActionController extends Controller
             $options[] = [
                 'type' => ExecutiveOrder::ENABLING_EMERGENCY_POWER,
                 'id' => (string) $power->id,
-                'label' => $power->label.' — emergency power',
+                'label' => __(':label — emergency power', ['label' => $power->label]),
             ];
         }
 
@@ -459,7 +459,7 @@ class ExecutiveActionController extends Controller
                 }
 
                 return [
-                    'title' => 'Investigation — '.\Illuminate\Support\Str::limit($investigation->scope, 60),
+                    'title' => __('Investigation — :scope', ['scope' => \Illuminate\Support\Str::limit($investigation->scope, 60)]),
                     'department' => $investigation->department?->name,
                     'scope' => $investigation->scope,
                     'status' => $investigation->outcome,

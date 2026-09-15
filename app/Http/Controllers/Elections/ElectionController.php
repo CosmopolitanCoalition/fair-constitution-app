@@ -119,10 +119,11 @@ class ElectionController extends Controller
     public static function raceLabel(ElectionRace $race): string
     {
         if ($race->district_id === null) {
-            $name = $race->jurisdiction?->name ?? 'jurisdiction';
-            $kind = $race->seat_kind === ElectionRace::SEAT_KIND_TYPE_B ? ' (type B)' : '';
+            $name = $race->jurisdiction?->name ?? __('jurisdiction');
 
-            return "At-large{$kind} · {$name}";
+            return $race->seat_kind === ElectionRace::SEAT_KIND_TYPE_B
+                ? __('At-large (type B) · :name', ['name' => $name])
+                : __('At-large · :name', ['name' => $name]);
         }
 
         $district = $race->relationLoaded('district')
@@ -139,11 +140,11 @@ class ElectionController extends Controller
             ->pluck('j.name');
 
         $suffix = $members->count() === 5 ? '…' : '';
-        $label = $number !== null ? "District {$number}" : 'District';
+        $label = $number !== null ? __('District :number', ['number' => $number]) : __('District');
 
         return $members->isEmpty()
             ? $label
-            : "{$label} · ".$members->implode(', ').$suffix;
+            : __(':label · :members', ['label' => $label, 'members' => $members->implode(', ').$suffix]);
     }
 
     // =========================================================================
@@ -317,7 +318,7 @@ class ElectionController extends Controller
                 'certified_at' => $certRow->certified_at?->toIso8601String(),
                 'by' => $certRow->certifiedBy?->user?->display_name
                     ?? $certRow->certifiedBy?->user?->name
-                    ?? 'bootstrap election board (system)',
+                    ?? __('bootstrap election board (system)'),
             ],
         ]);
     }
@@ -432,11 +433,11 @@ class ElectionController extends Controller
         };
 
         $rows = [
-            ['stage' => 'Approval phase opens — registration + open ballot', 'at' => $election->approval_opens_at,  'key' => 'CLK-18', 'ordinal' => 1],
-            ['stage' => 'Finalists confirmed — ranked ballot finalized',     'at' => $election->finalist_cutoff_at, 'key' => 'CLK-21', 'ordinal' => 2],
-            ['stage' => 'Ranked voting opens',                              'at' => $election->ranked_opens_at,    'key' => 'CLK-01', 'ordinal' => 3],
-            ['stage' => 'Ranked window closes',                              'at' => $election->ranked_closes_at,   'key' => 'CLK-01', 'ordinal' => 4],
-            ['stage' => 'Tabulation & certification — winners seated',       'at' => $election->certified_at,       'key' => 'F-ELB-004', 'ordinal' => 5],
+            ['stage' => __('Approval phase opens — registration + open ballot'), 'at' => $election->approval_opens_at,  'key' => 'CLK-18', 'ordinal' => 1],
+            ['stage' => __('Finalists confirmed — ranked ballot finalized'),     'at' => $election->finalist_cutoff_at, 'key' => 'CLK-21', 'ordinal' => 2],
+            ['stage' => __('Ranked voting opens'),                              'at' => $election->ranked_opens_at,    'key' => 'CLK-01', 'ordinal' => 3],
+            ['stage' => __('Ranked window closes'),                              'at' => $election->ranked_closes_at,   'key' => 'CLK-01', 'ordinal' => 4],
+            ['stage' => __('Tabulation & certification — winners seated'),       'at' => $election->certified_at,       'key' => 'F-ELB-004', 'ordinal' => 5],
         ];
 
         return array_map(fn (array $row) => [
@@ -475,7 +476,7 @@ class ElectionController extends Controller
             ->filter(fn (array $spec) => $spec['mode'] === 'blocked')
             ->map(fn (array $spec, string $kind) => [
                 'kind' => 'subdivision_required',
-                'detail' => "{$kind}: {$spec['reason']} · {$spec['citation']}",
+                'detail' => __(':kind: :reason · :citation', ['kind' => $kind, 'reason' => $spec['reason'], 'citation' => $spec['citation']]),
             ])
             ->values()
             ->all();
@@ -549,10 +550,10 @@ class ElectionController extends Controller
     private function boardName(Election $election): string
     {
         $board = $election->board;
-        $name = $election->jurisdiction?->name ?? 'jurisdiction';
+        $name = $election->jurisdiction?->name ?? __('jurisdiction');
 
         return $board !== null && $board->is_bootstrap
-            ? "{$name} bootstrap election board (system)"
-            : "{$name} election board";
+            ? __(':name bootstrap election board (system)', ['name' => $name])
+            : __(':name election board', ['name' => $name]);
     }
 }

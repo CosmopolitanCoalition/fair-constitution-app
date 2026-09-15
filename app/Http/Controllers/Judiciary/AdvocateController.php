@@ -38,39 +38,45 @@ use Inertia\Response;
 class AdvocateController extends Controller
 {
     /** F-ADV form → the human label + the per-type composer hint (mockup verbatim). */
-    private const FILING_TYPES = [
-        'F-ADV-001' => [
-            'label' => 'Case filing — on behalf of client (F-ADV-001)',
-            'hint' => 'Your client retains you; the retainer is recorded with the filing.',
-        ],
-        'F-ADV-002' => [
-            'label' => 'Motion filing (F-ADV-002)',
-            'hint' => 'Motions are ruled on with written reasons, on the public record.',
-        ],
-        'F-ADV-003' => [
-            'label' => 'Evidence submission (F-ADV-003)',
-            'hint' => 'Evidence attaches to the case’s open docket.',
-        ],
-        'F-ADV-004' => [
-            'label' => 'Brief / argument filing (F-ADV-004)',
-            'hint' => 'Briefs are accepted until deliberation begins.',
-        ],
-    ];
+    private function filingTypes(): array
+    {
+        return [
+            'F-ADV-001' => [
+                'label' => __('Case filing — on behalf of client (F-ADV-001)'),
+                'hint' => __('Your client retains you; the retainer is recorded with the filing.'),
+            ],
+            'F-ADV-002' => [
+                'label' => __('Motion filing (F-ADV-002)'),
+                'hint' => __('Motions are ruled on with written reasons, on the public record.'),
+            ],
+            'F-ADV-003' => [
+                'label' => __('Evidence submission (F-ADV-003)'),
+                'hint' => __('Evidence attaches to the case’s open docket.'),
+            ],
+            'F-ADV-004' => [
+                'label' => __('Brief / argument filing (F-ADV-004)'),
+                'hint' => __('Briefs are accepted until deliberation begins.'),
+            ],
+        ];
+    }
 
     /** case.status → the human display state + the NEXT-ACTION line (mockup verbatim). */
-    private const STATE_LABELS = [
-        CourtCase::STATUS_FILED => ['Filed', 'neutral', 'Awaiting acceptance and panel assignment (F-JDG-001)'],
-        CourtCase::STATUS_ACCEPTED => ['Accepted', 'info', 'Accepted — panel assignment with conflict screening is next (F-JDG-001)'],
-        CourtCase::STATUS_PANELED => ['Paneled', 'info', 'Panel seated — motions and evidence accepted (F-ADV-002 / F-ADV-003)'],
-        CourtCase::STATUS_JURY_EMPANELED => ['Jury selection', 'info', 'Voir dire under way — challenge motions only (F-ADV-002)'],
-        CourtCase::STATUS_HEARD => ['Evidence docket', 'info', 'Evidence docket open — submissions accepted (F-ADV-003)'],
-        CourtCase::STATUS_DELIBERATION => ['Deliberation', 'neutral', 'In deliberation — no filings accepted; await judgement'],
-        CourtCase::STATUS_DECIDED => ['Decided', 'success', 'Judgement entered — opinions and sentencing follow (court action)'],
-        CourtCase::STATUS_SENTENCED => ['Sentenced', 'success', 'Sentenced — the order is on the public record'],
-        CourtCase::STATUS_CLOSED => ['Closed', 'neutral', 'Closed — no further filings'],
-        CourtCase::STATUS_DISMISSED => ['Dismissed', 'neutral', 'Dismissed — no further filings'],
-        CourtCase::STATUS_APPEALED => ['Appealed', 'warning', 'Appealed — re-enters the lifecycle at a wider panel'],
-    ];
+    private function stateLabels(): array
+    {
+        return [
+            CourtCase::STATUS_FILED => [__('Filed'), 'neutral', __('Awaiting acceptance and panel assignment (F-JDG-001)')],
+            CourtCase::STATUS_ACCEPTED => [__('Accepted'), 'info', __('Accepted — panel assignment with conflict screening is next (F-JDG-001)')],
+            CourtCase::STATUS_PANELED => [__('Paneled'), 'info', __('Panel seated — motions and evidence accepted (F-ADV-002 / F-ADV-003)')],
+            CourtCase::STATUS_JURY_EMPANELED => [__('Jury selection'), 'info', __('Voir dire under way — challenge motions only (F-ADV-002)')],
+            CourtCase::STATUS_HEARD => [__('Evidence docket'), 'info', __('Evidence docket open — submissions accepted (F-ADV-003)')],
+            CourtCase::STATUS_DELIBERATION => [__('Deliberation'), 'neutral', __('In deliberation — no filings accepted; await judgement')],
+            CourtCase::STATUS_DECIDED => [__('Decided'), 'success', __('Judgement entered — opinions and sentencing follow (court action)')],
+            CourtCase::STATUS_SENTENCED => [__('Sentenced'), 'success', __('Sentenced — the order is on the public record')],
+            CourtCase::STATUS_CLOSED => [__('Closed'), 'neutral', __('Closed — no further filings')],
+            CourtCase::STATUS_DISMISSED => [__('Dismissed'), 'neutral', __('Dismissed — no further filings')],
+            CourtCase::STATUS_APPEALED => [__('Appealed'), 'warning', __('Appealed — re-enters the lifecycle at a wider panel')],
+        ];
+    }
 
     public function __construct(private readonly ConstitutionalEngine $engine) {}
 
@@ -88,7 +94,7 @@ class AdvocateController extends Controller
 
         return back()->with(
             'status',
-            'Registered as an advocate — your R-21 bar record is on file (F-IND-015 · Art. IV §4).'
+            __('Registered as an advocate — your R-21 bar record is on file (F-IND-015 · Art. IV §4).')
         );
     }
 
@@ -120,7 +126,7 @@ class AdvocateController extends Controller
             'composer' => fn () => $this->composerProps(),
             'composer_cases' => Inertia::optional(fn () => $casePage('composer')['cases']->map(fn (CourtCase $case) => [
                 'id' => (string) $case->id, 'title' => $case->title, 'docket_no' => $case->docket_no,
-                'status' => $case->status, 'state' => self::STATE_LABELS[$case->status][0] ?? ucfirst((string) $case->status), 'href' => '/cases/'.$case->id,
+                'status' => $case->status, 'state' => $this->stateLabels()[$case->status][0] ?? ucfirst((string) $case->status), 'href' => '/cases/'.$case->id,
             ])->all()),
             'composer_case_pages' => Inertia::optional(fn () => $casePage('composer')['pagination']),
             'registerTargetId' => $context['targetId'],
@@ -167,12 +173,12 @@ class AdvocateController extends Controller
             'granted_at' => $advocate->registered_at?->toIso8601String(),
             'judiciary' => [
                 'id' => (string) $advocate->judiciary_id,
-                'name' => $courtName ?? 'this court',
+                'name' => $courtName ?? __('this court'),
                 'href' => "/judiciaries/{$advocate->judiciary_id}",
             ],
             'practice_scope' => $courtName !== null
-                ? "every court of {$courtName} and its constituent counties"
-                : 'every court of this judiciary and its constituent counties',
+                ? __('every court of :court and its constituent counties', ['court' => $courtName])
+                : __('every court of this judiciary and its constituent counties'),
         ];
     }
 
@@ -186,8 +192,8 @@ class AdvocateController extends Controller
     private function myCaseRows(\Illuminate\Support\Collection $cases): array
     {
         return $cases->map(function (CourtCase $case) {
-            [$stateLabel, $stateTone, $nextAction] = self::STATE_LABELS[$case->status]
-                ?? [ucfirst((string) $case->status), 'neutral', 'Awaiting court action'];
+            [$stateLabel, $stateTone, $nextAction] = $this->stateLabels()[$case->status]
+                ?? [ucfirst((string) $case->status), 'neutral', __('Awaiting court action')];
 
             return [
                 'id' => (string) $case->id,
@@ -210,16 +216,16 @@ class AdvocateController extends Controller
         $panel = $case->panel;
 
         if ($panel === null) {
-            return 'Pending acceptance';
+            return __('Pending acceptance');
         }
 
         if ($panel->is_en_banc) {
-            return "Full court — all {$panel->size} judges";
+            return __('Full court — all :size judges', ['size' => $panel->size]);
         }
 
-        $base = "{$panel->size} judges";
-
-        return $case->jury_entitled ? "{$base} + jury" : $base;
+        return $case->jury_entitled
+            ? __(':size judges + jury', ['size' => $panel->size])
+            : __(':size judges', ['size' => $panel->size]);
     }
 
     /**
@@ -231,7 +237,7 @@ class AdvocateController extends Controller
     private function composerProps(): array
     {
         $types = [];
-        foreach (self::FILING_TYPES as $id => $meta) {
+        foreach ($this->filingTypes() as $id => $meta) {
             $types[] = ['id' => $id, 'label' => $meta['label'], 'hint' => $meta['hint']];
         }
 
@@ -338,9 +344,9 @@ class AdvocateController extends Controller
     private function displayName(?User $user): string
     {
         if ($user === null) {
-            return 'you';
+            return __('you');
         }
 
-        return $user->display_name ?? $user->name ?? 'you';
+        return $user->display_name ?? $user->name ?? __('you');
     }
 }

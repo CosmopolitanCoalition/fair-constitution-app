@@ -159,7 +159,7 @@ class BoardConsoleController extends Controller
                     ->map(fn ($member) => [
                         'name' => $member->user !== null
                             ? ($member->user->display_name ?: $member->user->name)
-                            : 'The system (bootstrap board)',
+                            : __('The system (bootstrap board)'),
                     ])
                     ->all(),
             ],
@@ -261,7 +261,7 @@ class BoardConsoleController extends Controller
             'ranked_closes_at'   => $validated['ranked_closes_at'],
         ]);
 
-        return back()->with('status', 'Scheduling order issued — X pre-published per race (CLK-21).');
+        return back()->with('status', __('Scheduling order issued — X pre-published per race (CLK-21).'));
     }
 
     /** F-ELB-002 — validate/reject one queue row (residency is the only check). */
@@ -281,8 +281,8 @@ class BoardConsoleController extends Controller
         ]);
 
         return back()->with('status', $validated['decision'] === 'validate'
-            ? 'Validated — the candidate is in the approval pool.'
-            : 'Rejected — no residency association found; the appeal path is open (Art. I).');
+            ? __('Validated — the candidate is in the approval pool.')
+            : __('Rejected — no residency association found; the appeal path is open (Art. I).'));
     }
 
     /**
@@ -297,7 +297,7 @@ class BoardConsoleController extends Controller
         $board    = $this->activeBoardFor(null, (string) $petition->jurisdiction_id);
         $standing = $this->boardActorFor($request->user(), $board);
 
-        abort_if($standing === false, 403, 'This filing requires standing on the petition jurisdiction\'s board (R-08).');
+        abort_if($standing === false, 403, __('This filing requires standing on the petition jurisdiction\'s board (R-08).'));
 
         $result = $this->engine->file('F-ELB-005', $standing['actor'], [
             'petition_id'     => (string) $petition->id,
@@ -306,15 +306,14 @@ class BoardConsoleController extends Controller
 
         $audit = $result->recorded['audit_result'] ?? [];
 
-        return back()->with('status', sprintf(
-            'Signature audit complete (F-ELB-005) — %d of %d valid (%s%%): %s',
-            (int) ($audit['valid'] ?? 0),
-            (int) ($audit['checked'] ?? 0),
-            (string) ($audit['pct'] ?? '0.0'),
-            ($audit['passed'] ?? false)
-                ? 'still above threshold — the petition holds at constitutional review (Phase E).'
-                : 'below threshold — the petition is invalidated (kill-path, Art. II §6).'
-        ));
+        return back()->with('status', __('Signature audit complete (F-ELB-005) — :valid of :checked valid (:pct%): :verdict', [
+            'valid' => (int) ($audit['valid'] ?? 0),
+            'checked' => (int) ($audit['checked'] ?? 0),
+            'pct' => (string) ($audit['pct'] ?? '0.0'),
+            'verdict' => ($audit['passed'] ?? false)
+                ? __('still above threshold — the petition holds at constitutional review (Phase E).')
+                : __('below threshold — the petition is invalidated (kill-path, Art. II §6).'),
+        ]));
     }
 
     /** F-ELB-004 — certify the election (winners granted roles). */
@@ -327,7 +326,7 @@ class BoardConsoleController extends Controller
             'jurisdiction_id' => (string) $election->jurisdiction_id,
         ]);
 
-        return back()->with('status', 'Certified — winners granted roles; the next cycle\'s approval phase is open.');
+        return back()->with('status', __('Certified — winners granted roles; the next cycle\'s approval phase is open.'));
     }
 
     /** F-ELB-006 — order an audit re-run (cause required; engine rejects empty). */
@@ -345,7 +344,7 @@ class BoardConsoleController extends Controller
             'jurisdiction_id' => (string) $election->jurisdiction_id,
         ]);
 
-        return back()->with('status', 'Audit re-run ordered — tabulation re-runs from the stored ballots (no hand count).');
+        return back()->with('status', __('Audit re-run ordered — tabulation re-runs from the stored ballots (no hand count).'));
     }
 
     // -------------------------------------------------------------------------
@@ -358,7 +357,7 @@ class BoardConsoleController extends Controller
         $board = $this->activeBoardFor($election->election_board_id, $election->jurisdiction_id);
         $standing = $this->boardActorFor($request->user(), $board);
 
-        abort_if($standing === false, 403, 'This filing requires standing on the election\'s board (R-08).');
+        abort_if($standing === false, 403, __('This filing requires standing on the election\'s board (R-08).'));
 
         return $standing['actor'];
     }
@@ -388,8 +387,8 @@ class BoardConsoleController extends Controller
 
         return [
             'candidacy_id' => (string) $candidacy->id,
-            'name'         => $candidacy->user?->display_name ?: ($candidacy->user?->name ?? 'Unknown'),
-            'office'       => ($election?->jurisdiction?->name ?? 'Unknown') . ' legislature',
+            'name'         => $candidacy->user?->display_name ?: ($candidacy->user?->name ?? __('Unknown')),
+            'office'       => __(':name legislature', ['name' => $election?->jurisdiction?->name ?? __('Unknown')]),
             'residency'    => [
                 'found'     => $match !== null,
                 'slug'      => $slug,
@@ -481,10 +480,11 @@ class BoardConsoleController extends Controller
     private function electionLabel(Election $election): string
     {
         $seats = (int) $election->races->sum('seats');
-        $name = $election->jurisdiction?->name ?? 'Unknown jurisdiction';
+        $name = $election->jurisdiction?->name ?? __('Unknown jurisdiction');
 
-        return "{$name} {$election->kind} — {$seats} " . ($seats === 1 ? 'seat' : 'seats')
-            . " ({$election->status})";
+        return $seats === 1
+            ? __(':name :kind — :seats seat (:status)', ['name' => $name, 'kind' => $election->kind, 'seats' => $seats, 'status' => $election->status])
+            : __(':name :kind — :seats seats (:status)', ['name' => $name, 'kind' => $election->kind, 'seats' => $seats, 'status' => $election->status]);
     }
 
     private function vacancyLabel(Vacancy $vacancy): string
@@ -494,25 +494,27 @@ class BoardConsoleController extends Controller
             : null;
 
         $who = $member?->user?->display_name ?: $member?->user?->name;
-        $seat = $member?->seat_no !== null ? "seat {$member->seat_no}" : 'seat';
+        $seat = $member?->seat_no !== null ? __('seat :no', ['no' => $member->seat_no]) : __('seat');
 
-        $name = $vacancy->jurisdiction?->name ?? 'Unknown jurisdiction';
+        $name = $vacancy->jurisdiction?->name ?? __('Unknown jurisdiction');
 
-        return "{$name} legislature · {$seat}" . ($who !== null ? " — {$who}" : '');
+        return $who !== null
+            ? __(':name legislature · :seat — :who', ['name' => $name, 'seat' => $seat, 'who' => $who])
+            : __(':name legislature · :seat', ['name' => $name, 'seat' => $seat]);
     }
 
     private function raceLabel(ElectionRace $race): string
     {
-        $jurisdiction = $race->jurisdiction?->name ?? 'Race';
+        $jurisdiction = $race->jurisdiction?->name ?? __('Race');
 
         if ($race->isAtLarge()) {
-            return "{$jurisdiction} at-large — {$race->seats} seats";
+            return __(':jurisdiction at-large — :seats seats', ['jurisdiction' => $jurisdiction, 'seats' => $race->seats]);
         }
 
         $number = $race->district?->district_number;
 
         return $number !== null
-            ? "{$jurisdiction} — district {$number} · {$race->seats} seats"
-            : "{$jurisdiction} — {$race->seats} seats";
+            ? __(':jurisdiction — district :number · :seats seats', ['jurisdiction' => $jurisdiction, 'number' => $number, 'seats' => $race->seats])
+            : __(':jurisdiction — :seats seats', ['jurisdiction' => $jurisdiction, 'seats' => $race->seats]);
     }
 }

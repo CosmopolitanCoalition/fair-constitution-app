@@ -98,9 +98,7 @@ class ReferendumController extends Controller
 
         return back()->with(
             'status',
-            'Delegation filed (F-LEG-023) — supermajority floor vote open. On adoption the question '
-            . 'queues to the next jurisdiction-wide ballot (WF-ELE-07); the threshold is derived from '
-            . 'the act type, never editable (Art. II §6).'
+            __('Delegation filed (F-LEG-023) — supermajority floor vote open. On adoption the question queues to the next jurisdiction-wide ballot (WF-ELE-07); the threshold is derived from the act type, never editable (Art. II §6).')
         );
     }
 
@@ -119,8 +117,7 @@ class ReferendumController extends Controller
 
         return back()->with(
             'status',
-            "Modification filed (F-LEG-034) for {$law->act_number} — same-term change to a referendum "
-            . 'act runs at chamber supermajority (Art. II §6 · WF-LEG-19).'
+            __('Modification filed (F-LEG-034) for :act — same-term change to a referendum act runs at chamber supermajority (Art. II §6 · WF-LEG-19).', ['act' => $law->act_number])
         );
     }
 
@@ -150,8 +147,8 @@ class ReferendumController extends Controller
                     'id'    => (string) $proposal->id,
                     'kind'  => $proposal->proposal_kind,
                     'label' => $proposal->proposal_kind === ChamberVoteProposal::KIND_REFERENDUM_DELEGATION
-                        ? (string) ($payload['question'] ?? 'Referendum delegation')
-                        : 'Modification of referendum act',
+                        ? (string) ($payload['question'] ?? __('Referendum delegation'))
+                        : __('Modification of referendum act'),
                     'threshold_derived' => $proposal->proposal_kind === ChamberVoteProposal::KIND_REFERENDUM_DELEGATION
                         ? ReferendumService::deriveThreshold((string) ($payload['act_type'] ?? 'ordinary'))
                         : null,
@@ -190,7 +187,7 @@ class ReferendumController extends Controller
                         : ['form' => 'F-LEG-023', 'act_href' => null],
                     'election'  => $election !== null ? [
                         'id'    => (string) $election->id,
-                        'label' => ucfirst((string) $election->kind) . ' election · ' . $election->status,
+                        'label' => __(':kind election · :status', ['kind' => ucfirst((string) $election->kind), 'status' => $election->status]),
                         'href'  => "/elections/{$election->id}",
                     ] : null,
                     'status' => $question->status,
@@ -250,7 +247,7 @@ class ReferendumController extends Controller
                     'lapsed'     => $lapsed,
                     'modifiable' => $law !== null && ! $shielded,
                     'shield_expires_with' => $shieldElection !== null ? [
-                        'election_label' => ucfirst((string) $shieldElection->kind) . ' election · ' . $shieldElection->status,
+                        'election_label' => __(':kind election · :status', ['kind' => ucfirst((string) $shieldElection->kind), 'status' => $shieldElection->status]),
                     ] : null,
                     'modify_url' => $law !== null ? "/laws/{$law->id}/referendum-modification" : null,
                 ];

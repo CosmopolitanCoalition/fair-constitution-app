@@ -84,13 +84,13 @@ class VacancyController extends Controller
             'surface' => SurfaceMeta::for('elections/vacancy-countback'),
             'vacancy' => [
                 'id'           => (string) $vacancy->id,
-                'office_label' => ($vacancy->jurisdiction?->name ?? 'Unknown jurisdiction') . ' legislature',
+                'office_label' => __(':name legislature', ['name' => $vacancy->jurisdiction?->name ?? __('Unknown jurisdiction')]),
                 'seat_no'      => $member?->seat_no,
                 'member_name'  => $member?->user?->display_name ?: $member?->user?->name,
                 'declared_at'  => $vacancy->declared_at?->toIso8601String(),
                 'declared_by'  => $vacancy->declaredBy !== null
                     ? ($vacancy->declaredBy->display_name ?: $vacancy->declaredBy->name)
-                    : 'system (dev declaration — F-LEG-036 arrives in Phase C)',
+                    : __('system (dev declaration — F-LEG-036 arrives in Phase C)'),
                 'declared_via' => $vacancy->declared_via_form,
                 'reason'       => $member?->vacancy_reason,
                 'status'       => $vacancy->status,
@@ -141,14 +141,14 @@ class VacancyController extends Controller
         $board = $this->activeBoardFor(null, (string) $vacancy->jurisdiction_id);
         $standing = $this->boardActorFor($request->user(), $board);
 
-        abort_if($standing === false, 403, 'Certifying a countback requires standing on the election board (R-08).');
+        abort_if($standing === false, 403, __('Certifying a countback requires standing on the election board (R-08).'));
 
         if (in_array($vacancy->status, [Vacancy::STATUS_DETECTED, Vacancy::STATUS_DECLARED], true)) {
             $vacancy = $this->vacancies->runCountback($vacancy);
 
             return back()->with('status', $vacancy->status === Vacancy::STATUS_FILLED
-                ? 'Countback complete — the replacement is certified and seated (F-ELB-004).'
-                : 'Countback exhausted — the special-election window is armed (CLK-04).');
+                ? __('Countback complete — the replacement is certified and seated (F-ELB-004).')
+                : __('Countback exhausted — the special-election window is armed (CLK-04).'));
         }
 
         if ($vacancy->status === Vacancy::STATUS_COUNTBACK_RUNNING) {
@@ -159,7 +159,7 @@ class VacancyController extends Controller
         }
 
         if ($vacancy->status === Vacancy::STATUS_FILLED) {
-            return back()->with('status', 'Already certified — the replacement holds the seat.');
+            return back()->with('status', __('Already certified — the replacement holds the seat.'));
         }
 
         throw new ConstitutionalViolation(
@@ -182,7 +182,7 @@ class VacancyController extends Controller
         $board = $this->activeBoardFor(null, (string) $vacancy->jurisdiction_id);
         $standing = $this->boardActorFor($request->user(), $board);
 
-        abort_if($standing === false, 403, 'Scheduling a special election requires standing on the election board (R-08).');
+        abort_if($standing === false, 403, __('Scheduling a special election requires standing on the election board (R-08).'));
 
         $jurisdictionId = (string) $vacancy->jurisdiction_id;
         $windowDays = max(1, $this->settings->resolveInt($jurisdictionId, 'ranked_window_days', 14));
@@ -238,7 +238,7 @@ class VacancyController extends Controller
 
         return back()->with(
             'status',
-            "Special election scheduled — ranked window opens {$rankedOpens->toDateString()} · scheduling order issued (F-ELB-001) · WF-ELE-04."
+            __('Special election scheduled — ranked window opens :date · scheduling order issued (F-ELB-001) · WF-ELE-04.', ['date' => $rankedOpens->toDateString()])
         );
     }
 
@@ -309,20 +309,21 @@ class VacancyController extends Controller
         $quota = (int) ($tabulation?->quota ?? $race->quota ?? 0);
 
         $election = $race->election;
-        $label = ($election?->jurisdiction?->name ?? $race->jurisdiction?->name ?? 'Unknown')
-            . ' ' . ($election?->kind ?? 'general') . ' election';
+        $label = __(':name :kind election', [
+            'name' => $election?->jurisdiction?->name ?? $race->jurisdiction?->name ?? __('Unknown'),
+            'kind' => $election?->kind ?? 'general',
+        ]);
 
         return [
             'election_label' => $label,
             'total_valid'    => $total,
             'seats'          => $seats,
             'quota'          => $quota,
-            'quota_formula'  => sprintf(
-                'floor(%s ÷ %d) + 1 = %s',
-                number_format($total),
-                $seats + 1,
-                number_format($quota),
-            ),
+            'quota_formula'  => __('floor(:total ÷ :n) + 1 = :quota', [
+                'total' => number_format($total),
+                'n' => $seats + 1,
+                'quota' => number_format($quota),
+            ]),
         ];
     }
 }

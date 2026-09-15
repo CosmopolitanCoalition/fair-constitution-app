@@ -158,7 +158,7 @@ class CommitteeController extends Controller
 
         return back()->with(
             'status',
-            "Committee creation act filed (F-LEG-009) — the supermajority vote is open; the committee exists only on adoption · Art. II §4."
+            __("Committee creation act filed (F-LEG-009) — the supermajority vote is open; the committee exists only on adoption · Art. II §4.")
         );
     }
 
@@ -178,7 +178,7 @@ class CommitteeController extends Controller
 
         return back()->with(
             'status',
-            'Committee preferences recorded (F-LEG-010) — input to the assignment algorithm; re-submittable until a run consumes them.'
+            __('Committee preferences recorded (F-LEG-010) — input to the assignment algorithm; re-submittable until a run consumes them.')
         );
     }
 
@@ -227,7 +227,7 @@ class CommitteeController extends Controller
 
         return back()->with(
             'status',
-            "Assignment run complete (F-SPK-005) — {$placements} placement(s), {$contests} contested seat(s) resolved by normalized vote share (ledger #q2)."
+            __('Assignment run complete (F-SPK-005) — :placements placement(s), :contests contested seat(s) resolved by normalized vote share (ledger #q2).', ['placements' => $placements, 'contests' => $contests])
         );
     }
 
@@ -242,7 +242,7 @@ class CommitteeController extends Controller
 
         return back()->with(
             'status',
-            "Chair balloting opened for {$committee->name} — whole-legislature ranked-choice vote (F-LEG-011); candidates are the committee's seated members."
+            __('Chair balloting opened for :name — whole-legislature ranked-choice vote (F-LEG-011); candidates are the committee\'s seated members.', ['name' => $committee->name])
         );
     }
 
@@ -364,7 +364,7 @@ class CommitteeController extends Controller
             'chair_unavailable' => (bool) ($validated['chair_unavailable'] ?? false),
         ]);
 
-        return back()->with('status', 'Committee meeting called (F-CHR-001).');
+        return back()->with('status', __('Committee meeting called (F-CHR-001).'));
     }
 
     /** F-CHR-002 — Committee Agenda Setting. */
@@ -383,7 +383,7 @@ class CommitteeController extends Controller
             'chair_unavailable' => (bool) ($validated['chair_unavailable'] ?? false),
         ]);
 
-        return back()->with('status', 'Meeting agenda set (F-CHR-002).');
+        return back()->with('status', __('Meeting agenda set (F-CHR-002).'));
     }
 
     /** F-CHR-005 — Committee Meeting Open (gavel in; scheduled → open). */
@@ -399,7 +399,7 @@ class CommitteeController extends Controller
             'chair_unavailable' => (bool) ($validated['chair_unavailable'] ?? false),
         ]);
 
-        return back()->with('status', 'Committee meeting opened (F-CHR-005) — the hearing floor is live.');
+        return back()->with('status', __('Committee meeting opened (F-CHR-005) — the hearing floor is live.'));
     }
 
     /** F-CHR-006 — Committee Meeting Adjournment + Minutes (open → adjourned). */
@@ -419,7 +419,7 @@ class CommitteeController extends Controller
             'chair_unavailable' => (bool) ($validated['chair_unavailable'] ?? false),
         ]);
 
-        return back()->with('status', 'Committee meeting adjourned (F-CHR-006) — minutes sealed into the public record.');
+        return back()->with('status', __('Committee meeting adjourned (F-CHR-006) — minutes sealed into the public record.'));
     }
 
     /**
@@ -436,7 +436,7 @@ class CommitteeController extends Controller
 
         return back()->with(
             'status',
-            'Bill referred to the floor (F-CHR-003) — the floor vote is open at the act\'s threshold class.'
+            __('Bill referred to the floor (F-CHR-003) — the floor vote is open at the act\'s threshold class.')
         );
     }
 
@@ -459,7 +459,7 @@ class CommitteeController extends Controller
             'chair_unavailable' => (bool) ($validated['chair_unavailable'] ?? false),
         ]);
 
-        return back()->with('status', 'Committee report filed (F-CHR-004) — sealed into the public record (WF-SYS-03).');
+        return back()->with('status', __('Committee report filed (F-CHR-004) — sealed into the public record (WF-SYS-03).'));
     }
 
     /**
@@ -498,7 +498,7 @@ class CommitteeController extends Controller
             );
         });
 
-        return back()->with('status', 'Testimony entered verbatim into the immutable public record · WF-LEG-08 · WF-SYS-03.');
+        return back()->with('status', __('Testimony entered verbatim into the immutable public record · WF-LEG-08 · WF-SYS-03.'));
     }
 
     // =========================================================================
@@ -615,13 +615,9 @@ class CommitteeController extends Controller
             'base'            => $base,
             'extras'          => $extras,
             'share_formula'   => $m > 0
-                ? sprintf(
-                    '%d committee seat(s) ÷ %d serving member(s) = %d placement(s) each%s',
-                    $p,
-                    $m,
-                    $base,
-                    $extras > 0 ? " + {$extras} extra to the highest normalized vote share (ledger #q2)" : ''
-                )
+                ? ($extras > 0
+                    ? __(':p committee seat(s) ÷ :m serving member(s) = :base placement(s) each + :extras extra to the highest normalized vote share (ledger #q2)', ['p' => $p, 'm' => $m, 'base' => $base, 'extras' => $extras])
+                    : __(':p committee seat(s) ÷ :m serving member(s) = :base placement(s) each', ['p' => $p, 'm' => $m, 'base' => $base]))
                 : '—',
         ];
     }
@@ -726,13 +722,12 @@ class CommitteeController extends Controller
         $yes     = (int) $tallies->sum('yes');
         $no      = (int) $tallies->sum('no');
 
-        return sprintf(
-            '%s %d–%d · %s',
-            $vote->threshold_basis === ChamberVote::BASIS_SUPERMAJORITY ? 'supermajority' : 'majority',
-            $yes,
-            $no,
-            $vote->outcome ?? $vote->status,
-        );
+        return __(':basis :yes–:no · :outcome', [
+            'basis' => $vote->threshold_basis === ChamberVote::BASIS_SUPERMAJORITY ? __('supermajority') : __('majority'),
+            'yes' => $yes,
+            'no' => $no,
+            'outcome' => $vote->outcome ?? $vote->status,
+        ]);
     }
 
     /** One CommitteeDetail bill card (B.6). */

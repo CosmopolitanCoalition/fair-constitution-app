@@ -296,7 +296,7 @@ class LegislatureController extends Controller
                 ->first();
         }
 
-        abort_if(!$leg, 404, 'Legislature not found.');
+        abort_if(!$leg, 404, __('Legislature not found.'));
         $legislature_id = $leg->id;   // canonicalize to UUID for all downstream use
 
         $this->frontDemandPriority((string) $leg->id);
@@ -456,7 +456,7 @@ class LegislatureController extends Controller
                 ->first();
         }
 
-        abort_if(!$leg, 404, 'Legislature not found.');
+        abort_if(!$leg, 404, __('Legislature not found.'));
         $legislature_id = $leg->id;   // canonicalize to UUID for all downstream use
 
         $this->frontDemandPriority((string) $leg->id);
@@ -483,7 +483,7 @@ class LegislatureController extends Controller
             ->whereNull('deleted_at')
             ->first();
 
-        abort_if(!$scope, 404, 'Scope jurisdiction not found.');
+        abort_if(!$scope, 404, __('Scope jurisdiction not found.'));
 
         // Canonical legislature slug (= its root jurisdiction's slug) + a helper
         // that builds the canonical /legislatures/{slug}/districts?scope={slug}
@@ -1524,7 +1524,7 @@ class LegislatureController extends Controller
             ->first();
 
         if (!$leg) {
-            return response()->json(['error' => 'Legislature not found'], 404);
+            return response()->json(['error' => __('Legislature not found')], 404);
         }
 
         $jids    = $request->input('jurisdiction_ids', []);
@@ -1542,7 +1542,7 @@ class LegislatureController extends Controller
         $labelScopeId = $request->input('label_scope_id', $scopeId);
 
         if (empty($jids)) {
-            return response()->json(['error' => 'No jurisdictions provided'], 422);
+            return response()->json(['error' => __('No jurisdictions provided')], 422);
         }
 
         // Validate all jurisdictions exist, are not soft-deleted, share parent = scopeId
@@ -1553,7 +1553,7 @@ class LegislatureController extends Controller
             ->get(['id', 'name', 'population', 'iso_code', 'adm_level']);
 
         if ($jRows->count() !== count($jids)) {
-            return response()->json(['error' => 'One or more jurisdictions are invalid or do not belong to the scope'], 422);
+            return response()->json(['error' => __('One or more jurisdictions are invalid or do not belong to the scope')], 422);
         }
 
         // Constitutional thresholds (substituted for the legacy 9.5/5/9 literals).
@@ -1583,11 +1583,11 @@ class LegislatureController extends Controller
             $memberFrac = (int) $jRow->population / max($localQuota, 1);
             if ($memberFrac >= $giantThreshold) {
                 return response()->json([
-                    'error' => sprintf(
-                        '%s has %.2f fractional seats (≥ %.1f). ' .
-                        'Giant jurisdictions cannot be assigned to a district at this level — drill down instead.',
-                        $jRow->name, $memberFrac, $giantThreshold
-                    ),
+                    'error' => __(':name has :frac fractional seats (≥ :threshold). Giant jurisdictions cannot be assigned to a district at this level — drill down instead.', [
+                        'name' => $jRow->name,
+                        'frac' => sprintf('%.2f', $memberFrac),
+                        'threshold' => sprintf('%.1f', $giantThreshold),
+                    ]),
                 ], 422);
             }
         }
@@ -1641,11 +1641,12 @@ class LegislatureController extends Controller
         // $giantThreshold = ceiling + 0.5, so $fractional ≥ it ⟺ round() > ceiling.
         if ($fractional >= $giantThreshold) {
             return response()->json([
-                'error' => sprintf(
-                    'Composite fractional seats (%.2f) ≥ %.1f — would round to > %d, ' .
-                    'exceeding the constitutional district maximum of %d. Remove a jurisdiction.',
-                    $fractional, $giantThreshold, $ceiling, $ceiling
-                ),
+                'error' => __('Composite fractional seats (:frac) ≥ :threshold — would round to > :ceiling, exceeding the constitutional district maximum of :max. Remove a jurisdiction.', [
+                    'frac' => sprintf('%.2f', $fractional),
+                    'threshold' => sprintf('%.1f', $giantThreshold),
+                    'ceiling' => $ceiling,
+                    'max' => $ceiling,
+                ]),
             ], 422);
         }
 
@@ -1760,7 +1761,7 @@ class LegislatureController extends Controller
                     fn($r) => $this->makeShortCode($r->name, $r->iso_code, (int) $r->adm_level)
                 )->toArray());
                 sort($memberCodes);
-                $districtName = $memberCodes ? implode('-', $memberCodes) : 'District';
+                $districtName = $memberCodes ? implode('-', $memberCodes) : __('District');
             } else {
                 $labelScopeRow = DB::table('jurisdictions')->where('id', $labelScopeId)->first();
                 $scopeCode     = $this->makeShortCode($labelScopeRow->name, $labelScopeRow->iso_code, (int) $labelScopeRow->adm_level);
@@ -1827,7 +1828,7 @@ class LegislatureController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Failed to create district: ' . $e->getMessage()], 500);
+            return response()->json(['error' => __('Failed to create district: :error', ['error' => $e->getMessage()])], 500);
         }
     }
 
@@ -1840,14 +1841,14 @@ class LegislatureController extends Controller
     public function updateDistrictMembers(Request $request, string $legislature_id, string $district_id): JsonResponse
     {
         $leg = DB::table('legislatures')->where('id', $legislature_id)->whereNull('deleted_at')->first();
-        if (!$leg) return response()->json(['error' => 'Legislature not found'], 404);
+        if (!$leg) return response()->json(['error' => __('Legislature not found')], 404);
 
         $district = DB::table('legislature_districts')
             ->where('id', $district_id)
             ->where('legislature_id', $legislature_id)
             ->whereNull('deleted_at')
             ->first();
-        if (!$district) return response()->json(['error' => 'District not found'], 404);
+        if (!$district) return response()->json(['error' => __('District not found')], 404);
 
         $add          = $request->input('add', []);
         $remove       = $request->input('remove', []);
@@ -1883,8 +1884,7 @@ class LegislatureController extends Controller
                 $frac = (int) $aRow->population / max($localQuota, 1);
                 if ($frac >= $giantThreshold) {
                     return response()->json([
-                        'error' => "{$aRow->name} has " . number_format($frac, 2) . " fractional seats (≥ " . number_format($giantThreshold, 1) . "). " .
-                                   "Giant jurisdictions cannot be composited — drill down instead.",
+                        'error' => __(':name has :frac fractional seats (≥ :threshold). Giant jurisdictions cannot be composited — drill down instead.', ['name' => $aRow->name, 'frac' => number_format($frac, 2), 'threshold' => number_format($giantThreshold, 1)]),
                     ], 422);
                 }
             }
@@ -1918,11 +1918,12 @@ class LegislatureController extends Controller
 
             if ($projectedFrac >= $giantThreshold) {
                 return response()->json([
-                    'error' => sprintf(
-                        'Projected composite fractional seats (%.2f) ≥ %.1f — would round to > %d, ' .
-                        'exceeding the constitutional district maximum of %d.',
-                        $projectedFrac, $giantThreshold, $ceiling, $ceiling
-                    ),
+                    'error' => __('Projected composite fractional seats (:frac) ≥ :threshold — would round to > :ceiling, exceeding the constitutional district maximum of :max.', [
+                        'frac' => sprintf('%.2f', $projectedFrac),
+                        'threshold' => sprintf('%.1f', $giantThreshold),
+                        'ceiling' => $ceiling,
+                        'max' => $ceiling,
+                    ]),
                 ], 422);
             }
         }
@@ -2000,7 +2001,7 @@ class LegislatureController extends Controller
                     fn($r) => $this->makeShortCode($r->name, $r->iso_code, (int) $r->adm_level)
                 )->toArray());
                 sort($memberCodes);
-                $districtName = $memberCodes ? implode('-', $memberCodes) : 'District';
+                $districtName = $memberCodes ? implode('-', $memberCodes) : __('District');
             } else {
                 $labelScopeRow = DB::table('jurisdictions')->where('id', $labelScopeId)->first();
                 $scopeCode     = $this->makeShortCode($labelScopeRow->name, $labelScopeRow->iso_code, (int) $labelScopeRow->adm_level);
@@ -2060,7 +2061,7 @@ class LegislatureController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Failed to update district: ' . $e->getMessage()], 500);
+            return response()->json(['error' => __('Failed to update district: :error', ['error' => $e->getMessage()])], 500);
         }
     }
 
@@ -2078,7 +2079,7 @@ class LegislatureController extends Controller
             ->first();
 
         if (!$district) {
-            return response()->json(['error' => 'District not found'], 404);
+            return response()->json(['error' => __('District not found')], 404);
         }
 
         $leg = DB::table('legislatures')
@@ -2124,7 +2125,7 @@ class LegislatureController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Failed to delete district: ' . $e->getMessage()], 500);
+            return response()->json(['error' => __('Failed to delete district: :error', ['error' => $e->getMessage()])], 500);
         }
 
         $this->flushRevealedCache($legislature_id, $distMapId, $scopeId);
@@ -2748,7 +2749,7 @@ class LegislatureController extends Controller
             ->first();
 
         if (!$leg) {
-            return response()->json(['error' => 'Legislature not found'], 404);
+            return response()->json(['error' => __('Legislature not found')], 404);
         }
 
         $scopeId       = $request->input('scope_id');
@@ -2759,7 +2760,7 @@ class LegislatureController extends Controller
         $mapId         = $this->ensureMapId($legislature_id, $request->input('map_id'));
 
         if (!$scopeId) {
-            return response()->json(['error' => 'scope_id is required'], 422);
+            return response()->json(['error' => __('scope_id is required')], 422);
         }
 
         // Publish a single-scope progress marker so the wizard's stepper-driven
@@ -2777,7 +2778,7 @@ class LegislatureController extends Controller
             'started_at'       => time(),
             'scope_started_at' => time(),
             'phase'            => 'starting',
-            'phase_label'      => "Starting autoseed for {$scopeName}",
+            'phase_label'      => __('Starting autoseed for :scope', ['scope' => $scopeName]),
             'phase_current'    => 0,
             'phase_total'      => 0,
         ], reset: true);
@@ -2825,13 +2826,13 @@ class LegislatureController extends Controller
             DB::rollBack();
             Cache::forget("legislature.{$legislature_id}.mass_running");
             Cache::forget("legislature.{$legislature_id}.mass_progress");
-            return response()->json(['error' => 'Auto-composite failed: ' . $e->getMessage()], 500);
+            return response()->json(['error' => __('Auto-composite failed: :error', ['error' => $e->getMessage()])], 500);
         }
 
         $this->publishMassProgress($legislature_id, [
             'completed'    => 1,
             'phase'        => 'done',
-            'phase_label'  => "Autoseed complete: {$result['districts_created']} districts created",
+            'phase_label'  => __('Autoseed complete: :count districts created', ['count' => $result['districts_created']]),
         ]);
 
         // Invalidate revealed.geojson cache — autoComposite creates/replaces districts.
@@ -2874,14 +2875,14 @@ class LegislatureController extends Controller
             ->first();
 
         if (!$leg) {
-            return response()->json(['error' => 'Legislature not found'], 404);
+            return response()->json(['error' => __('Legislature not found')], 404);
         }
 
         $operationScope = $request->input('operation_scope');
         $scopeId        = $request->input('scope_id');
 
         if (!$operationScope || !$scopeId) {
-            return response()->json(['error' => 'operation_scope and scope_id are required'], 422);
+            return response()->json(['error' => __('operation_scope and scope_id are required')], 422);
         }
 
         // Mixed autoseed (2026-07-17): optional per-run line-split template
@@ -2889,7 +2890,7 @@ class LegislatureController extends Controller
         // (constitutional_settings.districting_autoseed_template).
         $template = $request->input('template');
         if ($template !== null && ! in_array($template, \App\Services\Districting\SubdivisionAutoseedService::TEMPLATES, true)) {
-            return response()->json(['error' => 'Unknown districting template.'], 422);
+            return response()->json(['error' => __('Unknown districting template.')], 422);
         }
 
         // Pull engine (2026-07-19): autoscale scope workers no longer take
@@ -2908,7 +2909,7 @@ class LegislatureController extends Controller
             ->exists();
         if ($autoscaleBusy) {
             return response()->json([
-                'error' => 'The full-scale autoscale currently owns this legislature (its founding sweep is pending or in flight). Halt the run from the Setup dashboard first, or wait for this legislature to finish.',
+                'error' => __('The full-scale autoscale currently owns this legislature (its founding sweep is pending or in flight). Halt the run from the Setup dashboard first, or wait for this legislature to finish.'),
                 'autoscale_busy' => true,
             ], 409);
         }
@@ -2931,7 +2932,7 @@ class LegislatureController extends Controller
 
             if (! $zombie) {
                 return response()->json([
-                    'error' => 'A mass operation is already running. Wait for it to finish or click Halt to stop it.',
+                    'error' => __('A mass operation is already running. Wait for it to finish or click Halt to stop it.'),
                     'phase' => $phase,
                 ], 409);
             }
@@ -2972,7 +2973,7 @@ class LegislatureController extends Controller
             'phase_current'    => 0,
             'phase_total'      => 0,
             'phase'            => 'queued',
-            'phase_label'      => 'Queued — waiting for worker',
+            'phase_label'      => __('Queued — waiting for worker'),
         ], reset: true);
 
         // Dispatch to Horizon. The job's timeout is 7200 s (2 h) which
@@ -3126,7 +3127,7 @@ class LegislatureController extends Controller
             'started_at'    => $runStartedAt,
             'current_scope' => $scopeNames[$scopeIds[0] ?? null] ?? null,
             'phase'         => 'starting',
-            'phase_label'   => 'Starting mass-reseed sweep',
+            'phase_label'   => __('Starting mass-reseed sweep'),
         ]);
 
         // Per-scope commits: each scope commits independently so partial
@@ -3149,7 +3150,7 @@ class LegislatureController extends Controller
                 $halted = true;
                 $this->publishMassProgress($legislature_id, [
                     'phase'       => 'halted',
-                    'phase_label' => "Halted by operator after {$scopesProcessed}/{$totalScopes} scopes",
+                    'phase_label' => __('Halted by operator after :done/:total scopes', ['done' => $scopesProcessed, 'total' => $totalScopes]),
                     'completed'   => $scopeIdx,
                 ]);
                 break;
@@ -3196,9 +3197,9 @@ class LegislatureController extends Controller
                 'completed'        => $scopeIdx,
                 'total'            => $totalScopes,
                 'phase'            => 'scope_start',
-                'phase_label'      => ($leafCtx !== null ? 'Line-splitting scope: ' : 'Starting scope: ')
-                    . ($scopeNames[$sid] ?? $sid)
-                    . ($leafCtx !== null ? " ({$leafCtx['budget']} seats, {$lineTemplate})" : ''),
+                'phase_label'      => ($leafCtx !== null
+                    ? __('Line-splitting scope: :name (:budget seats, :template)', ['name' => $scopeNames[$sid] ?? $sid, 'budget' => $leafCtx['budget'], 'template' => $lineTemplate])
+                    : __('Starting scope: :name', ['name' => $scopeNames[$sid] ?? $sid])),
                 'phase_current'    => 0,
                 'phase_total'      => 0,
                 'scope_started_at' => $scopeStart,
@@ -3246,7 +3247,7 @@ class LegislatureController extends Controller
                     $errors[] = ($scopeNames[$sid] ?? $sid) . ": " . $e->getMessage();
                     $this->publishMassProgress($legislature_id, [
                         'phase'       => 'scope_failed',
-                        'phase_label' => "Scope failed: " . ($scopeNames[$sid] ?? $sid) . " ({$e->getMessage()})",
+                        'phase_label' => __('Scope failed: :name (:error)', ['name' => $scopeNames[$sid] ?? $sid, 'error' => $e->getMessage()]),
                     ]);
                 }
                 continue;
@@ -3316,7 +3317,7 @@ class LegislatureController extends Controller
                 $errors[] = ($scopeNames[$sid] ?? $sid) . ": " . $e->getMessage();
                 $this->publishMassProgress($legislature_id, [
                     'phase'       => 'scope_failed',
-                    'phase_label' => "Scope failed: " . ($scopeNames[$sid] ?? $sid) . " ({$e->getMessage()})",
+                    'phase_label' => __('Scope failed: :name (:error)', ['name' => $scopeNames[$sid] ?? $sid, 'error' => $e->getMessage()]),
                 ]);
             }
         }
@@ -3360,9 +3361,10 @@ class LegislatureController extends Controller
             'completed'   => $halted ? $scopesProcessed : $totalScopes,
             'phase'       => $halted ? 'halted' : 'sweep_done',
             'phase_label' => $halted
-                ? "Halted by operator: {$scopesProcessed}/{$totalScopes} scopes complete, {$totalCreated} districts"
-                : "Sweep complete: {$scopesProcessed}/{$totalScopes} scopes, {$totalCreated} districts"
-                    . ($stalePurged > 0 ? ", {$stalePurged} stale purged" : ''),
+                ? __('Halted by operator: :done/:total scopes complete, :created districts', ['done' => $scopesProcessed, 'total' => $totalScopes, 'created' => $totalCreated])
+                : ($stalePurged > 0
+                    ? __('Sweep complete: :done/:total scopes, :created districts, :purged stale purged', ['done' => $scopesProcessed, 'total' => $totalScopes, 'created' => $totalCreated, 'purged' => $stalePurged])
+                    : __('Sweep complete: :done/:total scopes, :created districts', ['done' => $scopesProcessed, 'total' => $totalScopes, 'created' => $totalCreated])),
         ]);
 
         // Clean up the recorded backend PID — we're done, no further halts apply.
@@ -3409,7 +3411,7 @@ class LegislatureController extends Controller
     {
         $leg = DB::table('legislatures')->where('id', $legislature_id)->whereNull('deleted_at')->first();
         if (!$leg) {
-            return response()->json(['error' => 'Legislature not found'], 404);
+            return response()->json(['error' => __('Legislature not found')], 404);
         }
 
         // Stage 1: cache flag for graceful PHP-side exit. A live worker sees
@@ -3469,8 +3471,8 @@ class LegislatureController extends Controller
         $this->publishMassProgress($legislature_id, [
             'phase'       => 'halted',
             'phase_label' => $terminated
-                ? 'Halted by operator (terminated stuck query)'
-                : 'Halted by operator.',
+                ? __('Halted by operator (terminated stuck query)')
+                : __('Halted by operator.'),
         ]);
 
         return response()->json([
@@ -3499,7 +3501,7 @@ class LegislatureController extends Controller
             ->first();
 
         if (!$leg) {
-            return response()->json(['error' => 'Legislature not found'], 404);
+            return response()->json(['error' => __('Legislature not found')], 404);
         }
 
         $operationScope = $request->input('operation_scope');
@@ -3507,7 +3509,7 @@ class LegislatureController extends Controller
         $mapId          = $this->getMapId($legislature_id, $request->input('map_id'));
 
         if (!$operationScope || !$scopeId) {
-            return response()->json(['error' => 'operation_scope and scope_id are required'], 422);
+            return response()->json(['error' => __('operation_scope and scope_id are required')], 422);
         }
 
         Cache::put("legislature.{$legislature_id}.mass_running", true, 7200);
@@ -3665,7 +3667,7 @@ class LegislatureController extends Controller
             DB::rollBack();
             Cache::forget("legislature.{$legislature_id}.mass_running");
             Cache::forget("legislature.{$legislature_id}.mass_progress");
-            return response()->json(['error' => 'Mass disband failed: ' . $e->getMessage()], 500);
+            return response()->json(['error' => __('Mass disband failed: :error', ['error' => $e->getMessage()])], 500);
         }
 
         Cache::forget("legislature.{$legislature_id}.mass_running");
@@ -3754,12 +3756,12 @@ class LegislatureController extends Controller
     {
         $leg = DB::table('legislatures')->where('id', $legislature_id)->whereNull('deleted_at')->first();
         if (!$leg) {
-            return response()->json(['error' => 'Legislature not found'], 404);
+            return response()->json(['error' => __('Legislature not found')], 404);
         }
 
         $name = trim($request->input('name', ''));
         if ($name === '') {
-            return response()->json(['error' => 'name is required'], 422);
+            return response()->json(['error' => __('name is required')], 422);
         }
 
         $mapId = (string) Str::uuid();
@@ -3798,7 +3800,7 @@ class LegislatureController extends Controller
             ->first();
 
         if (!$map) {
-            return response()->json(['error' => 'Map not found'], 404);
+            return response()->json(['error' => __('Map not found')], 404);
         }
 
         $fields = [];
@@ -3837,11 +3839,11 @@ class LegislatureController extends Controller
             ->first();
 
         if (!$map) {
-            return response()->json(['error' => 'Map not found'], 404);
+            return response()->json(['error' => __('Map not found')], 404);
         }
 
         if ($map->status === 'active') {
-            return response()->json(['error' => 'Cannot delete the active map. Activate a different map first.'], 422);
+            return response()->json(['error' => __('Cannot delete the active map. Activate a different map first.')], 422);
         }
 
         DB::table('legislature_district_maps')
@@ -3866,7 +3868,7 @@ class LegislatureController extends Controller
             ->first();
 
         if (!$map) {
-            return response()->json(['error' => 'Map not found'], 404);
+            return response()->json(['error' => __('Map not found')], 404);
         }
 
         $newName  = substr(trim($request->input('name', 'Copy of ' . $map->name)), 0, 120);
@@ -4005,7 +4007,7 @@ class LegislatureController extends Controller
         } catch (\Throwable $e) {
             // Surface the real reason as JSON — an uncaught throw here rendered
             // as a bare 500 the mapper could only report as "network error".
-            return response()->json(['error' => 'Failed to copy map: ' . $e->getMessage()], 500);
+            return response()->json(['error' => __('Failed to copy map: :error', ['error' => $e->getMessage()])], 500);
         }
 
         return response()->json([
@@ -4032,7 +4034,7 @@ class LegislatureController extends Controller
             ->first();
 
         if (!$map) {
-            return response()->json(['error' => 'Map not found'], 404);
+            return response()->json(['error' => __('Map not found')], 404);
         }
 
         DB::transaction(function () use ($legislature_id, $map_id, $map) {
@@ -4396,12 +4398,12 @@ class LegislatureController extends Controller
     {
         $scopeId = $request->query('scope');
         if (!$scopeId) {
-            return response()->json(['error' => 'scope parameter required'], 422);
+            return response()->json(['error' => __('scope parameter required')], 422);
         }
 
         $leg = DB::table('legislatures')->where('id', $legislature_id)->first();
         if (!$leg) {
-            return response()->json(['error' => 'Legislature not found'], 404);
+            return response()->json(['error' => __('Legislature not found')], 404);
         }
 
         $rootPop    = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
@@ -4413,7 +4415,7 @@ class LegislatureController extends Controller
 
         $scope = DB::table('jurisdictions')->where('id', $scopeId)->first();
         if (!$scope) {
-            return response()->json(['error' => 'Scope not found'], 404);
+            return response()->json(['error' => __('Scope not found')], 404);
         }
         // Replicate show()'s ancestor-chain logic so "USA CAL 01" appears consistently
         // in the lazy-loaded sidebar at all scope levels, not just "CAL 01".
@@ -6001,7 +6003,7 @@ class LegislatureController extends Controller
             ->whereNull('deleted_at')
             ->first();
         if (!$leg) {
-            return response()->json(['error' => 'Legislature not found'], 404);
+            return response()->json(['error' => __('Legislature not found')], 404);
         }
 
         $rootId = $leg->jurisdiction_id;

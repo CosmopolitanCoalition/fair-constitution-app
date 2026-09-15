@@ -90,45 +90,48 @@ class SettingsController extends Controller
     ];
 
     /** Display meta per key (clock annotations — mockup grammar). */
-    private const META = [
-        'election_interval_months'          => '5-year default · CLK-01',
-        'voting_method'                     => 'PR-STV with Droop quota',
-        'legislature_min_seats'             => 'floor 5 · CLK-08',
-        'legislature_max_seats'             => 'ceiling 9 — mandatory subdivision above · CLK-07',
-        'special_election_min_days'         => 'CLK-04',
-        'special_election_max_days'         => 'CLK-04',
-        'supermajority_numerator'           => 'with denominator: the supermajority fraction',
-        'supermajority_denominator'         => 'ceil(serving × n/d) of all serving',
-        'max_days_between_meetings'         => 'CLK-02',
-        'emergency_powers_max_days'         => 'CLK-03',
-        'civil_appointment_years'           => 'CLK-09',
-        'judicial_appointment_years'        => 'CLK-09 · lockstep',
-        'residency_confirmation_days'       => 'CLK-05 threshold',
-        'initiative_petition_threshold_pct' => '% of jurisdiction population · CLK-17',
-        'judiciary_is_elected'              => 'appointed is the default',
-        'worker_rep_min_employees'          => 'first worker board seat · CLK-13',
-        'worker_rep_parity_employees'       => 'worker/shareholder parity · CLK-14',
-        'type_b_seats_per_child'            => 'equal seats per constituent · the Type B ladder starts here',
-        'critical_population_threshold'     => 'residents that boot a place · CLK-06',
-        'activation_tier_enabled'           => 'activation curve on (1) or off (0)',
-        'activation_tier_k'                 => 'activation curve k · threshold = clamp(ceil(k · P^(1/exponent)), floor, cap)',
-        'activation_tier_exponent'          => 'activation curve exponent',
-        'activation_tier_floor'             => 'activation curve resident floor',
-        'activation_tier_cap'               => 'activation curve resident cap',
+    private function meta(): array
+    {
+        return [
+        'election_interval_months'          => __('5-year default · CLK-01'),
+        'voting_method'                     => __('PR-STV with Droop quota'),
+        'legislature_min_seats'             => __('floor 5 · CLK-08'),
+        'legislature_max_seats'             => __('ceiling 9 — mandatory subdivision above · CLK-07'),
+        'special_election_min_days'         => __('CLK-04'),
+        'special_election_max_days'         => __('CLK-04'),
+        'supermajority_numerator'           => __('with denominator: the supermajority fraction'),
+        'supermajority_denominator'         => __('ceil(serving × n/d) of all serving'),
+        'max_days_between_meetings'         => __('CLK-02'),
+        'emergency_powers_max_days'         => __('CLK-03'),
+        'civil_appointment_years'           => __('CLK-09'),
+        'judicial_appointment_years'        => __('CLK-09 · lockstep'),
+        'residency_confirmation_days'       => __('CLK-05 threshold'),
+        'initiative_petition_threshold_pct' => __('% of jurisdiction population · CLK-17'),
+        'judiciary_is_elected'              => __('appointed is the default'),
+        'worker_rep_min_employees'          => __('first worker board seat · CLK-13'),
+        'worker_rep_parity_employees'       => __('worker/shareholder parity · CLK-14'),
+        'type_b_seats_per_child'            => __('equal seats per constituent · the Type B ladder starts here'),
+        'critical_population_threshold'     => __('residents that boot a place · CLK-06'),
+        'activation_tier_enabled'           => __('activation curve on (1) or off (0)'),
+        'activation_tier_k'                 => __('activation curve k · threshold = clamp(ceil(k · P^(1/exponent)), floor, cap)'),
+        'activation_tier_exponent'          => __('activation curve exponent'),
+        'activation_tier_floor'             => __('activation curve resident floor'),
+        'activation_tier_cap'               => __('activation curve resident cap'),
         // Phase L — monetary levers. All dual-door: a chamber cannot vote
         // itself a raise without its constituents' consent.
-        'stipend_enabled'                   => 'the civic stipend runs · dual-door',
-        'stipend_funding_source'            => 'minted, or drawn from the treasury · dual-door',
-        'civic_stipend_floor'               => 'everyone with active residency receives this · dual-door',
-        'stipend_bump_cap'                  => 'ceiling on the SUM of role differentials · dual-door',
-        'pay_node_operator'                 => 'role differential · dual-door',
-        'pay_social_moderator'              => 'role differential · dual-door',
-        'pay_office_holder'                 => 'role differential · dual-door',
-        'stipend_interval'                  => 'payout cadence · dual-door',
-        'stipend_period_days'               => 'sweep period · dual-door',
-        'issuance_rate_bps'                 => 'basis points · Art. V §5 · dual-door',
-        'inflation_target_bps'              => 'basis points · Art. V §5 · dual-door',
-    ];
+        'stipend_enabled'                   => __('the civic stipend runs · dual-door'),
+        'stipend_funding_source'            => __('minted, or drawn from the treasury · dual-door'),
+        'civic_stipend_floor'               => __('everyone with active residency receives this · dual-door'),
+        'stipend_bump_cap'                  => __('ceiling on the SUM of role differentials · dual-door'),
+        'pay_node_operator'                 => __('role differential · dual-door'),
+        'pay_social_moderator'              => __('role differential · dual-door'),
+        'pay_office_holder'                 => __('role differential · dual-door'),
+        'stipend_interval'                  => __('payout cadence · dual-door'),
+        'stipend_period_days'               => __('sweep period · dual-door'),
+        'issuance_rate_bps'                 => __('basis points · Art. V §5 · dual-door'),
+        'inflation_target_bps'              => __('basis points · Art. V §5 · dual-door'),
+            ];
+    }
 
     /** The civil/judicial lockstep pair renders as one joined row. */
     public const LOCKSTEP_KEYS = ['civil_appointment_years', 'judicial_appointment_years'];
@@ -150,10 +153,9 @@ class SettingsController extends Controller
             'settings'      => fn () => $this->register($jid),
             'lockstepKeys'  => self::LOCKSTEP_KEYS,
             'hardenedFloor' => [
-                'supermajority_floor'     => 'majority + 1',
+                'supermajority_floor'     => __('majority + 1'),
                 'proportionality_ratchet' => true,
-                'note'                    => 'No UI, admin panel, or legislative act can carry an out-of-range value — '
-                    . 'the engine rejects pre-vote with citation, and the rejection itself is chained.',
+                'note'                    => __('No UI, admin panel, or legislative act can carry an out-of-range value — the engine rejects pre-vote with citation, and the rejection itself is chained.'),
             ],
             'changes'       => fn () => $historyPage()['records'],
             'change_pages'  => fn () => $historyPage()['pagination'],
@@ -202,7 +204,7 @@ class SettingsController extends Controller
 
         return back()->with(
             'status',
-            "Amendment bill introduced (F-LEG-031) for {$validated['setting_key']} — it takes effect only when the chamber enacts it at a peg-quorum floor vote. Track it on the amendments ledger.",
+            __('Amendment bill introduced (F-LEG-031) for :key — it takes effect only when the chamber enacts it at a peg-quorum floor vote. Track it on the amendments ledger.', ['key' => $validated['setting_key']]),
         );
     }
 
@@ -278,7 +280,7 @@ class SettingsController extends Controller
             $register[] = [
                 'key'            => $key,
                 'value'          => $value,
-                'meta'           => self::META[$key] ?? null,
+                'meta'           => $this->meta()[$key] ?? null,
                 'bounds'         => $keyBounds !== null
                     ? array_intersect_key($keyBounds, array_flip(['min', 'max', 'allowed']))
                     : null,

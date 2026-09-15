@@ -166,7 +166,7 @@ class OversightController extends Controller
 
         if ($office === null) {
             return back()->withErrors([
-                'constitution' => 'No administrative office exists — the chamber creates one by majority act (F-LEG-013) before intake can docket (Art. II §2).',
+                'constitution' => __('No administrative office exists — the chamber creates one by majority act (F-LEG-013) before intake can docket (Art. II §2).'),
             ]);
         }
 
@@ -187,7 +187,7 @@ class OversightController extends Controller
 
         return back()->with(
             'status',
-            "Complaint docketed as {$investigation->code} — intake is open to any resident; the docket is public (I-ADM)."
+            __('Complaint docketed as :code — intake is open to any resident; the docket is public (I-ADM).', ['code' => $investigation->code])
         );
     }
 
@@ -202,11 +202,11 @@ class OversightController extends Controller
      */
     public function referInvestigation(Request $request, MisconductInvestigation $investigation): RedirectResponse
     {
-        abort_unless($this->isAdminStaff($request->user()), 403, 'Investigations are run by administrative-office staff (R-29).');
+        abort_unless($this->isAdminStaff($request->user()), 403, __('Investigations are run by administrative-office staff (R-29).'));
 
         if ((string) $request->input('action', 'findings') === 'investigate') {
             if ($investigation->status !== MisconductInvestigation::STATUS_INTAKE) {
-                return back()->with('status', "Investigation {$investigation->code} is already past intake ({$investigation->status}).");
+                return back()->with('status', __('Investigation :code is already past intake (:status).', ['code' => $investigation->code, 'status' => $investigation->status]));
             }
 
             $office      = $investigation->office()->firstOrFail();
@@ -229,7 +229,7 @@ class OversightController extends Controller
                 );
             });
 
-            return back()->with('status', "Investigation {$investigation->code} is now investigating (I-ADM).");
+            return back()->with('status', __('Investigation :code is now investigating (I-ADM).', ['code' => $investigation->code]));
         }
 
         $validated = $request->validate([
@@ -246,8 +246,8 @@ class OversightController extends Controller
         );
 
         return back()->with('status', $investigation->status === MisconductInvestigation::STATUS_REFERRED
-            ? "Findings published — {$investigation->code} referred to a removal proceeding (F-SPK-007 designates the presider next)."
-            : "Findings published — {$investigation->code} closed with no finding; the record stands.");
+            ? __('Findings published — :code referred to a removal proceeding (F-SPK-007 designates the presider next).', ['code' => $investigation->code])
+            : __('Findings published — :code closed with no finding; the record stands.', ['code' => $investigation->code]));
     }
 
     /** F-LEG-013 — Administrative Office Creation Act (majority of all serving). */
@@ -266,7 +266,7 @@ class OversightController extends Controller
 
         return back()->with(
             'status',
-            'Administrative office creation act filed (F-LEG-013) — majority vote open; staff nominees follow the appointment-consent pipeline.'
+            __('Administrative office creation act filed (F-LEG-013) — majority vote open; staff nominees follow the appointment-consent pipeline.')
         );
     }
 
@@ -298,7 +298,7 @@ class OversightController extends Controller
                     'presider_member_id' => $validated['presider_member_id'],
                 ]);
 
-                return back()->with('status', 'Presider designated (F-SPK-007) — the engine blocks the subject from presiding.');
+                return back()->with('status', __('Presider designated (F-SPK-007) — the engine blocks the subject from presiding.'));
 
             case 'open_vote':
                 $validated = $request->validate(['proceeding_id' => ['required', 'uuid']]);
@@ -311,7 +311,7 @@ class OversightController extends Controller
 
                 return back()->with(
                     'status',
-                    'Removal vote opened (F-LEG-022) — supermajority of ALL serving; vacancies stay in the denominator (Art. VII).'
+                    __('Removal vote opened (F-LEG-022) — supermajority of ALL serving; vacancies stay in the denominator (Art. VII).')
                 );
 
             case 'cast':
@@ -328,7 +328,7 @@ class OversightController extends Controller
                     'explanation'     => $validated['explanation'] ?? null,
                 ]);
 
-                return back()->with('status', 'Removal vote cast recorded (F-LEG-022) — published with your name · Art. II §2.');
+                return back()->with('status', __('Removal vote cast recorded (F-LEG-022) — published with your name · Art. II §2.'));
         }
 
         $validated = $request->validate([
@@ -346,7 +346,7 @@ class OversightController extends Controller
 
         return back()->with(
             'status',
-            'Removal proceeding opened (F-SPK-007) — the Speaker presides, never over their own case (Art. II §3).'
+            __('Removal proceeding opened (F-SPK-007) — the Speaker presides, never over their own case (Art. II §3).')
         );
     }
 
@@ -374,8 +374,8 @@ class OversightController extends Controller
 
         return back()->with(
             'status',
-            'Vacancy declared (F-LEG-036) — countback queued (Art. II §5 → WF-ELE-03).'
-            . ($vacancyId !== null ? " Track it at /vacancies/{$vacancyId}." : '')
+            __('Vacancy declared (F-LEG-036) — countback queued (Art. II §5 → WF-ELE-03).')
+            . ($vacancyId !== null ? __(' Track it at /vacancies/:id.', ['id' => $vacancyId]) : '')
         );
     }
 
@@ -439,7 +439,7 @@ class OversightController extends Controller
                 $user = User::query()->find($term->holder_user_id);
 
                 return [
-                    'name'      => $user?->display_name ?: $user?->name ?: 'Staff',
+                    'name'      => $user?->display_name ?: $user?->name ?: __('Staff'),
                     'term_ends' => (string) $term->ends_on,
                 ];
             })
@@ -459,7 +459,7 @@ class OversightController extends Controller
                 $nominee = User::query()->find($appointment->nominee_user_id);
 
                 return [
-                    'nominee'  => $nominee?->display_name ?: $nominee?->name ?: 'Nominee',
+                    'nominee'  => $nominee?->display_name ?: $nominee?->name ?: __('Nominee'),
                     'tally'    => $this->votes->tallyProps($vote),
                     'my_cast'  => $this->memberHasCast($viewer, $vote),
                     'cast_url' => $vote !== null
@@ -496,7 +496,7 @@ class OversightController extends Controller
             ->get()
             ->map(function (MisconductInvestigation $row) use ($memberNames, $records) {
                 $subjectName = $row->subject_type === 'legislature_members'
-                    ? ($memberNames[(string) $row->subject_id] ?? 'Member')
+                    ? ($memberNames[(string) $row->subject_id] ?? __('Member'))
                     : $row->subject_type;
 
                 return [
@@ -540,13 +540,13 @@ class OversightController extends Controller
                     'id'      => (string) $proceeding->id,
                     'kind'    => $proceeding->kind,
                     'subject' => $proceeding->subject_type === 'legislature_members'
-                        ? ($memberNames[(string) $proceeding->subject_id] ?? 'Former member')
+                        ? ($memberNames[(string) $proceeding->subject_id] ?? __('Former member'))
                         : $proceeding->subject_type,
                     'subject_member_id' => $proceeding->subject_type === 'legislature_members'
                         ? (string) $proceeding->subject_id
                         : null,
                     'presided_by' => $proceeding->presided_by_member_id !== null
-                        ? ($memberNames[(string) $proceeding->presided_by_member_id] ?? 'Member')
+                        ? ($memberNames[(string) $proceeding->presided_by_member_id] ?? __('Member'))
                         : null,
                     'status'  => $proceeding->status,
                     'outcome' => $proceeding->outcome,
@@ -588,8 +588,8 @@ class OversightController extends Controller
                     'id'      => (string) $vacancy->id,
                     'seat'    => $member?->seat_no,
                     'member'  => $member !== null
-                        ? ($this->memberDisplayName($member) ?? $memberNames[(string) $member->id] ?? 'Member')
-                        : 'Seat',
+                        ? ($this->memberDisplayName($member) ?? $memberNames[(string) $member->id] ?? __('Member'))
+                        : __('Seat'),
                     'status'  => $vacancy->status,
                     'declared_via' => $vacancy->declared_via_form,
                     'countback_href' => "/vacancies/{$vacancy->id}",

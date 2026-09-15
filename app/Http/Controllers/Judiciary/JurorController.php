@@ -51,13 +51,16 @@ class JurorController extends Controller
      *
      * @var list<array{id: string, text: string}>
      */
-    private const QUESTIONS = [
-        ['id' => 'q1', 'text' => 'Do you know the accused, the advocates, or any listed witness personally?'],
-        ['id' => 'q2', 'text' => 'Do you have any financial interest in the outcome of this case?'],
-        ['id' => 'q3', 'text' => 'Were you involved in the events at issue, or in the investigation?'],
-        ['id' => 'q4', 'text' => 'Have you formed a fixed opinion about this case from coverage or conversation?'],
-        ['id' => 'q5', 'text' => 'Have you served on a jury or panel in a related case?'],
-    ];
+    private function questions(): array
+    {
+        return [
+            ['id' => 'q1', 'text' => __('Do you know the accused, the advocates, or any listed witness personally?')],
+            ['id' => 'q2', 'text' => __('Do you have any financial interest in the outcome of this case?')],
+            ['id' => 'q3', 'text' => __('Were you involved in the events at issue, or in the investigation?')],
+            ['id' => 'q4', 'text' => __('Have you formed a fixed opinion about this case from coverage or conversation?')],
+            ['id' => 'q5', 'text' => __('Have you served on a jury or panel in a related case?')],
+        ];
+    }
 
     /** jury_members.screening_status → the 6-step service stepper position. */
     private const SERVICE_STATE = [
@@ -82,7 +85,7 @@ class JurorController extends Controller
         $jury = $summons->jury;
         $case = $jury?->case;
 
-        abort_if($jury === null || $case === null, 404, 'This summons has no case on the docket.');
+        abort_if($jury === null || $case === null, 404, __('This summons has no case on the docket.'));
 
         $isHolder = $request->user() !== null
             && (string) $summons->user_id === (string) $request->user()->getKey();
@@ -104,7 +107,7 @@ class JurorController extends Controller
         return Inertia::render('Judiciary/JurorView', [
             'surface' => SurfaceMeta::for('judiciary/juror-view'),
             'summons' => $this->summonsProps($summons, $jury, $case),
-            'questions' => self::QUESTIONS,
+            'questions' => $this->questions(),
             'serviceState' => $serviceState,
             'deliberationRoom' => [
                 // The room unlocks only when the case is actually deliberating —
@@ -137,7 +140,7 @@ class JurorController extends Controller
             $request->user() !== null
                 && (string) $summons->user_id === (string) $request->user()->getKey(),
             403,
-            'You can answer only your own jury screening (R-22 of this summons).'
+            __('You can answer only your own jury screening (R-22 of this summons).')
         );
 
         abort_unless(
@@ -147,12 +150,12 @@ class JurorController extends Controller
                 true,
             ),
             422,
-            'Screening is closed for this summons — voir dire has moved on.'
+            __('Screening is closed for this summons — voir dire has moved on.')
         );
 
         // Normalize each question to a yes/no record; anything else is "no".
         $answers = [];
-        foreach (self::QUESTIONS as $q) {
+        foreach ($this->questions() as $q) {
             $answers[$q['id']] = $request->input("answers.{$q['id']}") === 'yes' ? 'yes' : 'no';
         }
 
@@ -182,8 +185,8 @@ class JurorController extends Controller
         return back()->with(
             'status',
             $flagged
-                ? 'Screening answers recorded — flagged for voir dire review (Art. IV §4 · WF-JUD-04). A panel judge follows up; if a conflict is confirmed you are excused without penalty and the draw selects a replacement.'
-                : 'Screening answers recorded — no conflicts declared (Art. IV §4 · WF-JUD-04). You remain in the panel pool; empanelment is confirmed at voir dire.'
+                ? __('Screening answers recorded — flagged for voir dire review (Art. IV §4 · WF-JUD-04). A panel judge follows up; if a conflict is confirmed you are excused without penalty and the draw selects a replacement.')
+                : __('Screening answers recorded — no conflicts declared (Art. IV §4 · WF-JUD-04). You remain in the panel pool; empanelment is confirmed at voir dire.')
         );
     }
 
@@ -204,8 +207,8 @@ class JurorController extends Controller
 
         $courtName = $case->judiciary?->court_name
             ?? ($case->judiciary?->jurisdiction?->name !== null
-                ? "{$case->judiciary->jurisdiction->name} court"
-                : 'court');
+                ? __(':name court', ['name' => $case->judiciary->jurisdiction->name])
+                : __('court'));
 
         return [
             'id' => (string) $summons->id,
@@ -219,18 +222,16 @@ class JurorController extends Controller
             ],
             'drawn_at' => $this->localCitation($jury->created_at, $tz),
             'pool_size' => (int) $jury->pool_size,
-            'pool_label' => sprintf(
-                '%s eligible jurisdictionally associated residents of %s',
-                number_format((int) $jury->pool_size),
-                $jury->eligibleJurisdiction?->name ?? 'the jurisdiction',
-            ),
+            'pool_label' => __(':count eligible jurisdictionally associated residents of :jurisdiction', [
+                'count' => number_format((int) $jury->pool_size),
+                'jurisdiction' => $jury->eligibleJurisdiction?->name ?? __('the jurisdiction'),
+            ]),
             'report_at' => $this->localCitation($jury->report_on, $tz),
-            'location' => sprintf(
-                '%s — %d jurors + %d alternates will be empaneled',
-                $courtName,
-                (int) $jury->seats,
-                (int) $jury->alternates,
-            ),
+            'location' => __(':court — :jurors jurors + :alternates alternates will be empaneled', [
+                'court' => $courtName,
+                'jurors' => (int) $jury->seats,
+                'alternates' => (int) $jury->alternates,
+            ]),
             // The draw seed is published to the chain — anyone can verify it.
             'seed_audit_href' => '/audit-chain',
         ];
@@ -267,10 +268,9 @@ class JurorController extends Controller
 
         $at = CarbonImmutable::parse($instant)->setTimezone($tz);
 
-        return sprintf(
-            '%s · shown in %s · stored as UTC',
-            $at->format('Y-m-d H:i'),
-            $tz,
-        );
+        return __(':time · shown in :tz · stored as UTC', [
+            'time' => $at->format('Y-m-d H:i'),
+            'tz' => $tz,
+        ]);
     }
 }

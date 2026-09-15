@@ -19,7 +19,7 @@ final class JudicialNominationController extends Controller
         $leg = Legislature::query()->findOrFail($data['legislature_id']);
         $this->engine->file(JudicialNominationService::NOMINATE_FORM, $request->user(), $data + ['judiciary_id' => $judiciary->id, 'jurisdiction_id' => $leg->jurisdiction_id]);
 
-        return redirect('/judiciaries/'.$judiciary->id.'#judicial-proposals')->with('status', 'Nomination proposal filed. The nominating body’s vote is now open.');
+        return redirect('/judiciaries/'.$judiciary->id.'#judicial-proposals')->with('status', __('Nomination proposal filed. The nominating body’s vote is now open.'));
     }
 
     public function designate(Request $request, Judiciary $judiciary)
@@ -28,6 +28,6 @@ final class JudicialNominationController extends Controller
         $this->engine->file(JudicialNominationService::DESIGNATE_FORM, $request->user(), $data + ['judiciary_id' => $judiciary->id,
             'legislature_id' => $judiciary->source_legislature_id, 'jurisdiction_id' => $judiciary->jurisdiction_id]);
 
-        return redirect('/judiciaries/'.$judiciary->id.'#judicial-proposals')->with('status', 'Committee designation proposed. The creating legislature’s supermajority vote is now open.');
+        return redirect('/judiciaries/'.$judiciary->id.'#judicial-proposals')->with('status', __('Committee designation proposed. The creating legislature’s supermajority vote is now open.'));
     }
 }

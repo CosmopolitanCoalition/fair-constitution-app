@@ -48,7 +48,7 @@ class JudiciaryResolverController extends Controller
         if ($judiciaryId === null) {
             return redirect('/civic')->with(
                 'status',
-                'No court in your association chain yet — judiciaries form when a legislature creates one · F-LEG-017.'
+                __('No court in your association chain yet — judiciaries form when a legislature creates one · F-LEG-017.')
             );
         }
 
@@ -56,7 +56,7 @@ class JudiciaryResolverController extends Controller
         $redirect = redirect("/judiciaries/{$judiciaryId}{$segment}");
 
         if ($this->seatedJudiciaryIds($user)->count() > 1) {
-            $redirect->with('status', 'You sit on more than one court — showing one; switch from the court page.');
+            $redirect->with('status', __('You sit on more than one court — showing one; switch from the court page.'));
         }
 
         return $redirect;
@@ -78,7 +78,7 @@ class JudiciaryResolverController extends Controller
 
         return redirect('/judiciary/docket')->with(
             'status',
-            'You have no active jury summons — jurors are drawn per case from the residency pool (F-JDG-002).'
+            __('You have no active jury summons — jurors are drawn per case from the residency pool (F-JDG-002).')
         );
     }
 
