@@ -91,17 +91,86 @@ final class InstitutionRoomTest extends TestCase
 
     public function test_private_board_page_rejects_guests_former_members_and_members_of_other_boards_before_matrix(): void
     {
+        // A PRIVATE organization board (not a CGC): members-only, 403 before Matrix.
+        $this->boardableTables();
+        $this->orgRow('org', false);
         $this->topology->expects($this->never())->method('reconcileBoard');
         $this->matrix->expects($this->never())->method('getMessages');
         $this->provisioner->expects($this->never())->method('ensureFor');
         $this->seat('former', 'board', 'former', 'term_ended');
         $this->seat('other', 'different-board', 'other');
+        $board = $this->orgBoard(false);
         foreach ([null, 'outsider', 'former', 'other'] as $id) {
             try {
-                $this->controller->board($this->request($id), $this->board());
-                self::fail('Only a current seat on this exact board may view its room.');
+                $this->controller->board($this->request($id), $board);
+                self::fail('Only a current seat on a private organization board may view its room.');
             } catch (HttpException $error) { self::assertSame(403, $error->getStatusCode()); }
         }
+    }
+
+    public function test_department_board_reads_for_a_non_member_with_join_gated(): void
+    {
+        // A department Board of Governors is a public body: a non-member reads it.
+        $this->boardableTables();
+        $this->deptRow('dept');
+        $this->room('board', 'board', false);
+        $this->stubEmptyRoster();
+        $this->provisioner->expects($this->never())->method('ensureFor');
+        $board = $this->deptBoard();
+        $response = $this->controller->board($this->request('outsider'), $board);
+        $props = (new \ReflectionProperty($response, 'props'))->getValue($response);
+        self::assertFalse($props['canJoin']);
+        self::assertTrue($props['private']);
+    }
+
+    public function test_cgc_organization_board_reads_for_a_non_member_with_join_gated(): void
+    {
+        // A common good corporation board is a public enterprise (Art. III §5): readable.
+        $this->boardableTables();
+        $this->orgRow('org', true);
+        $this->room('board', 'board', false);
+        $this->stubEmptyRoster();
+        $this->provisioner->expects($this->never())->method('ensureFor');
+        $board = $this->orgBoard(true);
+        $response = $this->controller->board($this->request('outsider'), $board);
+        $props = (new \ReflectionProperty($response, 'props'))->getValue($response);
+        self::assertFalse($props['canJoin']);
+    }
+
+    public function test_private_organization_board_still_rejects_a_non_member(): void
+    {
+        $this->boardableTables();
+        $this->orgRow('org', false);
+        $this->matrix->expects($this->never())->method('getMessages');
+        $board = $this->orgBoard(false);
+        try {
+            $this->controller->board($this->request('outsider'), $board);
+            self::fail('A private organization board keeps its members-only 403.');
+        } catch (HttpException $error) { self::assertSame(403, $error->getStatusCode()); }
+    }
+
+    public function test_public_board_token_still_refuses_a_non_member(): void
+    {
+        // Reading a public body's board is open; joining its call stays members-only.
+        $this->boardableTables();
+        $this->deptRow('dept');
+        $this->room('board', 'board', false);
+        $tokens = $this->createMock(LiveKitTokenService::class);
+        $tokens->expects($this->never())->method('mintAccessToken');
+        $this->provisioner->expects($this->never())->method('ensureFor');
+        try {
+            $this->controller->boardToken($this->request('outsider'), $this->deptBoard(), $tokens);
+            self::fail('The call token stays gated to seated members on a public board.');
+        } catch (HttpException $error) { self::assertSame(403, $error->getStatusCode()); }
+    }
+
+    public function test_board_route_keeps_auth_middleware_so_a_guest_is_redirected_not_rendered(): void
+    {
+        // The controller renders a public body's board for a signed-in non-member;
+        // a guest never reaches it because the route keeps auth middleware.
+        $route = app('router')->getRoutes()->getByName('rooms.board');
+        self::assertNotNull($route);
+        self::assertContains('auth', $route->gatherMiddleware());
     }
 
     public function test_board_token_uses_derived_room_and_current_member_identity(): void
@@ -310,6 +379,56 @@ final class InstitutionRoomTest extends TestCase
     private function board(): Board
     {
         return (new Board())->forceFill(['id' => 'board', 'status' => 'active', 'chair_seat_id' => 'chair']);
+    }
+
+    private function orgBoard(bool $isCgc): Board
+    {
+        return (new Board())->forceFill(['id' => 'board', 'status' => 'active', 'chair_seat_id' => 'chair',
+            'boardable_type' => Board::BOARDABLE_ORGANIZATIONS, 'boardable_id' => 'org']);
+    }
+
+    private function deptBoard(): Board
+    {
+        return (new Board())->forceFill(['id' => 'board', 'status' => 'active', 'chair_seat_id' => 'chair',
+            'boardable_type' => Board::BOARDABLE_DEPARTMENTS, 'boardable_id' => 'dept']);
+    }
+
+    private function boardableTables(): void
+    {
+        $schema = DB::connection()->getSchemaBuilder();
+        if (! $schema->hasTable('organizations')) {
+            $schema->create('organizations', function (Blueprint $t): void {
+                $t->string('id')->primary();
+                $t->string('jurisdiction_id')->nullable();
+                $t->boolean('is_cgc')->default(false);
+                $t->softDeletes();
+            });
+        }
+        if (! $schema->hasTable('departments')) {
+            $schema->create('departments', function (Blueprint $t): void {
+                $t->string('id')->primary();
+                $t->string('jurisdiction_id')->nullable();
+                $t->softDeletes();
+            });
+        }
+    }
+
+    private function orgRow(string $id, bool $isCgc): void
+    {
+        DB::table('organizations')->insert(['id' => $id, 'jurisdiction_id' => null, 'is_cgc' => $isCgc]);
+    }
+
+    private function deptRow(string $id): void
+    {
+        DB::table('departments')->insert(['id' => $id, 'jurisdiction_id' => null]);
+    }
+
+    private function stubEmptyRoster(): void
+    {
+        $this->posting->method('matrixUserIdsFor')->willReturn([]);
+        $this->names->method('forUsers')->willReturn([]);
+        $this->names->method('forHandles')->willReturn([]);
+        $this->matrix->method('getMessages')->willReturn(['chunk' => []]);
     }
 
     private function seat(string $id, string $board, string $user, string $status = 'seated'): void
