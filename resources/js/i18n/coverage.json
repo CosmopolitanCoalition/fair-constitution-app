@@ -1,61 +1,61 @@
 {
-  "generated_at": "2026-07-30T03:26:34.671Z",
-  "source_keys": 5144,
-  "namespaces": 35,
+  "generated_at": "2026-09-15T03:31:58.148Z",
+  "source_keys": 6536,
+  "namespaces": 52,
   "locales": [
     {
       "locale": "ar",
-      "total": 5144,
-      "present": 4320,
-      "missing": 824,
-      "orphan": 0,
+      "total": 6536,
+      "present": 4312,
+      "missing": 2224,
+      "orphan": 8,
       "identical": 15,
-      "pct": 84
+      "pct": 66
     },
     {
       "locale": "es",
-      "total": 5144,
-      "present": 4358,
-      "missing": 786,
-      "orphan": 0,
+      "total": 6536,
+      "present": 4350,
+      "missing": 2186,
+      "orphan": 8,
       "identical": 26,
-      "pct": 84.7
+      "pct": 66.6
     },
     {
       "locale": "fr",
-      "total": 5144,
-      "present": 4144,
-      "missing": 1000,
-      "orphan": 0,
+      "total": 6536,
+      "present": 4136,
+      "missing": 2400,
+      "orphan": 8,
       "identical": 32,
-      "pct": 80.6
+      "pct": 63.3
     },
     {
       "locale": "hi",
-      "total": 5144,
-      "present": 4365,
-      "missing": 779,
-      "orphan": 0,
+      "total": 6536,
+      "present": 4357,
+      "missing": 2179,
+      "orphan": 8,
       "identical": 19,
-      "pct": 84.9
+      "pct": 66.7
     },
     {
       "locale": "pt",
-      "total": 5144,
-      "present": 4147,
-      "missing": 997,
-      "orphan": 0,
+      "total": 6536,
+      "present": 4139,
+      "missing": 2397,
+      "orphan": 8,
       "identical": 31,
-      "pct": 80.6
+      "pct": 63.3
     },
     {
       "locale": "zh-Hans",
-      "total": 5144,
-      "present": 4127,
-      "missing": 1017,
-      "orphan": 0,
+      "total": 6536,
+      "present": 4119,
+      "missing": 2417,
+      "orphan": 8,
       "identical": 12,
-      "pct": 80.2
+      "pct": 63
     }
   ],
   "by_namespace": [
@@ -84,6 +84,18 @@
       }
     },
     {
+      "namespace": "c_bill",
+      "total": 49,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "c_civic",
       "total": 8,
       "locales": {
@@ -96,15 +108,39 @@
       }
     },
     {
-      "namespace": "c_education",
-      "total": 969,
+      "namespace": "c_community",
+      "total": 7,
       "locales": {
-        "ar": 836,
-        "es": 847,
-        "fr": 848,
-        "hi": 850,
-        "pt": 847,
-        "zh-Hans": 756
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_education",
+      "total": 1023,
+      "locales": {
+        "ar": 828,
+        "es": 839,
+        "fr": 840,
+        "hi": 842,
+        "pt": 839,
+        "zh-Hans": 748
+      }
+    },
+    {
+      "namespace": "c_elections",
+      "total": 311,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
       }
     },
     {
@@ -132,6 +168,18 @@
       }
     },
     {
+      "namespace": "c_explore",
+      "total": 51,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "c_federation",
       "total": 4,
       "locales": {
@@ -153,6 +201,18 @@
         "hi": 39,
         "pt": 39,
         "zh-Hans": 38
+      }
+    },
+    {
+      "namespace": "c_host",
+      "total": 26,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
       }
     },
     {
@@ -180,6 +240,18 @@
       }
     },
     {
+      "namespace": "c_learn",
+      "total": 127,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "c_legislature",
       "total": 26,
       "locales": {
@@ -192,6 +264,66 @@
       }
     },
     {
+      "namespace": "c_legislature_workspace",
+      "total": 94,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_live_commons",
+      "total": 16,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_loading",
+      "total": 6,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_media",
+      "total": 40,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_navigation",
+      "total": 15,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "c_organizations",
       "total": 27,
       "locales": {
@@ -201,6 +333,30 @@
         "hi": 27,
         "pt": 27,
         "zh-Hans": 26
+      }
+    },
+    {
+      "namespace": "c_references",
+      "total": 320,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_rooms",
+      "total": 83,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
       }
     },
     {
@@ -252,6 +408,18 @@
       }
     },
     {
+      "namespace": "c_term_sync",
+      "total": 61,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "c_ui",
       "total": 4,
       "locales": {
@@ -261,6 +429,30 @@
         "hi": 4,
         "pt": 4,
         "zh-Hans": 4
+      }
+    },
+    {
+      "namespace": "c_ui_a",
+      "total": 15,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_ui_b",
+      "total": 10,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
       }
     },
     {
@@ -432,6 +624,18 @@
       }
     },
     {
+      "namespace": "places",
+      "total": 107,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "registry",
       "total": 92,
       "locales": {
@@ -480,9 +684,11 @@
       }
     }
   ],
-  "failures": 5403,
-  "warnings": 4255,
+  "failures": 13857,
+  "warnings": 4294,
   "failure_codes": {
-    "C1-missing": 5403
+    "C1-missing": 13803,
+    "C2-orphan": 48,
+    "C4-idtoken": 6
   }
 }
