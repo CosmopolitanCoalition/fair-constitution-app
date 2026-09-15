@@ -12792,14 +12792,14 @@
     },
     {
       "id": "W-0332",
-      "title": "Translate the six conference locales: the 14 absent catalogs and the 10,597 untranslated keys",
+      "title": "Translate the target set: 75 languages (UN six, Polish, Italian, Turkish, the Coalition website programme) once every string is catalogued",
       "phase": "P1",
       "order": 10,
       "kind": "content",
       "status": "blocked",
       "blocker": "other",
       "detail": "Merged item (operator, 2026-09-14): the absent per-locale catalog files and the untranslated keys are one job. The export writes each missing file with its keys; the machine first pass (local model on box E, ruling translation-first-pass-provider = A) or any AI translates; the importer validates and writes. Blocked until the surfaces settle. Tooling built (LG-0): scripts/i18n/export_master.py, import_translated.py, the Ollama provider; procedure in docs/plans/i18n/MASTER_EXPORT.md.",
-      "done_when": "Every English namespace file exists for ar, es, fr, hi, pt and zh-Hans and tests/js/i18nCoverage.test.mjs reports zero missing keys for the six conference locales; human naturalness review stays separate.",
+      "done_when": "Every English namespace file exists for every registry row with target: true (75 non-English: the UN six, pl, it, tr and the Coalition website programme languages) and tests/js/i18nCoverage.test.mjs reports zero missing keys for the six conference locales; human naturalness review stays separate.",
       "depends_on": [],
       "sources": [
         {
@@ -12841,6 +12841,14 @@
         {
           "date": "2026-09-14",
           "note": "Merged W-0333 (fill the untranslated keys) into this item on the operator note \"Merge\"; blocked until the surfaces settle."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator order (11:36 PM Eastern): keep going overnight until all strings are catalogued; translation starts 2026-09-15. Target set widened: the six official UN languages plus Polish, Italian, Turkish and the other languages on the Coalition website (76 incl. English; https://cosmopolitancoalition.org/about/programs/translations/). Registry: WEBSITE/TARGET in scripts/i18n/languages.py, target: true per row, 10 new registrations (cy eu gl gu jv kn ml mr su te); translate_run.py --locales all = the target set. export_master.py --locale all still means the six conference locales until the php-machinery lane merges (it edits that file); then it reads TARGETS too."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Catalogue campaign progress (11:45 PM Eastern): merged lanes i18n-ui-a (79debc8f), i18n-ui-b (dc2c4da1), i18n-system (8b443aa4, 612 keys), i18n-civic-components (454af0ad), php-surfaces (aac2cb4d, lang/en.json 380 entries). Running: economy, setup, civic, legislature-a/b, operator, jurisdictions, institutions, front, setup-components, institution-components, shell-components, php-refusals-a/b/c, php-machinery."
         }
       ]
     },
