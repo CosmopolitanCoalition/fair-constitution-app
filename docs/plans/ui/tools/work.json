@@ -12853,6 +12853,10 @@
         {
           "date": "2026-09-14",
           "note": "Catalogue merges (11:58 PM Eastern): i18n-economy (835 keys), i18n-civic (9e4ac6a6), i18n-setup-components (b1f43da8), php-refusals-a (d4448620; lang/en.json union 380+106 = 486 entries, 0 clashes). Pins green. Remaining: setup, legislature-a/b, operator, jurisdictions, institutions, front, institution-components, shell-components, php-refusals-b/c, php-machinery."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Catalogue merges (12:15 AM Eastern): i18n-institution-components (e4285202, 440 keys), i18n-shell-components (f0e80dfa, 358 keys), i18n-legislature-b (44eb46ff), php-refusals-b (151daaf8; lang/en.json union 690 entries), php-machinery (13683b00; export/import/translate carry lang/<locale>.json as the lang namespace, self-tests 23/21/31 green), i18n-setup (939 keys). export_master --locale all now exports the 75 registry targets. Component stack complete (6 of 6). Remaining: legislature-a, operator, jurisdictions, institutions, front, php-refusals-c."
         }
       ]
     },

@@ -1,61 +1,61 @@
 {
-  "generated_at": "2026-09-15T03:55:35.643Z",
-  "source_keys": 8802,
-  "namespaces": 56,
+  "generated_at": "2026-09-15T04:09:22.460Z",
+  "source_keys": 10956,
+  "namespaces": 59,
   "locales": [
     {
       "locale": "ar",
-      "total": 8802,
+      "total": 10956,
       "present": 4312,
-      "missing": 4490,
+      "missing": 6644,
       "orphan": 8,
       "identical": 15,
-      "pct": 49
+      "pct": 39.4
     },
     {
       "locale": "es",
-      "total": 8802,
+      "total": 10956,
       "present": 4350,
-      "missing": 4452,
+      "missing": 6606,
       "orphan": 8,
       "identical": 26,
-      "pct": 49.4
+      "pct": 39.7
     },
     {
       "locale": "fr",
-      "total": 8802,
+      "total": 10956,
       "present": 4136,
-      "missing": 4666,
+      "missing": 6820,
       "orphan": 8,
       "identical": 32,
-      "pct": 47
+      "pct": 37.8
     },
     {
       "locale": "hi",
-      "total": 8802,
+      "total": 10956,
       "present": 4357,
-      "missing": 4445,
+      "missing": 6599,
       "orphan": 8,
       "identical": 19,
-      "pct": 49.5
+      "pct": 39.8
     },
     {
       "locale": "pt",
-      "total": 8802,
+      "total": 10956,
       "present": 4139,
-      "missing": 4663,
+      "missing": 6817,
       "orphan": 8,
       "identical": 31,
-      "pct": 47
+      "pct": 37.8
     },
     {
       "locale": "zh-Hans",
-      "total": 8802,
+      "total": 10956,
       "present": 4119,
-      "missing": 4683,
+      "missing": 6837,
       "orphan": 8,
       "identical": 12,
-      "pct": 46.8
+      "pct": 37.6
     }
   ],
   "by_namespace": [
@@ -240,6 +240,18 @@
       }
     },
     {
+      "namespace": "c_institution_components",
+      "total": 447,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "c_invite",
       "total": 2,
       "locales": {
@@ -285,6 +297,18 @@
         "hi": 26,
         "pt": 26,
         "zh-Hans": 26
+      }
+    },
+    {
+      "namespace": "c_legislature_pages_b",
+      "total": 510,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
       }
     },
     {
@@ -385,7 +409,7 @@
     },
     {
       "namespace": "c_setup",
-      "total": 100,
+      "total": 939,
       "locales": {
         "ar": 100,
         "es": 100,
@@ -417,6 +441,18 @@
         "hi": 6,
         "pt": 0,
         "zh-Hans": 6
+      }
+    },
+    {
+      "namespace": "c_shell_components",
+      "total": 358,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
       }
     },
     {
@@ -732,10 +768,11 @@
       }
     }
   ],
-  "failures": 27453,
+  "failures": 40381,
   "warnings": 4294,
   "failure_codes": {
-    "C1-missing": 27399,
+    "C5-compile": 4,
+    "C1-missing": 40323,
     "C2-orphan": 48,
     "C4-idtoken": 6
   }
