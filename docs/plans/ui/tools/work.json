@@ -16938,7 +16938,7 @@
       "done_when": "Every confirmed group from the sweep is wired and pinned; the sweep script re-run reports zero user-visible raw strings in the swept classes; check.mjs coverage regenerated.",
       "depends_on": [],
       "detail": "Six-modality sweep (short template labels and attributes, script literals, PHP responses and the 123 form display names, mail and Blade, shipped content, end-to-end wiring) plus a skeptic pass. Each confirmed group becomes a lane: t() with the lane namespace for JS, __() with lang/en.json for PHP, a flatten step for config arrays. Pins extended so the short-label and attribute classes are guarded, not only 4+ word sentences.",
-      "evidence": "",
+      "evidence": [],
       "sources": [
         {
           "list": "desk",
@@ -16999,7 +16999,7 @@
         "W-0445"
       ],
       "detail": "Integrated into the existing status board /system/translations (no new page): an operator-only card with Export (pick a language, download a zip of its pending chunk files, the export_master.py output with English text, surface context and glossary) and Import (upload a zip or file, see the dry-run report from import_translated.py with accepted and rejected strings and reasons, confirm, then the importer writes the catalogs and the review queue). Both run through a queued job with progress on the board's live deck, never inside the web request. Gated to the operator; every import is audited. The Add-a-language card gains the real request action.",
-      "evidence": "",
+      "evidence": [],
       "sources": [
         {
           "list": "desk",
@@ -17034,7 +17034,11 @@
       "done_when": "A pinned roster derived from the route table classifies every GET route as page or machine endpoint with a reason; every page route (guest, signed-in via a throwaway sweep account, parameterised with one sampled id per template) has a run file on box E; zero axe violations at 1280 and 375, no horizontal overflow at 375, clean Tab walk on every page; findings repaired, pinned and re-run; the report states N of N with the evidence path.",
       "depends_on": [],
       "detail": "The 2026-09-14 sweep covered only the 56 param-free guest routes and was reported as closed without stating that scope (operator finding 2026-09-15). Standard: WCAG 2.1 AA throughout the UI (Architecture Plan 6.5). Roster build (a11y:roster-ids, a11y:sweep-account, roster.test.mjs, signin.mjs) then the sweep one route at a time on the host in Edge, 30-second hold rule, repairs by module.",
-      "evidence": "storage/logs/a11y_full/FINAL_TALLY.txt; docs/audits/2026-09-15/A11Y_ROSTER.md; ledgers storage/logs/a11y_full/ledger*.txt (box E)",
+      "evidence": [
+        "storage/logs/a11y_full/FINAL_TALLY.txt",
+        "docs/audits/2026-09-15/A11Y_ROSTER.md",
+        "ledgers storage/logs/a11y_full/ledger*.txt (box E)"
+      ],
       "sources": [
         {
           "list": "desk",
