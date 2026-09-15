@@ -13,8 +13,11 @@
  * and hardened.
  */
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+const { t } = useI18n();
 
 defineProps({
     /**
@@ -36,17 +39,15 @@ function expiresDate(iso) {
             :key="power.id"
             tone="emergency"
             role="alert"
-            :title="`${power.label} — emergency powers active · day ${power.day} of ${power.max_days} · auto-expires ${expiresDate(power.expires_at)}`"
+            :title="t('c_shell_components.emergency_banner.title', { label: power.label, day: power.day, max: power.max_days, expires: expiresDate(power.expires_at) })"
         >
-            Active at the {{ power.jurisdiction_name }} level — declared by the
-            {{ power.declared_by_legislature }}; first order of business at every session.
-            Elections, sessions, and courts cannot be disrupted — enforced in code.
+            {{ t('c_shell_components.emergency_banner.active', { jurisdiction: power.jurisdiction_name, legislature: power.declared_by_legislature }) }}
             <template v-if="power.under_review">
                 {{ ' ' }}
-                <StatusBadge tone="info" icon="scale">Judicial review pending · F-JDG-007</StatusBadge>
+                <StatusBadge tone="info" icon="scale">{{ t('c_shell_components.emergency_banner.judicial_review', 'Judicial review pending') }} · F-JDG-007</StatusBadge>
             </template>
             {{ ' ' }}
-            <Link :href="power.href">Open the emergency powers dashboard</Link>
+            <Link :href="power.href">{{ t('c_shell_components.emergency_banner.open_dashboard', 'Open the emergency powers dashboard') }}</Link>
             <span class="citation" data-no-i18n> · Art. II §7 · CLK-03</span>
         </Banner>
     </template>

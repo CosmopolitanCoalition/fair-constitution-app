@@ -18,6 +18,9 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { csrfFetch } from '../../lib/csrf';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const state = ref(null);
 const busy = ref('');
@@ -59,7 +62,7 @@ async function run(preset) {
         if (!r.ok) throw new Error(data?.error || `queue failed (${r.status})`);
         await poll();
     } catch (e) {
-        error.value = e?.message || 'Could not queue the scenario.';
+        error.value = e?.message || t('c_shell_components.dev_scenario_presets.err_queue', 'Could not queue the scenario.');
     } finally {
         busy.value = '';
     }
@@ -67,10 +70,10 @@ async function run(preset) {
 
 function runBadge(p) {
     if (!p.run) return null;
-    if (p.run.status === 'queued') return 'queued…';
-    if (p.run.status === 'running') return 'running…';
-    if (p.run.status === 'done') return 'last run: done';
-    return 'last run: failed';
+    if (p.run.status === 'queued') return t('c_shell_components.dev_scenario_presets.badge_queued', 'queued…');
+    if (p.run.status === 'running') return t('c_shell_components.dev_scenario_presets.badge_running', 'running…');
+    if (p.run.status === 'done') return t('c_shell_components.dev_scenario_presets.badge_done', 'last run: done');
+    return t('c_shell_components.dev_scenario_presets.badge_failed', 'last run: failed');
 }
 </script>
 
@@ -81,8 +84,7 @@ function runBadge(p) {
 
         <template v-else>
             <p class="scen-note scen-dim">
-                Each button queues the real demo seeder — the same command a terminal runs,
-                one at a time. The seeder's own output streams below.
+                {{ t('c_shell_components.dev_scenario_presets.intro', 'Each button queues the real demo seeder — the same command a terminal runs, one at a time. The seeder\'s own output streams below.') }}
             </p>
 
             <p class="scen-status" aria-live="polite">{{ error }}</p>
@@ -94,7 +96,7 @@ function runBadge(p) {
                             <span class="scen-label">{{ p.label }}</span>
                             <span class="scen-dim scen-note">
                                 <code>{{ p.command }}</code>
-                                <template v-if="p.lights.length"> · lights {{ p.lights.join(', ') }}</template>
+                                <template v-if="p.lights.length"> {{ t('c_shell_components.dev_scenario_presets.lights', { list: p.lights.join(', ') }) }}</template>
                                 <template v-if="runBadge(p)"> · {{ runBadge(p) }}</template>
                             </span>
                         </div>
@@ -104,7 +106,7 @@ function runBadge(p) {
                             :disabled="!p.available || busy !== '' || anyRunning"
                             @click="run(p)"
                         >
-                            {{ busy === p.id ? 'Queueing…' : 'Seed it' }}
+                            {{ busy === p.id ? t('c_shell_components.dev_scenario_presets.queueing', 'Queueing…') : t('c_shell_components.dev_scenario_presets.seed_it', 'Seed it') }}
                         </button>
                     </div>
 
@@ -113,14 +115,14 @@ function runBadge(p) {
 
                     <!-- The seeder's own live output — its progress AND its refusals. -->
                     <details v-if="p.run?.tail" class="scen-tail">
-                        <summary>{{ ['queued', 'running'].includes(p.run.status) ? 'Live output' : 'Run output' }}</summary>
+                        <summary>{{ ['queued', 'running'].includes(p.run.status) ? t('c_shell_components.dev_scenario_presets.live_output', 'Live output') : t('c_shell_components.dev_scenario_presets.run_output', 'Run output') }}</summary>
                         <pre class="scen-pre" data-no-i18n>{{ p.run.tail }}</pre>
                     </details>
                 </li>
             </ul>
 
             <details class="scen-unbacked">
-                <summary>Scenario flags with no seeder yet ({{ Object.keys(state.unbacked).length }})</summary>
+                <summary>{{ t('c_shell_components.dev_scenario_presets.unbacked_summary', { count: Object.keys(state.unbacked).length }) }}</summary>
                 <ul class="scen-unbacked-list">
                     <li v-for="(why, flag) in state.unbacked" :key="flag" class="scen-dim scen-note">
                         <code>{{ flag }}</code> — {{ why }}

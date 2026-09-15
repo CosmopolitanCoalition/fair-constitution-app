@@ -2,7 +2,7 @@
     <div class="bg-gray-800 rounded-lg p-3">
         <!-- Header: title + scan control -->
         <div class="flex items-center justify-between mb-2">
-            <div class="text-xs text-gray-400">Data Review &amp; Repair</div>
+            <div class="text-xs text-gray-400">{{ t('c_shell_components.geodata_flag_queue.title', 'Data Review & Repair') }}</div>
             <button
                 v-if="!readOnly"
                 type="button"
@@ -12,7 +12,7 @@
                        bg-gray-900 border-gray-600 text-gray-300
                        hover:text-white hover:border-gray-400
                        disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ scanRunning ? 'Scanning…' : (scanBusy ? 'Starting…' : 'Run scan') }}
+                {{ scanRunning ? t('c_shell_components.geodata_flag_queue.scanning', 'Scanning…') : (scanBusy ? t('c_shell_components.geodata_flag_queue.starting', 'Starting…') : t('c_shell_components.geodata_flag_queue.run_scan', 'Run scan')) }}
             </button>
         </div>
 
@@ -20,16 +20,16 @@
              the queue stays browsable as an audit surface but every mutating
              affordance is hidden. -->
         <div v-if="readOnly" class="mb-2 text-[11px] text-gray-500 italic">
-            Map data accepted — repairs are locked.
+            {{ t('c_shell_components.geodata_flag_queue.locked', 'Map data accepted — repairs are locked.') }}
         </div>
 
         <!-- Scan status line -->
         <div v-if="scanRunning" class="mb-2 flex items-center gap-1.5 text-[11px] text-indigo-300">
             <span class="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-            Scan running{{ scanStatus?.started_at ? ` since ${formatTime(scanStatus.started_at)}` : '' }}…
+            {{ scanStatus?.started_at ? t('c_shell_components.geodata_flag_queue.scan_running_since', { time: formatTime(scanStatus.started_at) }) : t('c_shell_components.geodata_flag_queue.scan_running', 'Scan running…') }}
         </div>
         <div v-else-if="scanStatus?.finished_at" class="mb-2 text-[11px] text-gray-500">
-            Last scan {{ formatTime(scanStatus.finished_at) }}
+            {{ t('c_shell_components.geodata_flag_queue.last_scan', { time: formatTime(scanStatus.finished_at) }) }}
         </div>
         <div v-if="scanError" class="mb-2 text-[11px] text-red-400">{{ scanError }}</div>
 
@@ -40,14 +40,14 @@
                     :class="tab === 'flags'
                         ? 'bg-gray-700 border-gray-500 text-white'
                         : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-white'">
-                Flags
+                {{ t('c_shell_components.geodata_flag_queue.tab_flags', 'Flags') }}
             </button>
             <button type="button" @click="switchToRepairs"
                     class="px-2 py-0.5 rounded text-[11px] border transition-colors"
                     :class="tab === 'repairs'
                         ? 'bg-gray-700 border-gray-500 text-white'
                         : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-white'">
-                Repairs log
+                {{ t('c_shell_components.geodata_flag_queue.tab_repairs', 'Repairs log') }}
             </button>
         </div>
 
@@ -71,15 +71,15 @@
                  class="flex flex-wrap gap-1.5 mb-2">
                 <span v-if="openBySeverity.critical > 0"
                       class="px-2 py-0.5 rounded text-xs bg-red-900 text-red-200 border border-red-700">
-                    {{ openBySeverity.critical }} critical
+                    {{ t('c_shell_components.geodata_flag_queue.sev_critical', { count: openBySeverity.critical }) }}
                 </span>
                 <span v-if="openBySeverity.warning > 0"
                       class="px-2 py-0.5 rounded text-xs bg-amber-900 text-amber-200 border border-amber-700">
-                    {{ openBySeverity.warning }} warning
+                    {{ t('c_shell_components.geodata_flag_queue.sev_warning', { count: openBySeverity.warning }) }}
                 </span>
                 <span v-if="openBySeverity.info > 0"
                       class="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-300 border border-gray-600">
-                    {{ openBySeverity.info }} info
+                    {{ t('c_shell_components.geodata_flag_queue.sev_info', { count: openBySeverity.info }) }}
                 </span>
             </div>
 
@@ -95,42 +95,34 @@
                  class="relative group mb-2 px-2 py-1.5 rounded border border-gray-700 bg-gray-900/60 text-[11px] text-gray-400 flex items-start gap-1.5">
                 <span class="shrink-0">🩺</span>
                 <span class="flex-1 leading-snug">
-                    These are <span class="text-gray-300">map health statistics</span>, not blocking errors.
-                    Most describe real-world geography the import recorded faithfully — disputed
-                    borders, island groups administered from a mainland, a source that lists the
-                    same village twice. Accepting is often the right call.
+                    {{ t('c_shell_components.geodata_flag_queue.health_before', 'These are') }} <span class="text-gray-300">{{ t('c_shell_components.geodata_flag_queue.health_term', 'map health statistics') }}</span>{{ t('c_shell_components.geodata_flag_queue.health_after', ', not blocking errors. Most describe real-world geography the import recorded faithfully — disputed borders, island groups administered from a mainland, a source that lists the same village twice. Accepting is often the right call.') }}
                 </span>
                 <span class="text-gray-600 text-[9px] cursor-help select-none mt-0.5">?</span>
                 <div class="pointer-events-none absolute right-0 top-full mt-0.5 z-50 w-72 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg space-y-1">
                     <div>
-                        <span class="text-red-300 font-semibold">Structural</span> — the tree itself is wrong.
-                        Worth acting on; a detached parent hides its whole subtree from districting.
+                        <span class="text-red-300 font-semibold">{{ t('c_shell_components.geodata_flag_queue.nature_structural', 'Structural') }}</span>{{ t('c_shell_components.geodata_flag_queue.nature_structural_body', ' — the tree itself is wrong. Worth acting on; a detached parent hides its whole subtree from districting.') }}
                     </div>
                     <div>
-                        <span class="text-sky-300 font-semibold">Real-world</span> — geography recorded
-                        faithfully. Disputed territory is meant to coexist in one game space rather
-                        than be resolved away.
+                        <span class="text-sky-300 font-semibold">{{ t('c_shell_components.geodata_flag_queue.nature_realworld', 'Real-world') }}</span>{{ t('c_shell_components.geodata_flag_queue.nature_realworld_body', ' — geography recorded faithfully. Disputed territory is meant to coexist in one game space rather than be resolved away.') }}
                     </div>
                     <div>
-                        <span class="text-gray-400 font-semibold">Measurement</span> — a statistic to
-                        watch over time, not a list to clear.
+                        <span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.nature_measurement', 'Measurement') }}</span>{{ t('c_shell_components.geodata_flag_queue.nature_measurement_body', ' — a statistic to watch over time, not a list to clear.') }}
                     </div>
                     <div class="pt-1 border-t border-gray-600 text-gray-400">
-                        Hover any check's <span class="text-gray-300">?</span> for what it measures and
-                        how to read it.
+                        {{ t('c_shell_components.geodata_flag_queue.hover_before', 'Hover any check\'s') }} <span class="text-gray-300">?</span> {{ t('c_shell_components.geodata_flag_queue.hover_after', 'for what it measures and how to read it.') }}
                     </div>
                 </div>
             </div>
 
             <div v-if="flagsError" class="text-[11px] text-red-400 mb-2">{{ flagsError }}</div>
             <div v-if="loadingFlags && flags.length === 0" class="text-[11px] text-gray-500 italic">
-                Loading flags…
+                {{ t('c_shell_components.geodata_flag_queue.loading_flags', 'Loading flags…') }}
             </div>
             <div v-else-if="flags.length === 0" class="text-[11px] text-gray-500 italic">
                 <template v-if="statusFilter === 'open'">
-                    No open flags. Run a scan to (re)check the imported data.
+                    {{ t('c_shell_components.geodata_flag_queue.no_open_flags', 'No open flags. Run a scan to (re)check the imported data.') }}
                 </template>
-                <template v-else>No {{ statusFilter }} flags.</template>
+                <template v-else>{{ t('c_shell_components.geodata_flag_queue.no_status_flags', { status: statusFilter }) }}</template>
             </div>
 
             <!-- Truncation notice: the API caps the list at 500 rows but the
@@ -138,8 +130,7 @@
                  "that's everything" (world-scale chain scans run to thousands). -->
             <div v-if="flagsTruncated"
                  class="mb-2 px-2 py-1.5 rounded border border-amber-800 bg-amber-950/40 text-[11px] text-amber-200">
-                Showing the {{ flags.length }} most severe of {{ flagsTotal }} {{ statusFilter }} flags —
-                filter by category, or work the queue down and refresh.
+                {{ t('c_shell_components.geodata_flag_queue.truncated', { count: flags.length, total: flagsTotal, status: statusFilter }) }}
             </div>
 
             <!-- Flags grouped by category. Each heading carries the Map Health
@@ -171,11 +162,11 @@
                     <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
 
                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-72 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg space-y-1">
-                        <div><span class="text-gray-400 font-semibold">Measures.</span> {{ describeCheck(group.category).measures }}</div>
-                        <div><span class="text-gray-400 font-semibold">Why it matters.</span> {{ describeCheck(group.category).why }}</div>
-                        <div><span class="text-gray-400 font-semibold">How to read it.</span> {{ describeCheck(group.category).reading }}</div>
+                        <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.measures_label', 'Measures.') }}</span> {{ describeCheck(group.category).measures }}</div>
+                        <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.why_label', 'Why it matters.') }}</span> {{ describeCheck(group.category).why }}</div>
+                        <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.reading_label', 'How to read it.') }}</span> {{ describeCheck(group.category).reading }}</div>
                         <div v-if="describeCheck(group.category).remedy">
-                            <span class="text-gray-400 font-semibold">Default remedy.</span> {{ describeCheck(group.category).remedy }}
+                            <span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.remedy_label', 'Default remedy.') }}</span> {{ describeCheck(group.category).remedy }}
                         </div>
                         <div class="pt-1 border-t border-gray-600 text-gray-400">
                             {{ natureBadge(group.category).hint }}
@@ -201,7 +192,7 @@
                         <!-- Expanded evidence + actions -->
                         <div v-if="expandedId === flag.id" class="px-2 pb-2 border-t border-gray-800 pt-1.5">
                             <div class="text-[10px] text-gray-500 mb-1.5">
-                                detected {{ formatTime(flag.detected_at) }}
+                                {{ t('c_shell_components.geodata_flag_queue.detected', { time: formatTime(flag.detected_at) }) }}
                                 <template v-if="flag.status !== 'open'">
                                     · {{ flag.status }}{{ flag.resolved_at ? ` ${formatTime(flag.resolved_at)}` : '' }}
                                 </template>
@@ -233,7 +224,7 @@
 
                             <!-- Resolution note (accepted / resolved flags) -->
                             <div v-if="flag.resolution" class="mb-2 text-[11px] text-gray-400">
-                                <span class="text-gray-500">resolution:</span>
+                                <span class="text-gray-500">{{ t('c_shell_components.geodata_flag_queue.resolution_label', 'resolution:') }}</span>
                                 <span class="font-mono break-all ml-1">{{ formatScalar(flag.resolution) }}</span>
                             </div>
 
@@ -251,7 +242,7 @@
                                         @click.stop="openModal('accept_flag', flag)"
                                         class="px-2 py-1 rounded text-[11px] font-medium
                                                bg-gray-700 hover:bg-gray-600 text-gray-200 transition-colors">
-                                    Accept flag
+                                    {{ t('c_shell_components.geodata_flag_queue.accept_flag', 'Accept flag') }}
                                 </button>
                                 <!-- Prune is the documented remedy for a dual coverage
                                      the operator rules OUT (e.g. a vendor-artifact
@@ -262,7 +253,7 @@
                                         @click.stop="openModal('prune', flag)"
                                         class="px-2 py-1 rounded text-[11px] font-medium
                                                bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors">
-                                    Prune…
+                                    {{ t('c_shell_components.geodata_flag_queue.prune_ellipsis', 'Prune…') }}
                                 </button>
                             </div>
                         </div>
@@ -275,10 +266,10 @@
         <template v-else>
             <div v-if="repairsError" class="text-[11px] text-red-400 mb-2">{{ repairsError }}</div>
             <div v-if="loadingRepairs && repairs.length === 0" class="text-[11px] text-gray-500 italic">
-                Loading repairs…
+                {{ t('c_shell_components.geodata_flag_queue.loading_repairs', 'Loading repairs…') }}
             </div>
             <div v-else-if="repairs.length === 0" class="text-[11px] text-gray-500 italic">
-                No repairs applied yet.
+                {{ t('c_shell_components.geodata_flag_queue.no_repairs', 'No repairs applied yet.') }}
             </div>
             <div class="space-y-1">
                 <div v-for="repair in repairs" :key="repair.id"
@@ -296,13 +287,13 @@
                         </span>
                     </div>
                     <div class="mt-1 text-[10px] text-gray-500">
-                        applied {{ formatTime(repair.applied_at) }}
+                        {{ t('c_shell_components.geodata_flag_queue.applied', { time: formatTime(repair.applied_at) }) }}
                         <span v-if="repair.params?.note" class="text-gray-400 italic">· {{ repair.params.note }}</span>
                     </div>
                     <div class="mt-1 flex items-center gap-2">
                         <span v-if="repair.reverted_at"
                               class="px-1.5 py-0 rounded text-[10px] bg-amber-900 text-amber-200 border border-amber-700">
-                            reverted {{ formatTime(repair.reverted_at) }}
+                            {{ t('c_shell_components.geodata_flag_queue.reverted', { time: formatTime(repair.reverted_at) }) }}
                         </span>
                         <button v-else-if="!readOnly"
                                 type="button"
@@ -311,7 +302,7 @@
                                 class="px-2 py-0.5 rounded text-[10px] font-medium
                                        bg-red-900/60 hover:bg-red-800 text-red-200 border border-red-800
                                        disabled:opacity-50 transition-colors">
-                            {{ revertBusyId === repair.id ? 'Reverting…' : 'Revert' }}
+                            {{ revertBusyId === repair.id ? t('c_shell_components.geodata_flag_queue.reverting', 'Reverting…') : t('c_shell_components.geodata_flag_queue.revert', 'Revert') }}
                         </button>
                     </div>
                     <div v-if="revertBusyId === null && revertErrorId === repair.id"
@@ -334,9 +325,12 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { csrfFetch } from '@/lib/csrf'
 import { NATURE_BADGE, compareChecks, describeCheck } from '@/lib/mapHealth'
 import GeodataRepairModal from '@/Components/Geodata/GeodataRepairModal.vue'
+
+const { t } = useI18n()
 
 // Data Review & Repair queue — the operator-facing surface over
 // geodata_flags / geodata_repairs. Lives in the Jurisdiction Viewer sidebar
@@ -439,10 +433,14 @@ const modal = ref(null)   // { mode, flag } | null
 // ─── Formatting helpers ─────────────────────────────────────────────────────
 
 function categoryLabel(cat) {
-    return CATEGORY_LABELS[cat] || String(cat).replace(/_/g, ' ')
+    return CATEGORY_LABELS[cat]
+        ? t(`c_shell_components.geodata_flag_queue.cat_${cat}`, CATEGORY_LABELS[cat])
+        : String(cat).replace(/_/g, ' ')
 }
 function actionLabel(action) {
-    return ACTION_LABELS[action] || String(action).replace(/_/g, ' ')
+    return ACTION_LABELS[action]
+        ? t(`c_shell_components.geodata_flag_queue.action_${action}`, ACTION_LABELS[action])
+        : String(action).replace(/_/g, ' ')
 }
 function severityChip(sev) {
     if (sev === 'critical') return 'bg-red-900 text-red-200 border border-red-700'

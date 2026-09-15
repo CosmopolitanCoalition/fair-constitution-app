@@ -1,5 +1,8 @@
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // THE WIZARD LADDER (Wave 6): Steps 0 to 6. The server describes every step
 // (`settings.ladder`: n, label, applies, status) so a step that does not apply
@@ -36,7 +39,12 @@ const steps = computed(() => {
             status: s.n === props.current ? 'current' : s.status,
         }))
     }
-    return FALLBACK.map(s => ({ ...s, applies: true, status: fallbackStatus(s.n) }))
+    return FALLBACK.map(s => ({
+        ...s,
+        label: t(`c_shell_components.setup_stepper.step_${s.n}`, s.label),
+        applies: true,
+        status: fallbackStatus(s.n),
+    }))
 })
 
 function iconFor(s) {
@@ -51,7 +59,7 @@ function clickable(s) {
 </script>
 
 <template>
-    <ol class="flex items-center w-full gap-2 overflow-x-auto pb-2" aria-label="Setup progress">
+    <ol class="flex items-center w-full gap-2 overflow-x-auto pb-2" :aria-label="t('c_shell_components.setup_stepper.aria_progress', 'Setup progress')">
         <li
             v-for="(s, i) in steps"
             :key="s.n"
@@ -69,7 +77,7 @@ function clickable(s) {
                 ]"
                 :aria-current="s.status === 'current' ? 'step' : undefined"
                 :aria-disabled="clickable(s) ? undefined : 'true'"
-                :title="s.status === 'skipped' ? 'Not part of this setup: the choices at map acceptance skip this step' : undefined"
+                :title="s.status === 'skipped' ? t('c_shell_components.setup_stepper.skipped_title', 'Not part of this setup: the choices at map acceptance skip this step') : undefined"
             >
                 <span
                     :class="[
@@ -80,7 +88,7 @@ function clickable(s) {
                         (s.status === 'locked' || s.status === 'skipped') && 'bg-gray-800 text-gray-600',
                     ]"
                 >{{ iconFor(s) }}</span>
-                <span class="truncate">{{ s.label }}<span v-if="s.status === 'skipped'" class="text-gray-600"> (skipped)</span></span>
+                <span class="truncate">{{ s.label }}<span v-if="s.status === 'skipped'" class="text-gray-600">{{ t('c_shell_components.setup_stepper.skipped_suffix', ' (skipped)') }}</span></span>
             </a>
             <span
                 v-if="i < steps.length - 1"

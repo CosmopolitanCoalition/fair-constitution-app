@@ -21,10 +21,13 @@
  * poll, so it mounts prop-less), plus the D1 doors.
  */
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import DevAssume from './DevAssume.vue';
 import DevClockControls from './DevClockControls.vue';
 import DevChamberCast from './DevChamberCast.vue';
 import DevScenarioPresets from './DevScenarioPresets.vue';
+
+const { t } = useI18n();
 
 const state = ref(null);
 
@@ -46,39 +49,39 @@ onMounted(fetchState);
 
 /* The flyout's other doors (D1): each page carries its own server gate. */
 const DOORS = [
-    { href: '/simworld', label: 'Simulated world' },
-    { href: '/system/clocks', label: 'Constitutional clocks' },
-    { href: '/dev/electoral-kit', label: 'Electoral kit' },
-    { href: '/dev/legislature-kit', label: 'Legislature kit' },
-    { href: '/dev/executive-kit', label: 'Executive & orgs kit' },
-    { href: '/dev/judiciary-kit', label: 'Judiciary kit' },
+    { href: '/simworld', label: t('c_shell_components.dev_playtest_panels.door_simworld', 'Simulated world') },
+    { href: '/system/clocks', label: t('c_shell_components.dev_playtest_panels.door_clocks', 'Constitutional clocks') },
+    { href: '/dev/electoral-kit', label: t('c_shell_components.dev_playtest_panels.door_electoral', 'Electoral kit') },
+    { href: '/dev/legislature-kit', label: t('c_shell_components.dev_playtest_panels.door_legislature', 'Legislature kit') },
+    { href: '/dev/executive-kit', label: t('c_shell_components.dev_playtest_panels.door_executive', 'Executive & orgs kit') },
+    { href: '/dev/judiciary-kit', label: t('c_shell_components.dev_playtest_panels.door_judiciary', 'Judiciary kit') },
 ];
 </script>
 
 <template>
     <details v-if="state" class="dev-control playtest-block">
-        <summary>Assume — a resident or role of a place</summary>
+        <summary>{{ t('c_shell_components.dev_playtest_panels.summary_assume', 'Assume — a resident or role of a place') }}</summary>
         <div class="playtest-body">
             <DevAssume :state="state" />
         </div>
     </details>
 
     <details v-if="state" class="dev-control playtest-block">
-        <summary>Time — advance the world, fire a timer</summary>
+        <summary>{{ t('c_shell_components.dev_playtest_panels.summary_time', 'Time — advance the world, fire a timer') }}</summary>
         <div class="playtest-body">
             <DevClockControls :state="state" @refresh="fetchState" />
         </div>
     </details>
 
     <details v-if="state" class="dev-control playtest-block">
-        <summary>Chamber — bloc-cast an open vote (ballots only)</summary>
+        <summary>{{ t('c_shell_components.dev_playtest_panels.summary_chamber', 'Chamber — bloc-cast an open vote (ballots only)') }}</summary>
         <div class="playtest-body">
             <DevChamberCast :state="state" @refresh="fetchState" />
         </div>
     </details>
 
     <details v-if="state" class="dev-control playtest-block">
-        <summary>Scenarios — seed a named situation (the real seeders)</summary>
+        <summary>{{ t('c_shell_components.dev_playtest_panels.summary_scenarios', 'Scenarios — seed a named situation (the real seeders)') }}</summary>
         <div class="playtest-body">
             <DevScenarioPresets />
         </div>
