@@ -1,61 +1,61 @@
 {
-  "generated_at": "2026-09-15T04:09:22.460Z",
-  "source_keys": 10956,
-  "namespaces": 59,
+  "generated_at": "2026-09-15T16:08:06.887Z",
+  "source_keys": 13231,
+  "namespaces": 63,
   "locales": [
     {
       "locale": "ar",
-      "total": 10956,
+      "total": 13231,
       "present": 4312,
-      "missing": 6644,
+      "missing": 8919,
       "orphan": 8,
       "identical": 15,
-      "pct": 39.4
+      "pct": 32.6
     },
     {
       "locale": "es",
-      "total": 10956,
+      "total": 13231,
       "present": 4350,
-      "missing": 6606,
+      "missing": 8881,
       "orphan": 8,
       "identical": 26,
-      "pct": 39.7
+      "pct": 32.9
     },
     {
       "locale": "fr",
-      "total": 10956,
+      "total": 13231,
       "present": 4136,
-      "missing": 6820,
+      "missing": 9095,
       "orphan": 8,
       "identical": 32,
-      "pct": 37.8
+      "pct": 31.3
     },
     {
       "locale": "hi",
-      "total": 10956,
+      "total": 13231,
       "present": 4357,
-      "missing": 6599,
+      "missing": 8874,
       "orphan": 8,
       "identical": 19,
-      "pct": 39.8
+      "pct": 32.9
     },
     {
       "locale": "pt",
-      "total": 10956,
+      "total": 13231,
       "present": 4139,
-      "missing": 6817,
+      "missing": 9092,
       "orphan": 8,
       "identical": 31,
-      "pct": 37.8
+      "pct": 31.3
     },
     {
       "locale": "zh-Hans",
-      "total": 10956,
+      "total": 13231,
       "present": 4119,
-      "missing": 6837,
+      "missing": 9112,
       "orphan": 8,
       "identical": 12,
-      "pct": 37.6
+      "pct": 31.1
     }
   ],
   "by_namespace": [
@@ -216,6 +216,18 @@
       }
     },
     {
+      "namespace": "c_front",
+      "total": 237,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "c_geodata",
       "total": 39,
       "locales": {
@@ -276,6 +288,18 @@
       }
     },
     {
+      "namespace": "c_jurisdictions",
+      "total": 627,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "c_learn",
       "total": 127,
       "locales": {
@@ -297,6 +321,18 @@
         "hi": 26,
         "pt": 26,
         "zh-Hans": 26
+      }
+    },
+    {
+      "namespace": "c_legislature_pages",
+      "total": 591,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
       }
     },
     {
@@ -362,6 +398,18 @@
     {
       "namespace": "c_navigation",
       "total": 15,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_operator_pages",
+      "total": 820,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -768,11 +816,11 @@
       }
     }
   ],
-  "failures": 40381,
+  "failures": 54031,
   "warnings": 4294,
   "failure_codes": {
     "C5-compile": 4,
-    "C1-missing": 40323,
+    "C1-missing": 53973,
     "C2-orphan": 48,
     "C4-idtoken": 6
   }

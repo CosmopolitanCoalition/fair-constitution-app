@@ -12857,6 +12857,14 @@
         {
           "date": "2026-09-15",
           "note": "Catalogue merges (12:15 AM Eastern): i18n-institution-components (e4285202, 440 keys), i18n-shell-components (f0e80dfa, 358 keys), i18n-legislature-b (44eb46ff), php-refusals-b (151daaf8; lang/en.json union 690 entries), php-machinery (13683b00; export/import/translate carry lang/<locale>.json as the lang namespace, self-tests 23/21/31 green), i18n-setup (939 keys). export_master --locale all now exports the 75 registry targets. Component stack complete (6 of 6). Remaining: legislature-a, operator, jurisdictions, institutions, front, php-refusals-c."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "PHP layer complete (12:20 AM Eastern): php-refusals-c merged (lang/en.json union 975 literal lines, 0 clashes); lang:publish + i18n:lang-flatten add 145 validation/auth/pagination/password lines as dotted keys (1120 lines total); LangJsonFlattenTest pins JSON-first resolution; translate_catalog masks Laravel :tokens (self-test 36/36); export for pl on the lang namespace carries 1114 strings. Remaining page lanes: legislature-a (committing), operator (review), jurisdictions, institutions (build), front (queued)."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Overnight run ended at the weekly usage limit (about 12:20 AM Eastern); resumed at the noon reset. Merged this morning: i18n-legislature-a (7013fcf1, 589 keys), i18n-operator (cc43f4da, 820 keys), i18n-jurisdictions (876ca468, 626 keys, committed at the desk after the reviewer's one finding was already wired), i18n-front (328f509e, 237 keys, reviewer PASS, committed at the desk). 20 of 21 lanes merged. Remaining: i18n-institutions (builder cut off after wiring 13 of 15 pages; no catalog or pin yet; OrgDetail.vue and TransfersConversions.vue untouched) relaunched as a single lane at 12:10 PM Eastern."
         }
       ]
     },
