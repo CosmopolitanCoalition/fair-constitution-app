@@ -8,10 +8,13 @@
  */
 import { reactive, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 
 defineOptions({ layout: AppShellV2 });
+
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -47,66 +50,66 @@ function submit() {
         preserveScroll: true,
         onStart: () => { busy.value = true; error.value = ''; notice.value = ''; },
         onFinish: () => { busy.value = false; },
-        onError: (errors) => { error.value = Object.values(errors)[0] || 'The revision could not be filed. Please retry.'; },
-        onSuccess: () => { notice.value = 'Revision filed on the public record.'; },
+        onError: (errors) => { error.value = Object.values(errors)[0] || t('c_front.material_edit.error_generic', 'The revision could not be filed. Please retry.'); },
+        onSuccess: () => { notice.value = t('c_front.material_edit.notice_filed', 'Revision filed on the public record.'); },
     });
 }
 </script>
 
 <template>
-    <PageScaffold :surface="surface" title="Edit a training module">
-        <template #intro>Revise this module's structure. Lesson prose is authored in the K-2 source, not on this form.</template>
+    <PageScaffold :surface="surface" :title="t('c_front.material_edit.page_title', 'Edit a training module')">
+        <template #intro>{{ t('c_front.material_edit.intro', 'Revise this module\'s structure. Lesson prose is authored in the K-2 source, not on this form.') }}</template>
 
-        <p class="meta">Current revision {{ module.revision_number }}. <Link href="/learn/manage">Back to all modules</Link></p>
+        <p class="meta">{{ t('c_front.material_edit.current_revision', { n: module.revision_number }) }} <Link href="/learn/manage">{{ t('c_front.material_edit.back_all', 'Back to all modules') }}</Link></p>
 
         <p v-if="!can.publish" role="status" class="preview">
-            Read-only preview. Revising training material requires the authoring body's agent role (R-23).
+            {{ t('c_front.material_edit.preview', 'Read-only preview. Revising training material requires the authoring body\'s agent role (R-23).') }}
         </p>
 
         <form v-if="can.publish" class="publish-form" :aria-busy="busy" @submit.prevent="submit">
-            <h2>Revise or re-publish this module</h2>
-            <p class="gloss">This form writes the module row only. The answer key never rides it.</p>
+            <h2>{{ t('c_front.material_edit.form_h', 'Revise or re-publish this module') }}</h2>
+            <p class="gloss">{{ t('c_front.material_edit.gloss', 'This form writes the module row only. The answer key never rides it.') }}</p>
 
-            <label for="edit-action">Action</label>
+            <label for="edit-action">{{ t('c_front.material_edit.action_label', 'Action') }}</label>
             <select id="edit-action" v-model="form.action">
-                <option value="revise">Revise (increment revision)</option>
-                <option value="publish">Publish (reset to revision 1)</option>
+                <option value="revise">{{ t('c_front.material_edit.opt_revise', 'Revise (increment revision)') }}</option>
+                <option value="publish">{{ t('c_front.material_edit.opt_publish', 'Publish (reset to revision 1)') }}</option>
             </select>
 
-            <label for="edit-module-key">Module key</label>
+            <label for="edit-module-key">{{ t('c_front.material_edit.module_key_label', 'Module key') }}</label>
             <input id="edit-module-key" v-model="form.module_key" maxlength="64" required />
 
-            <label for="edit-title">Title</label>
+            <label for="edit-title">{{ t('c_front.material_edit.title_label', 'Title') }}</label>
             <input id="edit-title" v-model="form.title" maxlength="160" required />
 
-            <label for="edit-track">Track</label>
+            <label for="edit-track">{{ t('c_front.material_edit.track_label', 'Track') }}</label>
             <select id="edit-track" v-model="form.track_key" required>
-                <option value="" disabled>Select a track</option>
+                <option value="" disabled>{{ t('c_front.material_edit.select_track', 'Select a track') }}</option>
                 <option v-for="track in tracks" :key="track.key" :value="track.key">{{ track.title }} ({{ track.status }})</option>
             </select>
 
-            <label for="edit-surface">Surface</label>
+            <label for="edit-surface">{{ t('c_front.material_edit.surface_label', 'Surface') }}</label>
             <select id="edit-surface" v-model="form.surface_id" required>
-                <option value="" disabled>Select a registered surface</option>
+                <option value="" disabled>{{ t('c_front.material_edit.select_surface', 'Select a registered surface') }}</option>
                 <option v-for="s in surfaces" :key="s.id" :value="s.id">{{ s.title }} ({{ s.id }})</option>
             </select>
 
-            <label for="edit-minutes">Minutes (optional)</label>
+            <label for="edit-minutes">{{ t('c_front.material_edit.minutes_label', 'Minutes (optional)') }}</label>
             <input id="edit-minutes" v-model="form.minutes" type="number" min="0" max="65535" />
 
-            <label for="edit-status">Status</label>
+            <label for="edit-status">{{ t('c_front.material_edit.status_label', 'Status') }}</label>
             <select id="edit-status" v-model="form.status">
-                <option value="draft">Draft (not shown to learners; gate not armed)</option>
-                <option value="live">Live (shown to learners; arms the role's training gate)</option>
+                <option value="draft">{{ t('c_front.material_edit.status_draft', 'Draft (not shown to learners; gate not armed)') }}</option>
+                <option value="live">{{ t('c_front.material_edit.status_live', 'Live (shown to learners; arms the role\'s training gate)') }}</option>
             </select>
 
-            <label for="edit-ip">IP dedication reference (optional)</label>
+            <label for="edit-ip">{{ t('c_front.material_edit.ip_label', 'IP dedication reference (optional)') }}</label>
             <input id="edit-ip" v-model="form.ip_register_entry_id" maxlength="64" />
 
             <button type="submit" :disabled="busy || !form.module_key.trim() || !form.title.trim() || !form.track_key || !form.surface_id">
-                {{ form.action === 'revise' ? 'File revision' : 'Re-publish module' }}
+                {{ form.action === 'revise' ? t('c_front.material_edit.submit_revise', 'File revision') : t('c_front.material_edit.submit_republish', 'Re-publish module') }}
             </button>
-            <p v-if="busy" role="status">Filing revision…</p>
+            <p v-if="busy" role="status">{{ t('c_front.material_edit.filing', 'Filing revision…') }}</p>
             <p v-if="error" role="alert">{{ error }}</p>
             <p v-if="notice" role="status">{{ notice }}</p>
         </form>

@@ -11,10 +11,13 @@
  */
 import { reactive, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 
 defineOptions({ layout: AppShellV2 });
+
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -44,83 +47,83 @@ function submit() {
         preserveScroll: true,
         onStart: () => { busy.value = true; error.value = ''; notice.value = ''; },
         onFinish: () => { busy.value = false; },
-        onError: (errors) => { error.value = Object.values(errors)[0] || 'The publication could not be filed. Please retry.'; },
-        onSuccess: () => { notice.value = 'Publication filed on the public record.'; form.module_key = ''; form.title = ''; },
+        onError: (errors) => { error.value = Object.values(errors)[0] || t('c_front.material_manager.error_generic', 'The publication could not be filed. Please retry.'); },
+        onSuccess: () => { notice.value = t('c_front.material_manager.notice_filed', 'Publication filed on the public record.'); form.module_key = ''; form.title = ''; },
     });
 }
 </script>
 
 <template>
-    <PageScaffold :surface="surface" title="Manage training material">
-        <template #intro>Publish and revise training modules. Lesson prose is authored in the K-2 source, not on this form.</template>
+    <PageScaffold :surface="surface" :title="t('c_front.material_manager.page_title', 'Manage training material')">
+        <template #intro>{{ t('c_front.material_manager.intro', 'Publish and revise training modules. Lesson prose is authored in the K-2 source, not on this form.') }}</template>
 
         <p v-if="!can.publish" role="status" class="preview">
-            Read-only preview. Publishing training material requires the authoring body's agent role (R-23).
+            {{ t('c_front.material_manager.preview', 'Read-only preview. Publishing training material requires the authoring body\'s agent role (R-23).') }}
         </p>
 
         <form v-if="can.publish" class="publish-form" :aria-busy="busy" @submit.prevent="submit">
-            <h2>Publish or revise a module</h2>
-            <p class="gloss">Lesson prose lives in the K-2 source (docs/plans/education/K2_CONTENT_*.md). This form writes the module row only. The answer key never rides it.</p>
+            <h2>{{ t('c_front.material_manager.form_h', 'Publish or revise a module') }}</h2>
+            <p class="gloss">{{ t('c_front.material_manager.gloss', 'Lesson prose lives in the K-2 source (docs/plans/education/K2_CONTENT_*.md). This form writes the module row only. The answer key never rides it.') }}</p>
 
-            <label for="material-action">Action</label>
+            <label for="material-action">{{ t('c_front.material_manager.action_label', 'Action') }}</label>
             <select id="material-action" v-model="form.action">
-                <option value="publish">Publish (first edition)</option>
-                <option value="revise">Revise (existing module)</option>
+                <option value="publish">{{ t('c_front.material_manager.opt_publish', 'Publish (first edition)') }}</option>
+                <option value="revise">{{ t('c_front.material_manager.opt_revise', 'Revise (existing module)') }}</option>
             </select>
 
-            <label for="material-module-key">Module key</label>
+            <label for="material-module-key">{{ t('c_front.material_manager.module_key_label', 'Module key') }}</label>
             <input id="material-module-key" v-model="form.module_key" maxlength="64" required />
 
-            <label for="material-title">Title</label>
+            <label for="material-title">{{ t('c_front.material_manager.title_label', 'Title') }}</label>
             <input id="material-title" v-model="form.title" maxlength="160" required />
 
-            <label for="material-track">Track</label>
+            <label for="material-track">{{ t('c_front.material_manager.track_label', 'Track') }}</label>
             <select id="material-track" v-model="form.track_key" required>
-                <option value="" disabled>Select a track</option>
+                <option value="" disabled>{{ t('c_front.material_manager.select_track', 'Select a track') }}</option>
                 <option v-for="track in tracks" :key="track.key" :value="track.key">{{ track.title }} ({{ track.status }})</option>
             </select>
 
-            <label for="material-surface">Surface</label>
+            <label for="material-surface">{{ t('c_front.material_manager.surface_label', 'Surface') }}</label>
             <select id="material-surface" v-model="form.surface_id" required>
-                <option value="" disabled>Select a registered surface</option>
+                <option value="" disabled>{{ t('c_front.material_manager.select_surface', 'Select a registered surface') }}</option>
                 <option v-for="s in surfaces" :key="s.id" :value="s.id">{{ s.title }} ({{ s.id }})</option>
             </select>
 
-            <label for="material-minutes">Minutes (optional)</label>
+            <label for="material-minutes">{{ t('c_front.material_manager.minutes_label', 'Minutes (optional)') }}</label>
             <input id="material-minutes" v-model="form.minutes" type="number" min="0" max="65535" />
 
-            <label for="material-status">Status</label>
+            <label for="material-status">{{ t('c_front.material_manager.status_label', 'Status') }}</label>
             <select id="material-status" v-model="form.status">
-                <option value="draft">Draft (not shown to learners; gate not armed)</option>
-                <option value="live">Live (shown to learners; arms the role's training gate)</option>
+                <option value="draft">{{ t('c_front.material_manager.status_draft', 'Draft (not shown to learners; gate not armed)') }}</option>
+                <option value="live">{{ t('c_front.material_manager.status_live', 'Live (shown to learners; arms the role\'s training gate)') }}</option>
             </select>
 
-            <label for="material-ip">IP dedication reference (optional)</label>
+            <label for="material-ip">{{ t('c_front.material_manager.ip_label', 'IP dedication reference (optional)') }}</label>
             <input id="material-ip" v-model="form.ip_register_entry_id" maxlength="64" />
 
             <button type="submit" :disabled="busy || !form.module_key.trim() || !form.title.trim() || !form.track_key || !form.surface_id">
-                {{ form.action === 'revise' ? 'File revision' : 'Publish module' }}
+                {{ form.action === 'revise' ? t('c_front.material_manager.submit_revise', 'File revision') : t('c_front.material_manager.submit_publish', 'Publish module') }}
             </button>
-            <p v-if="busy" role="status">Filing publication…</p>
+            <p v-if="busy" role="status">{{ t('c_front.material_manager.filing', 'Filing publication…') }}</p>
             <p v-if="error" role="alert">{{ error }}</p>
             <p v-if="notice" role="status">{{ notice }}</p>
         </form>
 
         <section class="module-list" aria-labelledby="modules-h">
-            <h2 id="modules-h">Published and draft modules</h2>
-            <p v-if="!modules.rows.length" class="gloss">No modules are published yet.</p>
+            <h2 id="modules-h">{{ t('c_front.material_manager.modules_h', 'Published and draft modules') }}</h2>
+            <p v-if="!modules.rows.length" class="gloss">{{ t('c_front.material_manager.no_modules', 'No modules are published yet.') }}</p>
             <article v-for="m in modules.rows" :key="m.module_key + m.track_key" class="module-row">
                 <h3>
                     <Link :href="m.edit_href">{{ m.title }}</Link>
                     <span class="status">{{ m.status }}</span>
                 </h3>
                 <p class="meta">
-                    {{ m.track_title }} · <code>{{ m.module_key }}</code> · revision {{ m.revision_number }}
-                    <span v-if="m.published_by"> · published by {{ m.published_by }}</span>
+                    {{ m.track_title }} · <code>{{ m.module_key }}</code> · {{ t('c_front.material_manager.revision', { n: m.revision_number }) }}
+                    <span v-if="m.published_by"> · {{ t('c_front.material_manager.published_by', { who: m.published_by }) }}</span>
                     <span v-if="m.published_at"> · {{ m.published_at }}</span>
                 </p>
             </article>
-            <Link v-if="modules.pages && modules.pages.next" :href="modules.pages.next" class="pager-next">Next modules</Link>
+            <Link v-if="modules.pages && modules.pages.next" :href="modules.pages.next" class="pager-next">{{ t('c_front.material_manager.next_modules', 'Next modules') }}</Link>
         </section>
     </PageScaffold>
 </template>

@@ -7,6 +7,7 @@
  */
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { provide, ref, useId } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // Standalone (pre-shell) page — opt out of the AppShell default layout.
 defineOptions({ layout: null });
@@ -21,6 +22,8 @@ import CmdBar from '@/Components/ShellV2/CmdBar.vue';
 provide('cga:surface', ref({ id: 'auth/operator-login', module: 'system' }));
 provide('cga:learn-target', '#learn-content-' + useId());
 
+const { t } = useI18n();
+
 const form = useForm({
     username: '',
     password: '',
@@ -34,26 +37,25 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Operator sign-in" />
+    <Head :title="t('c_front.operator_login.head_title', 'Operator sign-in')" />
 
     <main id="main" class="login-page">
         <div class="stack">
             <header>
-                <span class="eyebrow">Infrastructure</span>
-                <h1>Operator sign-in</h1>
+                <span class="eyebrow">{{ t('c_front.operator_login.eyebrow', 'Infrastructure') }}</span>
+                <h1>{{ t('c_front.operator_login.title', 'Operator sign-in') }}</h1>
                 <p class="page-intro">
-                    The operator console runs this instance and its place in the mesh — a separate
-                    login from your citizen account. Operator status confers no governance standing.
+                    {{ t('c_front.operator_login.intro', 'The operator console runs this instance and its place in the mesh — a separate login from your citizen account. Operator status confers no governance standing.') }}
                 </p>
             </header>
 
             <Card as="section" aria-labelledby="op-login-h">
                 <template #title>
-                    <h2 id="op-login-h">Operator account</h2>
+                    <h2 id="op-login-h">{{ t('c_front.operator_login.account', 'Operator account') }}</h2>
                 </template>
 
                 <form novalidate @submit.prevent="submit">
-                    <Field label="Username" :error="form.errors.username" required>
+                    <Field :label="t('c_front.operator_login.field_username', 'Username')" :error="form.errors.username" required>
                         <template #control="{ id, invalid, describedBy }">
                             <input
                                 :id="id"
@@ -70,7 +72,7 @@ function submit() {
                         </template>
                     </Field>
 
-                    <Field label="Password" :error="form.errors.password" required>
+                    <Field :label="t('c_front.operator_login.field_password', 'Password')" :error="form.errors.password" required>
                         <template #control="{ id, invalid, describedBy }">
                             <input
                                 :id="id"
@@ -88,10 +90,10 @@ function submit() {
 
                     <div class="cluster">
                         <Btn type="submit" variant="primary" :disabled="form.processing">
-                            {{ form.processing ? 'Signing in…' : 'Sign in as operator' }}
+                            {{ form.processing ? t('c_front.operator_login.signing_in', 'Signing in…') : t('c_front.operator_login.sign_in_btn', 'Sign in as operator') }}
                         </Btn>
                         <span class="cc-small">
-                            <Link href="/operator/federation">Back to the federation console</Link>
+                            <Link href="/operator/federation">{{ t('c_front.operator_login.back_link', 'Back to the federation console') }}</Link>
                         </span>
                     </div>
                 </form>
