@@ -189,7 +189,7 @@ class MyRecordController extends Controller
                 'languages'    => $user->languages ?? [],
             ],
             'localeOptions'   => self::locales(),
-            'languageOptions' => RegisteredUserController::LANGUAGES,
+            'languageOptions' => RegisteredUserController::languages(),
         ]);
     }
 
@@ -200,8 +200,8 @@ class MyRecordController extends Controller
             'display_name' => ['nullable', 'string', 'max:255'],
             'locale'       => ['nullable', 'string', Rule::in(self::locales())],
             'timezone'     => ['nullable', 'string', 'timezone:all'],
-            'languages'    => ['sometimes', 'array', 'max:' . count(RegisteredUserController::LANGUAGES)],
-            'languages.*'  => ['string', Rule::in(RegisteredUserController::LANGUAGES)],
+            'languages'    => ['sometimes', 'array', 'max:' . count(RegisteredUserController::languages())],
+            'languages.*'  => ['string', Rule::in(RegisteredUserController::languages())],
         ]);
 
         // File only fields that actually differ from the user row — the

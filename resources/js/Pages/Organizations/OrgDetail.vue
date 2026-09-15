@@ -485,12 +485,12 @@ const documentColumns = [
                 <Field :label="t('c_institutions.org_detail.f_find_by', 'Find by')">
                     <template #control="{ id }">
                         <select :id="id" v-model="agentBy" class="field-input">
-                            <option value="name">{{ t('c_institutions.org_detail.opt_name', 'Public name or @handle') }}</option>
+                            <option value="name">{{ t('c_institutions.org_detail.opt_name', 'Public name or {\'@\'}handle') }}</option>
                             <option value="reference">{{ t('c_institutions.org_detail.opt_reference', 'Profile reference') }}</option>
                         </select>
                     </template>
                 </Field>
-                <Field :label="agentBy === 'reference' ? t('c_institutions.org_detail.f_complete_reference', 'Complete profile reference') : t('c_institutions.org_detail.f_start_name', 'Start of public name or @handle')">
+                <Field :label="agentBy === 'reference' ? t('c_institutions.org_detail.f_complete_reference', 'Complete profile reference') : t('c_institutions.org_detail.f_start_name', 'Start of public name or {\'@\'}handle')">
                     <template #control="{ id }">
                         <input :id="id" v-model="agentQuery" class="field-input" maxlength="120" />
                     </template>

@@ -92,8 +92,8 @@ function submit(designation = false) {
         <form class="nomination-section" :aria-busy="searching" @submit.prevent="search">
             <h3>{{ t('c_institution_components.judicial_nominations.find_person', 'Find a person to propose') }}</h3>
             <label for="judicial-nominee-by">{{ t('c_institution_components.judicial_nominations.find_by', 'Find by') }}</label>
-            <select id="judicial-nominee-by" v-model="by"><option value="name">{{ t('c_institution_components.judicial_nominations.find_by_name', 'Public name or @handle') }}</option><option value="reference">{{ t('c_institution_components.judicial_nominations.find_by_reference', 'Profile reference') }}</option></select>
-            <label for="judicial-nominee-query">{{ by === 'reference' ? t('c_institution_components.judicial_nominations.query_reference', 'Complete profile reference') : t('c_institution_components.judicial_nominations.query_name', 'Start of public name or @handle') }}</label>
+            <select id="judicial-nominee-by" v-model="by"><option value="name">{{ t('c_institution_components.judicial_nominations.find_by_name', 'Public name or {\'@\'}handle') }}</option><option value="reference">{{ t('c_institution_components.judicial_nominations.find_by_reference', 'Profile reference') }}</option></select>
+            <label for="judicial-nominee-query">{{ by === 'reference' ? t('c_institution_components.judicial_nominations.query_reference', 'Complete profile reference') : t('c_institution_components.judicial_nominations.query_name', 'Start of public name or {\'@\'}handle') }}</label>
             <input id="judicial-nominee-query" v-model="query" maxlength="120" />
             <button type="submit" :disabled="searching">{{ t('c_institution_components.judicial_nominations.search_btn', 'Search eligible people') }}</button>
             <p v-if="searching" role="status">{{ t('c_institution_components.judicial_nominations.searching', 'Searching people…') }}</p><p v-if="searchError" role="alert">{{ searchError }}</p>

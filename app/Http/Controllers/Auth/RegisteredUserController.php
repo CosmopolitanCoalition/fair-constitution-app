@@ -30,10 +30,18 @@ class RegisteredUserController extends Controller
     use RedeemsPendingInvite;
 
     /**
-     * Languages offered at registration (mockup onboarding contract).
-     * The production list grows to every supported locale with i18n.
+     * Languages accepted at registration — every code in THE locale registry
+     * (config/locales.php), no longer a hand-copied five that had drifted. The
+     * offered UI list is derived from the same registry on the JS side;
+     * validation accepts every registered code so a newly registered locale is
+     * never rejected at signup.
+     *
+     * @return list<string>
      */
-    public const LANGUAGES = ['en', 'es', 'ar', 'zh-Hans', 'hi'];
+    public static function languages(): array
+    {
+        return array_keys(config('locales.locales', []));
+    }
 
     public function __construct(private readonly ConstitutionalEngine $engine)
     {
@@ -53,8 +61,8 @@ class RegisteredUserController extends Controller
             'email'       => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
             'password'    => ['required', 'confirmed', Rules\Password::defaults()],
             'terms'       => ['accepted'],
-            'languages'   => ['sometimes', 'array', 'max:' . count(self::LANGUAGES)],
-            'languages.*' => ['string', Rule::in(self::LANGUAGES)],
+            'languages'   => ['sometimes', 'array', 'max:' . count(self::languages())],
+            'languages.*' => ['string', Rule::in(self::languages())],
             'timezone'    => ['sometimes', 'nullable', 'string', 'timezone:all'],
         ], [
             'terms.accepted' => 'Confirm the terms to continue.',

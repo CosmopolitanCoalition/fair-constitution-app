@@ -35,7 +35,7 @@ import Icon from '@/Components/Ui/Icon.vue';
 import CmdBar from '@/Components/ShellV2/CmdBar.vue';
 import TourBar from '@/Components/ShellV2/TourBar.vue';
 import { PLAYER_NAV, SITEMAP } from '@/registry/surfaces.js';
-import { LOCALES } from '@/i18n/index.js';
+import { LOCALES, persistLocale } from '@/i18n/index.js';
 import { highestRole } from '@/lib/roles.js';
 import { observePseudoDom, syncPseudoDom } from '@/lib/pseudoDom.js';
 
@@ -159,7 +159,14 @@ function applyDir(code) {
     document.documentElement.dir = meta?.dir ?? 'ltr';
 }
 function onLocaleChange(event) {
-    locale.value = event.target.value;
+    const code = event.target.value;
+    locale.value = code;
+    /* Persist the choice. Signed in: through the SAME F-IND-002 endpoint the
+       settings panel uses, so the user row updates and server-rendered PHP
+       follows on the next request. Guest: to localStorage. The guest boot
+       restore (app.js reading the key, or SetLocale) is not wired yet, so a
+       guest choice does not yet survive a full reload. */
+    persistLocale(code, { authenticated: user.value !== null, router });
 }
 /* S9 — whole-DOM pseudo-localization parity: vue-i18n's postTranslation only
    reaches t()-routed strings; server-data text escapes the en-XA padding. The
