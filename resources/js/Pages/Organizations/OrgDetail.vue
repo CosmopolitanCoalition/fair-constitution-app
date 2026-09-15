@@ -793,7 +793,7 @@ const documentColumns = [
                     <span class="citation" style="display: block" data-no-i18n>{{ row.key }}</span>
                 </template>
                 <template #cell-kind="{ row }">{{ titleize(row.kind) }}</template>
-                <template #cell-version="{ row }">v{{ row.version }}</template>
+                <template #cell-version="{ row }">{{ t('c_institutions.org_detail.version_prefix', { version: row.version }) }}</template>
                 <template #cell-status="{ row }">
                     <StatusBadge :tone="row.status === 'active' ? 'success' : 'neutral'">{{ row.status }}</StatusBadge>
                 </template>

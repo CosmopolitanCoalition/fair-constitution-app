@@ -46,7 +46,7 @@ const STRUCTURE_RULES = () => ({
 });
 
 const structureLabel = computed(() =>
-    props.isCgc ? 'Common Good Corporation' : (props.structure ?? '—').replaceAll('_', ' '),
+    props.isCgc ? t('c_institution_components.ownership_panel.cgc_structure', 'Common Good Corporation') : (props.structure ?? '—').replaceAll('_', ' '),
 );
 const rule = computed(() => (props.isCgc ? null : STRUCTURE_RULES()[props.structure] ?? null));
 

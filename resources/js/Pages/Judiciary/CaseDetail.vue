@@ -122,28 +122,28 @@ const severityTone = computed(() => {
     return SEVERITY_TONE[base] ?? 'neutral';
 });
 
-const motionColumns = [
-    { key: 'title', label: 'Motion' },
-    { key: 'filed_by', label: 'Filed by' },
-    { key: 'ruling', label: 'Ruling' },
-];
-const evidenceColumns = [
-    { key: 'title', label: 'Exhibit' },
-    { key: 'filed_by', label: 'Submitted by' },
-    { key: 'ruling', label: 'Admissibility' },
-];
+const motionColumns = computed(() => [
+    { key: 'title', label: t('c_institutions.case_detail.col_motion', 'Motion') },
+    { key: 'filed_by', label: t('c_institutions.case_detail.col_filed_by', 'Filed by') },
+    { key: 'ruling', label: t('c_institutions.case_detail.col_ruling', 'Ruling') },
+]);
+const evidenceColumns = computed(() => [
+    { key: 'title', label: t('c_institutions.case_detail.col_exhibit', 'Exhibit') },
+    { key: 'filed_by', label: t('c_institutions.case_detail.col_submitted_by', 'Submitted by') },
+    { key: 'ruling', label: t('c_institutions.case_detail.col_admissibility', 'Admissibility') },
+]);
 const RULING_TONE = {
     granted: 'success',
     admitted: 'success',
     denied: 'danger',
     excluded: 'danger',
 };
-const RULING_LABEL = {
-    granted: 'Granted',
-    denied: 'Denied',
-    admitted: 'Admitted',
-    excluded: 'Excluded',
-};
+const RULING_LABEL = computed(() => ({
+    granted: t('c_institutions.case_detail.ruling_granted', 'Granted'),
+    denied: t('c_institutions.case_detail.ruling_denied', 'Denied'),
+    admitted: t('c_institutions.case_detail.ruling_admitted', 'Admitted'),
+    excluded: t('c_institutions.case_detail.ruling_excluded', 'Excluded'),
+}));
 
 /* ---------------------------------------------- court action forms ----- */
 const acceptForm = useForm({ court_severity: 'serious', jury_waived: false });
@@ -161,12 +161,12 @@ function submitJury() {
    the server's lawful list for this case's kind; empty on a first-instance case. */
 const isAppeal = computed(() => Boolean(props.case.is_appeal));
 const appealOutcomes = computed(() => props.case.appeal_outcomes ?? []);
-const APPEAL_OUTCOME_LABEL = {
-    affirm: 'Affirm the judgement',
-    reverse: 'Reverse the judgement',
-    remand: 'Remand for further proceedings',
-    vacate: 'Vacate the conviction (the accused is acquitted)',
-};
+const APPEAL_OUTCOME_LABEL = computed(() => ({
+    affirm: t('c_institutions.case_detail.outcome_affirm', 'Affirm the judgement'),
+    reverse: t('c_institutions.case_detail.outcome_reverse', 'Reverse the judgement'),
+    remand: t('c_institutions.case_detail.outcome_remand', 'Remand for further proceedings'),
+    vacate: t('c_institutions.case_detail.outcome_vacate', 'Vacate the conviction (the accused is acquitted)'),
+}));
 const opinionForm = useForm({
     kind: 'majority',
     title: '',
@@ -224,15 +224,15 @@ const canAppeal = computed(() => Boolean(props.can.appeal));
 const isDecidedOrSentenced = computed(() => ['decided', 'sentenced'].includes(state.value));
 const showAppealFiling = computed(() => !isAppeal.value && isDecidedOrSentenced.value);
 const appealReason = computed(() =>
-    canAppeal.value ? '' : 'Only a party to this case may appeal this judgement.',
+    canAppeal.value ? '' : t('c_institutions.case_detail.appeal_reason', 'Only a party to this case may appeal this judgement.'),
 );
 const appealLinks = computed(() => props.case.appeals ?? []);
-const APPEAL_OUTCOME_BADGE = {
-    affirm: 'Affirmed',
-    reverse: 'Reversed',
-    remand: 'Remanded',
-    vacate: 'Vacated — acquitted',
-};
+const APPEAL_OUTCOME_BADGE = computed(() => ({
+    affirm: t('c_institutions.case_detail.badge_affirm', 'Affirmed'),
+    reverse: t('c_institutions.case_detail.badge_reverse', 'Reversed'),
+    remand: t('c_institutions.case_detail.badge_remand', 'Remanded'),
+    vacate: t('c_institutions.case_detail.badge_vacate', 'Vacated — acquitted'),
+}));
 const appealForm = useForm({ grounds: '', statement: '' });
 function submitAppeal() {
     appealForm.post(`/cases/${props.case.id}/appeals`, {
@@ -244,18 +244,18 @@ function submitAppeal() {
 /* The verdict is NOT a form — it posts its own judge-only route. Outcomes are
    keyed on the case kind; a panel verdict records the vote counts, a jury
    verdict records unanimity. */
-const CRIMINAL_OUTCOMES = [
-    { value: 'guilty', label: 'Guilty' },
-    { value: 'not_guilty', label: 'Not guilty' },
-];
-const CIVIL_OUTCOMES = [
-    { value: 'liable', label: 'Liable' },
-    { value: 'not_liable', label: 'Not liable' },
-    { value: 'for_petitioner', label: 'For the petitioner' },
-    { value: 'for_respondent', label: 'For the respondent' },
-    { value: 'dismissed', label: 'Dismissed' },
-];
-const outcomeOptions = computed(() => (isCriminal.value ? CRIMINAL_OUTCOMES : CIVIL_OUTCOMES));
+const outcomeOptions = computed(() => (isCriminal.value
+    ? [
+        { value: 'guilty', label: t('c_institutions.case_detail.verdict_guilty', 'Guilty') },
+        { value: 'not_guilty', label: t('c_institutions.case_detail.verdict_not_guilty', 'Not guilty') },
+    ]
+    : [
+        { value: 'liable', label: t('c_institutions.case_detail.verdict_liable', 'Liable') },
+        { value: 'not_liable', label: t('c_institutions.case_detail.verdict_not_liable', 'Not liable') },
+        { value: 'for_petitioner', label: t('c_institutions.case_detail.verdict_for_petitioner', 'For the petitioner') },
+        { value: 'for_respondent', label: t('c_institutions.case_detail.verdict_for_respondent', 'For the respondent') },
+        { value: 'dismissed', label: t('c_institutions.case_detail.verdict_dismissed', 'Dismissed') },
+    ]));
 const verdictForm = useForm({
     decided_by: 'panel',
     outcome: isCriminal.value ? 'guilty' : 'liable',
@@ -302,8 +302,8 @@ function submitRuling() {
             preserveScroll: true,
             onStart: () => { rulingBusy.value = true; rulingError.value = ''; rulingNotice.value = ''; },
             onFinish: () => { rulingBusy.value = false; },
-            onError: (errors) => { rulingError.value = Object.values(errors)[0] || 'The ruling could not be filed. Please retry.'; },
-            onSuccess: () => { rulingNotice.value = 'Ruling filed to the docket.'; rulingRow.value = null; rulingReason.value = ''; },
+            onError: (errors) => { rulingError.value = Object.values(errors)[0] || t('c_institutions.case_detail.ruling_error', 'The ruling could not be filed. Please retry.'); },
+            onSuccess: () => { rulingNotice.value = t('c_institutions.case_detail.ruling_filed', 'Ruling filed to the docket.'); rulingRow.value = null; rulingReason.value = ''; },
         },
     );
 }
@@ -312,14 +312,12 @@ function submitRuling() {
 <template>
     <PageScaffold :surface="surface" :title="kase.title">
         <template #intro>
-            The public record of one case before the court — every filing, ruling, and the panel
-            that hears it. This page renders the live record and the surrounding context; the court
-            advances the append-only record by acting through the engine, never a toggle.
+            {{ t('c_institutions.case_detail.intro', 'The public record of one case before the court — every filing, ruling, and the panel that hears it. This page renders the live record and the surrounding context; the court advances the append-only record by acting through the engine, never a toggle.') }}
         </template>
 
         <Link :href="'/rooms/court/' + kase.id" class="btn">{{ t('c_rooms.open_court', 'Enter live courtroom') }}</Link>
 
-        <Banner v-if="constitutionError" tone="emergency" role="alert" title="The court action was rejected.">
+        <Banner v-if="constitutionError" tone="emergency" role="alert" :title="t('c_institutions.case_detail.rejected_title', 'The court action was rejected.')">
             {{ constitutionError }}
         </Banner>
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -330,20 +328,20 @@ function submitRuling() {
             <div class="cluster" style="margin-block: var(--space-2)">
                 <StatusBadge tone="neutral" icon="scale">{{ kase.kind }}</StatusBadge>
                 <StatusBadge :tone="severityTone" icon="alert-triangle">{{ kase.severity }}</StatusBadge>
-                <StatusBadge v-if="isFullCourt" tone="info" icon="users">Full court</StatusBadge>
-                <StatusBadge v-else-if="kase.jury_entitled" tone="info" icon="users">Panel + jury</StatusBadge>
+                <StatusBadge v-if="isFullCourt" tone="info" icon="users">{{ t('c_institutions.case_detail.full_court', 'Full court') }}</StatusBadge>
+                <StatusBadge v-else-if="kase.jury_entitled" tone="info" icon="users">{{ t('c_institutions.case_detail.panel_jury', 'Panel + jury') }}</StatusBadge>
                 <StatusBadge tone="neutral" icon="landmark">{{ kase.court.name }}</StatusBadge>
             </div>
             <p v-if="kase.accusation">{{ kase.accusation }}</p>
             <p class="citation" style="margin-block-start: var(--space-2)">
-                Panel ≥3, odd, severity-scaled · Art. IV §4 · CLK-16
-                <template v-if="isCriminal"> — criminal outcome carries the double-jeopardy flag · Art. II §8</template>
+                {{ t('c_institutions.case_detail.panel_rule', 'Panel ≥3, odd, severity-scaled · Art. IV §4 · CLK-16') }}
+                <template v-if="isCriminal"> {{ t('c_institutions.case_detail.criminal_flag_note', '— criminal outcome carries the double-jeopardy flag · Art. II §8') }}</template>
                 <template v-if="kase.filed_by_label"> · {{ kase.filed_by_label }}</template>
             </p>
         </Card>
 
         <!-- ================================== the lifecycle (centerpiece) = -->
-        <Card as="section" :title="`Lifecycle — stage ${kase.current_stage} of ${stages.length}`">
+        <Card as="section" :title="t('c_institutions.case_detail.lifecycle_title', { stage: kase.current_stage, total: stages.length })">
             <CaseLifecycle
                 :case="kase"
                 :interactive="isDemoMode"
@@ -361,9 +359,8 @@ function submitRuling() {
                         :is-full-court="panel.isFullCourt"
                         :rule="panel.rule"
                     />
-                    <Banner v-else tone="info" role="status" title="Panel pending.">
-                        The bench is seated when the court accepts the case and classifies severity
-                        (F-JDG-001). Conflicted judges are excluded and the draw re-runs.
+                    <Banner v-else tone="info" role="status" :title="t('c_institutions.case_detail.panel_pending_title', 'Panel pending.')">
+                        {{ t('c_institutions.case_detail.panel_pending_body', 'The bench is seated when the court accepts the case and classifies severity (F-JDG-001). Conflicted judges are excluded and the draw re-runs.') }}
                     </Banner>
                 </template>
 
@@ -373,13 +370,13 @@ function submitRuling() {
                         v-if="motions.length"
                         :columns="motionColumns"
                         :rows="motions"
-                        caption="Pre-trial motions and rulings"
+                        :caption="t('c_institutions.case_detail.motions_caption', 'Pre-trial motions and rulings')"
                     >
                         <template #cell-ruling="{ row }">
                             <StatusBadge v-if="row.ruling" :tone="RULING_TONE[row.ruling] ?? 'neutral'">
                                 {{ RULING_LABEL[row.ruling] ?? row.ruling }}
                             </StatusBadge>
-                            <span v-else class="gloss">pending</span>
+                            <span v-else class="gloss">{{ t('c_institutions.case_detail.pending', 'pending') }}</span>
                             <span v-if="row.ruling_reason" class="citation" style="display: block">{{ row.ruling_reason }}</span>
                             <!-- F-JDG-014 — the court rules on this motion (appends a follow-up) -->
                             <template v-if="canRuleFilings && !row.ruling">
@@ -389,22 +386,22 @@ function submitRuling() {
                                     class="ruling-toggle"
                                     @click="openRuling(row, 'motion')"
                                 >
-                                    Rule on this motion
+                                    {{ t('c_institutions.case_detail.rule_motion', 'Rule on this motion') }}
                                 </button>
                                 <form v-else class="ruling-form" :aria-busy="rulingBusy" @submit.prevent="submitRuling">
-                                    <label :for="'motion-ruling-' + (row.id ?? row.title)">Ruling</label>
+                                    <label :for="'motion-ruling-' + (row.id ?? row.title)">{{ t('c_institutions.case_detail.ruling_label', 'Ruling') }}</label>
                                     <select :id="'motion-ruling-' + (row.id ?? row.title)" v-model="rulingChoice">
-                                        <option value="granted">Grant</option>
-                                        <option value="denied">Deny</option>
+                                        <option value="granted">{{ t('c_institutions.case_detail.opt_grant', 'Grant') }}</option>
+                                        <option value="denied">{{ t('c_institutions.case_detail.opt_deny', 'Deny') }}</option>
                                     </select>
-                                    <label :for="'motion-reason-' + (row.id ?? row.title)">Written reason</label>
+                                    <label :for="'motion-reason-' + (row.id ?? row.title)">{{ t('c_institutions.case_detail.written_reason', 'Written reason') }}</label>
                                     <textarea :id="'motion-reason-' + (row.id ?? row.title)" v-model="rulingReason" rows="2" required />
-                                    <button type="submit" :disabled="rulingBusy || !rulingReason.trim()">File ruling</button>
+                                    <button type="submit" :disabled="rulingBusy || !rulingReason.trim()">{{ t('c_institutions.case_detail.file_ruling', 'File ruling') }}</button>
                                 </form>
                             </template>
                         </template>
                     </DataTable>
-                    <p v-else class="gloss">No pre-trial motions on the docket.</p>
+                    <p v-else class="gloss">{{ t('c_institutions.case_detail.no_motions', 'No pre-trial motions on the docket.') }}</p>
                     <p v-if="rulingNotice" role="status">{{ rulingNotice }}</p>
                     <p v-if="rulingError" role="alert">{{ rulingError }}</p>
                 </template>
@@ -415,13 +412,13 @@ function submitRuling() {
                         v-if="evidence.length"
                         :columns="evidenceColumns"
                         :rows="evidence"
-                        caption="Exhibits with admissibility rulings"
+                        :caption="t('c_institutions.case_detail.evidence_caption', 'Exhibits with admissibility rulings')"
                     >
                         <template #cell-ruling="{ row }">
                             <StatusBadge v-if="row.ruling" :tone="RULING_TONE[row.ruling] ?? 'neutral'">
                                 {{ RULING_LABEL[row.ruling] ?? row.ruling }}
                             </StatusBadge>
-                            <span v-else class="gloss">pending</span>
+                            <span v-else class="gloss">{{ t('c_institutions.case_detail.pending', 'pending') }}</span>
                             <span v-if="row.ruling_reason" class="citation" style="display: block">{{ row.ruling_reason }}</span>
                             <!-- F-JDG-014 — the court rules on this exhibit's admissibility -->
                             <template v-if="canRuleFilings && !row.ruling">
@@ -431,22 +428,22 @@ function submitRuling() {
                                     class="ruling-toggle"
                                     @click="openRuling(row, 'evidence')"
                                 >
-                                    Rule on admissibility
+                                    {{ t('c_institutions.case_detail.rule_admissibility', 'Rule on admissibility') }}
                                 </button>
                                 <form v-else class="ruling-form" :aria-busy="rulingBusy" @submit.prevent="submitRuling">
-                                    <label :for="'evidence-ruling-' + (row.id ?? row.title)">Admissibility</label>
+                                    <label :for="'evidence-ruling-' + (row.id ?? row.title)">{{ t('c_institutions.case_detail.admissibility_label', 'Admissibility') }}</label>
                                     <select :id="'evidence-ruling-' + (row.id ?? row.title)" v-model="rulingChoice">
-                                        <option value="admitted">Admit</option>
-                                        <option value="excluded">Exclude</option>
+                                        <option value="admitted">{{ t('c_institutions.case_detail.opt_admit', 'Admit') }}</option>
+                                        <option value="excluded">{{ t('c_institutions.case_detail.opt_exclude', 'Exclude') }}</option>
                                     </select>
-                                    <label :for="'evidence-reason-' + (row.id ?? row.title)">Written reason</label>
+                                    <label :for="'evidence-reason-' + (row.id ?? row.title)">{{ t('c_institutions.case_detail.written_reason', 'Written reason') }}</label>
                                     <textarea :id="'evidence-reason-' + (row.id ?? row.title)" v-model="rulingReason" rows="2" required />
-                                    <button type="submit" :disabled="rulingBusy || !rulingReason.trim()">File ruling</button>
+                                    <button type="submit" :disabled="rulingBusy || !rulingReason.trim()">{{ t('c_institutions.case_detail.file_ruling', 'File ruling') }}</button>
                                 </form>
                             </template>
                         </template>
                     </DataTable>
-                    <p v-else class="gloss">No exhibits on the evidence docket.</p>
+                    <p v-else class="gloss">{{ t('c_institutions.case_detail.no_exhibits', 'No exhibits on the evidence docket.') }}</p>
                 </template>
 
                 <!-- Stage 6 — the jury draw -->
@@ -455,74 +452,69 @@ function submitRuling() {
                         v-if="jury"
                         tone="info"
                         role="status"
-                        title="Random draw complete — voir dire under way"
+                        :title="t('c_institutions.case_detail.jury_drawn_title', 'Random draw complete — voir dire under way')"
                     >
-                        {{ jury.jurors }} jurors + {{ jury.alternates }} alternates drawn at random from
-                        {{ jury.pool_label }}. The selection seed is published to the
-                        <Link :href="jury.seed_audit_href">audit chain</Link> — anyone can verify the draw.
+                        {{ t('c_institutions.case_detail.jury_drawn_lead', { jurors: jury.jurors, alternates: jury.alternates, pool: jury.pool_label }) }}
+                        {{ t('c_institutions.case_detail.jury_seed_before', 'The selection seed is published to the') }}
+                        <Link :href="jury.seed_audit_href">{{ t('c_institutions.case_detail.audit_chain', 'audit chain') }}</Link>
+                        {{ t('c_institutions.case_detail.jury_seed_after', '— anyone can verify the draw.') }}
                         <span class="citation" data-no-i18n>Art. IV §4 (jury of peers) · WF-JUD-04</span>
                     </Banner>
-                    <Banner v-else-if="kase.jury_entitled" tone="info" role="status" title="Jury pending.">
-                        This criminal case is jury-entitled — the jury is drawn at random once the bench
-                        is seated (F-JDG-002). The selection seed publishes to the audit chain.
+                    <Banner v-else-if="kase.jury_entitled" tone="info" role="status" :title="t('c_institutions.case_detail.jury_pending_title', 'Jury pending.')">
+                        {{ t('c_institutions.case_detail.jury_pending_body', 'This criminal case is jury-entitled — the jury is drawn at random once the bench is seated (F-JDG-002). The selection seed publishes to the audit chain.') }}
                     </Banner>
-                    <p v-else class="gloss">No jury — a jury attaches only to a jury-entitled criminal case.</p>
+                    <p v-else class="gloss">{{ t('c_institutions.case_detail.no_jury', 'No jury — a jury attaches only to a jury-entitled criminal case.') }}</p>
 
                     <p style="margin-block-start: var(--space-3)">
-                        <Link href="/judiciary/jury">See this stage as a summoned juror →</Link>
+                        <Link href="/judiciary/jury">{{ t('c_institutions.case_detail.see_as_juror', 'See this stage as a summoned juror →') }}</Link>
                     </p>
                 </template>
 
                 <!-- Stage 8 — the locked deliberation spaces -->
                 <template #stage-8>
                     <div class="grid-2">
-                        <Card inset title="Judges' chambers">
-                            <StatusBadge tone="neutral" icon="lock">Locked — panel judges only</StatusBadge>
+                        <Card inset :title="t('c_institutions.case_detail.chambers_title', 'Judges\' chambers')">
+                            <StatusBadge tone="neutral" icon="lock">{{ t('c_institutions.case_detail.chambers_locked', 'Locked — panel judges only') }}</StatusBadge>
                             <p style="margin-block-start: var(--space-2); font-size: var(--text-sm)">
-                                Access-controlled room for the panel judges only. Parties and advocates cannot enter.
+                                {{ t('c_institutions.case_detail.chambers_body', 'Access-controlled room for the panel judges only. Parties and advocates cannot enter.') }}
                             </p>
                         </Card>
-                        <Card inset title="Jury room">
-                            <StatusBadge tone="neutral" icon="lock">Locked — opens at deliberation</StatusBadge>
+                        <Card inset :title="t('c_institutions.case_detail.jury_room_title', 'Jury room')">
+                            <StatusBadge tone="neutral" icon="lock">{{ t('c_institutions.case_detail.jury_room_locked', 'Locked — opens at deliberation') }}</StatusBadge>
                             <p style="margin-block-start: var(--space-2); font-size: var(--text-sm)">
-                                The jury deliberates separately — no judges, no parties, no contact. Deliberation is the
-                                only unrecorded space; the verdict itself is recorded.
+                                {{ t('c_institutions.case_detail.jury_room_body', 'The jury deliberates separately — no judges, no parties, no contact. Deliberation is the only unrecorded space; the verdict itself is recorded.') }}
                             </p>
                         </Card>
                     </div>
                     <p class="citation" style="margin-block-start: var(--space-3)">
-                        Separate deliberation preserves the independence of the jury of peers · Art. IV §4
+                        {{ t('c_institutions.case_detail.deliberation_cite', 'Separate deliberation preserves the independence of the jury of peers · Art. IV §4') }}
                     </p>
                 </template>
 
                 <!-- Stage 9 — judgement: the double-jeopardy flag + sentence/warrant -->
                 <template #stage-9>
-                    <Banner v-if="isCriminal" tone="warning" role="note" title="Criminal outcome — double-jeopardy flag attaches">
-                        Whichever way the verdict falls, the outcome record carries the double-jeopardy flag: the
-                        accused can never be prosecuted again for this same accusation. The flag is machine-enforced
-                        at filing time. <span class="citation" data-no-i18n>Art. II §8</span>
+                    <Banner v-if="isCriminal" tone="warning" role="note" :title="t('c_institutions.case_detail.dj_title', 'Criminal outcome — double-jeopardy flag attaches')">
+                        {{ t('c_institutions.case_detail.dj_body', 'Whichever way the verdict falls, the outcome record carries the double-jeopardy flag: the accused can never be prosecuted again for this same accusation. The flag is machine-enforced at filing time.') }} <span class="citation" data-no-i18n>Art. II §8</span>
                     </Banner>
                     <p style="margin-block-start: var(--space-3)">
-                        On a guilty verdict the panel issues a sentencing order (F-JDG-009); any arrest,
-                        search, or seizure connected to enforcement needs a warrant with a stated reason
-                        and duration (F-JDG-010 · Art. II §8). The court's actions render below.
+                        {{ t('c_institutions.case_detail.sentence_note', 'On a guilty verdict the panel issues a sentencing order (F-JDG-009); any arrest, search, or seizure connected to enforcement needs a warrant with a stated reason and duration (F-JDG-010 · Art. II §8). The court\'s actions render below.') }}
                     </p>
                 </template>
 
                 <!-- Stage 10 — opinion publication -->
                 <template #stage-10>
                     <p>
-                        The panel publishes its opinion to the public record, linked to the case and to every law it
-                        interprets. Opinions are <strong>commentary on the law as written or edited</strong> — only the
-                        Art. IV §5 process can change the law's text.
+                        {{ t('c_institutions.case_detail.opinion_before', 'The panel publishes its opinion to the public record, linked to the case and to every law it interprets. Opinions are') }}
+                        <strong>{{ t('c_institutions.case_detail.opinion_strong', 'commentary on the law as written or edited') }}</strong>
+                        {{ t('c_institutions.case_detail.opinion_after', '— only the Art. IV §5 process can change the law\'s text.') }}
                     </p>
                     <p class="citation" style="margin-block: var(--space-2)">
-                        <HardenedChip>Opinion linked as commentary · Art. IV §4–§5</HardenedChip>
+                        <HardenedChip>{{ t('c_institutions.case_detail.opinion_chip', 'Opinion linked as commentary · Art. IV §4–§5') }}</HardenedChip>
                     </p>
 
                     <p style="margin-block-start: var(--space-3)">
                         <Link :href="`/judiciaries/${kase.judiciary_id}/challenges`">
-                            See how a finding changes the law — the Art. IV §5 tracker →
+                            {{ t('c_institutions.case_detail.opinion_tracker_link', 'See how a finding changes the law — the Art. IV §5 tracker →') }}
                         </Link>
                     </p>
                 </template>
@@ -530,39 +522,37 @@ function submitRuling() {
         </Card>
 
         <!-- ========================= appeal (IO-2, Art. II §8) ========== -->
-        <Card v-if="isAppeal || showAppealFiling || appealLinks.length" as="section" title="Appeal" class="appeal">
+        <Card v-if="isAppeal || showAppealFiling || appealLinks.length" as="section" :title="t('c_institutions.case_detail.appeal_title', 'Appeal')" class="appeal">
             <!-- This case IS an appeal — link back to the original + en-banc note -->
             <template v-if="isAppeal">
                 <p>
-                    This case is an appeal of
-                    <Link v-if="kase.appeal_of" :href="kase.appeal_of.href">{{ kase.appeal_of.docket_number }}</Link><span v-else>the original case</span>.
-                    <template v-if="kase.en_banc"> It is heard by the same court sitting en banc — there is no parent court.</template>
-                    <template v-else> It is heard by the parent court.</template>
+                    {{ t('c_institutions.case_detail.appeal_of_before', 'This case is an appeal of') }}
+                    <Link v-if="kase.appeal_of" :href="kase.appeal_of.href">{{ kase.appeal_of.docket_number }}</Link><span v-else>{{ t('c_institutions.case_detail.appeal_of_fallback', 'the original case') }}</span>.
+                    <template v-if="kase.en_banc"> {{ t('c_institutions.case_detail.appeal_enbanc', 'It is heard by the same court sitting en banc — there is no parent court.') }}</template>
+                    <template v-else> {{ t('c_institutions.case_detail.appeal_parent', 'It is heard by the parent court.') }}</template>
                 </p>
-                <p class="citation">A criminal appeal may only affirm or vacate — never a re-trial · Art. II §8.</p>
+                <p class="citation">{{ t('c_institutions.case_detail.appeal_criminal_cite', 'A criminal appeal may only affirm or vacate — never a re-trial · Art. II §8.') }}</p>
             </template>
 
             <!-- A decided/sentenced original — the party's appeal-filing control -->
             <template v-else-if="showAppealFiling">
                 <p>
-                    A party to this judgement may appeal on a proven contradiction in law, or an error in the
-                    case that made the judgement invalid. The appeal opens a new case at the parent court (or the
-                    same court en banc); this judgement rests as appealed and its verdict is preserved · Art. II §8.
+                    {{ t('c_institutions.case_detail.appeal_filing_body', 'A party to this judgement may appeal on a proven contradiction in law, or an error in the case that made the judgement invalid. The appeal opens a new case at the parent court (or the same court en banc); this judgement rests as appealed and its verdict is preserved · Art. II §8.') }}
                 </p>
                 <form class="appeal-form" novalidate :aria-busy="appealForm.processing" @submit.prevent="submitAppeal">
-                    <Field label="Grounds for appeal" hint="The contradiction in law, or the error in the case." :error="appealForm.errors.grounds">
+                    <Field :label="t('c_institutions.case_detail.grounds_label', 'Grounds for appeal')" :hint="t('c_institutions.case_detail.grounds_hint', 'The contradiction in law, or the error in the case.')" :error="appealForm.errors.grounds">
                         <template #control="{ id, describedBy }">
                             <textarea :id="id" v-model="appealForm.grounds" class="field-input" rows="3" :aria-describedby="describedBy" />
                         </template>
                     </Field>
-                    <Field label="Statement (optional)" :error="appealForm.errors.statement">
+                    <Field :label="t('c_institutions.case_detail.statement_label', 'Statement (optional)')" :error="appealForm.errors.statement">
                         <template #control="{ id, describedBy }">
                             <textarea :id="id" v-model="appealForm.statement" class="field-input" rows="2" :aria-describedby="describedBy" />
                         </template>
                     </Field>
                     <div class="cluster">
                         <button type="submit" class="btn btn-primary" :disabled="!canAppeal || appealForm.processing || !appealForm.grounds.trim()">
-                            {{ appealForm.processing ? 'Filing…' : 'Appeal this judgement' }}
+                            {{ appealForm.processing ? t('c_institutions.case_detail.filing', 'Filing…') : t('c_institutions.case_detail.appeal_submit', 'Appeal this judgement') }}
                         </button>
                     </div>
                     <p v-if="appealReason" class="gloss" role="status">{{ appealReason }}</p>
@@ -571,7 +561,7 @@ function submitRuling() {
 
             <!-- An appealed original — link to its appeal case(s) -->
             <template v-if="appealLinks.length">
-                <p style="margin-block-start: var(--space-3)">This judgement has been appealed:</p>
+                <p style="margin-block-start: var(--space-3)">{{ t('c_institutions.case_detail.appealed_label', 'This judgement has been appealed:') }}</p>
                 <ul class="appeal-list">
                     <li v-for="a in appealLinks" :key="a.id">
                         <Link :href="a.href">{{ a.docket_number }}</Link>
@@ -583,10 +573,9 @@ function submitRuling() {
         </Card>
 
         <!-- ================= case proceedings (IO-1, R-19/R-20) ========== -->
-        <Card v-if="isCourt" as="section" title="Case proceedings" class="proceedings">
+        <Card v-if="isCourt" as="section" :title="t('c_institutions.case_detail.proceedings_title', 'Case proceedings')" class="proceedings">
             <p class="citation" style="margin-block-end: var(--space-3)">
-                The court advances the case through its lifecycle — each control is enabled only at the
-                state where the act is legal; the engine re-asserts the edge on every filing. Art. IV §4.
+                {{ t('c_institutions.case_detail.proceedings_cite', 'The court advances the case through its lifecycle — each control is enabled only at the state where the act is legal; the engine re-asserts the edge on every filing. Art. IV §4.') }}
             </p>
             <div class="stack" style="gap: var(--space-4)">
                 <!-- F-JDG-011 — open the hearing (paneled/jury_empaneled → heard) -->
@@ -595,11 +584,11 @@ function submitRuling() {
                     :form="surfaceForm('F-JDG-011')"
                     :inertia-form="hearingForm"
                     :disabled="!canAdvanceHearing"
-                    submit-label="Open the hearing"
+                    :submit-label="t('c_institutions.case_detail.open_hearing', 'Open the hearing')"
                     @submit="submitHearing"
                 >
-                    <p class="citation">Opens arguments once the panel (and any jury) is seated · Art. IV §4.</p>
-                    <p v-if="!canAdvanceHearing" class="gloss" role="status">Available once the case is paneled (and any jury empaneled).</p>
+                    <p class="citation">{{ t('c_institutions.case_detail.open_hearing_cite', 'Opens arguments once the panel (and any jury) is seated · Art. IV §4.') }}</p>
+                    <p v-if="!canAdvanceHearing" class="gloss" role="status">{{ t('c_institutions.case_detail.open_hearing_gloss', 'Available once the case is paneled (and any jury empaneled).') }}</p>
                 </FormCard>
 
                 <!-- F-JDG-012 — submit to deliberation (heard → deliberation) -->
@@ -608,31 +597,30 @@ function submitRuling() {
                     :form="surfaceForm('F-JDG-012')"
                     :inertia-form="deliberationForm"
                     :disabled="!canDeliberate"
-                    submit-label="Send to deliberation"
+                    :submit-label="t('c_institutions.case_detail.send_deliberation', 'Send to deliberation')"
                     @submit="submitDeliberation"
                 >
-                    <p class="citation">Closes arguments; chambers and the jury room open. Deliberation is the only unrecorded space · Art. IV §4.</p>
-                    <p v-if="!canDeliberate" class="gloss" role="status">Available once the hearing is under way.</p>
+                    <p class="citation">{{ t('c_institutions.case_detail.send_deliberation_cite', 'Closes arguments; chambers and the jury room open. Deliberation is the only unrecorded space · Art. IV §4.') }}</p>
+                    <p v-if="!canDeliberate" class="gloss" role="status">{{ t('c_institutions.case_detail.send_deliberation_gloss', 'Available once the hearing is under way.') }}</p>
                 </FormCard>
 
                 <!-- The VERDICT — a judge-only CaseService transition, not a form -->
-                <Card inset as="section" title="Record the verdict" class="verdict-form">
+                <Card inset as="section" :title="t('c_institutions.case_detail.verdict_title', 'Record the verdict')" class="verdict-form">
                     <p class="citation" style="margin-block-end: var(--space-2)">
-                        The verdict is recorded by a judge seated on this case's panel — a judge-only act, not a form.
-                        A criminal verdict locks double jeopardy · Art. II §8 · Art. IV §4.
+                        {{ t('c_institutions.case_detail.verdict_cite', 'The verdict is recorded by a judge seated on this case\'s panel — a judge-only act, not a form. A criminal verdict locks double jeopardy · Art. II §8 · Art. IV §4.') }}
                     </p>
                     <form novalidate :aria-busy="verdictForm.processing" @submit.prevent="submitVerdict">
                         <div class="grid-2">
-                            <Field label="Recorded by" :error="verdictForm.errors.decided_by">
+                            <Field :label="t('c_institutions.case_detail.recorded_by_label', 'Recorded by')" :error="verdictForm.errors.decided_by">
                                 <template #control="{ id, describedBy }">
                                     <select :id="id" v-model="verdictForm.decided_by" class="select" :aria-describedby="describedBy">
-                                        <option value="panel">Panel</option>
+                                        <option value="panel">{{ t('c_institutions.case_detail.decided_panel', 'Panel') }}</option>
                                         <!-- Jury verdict only when a jury actually sat; the server refuses it otherwise · Art. IV §4. -->
-                                        <option v-if="jury" value="jury">Jury</option>
+                                        <option v-if="jury" value="jury">{{ t('c_institutions.case_detail.decided_jury', 'Jury') }}</option>
                                     </select>
                                 </template>
                             </Field>
-                            <Field label="Outcome" :error="verdictForm.errors.outcome">
+                            <Field :label="t('c_institutions.case_detail.outcome_label', 'Outcome')" :error="verdictForm.errors.outcome">
                                 <template #control="{ id, describedBy }">
                                     <select :id="id" v-model="verdictForm.outcome" class="select" :aria-describedby="describedBy">
                                         <option v-for="opt in outcomeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
@@ -641,33 +629,33 @@ function submitRuling() {
                             </Field>
                         </div>
                         <div v-if="verdictForm.decided_by === 'panel'" class="grid-2">
-                            <Field label="Votes for" hint="For + against must equal the panel size; the majority carries the outcome." :error="verdictForm.errors.panel_vote_for">
+                            <Field :label="t('c_institutions.case_detail.votes_for_label', 'Votes for')" :hint="t('c_institutions.case_detail.votes_for_hint', 'For + against must equal the panel size; the majority carries the outcome.')" :error="verdictForm.errors.panel_vote_for">
                                 <template #control="{ id, describedBy }">
                                     <input :id="id" v-model.number="verdictForm.panel_vote_for" type="number" min="0" class="field-input" :aria-describedby="describedBy" />
                                 </template>
                             </Field>
-                            <Field label="Votes against" :error="verdictForm.errors.panel_vote_against">
+                            <Field :label="t('c_institutions.case_detail.votes_against_label', 'Votes against')" :error="verdictForm.errors.panel_vote_against">
                                 <template #control="{ id, describedBy }">
                                     <input :id="id" v-model.number="verdictForm.panel_vote_against" type="number" min="0" class="field-input" :aria-describedby="describedBy" />
                                 </template>
                             </Field>
                         </div>
-                        <Field v-else label="Jury unanimous" hint="A jury verdict is recorded only when the jury is unanimous." :error="verdictForm.errors.jury_unanimous">
+                        <Field v-else :label="t('c_institutions.case_detail.jury_unanimous_label', 'Jury unanimous')" :hint="t('c_institutions.case_detail.jury_unanimous_hint', 'A jury verdict is recorded only when the jury is unanimous.')" :error="verdictForm.errors.jury_unanimous">
                             <template #control="{ id, describedBy }">
                                 <input :id="id" v-model="verdictForm.jury_unanimous" type="checkbox" :aria-describedby="describedBy" />
                             </template>
                         </Field>
-                        <Field label="Summary (optional)" :error="verdictForm.errors.summary">
+                        <Field :label="t('c_institutions.case_detail.summary_label', 'Summary (optional)')" :error="verdictForm.errors.summary">
                             <template #control="{ id, describedBy }">
                                 <textarea :id="id" v-model="verdictForm.summary" class="field-input" rows="2" :aria-describedby="describedBy" />
                             </template>
                         </Field>
                         <div class="cluster">
                             <button type="submit" class="btn btn-primary" :disabled="!canRecordVerdict || verdictForm.processing">
-                                {{ verdictForm.processing ? 'Recording…' : 'Record verdict' }}
+                                {{ verdictForm.processing ? t('c_institutions.case_detail.recording', 'Recording…') : t('c_institutions.case_detail.record_verdict', 'Record verdict') }}
                             </button>
                         </div>
-                        <p v-if="!canRecordVerdict" class="gloss" role="status">Available once the case is in deliberation.</p>
+                        <p v-if="!canRecordVerdict" class="gloss" role="status">{{ t('c_institutions.case_detail.verdict_gloss', 'Available once the case is in deliberation.') }}</p>
                     </form>
                 </Card>
 
@@ -677,24 +665,23 @@ function submitRuling() {
                     :form="surfaceForm('F-JDG-013')"
                     :inertia-form="dismissForm"
                     :disabled="!canDismiss"
-                    submit-label="Dismiss the case"
+                    :submit-label="t('c_institutions.case_detail.dismiss_case', 'Dismiss the case')"
                     @submit="submitDismiss"
                 >
-                    <Field label="Reason for dismissal" hint="The public record names why the case ended." :error="dismissForm.errors.reason">
+                    <Field :label="t('c_institutions.case_detail.dismiss_reason_label', 'Reason for dismissal')" :hint="t('c_institutions.case_detail.dismiss_reason_hint', 'The public record names why the case ended.')" :error="dismissForm.errors.reason">
                         <template #control="{ id, describedBy }">
                             <textarea :id="id" v-model="dismissForm.reason" class="field-input" rows="2" :aria-describedby="describedBy" />
                         </template>
                     </Field>
-                    <p v-if="!canDismiss" class="gloss" role="status">Available before the panel is seated (filed or accepted).</p>
+                    <p v-if="!canDismiss" class="gloss" role="status">{{ t('c_institutions.case_detail.dismiss_gloss', 'Available before the panel is seated (filed or accepted).') }}</p>
                 </FormCard>
             </div>
         </Card>
 
         <!-- ====================== court actions (R-19/R-20) ============== -->
-        <Card v-if="hasCourtAction" as="section" title="Court actions">
+        <Card v-if="hasCourtAction" as="section" :title="t('c_institutions.case_detail.court_actions_title', 'Court actions')">
             <p class="citation" style="margin-block-end: var(--space-3)">
-                The court advances the append-only record by filing through the engine — each action
-                is accepted only at the state where it is legal (the engine is the boundary). Art. IV §4.
+                {{ t('c_institutions.case_detail.court_actions_cite', 'The court advances the append-only record by filing through the engine — each action is accepted only at the state where it is legal (the engine is the boundary). Art. IV §4.') }}
             </p>
             <div class="stack" style="gap: var(--space-4)">
                 <!-- F-JDG-001 — accept + classify + seat the panel -->
@@ -702,20 +689,20 @@ function submitRuling() {
                     v-if="canAccept && surfaceForm('F-JDG-001')"
                     :form="surfaceForm('F-JDG-001')"
                     :inertia-form="acceptForm"
-                    submit-label="Accept and seat the panel"
+                    :submit-label="t('c_institutions.case_detail.accept_panel', 'Accept and seat the panel')"
                     @submit="submitAccept"
                 >
                     <Field
-                        label="Court severity classification"
-                        hint="The court's classification drives the panel size — not the filer's claim."
+                        :label="t('c_institutions.case_detail.severity_label', 'Court severity classification')"
+                        :hint="t('c_institutions.case_detail.severity_hint', 'The court\'s classification drives the panel size — not the filer\'s claim.')"
                         :error="acceptForm.errors.court_severity"
                     >
                         <template #control="{ id, describedBy }">
                             <select :id="id" v-model="acceptForm.court_severity" class="select" :aria-describedby="describedBy">
-                                <option value="minor">Minor</option>
-                                <option value="moderate">Moderate</option>
-                                <option value="serious">Serious</option>
-                                <option value="constitutional_major">Major constitutional question</option>
+                                <option value="minor">{{ t('c_institutions.case_detail.sev_minor', 'Minor') }}</option>
+                                <option value="moderate">{{ t('c_institutions.case_detail.sev_moderate', 'Moderate') }}</option>
+                                <option value="serious">{{ t('c_institutions.case_detail.sev_serious', 'Serious') }}</option>
+                                <option value="constitutional_major">{{ t('c_institutions.case_detail.sev_major', 'Major constitutional question') }}</option>
                             </select>
                         </template>
                     </Field>
@@ -726,22 +713,22 @@ function submitRuling() {
                     v-if="canOrderJury && surfaceForm('F-JDG-002')"
                     :form="surfaceForm('F-JDG-002')"
                     :inertia-form="juryForm"
-                    submit-label="Order the jury draw"
+                    :submit-label="t('c_institutions.case_detail.order_jury', 'Order the jury draw')"
                     @submit="submitJury"
                 >
                     <div class="grid-2">
-                        <Field label="Jurors" :error="juryForm.errors.seats">
+                        <Field :label="t('c_institutions.case_detail.jurors_label', 'Jurors')" :error="juryForm.errors.seats">
                             <template #control="{ id, describedBy }">
                                 <input :id="id" v-model.number="juryForm.seats" type="number" min="1" class="field-input" :aria-describedby="describedBy" />
                             </template>
                         </Field>
-                        <Field label="Alternates" :error="juryForm.errors.alternates">
+                        <Field :label="t('c_institutions.case_detail.alternates_label', 'Alternates')" :error="juryForm.errors.alternates">
                             <template #control="{ id, describedBy }">
                                 <input :id="id" v-model.number="juryForm.alternates" type="number" min="0" class="field-input" :aria-describedby="describedBy" />
                             </template>
                         </Field>
                     </div>
-                    <p class="citation">The selection seed publishes to the audit chain — anyone can verify the draw · Art. IV §4.</p>
+                    <p class="citation">{{ t('c_institutions.case_detail.jury_seed_cite', 'The selection seed publishes to the audit chain — anyone can verify the draw · Art. IV §4.') }}</p>
                 </FormCard>
 
                 <!-- F-JDG-009 — sentencing order (guilty criminal verdict only) -->
@@ -749,15 +736,15 @@ function submitRuling() {
                     v-if="canSentence && surfaceForm('F-JDG-009')"
                     :form="surfaceForm('F-JDG-009')"
                     :inertia-form="sentenceForm"
-                    submit-label="Issue sentencing order"
+                    :submit-label="t('c_institutions.case_detail.issue_sentence', 'Issue sentencing order')"
                     @submit="submitSentence"
                 >
-                    <Field label="Sentence terms" :error="sentenceForm.errors.terms">
+                    <Field :label="t('c_institutions.case_detail.sentence_terms_label', 'Sentence terms')" :error="sentenceForm.errors.terms">
                         <template #control="{ id, describedBy }">
                             <textarea :id="id" v-model="sentenceForm.terms" class="field-input" rows="3" :aria-describedby="describedBy" />
                         </template>
                     </Field>
-                    <p class="citation">Issues only on a guilty criminal verdict · Art. IV §4.</p>
+                    <p class="citation">{{ t('c_institutions.case_detail.sentence_cite', 'Issues only on a guilty criminal verdict · Art. IV §4.') }}</p>
                 </FormCard>
 
                 <!-- F-JDG-010 — warrant (Art. II §8 facts) -->
@@ -765,23 +752,23 @@ function submitRuling() {
                     v-if="canWarrant && surfaceForm('F-JDG-010')"
                     :form="surfaceForm('F-JDG-010')"
                     :inertia-form="warrantForm"
-                    submit-label="Issue warrant"
+                    :submit-label="t('c_institutions.case_detail.issue_warrant', 'Issue warrant')"
                     @submit="submitWarrant"
                 >
                     <div class="grid-2">
-                        <Field label="Warrant kind" :error="warrantForm.errors.kind">
+                        <Field :label="t('c_institutions.case_detail.warrant_kind_label', 'Warrant kind')" :error="warrantForm.errors.kind">
                             <template #control="{ id, describedBy }">
                                 <select :id="id" v-model="warrantForm.kind" class="select" :aria-describedby="describedBy">
-                                    <option value="arrest">Arrest</option>
-                                    <option value="search">Search</option>
-                                    <option value="seizure">Seizure</option>
+                                    <option value="arrest">{{ t('c_institutions.case_detail.warrant_arrest', 'Arrest') }}</option>
+                                    <option value="search">{{ t('c_institutions.case_detail.warrant_search', 'Search') }}</option>
+                                    <option value="seizure">{{ t('c_institutions.case_detail.warrant_seizure', 'Seizure') }}</option>
                                 </select>
                             </template>
                         </Field>
                         <Field
                             v-if="warrantForm.kind === 'arrest'"
-                            label="Max hold (hours)"
-                            hint="An arrest warrant must state the maximum duration · Art. II §8."
+                            :label="t('c_institutions.case_detail.max_hold_label', 'Max hold (hours)')"
+                            :hint="t('c_institutions.case_detail.max_hold_hint', 'An arrest warrant must state the maximum duration · Art. II §8.')"
                             :error="warrantForm.errors.max_hold_duration_hours"
                         >
                             <template #control="{ id, describedBy }">
@@ -789,7 +776,7 @@ function submitRuling() {
                             </template>
                         </Field>
                     </div>
-                    <Field label="Stated reason" hint="Every warrant must establish its reason · Art. II §8." :error="warrantForm.errors.stated_reason">
+                    <Field :label="t('c_institutions.case_detail.stated_reason_label', 'Stated reason')" :hint="t('c_institutions.case_detail.stated_reason_hint', 'Every warrant must establish its reason · Art. II §8.')" :error="warrantForm.errors.stated_reason">
                         <template #control="{ id, describedBy }">
                             <textarea :id="id" v-model="warrantForm.stated_reason" class="field-input" rows="2" :aria-describedby="describedBy" />
                         </template>
@@ -801,26 +788,26 @@ function submitRuling() {
                     v-if="canOpine && surfaceForm('F-JDG-003')"
                     :form="surfaceForm('F-JDG-003')"
                     :inertia-form="opinionForm"
-                    submit-label="Publish opinion"
+                    :submit-label="t('c_institutions.case_detail.publish_opinion', 'Publish opinion')"
                     @submit="submitOpinion"
                 >
                     <div class="grid-2">
-                        <Field label="Opinion kind" :error="opinionForm.errors.kind">
+                        <Field :label="t('c_institutions.case_detail.opinion_kind_label', 'Opinion kind')" :error="opinionForm.errors.kind">
                             <template #control="{ id, describedBy }">
                                 <select :id="id" v-model="opinionForm.kind" class="select" :aria-describedby="describedBy">
-                                    <option value="majority">Majority</option>
-                                    <option value="concurrence">Concurrence</option>
-                                    <option value="dissent">Dissent</option>
+                                    <option value="majority">{{ t('c_institutions.case_detail.opinion_majority', 'Majority') }}</option>
+                                    <option value="concurrence">{{ t('c_institutions.case_detail.opinion_concurrence', 'Concurrence') }}</option>
+                                    <option value="dissent">{{ t('c_institutions.case_detail.opinion_dissent', 'Dissent') }}</option>
                                 </select>
                             </template>
                         </Field>
-                        <Field label="Title" :error="opinionForm.errors.title">
+                        <Field :label="t('c_institutions.case_detail.opinion_title_label', 'Title')" :error="opinionForm.errors.title">
                             <template #control="{ id, describedBy }">
                                 <input :id="id" v-model="opinionForm.title" class="field-input" :aria-describedby="describedBy" />
                             </template>
                         </Field>
                     </div>
-                    <Field label="Opinion body" :error="opinionForm.errors.body">
+                    <Field :label="t('c_institutions.case_detail.opinion_body_label', 'Opinion body')" :error="opinionForm.errors.body">
                         <template #control="{ id, describedBy }">
                             <textarea :id="id" v-model="opinionForm.body" class="field-input" rows="4" :aria-describedby="describedBy" />
                         </template>
@@ -828,8 +815,8 @@ function submitRuling() {
                     <!-- IO-2 — on an appeal case the opinion records the appellate outcome. -->
                     <Field
                         v-if="isAppeal"
-                        label="Appellate outcome"
-                        hint="Civil: affirm, reverse or remand. Criminal: affirm or vacate only — never a re-trial (Art. II §8)."
+                        :label="t('c_institutions.case_detail.appellate_outcome_label', 'Appellate outcome')"
+                        :hint="t('c_institutions.case_detail.appellate_outcome_hint', 'Civil: affirm, reverse or remand. Criminal: affirm or vacate only — never a re-trial (Art. II §8).')"
                         :error="opinionForm.errors.appeal_outcome"
                     >
                         <template #control="{ id, describedBy }">
@@ -838,16 +825,14 @@ function submitRuling() {
                             </select>
                         </template>
                     </Field>
-                    <p class="citation">Commentary on the law as written or edited; only the Art. IV §5 process changes a law's text.</p>
+                    <p class="citation">{{ t('c_institutions.case_detail.opinion_commentary_cite', 'Commentary on the law as written or edited; only the Art. IV §5 process changes a law\'s text.') }}</p>
                 </FormCard>
             </div>
         </Card>
 
         <template #about>
             <p>
-                The case lifecycle is WF-JUD-03; jury paneling is WF-JUD-04; a constitutional finding branches
-                into WF-JUD-05. Major constitutional questions take the full court instead of a severity-scaled
-                panel (CLK-16, hardened). The Case state machine renders live above.
+                {{ t('c_institutions.case_detail.about', 'The case lifecycle is WF-JUD-03; jury paneling is WF-JUD-04; a constitutional finding branches into WF-JUD-05. Major constitutional questions take the full court instead of a severity-scaled panel (CLK-16, hardened). The Case state machine renders live above.') }}
             </p>
         </template>
     </PageScaffold>

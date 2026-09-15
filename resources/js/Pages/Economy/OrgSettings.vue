@@ -72,7 +72,7 @@ const chosenName = useRemember(ref(''), `${draftKey}:holder`);
 const chosenContext = useRemember(ref(null), `${draftKey}:holder-context`);
 const chosenRecipient = computed(() => ({
     ...(chosenContext.value?.id === shareForm.holder_id && chosenContext.value?.type === shareForm.holder_type ? chosenContext.value : {}),
-    id: shareForm.holder_id, type: shareForm.holder_type, name: chosenName.value || 'Selected recipient',
+    id: shareForm.holder_id, type: shareForm.holder_type, name: chosenName.value || t('c_economy.org_settings.selected_recipient', 'Selected recipient'),
 }));
 const recipientQuery = ref(props.recipient_directory.query);
 const recipientType = ref(props.recipient_directory.type);
