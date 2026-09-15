@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Shell/JurisdictionRail — the general jurisdiction tools for the place on
  * screen (operator 2026-09-10: "the side bar like the mapper to have general
@@ -46,7 +47,7 @@ const groups = computed(() => {
 });
 
 const isCurrent = (t) => t.href && path.value === t.href;
-const people = computed(() => (Number(props.place.population ?? 0) > 0 ? Number(props.place.population).toLocaleString() : null));
+const people = computed(() => (Number(props.place.population ?? 0) > 0 ? localeFmt.number(Number(props.place.population)) : null));
 </script>
 
 <template>

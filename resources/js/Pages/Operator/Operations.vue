@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 // Operator Operations console (Phase 1, read-only) — the infrastructure & identity
 // inventory. Every hardcoded / env-baked / file-managed knob in one place, with its
 // apply tier and live status. Secrets are surfaced as configured?/dev-default? only —
@@ -110,7 +111,7 @@ const stateBadge = (state) =>
 
 const certClass = (cert) =>
     cert.expired ? 'text-rose-700 font-semibold' : cert.expiring ? 'text-amber-700 font-medium' : 'text-slate-700';
-const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
+const fmtDate = (iso) => (iso ? localeFmt.date(new Date(iso)) : '—');
 </script>
 
 <template>

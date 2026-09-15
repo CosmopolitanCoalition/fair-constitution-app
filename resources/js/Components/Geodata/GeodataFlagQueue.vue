@@ -323,7 +323,8 @@
     </div>
 </template>
 
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { csrfFetch } from '@/lib/csrf'
@@ -473,7 +474,7 @@ function isSlugLike(v) {
 function formatScalar(v) {
     if (v === null || v === undefined) return '—'
     if (typeof v === 'object') return JSON.stringify(v)
-    if (typeof v === 'number') return v.toLocaleString()
+    if (typeof v === 'number') return localeFmt.number(v)
     return String(v)
 }
 function formatTime(iso) {
@@ -481,7 +482,7 @@ function formatTime(iso) {
     try {
         const d = new Date(iso)
         if (Number.isNaN(d.getTime())) return iso
-        return d.toLocaleString()
+        return localeFmt.dateTime(d)
     } catch (e) {
         return iso
     }

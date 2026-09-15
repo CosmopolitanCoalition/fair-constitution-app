@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Civic/PetitionDetail — FE-C10 (PHASE_C_DESIGN_frontend.md §B.13).
  *
@@ -115,7 +116,7 @@ function toggleSignature() {
                 :pct="petition.pct"
             />
             <p class="citation" style="margin-block-start: var(--space-1)">
-                {{ t('c_civic.petition_detail.threshold_line', { count: petition.threshold_count.toLocaleString(), pct: petition.pct, basis: petition.population_basis.toLocaleString() }) }}
+                {{ t('c_civic.petition_detail.threshold_line', { count: localeFmt.number(petition.threshold_count), pct: petition.pct, basis: localeFmt.number(petition.population_basis) }) }}
             </p>
             <div class="cluster" style="margin-block-start: var(--space-3)">
                 <Btn
@@ -146,10 +147,10 @@ function toggleSignature() {
                         </StatusBadge>
                     </p>
                     <p class="cc-small" style="margin-block-start: var(--space-2)">
-                        {{ t('c_civic.petition_detail.audit_counts', { valid: audit.result.valid.toLocaleString(), checked: audit.result.checked.toLocaleString(), pct: audit.result.pct_valid }) }}
+                        {{ t('c_civic.petition_detail.audit_counts', { valid: localeFmt.number(audit.result.valid), checked: localeFmt.number(audit.result.checked), pct: audit.result.pct_valid }) }}
                         {{ audit.result.still_above
-                            ? t('c_civic.petition_detail.audit_still_above', { threshold: petition.threshold_count.toLocaleString() })
-                            : t('c_civic.petition_detail.audit_below', { threshold: petition.threshold_count.toLocaleString() }) }}
+                            ? t('c_civic.petition_detail.audit_still_above', { threshold: localeFmt.number(petition.threshold_count) })
+                            : t('c_civic.petition_detail.audit_below', { threshold: localeFmt.number(petition.threshold_count) }) }}
                         <template v-if="audit.completed_at"> {{ t('c_civic.petition_detail.audit_completed', { when: audit.completed_at, board: audit.board_name }) }}</template>
                     </p>
                     <p class="citation">

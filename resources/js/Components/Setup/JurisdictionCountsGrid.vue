@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -37,7 +38,7 @@ const entries = computed(() => {
 })
 
 function fmt(n) {
-    return Number(n).toLocaleString()
+    return localeFmt.number(Number(n))
 }
 
 // Since boundary loading always finishes before population computation starts,

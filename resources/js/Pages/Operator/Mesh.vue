@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Operator/Mesh — mockups-v3-wiring Phase 4 (design contract:
  * mockups/v3/operator/mesh.html; dispositions: PHASE_4_DESIGN_peerage.md).
@@ -105,7 +106,7 @@ const SYNC_RESULT = {
 const syncResult = (result) =>
     SYNC_RESULT[result] ?? { tone: 'neutral', icon: 'info', label: String(result ?? '—').replaceAll('_', ' ') };
 
-const fmtWhen = (iso) => (iso ? new Date(iso).toLocaleString() : '—');
+const fmtWhen = (iso) => (iso ? localeFmt.dateTime(new Date(iso)) : '—');
 const shortId = (uuid) => (uuid ? String(uuid).slice(0, 8) : '—');
 
 /** How far behind our copy of a peer's record is, when both seqs are known. */

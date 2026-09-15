@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Social/PersonProfile — THE public person profile, the ?who= page
  * (contract mockups/v3/assets/js/profile-v2.js, other-view; v3.2 ruling 0a
@@ -171,7 +172,7 @@ const fmtDate = iso => {
     if (!iso) return '—';
     // A civil calendar date has no UTC offset and must not move to the preceding day.
     const date = /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(...iso.split('-').map((n, i) => Number(n) - (i === 1 ? 1 : 0))) : new Date(iso);
-    return date.toLocaleDateString();
+    return localeFmt.date(date);
 };
 
 const requestColumns = computed(() => [
@@ -566,7 +567,7 @@ function submitWithdrawEndorsement() {
                     <template v-if="standing">
                         <div class="cluster" style="gap: var(--space-6)">
                             <Stat :value="t('c_gap_civic_social.person_profile.rank_of', { rank: standing.rank, of: standing.of })" :label="t('c_gap_civic_social.person_profile.full_race_rank', 'full-race rank')" />
-                            <Stat :value="standing.approvals.toLocaleString()" :label="t('c_gap_civic_social.person_profile.approvals_label', 'approvals — aggregate · updated daily')" accent />
+                            <Stat :value="localeFmt.number(standing.approvals)" :label="t('c_gap_civic_social.person_profile.approvals_label', 'approvals — aggregate · updated daily')" accent />
                             <Stat :value="race?.finalist_count ?? '—'" :label="t('c_gap_civic_social.person_profile.finalist_places', 'finalist places (X)')" />
                         </div>
                         <div style="margin-block-start: var(--space-3)">

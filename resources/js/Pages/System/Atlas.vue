@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * System/Atlas — the public world-metrics surface (ATLAS_DESIGN.md, lane 4).
  *
@@ -72,7 +73,7 @@ const props = defineProps({
    page behind it; a bare {{ n }} would print a suppressed null as blank and a
    zero-coerced null as a lie. */
 function dash(n) {
-    return n == null ? '—' : Number(n).toLocaleString();
+    return n == null ? '—' : localeFmt.number(Number(n));
 }
 
 // Population density at a glance: 7.99B / 245.0M / 12K / 369 — the same
@@ -82,7 +83,7 @@ function formatPop(n) {
     if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
     if (n >= 1_000) return (n / 1_000).toFixed(0) + 'K';
-    return n.toLocaleString();
+    return localeFmt.number(n);
 }
 
 function pct(n, places = 2) {

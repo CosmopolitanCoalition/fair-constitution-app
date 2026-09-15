@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -97,7 +98,7 @@ function fmtTime(ts) {
     if (!ts) return ''
     const d = new Date(ts * 1000)
     if (Number.isNaN(d.getTime())) return ''
-    return d.toLocaleTimeString([], { hour12: false })
+    return localeFmt.time(d, { hour12: false })
 }
 
 function levelClass(level) {

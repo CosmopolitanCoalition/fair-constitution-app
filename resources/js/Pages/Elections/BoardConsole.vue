@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Elections/BoardConsole — FE-B7 (PHASE_B_DESIGN_frontend.md §B.7).
  *
@@ -56,7 +57,7 @@ const constitutionError = computed(() => page.props.errors?.constitution ?? null
 const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
 
 function fmt(iso) {
-    return iso ? new Date(iso).toLocaleString() : '—';
+    return iso ? localeFmt.dateTime(new Date(iso)) : '—';
 }
 
 function switchBoard(event) {
@@ -478,10 +479,10 @@ function runPetitionAudit(row) {
                             </StatusBadge>
                         </p>
                         <p class="cc-small">
-                            {{ t('c_elections.board.sig_counts', '{live} live signatures · threshold {threshold}', { live: row.signatures.toLocaleString(), threshold: row.threshold_count.toLocaleString() }) }}
+                            {{ t('c_elections.board.sig_counts', '{live} live signatures · threshold {threshold}', { live: localeFmt.number(row.signatures), threshold: localeFmt.number(row.threshold_count) }) }}
                         </p>
                         <p v-if="row.result" class="cc-small">
-                            {{ t('c_elections.board.sig_result', '{valid} of {checked} valid ({pct}%)', { valid: row.result.valid.toLocaleString(), checked: row.result.checked.toLocaleString(), pct: row.result.pct_valid }) }} —
+                            {{ t('c_elections.board.sig_result', '{valid} of {checked} valid ({pct}%)', { valid: localeFmt.number(row.result.valid), checked: localeFmt.number(row.result.checked), pct: row.result.pct_valid }) }} —
                             {{ row.result.still_above ? t('c_elections.board.still_above', 'still above threshold') : t('c_elections.board.below_threshold', 'below threshold — invalidated (kill-path)') }}
                         </p>
                         <Btn

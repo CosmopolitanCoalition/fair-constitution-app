@@ -33,7 +33,7 @@
                         </div>
                         <div class="text-right shrink-0">
                             <div class="text-xs text-gray-500 leading-tight">{{ t('c_legislature_pages_b.type_b_districts.leg_seats', 'Legislature Seats') }}</div>
-                            <div class="text-base font-bold text-emerald-400">{{ legislatureSeats.toLocaleString() }}</div>
+                            <div class="text-base font-bold text-emerald-400">{{ localeFmt.number(legislatureSeats) }}</div>
                         </div>
                     </div>
                     <!-- Cross-navigation to this legislature's Type A district map.
@@ -75,7 +75,7 @@
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
                         <div class="text-xs text-gray-500">{{ t('c_legislature_pages_b.type_b_districts.stat_seats', 'Seats') }}</div>
-                        <div class="text-sm font-semibold text-emerald-400">{{ seatedSeats.toLocaleString() }}</div>
+                        <div class="text-sm font-semibold text-emerald-400">{{ localeFmt.number(seatedSeats) }}</div>
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
                         <div class="text-xs text-gray-500">{{ t('c_legislature_pages_b.type_b_districts.stat_panels', 'Panels') }}</div>
@@ -365,7 +365,7 @@
                                         <span class="shrink-0">⛔</span>
                                         <span>
                                             {{ props.flags.cap.delta > 0 ? t('c_legislature_pages_b.type_b_districts.overcount', 'Overcount') : t('c_legislature_pages_b.type_b_districts.undercount', 'Undercount') }}:
-                                            {{ t('c_legislature_pages_b.type_b_districts.cap_line', { total: props.flags.cap.total.toLocaleString(), max: props.flags.cap.max.toLocaleString(), delta: (props.flags.cap.delta > 0 ? '+' : '') + props.flags.cap.delta }, '{total} / {max} seats ({delta})') }}
+                                            {{ t('c_legislature_pages_b.type_b_districts.cap_line', { total: localeFmt.number(props.flags.cap.total), max: localeFmt.number(props.flags.cap.max), delta: (props.flags.cap.delta > 0 ? '+' : '') + props.flags.cap.delta }, '{total} / {max} seats ({delta})') }}
                                         </span>
                                     </div>
                                     <div v-for="ov in (props.flags.deep_overages ?? [])" :key="'do-' + ov.scope_id"
@@ -1645,7 +1645,8 @@
         </div>
 </template>
 
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Legislature/Districts — THE district mapper, extracted VERBATIM from the
  * Legislature/Show monolith (mockups-v3-wiring Phase 3e). The lm-split
@@ -3474,7 +3475,7 @@ function formatPop(n) {
     // Below a million the exact figure shows; above it, two decimals.
     if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'B'
     if (n >= 1_000_000)     return (n / 1_000_000).toFixed(2) + 'M'
-    return Math.round(n).toLocaleString()
+    return localeFmt.number(Math.round(n))
 }
 function pct(n, total, decimals = 1) {
     if (!total || total <= 0) return '0%'
@@ -5608,7 +5609,7 @@ async function reinitMapLayers({ preserveView = false } = {}) {
                     const isGiant = isGiantChild(c)
                     const lines = [
                         `<strong>${c.name}</strong>`,
-                        `Pop: ${c.population.toLocaleString()}`,
+                        `Pop: ${localeFmt.number(c.population)}`,
                         `Fractional: ${c.fractional_seats.toFixed(2)}`,
                     ]
                     if (isGiant) {

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Social/Achievements — the full catalog over the sealed append-only
  * ledger (contract mockups/v3/social/achievements.html; K-2).
@@ -41,7 +42,7 @@ const props = defineProps({
 
 const { t } = useI18n({ useScope: 'global' });
 
-const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '');
+const fmtDate = (iso) => (iso ? localeFmt.date(new Date(iso)) : '');
 
 const earnedAt = (key) => props.earned[key]?.earned_at ?? null;
 

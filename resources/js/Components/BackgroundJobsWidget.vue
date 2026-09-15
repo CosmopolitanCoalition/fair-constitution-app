@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * B4 — the floating background-job monitor (operator ruling 2026-08-29).
  *
@@ -68,7 +69,7 @@ onBeforeUnmount(() => { if (timer) clearTimeout(timer); });
                 <div class="bgjobs-label">
                     <span>{{ s.label }}</span>
                     <span class="bgjobs-nums">
-                        {{ s.done.toLocaleString() }}<template v-if="s.total"> / {{ s.total.toLocaleString() }}</template>
+                        {{ localeFmt.number(s.done) }}<template v-if="s.total"> / {{ localeFmt.number(s.total) }}</template>
                     </span>
                 </div>
                 <div v-if="pct(s) !== null" class="bgjobs-bar">

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Legislature/Settings — FE-C5 (PHASE_C_DESIGN_frontend.md §B.11;
  * surface legislature/settings).
@@ -59,7 +60,7 @@ function boundsLine(setting) {
 
 function provenance(setting) {
     if (setting.enacted_by) {
-        return t('c_legislature_workspace.settings_page.prov_set_by', { act: setting.enacted_by.act_number, date: new Date(setting.enacted_by.effective_at).toLocaleDateString() }, 'set by {act} · effective {date}');
+        return t('c_legislature_workspace.settings_page.prov_set_by', { act: setting.enacted_by.act_number, date: localeFmt.date(new Date(setting.enacted_by.effective_at)) }, 'set by {act} · effective {date}');
     }
     if (setting.inherited_from) {
         return t('c_legislature_workspace.settings_page.prov_inherited', { name: setting.inherited_from.jurisdiction_name }, 'founding value · inherited from {name}');
@@ -145,7 +146,7 @@ function submitAmendment() {
 }
 
 function fmt(iso) {
-    return iso ? new Date(iso).toLocaleString() : '—';
+    return iso ? localeFmt.dateTime(new Date(iso)) : '—';
 }
 </script>
 

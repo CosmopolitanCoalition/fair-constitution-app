@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Operator/Identity — the identity page of the Phase 4 operator/* console suite
  * (PHASE_4_DESIGN_peerage.md §3.1; design contract mockups/v3/operator/identity.html).
@@ -64,8 +65,8 @@ const accountStatusLabel = computed(() => {
     return s ? s.charAt(0).toUpperCase() + s.slice(1) : t('c_operator_pages.identity.status_unknown', 'Unknown');
 });
 
-const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
-const fmtDateTime = (iso) => (iso ? new Date(iso).toLocaleString() : '—');
+const fmtDate = (iso) => (iso ? localeFmt.date(new Date(iso)) : '—');
+const fmtDateTime = (iso) => (iso ? localeFmt.dateTime(new Date(iso)) : '—');
 
 /* ── the copy affordance (BallotReceipt pattern: secure-context + fallback) ── */
 

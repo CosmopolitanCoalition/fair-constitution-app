@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, ref } from 'vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
@@ -442,7 +443,7 @@ const forgetBrokerCred = (domain) => {
                     <span class="font-mono">{{ shortId(mirror.host_server_id) }}</span>
                     <span v-if="mirror.membership_state">{{ t('c_jurisdictions.federation.mirror_state', { state: mirror.membership_state }) }}</span>{{ t('c_jurisdictions.federation.mirror_3', '. It is authoritative for nothing and accepts no constitutional filings.') }}
                     <span v-if="mirror.adopted_at" class="block text-xs text-sky-600">
-                        {{ t('c_jurisdictions.federation.mirror_adopted', { when: new Date(mirror.adopted_at).toLocaleString() }) }}
+                        {{ t('c_jurisdictions.federation.mirror_adopted', { when: localeFmt.dateTime(new Date(mirror.adopted_at)) }) }}
                     </span>
                 </div>
                 <button type="button" @click="leave"
@@ -646,7 +647,7 @@ const forgetBrokerCred = (domain) => {
                                     <span :class="k.live ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'"
                                           class="rounded px-2 py-0.5 text-xs font-medium">{{ k.revoked_at ? t('c_jurisdictions.federation.key_revoked', 'revoked') : (k.live ? t('c_jurisdictions.federation.key_live', 'live') : t('c_jurisdictions.federation.key_dead', 'dead')) }}</span>
                                 </td>
-                                <td class="text-slate-500">{{ k.expires_at ? new Date(k.expires_at).toLocaleString() : '—' }}</td>
+                                <td class="text-slate-500">{{ k.expires_at ? localeFmt.dateTime(new Date(k.expires_at)) : '—' }}</td>
                                 <td class="text-right">
                                     <button v-if="k.live" type="button" @click="revokeKey(k.handle)"
                                             class="rounded border border-rose-300 px-2 py-0.5 text-xs font-medium text-rose-700 hover:bg-rose-50">{{ t('c_jurisdictions.federation.btn_revoke', 'Revoke') }}</button>
@@ -724,7 +725,7 @@ const forgetBrokerCred = (domain) => {
                         <td class="font-mono text-slate-600">{{ shortId(p.server_id) }}</td>
                         <td class="text-slate-600">{{ p.url }}</td>
                         <td><span :class="statusClass(p.status)" class="rounded px-2 py-0.5 text-xs font-medium">{{ p.status }}</span></td>
-                        <td class="text-slate-500">{{ p.last_heartbeat_at ? new Date(p.last_heartbeat_at).toLocaleString() : '—' }}</td>
+                        <td class="text-slate-500">{{ p.last_heartbeat_at ? localeFmt.dateTime(new Date(p.last_heartbeat_at)) : '—' }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -744,7 +745,7 @@ const forgetBrokerCred = (domain) => {
                         <td class="text-slate-700">{{ s.direction }}</td>
                         <td><span :class="resultClass(s.result)" class="rounded px-2 py-0.5 text-xs font-medium">{{ s.result }}</span></td>
                         <td class="font-mono text-slate-500">{{ s.from_seq ?? '—' }} → {{ s.to_seq ?? '—' }}</td>
-                        <td class="text-slate-500">{{ s.created_at ? new Date(s.created_at).toLocaleString() : '—' }}</td>
+                        <td class="text-slate-500">{{ s.created_at ? localeFmt.dateTime(new Date(s.created_at)) : '—' }}</td>
                     </tr>
                 </tbody>
             </table>

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
@@ -12,7 +13,7 @@ const { t, locale } = useI18n();
 const text = (key) => t('c_bill.' + key);
 const tones = { enacted: 'success', passed: 'success', failed: 'danger', tabled: 'neutral', withdrawn: 'neutral', on_floor: 'warning' };
 const introduced = computed(() => props.workspace.introducedAt
-    ? new Date(props.workspace.introducedAt).toLocaleString(locale.value === 'en-XA' ? 'en' : locale.value)
+    ? localeFmt.dateTime(new Date(props.workspace.introducedAt))
     : null);
 const sections = ['text', 'votes', 'history'];
 </script>

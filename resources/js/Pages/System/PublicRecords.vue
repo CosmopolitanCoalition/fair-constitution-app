@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * System/PublicRecords — FE-C11 (PHASE_C_DESIGN_frontend.md §B.15/§D).
  *
@@ -165,7 +166,7 @@ function viaChip(via) {
 }
 
 function dateOf(iso) {
-    return iso ? new Date(iso).toLocaleDateString() : '—';
+    return iso ? localeFmt.date(new Date(iso)) : '—';
 }
 </script>
 
@@ -184,10 +185,10 @@ function dateOf(iso) {
         </Banner>
 
         <div class="cluster" style="gap: var(--space-6)">
-            <Stat :value="stats.total.toLocaleString()" :label="t('c_system.public_records.stat_entries', 'entries on the record')" accent />
-            <Stat :value="stats.acts.toLocaleString()" :label="t('c_system.public_records.stat_acts', 'acts')" />
-            <Stat :value="stats.votes.toLocaleString()" :label="t('c_system.public_records.stat_votes', 'votes (with explanations)')" />
-            <Stat :value="stats.statements.toLocaleString()" :label="t('c_system.public_records.stat_statements', 'statements')" />
+            <Stat :value="localeFmt.number(stats.total)" :label="t('c_system.public_records.stat_entries', 'entries on the record')" accent />
+            <Stat :value="localeFmt.number(stats.acts)" :label="t('c_system.public_records.stat_acts', 'acts')" />
+            <Stat :value="localeFmt.number(stats.votes)" :label="t('c_system.public_records.stat_votes', 'votes (with explanations)')" />
+            <Stat :value="localeFmt.number(stats.statements)" :label="t('c_system.public_records.stat_statements', 'statements')" />
         </div>
 
         <!-- ==================================== filters ================== -->
@@ -244,7 +245,7 @@ function dateOf(iso) {
             <p class="citation" style="margin-block-end: var(--space-2)">{{ t('c_system.public_records.stored_utc', 'stored as UTC · shown in your timezone') }}</p>
 
             <div v-if="records.data.length" class="stack" style="gap: var(--space-1)" aria-live="polite">
-                <LogRow v-for="record in records.data" :key="record.seq" :seq="record.seq.toLocaleString()">
+                <LogRow v-for="record in records.data" :key="record.seq" :seq="localeFmt.number(record.seq)">
                     <StatusBadge tone="neutral" icon="file-text">{{ KIND_LABELS[record.kind] ?? record.kind }}</StatusBadge>
                     <div style="flex: 1 1 18rem; min-inline-size: 0">
                         <strong style="color: var(--gov-fg)">{{ record.title }}</strong>
@@ -257,7 +258,7 @@ function dateOf(iso) {
                             <template v-else-if="record.subject"> · {{ record.subject.label }}</template>
                         </span>
                         <span v-if="record.supersedes" class="citation" style="display: block">
-                            {{ t('c_system.public_records.supersedes', 'supersedes') }} <span data-no-i18n>#{{ record.supersedes.seq.toLocaleString() }}</span> {{ t('c_system.public_records.supersedes_note', '— corrections append, never edit; both entries stay visible.') }}
+                            {{ t('c_system.public_records.supersedes', 'supersedes') }} <span data-no-i18n>#{{ localeFmt.number(record.supersedes.seq) }}</span> {{ t('c_system.public_records.supersedes_note', '— corrections append, never edit; both entries stay visible.') }}
                         </span>
                     </div>
                     <StatusBadge v-if="record.translations.total > 0" :tone="record.translations.done >= record.translations.total ? 'success' : 'warning'"

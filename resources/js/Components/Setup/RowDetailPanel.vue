@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -62,7 +63,7 @@ const savedOk  = ref(false)
 
 function fmtInt(n) {
     if (n == null) return '—'
-    return Number(n).toLocaleString()
+    return localeFmt.number(Number(n))
 }
 function admLabel(lvl) {
     return ADM_LABELS.value[lvl] ?? t('c_setup_components.row_detail_panel.adm_level_n', { lvl })
@@ -355,7 +356,7 @@ watch(
                         v-if="detail.decision"
                         class="text-[10px] font-mono text-gray-500"
                     >
-                        {{ t('c_setup_components.row_detail_panel.last_saved', 'Last saved:') }} {{ new Date(detail.decision.updated_at).toLocaleString() }}
+                        {{ t('c_setup_components.row_detail_panel.last_saved', 'Last saved:') }} {{ localeFmt.dateTime(new Date(detail.decision.updated_at)) }}
                     </span>
                 </div>
 

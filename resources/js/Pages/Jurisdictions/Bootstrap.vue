@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Jurisdictions/Bootstrap — "How a place wakes up" (design contract:
  * mockups/v3/jurisdictions/bootstrap.html).
@@ -78,14 +79,14 @@ const bootstrapBoardActive = () =>
                 :threshold="threshold.required"
                 :label="t('c_jurisdictions.bootstrap.threshold_label', 'Critical population threshold')"
             >
-                {{ t('c_jurisdictions.bootstrap.verified_of', { verified: threshold.verified.toLocaleString(), required: threshold.required.toLocaleString() }) }}
+                {{ t('c_jurisdictions.bootstrap.verified_of', { verified: localeFmt.number(threshold.verified), required: localeFmt.number(threshold.required) }) }}
                 <template #note>{{ t('c_jurisdictions.bootstrap.threshold_note', 'critical population threshold') }}</template>
             </ThresholdMeter>
             <p>
                 {{ t('c_jurisdictions.bootstrap.threshold_before', 'The threshold counts ') }}<strong>{{ t('c_jurisdictions.bootstrap.threshold_verified', 'verified residencies') }}</strong>{{ t('c_jurisdictions.bootstrap.threshold_after', ', not raw registrations — the live census from residency verifications drives it. Activation is pegged to real population: a county can wake before its state, and every boundary is already loaded, waiting for its residents.') }}
             </p>
             <p v-if="activation && activation.critical_population_at" class="citation">
-                {{ t('c_jurisdictions.bootstrap.crossed', { when: new Date(activation.critical_population_at).toLocaleString() }) }}
+                {{ t('c_jurisdictions.bootstrap.crossed', { when: localeFmt.dateTime(new Date(activation.critical_population_at)) }) }}
             </p>
         </Card>
 
@@ -123,12 +124,12 @@ const bootstrapBoardActive = () =>
         <Card as="section">
             <template #title>{{ t('c_jurisdictions.bootstrap.world_title', 'Across the whole world') }}</template>
             <div class="cluster">
-                <Stat :label="t('c_jurisdictions.bootstrap.dormant_boundaries', 'Dormant boundaries')" :value="rollup.dormant.toLocaleString()" />
+                <Stat :label="t('c_jurisdictions.bootstrap.dormant_boundaries', 'Dormant boundaries')" :value="localeFmt.number(rollup.dormant)" />
                 <Stat
                     v-for="(n, state) in rollup.by_state"
                     :key="state"
                     :label="plainState(state)"
-                    :value="n.toLocaleString()"
+                    :value="localeFmt.number(n)"
                 />
             </div>
         </Card>

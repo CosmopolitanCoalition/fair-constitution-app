@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Legislature/SessionConsole — FE-C3 (PHASE_C_DESIGN_frontend.md §B.2;
  * surface legislature/session-console).
@@ -63,7 +64,7 @@ const bicameral = computed(() => props.legislature.mode === 'bicameral');
 const noSpeaker = computed(() => !props.workspace.hasSpeaker);
 
 function fmt(iso) {
-    return iso ? new Date(iso).toLocaleString() : '—';
+    return iso ? localeFmt.dateTime(new Date(iso)) : '—';
 }
 
 /* ------------------------------------------------------------- call ---- */

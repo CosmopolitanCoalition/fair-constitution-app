@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * System/Clocks — mockups-v3-wiring Phase 2 (design contract:
  * mockups/v3/shared/clocks.html).
@@ -123,7 +124,7 @@ function overdueOf(clock) {
 }
 
 function dateOf(iso) {
-    return iso ? new Date(iso).toLocaleDateString() : null;
+    return iso ? localeFmt.date(new Date(iso)) : null;
 }
 
 const columns = computed(() => [

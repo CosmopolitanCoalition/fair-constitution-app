@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Civic/PrivateRooms — the MESSAGES inbox (mockups/v3/groups/groups-home.html contract): direct &
  * group messages as a thin UI over the EXISTING private-room primitive (SocialSpace group/is_private
@@ -53,8 +54,8 @@ function whenLabel(iso) {
     const hr = Math.floor(min / 60);
     if (hr < 24) return `${hr}h`;
     const day = Math.floor(hr / 24);
-    if (day < 7) return d.toLocaleDateString(undefined, { weekday: 'short' });
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    if (day < 7) return localeFmt.date(d, { weekday: 'short' });
+    return localeFmt.date(d, { month: 'short', day: 'numeric' });
 }
 </script>
 

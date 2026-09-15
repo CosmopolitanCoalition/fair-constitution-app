@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
@@ -98,7 +99,7 @@ function fmtSecs(s) {
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60
     return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${sec}s` : `${sec}s`
 }
-function n(v) { return (v ?? 0).toLocaleString() }
+function n(v) { return localeFmt.number((v ?? 0)) }
 function pct(a, b) { return b > 0 ? Math.min(100, Math.max(0, (a / b) * 100)) : 0 }
 
 // ── Per-layer bars ───────────────────────────────────────────────────────────
@@ -249,7 +250,7 @@ async function rollback() {
     const msg = t('c_setup.step5_simulate.rollback_confirm', 'Roll back this SIMULATION run: clear its work-list and lanes so a fresh run can re-enumerate. The world it already produced (cohorts, people, seats, civic records) is LEFT IN PLACE, and Step 4\'s institutions and every map are untouched.\n\nThe run must be halted or done. Continue?')
     if (!confirm(msg)) return
     const r = await post('/api/setup/wizard/step5/rollback', {}, 'rollback')
-    if (r) notice.value = t('c_setup.step5_simulate.notice_rolled_back', { list: Object.entries(r.deleted || {}).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${v.toLocaleString()}`).join(', ') })
+    if (r) notice.value = t('c_setup.step5_simulate.notice_rolled_back', { list: Object.entries(r.deleted || {}).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${localeFmt.number(v)}`).join(', ') })
 }
 async function lockAndContinue() {
     const r = await post('/api/setup/wizard/step5/complete', {}, 'continue')

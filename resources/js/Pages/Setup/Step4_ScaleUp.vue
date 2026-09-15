@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
@@ -89,7 +90,7 @@ function fmtSecs(s) {
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60
     return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${sec}s` : `${sec}s`
 }
-function n(v) { return (v ?? 0).toLocaleString() }
+function n(v) { return localeFmt.number((v ?? 0)) }
 function pct(a, b) { return b > 0 ? Math.min(100, Math.max(0, (a / b) * 100)) : 0 }
 
 // ── Per-layer bars ──────────────────────────────────────────────────────────
@@ -203,7 +204,7 @@ async function rollback(shells) {
         : t('c_setup.step4_scale_up.rollback_confirm_acts', 'Roll back the seats and the acts (elections, committees, departments, zero-balance treasuries). The shells stay.')
     if (!confirm(what + t('c_setup.step4_scale_up.rollback_confirm_suffix', '\n\nThe run must be halted or done. Continue?'))) return
     const r = await post('/api/setup/wizard/step4/rollback', { shells }, 'rollback')
-    if (r) notice.value = t('c_setup.step4_scale_up.notice_rolled_back', { list: Object.entries(r.deleted || {}).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${v.toLocaleString()}`).join(', ') })
+    if (r) notice.value = t('c_setup.step4_scale_up.notice_rolled_back', { list: Object.entries(r.deleted || {}).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${localeFmt.number(v)}`).join(', ') })
 }
 async function lockAndContinue() {
     const r = await post('/api/setup/wizard/step4/complete', {}, 'continue')

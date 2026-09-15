@@ -32,7 +32,7 @@
                         </div>
                         <div class="text-right shrink-0">
                             <div class="text-xs text-gray-500 leading-tight">{{ t('c_legislature_pages.districts.legislature_seats', 'Legislature Seats') }}</div>
-                            <div class="text-base font-bold text-emerald-400">{{ legislatureSeats.toLocaleString() }}</div>
+                            <div class="text-base font-bold text-emerald-400">{{ localeFmt.number(legislatureSeats) }}</div>
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-blue-200">
@@ -81,7 +81,7 @@
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
                         <div class="text-xs text-gray-500">{{ t('c_legislature_pages.districts.stat_seats', 'Seats') }}</div>
-                        <div class="text-sm font-semibold text-emerald-400">{{ scope_seats.toLocaleString() }}</div>
+                        <div class="text-sm font-semibold text-emerald-400">{{ localeFmt.number(scope_seats) }}</div>
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
                         <div class="text-xs text-gray-500">{{ t('c_legislature_pages.districts.stat_districts', 'Districts') }}</div>
@@ -374,7 +374,7 @@
                                         <span class="shrink-0">⛔</span>
                                         <span>
                                             {{ props.flags.cap.delta > 0 ? t('c_legislature_pages.districts.overcount', 'Overcount') : t('c_legislature_pages.districts.undercount', 'Undercount') }}:
-                                            {{ props.flags.cap.total.toLocaleString() }} / {{ props.flags.cap.max.toLocaleString() }} {{ t('c_legislature_pages.districts.seats_word', 'seats') }}
+                                            {{ localeFmt.number(props.flags.cap.total) }} / {{ localeFmt.number(props.flags.cap.max) }} {{ t('c_legislature_pages.districts.seats_word', 'seats') }}
                                             ({{ props.flags.cap.delta > 0 ? '+' : '' }}{{ props.flags.cap.delta }})
                                         </span>
                                     </div>
@@ -1702,7 +1702,8 @@
         </div>
 </template>
 
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Legislature/Districts — THE district mapper, extracted VERBATIM from the
  * Legislature/Show monolith (mockups-v3-wiring Phase 3e). The lm-split
@@ -3463,7 +3464,7 @@ function formatPop(n) {
     // Below a million the exact figure shows; above it, two decimals.
     if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'B'
     if (n >= 1_000_000)     return (n / 1_000_000).toFixed(2) + 'M'
-    return Math.round(n).toLocaleString()
+    return localeFmt.number(Math.round(n))
 }
 function pct(n, total, decimals = 1) {
     if (!total || total <= 0) return '0%'
@@ -5559,7 +5560,7 @@ async function reinitMapLayers() {
                     const isGiant = isGiantChild(c)
                     const lines = [
                         `<strong>${c.name}</strong>`,
-                        t('c_legislature_pages.districts.tip_pop', { n: c.population.toLocaleString() }),
+                        t('c_legislature_pages.districts.tip_pop', { n: localeFmt.number(c.population) }),
                         t('c_legislature_pages.districts.tip_fractional', { n: c.fractional_seats.toFixed(2) }),
                     ]
                     if (isGiant) {

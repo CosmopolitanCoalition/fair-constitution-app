@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, ref, watch } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
@@ -29,7 +30,7 @@ const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
 const titleize = (s) => s === 'common_good_corp' ? 'Common Good Corporation' : s ? String(s).replaceAll('_', ' ') : '—';
-const fmt = (n) => Number(n ?? 0).toLocaleString();
+const fmt = (n) => localeFmt.number(Number(n ?? 0));
 const search = ref({ ...props.filters.selected });
 const loading = ref(false);
 const registrationOpen = ref(false);

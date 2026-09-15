@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Electoral/CandidateRow — one standings row on the open ballot
  * (.candidate-row family). PHASE_B_DESIGN_frontend.md §A.2; markup derived
@@ -63,7 +64,7 @@ const linkTitle = computed(() =>
             props.rank === null
                 ? t('c_institution_components.candidate_row.awaiting_ranking_low', 'awaiting daily ranking')
                 : t('c_institution_components.candidate_row.rank_n', 'rank {rank}', { rank: props.rank }),
-        approvals: props.approvals.toLocaleString(),
+        approvals: localeFmt.number(props.approvals),
     }),
 );
 </script>
@@ -116,7 +117,7 @@ const linkTitle = computed(() =>
         </div>
 
         <div class="standing">
-            <span class="standing-approvals">{{ rank === null ? '—' : approvals.toLocaleString() }}</span>
+            <span class="standing-approvals">{{ rank === null ? '—' : localeFmt.number(approvals) }}</span>
             <span v-if="rank === null" class="standing-delta">{{ t('c_institution_components.candidate_row.first_count_pending', 'First daily count pending') }}</span>
             <span v-else-if="delta > 0" class="standing-delta standing-delta--up">{{ t('c_institution_components.candidate_row.delta_up', '▲ {n} since yesterday', { n: delta }) }}</span>
             <span v-else-if="delta < 0" class="standing-delta standing-delta--down">{{ t('c_institution_components.candidate_row.delta_down', '▼ {n} since yesterday', { n: Math.abs(delta) }) }}</span>

@@ -82,7 +82,7 @@
                                 </span>
                             </div>
                             <div>
-                                <span class="text-lg font-semibold tabular-nums" style="color: #56B4E9">{{ childCount.toLocaleString() }}</span>
+                                <span class="text-lg font-semibold tabular-nums" style="color: #56B4E9">{{ localeFmt.number(childCount) }}</span>
                                 <span class="text-xs text-gray-500 ml-1">{{ t('c_jurisdictions.show.stat_places_within', 'places within') }}</span>
                             </div>
                         </div>
@@ -388,7 +388,7 @@
                     </div>
                     <div class="text-sm font-semibold text-white">{{ hoveredFeature.name }}</div>
                     <div class="text-xs text-gray-300 mt-1">
-                        {{ t('c_jurisdictions.show.population_n', { n: hoveredFeature.population.toLocaleString() }) }}
+                        {{ t('c_jurisdictions.show.population_n', { n: localeFmt.number(hoveredFeature.population) }) }}
                     </div>
                     <div v-if="hoveredFeature.child_count > 0" class="text-xs text-gray-400">
                         {{ t('c_jurisdictions.show.members_n', { n: hoveredFeature.child_count }) }}
@@ -401,7 +401,7 @@
                     <div class="text-xs text-green-300 mb-1">{{ t('c_jurisdictions.show.hovering', 'Hovering') }}</div>
                     <div class="text-sm font-semibold text-white">{{ hoveredChild.name }}</div>
                     <div class="text-xs text-gray-300 mt-1">
-                        {{ t('c_jurisdictions.show.population_n', { n: hoveredChild.population.toLocaleString() }) }}
+                        {{ t('c_jurisdictions.show.population_n', { n: localeFmt.number(hoveredChild.population) }) }}
                     </div>
                     <div v-if="hoveredChild.child_count > 0" class="text-xs text-gray-400">
                         {{ t('c_jurisdictions.show.members_n', { n: hoveredChild.child_count }) }}
@@ -537,7 +537,8 @@
     </div>
 </template>
 
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
@@ -729,7 +730,7 @@ function formatPop(n) {
     if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B'
     if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + 'M'
     if (n >= 1_000)         return (n / 1_000).toFixed(0) + 'K'
-    return n.toLocaleString()
+    return localeFmt.number(n)
 }
 
 const hasAnyReviewBadge = computed(() => {
@@ -746,7 +747,7 @@ function formatTime(iso) {
     try {
         const d = new Date(iso)
         if (Number.isNaN(d.getTime())) return iso
-        return d.toLocaleString()
+        return localeFmt.dateTime(d)
     } catch (e) {
         return iso
     }
@@ -1220,7 +1221,7 @@ onMounted(async () => {
         }
         if (showMembers.value && p.child_count != null && p.child_count > 0) {
             const sep = (showPop.value && p.population != null) ? ' · ' : '<br>'
-            html += `<span class="jurisdiction-members-label">${sep}${t('c_jurisdictions.show.label_members', { n: p.child_count.toLocaleString() })}</span>`
+            html += `<span class="jurisdiction-members-label">${sep}${t('c_jurisdictions.show.label_members', { n: localeFmt.number(p.child_count) })}</span>`
         }
         html += `</div>`
         return html

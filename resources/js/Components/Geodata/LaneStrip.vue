@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * One working lane: its label, live per-unit progress, elapsed and honest
  * ETA. Extracted so the panel can nest it — a coordinator renders one of
@@ -64,7 +65,7 @@ const pct = computed(() => {
             </span>
             <span class="text-gray-500 tabular-nums shrink-0 ml-3">
                 <template v-if="it.live && it.live.total">
-                    {{ it.live.current.toLocaleString() }} / {{ it.live.total.toLocaleString() }} {{ it.live.unit }} ·
+                    {{ localeFmt.number(it.live.current) }} / {{ localeFmt.number(it.live.total) }} {{ it.live.unit }} ·
                 </template>
                 {{ elapsed }} {{ eta }}
             </span>

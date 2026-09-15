@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Shell/AppFooter — .app-footer with the page's constitutional citation,
  * instance identity, the audit-chain chip, and the site-wide help links
@@ -54,7 +55,7 @@ const reportHref = computed(() => {
         <a :href="reportHref"><Icon name="flag" size="sm" /> {{ t('c_gap_shell_operator.app_footer.report_issue', 'Report an issue') }}</a>
         <span class="footer-instance">{{ instanceLine }}</span>
         <span v-if="auditSeq !== null" class="audit-chip">
-            {{ t('footer.audit', { n: auditSeq.toLocaleString() }) }}
+            {{ t('footer.audit', { n: localeFmt.number(auditSeq) }) }}
             <Icon name="check" size="sm" :label="t('c_gap_shell_operator.app_footer.verified', 'verified')" />
         </span>
     </footer>

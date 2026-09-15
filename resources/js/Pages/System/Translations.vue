@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * System/Translations — Phase N (lane 5) translation status board.
  *
@@ -116,7 +117,7 @@ const measured = computed(() => props.coverage !== null);
 
 const generatedAt = computed(() => {
     if (!props.coverage?.generated_at) return null;
-    return new Date(props.coverage.generated_at).toLocaleString();
+    return localeFmt.dateTime(new Date(props.coverage.generated_at));
 });
 
 const sourceKeys = computed(() => props.coverage?.source_keys ?? 0);
@@ -205,7 +206,7 @@ function pctOf(part, whole) {
             <div class="stat-row">
                 <Stat :value="activeWorkers" :label="t('c_system.translations.workers_active', 'workers active')" :accent="activeWorkers > 0" />
                 <Stat :value="`${deck?.rate ?? 0}/s`" :label="t('c_system.translations.strings_per_second', 'strings per second')" />
-                <Stat :value="(deck?.strings_done ?? 0).toLocaleString()" :label="t('c_system.translations.translated_this_run', 'translated this run')" />
+                <Stat :value="localeFmt.number((deck?.strings_done ?? 0))" :label="t('c_system.translations.translated_this_run', 'translated this run')" />
                 <Stat :value="etaText" :label="t('c_system.translations.estimated_remaining', 'estimated remaining')" />
             </div>
 
@@ -389,7 +390,7 @@ function pctOf(part, whole) {
         <template v-else>
             <Card :title="t('c_system.translations.where_title', 'Where we are')" :eyebrow="t('c_system.translations.where_eyebrow', 'headline')">
                 <div class="stat-row">
-                    <Stat :value="sourceKeys.toLocaleString()" :label="t('c_system.translations.stat_messages', 'translatable messages in the app')" />
+                    <Stat :value="localeFmt.number(sourceKeys)" :label="t('c_system.translations.stat_messages', 'translatable messages in the app')" />
                     <Stat :value="namespaces" :label="t('c_system.translations.stat_namespaces', 'namespaces')" />
                     <Stat :value="locales.length" :label="t('c_system.translations.stat_languages', 'languages present')" />
                     <Stat
@@ -400,7 +401,7 @@ function pctOf(part, whole) {
                 </div>
                 <p class="muted">
                     <template v-if="totalMissing > 0">
-                        {{ t('c_system.translations.owed', '{n} message-translations are still owed across the languages below.', { n: totalMissing.toLocaleString() }) }}
+                        {{ t('c_system.translations.owed', '{n} message-translations are still owed across the languages below.', { n: localeFmt.number(totalMissing) }) }}
                     </template>
                     <template v-else>{{ t('c_system.translations.all_carried', 'Every registered language carries every message.') }}</template>
                 </p>
@@ -427,10 +428,10 @@ function pctOf(part, whole) {
                         </StatusBadge>
                     </template>
                     <template #cell-present="{ row }">
-                        <span data-no-i18n>{{ row.present.toLocaleString() }}</span>
+                        <span data-no-i18n>{{ localeFmt.number(row.present) }}</span>
                     </template>
                     <template #cell-missing="{ row }">
-                        <span data-no-i18n>{{ row.missing.toLocaleString() }}</span>
+                        <span data-no-i18n>{{ localeFmt.number(row.missing) }}</span>
                     </template>
                 </DataTable>
                 <p class="muted">
@@ -438,7 +439,7 @@ function pctOf(part, whole) {
                 </p>
             </Card>
 
-            <Card :title="t('c_system.translations.gate_findings_title', 'Gate findings ({n})', { n: failures.toLocaleString() })">
+            <Card :title="t('c_system.translations.gate_findings_title', 'Gate findings ({n})', { n: localeFmt.number(failures) })">
                 <p v-if="!failures">{{ t('c_system.translations.gate_passes', 'The gate passes. No language is behind and every message compiles.') }}</p>
                 <template v-else>
                     <DataTable
@@ -452,7 +453,7 @@ function pctOf(part, whole) {
                         :caption="t('c_system.translations.findings_caption', 'Translation gate findings by code')"
                     >
                         <template #cell-count="{ row }">
-                            <span data-no-i18n>{{ row.count.toLocaleString() }}</span>
+                            <span data-no-i18n>{{ localeFmt.number(row.count) }}</span>
                         </template>
                     </DataTable>
                     <p class="muted">

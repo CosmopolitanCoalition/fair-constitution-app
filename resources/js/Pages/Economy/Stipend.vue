@@ -25,10 +25,11 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Banner from '@/Components/Ui/Banner.vue';
-import { formatMoney, formatCount, formatWhen } from '@/lib/money.js';
+import { formatMoney, formatCount, formatWhen as formatWhenRaw } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const formatWhen = (iso) => formatWhenRaw(iso, locale.value);
 
 const props = defineProps({
     currency: { type: Object, default: null },

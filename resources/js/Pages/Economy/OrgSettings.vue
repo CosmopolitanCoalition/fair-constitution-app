@@ -26,10 +26,11 @@ import HistoryPager from '@/Components/Ui/HistoryPager.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import OrganizationNav from '@/Components/Organizations/OrganizationNav.vue';
 import SelectionIdentity from '@/Components/Ui/SelectionIdentity.vue';
-import { formatMoney, formatQuantity, formatCount, formatWhen, shortId } from '@/lib/money.js';
+import { formatMoney, formatQuantity, formatCount, formatWhen as formatWhenRaw, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const formatWhen = (iso) => formatWhenRaw(iso, locale.value);
 
 const props = defineProps({
     surface: { type: Object, required: true },

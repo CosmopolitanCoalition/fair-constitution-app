@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Economy/Units — the currency and its levers (design contract:
  * mockups/v3/economy/units.html).
@@ -20,10 +21,11 @@ import Card from '@/Components/Ui/Card.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
-import { formatMoney, formatWhen } from '@/lib/money.js';
+import { formatMoney, formatWhen as formatWhenRaw } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const formatWhen = (iso) => formatWhenRaw(iso, locale.value);
 
 const props = defineProps({
     currency: { type: Object, default: null },
@@ -152,7 +154,7 @@ const bounds = (b) => {
 
         <Card v-if="currency" as="section" :title="t('c_economy.units.report_title', 'Money report')">
             <p v-if="reportStatus === 'not_started'" role="status">{{ t('c_economy.units.report_not_started', 'No report has been collected yet.') }}</p>
-            <p v-else-if="reportStatus === 'running'" role="status" aria-live="polite">{{ phases[report.phase] ?? t('c_economy.units.collecting_report', 'Collecting the report') }} · {{ t('c_economy.units.records_processed', { count: Number(report.rows ?? 0).toLocaleString() }) }}</p>
+            <p v-else-if="reportStatus === 'running'" role="status" aria-live="polite">{{ phases[report.phase] ?? t('c_economy.units.collecting_report', 'Collecting the report') }} · {{ t('c_economy.units.records_processed', { count: localeFmt.number(Number(report.rows ?? 0)) }) }}</p>
             <p v-else-if="reportStatus === 'failed'" role="alert">{{ t('c_economy.units.collection_stopped', 'Collection stopped. Resume to continue from the last saved step.') }}</p>
             <p v-if="report?.completed_at" class="econ-note">{{ t('c_economy.units.collected_from', { from: formatWhen(report.started_at), to: formatWhen(report.completed_at) }) }}</p>
             <button type="button" class="report-refresh" :disabled="requesting || reportStatus === 'running'" @click="refreshReport">{{ requesting ? t('c_economy.units.requesting', 'Requesting…') : reportStatus === 'running' ? t('c_economy.units.collecting', 'Collecting…') : reportStatus === 'failed' ? t('c_economy.units.resume_report', 'Resume report') : telemetry ? t('c_economy.units.refresh_report', 'Refresh report') : t('c_economy.units.collect_report', 'Collect report') }}</button>

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -162,7 +163,7 @@ function pct(b) {
 
 function fmtNum(n) {
     if (n === null || n === undefined) return ''
-    return n.toLocaleString()
+    return localeFmt.number(n)
 }
 
 function fmtDuration(seconds) {

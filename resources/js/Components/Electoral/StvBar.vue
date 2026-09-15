@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Electoral/StvBar — one candidate bar of an STV tally (.stv-cand family).
  * PHASE_B_DESIGN_frontend.md §A.4. The unit StvRound composes; also used
@@ -63,7 +64,7 @@ const quotaPct = computed(() =>
 );
 
 const displayVotes = computed(() =>
-    props.votes === null ? '—' : Math.round(props.votes).toLocaleString(),
+    props.votes === null ? '—' : localeFmt.number(Math.round(props.votes)),
 );
 /* Display rounds; the exact (≤ 3dp Gregory) value rides in the title. */
 const votesTitle = computed(() =>
@@ -77,7 +78,7 @@ const linkTitle = computed(() => {
     const tip = electedRound
         ? t('c_institution_components.stv_bar.elected_in_round', 'elected in round {n}', { n: electedRound[1] })
         : props.votes !== null
-          ? t('c_institution_components.stv_bar.votes', '{n} votes', { n: Math.round(props.votes).toLocaleString() })
+          ? t('c_institution_components.stv_bar.votes', '{n} votes', { n: localeFmt.number(Math.round(props.votes)) })
           : null;
     return tip
         ? t('c_institution_components.stv_bar.link_title_tip', '{name} — open public profile · {tip}', { name: props.name, tip })

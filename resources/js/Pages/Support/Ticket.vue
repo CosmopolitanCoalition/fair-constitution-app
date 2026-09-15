@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Support/Ticket — one report's detail + operator triage (design contract:
  * mockups/v3/support/ticket.html; lifecycle ruling §10 item 7).
@@ -61,7 +62,7 @@ function saveTriage() {
 }
 
 function dateOf(iso) {
-    return iso ? new Date(iso).toLocaleString() : '—';
+    return iso ? localeFmt.dateTime(new Date(iso)) : '—';
 }
 </script>
 

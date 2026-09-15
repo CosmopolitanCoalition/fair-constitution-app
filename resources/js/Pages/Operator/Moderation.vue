@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Operator/Moderation — "Moderation & the legal floor" (design contract:
  * mockups/v3/operator/moderation.html). A READ/explainer surface — the
@@ -152,7 +153,7 @@ const legalBases = [
                         <StatusBadge v-if="row.judicial" tone="info">{{ t('c_operator_pages.moderation.judicial_attestation', 'Judicial attestation') }}</StatusBadge>
                         <StatusBadge v-else tone="neutral">{{ row.seated_at_time ? t('c_operator_pages.moderation.system', 'System') : t('c_operator_pages.moderation.operator_relay', 'Operator relay') }}</StatusBadge>
                     </template>
-                    <template #cell-at="{ row }"><span data-no-i18n>{{ new Date(row.at).toLocaleString() }}</span></template>
+                    <template #cell-at="{ row }"><span data-no-i18n>{{ localeFmt.dateTime(new Date(row.at)) }}</span></template>
                 </DataTable>
                 <DataTable
                     v-if="(moderation?.recent_legal ?? []).length"
@@ -171,7 +172,7 @@ const legalBases = [
                             {{ plainState(row.physical_removal_status) }}
                         </StatusBadge>
                     </template>
-                    <template #cell-at="{ row }"><span data-no-i18n>{{ new Date(row.at).toLocaleString() }}</span></template>
+                    <template #cell-at="{ row }"><span data-no-i18n>{{ localeFmt.dateTime(new Date(row.at)) }}</span></template>
                 </DataTable>
             </Card>
             <Banner v-else tone="info" role="status">

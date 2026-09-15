@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * System/AuditChain — read-only viewer over the hash-chained audit_log
  * (WF-SYS-04; mockups/system/audit-chain.html), latest-first.
@@ -64,16 +65,16 @@ function visit(url) {
 }
 
 /* The chain stores UTC; this systems surface shows it as UTC, explicitly. */
-const utcFormatter = new Intl.DateTimeFormat(undefined, {
+const UTC_FORMAT_OPTIONS = {
     dateStyle: 'medium',
     timeStyle: 'medium',
     timeZone: 'UTC',
-});
+};
 
 function formatUtc(iso) {
     if (!iso) return '—';
     try {
-        return `${utcFormatter.format(new Date(iso))} UTC`;
+        return `${localeFmt.dateTime(new Date(iso), UTC_FORMAT_OPTIONS)} UTC`;
     } catch {
         return iso;
     }

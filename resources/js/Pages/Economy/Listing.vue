@@ -28,10 +28,11 @@ import Btn from '@/Components/Ui/Btn.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
-import { formatMoney, formatCount, formatQuantity, formatWhen, shortId } from '@/lib/money.js';
+import { formatMoney, formatCount, formatQuantity, formatWhen as formatWhenRaw, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const formatWhen = (iso) => formatWhenRaw(iso, locale.value);
 
 const props = defineProps({
     currency: { type: Object, default: null },

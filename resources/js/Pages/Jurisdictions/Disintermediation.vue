@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Jurisdictions/Disintermediation — "Removing a middle layer" (design
  * contract: mockups/v3/jurisdictions/disintermediation.html).
@@ -83,7 +84,7 @@ const statusTone = (s) =>
 
             <p>
                 <StatusBadge :tone="statusTone(p.status)">{{ plainState(p.status) }}</StatusBadge>
-                <span class="citation" data-no-i18n>opened {{ new Date(p.opened_at).toLocaleDateString() }}</span>
+                <span class="citation" data-no-i18n>opened {{ localeFmt.date(new Date(p.opened_at)) }}</span>
             </p>
 
             <h4>{{ t('c_jurisdictions.disintermediation.consent_meters', 'Consent meters') }}</h4>

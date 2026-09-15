@@ -1,3 +1,4 @@
+import { localeFormat } from '@/composables/useLocaleFormat';
 /**
  * Money formatting for the economy surfaces.
  *
@@ -96,11 +97,11 @@ export function formatCount(n) {
  * on a malformed string — an unparseable date returns the raw value, because
  * showing something odd beats blanking a whole row.
  */
-export function formatWhen(iso) {
+export function formatWhen(iso, locale) {
     if (!iso) return '—';
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return String(iso);
-    return d.toLocaleString(undefined, {
+    return localeFormat(locale).dateTime(d, {
         year: 'numeric',
         month: 'short',
         day: 'numeric',

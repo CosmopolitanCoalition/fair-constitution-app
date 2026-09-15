@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Civic/Home — the live "today" feed (mockups-v3-wiring Phase 3b; design
  * contract mockups/v3/civic/today.html).
@@ -117,7 +118,7 @@ const calendarDays = computed(() => {
 
 const eventTime = (iso) => {
     if (!iso) return '';
-    return new Date(iso).toLocaleString([], {
+    return localeFmt.dateTime(new Date(iso), {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
@@ -127,7 +128,7 @@ const eventTime = (iso) => {
 
 const recordDate = (iso) => {
     if (!iso) return '';
-    return new Date(iso).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+    return localeFmt.date(new Date(iso), { year: 'numeric', month: 'short', day: 'numeric' });
 };
 </script>
 

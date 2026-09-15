@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * The acceptance scan's six detector bars.
  *
@@ -86,7 +87,7 @@ function natureChip(key) {
                     <span class="tabular-nums shrink-0 ml-3"
                           :class="d.state === 'error' ? 'text-red-400'
                                 : d.state === 'stalled' ? 'text-amber-400' : 'text-gray-500'">
-                        <template v-if="d.state === 'done'">{{ d.flags === 1 ? t('c_shell_components.scan_detector_bars.flag_one', { count: d.flags.toLocaleString() }) : t('c_shell_components.scan_detector_bars.flag_other', { count: d.flags.toLocaleString() }) }}</template>
+                        <template v-if="d.state === 'done'">{{ d.flags === 1 ? t('c_shell_components.scan_detector_bars.flag_one', { count: localeFmt.number(d.flags) }) : t('c_shell_components.scan_detector_bars.flag_other', { count: localeFmt.number(d.flags) }) }}</template>
                         <template v-else-if="d.state === 'running'">{{ Math.floor(d.elapsed_s / 60) }}m {{ d.elapsed_s % 60 }}s</template>
                         <template v-else-if="d.state === 'stalled'">{{ t('c_shell_components.scan_detector_bars.stalled', { min: Math.floor(d.elapsed_s / 60) }) }}</template>
                         <template v-else-if="d.state === 'error'">{{ t('c_shell_components.scan_detector_bars.errored', 'errored') }}</template>

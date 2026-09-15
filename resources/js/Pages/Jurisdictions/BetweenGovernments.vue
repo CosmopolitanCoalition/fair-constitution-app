@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Jurisdictions/BetweenGovernments — the read-only CITIZEN view at
  * /federation (design contract: mockups/v3/jurisdictions/federation.html;
@@ -109,10 +110,10 @@ const adopt = (s) => act(s.id, `/federation/border/${s.id}/adopt`);
             >
                 <template #cell-change="{ row }">{{ row.a }} ↔ {{ row.b }}</template>
                 <template #cell-affected="{ row }">
-                    <span data-no-i18n>{{ row.affected_population.toLocaleString() }}</span>
+                    <span data-no-i18n>{{ localeFmt.number(row.affected_population) }}</span>
                 </template>
                 <template #cell-required="{ row }">
-                    <span data-no-i18n>{{ row.required.toLocaleString() }}</span> {{ t('c_jurisdictions.between_governments.required_note', '(2/3 of all affected)') }}
+                    <span data-no-i18n>{{ localeFmt.number(row.required) }}</span> {{ t('c_jurisdictions.between_governments.required_note', '(2/3 of all affected)') }}
                 </template>
                 <template #cell-status="{ row }">
                     <StatusBadge :tone="statusBadge(row).tone" :icon="statusBadge(row).icon || null">

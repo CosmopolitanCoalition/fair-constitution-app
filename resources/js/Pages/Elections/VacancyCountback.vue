@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Elections/VacancyCountback — FE-B8 (PHASE_B_DESIGN_frontend.md §B.8).
  *
@@ -45,7 +46,7 @@ const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
 function fmt(iso) {
-    return iso ? new Date(iso).toLocaleString() : '—';
+    return iso ? localeFmt.dateTime(new Date(iso)) : '—';
 }
 
 const running = computed(() => props.rerun.outcome === 'running');
@@ -165,13 +166,13 @@ const dateError = computed(
             </template>
 
             <p v-if="rerun.source" class="cc-small">
-                {{ t('c_elections.countback.rerun_source_lead', 'Re-run source: the prior {label} — {total} valid ballots, {seats} {seatWord}, Droop quota', { label: rerun.source.election_label, total: rerun.source.total_valid.toLocaleString(), seats: rerun.source.seats, seatWord: rerun.source.seats === 1 ? t('c_elections.countback.seat_one', 'seat') : t('c_elections.countback.seat_other', 'seats') }) }}
+                {{ t('c_elections.countback.rerun_source_lead', 'Re-run source: the prior {label} — {total} valid ballots, {seats} {seatWord}, Droop quota', { label: rerun.source.election_label, total: localeFmt.number(rerun.source.total_valid), seats: rerun.source.seats, seatWord: rerun.source.seats === 1 ? t('c_elections.countback.seat_one', 'seat') : t('c_elections.countback.seat_other', 'seats') }) }}
                 <span class="citation" data-no-i18n>{{ rerun.source.quota_formula }}</span>.
                 {{ t('c_elections.countback.rerun_source_body', 'The engine strikes the vacated member and continues the count from the voters\' next preferences. The re-run is universal — every prior ballot counts, with no faction filtering anywhere in the procedure.') }}
             </p>
 
             <template v-if="bars.length && rerun.quota">
-                <span class="visually-hidden">{{ t('c_elections.countback.droop_quota_sr', 'Droop quota {n}', { n: rerun.quota.toLocaleString() }) }}</span>
+                <span class="visually-hidden">{{ t('c_elections.countback.droop_quota_sr', 'Droop quota {n}', { n: localeFmt.number(rerun.quota) }) }}</span>
                 <StvBar
                     v-for="bar in bars"
                     :key="bar.candidacy_id ?? bar.name"
@@ -184,7 +185,7 @@ const dateError = computed(
                     :transfer-fill="bar.exhausted"
                     :write-in="bar.write_in"
                     :chips="bar.chips"
-                    :quota-title="t('c_elections.countback.droop_quota_sr', 'Droop quota {n}', { n: rerun.quota.toLocaleString() })"
+                    :quota-title="t('c_elections.countback.droop_quota_sr', 'Droop quota {n}', { n: localeFmt.number(rerun.quota) })"
                 />
             </template>
             <p v-else-if="running" class="gloss">

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * System/TranslationReview — the human half of translation.
  *
@@ -346,7 +347,7 @@ function submit(item, verdict) {
             <div v-for="c in contributors" :key="c.handle" class="contributor-row">
                 <span class="avatar" aria-hidden="true">{{ c.handle.slice(0, 2).toUpperCase() }}</span>
                 <span class="contributor-name">{{ c.handle }}</span>
-                <span class="cverified" data-no-i18n>{{ c.verified.toLocaleString() }} verified</span>
+                <span class="cverified" data-no-i18n>{{ localeFmt.number(c.verified) }} verified</span>
             </div>
         </Card>
     </PageScaffold>

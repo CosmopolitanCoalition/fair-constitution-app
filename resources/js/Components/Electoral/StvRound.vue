@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Electoral/StvRound — one counting round: heading + tally bars (key rounds
  * only) + the expandable transfer breakdown. PHASE_B_DESIGN_frontend.md
@@ -90,7 +91,7 @@ const transfer = computed(() => {
     };
 });
 
-const quotaTitle = computed(() => t('c_institution_components.stv_round.quota_title', 'Droop quota {quota}', { quota: props.quota.toLocaleString() }));
+const quotaTitle = computed(() => t('c_institution_components.stv_round.quota_title', 'Droop quota {quota}', { quota: localeFmt.number(props.quota) }));
 </script>
 
 <template>
@@ -121,7 +122,7 @@ const quotaTitle = computed(() => t('c_institution_components.stv_round.quota_ti
         >
             <summary>
                 <Icon name="chevron-right" size="sm" />
-                {{ t('c_institution_components.stv_round.transfer_summary', 'Where {name}’s votes went · {count} votes {kind}', { name: transfer.from.name, count: transfer.totalMoved.toLocaleString(), kind: transfer.kind === 'surplus' ? t('c_institution_components.stv_round.kind_surplus', '(surplus, fractional Gregory values)') : t('c_institution_components.stv_round.kind_elimination', '(elimination, at current value)') }) }}
+                {{ t('c_institution_components.stv_round.transfer_summary', 'Where {name}’s votes went · {count} votes {kind}', { name: transfer.from.name, count: localeFmt.number(transfer.totalMoved), kind: transfer.kind === 'surplus' ? t('c_institution_components.stv_round.kind_surplus', '(surplus, fractional Gregory values)') : t('c_institution_components.stv_round.kind_elimination', '(elimination, at current value)') }) }}
             </summary>
             <div class="about-surface-body">
                 <StvBar
@@ -138,7 +139,7 @@ const quotaTitle = computed(() => t('c_institution_components.stv_round.quota_ti
                 <div v-if="transfer.exhausted" class="stv-cand">
                     <span class="stv-cand-name" style="color: var(--gov-fg-subtle)">{{ t('c_institution_components.stv_round.exhausted', '→ exhausted (no further preference)') }}</span>
                     <span class="stv-track" aria-hidden="true"></span>
-                    <span class="stv-votes">{{ transfer.exhausted.toLocaleString() }}</span>
+                    <span class="stv-votes">{{ localeFmt.number(transfer.exhausted) }}</span>
                 </div>
             </div>
         </details>

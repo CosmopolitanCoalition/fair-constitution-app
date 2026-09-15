@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
@@ -67,22 +68,22 @@ function goHome() {
         <section v-if="!finished" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step6_confirm.legislatures', 'Legislatures') }}</div>
-                <div class="text-white text-3xl font-semibold mt-2">{{ summary.legislatures.toLocaleString() }}</div>
+                <div class="text-white text-3xl font-semibold mt-2">{{ localeFmt.number(summary.legislatures) }}</div>
                 <div class="text-gray-500 text-xs mt-2">{{ t('c_setup.step6_confirm.legislatures_note', 'One per jurisdiction, sized by the cube-root law.') }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step6_confirm.districts', 'Districts') }}</div>
-                <div class="text-white text-3xl font-semibold mt-2">{{ summary.districts.toLocaleString() }}</div>
+                <div class="text-white text-3xl font-semibold mt-2">{{ localeFmt.number(summary.districts) }}</div>
                 <div class="text-gray-500 text-xs mt-2">{{ t('c_setup.step6_confirm.districts_note', 'Drawn in Step 3.') }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step6_confirm.executives', 'Executives') }}</div>
-                <div class="text-white text-3xl font-semibold mt-2">{{ summary.existing_executives.toLocaleString() }}</div>
+                <div class="text-white text-3xl font-semibold mt-2">{{ localeFmt.number(summary.existing_executives) }}</div>
                 <div class="text-gray-500 text-xs mt-2">{{ t('c_setup.step6_confirm.executives_note', 'Provisioned in Step 4, or by activation.') }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step6_confirm.courts', 'Courts') }}</div>
-                <div class="text-white text-3xl font-semibold mt-2">{{ summary.existing_judiciaries.toLocaleString() }}</div>
+                <div class="text-white text-3xl font-semibold mt-2">{{ localeFmt.number(summary.existing_judiciaries) }}</div>
                 <div class="text-gray-500 text-xs mt-2">{{ t('c_setup.step6_confirm.courts_note', 'Benches sized by the bench law.') }}</div>
             </div>
         </section>

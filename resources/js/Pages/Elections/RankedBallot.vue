@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Elections/RankedBallot — FE-B5 (PHASE_B_DESIGN_frontend.md §B.5 + §D).
  *
@@ -79,7 +80,7 @@ onMounted(() => {
 onBeforeUnmount(() => clearInterval(closeTimer));
 
 function fmt(iso) {
-    return iso ? new Date(iso).toLocaleString() : '—';
+    return iso ? localeFmt.dateTime(new Date(iso)) : '—';
 }
 
 /* ------------------------------------------------------- rank → review -- */
@@ -422,7 +423,7 @@ const aggScale = computed(() =>
                 {{ t('c_elections.ranked.live_body', 'Standings stay visible through the ranked window: first preferences counted so far, as if the window closed this minute.') }}
             </p>
             <p class="citation">
-                {{ t('c_elections.ranked.live_agg_note', '{ballots} ballots so far · Droop quota if closed now: {quota}', { ballots: liveAggregate.ballotsSoFar.toLocaleString(), quota: liveAggregate.quotaIfClosedNow.toLocaleString() }) }}
+                {{ t('c_elections.ranked.live_agg_note', '{ballots} ballots so far · Droop quota if closed now: {quota}', { ballots: localeFmt.number(liveAggregate.ballotsSoFar), quota: localeFmt.number(liveAggregate.quotaIfClosedNow) }) }}
             </p>
             <StvBar
                 v-for="[name, votes] in liveAggregate.top"

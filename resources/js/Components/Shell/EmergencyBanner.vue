@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Shell/EmergencyBanner — cross-surface emergency banner (FE-C1;
  * PHASE_C_DESIGN_frontend.md §A.8). Wired in Layouts/AppShell.vue above
@@ -28,7 +29,7 @@ defineProps({
 });
 
 function expiresDate(iso) {
-    return iso ? new Date(iso).toLocaleDateString() : '—';
+    return iso ? localeFmt.date(new Date(iso)) : '—';
 }
 </script>
 
