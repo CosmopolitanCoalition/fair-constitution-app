@@ -387,7 +387,7 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                         </li>
                     </ul>
                     <p v-else class="gloss">{{ t('c_institutions.election_detail.no_others', 'No other elections are recorded for this place.') }}</p>
-                    <Link href="/jurisdictions">{{ t('c_institutions.election_detail.explore_another', 'Explore elections in another place →') }}</Link>
+                    <Link href="/jurisdictions" class="prose-link">{{ t('c_institutions.election_detail.explore_another', 'Explore elections in another place →') }}</Link>
                 </Card>
             </div>
 
