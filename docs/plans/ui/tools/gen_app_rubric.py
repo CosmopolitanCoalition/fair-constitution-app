@@ -603,6 +603,12 @@ def check_work(work):
         for d in it.get('depends_on', []):
             if d not in idset:
                 faults.append('%s: depends_on %s does not resolve' % (it.get('id'), d))
+    # The page maps over these fields; a string there throws before any row renders
+    # (2026-09-15: three desk-created items carried evidence as a string, Work tab empty).
+    for it in items:
+        for key in ('evidence', 'depends_on', 'sources', 'history'):
+            if not isinstance(it.get(key), list):
+                faults.append('%s: %s must be a list' % (it.get('id'), key))
     return faults
 
 
