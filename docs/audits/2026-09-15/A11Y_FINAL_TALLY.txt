@@ -1,5 +1,5 @@
 A11Y FINAL TALLY 2026-09-15 (latest status per route)
-signed-in roster 152: pass 151
+signed-in roster 152: pass 152
   PASS     /
   PASS     /achievements
   PASS     /atlas
@@ -141,7 +141,7 @@ signed-in roster 152: pass 151
   PASS     /organizations/01a079ff-9f93-727b-9716-211b846b22c2/cgc
   PASS     /organizations/d6ca66d5-0543-4ba3-b717-14a6f72d8503/delegations
   PASS     /organizations/d6ca66d5-0543-4ba3-b717-14a6f72d8503/economy
-  FAIL     /rooms/board/01a076a0-4ae8-73b6-9832-b195516212ce
+  PASS     /rooms/board/01a076a0-4ae8-73b6-9832-b195516212ce
   PASS     /rooms/chamber/276df6ae-053a-4b34-a8f4-f472df0ae984
   PASS     /rooms/committee/019fae79-aceb-73a8-a87a-8e25969f1e62
   PASS     /setup/step/0
