@@ -11,6 +11,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -30,6 +31,8 @@ const props = defineProps({
     report: { type: Object, required: true },
 });
 
+const { t } = useI18n();
+
 const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 
@@ -40,10 +43,10 @@ const STATUS_TONE = {
 
 const routeNote = computed(() => {
     if (props.report.route_target === 'moderation') {
-        return { text: 'This report rides the moderation & legal floor — off the tech-support queue. It removes nothing; content removal follows the constitutional carve-outs (F-SOC-003).', href: '/operator/moderation', label: 'Moderation & the legal floor' };
+        return { text: t('c_front.ticket.route_moderation_text', 'This report rides the moderation & legal floor — off the tech-support queue. It removes nothing; content removal follows the constitutional carve-outs (F-SOC-003).'), href: '/operator/moderation', label: t('c_front.ticket.route_moderation_label', 'Moderation & the legal floor') };
     }
     if (props.report.route_target === 'translation') {
-        return { text: 'Routed to translation support.', href: '/system/translations', label: 'The translation review queue' };
+        return { text: t('c_front.ticket.route_translation_text', 'Routed to translation support.'), href: '/system/translations', label: t('c_front.ticket.route_translation_label', 'The translation review queue') };
     }
     return null;
 });
@@ -63,9 +66,9 @@ function dateOf(iso) {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`Report ${report.public_id}`">
+    <PageScaffold :surface="surface" :title="t('c_front.ticket.page_title', { id: report.public_id })">
         <template #intro>
-            {{ report.subject || 'A support report.' }}
+            {{ report.subject || t('c_front.ticket.default_subject', 'A support report.') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -75,7 +78,7 @@ function dateOf(iso) {
             <StatusBadge :tone="STATUS_TONE[report.status] ?? 'neutral'">{{ plainState(report.status) }}</StatusBadge>
             <StatusBadge tone="neutral">{{ report.category_label }}</StatusBadge>
             <StatusBadge v-if="report.severity" tone="warning" data-no-i18n>{{ report.severity }}</StatusBadge>
-            <span class="citation">Routed to: {{ report.route_label }}</span>
+            <span class="citation">{{ t('c_front.ticket.routed_to', { target: report.route_label }) }}</span>
         </p>
 
         <Banner v-if="routeNote" tone="info">
@@ -84,47 +87,47 @@ function dateOf(iso) {
         </Banner>
 
         <!-- ──────────────────────────────────────────── what was said ── -->
-        <Card as="section" title="The report">
+        <Card as="section" :title="t('c_front.ticket.report_card', 'The report')">
             <p style="white-space: pre-wrap">{{ report.body }}</p>
             <dl class="stack" style="gap: var(--space-1); margin-block-start: var(--space-4)">
                 <div v-if="isOperator && report.reporter">
-                    <span class="citation">Filed by:</span> {{ report.reporter }}
+                    <span class="citation">{{ t('c_front.ticket.filed_by', 'Filed by:') }}</span> {{ report.reporter }}
                 </div>
                 <div v-if="report.ref">
-                    <span class="citation">From page:</span> <span data-no-i18n>{{ report.ref }}</span>
+                    <span class="citation">{{ t('c_front.ticket.from_page', 'From page:') }}</span> <span data-no-i18n>{{ report.ref }}</span>
                 </div>
-                <div><span class="citation">Filed:</span> <span data-no-i18n>{{ dateOf(report.created_at) }}</span></div>
-                <div><span class="citation">Last update:</span> <span data-no-i18n>{{ dateOf(report.updated_at) }}</span></div>
+                <div><span class="citation">{{ t('c_front.ticket.filed', 'Filed:') }}</span> <span data-no-i18n>{{ dateOf(report.created_at) }}</span></div>
+                <div><span class="citation">{{ t('c_front.ticket.last_update', 'Last update:') }}</span> <span data-no-i18n>{{ dateOf(report.updated_at) }}</span></div>
             </dl>
         </Card>
 
         <!-- ─────────────────────────────────────── operator triage ── -->
-        <Card v-if="isOperator" as="section" title="Triage">
+        <Card v-if="isOperator" as="section" :title="t('c_front.ticket.triage', 'Triage')">
             <form class="stack" @submit.prevent="saveTriage">
                 <div class="cluster" style="gap: var(--space-4); align-items: flex-end">
-                    <Field label="Status" :error="form.errors.status">
+                    <Field :label="t('c_front.ticket.status_label', 'Status')" :error="form.errors.status">
                         <template #control="{ id }">
                             <select :id="id" v-model="form.status" class="select">
                                 <option v-for="s in statuses" :key="s" :value="s">{{ plainState(s) }}</option>
                             </select>
                         </template>
                     </Field>
-                    <Field label="Severity" :error="form.errors.severity">
+                    <Field :label="t('c_front.ticket.severity_label', 'Severity')" :error="form.errors.severity">
                         <template #control="{ id }">
                             <select :id="id" v-model="form.severity" class="select">
-                                <option value="">— none —</option>
+                                <option value="">{{ t('c_front.ticket.severity_none', '— none —') }}</option>
                                 <option v-for="s in severities" :key="s" :value="s">{{ s }}</option>
                             </select>
                         </template>
                     </Field>
-                    <Btn type="submit" variant="primary" :disabled="form.processing">Save</Btn>
+                    <Btn type="submit" variant="primary" :disabled="form.processing">{{ t('c_front.ticket.save', 'Save') }}</Btn>
                 </div>
-                <p class="citation">Triage is an attributed record change — it routes and tracks, it never removes content.</p>
+                <p class="citation">{{ t('c_front.ticket.triage_note', 'Triage is an attributed record change — it routes and tracks, it never removes content.') }}</p>
             </form>
         </Card>
 
         <p>
-            <Link href="/support/tickets">← Back to {{ isOperator ? 'the queue' : 'your reports' }}</Link>
+            <Link href="/support/tickets">{{ isOperator ? t('c_front.ticket.back_to_queue', '← Back to the queue') : t('c_front.ticket.back_to_reports', '← Back to your reports') }}</Link>
         </p>
     </PageScaffold>
 </template>

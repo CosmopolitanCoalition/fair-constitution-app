@@ -14,12 +14,15 @@
  */
 import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import { TOUR, FIRST_VISIT, tourStartHref } from '@/registry/surfaces.js';
 import { tourHref } from '@/composables/useTour.js';
 
 defineOptions({ layout: AppShellV2 });
+
+const { t } = useI18n();
 
 /* Group TOUR by `act`, preserving order + each stop's global index (the index
    is what tourHref needs so ?step=N is the true position). */
@@ -50,24 +53,21 @@ const actId = (act) => 'act-' + act.replace(/\s+/g, '-').toLowerCase();
 </script>
 
 <template>
-    <Head title="Guided tour" />
+    <Head :title="t('c_front.index.head_title', 'Guided tour')" />
 
     <div class="stack">
         <header>
-            <span class="eyebrow"><Icon name="map" size="sm" /> Guided tour</span>
-            <h1>Walk the whole thing, in order</h1>
+            <span class="eyebrow"><Icon name="map" size="sm" /> {{ t('c_front.index.eyebrow', 'Guided tour') }}</span>
+            <h1>{{ t('c_front.index.title', 'Walk the whole thing, in order') }}</h1>
             <p class="page-intro">
-                One linear path through the whole world — {{ TOUR.length }} stops across
-                {{ acts.length }} acts. Start at the top and a <strong>Back / Next</strong> bar
-                rides along at the top of every screen, so you can step through the whole
-                experience and iterate as you go. Jump in anywhere.
+                {{ t('c_front.index.intro_a', { stops: TOUR.length, acts: acts.length }) }} <strong>{{ t('c_front.index.intro_backnext', 'Back / Next') }}</strong> {{ t('c_front.index.intro_b', 'bar rides along at the top of every screen, so you can step through the whole experience and iterate as you go. Jump in anywhere.') }}
             </p>
-            <p class="citation">A linear walkthrough · Back / Next on every screen</p>
+            <p class="citation">{{ t('c_front.index.intro_cite', 'A linear walkthrough · Back / Next on every screen') }}</p>
             <div class="cluster" style="margin-block-start: var(--space-3)">
                 <a class="btn btn--primary" :href="tourStartHref()">
-                    Start the tour <Icon name="arrow-right" size="sm" />
+                    {{ t('c_front.index.start_tour', 'Start the tour') }} <Icon name="arrow-right" size="sm" />
                 </a>
-                <span class="citation">or pick any step below</span>
+                <span class="citation">{{ t('c_front.index.pick_step', 'or pick any step below') }}</span>
             </div>
         </header>
 
@@ -77,10 +77,9 @@ const actId = (act) => 'act-' + act.replace(/\s+/g, '-').toLowerCase();
             aria-labelledby="act-first-visit"
             style="border-block-start: 3px solid var(--cc-gold-300)"
         >
-            <h2 id="act-first-visit">First visit — ten stops</h2>
+            <h2 id="act-first-visit">{{ t('c_front.index.first_visit_h', 'First visit — ten stops') }}</h2>
             <p class="cc-small">
-                The short version, the way a real arrival goes: a friend's invite, a live room,
-                home, the living world, and your first ballot. About ten minutes.
+                {{ t('c_front.index.first_visit_body', 'The short version, the way a real arrival goes: a friend\'s invite, a live room, home, the living world, and your first ballot. About ten minutes.') }}
             </p>
             <Link
                 v-for="(o, n) in firstVisit"
@@ -96,7 +95,7 @@ const actId = (act) => 'act-' + act.replace(/\s+/g, '-').toLowerCase();
         </section>
 
         <!-- ───────────────────────────────── the complete walkthrough ── -->
-        <h2 style="margin-block-start: var(--space-6)">The complete walkthrough</h2>
+        <h2 style="margin-block-start: var(--space-6)">{{ t('c_front.index.complete_walkthrough', 'The complete walkthrough') }}</h2>
 
         <section v-for="g in acts" :key="g.act" class="tour-act" :aria-labelledby="actId(g.act)">
             <h2 :id="actId(g.act)">{{ g.act }}</h2>
@@ -116,9 +115,7 @@ const actId = (act) => 'act-' + act.replace(/\s+/g, '-').toLowerCase();
         <div class="lr-note">
             <Icon name="info" size="sm" />
             <div>
-                The tour never traps you — each screen is the real page, fully usable, with the
-                Back / Next bar added on top. Leave the tour any time from the normal menu, or come
-                back here for the full list.
+                {{ t('c_front.index.lr_note', 'The tour never traps you — each screen is the real page, fully usable, with the Back / Next bar added on top. Leave the tour any time from the normal menu, or come back here for the full list.') }}
             </div>
         </div>
     </div>

@@ -12,6 +12,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -22,6 +23,8 @@ import Field from '@/Components/Ui/Field.vue';
 /* Phase-1 pilot surface: rides the v3 player chrome (it is also the tour's
    final stop and the Learn drawer's "Report an issue" target). */
 defineOptions({ layout: AppShellV2 });
+
+const { t } = useI18n();
 
 const props = defineProps({
     categories: { type: Array, default: () => [] },
@@ -55,24 +58,23 @@ function submit() {
 </script>
 
 <template>
-    <PageScaffold title="Report a problem">
+    <PageScaffold :title="t('c_front.report.page_title', 'Report a problem')">
         <template #intro>
-            Report a problem — a bug, a question, or something that needs review. You get a
-            reference number back so you can follow up.
+            {{ t('c_front.report.intro', 'Report a problem — a bug, a question, or something that needs review. You get a reference number back so you can follow up.') }}
         </template>
 
         <Banner v-if="flashStatus || submitted" tone="info" role="status">
-            {{ flashStatus ?? 'Report filed.' }}
+            {{ flashStatus ?? t('c_front.report.filed', 'Report filed.') }}
         </Banner>
 
         <Banner v-if="isGuest" tone="info">
-            You need to be signed in to file a report —
-            <Link href="/login" class="prose-link">log in</Link> and come back to this page.
+            {{ t('c_front.report.guest_before', 'You need to be signed in to file a report —') }}
+            <Link href="/login" class="prose-link">{{ t('c_front.report.log_in', 'log in') }}</Link> {{ t('c_front.report.guest_after', 'and come back to this page.') }}
         </Banner>
 
-        <Card as="section" title="File a report">
+        <Card as="section" :title="t('c_front.report.file_report', 'File a report')">
             <form class="stack" @submit.prevent="submit">
-                <Field label="What kind of report is this?" :error="form.errors.category" required>
+                <Field :label="t('c_front.report.category_label', 'What kind of report is this?')" :error="form.errors.category" required>
                     <template #control="{ id, invalid, describedBy }">
                         <select
                             :id="id"
@@ -89,11 +91,11 @@ function submit() {
                     </template>
                 </Field>
 
-                <p v-if="routesTo" class="citation">Goes to: {{ routesTo }}</p>
+                <p v-if="routesTo" class="citation">{{ t('c_front.report.goes_to', { target: routesTo }) }}</p>
 
                 <Field
-                    label="A one-line summary (optional)"
-                    hint="A short subject helps triage — the details go below."
+                    :label="t('c_front.report.subject_label', 'A one-line summary (optional)')"
+                    :hint="t('c_front.report.subject_hint', 'A short subject helps triage — the details go below.')"
                     :error="form.errors.subject"
                 >
                     <template #control="{ id, invalid, describedBy }">
@@ -111,8 +113,8 @@ function submit() {
                 </Field>
 
                 <Field
-                    label="What happened?"
-                    hint="Plain words are fine. Include what you expected and what you saw instead."
+                    :label="t('c_front.report.body_label', 'What happened?')"
+                    :hint="t('c_front.report.body_hint', 'Plain words are fine. Include what you expected and what you saw instead.')"
                     :error="form.errors.body"
                     required
                 >
@@ -131,32 +133,28 @@ function submit() {
                 </Field>
 
                 <p v-if="isAbuse" class="gloss">
-                    Abuse and illegal-content reports go to the moderation &amp; legal team, not the
-                    support queue. Filing here removes nothing — content removal follows the
-                    constitutional carve-outs (the F-SOC-003 machinery), never this form.
+                    {{ t('c_front.report.abuse_note', 'Abuse and illegal-content reports go to the moderation & legal team, not the support queue. Filing here removes nothing — content removal follows the constitutional carve-outs (the F-SOC-003 machinery), never this form.') }}
                 </p>
 
-                <p v-if="form.ref" class="citation">Filed from: {{ form.ref }}</p>
+                <p v-if="form.ref" class="citation">{{ t('c_front.report.filed_from', { ref: form.ref }) }}</p>
 
                 <div class="cluster">
                     <Btn
                         type="submit"
                         variant="primary"
                         :disabled="isGuest || form.processing || !form.body.trim()"
-                    >File report</Btn>
+                    >{{ t('c_front.report.submit', 'File report') }}</Btn>
                 </div>
             </form>
         </Card>
 
         <p v-if="!isGuest">
-            <Link href="/support/tickets">See the reports you’ve filed →</Link>
+            <Link href="/support/tickets">{{ t('c_front.report.see_filed', 'See the reports you’ve filed →') }}</Link>
         </p>
 
         <template #about>
             <p>
-                Every report is one of six subjects, and each routes to one place — the operators,
-                translation support, moderation &amp; the legal floor, or the product backlog. The
-                intake routes a request; it never edits or removes content itself.
+                {{ t('c_front.report.about', 'Every report is one of six subjects, and each routes to one place — the operators, translation support, moderation & the legal floor, or the product backlog. The intake routes a request; it never edits or removes content itself.') }}
             </p>
         </template>
     </PageScaffold>

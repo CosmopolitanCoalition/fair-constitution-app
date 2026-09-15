@@ -14,6 +14,7 @@
  */
 import { ref, computed } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -34,6 +35,8 @@ const props = defineProps({
     videoPrefs: { type: Object, default: null },
     prefsEndpoint: { type: String, default: null },
 });
+
+const { t } = useI18n();
 
 const page = usePage();
 const locale = computed(() => page.props.locale || 'en');
@@ -76,15 +79,15 @@ function pick(id) {
 </script>
 
 <template>
-    <Head title="Video library" />
+    <Head :title="t('c_front.video_library.head_title', 'Video library')" />
     <PageScaffold :surface="surface">
         <template #intro>
-            Choose a film and the audio and subtitle languages you prefer.
+            {{ t('c_front.video_library.intro', 'Choose a film and the audio and subtitle languages you prefer.') }}
         </template>
 
         <template #about>
-            <p>Audio and subtitles can use the same language or different languages. Your choices are remembered in this browser.</p>
-            <p>To review language coverage, open the <Link href="/system/translations">translation workspace</Link>.</p>
+            <p>{{ t('c_front.video_library.about_1', 'Audio and subtitles can use the same language or different languages. Your choices are remembered in this browser.') }}</p>
+            <p>{{ t('c_front.video_library.about_2_before', 'To review language coverage, open the') }} <Link href="/system/translations">{{ t('c_front.video_library.translation_workspace', 'translation workspace') }}</Link>{{ t('c_front.video_library.about_2_after', '.') }}</p>
         </template>
 
         <!-- Featured player -->
@@ -99,13 +102,13 @@ function pick(id) {
                 :prefs-endpoint="prefsEndpoint"
                 @change="onPlayerChange"
             />
-            <Card v-else><p class="gloss">The video catalog is empty.</p></Card>
+            <Card v-else><p class="gloss">{{ t('c_front.video_library.empty', 'The video catalog is empty.') }}</p></Card>
         </div>
 
         <!-- Library list -->
         <section aria-labelledby="lib-h">
-            <h2 id="lib-h">Films</h2>
-            <p class="page-intro">{{ videos.length }} videos so far. Pick one to load it above — your language choice follows you.</p>
+            <h2 id="lib-h">{{ t('c_front.video_library.films_h', 'Films') }}</h2>
+            <p class="page-intro">{{ t('c_front.video_library.count_line', { n: videos.length }) }}</p>
             <div class="lesson-list">
                 <button
                     v-for="v in videos"
@@ -121,7 +124,7 @@ function pick(id) {
                         {{ v.title }}
                         <Icon v-if="v.id === currentId" name="play" size="sm" />
                     </span>
-                    <span class="tk-meta">{{ v.audio.length }} audio · {{ v.captions.length }} captions</span>
+                    <span class="tk-meta">{{ t('c_front.video_library.track_meta', { audio: v.audio.length, captions: v.captions.length }) }}</span>
                 </button>
             </div>
         </section>

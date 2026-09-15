@@ -10,6 +10,7 @@
  */
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, provide, ref, useId } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 
 // Standalone (pre-shell) page — opt out of the AppShell default layout.
@@ -33,7 +34,9 @@ const props = defineProps({
     intendedUrl: { type: String, default: null },
     invitePreview: { type: Object, default: null },
 });
-const continuationLabel = computed(() => props.invitePreview?.label || (props.intendedUrl ? 'where you were headed' : null));
+const { t } = useI18n();
+
+const continuationLabel = computed(() => props.invitePreview?.label || (props.intendedUrl ? t('c_front.register.headed', 'where you were headed') : null));
 const inviterName = computed(() => props.invitePreview?.inviter || null);
 
 // Mockup onboarding contract: the languages multiselect offers these five;
@@ -87,34 +90,32 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Create your account" />
+    <Head :title="t('c_front.register.head_title', 'Create your account')" />
 
     <main id="main" class="register-page">
         <div class="stack">
-            <Banner v-if="continuationLabel" tone="info" title="You were invited" style="margin-block-end: var(--space-2)">
-                <template v-if="inviterName">{{ inviterName }} invited you to <strong>{{ continuationLabel }}</strong> — you’ll land there right after.</template>
-                <template v-else>You’ll continue to <strong>{{ continuationLabel }}</strong> — you’ll land there right after.</template>
+            <Banner v-if="continuationLabel" tone="info" :title="t('c_front.register.invited_title', 'You were invited')" style="margin-block-end: var(--space-2)">
+                <template v-if="inviterName">{{ t('c_front.register.invited_prefix', { inviter: inviterName }) }} <strong>{{ continuationLabel }}</strong> {{ t('c_front.register.land_after', '— you’ll land there right after.') }}</template>
+                <template v-else>{{ t('c_front.register.continue_to', 'You’ll continue to') }} <strong>{{ continuationLabel }}</strong> {{ t('c_front.register.land_after', '— you’ll land there right after.') }}</template>
             </Banner>
 
             <header>
-                <span class="eyebrow">Civic onboarding · step 1 of 3</span>
-                <h1>Create your account</h1>
+                <span class="eyebrow">{{ t('c_front.register.eyebrow', 'Civic onboarding · step 1 of 3') }}</span>
+                <h1>{{ t('c_front.register.title', 'Create your account') }}</h1>
                 <p class="page-intro">
-                    Anyone can register — being a person is the only requirement. Your rights are
-                    inherent; this account simply gives them a record to attach to. Voting and
-                    candidacy unlock later, automatically, when your residency is verified.
+                    {{ t('c_front.register.intro', 'Anyone can register — being a person is the only requirement. Your rights are inherent; this account simply gives them a record to attach to. Voting and candidacy unlock later, automatically, when your residency is verified.') }}
                 </p>
-                <p class="citation">Registration is open to any person — rights are inherent · Art. I</p>
+                <p class="citation">{{ t('c_front.register.intro_cite', 'Registration is open to any person — rights are inherent · Art. I') }}</p>
             </header>
 
             <Card as="section" aria-labelledby="reg-h">
                 <template #title>
-                    <h2 id="reg-h">Individual registration <FormChip form-id="F-IND-001" /></h2>
+                    <h2 id="reg-h">{{ t('c_front.register.reg_h', 'Individual registration') }} <FormChip form-id="F-IND-001" /></h2>
                 </template>
                 <p class="cc-small">
-                    Create an account and identity record in the system.
+                    {{ t('c_front.register.reg_desc', 'Create an account and identity record in the system.') }}
                     <span class="citation" style="display:block">
-                        available to R-01 Individual · creates the Individual record · Art. I (inherent rights)
+                        {{ t('c_front.register.reg_cite', 'available to R-01 Individual · creates the Individual record · Art. I (inherent rights)') }}
                     </span>
                 </p>
 
@@ -123,9 +124,9 @@ function submit() {
                          landing page deliberately carries no name input, so when an invite is in
                          flight this field speaks the mockup's friendlier voice. -->
                     <Field
-                        :label="invitePreview ? 'What should people call you?' : 'Full name'"
+                        :label="invitePreview ? t('c_front.register.name_label_invite', 'What should people call you?') : t('c_front.register.name_label', 'Full name')"
                         :error="form.errors.name"
-                        :hint="invitePreview ? 'Any name you like — you can change it later.' : 'Use the name you want on your public civic record.'"
+                        :hint="invitePreview ? t('c_front.register.name_hint_invite', 'Any name you like — you can change it later.') : t('c_front.register.name_hint', 'Use the name you want on your public civic record.')"
                         required
                     >
                         <template #control="{ id, invalid, describedBy }">
@@ -143,7 +144,7 @@ function submit() {
                         </template>
                     </Field>
 
-                    <Field label="Email" :error="form.errors.email" required>
+                    <Field :label="t('c_front.register.field_email', 'Email')" :error="form.errors.email" required>
                         <template #control="{ id, invalid, describedBy }">
                             <input
                                 :id="id"
@@ -159,7 +160,7 @@ function submit() {
                         </template>
                     </Field>
 
-                    <Field label="Password" :error="form.errors.password" required>
+                    <Field :label="t('c_front.register.field_password', 'Password')" :error="form.errors.password" required>
                         <template #control="{ id, invalid, describedBy }">
                             <input
                                 :id="id"
@@ -175,7 +176,7 @@ function submit() {
                         </template>
                     </Field>
 
-                    <Field label="Confirm password" :error="form.errors.password_confirmation" required>
+                    <Field :label="t('c_front.register.field_confirm', 'Confirm password')" :error="form.errors.password_confirmation" required>
                         <template #control="{ id, invalid, describedBy }">
                             <input
                                 :id="id"
@@ -192,9 +193,9 @@ function submit() {
                     </Field>
 
                     <Field
-                        label="Languages"
+                        :label="t('c_front.register.lang_label', 'Languages')"
                         :error="form.errors.languages"
-                        hint="Records are translated per your selection."
+                        :hint="t('c_front.register.lang_hint', 'Records are translated per your selection.')"
                     >
                         <template #control="{ id, invalid, describedBy }">
                             <select
@@ -215,9 +216,9 @@ function submit() {
                     </Field>
 
                     <Field
-                        label="Timezone"
+                        :label="t('c_front.register.tz_label', 'Timezone')"
                         :error="form.errors.timezone"
-                        hint="Dates are shown in your timezone · stored as UTC."
+                        :hint="t('c_front.register.tz_hint', 'Dates are shown in your timezone · stored as UTC.')"
                     >
                         <template #control="{ id, invalid, describedBy }">
                             <select
@@ -246,36 +247,34 @@ function submit() {
 
                     <div class="field" :class="{ 'field--invalid': form.errors.terms }">
                         <CheckboxField v-model="form.terms" name="terms">
-                            I understand my account record is mine, my location pings stay encrypted,
-                            and my civic actions become part of an append-only public record.
+                            {{ t('c_front.register.terms', 'I understand my account record is mine, my location pings stay encrypted, and my civic actions become part of an append-only public record.') }}
                         </CheckboxField>
                         <span v-if="form.errors.terms" class="field-error">{{ form.errors.terms }}</span>
                     </div>
 
                     <div class="cluster">
                         <Btn type="submit" variant="primary" :disabled="form.processing">
-                            {{ form.processing ? 'Creating account…' : 'Create account' }}
+                            {{ form.processing ? t('c_front.register.creating', 'Creating account…') : t('c_front.register.create_btn', 'Create account') }}
                         </Btn>
                         <span class="cc-small">
-                            Already have an account?
-                            <Link href="/login" class="prose-link">Log in</Link>
+                            {{ t('c_front.register.have_account', 'Already have an account?') }}
+                            <Link href="/login" class="prose-link">{{ t('c_front.register.log_in', 'Log in') }}</Link>
                         </span>
                     </div>
                 </form>
 
-                <Banner v-if="Object.keys(form.errors).length" tone="warning" title="Check the form" style="margin-block-start: var(--space-4)">
-                    Some fields need attention before your Individual record can be created.
+                <Banner v-if="Object.keys(form.errors).length" tone="warning" :title="t('c_front.register.errors_title', 'Check the form')" style="margin-block-start: var(--space-4)">
+                    {{ t('c_front.register.errors_body', 'Some fields need attention before your Individual record can be created.') }}
                 </Banner>
             </Card>
 
             <Card as="section" aria-labelledby="state-h">
                 <template #title>
-                    <h2 id="state-h">Where you are in the Individual lifecycle</h2>
+                    <h2 id="state-h">{{ t('c_front.register.lifecycle_h', 'Where you are in the Individual lifecycle') }}</h2>
                 </template>
                 <StateStrip :states="INDIVIDUAL_STATES" current="Registered" />
                 <p class="gloss" style="margin-block-start: var(--space-2)">
-                    Association exists simultaneously at every nesting level (local → Earth); voting
-                    and candidacy unlock at R-03 with no other requirements.
+                    {{ t('c_front.register.lifecycle_gloss', 'Association exists simultaneously at every nesting level (local → Earth); voting and candidacy unlock at R-03 with no other requirements.') }}
                 </p>
                 <p class="citation">Art. I · Art. V §1</p>
             </Card>

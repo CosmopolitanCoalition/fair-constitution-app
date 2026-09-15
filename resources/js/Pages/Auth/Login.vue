@@ -6,6 +6,7 @@
  */
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed, provide, ref, useId } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 
 // Standalone (pre-shell) page — opt out of the AppShell default layout.
@@ -23,6 +24,8 @@ import CmdBar from '@/Components/ShellV2/CmdBar.vue';
 provide('cga:surface', ref({ id: 'auth/login', module: 'civic' }));
 provide('cga:learn-target', '#learn-content-' + useId());
 
+const { t } = useI18n();
+
 const status = computed(() => usePage().props.flash?.status ?? null);
 
 // Carried from an invite (/i/{token}) or a shared deep link — where the visitor lands after login.
@@ -30,7 +33,7 @@ const props = defineProps({
     intendedUrl: { type: String, default: null },
     invitePreview: { type: Object, default: null },
 });
-const continuationLabel = computed(() => props.invitePreview?.label || (props.intendedUrl ? 'where you were headed' : null));
+const continuationLabel = computed(() => props.invitePreview?.label || (props.intendedUrl ? t('c_front.login.headed', 'where you were headed') : null));
 const inviterName = computed(() => props.invitePreview?.inviter || null);
 
 const form = useForm({
@@ -47,34 +50,33 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Log in" />
+    <Head :title="t('c_front.login.head_title', 'Log in')" />
 
     <main id="main" class="login-page">
         <div class="stack">
             <header>
-                <span class="eyebrow">Welcome back</span>
-                <h1>Log in</h1>
+                <span class="eyebrow">{{ t('c_front.login.eyebrow', 'Welcome back') }}</span>
+                <h1>{{ t('c_front.login.title', 'Log in') }}</h1>
                 <p class="page-intro">
-                    Sign in to your Individual record. Your rights ride with your residency, not
-                    with this session.
+                    {{ t('c_front.login.intro', 'Sign in to your Individual record. Your rights ride with your residency, not with this session.') }}
                 </p>
             </header>
 
             <Banner v-if="status" tone="info">{{ status }}</Banner>
 
-            <Banner v-if="continuationLabel" tone="info" title="You were invited" style="margin-block-end: var(--space-2)">
-                <template v-if="inviterName">{{ inviterName }} invited you to <strong>{{ continuationLabel }}</strong>. </template>
-                <template v-else>You’ll continue to <strong>{{ continuationLabel }}</strong>. </template>
-                Log in and you’ll land there.
+            <Banner v-if="continuationLabel" tone="info" :title="t('c_front.login.invited_title', 'You were invited')" style="margin-block-end: var(--space-2)">
+                <template v-if="inviterName">{{ t('c_front.login.invited_prefix', { inviter: inviterName }) }} <strong>{{ continuationLabel }}</strong>. </template>
+                <template v-else>{{ t('c_front.login.continue_to', 'You’ll continue to') }} <strong>{{ continuationLabel }}</strong>. </template>
+                {{ t('c_front.login.land_there', 'Log in and you’ll land there.') }}
             </Banner>
 
             <Card as="section" aria-labelledby="login-h">
                 <template #title>
-                    <h2 id="login-h">Account sign-in</h2>
+                    <h2 id="login-h">{{ t('c_front.login.account_signin', 'Account sign-in') }}</h2>
                 </template>
 
                 <form novalidate @submit.prevent="submit">
-                    <Field label="Email" :error="form.errors.email" required>
+                    <Field :label="t('c_front.login.field_email', 'Email')" :error="form.errors.email" required>
                         <template #control="{ id, invalid, describedBy }">
                             <input
                                 :id="id"
@@ -91,7 +93,7 @@ function submit() {
                         </template>
                     </Field>
 
-                    <Field label="Password" :error="form.errors.password" required>
+                    <Field :label="t('c_front.login.field_password', 'Password')" :error="form.errors.password" required>
                         <template #control="{ id, invalid, describedBy }">
                             <input
                                 :id="id"
@@ -109,17 +111,17 @@ function submit() {
 
                     <div class="field">
                         <CheckboxField v-model="form.remember" name="remember">
-                            Stay signed in on this device
+                            {{ t('c_front.login.stay_signed_in', 'Stay signed in on this device') }}
                         </CheckboxField>
                     </div>
 
                     <div class="cluster">
                         <Btn type="submit" variant="primary" :disabled="form.processing">
-                            {{ form.processing ? 'Signing in…' : 'Log in' }}
+                            {{ form.processing ? t('c_front.login.signing_in', 'Signing in…') : t('c_front.login.log_in_btn', 'Log in') }}
                         </Btn>
                         <span class="cc-small">
-                            New here?
-                            <Link href="/register">Create an account</Link>
+                            {{ t('c_front.login.new_here', 'New here?') }}
+                            <Link href="/register">{{ t('c_front.login.create_account', 'Create an account') }}</Link>
                         </span>
                     </div>
                 </form>
