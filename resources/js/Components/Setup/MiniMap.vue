@@ -1,7 +1,10 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+
+const { t } = useI18n()
 
 const props = defineProps({
     jurisdictionId: { type: String, default: null },
@@ -231,25 +234,25 @@ watch(() => props.jurisdictionId, (id) => requestLoad(id))
             v-if="status === 'idle'"
             class="absolute inset-0 flex items-center justify-center text-gray-500 text-xs"
         >
-            Preparing next jurisdiction…
+            {{ t('c_setup_components.mini_map.preparing', 'Preparing next jurisdiction…') }}
         </div>
         <div
             v-else-if="status === 'loading'"
             class="absolute inset-0 flex items-center justify-center text-gray-500 text-xs"
         >
-            Loading map…
+            {{ t('c_setup_components.mini_map.loading_map', 'Loading map…') }}
         </div>
         <div
             v-else-if="status === 'empty'"
             class="absolute inset-0 flex items-center justify-center text-gray-600 text-xs italic"
         >
-            No geometry available
+            {{ t('c_setup_components.mini_map.no_geometry', 'No geometry available') }}
         </div>
         <div
             v-else-if="status === 'polygon'"
             class="absolute bottom-1 right-1 text-[10px] bg-gray-900/80 border border-gray-700 rounded px-1.5 py-0.5 text-gray-400"
         >
-            raster not loaded
+            {{ t('c_setup_components.mini_map.raster_not_loaded', 'raster not loaded') }}
         </div>
         <div
             v-if="status === 'error'"

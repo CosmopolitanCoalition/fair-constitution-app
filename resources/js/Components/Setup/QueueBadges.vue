@@ -1,4 +1,8 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 defineProps({
     isos: { type: Array, default: () => [] },
 })
@@ -9,7 +13,7 @@ defineProps({
         v-if="isos && isos.length > 0"
         class="flex items-center gap-2 text-xs text-gray-400 flex-wrap"
     >
-        <span class="uppercase tracking-wider text-gray-500">Next</span>
+        <span class="uppercase tracking-wider text-gray-500">{{ t('c_setup_components.queue_badges.next', 'Next') }}</span>
         <span
             v-for="iso in isos"
             :key="iso"

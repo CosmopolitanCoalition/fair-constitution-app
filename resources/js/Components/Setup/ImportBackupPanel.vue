@@ -1,6 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 /**
  * Restore-from-backup panel — drop-in anywhere in the setup wizard.
@@ -123,13 +126,13 @@ function startImport() {
             router.visit('/setup')
         } else {
             importPhase.value = 'failed'
-            importError.value = data.error || `Restore failed (HTTP ${xhr.status})`
+            importError.value = data.error || t('c_setup_components.import_backup_panel.restore_failed_http', { status: xhr.status })
         }
     })
     xhr.addEventListener('error', () => {
         importing.value = false
         importPhase.value = 'failed'
-        importError.value = 'Network error during upload'
+        importError.value = t('c_setup_components.import_backup_panel.network_error', 'Network error during upload')
     })
     xhr.open('POST', '/api/import/jurisdictions')
     xhr.setRequestHeader('X-CSRF-TOKEN', csrf())
@@ -142,12 +145,7 @@ function startImport() {
     <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
         <h2 class="text-white font-semibold mb-2">{{ title }}</h2>
         <p class="text-gray-400 text-xs mb-4">
-            Already have a <code class="text-gray-300">.tar.gz</code> exported
-            from another instance? Upload it here to skip ahead. The backend
-            validates the manifest's schema version before restoring — older
-            snapshots are refused with a clear message. After a successful
-            restore you'll land on whichever wizard step matches the bundle's
-            saved progress (so a backup taken at Step 3 drops you back at Step 3).
+            {{ t('c_setup_components.import_backup_panel.about_1', 'Already have a') }} <code class="text-gray-300">.tar.gz</code> {{ t('c_setup_components.import_backup_panel.about_2', 'exported from another instance? Upload it here to skip ahead. The backend validates the manifest\'s schema version before restoring — older snapshots are refused with a clear message. After a successful restore you\'ll land on whichever wizard step matches the bundle\'s saved progress (so a backup taken at Step 3 drops you back at Step 3).') }}
         </p>
 
         <!-- Table picker — collapsed by default. Most operators want "everything",
@@ -156,7 +154,7 @@ function startImport() {
             <button type="button"
                     @click="showTablePicker = !showTablePicker"
                     class="text-[11px] text-gray-400 hover:text-gray-200 underline">
-                {{ showTablePicker ? 'Hide' : 'Choose which tables to restore' }}
+                {{ showTablePicker ? t('c_setup_components.import_backup_panel.hide', 'Hide') : t('c_setup_components.import_backup_panel.choose_tables', 'Choose which tables to restore') }}
                 ({{ selectedTables.length }} / {{ availableTables.length }})
             </button>
             <div v-if="showTablePicker"
@@ -165,16 +163,15 @@ function startImport() {
                     <button type="button" @click="selectAll"
                             :disabled="allSelected"
                             class="text-[10px] px-2 py-0.5 rounded border bg-gray-800 border-gray-700 text-gray-300 hover:text-white disabled:opacity-50">
-                        All
+                        {{ t('c_setup_components.import_backup_panel.all', 'All') }}
                     </button>
                     <button type="button" @click="selectNone"
                             :disabled="noneSelected"
                             class="text-[10px] px-2 py-0.5 rounded border bg-gray-800 border-gray-700 text-gray-300 hover:text-white disabled:opacity-50">
-                        None
+                        {{ t('c_setup_components.import_backup_panel.none', 'None') }}
                     </button>
                     <span class="text-[10px] text-gray-500 italic ml-2">
-                        Only tables actually present in the uploaded bundle get restored —
-                        un-selected tables on this instance are left alone.
+                        {{ t('c_setup_components.import_backup_panel.picker_note', 'Only tables actually present in the uploaded bundle get restored — un-selected tables on this instance are left alone.') }}
                     </span>
                 </div>
                 <div class="grid grid-cols-2 gap-x-3 gap-y-1">
@@ -194,7 +191,7 @@ function startImport() {
         <div class="flex flex-wrap items-center gap-3">
             <input type="file"
                    accept=".tar.gz,.tgz,application/gzip,application/x-gzip"
-                   aria-label="Choose a backup archive to import"
+                   :aria-label="t('c_setup_components.import_backup_panel.file_aria', 'Choose a backup archive to import')"
                    @change="onImportFile"
                    :disabled="disabled || importing"
                    class="text-xs text-gray-300 file:mr-3 file:px-3 file:py-1.5 file:rounded
@@ -206,7 +203,7 @@ function startImport() {
                     :disabled="!importFile || disabled || importing || noneSelected"
                     class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700
                            text-white px-4 py-1.5 rounded text-sm font-semibold">
-                {{ importing ? (importPhase === 'uploading' ? 'Uploading…' : 'Restoring…') : 'Upload & restore' }}
+                {{ importing ? (importPhase === 'uploading' ? t('c_setup_components.import_backup_panel.uploading', 'Uploading…') : t('c_setup_components.import_backup_panel.restoring', 'Restoring…')) : t('c_setup_components.import_backup_panel.upload_restore', 'Upload & restore') }}
             </button>
             <span v-if="importFile && !importing" class="text-xs text-gray-500">
                 {{ formatFile(importFile) }}
@@ -221,17 +218,16 @@ function startImport() {
             </div>
             <div class="text-[11px] text-gray-400 mt-1">
                 <template v-if="importPhase === 'uploading'">
-                    Uploading… {{ importProgress }}%
+                    {{ t('c_setup_components.import_backup_panel.uploading', 'Uploading…') }} {{ importProgress }}%
                 </template>
                 <template v-else-if="importPhase === 'restoring'">
-                    Upload complete — restoring database (pg_restore). May take several
-                    minutes on a full-rasters bundle.
+                    {{ t('c_setup_components.import_backup_panel.restoring_db', 'Upload complete — restoring database (pg_restore). May take several minutes on a full-rasters bundle.') }}
                 </template>
             </div>
         </div>
 
         <div v-if="importPhase === 'done' && !importing" class="mt-3 text-xs text-emerald-300">
-            Restore complete. Continuing…
+            {{ t('c_setup_components.import_backup_panel.restore_complete', 'Restore complete. Continuing…') }}
         </div>
         <div v-if="importError" class="mt-3 text-xs text-red-400">
             {{ importError }}

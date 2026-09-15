@@ -1,5 +1,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 /**
  * EventToasts — Phase P.3 surface for structured events emitted by the
@@ -125,7 +128,7 @@ const noEvents = computed(() => (props.events || []).length === 0)
              :class="levelClass('error')">
             <div class="flex items-baseline justify-between gap-2 mb-1">
                 <div class="text-xs uppercase tracking-wider text-red-300">
-                    {{ eventLabel(e) || 'error' }}
+                    {{ eventLabel(e) || t('c_setup_components.event_toasts.error', 'error') }}
                 </div>
                 <div class="flex items-baseline gap-2">
                     <span class="text-[10px] text-red-300/70 tabular-nums">
@@ -133,11 +136,11 @@ const noEvents = computed(() => (props.events || []).length === 0)
                     </span>
                     <button type="button" @click="dismiss(e.id)"
                             class="text-[10px] text-red-300 hover:text-red-100">
-                        dismiss
+                        {{ t('c_setup_components.event_toasts.dismiss', 'dismiss') }}
                     </button>
                 </div>
             </div>
-            <div class="text-sm">{{ e.msg || '(no message)' }}</div>
+            <div class="text-sm">{{ e.msg || t('c_setup_components.event_toasts.no_message', '(no message)') }}</div>
         </div>
 
         <!-- Auto-fading warning toasts ──────────────────── -->
@@ -146,7 +149,7 @@ const noEvents = computed(() => (props.events || []).length === 0)
              :class="levelClass('warn')">
             <div class="flex items-baseline justify-between gap-2">
                 <div class="font-medium">
-                    {{ eventLabel(e) || 'warning' }}
+                    {{ eventLabel(e) || t('c_setup_components.event_toasts.warning', 'warning') }}
                 </div>
                 <span class="text-[10px] text-amber-300/70 tabular-nums">
                     {{ fmtTime(e.ts) }}
@@ -161,7 +164,7 @@ const noEvents = computed(() => (props.events || []).length === 0)
                     @click="feedExpanded = !feedExpanded"
                     class="w-full px-3 py-2 flex items-center justify-between text-xs text-gray-400 hover:bg-gray-900/40">
                 <span>
-                    Events
+                    {{ t('c_setup_components.event_toasts.events', 'Events') }}
                     <span class="text-red-400 ml-2" v-if="errorCount">{{ errorCount }}E</span>
                     <span class="text-amber-400 ml-1" v-if="warnCount">{{ warnCount }}W</span>
                     <span class="text-gray-500 ml-1" v-if="infoCount">{{ infoCount }}i</span>
@@ -182,7 +185,7 @@ const noEvents = computed(() => (props.events || []).length === 0)
                     <span class="text-gray-500 truncate">{{ e.msg }}</span>
                 </div>
                 <div v-if="!allFeed.length" class="text-gray-600 italic">
-                    No events yet.
+                    {{ t('c_setup_components.event_toasts.no_events_yet', 'No events yet.') }}
                 </div>
             </div>
         </div>
