@@ -16967,6 +16967,10 @@
         {
           "date": "2026-09-15",
           "note": "OPERATOR RULING REVISED (4:22 PM Eastern): keep the header language selector (a guest needs it before registration). The gap-wiring-locale persistence stands: header switch and settings form save one preference; a guest choice is kept in the browser until registration. The Settings entry in the user flyout still goes in."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Round 2 merged 4:30 PM Eastern: gap-wiring-locale (493282ba) and gap-format-locale (b7e14cfb, 113 files). Repo-wide raw-string pin green: 272 .vue files, 0 offenders. INCIDENT: the merge script committed a conflict block in Setup/Step3_Districts.vue to main for about three minutes (pushed); resolved at cfa897eb by combining both changes; all 198 JS pin tests green after. The merge helper no longer auto-commits non-JSON conflicts."
         }
       ]
     },
@@ -17039,6 +17043,10 @@
         {
           "date": "2026-09-15",
           "note": "Signed-in sweep 3:50 PM Eastern: 62 of 152 routes run; 40 pass, 19 hold (requeue at 60 s), 2 fail: /board crashed at mount for a resident with no board (pre-existing null read in the page title, guarded now with a pin) and /civic/halls has a colour-contrast finding (3.36:1 on a paragraph). Batch 4 (routes 61 to 90) running."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "First pass complete 4:22 PM Eastern: 152 of 152 routes run; 74 pass, 65 hold, 13 findings. HOLD PATTERN (probe with stage timings): the page mount takes 48 to 62 s on first visit in a fresh browser because Vite transforms each page module graph on demand and again after every merge invalidates its cache; axe itself takes 1 to 14 s. Server answers in 3 s. Pass 2 started 4:32 PM: 78 held or failed routes at 60 s, one retry after a hold (the first visit absorbs the transform), no merges during the batch. Fix lanes launched in parallel (operator cleared multi-lane fan-out): fix-a11y-ui (Leaflet attribution contrast, in-text links, private-room contrast, residency map nested-interactive), fix-access (delegations 403 and board-room 403 are read pages under the access policy; resolver picks a CGC org), fix-guest-locale (guest POST /locale read-back, Settings in the flyout, @handle escapes in the six locale catalogs), w0446-language-packages."
         }
       ]
     }
