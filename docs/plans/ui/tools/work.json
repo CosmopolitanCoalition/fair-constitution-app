@@ -17006,7 +17006,7 @@
       "phase": "P1",
       "order": 11,
       "kind": "build",
-      "status": "done",
+      "status": "open",
       "blocker": "none",
       "done_when": "From the translations board the operator can export a language package and import a translated one; the dry-run report shows before any write; pins cover the operator gate, the job and a round trip on a fixture locale.",
       "depends_on": [
@@ -17042,6 +17042,14 @@
         {
           "date": "2026-09-15",
           "note": "Operator order 7:38 PM Eastern: close out once the boardroom passed. Boardroom URL passed 7:39 PM (152 of 152 signed-in, 55 of 55 guest). Status done."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Operator set open. closed by mistake. I need the URL for this to run"
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Card lives on http://localhost:8080/system/translations (operator-only Language packages card, below the coverage matrix). Export and import run as queued jobs: fc_horizon must be restarted once so the two new job classes load (docker restart fc_horizon, operator action). Request-a-language works without the restart."
         }
       ]
     },
