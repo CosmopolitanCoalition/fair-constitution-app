@@ -10,6 +10,7 @@
  * vacancy-countback,candidacy-registration,candidate-profile}.html.
  */
 import { computed, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppShell from '@/Layouts/AppShell.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -33,6 +34,8 @@ import fixtures from '@/fixtures/electoral.json';
 defineOptions({ layout: AppShell });
 
 defineProps({ surface: { type: Object, default: null } });
+
+const { t } = useI18n();
 
 /* ---------------------------------------------------------- PhaseBanner */
 const PHASES = ['approval', 'ranked', 'certifying'];
@@ -128,8 +131,8 @@ function addWriteIn() {
 }
 const guidance = computed(() =>
     ranking.value.length < SEATS
-        ? `Rank for all ${SEATS} seats (or more) so your vote can transfer — ${SEATS - ranking.value.length} more recommended.`
-        : 'All seats covered — extra ranks only help your vote transfer further.',
+        ? t('c_operator_pages.electoral_kit.guidance_incomplete', { seats: SEATS, more: SEATS - ranking.value.length })
+        : t('c_operator_pages.electoral_kit.guidance_complete', 'All seats covered — extra ranks only help your vote transfer further.'),
 );
 
 /* ------------------------------------------------------ BallotReceipt -- */
@@ -144,7 +147,7 @@ const keyRounds = stv.display.filter((r) => r.tallies);
 const midRounds = stv.display.filter((r) => !r.tallies);
 const openingRounds = keyRounds.slice(0, -1);
 const finalRound = keyRounds[keyRounds.length - 1];
-const midLabel = `Rounds ${midRounds[0].n}–${midRounds[midRounds.length - 1].n} — expand any round for its vote transfers`;
+const midLabel = t('c_operator_pages.electoral_kit.mid_label', { from: midRounds[0].n, to: midRounds[midRounds.length - 1].n });
 const profileHref = (id, name) =>
     `/candidates/${String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
@@ -164,11 +167,11 @@ const countbackBars = computed(() =>
         eliminated: !!c.removed,
         transferFill: !!c.exhausted,
         chips: c.removed
-            ? ['removed from the count']
+            ? [t('c_operator_pages.electoral_kit.chip_removed', 'removed from the count')]
             : c.elected
-              ? ['reaches quota']
+              ? [t('c_operator_pages.electoral_kit.chip_quota', 'reaches quota')]
               : c.exhausted
-                ? ['no remaining preference']
+                ? [t('c_operator_pages.electoral_kit.chip_no_pref', 'no remaining preference')]
                 : [],
     })),
 );
@@ -177,22 +180,21 @@ const countbackBars = computed(() =>
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            FE-B1 harness — the 8 Electoral components rendered from
+            {{ t('c_operator_pages.electoral_kit.intro_before', 'FE-B1 harness — the 8 Electoral components rendered from') }}
             <code data-no-i18n>resources/js/fixtures/electoral.json</code>
-            (mockup-extracted). Dev-gated; not product UI.
+            {{ t('c_operator_pages.electoral_kit.intro_after', '(mockup-extracted). Dev-gated; not product UI.') }}
         </template>
 
-        <Banner tone="demo" title="Fixture data only.">
-            Nothing on this page touches the database — every state below is the
-            mockups' world, frozen into a JSON fixture.
+        <Banner tone="demo" :title="t('c_operator_pages.electoral_kit.fixture_data_only', 'Fixture data only.')">
+            {{ t('c_operator_pages.electoral_kit.fixture_body', "Nothing on this page touches the database — every state below is the mockups' world, frozen into a JSON fixture.") }}
         </Banner>
 
         <!-- ============================================== 1. PhaseBanner -->
-        <Card as="section" title="PhaseBanner — all phases × contexts">
-            <p class="citation">Electoral/PhaseBanner · contexts open-ballot / registration / profile · frozen vocabulary approval | ranked | certifying</p>
+        <Card as="section" :title="t('c_operator_pages.electoral_kit.card_phasebanner', 'PhaseBanner — all phases × contexts')">
+            <p class="citation">{{ t('c_operator_pages.electoral_kit.cite_phasebanner', "Electoral/PhaseBanner · contexts open-ballot / registration / profile · frozen vocabulary approval {'|'} ranked {'|'} certifying") }}</p>
             <div v-for="phase in PHASES" :key="phase" class="stack" style="gap: var(--space-2); margin-block-end: var(--space-4)">
-                <h3>phase = {{ phase }}</h3>
-                <p v-if="phase === 'approval'" class="gloss">approval renders nothing except the registration info banner:</p>
+                <h3>{{ t('c_operator_pages.electoral_kit.phase_eq', { phase }) }}</h3>
+                <p v-if="phase === 'approval'" class="gloss">{{ t('c_operator_pages.electoral_kit.approval_banner_only', 'approval renders nothing except the registration info banner:') }}</p>
                 <PhaseBanner :phase="phase" context="open-ballot" :links="{ rankedBallot: '#ranked', results: '#results' }" />
                 <PhaseBanner :phase="phase" context="registration" />
                 <PhaseBanner :phase="phase" context="profile" :is-finalist="true" />
@@ -201,8 +203,8 @@ const countbackBars = computed(() =>
         </Card>
 
         <!-- ============================================ 2. ApproveSwitch -->
-        <Card as="section" title="ApproveSwitch — states">
-            <p class="citation">Electoral/ApproveSwitch · .switch · revocable, never color-only · Art. II §2</p>
+        <Card as="section" :title="t('c_operator_pages.electoral_kit.card_approveswitch', 'ApproveSwitch — states')">
+            <p class="citation">{{ t('c_operator_pages.electoral_kit.cite_approveswitch', 'Electoral/ApproveSwitch · .switch · revocable, never color-only · Art. II §2') }}</p>
             <div class="cluster">
                 <ApproveSwitch v-model:pressed="switchOff" candidate-name="Diego Ramos" />
                 <ApproveSwitch v-model:pressed="switchOn" candidate-name="Keisha Boyd" />
@@ -210,24 +212,22 @@ const countbackBars = computed(() =>
                 <ApproveSwitch :pressed="true" candidate-name="Robert Hale" disabled />
                 <ApproveSwitch :pressed="false" candidate-name="Fatou Ndiaye" busy />
             </div>
-            <p class="gloss">1–2 interactive (v-model) · 3–4 disabled with title "Approval phase is closed" · 5 busy (in-flight POST).</p>
+            <p class="gloss">{{ t('c_operator_pages.electoral_kit.gloss_approveswitch', '1–2 interactive (v-model) · 3–4 disabled with title "Approval phase is closed" · 5 busy (in-flight POST).') }}</p>
         </Card>
 
         <!-- ========================== 3. CandidateRow + FinalistLine ==== -->
         <Card as="section" style="padding: 0">
             <div style="padding-block: var(--space-4) 0; padding-inline: var(--space-6)">
                 <h2>
-                    CandidateRow + FinalistLine — full Manhattan standings
-                    <span class="citation">{{ approvalPhase ? 'aggregate · updated daily' : 'frozen at the finalist cutoff' }}</span>
+                    {{ t('c_operator_pages.electoral_kit.card_candidaterow', 'CandidateRow + FinalistLine — full Manhattan standings') }}
+                    <span class="citation">{{ approvalPhase ? t('c_operator_pages.electoral_kit.aggregate_daily', 'aggregate · updated daily') : t('c_operator_pages.electoral_kit.frozen_cutoff', 'frozen at the finalist cutoff') }}</span>
                 </h2>
                 <div class="cluster" style="margin-block-end: var(--space-3)">
-                    <ChipToggle v-model:pressed="approvalPhase">approval phase open</ChipToggle>
-                    <Stat :value="myActiveApprovals" label="your active approvals (revocable)" />
+                    <ChipToggle v-model:pressed="approvalPhase">{{ t('c_operator_pages.electoral_kit.approval_phase_open', 'approval phase open') }}</ChipToggle>
+                    <Stat :value="myActiveApprovals" :label="t('c_operator_pages.electoral_kit.active_approvals_label', 'your active approvals (revocable)')" />
                 </div>
                 <p class="gloss">
-                    Toggling approve flips the switch and the stat — the public aggregate
-                    NEVER moves on the viewer's action (daily cycle · ballot secrecy ·
-                    Art. II §2). Line sits after full-race rank {{ FINALISTS_X }}.
+                    {{ t('c_operator_pages.electoral_kit.gloss_candidaterow', { x: FINALISTS_X }) }}
                 </p>
             </div>
             <div aria-live="polite">
@@ -246,7 +246,7 @@ const countbackBars = computed(() =>
                 </template>
             </div>
             <div style="padding: var(--space-4) var(--space-6)">
-                <h3>Variants</h3>
+                <h3>{{ t('c_operator_pages.electoral_kit.variants', 'Variants') }}</h3>
                 <CandidateRow
                     :candidacy="standings[0].candidacy"
                     :rank="1"
@@ -262,84 +262,79 @@ const countbackBars = computed(() =>
                     :approvable="false"
                 >
                     <template #meta>
-                        <StatusBadge tone="danger">withdrawn</StatusBadge>
+                        <StatusBadge tone="danger">{{ t('c_operator_pages.electoral_kit.withdrawn', 'withdrawn') }}</StatusBadge>
                     </template>
                 </CandidateRow>
                 <p class="gloss">
-                    Row 1: switch OMITTED (viewer not associated in the race jurisdiction —
-                    browsing another county). Row 2: #meta slot ("withdrawn" badge) +
-                    disabled switch.
+                    {{ t('c_operator_pages.electoral_kit.gloss_variants', 'Row 1: switch OMITTED (viewer not associated in the race jurisdiction — browsing another county). Row 2: #meta slot ("withdrawn" badge) + disabled switch.') }}
                 </p>
             </div>
         </Card>
 
         <!-- ================================================= 4. RankList -->
         <div class="grid-2">
-            <Card as="section" title="Finalist roster (.roster-row)">
-                <p class="citation">top {{ fixtures.rankedBallot.finalistCount }} from the approval phase · CLK-21</p>
+            <Card as="section" :title="t('c_operator_pages.electoral_kit.card_finalist_roster', 'Finalist roster (.roster-row)')">
+                <p class="citation">{{ t('c_operator_pages.electoral_kit.roster_cite', { count: fixtures.rankedBallot.finalistCount }) }}</p>
                 <div class="stack" style="gap: var(--space-1)">
                     <div v-for="entry in finalistRoster" :key="entry.candidacy_id" class="roster-row">
                         <span>
-                            <a style="color: var(--gov-fg-strong)" :href="`/candidates/${entry.candidacy_id}`" :title="`${entry.name} — open public profile`">{{ entry.name }}</a>
-                            <span v-if="entry.rankedAt >= 0" class="citation"> ranked #{{ entry.rankedAt + 1 }}</span>
+                            <a style="color: var(--gov-fg-strong)" :href="`/candidates/${entry.candidacy_id}`" :title="t('c_operator_pages.electoral_kit.open_profile_title', { name: entry.name })">{{ entry.name }}</a>
+                            <span v-if="entry.rankedAt >= 0" class="citation"> {{ t('c_operator_pages.electoral_kit.ranked_n', { n: entry.rankedAt + 1 }) }}</span>
                         </span>
-                        <Btn variant="secondary" size="sm" :disabled="rankingLocked || entry.rankedAt >= 0" @click="addFinalist(entry)">Add</Btn>
+                        <Btn variant="secondary" size="sm" :disabled="rankingLocked || entry.rankedAt >= 0" @click="addFinalist(entry)">{{ t('c_operator_pages.electoral_kit.add', 'Add') }}</Btn>
                     </div>
                 </div>
                 <hr />
-                <h3>Write-in</h3>
+                <h3>{{ t('c_operator_pages.electoral_kit.write_in', 'Write-in') }}</h3>
                 <div class="cluster">
-                    <label class="visually-hidden" for="writein-sel">Write in a validated candidate</label>
+                    <label class="visually-hidden" for="writein-sel">{{ t('c_operator_pages.electoral_kit.write_in_label', 'Write in a validated candidate') }}</label>
                     <select id="writein-sel" v-model="writeInPick" class="select" style="inline-size: auto">
-                        <option value="" disabled>— validated non-finalists —</option>
+                        <option value="" disabled>{{ t('c_operator_pages.electoral_kit.validated_nonfinalists', '— validated non-finalists —') }}</option>
                         <option v-for="name in writeInsAvailable" :key="name" :value="name">{{ name }}</option>
                     </select>
-                    <Btn variant="secondary" size="sm" :disabled="rankingLocked || !writeInPick" @click="addWriteIn">Add write-in</Btn>
+                    <Btn variant="secondary" size="sm" :disabled="rankingLocked || !writeInPick" @click="addWriteIn">{{ t('c_operator_pages.electoral_kit.add_write_in', 'Add write-in') }}</Btn>
                 </div>
             </Card>
 
             <Card as="section">
                 <template #title>
-                    <h2>RankList — your ranking <span class="citation">{{ ranking.length }} ranked</span></h2>
+                    <h2>{{ t('c_operator_pages.electoral_kit.ranklist_title', 'RankList — your ranking') }} <span class="citation">{{ t('c_operator_pages.electoral_kit.n_ranked', { n: ranking.length }) }}</span></h2>
                 </template>
                 <p class="gloss">{{ guidance }}</p>
                 <RankList v-model="ranking" :seats="SEATS" :disabled="rankingLocked" />
                 <div class="cluster">
-                    <ChipToggle v-model:pressed="rankingLocked">post-commit lock (disabled)</ChipToggle>
-                    <Btn variant="ghost" size="sm" :disabled="rankingLocked" @click="ranking = []">Clear</Btn>
+                    <ChipToggle v-model:pressed="rankingLocked">{{ t('c_operator_pages.electoral_kit.post_commit_lock', 'post-commit lock (disabled)') }}</ChipToggle>
+                    <Btn variant="ghost" size="sm" :disabled="rankingLocked" @click="ranking = []">{{ t('c_operator_pages.electoral_kit.clear', 'Clear') }}</Btn>
                 </div>
                 <p class="gloss">
-                    Keyboard pass: ↑/↓ buttons keep focus on the moved item's control;
-                    Alt+ArrowUp/Down moves from any control in the row; remove focuses the
-                    next row's remove. Moves and removals announce via the polite live
-                    region.
+                    {{ t('c_operator_pages.electoral_kit.gloss_keyboard', "Keyboard pass: ↑/↓ buttons keep focus on the moved item's control; Alt+ArrowUp/Down moves from any control in the row; remove focuses the next row's remove. Moves and removals announce via the polite live region.") }}
                 </p>
             </Card>
         </div>
 
         <!-- ============================================ 5. BallotReceipt -->
-        <Card as="section" title="BallotReceipt — full / compact / non-copyable">
-            <p class="citation">F-IND-007 receipt · shown once · cryptographic separation of voter identity from ballot · Art. II §2</p>
+        <Card as="section" :title="t('c_operator_pages.electoral_kit.card_ballotreceipt', 'BallotReceipt — full / compact / non-copyable')">
+            <p class="citation">{{ t('c_operator_pages.electoral_kit.cite_ballotreceipt', 'F-IND-007 receipt · shown once · cryptographic separation of voter identity from ballot · Art. II §2') }}</p>
             <BallotReceipt :hash="SAMPLE_HASH" results-href="#results" />
             <hr />
-            <BallotReceipt :hash="SAMPLE_HASH" compact>Referendum vote committed · receipt</BallotReceipt>
+            <BallotReceipt :hash="SAMPLE_HASH" compact>{{ t('c_operator_pages.electoral_kit.referendum_committed', 'Referendum vote committed · receipt') }}</BallotReceipt>
             <hr />
             <BallotReceipt :hash="SAMPLE_HASH" :copyable="false" />
         </Card>
 
         <!-- ================================================== 6. StvBar -->
-        <Card as="section" title="StvBar — standalone states">
-            <p class="citation">Electoral/StvBar · .stv-cand family · gold tick = Droop quota</p>
-            <span class="visually-hidden">Droop quota {{ stv.quota.toLocaleString() }}</span>
-            <StvBar name="Rita Alvarez" :votes="28454" :quota="stv.quota" :scale="SCALE" href="/candidates/rita-alvarez" :quota-title="`Droop quota ${stv.quota.toLocaleString()}`" />
-            <StvBar name="Aisha Diop" :votes="41943" :quota="stv.quota" :scale="SCALE" elected badge="r27" href="/candidates/aisha-diop" :quota-title="`Droop quota ${stv.quota.toLocaleString()}`" />
-            <StvBar name="Tanya Brooks" :votes="5224" :quota="stv.quota" :scale="SCALE" eliminated :quota-title="`Droop quota ${stv.quota.toLocaleString()}`" />
-            <StvBar name="Quinn Avery" :votes="16999" :quota="stv.quota" :scale="SCALE" write-in href="/candidates/quinn-avery" :quota-title="`Droop quota ${stv.quota.toLocaleString()}`" />
+        <Card as="section" :title="t('c_operator_pages.electoral_kit.card_stvbar', 'StvBar — standalone states')">
+            <p class="citation">{{ t('c_operator_pages.electoral_kit.cite_stvbar', 'Electoral/StvBar · .stv-cand family · gold tick = Droop quota') }}</p>
+            <span class="visually-hidden">{{ t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() }) }}</span>
+            <StvBar name="Rita Alvarez" :votes="28454" :quota="stv.quota" :scale="SCALE" href="/candidates/rita-alvarez" :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() })" />
+            <StvBar name="Aisha Diop" :votes="41943" :quota="stv.quota" :scale="SCALE" elected badge="r27" href="/candidates/aisha-diop" :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() })" />
+            <StvBar name="Tanya Brooks" :votes="5224" :quota="stv.quota" :scale="SCALE" eliminated :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() })" />
+            <StvBar name="Quinn Avery" :votes="16999" :quota="stv.quota" :scale="SCALE" write-in href="/candidates/quinn-avery" :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() })" />
             <StvBar name="Felipe Ortiz" :votes="1650" :scale="5224" transfer-fill arrow />
-            <StvBar name="Renata Silva" :votes="null" :quota="CB_QUOTA" :scale="CB_SCALE" eliminated :chips="['removed from the count']" quota-title="Droop quota 28,755" />
+            <StvBar name="Renata Silva" :votes="null" :quota="CB_QUOTA" :scale="CB_SCALE" eliminated :chips="[t('c_operator_pages.electoral_kit.chip_removed', 'removed from the count')]" :quota-title="t('c_operator_pages.electoral_kit.droop_quota_28755', 'Droop quota 28,755')" />
 
-            <h3 style="margin-block-start: var(--space-4)">Live aggregate (ranked window)</h3>
-            <p class="citation">{{ agg.ballotsSoFar.toLocaleString() }} ballots so far · Droop quota if closed now: {{ agg.quotaIfClosedNow.toLocaleString() }}</p>
+            <h3 style="margin-block-start: var(--space-4)">{{ t('c_operator_pages.electoral_kit.live_aggregate', 'Live aggregate (ranked window)') }}</h3>
+            <p class="citation">{{ t('c_operator_pages.electoral_kit.agg_cite', { ballots: agg.ballotsSoFar.toLocaleString(), quota: agg.quotaIfClosedNow.toLocaleString() }) }}</p>
             <StvBar
                 v-for="[name, votes] in agg.top"
                 :key="name"
@@ -348,24 +343,23 @@ const countbackBars = computed(() =>
                 :quota="agg.quotaIfClosedNow"
                 :scale="aggScale"
                 :elected="votes >= agg.quotaIfClosedNow"
-                quota-title="Quota if closed now"
+                :quota-title="t('c_operator_pages.electoral_kit.quota_if_closed', 'Quota if closed now')"
             />
             <p class="cc-small" style="margin-block-start: var(--space-2)">{{ agg.remainderNote }}</p>
         </Card>
 
         <!-- ================================== 7. StvRound — full count === -->
-        <Card as="section" title="StvRound — the Queens count, round by round (27 rounds)">
+        <Card as="section" :title="t('c_operator_pages.electoral_kit.card_stvround', 'StvRound — the Queens count, round by round (27 rounds)')">
             <div class="cluster" style="gap: var(--space-6); margin-block-end: var(--space-4)">
-                <Stat :value="stv.total.toLocaleString()" label="valid ballots" />
-                <Stat :value="stv.quota.toLocaleString()" label="Droop quota = floor(votes ÷ (seats+1)) + 1" accent />
-                <Stat :value="stv.seats" label="seats — all filled in one count" />
-                <Stat :value="stv.rounds" label="counting rounds" />
+                <Stat :value="stv.total.toLocaleString()" :label="t('c_operator_pages.electoral_kit.valid_ballots', 'valid ballots')" />
+                <Stat :value="stv.quota.toLocaleString()" :label="t('c_operator_pages.electoral_kit.droop_quota_formula', 'Droop quota = floor(votes ÷ (seats+1)) + 1')" accent />
+                <Stat :value="stv.seats" :label="t('c_operator_pages.electoral_kit.seats_one_count', 'seats — all filled in one count')" />
+                <Stat :value="stv.rounds" :label="t('c_operator_pages.electoral_kit.counting_rounds', 'counting rounds')" />
             </div>
             <p class="gloss">
-                Gold tick = the Droop quota. Reaching it elects a candidate; their surplus
-                transfers onward at fractional value so no vote is wasted.
+                {{ t('c_operator_pages.electoral_kit.gloss_stvround', 'Gold tick = the Droop quota. Reaching it elects a candidate; their surplus transfers onward at fractional value so no vote is wasted.') }}
             </p>
-            <span class="visually-hidden">Droop quota {{ stv.quota.toLocaleString() }}</span>
+            <span class="visually-hidden">{{ t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() }) }}</span>
 
             <StvRound
                 v-for="round in openingRounds"
@@ -400,19 +394,19 @@ const countbackBars = computed(() =>
                 :profile-href="profileHref"
                 default-open
             />
-            <p class="citation" style="margin-block-start: var(--space-3)">STV with Droop quota · fractional (Gregory) surplus transfers · hardened · Art. II §2</p>
+            <p class="citation" style="margin-block-start: var(--space-3)">{{ t('c_operator_pages.electoral_kit.cite_stvround', 'STV with Droop quota · fractional (Gregory) surplus transfers · hardened · Art. II §2') }}</p>
         </Card>
 
         <!-- =========================================== 8. Countback bars -->
-        <Card as="section" title="Countback re-run (StvBar reuse)">
-            <p class="citation">Re-run of prior ballots with the vacated member removed · Art. II §5 · universal — no faction filtering</p>
+        <Card as="section" :title="t('c_operator_pages.electoral_kit.card_countback', 'Countback re-run (StvBar reuse)')">
+            <p class="citation">{{ t('c_operator_pages.electoral_kit.cite_countback', 'Re-run of prior ballots with the vacated member removed · Art. II §5 · universal — no faction filtering') }}</p>
             <div class="cluster" style="margin-block-end: var(--space-3)">
-                <ChipToggle :pressed="countbackVariant === 'found'" @update:pressed="countbackVariant = 'found'">winner found</ChipToggle>
-                <ChipToggle :pressed="countbackVariant === 'failed'" @update:pressed="countbackVariant = 'failed'">ballots exhausted</ChipToggle>
-                <StatusBadge v-if="countbackVariant === 'found'" tone="success" icon="check">Winner found — Camille Verhoeven</StatusBadge>
-                <StatusBadge v-else tone="danger" icon="alert-triangle">Countback failed — ballots exhausted</StatusBadge>
+                <ChipToggle :pressed="countbackVariant === 'found'" @update:pressed="countbackVariant = 'found'">{{ t('c_operator_pages.electoral_kit.winner_found', 'winner found') }}</ChipToggle>
+                <ChipToggle :pressed="countbackVariant === 'failed'" @update:pressed="countbackVariant = 'failed'">{{ t('c_operator_pages.electoral_kit.ballots_exhausted', 'ballots exhausted') }}</ChipToggle>
+                <StatusBadge v-if="countbackVariant === 'found'" tone="success" icon="check">{{ t('c_operator_pages.electoral_kit.winner_found_named', 'Winner found — Camille Verhoeven') }}</StatusBadge>
+                <StatusBadge v-else tone="danger" icon="alert-triangle">{{ t('c_operator_pages.electoral_kit.countback_failed', 'Countback failed — ballots exhausted') }}</StatusBadge>
             </div>
-            <span class="visually-hidden">Droop quota {{ CB_QUOTA.toLocaleString() }}</span>
+            <span class="visually-hidden">{{ t('c_operator_pages.electoral_kit.droop_quota', { quota: CB_QUOTA.toLocaleString() }) }}</span>
             <StvBar
                 v-for="bar in countbackBars"
                 :key="bar.name"
@@ -424,12 +418,10 @@ const countbackBars = computed(() =>
                 :eliminated="bar.eliminated"
                 :transfer-fill="bar.transferFill"
                 :chips="bar.chips"
-                quota-title="Droop quota 28,755"
+                :quota-title="t('c_operator_pages.electoral_kit.droop_quota_28755', 'Droop quota 28,755')"
             />
             <p class="gloss" style="margin-block-start: var(--space-2)">
-                Struck member: eliminated styling + "removed from the count" + votes "—".
-                Winner: elected + "reaches quota". Exhausted ballots: gold fill + "no
-                remaining preference".
+                {{ t('c_operator_pages.electoral_kit.gloss_countback', 'Struck member: eliminated styling + "removed from the count" + votes "—". Winner: elected + "reaches quota". Exhausted ballots: gold fill + "no remaining preference".') }}
             </p>
         </Card>
     </PageScaffold>

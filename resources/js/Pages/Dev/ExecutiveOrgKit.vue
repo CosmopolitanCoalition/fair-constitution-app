@@ -12,6 +12,7 @@
  * transfers-conversions}.html.
  */
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppShell from '@/Layouts/AppShell.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -32,6 +33,8 @@ import fixtures from '@/fixtures/executive.json';
 defineOptions({ layout: AppShell });
 
 defineProps({ surface: { type: Object, default: null } });
+
+const { t } = useI18n();
 
 const C = fixtures.consent;
 
@@ -57,24 +60,19 @@ const detailedOrder = ref(false);
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            FE-D1 harness — the Phase D executive + organizations components rendered from
+            {{ t('c_operator_pages.executive_org_kit.intro_before', 'FE-D1 harness — the Phase D executive + organizations components rendered from') }}
             <code data-no-i18n>resources/js/fixtures/executive.json</code>
-            (mockup-extracted). Dev-gated; not product UI. Every threshold and seat count
-            below is a frozen "server snapshot" — the one exception is the co-determination
-            EXPLORER, which recomputes a published formula and labels itself a projection.
+            {{ t('c_operator_pages.executive_org_kit.intro_after', '(mockup-extracted). Dev-gated; not product UI. Every threshold and seat count below is a frozen "server snapshot" — the one exception is the co-determination EXPLORER, which recomputes a published formula and labels itself a projection.') }}
         </template>
 
-        <Banner tone="demo" title="Fixture data only.">
-            Nothing on this page touches the database — the New York State conversion record,
-            the Bluefin Logistics scale, and the Public Works &amp; Utilities board are the
-            mockups' fixtures frozen into JSON.
+        <Banner tone="demo" :title="t('c_operator_pages.executive_org_kit.fixture_data_only', 'Fixture data only.')">
+            {{ t('c_operator_pages.executive_org_kit.fixture_body', "Nothing on this page touches the database — the New York State conversion record, the Bluefin Logistics scale, and the Public Works & Utilities board are the mockups' fixtures frozen into JSON.") }}
         </Banner>
 
         <!-- ============================== 1. ConstituentConsentPanel ==== -->
-        <Card as="section" title="ConstituentConsentPanel — dual supermajority (passed: 8/9 + 51/62)">
+        <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_consent_passed', 'ConstituentConsentPanel — dual supermajority (passed: 8/9 + 51/62)')">
             <p class="citation">
-                Legislature/ConstituentConsentPanel · the multi_jurisdiction_votes UX ·
-                `required` is the engine's ceil snapshot — NEVER client math · Art. III §3 · Art. VII
+                {{ t('c_operator_pages.executive_org_kit.cite_consent_passed', "Legislature/ConstituentConsentPanel · the multi_jurisdiction_votes UX · `required` is the engine's ceil snapshot — NEVER client math · Art. III §3 · Art. VII") }}
             </p>
             <ConstituentConsentPanel
                 :legislature-vote="C.legislatureVote"
@@ -85,7 +83,7 @@ const detailedOrder = ref(false);
         </Card>
 
         <div class="grid-2">
-            <Card as="section" title="ConstituentConsentPanel — open (both meters pending)">
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_consent_open', 'ConstituentConsentPanel — open (both meters pending)')">
                 <ConstituentConsentPanel
                     :legislature-vote="C.legislatureVotePending"
                     :legislature-label="C.legislatureLabel"
@@ -93,7 +91,7 @@ const detailedOrder = ref(false);
                     :subject-label="C.subjectLabel"
                 />
             </Card>
-            <Card as="section" title="ConstituentConsentPanel — constituent leg failed (38 of 62, needed 42)">
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_consent_constituent_failed', 'ConstituentConsentPanel — constituent leg failed (38 of 62, needed 42)')">
                 <ConstituentConsentPanel
                     :legislature-vote="C.legislatureVote"
                     :legislature-label="C.legislatureLabel"
@@ -104,8 +102,8 @@ const detailedOrder = ref(false);
         </div>
 
         <div class="grid-2">
-            <Card as="section" title="ConstituentConsentPanel — one leg failed (own supermajority short)">
-                <p class="citation">5 of 9 meets a majority but NOT ceil(9 × 2/3) = 6 — the combined banner names the failing leg</p>
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_consent_one_failed', 'ConstituentConsentPanel — one leg failed (own supermajority short)')">
+                <p class="citation">{{ t('c_operator_pages.executive_org_kit.cite_one_failed', '5 of 9 meets a majority but NOT ceil(9 × 2/3) = 6 — the combined banner names the failing leg') }}</p>
                 <ConstituentConsentPanel
                     :legislature-vote="C.legislatureVoteFailed"
                     :legislature-label="C.legislatureLabel"
@@ -113,7 +111,7 @@ const detailedOrder = ref(false);
                     :subject-label="C.subjectLabel"
                 />
             </Card>
-            <Card as="section" title="ConstituentConsentPanel — server `required` rendered verbatim">
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_consent_required_verbatim', 'ConstituentConsentPanel — server `required` rendered verbatim')">
                 <p class="citation" data-no-i18n>
                     fixture feeds required=99 against total=62 — the right caption displays 99, proving the
                     component performs no client ceil( ) of its own
@@ -127,20 +125,17 @@ const detailedOrder = ref(false);
             </Card>
         </div>
 
-        <Card as="section" title="ConstituentConsentPanel — BillDetail call-site shape (legacy consent rows, no Block 1)">
+        <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_consent_billdetail', 'ConstituentConsentPanel — BillDetail call-site shape (legacy consent rows, no Block 1)')">
             <p class="citation">
-                Phase C BillController feed: consents carry string jurisdiction names, no chamber-vote links;
-                legislatureVote null → only the constituent block renders. The live BillDetail page now
-                composes this component (the FE-D1 call-site migration).
+                {{ t('c_operator_pages.executive_org_kit.cite_billdetail', 'Phase C BillController feed: consents carry string jurisdiction names, no chamber-vote links; legislatureVote null → only the constituent block renders. The live BillDetail page now composes this component (the FE-D1 call-site migration).') }}
             </p>
             <ConstituentConsentPanel :process="C.legacyBillShape" basis="Art. V §6" />
         </Card>
 
         <!-- ======================================== 2. CoDetScale ======= -->
-        <Card as="section" title="CoDetScale — static (Bluefin Logistics, 740 workers · engine says 3 of 9)">
+        <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_codet_static', 'CoDetScale — static (Bluefin Logistics, 740 workers · engine says 3 of 9)')">
             <p class="citation">
-                Org/CoDetScale · workerSeats is THE ENGINE'S number; thresholds are server-resolved
-                CLK-13/14 values (amendable — never hardcoded) · Art. III §6
+                {{ t('c_operator_pages.executive_org_kit.cite_codet_static', "Org/CoDetScale · workerSeats is THE ENGINE'S number; thresholds are server-resolved CLK-13/14 values (amendable — never hardcoded) · Art. III §6") }}
             </p>
             <CoDetScale
                 :workers="fixtures.codet.bluefin.workers"
@@ -152,10 +147,9 @@ const detailedOrder = ref(false);
             />
         </Card>
 
-        <Card as="section" title="CoDetScale — interactive explorer (keyboard-operable slider)">
+        <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_codet_explorer', 'CoDetScale — interactive explorer (keyboard-operable slider)')">
             <p class="citation">
-                the ONE Phase D component with client arithmetic — an explorer of the published formula,
-                never a record; moved values flag "projection · WF-ORG-04"; the live badge ignores the slider
+                {{ t('c_operator_pages.executive_org_kit.cite_codet_explorer', 'the ONE Phase D component with client arithmetic — an explorer of the published formula, never a record; moved values flag "projection · WF-ORG-04"; the live badge ignores the slider') }}
             </p>
             <CoDetScale
                 :workers="fixtures.codet.bluefin.workers"
@@ -169,8 +163,8 @@ const detailedOrder = ref(false);
         </Card>
 
         <div class="grid-2">
-            <Card as="section" title="CoDetScale — thresholds ≠ defaults ({50, 1,000} by act)">
-                <p class="citation">same 740 workers now yield 7 seats — the marks, captions, and formula all moved: nothing is hardcoded 100/2000</p>
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_codet_nondefault', `CoDetScale — thresholds ≠ defaults ({'{'}50, 1,000{'}'} by act)`)">
+                <p class="citation">{{ t('c_operator_pages.executive_org_kit.cite_codet_nondefault', 'same 740 workers now yield 7 seats — the marks, captions, and formula all moved: nothing is hardcoded 100/2000') }}</p>
                 <CoDetScale
                     :workers="fixtures.codet.nonDefaultThresholds.workers"
                     :owner-seats="fixtures.codet.nonDefaultThresholds.ownerSeats"
@@ -180,7 +174,7 @@ const detailedOrder = ref(false);
                     :entity-label="fixtures.codet.nonDefaultThresholds.entityLabel"
                 />
             </Card>
-            <Card as="section" title="CoDetScale — below threshold + parity">
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_codet_below', 'CoDetScale — below threshold + parity')">
                 <CoDetScale
                     :workers="fixtures.codet.belowThreshold.workers"
                     :owner-seats="fixtures.codet.belowThreshold.ownerSeats"
@@ -201,14 +195,14 @@ const detailedOrder = ref(false);
             </Card>
         </div>
 
-        <Card as="section" title="CoDetScale — formula pins (the §A.2 unit contract)">
+        <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_codet_pins', 'CoDetScale — formula pins (the §A.2 unit contract)')">
             <p class="citation" data-no-i18n>
                 workerSeatsFromThresholds() — exported from the component, the same function the explorer runs
             </p>
             <div class="table-wrap">
                 <table class="table">
                     <thead>
-                        <tr><th scope="col">Case</th><th scope="col" class="mono">expected</th><th scope="col" class="mono">actual</th><th scope="col">Pin</th></tr>
+                        <tr><th scope="col">{{ t('c_operator_pages.executive_org_kit.th_case', 'Case') }}</th><th scope="col" class="mono">{{ t('c_operator_pages.executive_org_kit.th_expected', 'expected') }}</th><th scope="col" class="mono">{{ t('c_operator_pages.executive_org_kit.th_actual', 'actual') }}</th><th scope="col">{{ t('c_operator_pages.executive_org_kit.th_pin', 'Pin') }}</th></tr>
                     </thead>
                     <tbody>
                         <tr v-for="pin in pins" :key="pin.args">
@@ -217,21 +211,20 @@ const detailedOrder = ref(false);
                             <td class="mono" data-no-i18n>{{ pin.actual }}</td>
                             <td>
                                 <StatusBadge :tone="pin.actual === pin.expected ? 'success' : 'danger'" :icon="pin.actual === pin.expected ? 'check' : 'x'">
-                                    {{ pin.actual === pin.expected ? 'holds' : 'BROKEN' }}
+                                    {{ pin.actual === pin.expected ? t('c_operator_pages.executive_org_kit.pin_holds', 'holds') : t('c_operator_pages.executive_org_kit.pin_broken', 'BROKEN') }}
                                 </StatusBadge>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <Banner v-if="!pinsGreen" tone="emergency" title="Formula pin broken — the explorer no longer matches the engine contract." />
+            <Banner v-if="!pinsGreen" tone="emergency" :title="t('c_operator_pages.executive_org_kit.pin_broken_banner', 'Formula pin broken — the explorer no longer matches the engine contract.')" />
         </Card>
 
         <!-- ========================================= 3. BoardStrip ====== -->
-        <Card as="section" title="BoardStrip — Public Works & Utilities (7 governors + 4 worker-elected, valid)">
+        <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_boardstrip', 'BoardStrip — Public Works & Utilities (7 governors + 4 worker-elected, valid)')">
             <p class="citation">
-                Org/BoardStrip · the two clock regimes side by side: governors 2030-07-01 → 2040-07-01 (CLK-09)
-                beside worker seats → 2035-11-01 (legislative term end · CLK-10) · chair joint-elected · Art. III §4, §6
+                {{ t('c_operator_pages.executive_org_kit.cite_boardstrip', 'Org/BoardStrip · the two clock regimes side by side: governors 2030-07-01 → 2040-07-01 (CLK-09) beside worker seats → 2035-11-01 (legislative term end · CLK-10) · chair joint-elected · Art. III §4, §6') }}
             </p>
             <BoardStrip
                 :seats="fixtures.boards.publicWorks.seats"
@@ -241,16 +234,16 @@ const detailedOrder = ref(false);
         </Card>
 
         <div class="grid-2">
-            <Card as="section" title="BoardStrip — composition invalid (vacant worker pip)">
-                <p class="citation">the exit-criterion-2 moment: the scale demanded a seat, the row is vacant, composition_valid=false — the banner rule verbatim</p>
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_boardstrip_invalid', 'BoardStrip — composition invalid (vacant worker pip)')">
+                <p class="citation">{{ t('c_operator_pages.executive_org_kit.cite_boardstrip_invalid', 'the exit-criterion-2 moment: the scale demanded a seat, the row is vacant, composition_valid=false — the banner rule verbatim') }}</p>
                 <BoardStrip
                     :seats="fixtures.boards.invalid.seats"
                     :composition-valid="fixtures.boards.invalid.compositionValid"
                     :required-worker-seats="fixtures.boards.invalid.requiredWorkerSeats"
                 />
             </Card>
-            <Card as="section" title="BoardStrip — compact (pip strip only)">
-                <p class="citation">table rows + DepartmentCard variant — pips keep their aria-labels</p>
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_boardstrip_compact', 'BoardStrip — compact (pip strip only)')">
+                <p class="citation">{{ t('c_operator_pages.executive_org_kit.cite_boardstrip_compact', 'table rows + DepartmentCard variant — pips keep their aria-labels') }}</p>
                 <BoardStrip
                     :seats="fixtures.boards.publicWorks.seats"
                     :composition-valid="fixtures.boards.publicWorks.compositionValid"
@@ -258,7 +251,7 @@ const detailedOrder = ref(false);
                     compact
                 />
                 <hr />
-                <p class="citation">compact + invalid still surfaces the banner</p>
+                <p class="citation">{{ t('c_operator_pages.executive_org_kit.cite_boardstrip_compact_invalid', 'compact + invalid still surfaces the banner') }}</p>
                 <BoardStrip
                     :seats="fixtures.boards.invalid.seats"
                     :composition-valid="fixtures.boards.invalid.compositionValid"
@@ -270,7 +263,7 @@ const detailedOrder = ref(false);
 
         <!-- ===================================== 4. OwnershipPanel ====== -->
         <div class="grid-2">
-            <Card as="section" title="OwnershipPanel — stock (Bluefin: 1,204 shareholders)">
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_ownership_stock', 'OwnershipPanel — stock (Bluefin: 1,204 shareholders)')">
                 <OwnershipPanel
                     :structure="fixtures.ownership.stock.structure"
                     :is-cgc="fixtures.ownership.stock.isCgc"
@@ -279,7 +272,7 @@ const detailedOrder = ref(false);
                     :structure-history="fixtures.ownership.stock.structureHistory"
                 />
             </Card>
-            <Card as="section" title="OwnershipPanel — equal partnership (unanimity rule) + history">
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_ownership_partnership', 'OwnershipPanel — equal partnership (unanimity rule) + history')">
                 <OwnershipPanel
                     :structure="fixtures.ownership.equalPartnership.structure"
                     :is-cgc="fixtures.ownership.equalPartnership.isCgc"
@@ -290,8 +283,8 @@ const detailedOrder = ref(false);
             </Card>
         </div>
 
-        <Card as="section" title="OwnershipPanel — CGC variant (the ledger-#12 owner-ruling card)">
-            <p class="citation">no stakes table — the Board of Governors stands where shareholders would · Art. III §5</p>
+        <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_ownership_cgc', 'OwnershipPanel — CGC variant (the ledger-#12 owner-ruling card)')">
+            <p class="citation">{{ t('c_operator_pages.executive_org_kit.cite_ownership_cgc', 'no stakes table — the Board of Governors stands where shareholders would · Art. III §5') }}</p>
             <OwnershipPanel
                 :structure="fixtures.ownership.cgc.structure"
                 :is-cgc="fixtures.ownership.cgc.isCgc"
@@ -302,12 +295,9 @@ const detailedOrder = ref(false);
         </Card>
 
         <!-- ===================================== 5. DepartmentCard ====== -->
-        <Card as="section" title="DepartmentCard — the 5-department registry grid">
+        <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_departmentcard', 'DepartmentCard — the 5-department registry grid')">
             <p class="citation">
-                Executive/DepartmentCard · co-determination cell from ENGINE seat counts (parity = worker
-                seats equal owner seats — no client threshold math) · Treasury 152w → 1 seat · scaling;
-                Public Works 1,240w → 4; the rest below threshold · Emergency Management carries the
-                overdue-report chip
+                {{ t('c_operator_pages.executive_org_kit.cite_departmentcard', 'Executive/DepartmentCard · co-determination cell from ENGINE seat counts (parity = worker seats equal owner seats — no client threshold math) · Treasury 152w → 1 seat · scaling; Public Works 1,240w → 4; the rest below threshold · Emergency Management carries the overdue-report chip') }}
             </p>
             <div class="grid-2">
                 <DepartmentCard
@@ -319,18 +309,17 @@ const detailedOrder = ref(false);
         </Card>
 
         <!-- ===================================== 6. OrderScopeCard ====== -->
-        <Card as="section" title="OrderScopeCard — the order register (issued / emergency-enabled / rejected)">
+        <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_orderscopecard', 'OrderScopeCard — the order register (issued / emergency-enabled / rejected)')">
             <p class="citation">
-                Executive/OrderScopeCard · rejected rows carry the engine citation VERBATIM + the
-                load-bearing public-record chip · Art. III §2 · Art. II §7 · Art. IV §5
+                {{ t('c_operator_pages.executive_org_kit.cite_orderscopecard', 'Executive/OrderScopeCard · rejected rows carry the engine citation VERBATIM + the load-bearing public-record chip · Art. III §2 · Art. II §7 · Art. IV §5') }}
             </p>
             <div>
                 <OrderScopeCard v-for="order in fixtures.orders" :key="order.id_display" :order="order" />
             </div>
             <hr />
-            <p class="citation">detailed variant — order body + the order-lifecycle StateStrip (machine prop-fed, PHP-owned)</p>
+            <p class="citation">{{ t('c_operator_pages.executive_org_kit.cite_order_detailed', 'detailed variant — order body + the order-lifecycle StateStrip (machine prop-fed, PHP-owned)') }}</p>
             <div class="cluster" style="margin-block-end: var(--space-2)">
-                <StatusBadge tone="info" icon="info">detailed = true on the rejected fixture</StatusBadge>
+                <StatusBadge tone="info" icon="info">{{ t('c_operator_pages.executive_org_kit.badge_detailed_true', 'detailed = true on the rejected fixture') }}</StatusBadge>
             </div>
             <OrderScopeCard
                 :order="{ ...fixtures.orders[3], body: fixtures.orderBody }"
@@ -341,36 +330,34 @@ const detailedOrder = ref(false);
 
         <!-- ========================================= 7. Ui/Stepper ====== -->
         <div class="grid-2">
-            <Card as="section" title="Stepper — BoG pipeline, seated (departments.html lines 90–93)">
-                <p class="citation">Ui/Stepper · Nomination dossier · F-EXE-001 → Consent vote · F-LEG-020 → Seated · R-18</p>
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_stepper_seated', 'Stepper — BoG pipeline, seated (departments.html lines 90–93)')">
+                <p class="citation">{{ t('c_operator_pages.executive_org_kit.cite_stepper_seated', 'Ui/Stepper · Nomination dossier · F-EXE-001 → Consent vote · F-LEG-020 → Seated · R-18') }}</p>
                 <Stepper :steps="fixtures.stepper.bogSeated" />
             </Card>
-            <Card as="section" title="Stepper — consent vote pending">
+            <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_stepper_pending', 'Stepper — consent vote pending')">
                 <Stepper :steps="fixtures.stepper.bogConsentPending" />
             </Card>
         </div>
 
         <!-- ============================== 8. Phase D state machines ===== -->
-        <Card as="section" title="State machines — FE-D0 config entries (display contract)">
-            <p class="citation">config/cga/state_machines.php · PHP-owned, prop-fed on the real pages — shapes shown here for the kit only</p>
+        <Card as="section" :title="t('c_operator_pages.executive_org_kit.card_state_machines', 'State machines — FE-D0 config entries (display contract)')">
+            <p class="citation">{{ t('c_operator_pages.executive_org_kit.cite_state_machines', 'config/cga/state_machines.php · PHP-owned, prop-fed on the real pages — shapes shown here for the kit only') }}</p>
             <div class="stack" style="gap: var(--space-3)">
                 <div>
-                    <span class="eyebrow">Executive office (ESM-16) — current: forming (the day-one stub)</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.executive_org_kit.eyebrow_executive_office', 'Executive office (ESM-16) — current: forming (the day-one stub)') }}</span>
                     <StateStrip :states="fixtures.machines.executive_office" current="forming" />
                 </div>
                 <div>
-                    <span class="eyebrow">Department / Board (ESM-17) — current: operating</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.executive_org_kit.eyebrow_department_board', 'Department / Board (ESM-17) — current: operating') }}</span>
                     <StateStrip :states="fixtures.machines.department_board" current="operating" />
                 </div>
                 <div>
-                    <span class="eyebrow">Organization (ESM-18) — current: active</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.executive_org_kit.eyebrow_organization', 'Organization (ESM-18) — current: active') }}</span>
                     <StateStrip :states="fixtures.machines.organization" current="active" />
                 </div>
             </div>
             <p class="gloss" style="margin-block-start: var(--space-2)">
-                'modified' is an event, not an executive resting state; 'removal_requested' splices into the
-                department display machine from an open removal row; [Endorsing] and [Co-determination tiers]
-                are derived organization display states — none of the three is a stored status.
+                {{ t('c_operator_pages.executive_org_kit.gloss_state_machines', "'modified' is an event, not an executive resting state; 'removal_requested' splices into the department display machine from an open removal row; [Endorsing] and [Co-determination tiers] are derived organization display states — none of the three is a stored status.") }}
             </p>
         </Card>
     </PageScaffold>

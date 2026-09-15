@@ -11,6 +11,7 @@
  * (law-diff), mockups/civic/petition-detail.html (signature meter).
  */
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppShell from '@/Layouts/AppShell.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -34,6 +35,8 @@ import fixtures from '@/fixtures/legislature.json';
 defineOptions({ layout: AppShell });
 
 defineProps({ surface: { type: Object, default: null } });
+
+const { t } = useI18n();
 
 /* ------------------------------------------------------------ SeatMap -- */
 const highlightNy = ref(null);
@@ -105,44 +108,39 @@ const petitionBelow = computed(() => ({
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            FE-C1 harness — the Phase C legislature components rendered from
+            {{ t('c_operator_pages.legislature_kit.intro_before', 'FE-C1 harness — the Phase C legislature components rendered from') }}
             <code data-no-i18n>resources/js/fixtures/legislature.json</code>
-            (mockup-extracted). Dev-gated; not product UI. Every threshold number
-            below is a frozen "server snapshot" — no component computes one.
+            {{ t('c_operator_pages.legislature_kit.intro_after', '(mockup-extracted). Dev-gated; not product UI. Every threshold number below is a frozen "server snapshot" — no component computes one.') }}
         </template>
 
-        <Banner tone="demo" title="Fixture data only.">
-            Nothing on this page touches the database — the chambers below are the
-            mockups' New York County (9 seats) and a synthetic San Marino-shaped
-            bicameral chamber (41 seats), frozen into a JSON fixture.
+        <Banner tone="demo" :title="t('c_operator_pages.legislature_kit.fixture_data_only', 'Fixture data only.')">
+            {{ t('c_operator_pages.legislature_kit.fixture_body', "Nothing on this page touches the database — the chambers below are the mockups' New York County (9 seats) and a synthetic San Marino-shaped bicameral chamber (41 seats), frozen into a JSON fixture.") }}
         </Banner>
 
         <!-- ================================================= 1. SeatMap -->
-        <Card as="section" title="SeatMap — 9-seat unicameral (mockup chamber)">
-            <p class="citation">Legislature/SeatMap · port of chamberSvg() · seniority-alternating placement · 1 ring · seat 4 vacant · Speaker gold</p>
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_seatmap_uni', 'SeatMap — 9-seat unicameral (mockup chamber)')">
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_seatmap_uni', 'Legislature/SeatMap · port of chamberSvg() · seniority-alternating placement · 1 ring · seat 4 vacant · Speaker gold') }}</p>
             <SeatMap :members="nyMembers" :highlight-id="highlightNy" />
             <div class="cluster" style="margin-block-start: var(--space-3)">
-                <label class="field-label" for="highlight-sel" style="margin-block-end: 0">Highlight (roster hover sync)</label>
+                <label class="field-label" for="highlight-sel" style="margin-block-end: 0">{{ t('c_operator_pages.legislature_kit.highlight_label', 'Highlight (roster hover sync)') }}</label>
                 <select id="highlight-sel" v-model="highlightNy" class="select" style="inline-size: auto">
-                    <option :value="null">— none —</option>
+                    <option :value="null">{{ t('c_operator_pages.legislature_kit.none_option', '— none —') }}</option>
                     <option v-for="m in nyMembers.filter((x) => !x.vacant)" :key="m.id" :value="m.id">{{ m.name }}</option>
                 </select>
             </div>
             <p class="gloss" style="margin-block-start: var(--space-2)">
-                Gold ring = Speaker (politically neutral, votes only to break ties). Dashed =
-                vacant seat in countback — vacancies join at the junior-most position.
-                Seniority is total days served; ties break by normalized vote share (ledger #q2).
+                {{ t('c_operator_pages.legislature_kit.gloss_seatmap', 'Gold ring = Speaker (politically neutral, votes only to break ties). Dashed = vacant seat in countback — vacancies join at the junior-most position. Seniority is total days served; ties break by normalized vote share (ledger #q2).') }}
             </p>
         </Card>
 
-        <Card as="section" title="SeatMap — 41-seat bicameral (San Marino-shaped)">
-            <p class="citation">3 rings (12/20/9) · dynamic viewBox · 32 type A + 9 type B (blue inner ring, one per castello) · seat 17 vacant · Art. V §3</p>
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_seatmap_bi', 'SeatMap — 41-seat bicameral (San Marino-shaped)')">
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_seatmap_bi', '3 rings (12/20/9) · dynamic viewBox · 32 type A + 9 type B (blue inner ring, one per castello) · seat 17 vacant · Art. V §3') }}</p>
             <SeatMap :members="smMembers" max-width="30rem" />
         </Card>
 
         <!-- ============================================== 2. VoteTally -->
-        <Card as="section" title="VoteTally — unicameral threshold classes (Montegiardino, 8 serving)">
-            <p class="citation">Legislature/VoteTally · pure renderer of chamber_votes snapshots — requiredYes is NEVER computed client-side</p>
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_votetally_uni', 'VoteTally — unicameral threshold classes (Montegiardino, 8 serving)')">
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_votetally_uni', 'Legislature/VoteTally · pure renderer of chamber_votes snapshots — requiredYes is NEVER computed client-side') }}</p>
             <div class="stack" style="gap: var(--space-5)">
                 <div v-for="variant in uniVariants" :key="variant.id" class="card card--inset">
                     <span class="eyebrow" data-no-i18n>{{ variant.note }}</span>
@@ -159,11 +157,11 @@ const petitionBelow = computed(() => ({
             </div>
         </Card>
 
-        <Card as="section" title="VoteTally — tie + Speaker tie-break (9 serving, F-SPK-004)">
-            <p class="citation">mockup record: “4–4 → Speaker broke the tie (F-SPK-004)” · Art. II §3</p>
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_votetally_tie', 'VoteTally — tie + Speaker tie-break (9 serving, F-SPK-004)')">
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_votetally_tie', 'mockup record: “4–4 → Speaker broke the tie (F-SPK-004)” · Art. II §3') }}</p>
             <div class="grid-2">
                 <div class="card card--inset">
-                    <span class="eyebrow">tied — awaiting the Speaker</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.legislature_kit.eyebrow_tied', 'tied — awaiting the Speaker') }}</span>
                     <VoteTally
                         mode="unicameral"
                         threshold-class="majority"
@@ -174,7 +172,7 @@ const petitionBelow = computed(() => ({
                     />
                 </div>
                 <div class="card card--inset">
-                    <span class="eyebrow">tied_broken — adopted 5–4</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.legislature_kit.eyebrow_tied_broken', 'tied_broken — adopted 5–4') }}</span>
                     <VoteTally
                         mode="unicameral"
                         threshold-class="majority"
@@ -188,7 +186,7 @@ const petitionBelow = computed(() => ({
             </div>
         </Card>
 
-        <Card as="section" title="VoteTally — committee_majority (2 of 3, all members)">
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_votetally_committee', 'VoteTally — committee_majority (2 of 3, all members)')">
             <div class="grid-2">
                 <div v-for="variant in committeeVariants" :key="variant.id" class="card card--inset">
                     <span class="eyebrow" data-no-i18n>{{ variant.note }}</span>
@@ -205,38 +203,38 @@ const petitionBelow = computed(() => ({
             </div>
         </Card>
 
-        <Card as="section" title="VoteTally — bicameral dual agreement (San Marino: type A 32 → 17/22 · type B 9 → 5/6)">
-            <p class="citation">two per-kind blocks: peg-quorum meter + threshold meter + agreement badge · combined-outcome banner · Art. V §3 · ledger #q7 · WF-LEG-07</p>
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_votetally_bicameral', 'VoteTally — bicameral dual agreement (San Marino: type A 32 → 17/22 · type B 9 → 5/6)')">
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_votetally_bicameral', 'two per-kind blocks: peg-quorum meter + threshold meter + agreement badge · combined-outcome banner · Art. V §3 · ledger #q7 · WF-LEG-07') }}</p>
             <div class="stack" style="gap: var(--space-5)">
                 <div class="card card--inset">
-                    <span class="eyebrow">bicameral_majority · pending (floor)</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.legislature_kit.eyebrow_bi_majority_pending', 'bicameral_majority · pending (floor)') }}</span>
                     <VoteTally mode="bicameral" threshold-class="bicameral_majority" :kinds="SM.majority.pending" outcome="pending" />
                 </div>
                 <div class="card card--inset">
-                    <span class="eyebrow">bicameral_majority · adopted — both kinds agree</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.legislature_kit.eyebrow_bi_majority_adopted', 'bicameral_majority · adopted — both kinds agree') }}</span>
                     <VoteTally mode="bicameral" threshold-class="bicameral_majority" :kinds="SM.majority.adopted" outcome="adopted" />
                 </div>
                 <div class="card card--inset">
-                    <span class="eyebrow">bicameral_majority · failed — type B does not agree (failing kind named)</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.legislature_kit.eyebrow_bi_majority_failed', 'bicameral_majority · failed — type B does not agree (failing kind named)') }}</span>
                     <VoteTally mode="bicameral" threshold-class="bicameral_majority" :kinds="SM.majority.failed_type_b" outcome="failed" />
                 </div>
                 <div class="card card--inset">
-                    <span class="eyebrow">bicameral_supermajority · adopted (22 of 32 · 6 of 9)</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.legislature_kit.eyebrow_bi_super_adopted', 'bicameral_supermajority · adopted (22 of 32 · 6 of 9)') }}</span>
                     <VoteTally mode="bicameral" threshold-class="bicameral_supermajority" :kinds="SM.supermajority.adopted" outcome="adopted" />
                 </div>
                 <div class="card card--inset">
-                    <span class="eyebrow">bicameral_supermajority · failed — type A short of ceil(32 × 2/3)</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.legislature_kit.eyebrow_bi_super_failed', 'bicameral_supermajority · failed — type A short of ceil(32 × 2/3)') }}</span>
                     <VoteTally mode="bicameral" threshold-class="bicameral_supermajority" :kinds="SM.supermajority.failed_type_a" outcome="failed" />
                 </div>
                 <div class="card card--inset">
-                    <span class="eyebrow">bicameral committee stage — per-kind committee majorities (q7 binds at committee AND floor)</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.legislature_kit.eyebrow_bi_committee', 'bicameral committee stage — per-kind committee majorities (q7 binds at committee AND floor)') }}</span>
                     <VoteTally mode="bicameral" stage="committee" threshold-class="bicameral_majority" :kinds="SM.committee" outcome="adopted" />
                 </div>
             </div>
         </Card>
 
-        <Card as="section" title="VoteTally — casting cluster (emit-only)">
-            <p class="citation">yes/no/abstain + optional explanation — published with the vote · Art. II §2 · the PAGE owns POST /votes/{vote}/cast</p>
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_votetally_casting', 'VoteTally — casting cluster (emit-only)')">
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_votetally_casting', `yes/no/abstain + optional explanation — published with the vote · Art. II §2 · the PAGE owns POST /votes/{'{'}vote{'}'}/cast`) }}</p>
             <VoteTally
                 mode="unicameral"
                 threshold-class="majority"
@@ -254,65 +252,63 @@ const petitionBelow = computed(() => ({
 
         <!-- =========================================== 3. VoteCastList -->
         <div class="grid-2">
-            <Card as="section" title="VoteCastList — published positions">
-                <p class="citation">member votes are PUBLIC — the opposite of ballots · absent counts the same as a no · Art. II §2</p>
+            <Card as="section" :title="t('c_operator_pages.legislature_kit.card_castlist_published', 'VoteCastList — published positions')">
+                <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_castlist_published', 'member votes are PUBLIC — the opposite of ballots · absent counts the same as a no · Art. II §2') }}</p>
                 <VoteCastList :casts="fixtures.casts.unicameral" />
             </Card>
-            <Card as="section" title="VoteCastList — tie-break record + grouped kinds">
+            <Card as="section" :title="t('c_operator_pages.legislature_kit.card_castlist_tiebreak', 'VoteCastList — tie-break record + grouped kinds')">
                 <VoteCastList :casts="fixtures.casts.tieBroken" />
                 <hr />
-                <p class="citation">groupByKind — bicameral surfaces</p>
+                <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_castlist_groupbykind', 'groupByKind — bicameral surfaces') }}</p>
                 <VoteCastList :casts="fixtures.casts.bicameral" group-by-kind />
             </Card>
         </div>
 
         <!-- ============================================ 4. AgendaStrip -->
-        <Card as="section" title="AgendaStrip — constitutional order, locked slots 1–2">
-            <p class="citation">F-SPK-002 · 1. outstanding emergency powers → 2. constitutional matters → 3. general agenda · Art. II §2; §7 · hardened</p>
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_agendastrip', 'AgendaStrip — constitutional order, locked slots 1–2')">
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_agendastrip', 'F-SPK-002 · 1. outstanding emergency powers → 2. constitutional matters → 3. general agenda · Art. II §2; §7 · hardened') }}</p>
             <div class="cluster" style="margin-block-end: var(--space-3)">
-                <ChipToggle v-model:pressed="agendaEditable">editable (R-10 + session open)</ChipToggle>
+                <ChipToggle v-model:pressed="agendaEditable">{{ t('c_operator_pages.legislature_kit.chip_agenda_editable', 'editable (R-10 + session open)') }}</ChipToggle>
             </div>
             <AgendaStrip :items="agendaItems" :editable="agendaEditable" @reorder="onReorder" />
             <p class="gloss" style="margin-block-start: var(--space-2)">
-                ↑/↓ keep focus on the moved item's control and announce via the polite live
-                region; locked slots render no controls and other items cannot move past them.
+                {{ t('c_operator_pages.legislature_kit.gloss_agendastrip', "↑/↓ keep focus on the moved item's control and announce via the polite live region; locked slots render no controls and other items cannot move past them.") }}
             </p>
             <hr />
-            <p class="citation">all-clear variant — the locked slots render their honest empty states</p>
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_agenda_allclear', 'all-clear variant — the locked slots render their honest empty states') }}</p>
             <AgendaStrip :items="fixtures.agenda.allClear" :editable="false" />
         </Card>
 
         <!-- ================================================ 5. LawDiff -->
-        <Card as="section" title="LawDiff — server-computed segments (.law-diff del/ins)">
-            <p class="citation">segments rendered verbatim — what citizens see is exactly what the audit chain hashed · Art. IV §5 PATH C grammar</p>
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_lawdiff', 'LawDiff — server-computed segments (.law-diff del/ins)')">
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_lawdiff', 'segments rendered verbatim — what citizens see is exactly what the audit chain hashed · Art. IV §5 PATH C grammar') }}</p>
             <Card inset>
                 <p style="margin-block-end: var(--space-1)"><strong data-no-i18n>{{ fixtures.lawDiff.label }}</strong></p>
                 <LawDiff :segments="fixtures.lawDiff.segments" :label="fixtures.lawDiff.label" />
             </Card>
             <p class="gloss">
-                del/ins carry visually-hidden "removed:"/"added:" prefixes — the ops are
-                explicit for screen readers, never color-only.
+                {{ t('c_operator_pages.legislature_kit.gloss_lawdiff', 'del/ins carry visually-hidden "removed:"/"added:" prefixes — the ops are explicit for screen readers, never color-only.') }}
             </p>
         </Card>
 
         <!-- ========================================= 6. SignatureMeter -->
-        <Card as="section" title="SignatureMeter — petition thresholds (CLK-17)">
-            <p class="citation">denominator is the SNAPSHOT petitions.threshold_count — never recomputed client-side · Art. II §6</p>
-            <h3>Gathering — below threshold</h3>
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_sigmeter', 'SignatureMeter — petition thresholds (CLK-17)')">
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_sigmeter', 'denominator is the SNAPSHOT petitions.threshold_count — never recomputed client-side · Art. II §6') }}</p>
+            <h3>{{ t('c_operator_pages.legislature_kit.sig_gathering', 'Gathering — below threshold') }}</h3>
             <SignatureMeter :signatures="petitionBelow.signatures" :threshold="petitionBelow.threshold" pct="5.00" />
-            <h3 style="margin-block-start: var(--space-4)">Threshold reached</h3>
+            <h3 style="margin-block-start: var(--space-4)">{{ t('c_operator_pages.legislature_kit.sig_threshold_reached', 'Threshold reached') }}</h3>
             <SignatureMeter :signatures="fixtures.petition.signatures" :threshold="fixtures.petition.threshold" :pct="fixtures.petition.pct" />
-            <h3 style="margin-block-start: var(--space-4)">Compact (list-row variant)</h3>
+            <h3 style="margin-block-start: var(--space-4)">{{ t('c_operator_pages.legislature_kit.sig_compact', 'Compact (list-row variant)') }}</h3>
             <SignatureMeter :signatures="fixtures.petition.signatures" :threshold="fixtures.petition.threshold" :pct="fixtures.petition.pct" compact />
         </Card>
 
         <!-- ======================================== 7. EmergencyBanner -->
-        <Card as="section" title="EmergencyBanner — cross-surface alert (shell-wired)">
-            <p class="citation">renders nothing when empty · shared prop app.activeEmergencies · Art. II §7 · CLK-03</p>
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_emergency', 'EmergencyBanner — cross-surface alert (shell-wired)')">
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_emergency', 'renders nothing when empty · shared prop app.activeEmergencies · Art. II §7 · CLK-03') }}</p>
             <EmergencyBanner :emergencies="[fixtures.emergencies[0]]" />
-            <h3 style="margin-block-start: var(--space-4)">Two active powers, one under judicial review</h3>
+            <h3 style="margin-block-start: var(--space-4)">{{ t('c_operator_pages.legislature_kit.emergency_two_active', 'Two active powers, one under judicial review') }}</h3>
             <EmergencyBanner :emergencies="fixtures.emergencies" />
-            <h3 style="margin-block-start: var(--space-4)">Empty (renders nothing between the rules)</h3>
+            <h3 style="margin-block-start: var(--space-4)">{{ t('c_operator_pages.legislature_kit.emergency_empty', 'Empty (renders nothing between the rules)') }}</h3>
             <hr />
             <EmergencyBanner :emergencies="[]" />
             <hr />
@@ -320,42 +316,41 @@ const petitionBelow = computed(() => ({
 
         <!-- ============================== 8. RankList generalization ==== -->
         <div class="grid-2">
-            <Card as="section" title="RankList — removable: false (committee preferences, F-LEG-010)">
-                <p class="citation">every member ranks the FULL committee list — no remove button, no empty-list path · default order = creation order</p>
+            <Card as="section" :title="t('c_operator_pages.legislature_kit.card_ranklist_fixed', 'RankList — removable: false (committee preferences, F-LEG-010)')">
+                <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_ranklist_fixed', 'every member ranks the FULL committee list — no remove button, no empty-list path · default order = creation order') }}</p>
                 <RankList v-model="committeePrefs" :seats="committeePrefs.length" :removable="false" :disabled="prefsLocked" />
                 <div class="cluster">
-                    <ChipToggle v-model:pressed="prefsLocked">submitted (locked read-only)</ChipToggle>
+                    <ChipToggle v-model:pressed="prefsLocked">{{ t('c_operator_pages.legislature_kit.chip_submitted', 'submitted (locked read-only)') }}</ChipToggle>
                 </div>
                 <p class="gloss">
-                    Rank every committee — the assignment algorithm honors your order; ties
-                    break by normalized vote share (ledger #q2).
+                    {{ t('c_operator_pages.legislature_kit.gloss_ranklist_fixed', 'Rank every committee — the assignment algorithm honors your order; ties break by normalized vote share (ledger #q2).') }}
                 </p>
             </Card>
-            <Card as="section" title="RankList — removable: true + chips (electoral call-site shape)">
-                <p class="citation">items are { id, name, chips } — RankedBallot maps candidacy_id → id, write_in → chips: ['write-in']</p>
+            <Card as="section" :title="t('c_operator_pages.legislature_kit.card_ranklist_removable', 'RankList — removable: true + chips (electoral call-site shape)')">
+                <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_ranklist_removable', `items are {'{'} id, name, chips {'}'} — RankedBallot maps candidacy_id → id, write_in → chips: ['write-in']`) }}</p>
                 <RankList v-model="removableDemo" :seats="3" />
             </Card>
         </div>
 
         <!-- ================================== 9. Phase C state machines -->
-        <Card as="section" title="State machines — FE-C0 config entries (display contract)">
-            <p class="citation">config/cga/state_machines.php · PHP-owned, prop-fed on the real pages — shapes shown here for the kit only</p>
+        <Card as="section" :title="t('c_operator_pages.legislature_kit.card_state_machines', 'State machines — FE-C0 config entries (display contract)')">
+            <p class="citation">{{ t('c_operator_pages.legislature_kit.cite_state_machines', 'config/cga/state_machines.php · PHP-owned, prop-fed on the real pages — shapes shown here for the kit only') }}</p>
             <div class="stack" style="gap: var(--space-3)">
                 <div>
-                    <span class="eyebrow">Bill (ESM-07) — current: in_committee</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.legislature_kit.eyebrow_bill', 'Bill (ESM-07) — current: in_committee') }}</span>
                     <StateStrip :states="MACHINES.bill" current="in_committee" />
                 </div>
                 <div>
-                    <span class="eyebrow">Motion (ESM-08) — current: voted</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.legislature_kit.eyebrow_motion', 'Motion (ESM-08) — current: voted') }}</span>
                     <StateStrip :states="MACHINES.motion" current="voted" />
                 </div>
                 <div>
-                    <span class="eyebrow">Petition (ESM-10) — current: signature_audit</span>
+                    <span class="eyebrow">{{ t('c_operator_pages.legislature_kit.eyebrow_petition', 'Petition (ESM-10) — current: signature_audit') }}</span>
                     <StateStrip :states="MACHINES.petition" current="signature_audit" />
                 </div>
             </div>
             <div class="cluster" style="margin-block-start: var(--space-3)">
-                <StatusBadge tone="info" icon="info">committee_seat · referendum_question · emergency_powers registered too</StatusBadge>
+                <StatusBadge tone="info" icon="info">{{ t('c_operator_pages.legislature_kit.badge_registered_too', 'committee_seat · referendum_question · emergency_powers registered too') }}</StatusBadge>
             </div>
         </Card>
     </PageScaffold>
