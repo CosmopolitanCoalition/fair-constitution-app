@@ -92,8 +92,17 @@ class RoomFloorService
             return [$open, $presider];
         }
         if ($kind === 'board') {
-            $board = Board::query()->findOrFail($id, ['id', 'chair_seat_id', 'status']);
-            $this->boards->assertMayJoin($viewer, $board);
+            $board = Board::query()->findOrFail($id, ['id', 'chair_seat_id', 'status', 'boardable_type', 'boardable_id']);
+            // Ruling boardroom-page-access B (2026-09-15): a public body's board reads
+            // for every resident, so a non-member gets the floor VIEW (open, not
+            // presiding) instead of a 403; a private organization's board keeps its
+            // members-only gate. Taking the floor still goes through assertMayJoin.
+            if (! $this->boards->allows($viewer, $board)) {
+                if ($this->boards->isPublic($board)) {
+                    return [true, false];
+                }
+                $this->boards->assertMayJoin($viewer, $board);
+            }
             $presider = $board->chair_seat_id !== null && BoardSeat::query()->where('board_id', $id)
                 ->whereKey($board->chair_seat_id)->seated()->where('holder_user_id', $viewer->getKey())->exists();
             return [true, $presider];

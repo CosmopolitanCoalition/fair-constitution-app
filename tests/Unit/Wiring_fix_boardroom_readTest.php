@@ -45,4 +45,15 @@ final class Wiring_fix_boardroom_readTest extends TestCase
         self::assertMatchesRegularExpression("/'canJoin'\s*=>/", $src,
             'the page must carry the canJoin prop');
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function floor_view_reads_a_public_board_for_a_non_member(): void
+    {
+        $src = (string) file_get_contents(dirname(__DIR__, 2).'/app/Services/Rooms/RoomFloorService.php');
+        $board = substr($src, strpos($src, "if (\$kind === 'board')"));
+        $board = substr($board, 0, strpos($board, 'abort(404)'));
+        $this->assertStringContainsString('isPublic($board)', $board, 'the floor view branches on the public-body rule');
+        $this->assertLessThan(strpos($board, '->assertMayJoin('), strpos($board, '->isPublic('), 'the public branch comes before the members-only gate');
+        $this->assertStringContainsString("'boardable_type'", $board, 'the board row loads the columns the rule reads');
+    }
 }
