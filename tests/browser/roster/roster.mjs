@@ -44,7 +44,8 @@ export function isAuthClass(m) {
 // sweep never scans it as a page.
 const NON_PAGE_RE = [/^\/api\//, /^\/\.well-known\//, /^\/oauth\//, /^\/federation\/cluster\/sync-progress$/];
 function isNonPage(u) {
-    return u === '/up' || NON_PAGE_RE.some((re) => re.test(u));
+    // One rule for both derivations: the named machine endpoints below count too.
+    return u === '/up' || NON_PAGE_RE.some((re) => re.test(u)) || machineReason(u) !== null;
 }
 
 // Viewer-bound pages: the URL names no subject, so the controller resolves the
@@ -172,6 +173,7 @@ export const PIN_NONPAGE = [
     '/api/setup/wizard/step5/progress',
     '/api/simworld/progress',
     '/api/simworld/rails',
+    '/continue',
     '/federation/cluster/sync-progress',
     '/oauth/jwks',
     '/oauth/userinfo',
