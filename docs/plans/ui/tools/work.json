@@ -16780,10 +16780,10 @@
     {
       "id": "W-0441",
       "title": "Bound the /legislatures index: no planet-wide count, no unbounded ordered join",
-      "phase": "P1",
-      "order": 77,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "Measured 2026-09-14 on box E: GET /legislatures as a guest answers in 30.9 s with 286 KB. LegislatureController::index counts every legislature (940,328 rows) on each request and then joins all of them to jurisdictions ordered by adm_level and seat total with LIMIT 500 at the end; the LIMIT does not bound the join, the whole planet sorts first (ETL paradigm corollary two). The browser sweep crashed on this route in every attempt (4 to 5 minutes, then the renderer died).",
       "done_when": "GET /legislatures answers a guest in under 2 s on box E with a bounded input (a keyset or cursor page over an indexed order, and a total that is cached or estimated, never a live count of the table); the response is under 100 KB; the browser sweep establishes the route and reports zero nodes at both widths; a pin asserts the query shape.",
@@ -16800,6 +16800,10 @@
         {
           "date": "2026-09-14",
           "note": "Operator note: Server side done: the hub walks adm levels with one bounded query per level, the election picks are bounded by the hub ids, the total is cached; guest GET 30.9 s to 1.8 s; pinned by LegislatureIndexBoundedTest. Open: the response is still 500 rows (286 KB) and the sweep takes 98 s; next step per operator ruling 2026-09-14 is pagination of the hub (50 a page)."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Server: the hub walks adm levels with one bounded query per level, election picks bounded by the hub ids, cached total; guest GET 30.9 s to 1.8 s; pinned by LegislatureIndexBoundedTest. Page: zero axe nodes at both widths on a single-route run in Edge on the host 2026-09-14 after the Chamber and Results row links took the underline. Operator ruling: the scanner's own time on 500 rows is not a concern once the page passes."
         }
       ]
     },

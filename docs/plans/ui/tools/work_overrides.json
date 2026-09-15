@@ -487,9 +487,10 @@
    "title": "Make /jurisdictions survive the browser sweep: measure and bound what the page loads after render"
   },
   "W-0441": {
-   "note": "Server side done: the hub walks adm levels with one bounded query per level, the election picks are bounded by the hub ids, the total is cached; guest GET 30.9 s to 1.8 s; pinned by LegislatureIndexBoundedTest. Open: the response is still 500 rows (286 KB) and the sweep takes 98 s; next step per operator ruling 2026-09-14 is pagination of the hub (50 a page).",
+   "note": "Server: the hub walks adm levels with one bounded query per level, election picks bounded by the hub ids, cached total; guest GET 30.9 s to 1.8 s; pinned by LegislatureIndexBoundedTest. Page: zero axe nodes at both widths on a single-route run in Edge on the host 2026-09-14 after the Chamber and Results row links took the underline. Operator ruling: the scanner's own time on 500 rows is not a concern once the page passes.",
    "date": "2026-09-14",
-   "title": "Bound the /legislatures index: no planet-wide count, no unbounded ordered join"
+   "title": "Bound the /legislatures index: no planet-wide count, no unbounded ordered join",
+   "status": "done"
   }
  }
 }
