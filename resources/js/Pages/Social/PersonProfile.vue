@@ -336,7 +336,7 @@ function submitWithdrawEndorsement() {
                     />
                 </template>
             </Field>
-            <Field :label="t('c_gap_civic_social.person_profile.handle_label', 'Handle')" :error="profileForm.errors.handle" :hint="t('c_gap_civic_social.person_profile.handle_hint', '3–64 chars: a–z, 0–9, hyphen or underscore. Your @address.')">
+            <Field :label="t('c_gap_civic_social.person_profile.handle_label', 'Handle')" :error="profileForm.errors.handle" :hint="t('c_gap_civic_social.person_profile.handle_hint', '3–64 chars: a–z, 0–9, hyphen or underscore. Your {'@'}address.')">
                 <template #control="{ id, invalid, describedBy }">
                     <input
                         :id="id"

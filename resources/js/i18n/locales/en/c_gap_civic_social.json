@@ -91,7 +91,7 @@
   "person_profile.frozen_cutoff": "frozen at the finalist cutoff",
   "person_profile.full_race_rank": "full-race rank",
   "person_profile.grants_r07": " · grants R-07",
-  "person_profile.handle_hint": "3–64 chars: a–z, 0–9, hyphen or underscore. Your @address.",
+  "person_profile.handle_hint": "3–64 chars: a–z, 0–9, hyphen or underscore. Your {'@'}address.",
   "person_profile.handle_label": "Handle",
   "person_profile.handle_placeholder": "e.g. jordan-r",
   "person_profile.holds_office": "Holds public office —",
