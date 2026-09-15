@@ -65,7 +65,7 @@ class CommitteeService
     {
         if ($meeting->status !== CommitteeMeeting::STATUS_SCHEDULED) {
             throw new ConstitutionalViolation(
-                "Only a scheduled meeting opens (status: {$meeting->status}).",
+                __('Only a scheduled meeting opens (status: :status).', ['status' => $meeting->status]),
                 'CGA Forms Catalog (F-CHR-005)'
             );
         }
@@ -90,7 +90,7 @@ class CommitteeService
     ): CommitteeMeeting {
         if ($meeting->status !== CommitteeMeeting::STATUS_OPEN) {
             throw new ConstitutionalViolation(
-                "Only an open meeting adjourns (status: {$meeting->status}).",
+                __('Only an open meeting adjourns (status: :status).', ['status' => $meeting->status]),
                 'CGA Forms Catalog (F-CHR-006)'
             );
         }
@@ -98,7 +98,7 @@ class CommitteeService
         $minutes = trim($minutesBody);
 
         if ($minutes === '') {
-            throw new ConstitutionalViolation('Minutes carry text (WF-SYS-03).', 'Art. II §2');
+            throw new ConstitutionalViolation(__('Minutes carry text (WF-SYS-03).'), 'Art. II §2');
         }
 
         $committee   = $meeting->committee()->firstOrFail();
@@ -144,7 +144,7 @@ class CommitteeService
 
         if ($seats < 1 || $servingA < 1 || $servingB < 1) {
             throw new ConstitutionalViolation(
-                'Committee kind split requires seats ≥ 1 and serving members of both kinds.',
+                __('Committee kind split requires seats ≥ 1 and serving members of both kinds.'),
                 'Art. V §3'
             );
         }
@@ -200,11 +200,11 @@ class CommitteeService
         int $seats,
     ): array {
         if (trim($name) === '') {
-            throw new ConstitutionalViolation('A committee needs a name.', 'CGA Forms Catalog (F-LEG-009)');
+            throw new ConstitutionalViolation(__('A committee needs a name.'), 'CGA Forms Catalog (F-LEG-009)');
         }
 
         if ($seats < 1) {
-            throw new ConstitutionalViolation('A committee carries at least one seat.', 'CGA Forms Catalog (F-LEG-009)');
+            throw new ConstitutionalViolation(__('A committee carries at least one seat.'), 'CGA Forms Catalog (F-LEG-009)');
         }
 
         $bicameral = (int) $legislature->type_b_seats > 0;
@@ -262,15 +262,15 @@ class CommitteeService
     public function createAsSystemAct(Legislature $legislature, string $name, ?string $purpose, int $seats): Committee
     {
         if (trim($name) === '') {
-            throw new ConstitutionalViolation('A committee needs a name.', 'CGA Forms Catalog (F-LEG-009)');
+            throw new ConstitutionalViolation(__('A committee needs a name.'), 'CGA Forms Catalog (F-LEG-009)');
         }
         if ($seats < 1) {
-            throw new ConstitutionalViolation('A committee carries at least one seat.', 'CGA Forms Catalog (F-LEG-009)');
+            throw new ConstitutionalViolation(__('A committee carries at least one seat.'), 'CGA Forms Catalog (F-LEG-009)');
         }
         if (LegislatureMember::query()->where('legislature_id', $legislature->id)
                 ->whereIn('status', LegislatureMember::CURRENT_STATUSES)->exists()) {
             throw new ConstitutionalViolation(
-                'A seated chamber creates its committees by vote (F-LEG-009); the system act is for unseated chambers only.',
+                __('A seated chamber creates its committees by vote (F-LEG-009); the system act is for unseated chambers only.'),
                 'Art. II §9'
             );
         }
@@ -332,7 +332,7 @@ class CommitteeService
         if (LegislatureMember::query()->where('legislature_id', $legislature->id)
                 ->whereIn('status', LegislatureMember::CURRENT_STATUSES)->exists()) {
             throw new ConstitutionalViolation(
-                'A seated chamber creates its committees by vote (F-LEG-009); the system act is for unseated chambers only.',
+                __('A seated chamber creates its committees by vote (F-LEG-009); the system act is for unseated chambers only.'),
                 'Art. II §9'
             );
         }
@@ -353,11 +353,11 @@ class CommitteeService
             foreach ($specs as $spec) {
                 $name = trim((string) ($spec['name'] ?? ''));
                 if ($name === '') {
-                    throw new ConstitutionalViolation('A committee needs a name.', 'CGA Forms Catalog (F-LEG-009)');
+                    throw new ConstitutionalViolation(__('A committee needs a name.'), 'CGA Forms Catalog (F-LEG-009)');
                 }
                 $seats = (int) ($spec['seats'] ?? 0);
                 if ($seats < 1) {
-                    throw new ConstitutionalViolation('A committee carries at least one seat.', 'CGA Forms Catalog (F-LEG-009)');
+                    throw new ConstitutionalViolation(__('A committee carries at least one seat.'), 'CGA Forms Catalog (F-LEG-009)');
                 }
                 $purpose = isset($spec['purpose']) ? (string) $spec['purpose'] : null;
 
@@ -489,14 +489,14 @@ class CommitteeService
     {
         if ($committee->status !== Committee::STATUS_SEATED) {
             throw new ConstitutionalViolation(
-                'Chair elections run on SEATED committees — run the F-SPK-005 assignment first.',
+                __('Chair elections run on SEATED committees — run the F-SPK-005 assignment first.'),
                 'CGA Forms Catalog (F-LEG-011)'
             );
         }
 
         if ($this->openChairBallotFor($committee) !== null) {
             throw new ConstitutionalViolation(
-                'A chair balloting is already open for this committee.',
+                __('A chair balloting is already open for this committee.'),
                 'CGA Forms Catalog (F-LEG-011)'
             );
         }
@@ -541,7 +541,7 @@ class CommitteeService
 
         if ($rankings === [] || $unknown !== []) {
             throw new ConstitutionalViolation(
-                'Chair ballot rankings must name seated members of this committee (R-12 requires R-11).',
+                __('Chair ballot rankings must name seated members of this committee (R-12 requires R-11).'),
                 'CGA Roles & Forms Chart (R-12)'
             );
         }

@@ -69,7 +69,7 @@ class ResidencyService implements ResidencyHandlerDelegate
     {
         if ($actor === null) {
             throw new ConstitutionalViolation(
-                'F-IND-003 is filed by the resident — system filing is not defined.',
+                __('F-IND-003 is filed by the resident — system filing is not defined.'),
                 'Art. I'
             );
         }
@@ -134,7 +134,7 @@ class ResidencyService implements ResidencyHandlerDelegate
     {
         if ($actor === null) {
             throw new ConstitutionalViolation(
-                'F-IND-005 is filed by the resident — system filing is not defined.',
+                __('F-IND-005 is filed by the resident — system filing is not defined.'),
                 'Art. I'
             );
         }
@@ -147,7 +147,7 @@ class ResidencyService implements ResidencyHandlerDelegate
 
         if ($claim === null) {
             throw new ConstitutionalViolation(
-                'No residency claim is under ping monitoring for this individual — declare residency (F-IND-003) first.',
+                __('No residency claim is under ping monitoring for this individual — declare residency (F-IND-003) first.'),
                 'Art. I'
             );
         }
@@ -222,7 +222,7 @@ class ResidencyService implements ResidencyHandlerDelegate
     {
         if ($actor !== null) {
             // systemOnly() on the handler already enforces this; belt-and-braces.
-            throw new ConstitutionalViolation('F-IND-006 is system-filed only.', 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('F-IND-006 is system-filed only.'), 'CGA Forms Catalog');
         }
 
         $claimId = $payload['claim_id'] ?? null;
@@ -233,14 +233,14 @@ class ResidencyService implements ResidencyHandlerDelegate
 
         if ($claim === null) {
             throw new ConstitutionalViolation(
-                'F-IND-006 requires the claim_id of the residency claim being confirmed.',
+                __('F-IND-006 requires the claim_id of the residency claim being confirmed.'),
                 'Art. I'
             );
         }
 
         if (! $claim->isMonitoring()) {
             throw new ConstitutionalViolation(
-                "Residency claim [{$claim->id}] is not awaiting verification (status: {$claim->status}).",
+                __('Residency claim [:id] is not awaiting verification (status: :status).', ['id' => $claim->id, 'status' => $claim->status]),
                 'Art. I'
             );
         }
@@ -250,7 +250,7 @@ class ResidencyService implements ResidencyHandlerDelegate
 
         if ($days < $threshold) {
             throw new ConstitutionalViolation(
-                "Residency claim [{$claim->id}] has {$days} qualifying day(s); the resolved threshold is {$threshold}.",
+                __('Residency claim [:id] has :days qualifying day(s); the resolved threshold is :threshold.', ['id' => $claim->id, 'days' => $days, 'threshold' => $threshold]),
                 'Art. I · residency_confirmation_days'
             );
         }
@@ -386,7 +386,7 @@ class ResidencyService implements ResidencyHandlerDelegate
 
         if ($claim === null) {
             throw new ConstitutionalViolation(
-                'No residency claim is under ping monitoring — declare residency (F-IND-003) first.',
+                __('No residency claim is under ping monitoring — declare residency (F-IND-003) first.'),
                 'Art. I'
             );
         }
@@ -399,7 +399,7 @@ class ResidencyService implements ResidencyHandlerDelegate
 
         if ($point === null || $point->lat === null) {
             throw new ConstitutionalViolation(
-                'Declared jurisdiction has no boundary geometry — cannot simulate pings.',
+                __('Declared jurisdiction has no boundary geometry — cannot simulate pings.'),
                 'Art. I'
             );
         }

@@ -40,7 +40,7 @@ class OrgMembershipService
     {
         if ($org->status !== Organization::STATUS_ACTIVE) {
             throw new ConstitutionalViolation(
-                "Organization [{$org->id}] is not active (status: {$org->status}).",
+                __('Organization [:id] is not active (status: :status).', ['id' => $org->id, 'status' => $org->status]),
                 'CGA Forms Catalog (F-IND-013)'
             );
         }
@@ -49,7 +49,7 @@ class OrgMembershipService
 
         if ($expected === null) {
             throw new ConstitutionalViolation(
-                'This organization carries no ownership structure — it accepts no membership class.',
+                __('This organization carries no ownership structure — it accepts no membership class.'),
                 'CGA Forms Catalog (F-IND-013)'
             );
         }
@@ -58,8 +58,7 @@ class OrgMembershipService
 
         if ($kind !== $expected) {
             throw new ConstitutionalViolation(
-                "Membership class [{$kind}] does not match the organization's structure "
-                . "({$org->structure} accepts [{$expected}]).",
+                __('Membership class [:kind] does not match the organization\'s structure (:structure accepts [:expected]).', ['kind' => $kind, 'structure' => $org->structure, 'expected' => $expected]),
                 'CGA Forms Catalog (F-IND-013)'
             );
         }
@@ -73,7 +72,7 @@ class OrgMembershipService
 
         if ($open) {
             throw new ConstitutionalViolation(
-                'An open membership (applied or active) already exists for this class.',
+                __('An open membership (applied or active) already exists for this class.'),
                 'CGA Forms Catalog (F-IND-013)'
             );
         }
@@ -92,7 +91,7 @@ class OrgMembershipService
     {
         if ($membership->status !== OrgMembership::STATUS_APPLIED) {
             throw new ConstitutionalViolation(
-                "Membership [{$membership->id}] is not pending (status: {$membership->status}).",
+                __('Membership [:id] is not pending (status: :status).', ['id' => $membership->id, 'status' => $membership->status]),
                 'CGA Forms Catalog (F-ORG-001)'
             );
         }
@@ -113,7 +112,7 @@ class OrgMembershipService
     {
         if ($membership->status !== OrgMembership::STATUS_APPLIED) {
             throw new ConstitutionalViolation(
-                "Membership [{$membership->id}] is not pending (status: {$membership->status}).",
+                __('Membership [:id] is not pending (status: :status).', ['id' => $membership->id, 'status' => $membership->status]),
                 'CGA Forms Catalog (F-ORG-001)'
             );
         }
@@ -128,7 +127,7 @@ class OrgMembershipService
     {
         if ($membership->status !== OrgMembership::STATUS_ACTIVE) {
             throw new ConstitutionalViolation(
-                "Membership [{$membership->id}] is not active.",
+                __('Membership [:id] is not active.', ['id' => $membership->id]),
                 'CGA Forms Catalog (F-ORG-001)'
             );
         }
@@ -167,7 +166,7 @@ class OrgMembershipService
 
         if ($open) {
             throw new ConstitutionalViolation(
-                'An open worker registration (applied or active) already exists with this employer.',
+                __('An open worker registration (applied or active) already exists with this employer.'),
                 'CGA Forms Catalog (F-IND-014)'
             );
         }
@@ -210,7 +209,7 @@ class OrgMembershipService
     {
         if (! in_array($contract->status, [OrgContract::STATUS_DRAFT, OrgContract::STATUS_OFFERED], true)) {
             throw new ConstitutionalViolation(
-                "Contract [{$contract->id}] is not open for countersigning (status: {$contract->status}).",
+                __('Contract [:id] is not open for countersigning (status: :status).', ['id' => $contract->id, 'status' => $contract->status]),
                 'CGA Forms Catalog (F-ORG-001)'
             );
         }
@@ -254,7 +253,7 @@ class OrgMembershipService
     {
         if (in_array($contract->status, [OrgContract::STATUS_ENDED, OrgContract::STATUS_VOIDED], true)) {
             throw new ConstitutionalViolation(
-                "Contract [{$contract->id}] is already closed.",
+                __('Contract [:id] is already closed.', ['id' => $contract->id]),
                 'CGA Forms Catalog (F-ORG-001)'
             );
         }
@@ -277,7 +276,7 @@ class OrgMembershipService
     public function endWorker(OrgWorker $worker): OrgWorker
     {
         if ($worker->status === OrgWorker::STATUS_ENDED) {
-            throw new ConstitutionalViolation('Worker registration is already ended.', 'CGA Forms Catalog (F-IND-014)');
+            throw new ConstitutionalViolation(__('Worker registration is already ended.'), 'CGA Forms Catalog (F-IND-014)');
         }
 
         $worker->forceFill(['status' => OrgWorker::STATUS_ENDED, 'ended_at' => now()])->save();
@@ -312,7 +311,7 @@ class OrgMembershipService
 
             if ($org === null || $org->status !== Organization::STATUS_ACTIVE) {
                 throw new ConstitutionalViolation(
-                    'F-IND-014 targets an unknown or inactive organization.',
+                    __('F-IND-014 targets an unknown or inactive organization.'),
                     'CGA Forms Catalog (F-IND-014)'
                 );
             }
@@ -323,7 +322,7 @@ class OrgMembershipService
         if ($employerType === OrgWorker::EMPLOYER_DEPARTMENTS) {
             if (! Schema::hasTable('departments') || DB::table('departments')->where('id', $employerId)->whereNull('deleted_at')->doesntExist()) {
                 throw new ConstitutionalViolation(
-                    'F-IND-014 targets an unknown department.',
+                    __('F-IND-014 targets an unknown department.'),
                     'CGA Forms Catalog (F-IND-014)'
                 );
             }
@@ -331,14 +330,13 @@ class OrgMembershipService
             // Departments hire through the same registry (binding
             // contract); their labor contract rides without an org row.
             throw new ConstitutionalViolation(
-                'Department worker contracts land with the executive scope — file against the department once its '
-                . 'contracting surface ships.',
+                __('Department worker contracts land with the executive scope — file against the department once its contracting surface ships.'),
                 'CGA Forms Catalog (F-IND-014) · as implemented'
             );
         }
 
         throw new ConstitutionalViolation(
-            "Unknown employer type [{$employerType}].",
+            __('Unknown employer type [:employerType].', ['employerType' => $employerType]),
             'CGA Forms Catalog (F-IND-014)'
         );
     }

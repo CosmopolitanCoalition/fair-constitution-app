@@ -46,7 +46,7 @@ class CapabilityProber
     public function probe(string $capability, ?string $scopeJurisdictionId = null): array
     {
         if (! in_array($capability, InstanceCapability::CHANNELS, true)) {
-            throw new ConstitutionalViolation("Unknown capability channel [{$capability}].", 'Mesh Roles & Channels of Trust');
+            throw new ConstitutionalViolation(__('Unknown capability channel [:capability].', ['capability' => $capability]), 'Mesh Roles & Channels of Trust');
         }
 
         [$ok, $detail] = match ($capability) {
@@ -75,8 +75,7 @@ class CapabilityProber
         $result = $this->probe($capability, $scopeJurisdictionId);
         if (! $result['ok']) {
             throw new ConstitutionalViolation(
-                "Cannot request [{$capability}] — this box does not qualify to host it: {$result['detail']}. "
-                .'Drop the required tokens/keys and re-probe (capable-before-request).',
+                __('Cannot request [:capability] — this box does not qualify to host it: :detail. Drop the required tokens/keys and re-probe (capable-before-request).', ['capability' => $capability, 'detail' => $result['detail']]),
                 'Mesh Roles & Channels of Trust · §3.2 QUALIFY',
             );
         }

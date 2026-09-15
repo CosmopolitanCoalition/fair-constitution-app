@@ -59,13 +59,13 @@ class CarveoutEmitterService
 
         $key = self::CARVE_MAP[$carveOut] ?? null;
         if ($key === null) {
-            throw new ConstitutionalViolation('Unknown Matrix carve-out class.', 'Art. I');
+            throw new ConstitutionalViolation(__('Unknown Matrix carve-out class.'), 'Art. I');
         }
 
         // (2) the AUTHORITY gate — the legitimacy flip decides WHO + the action class. Fails closed.
         $decision = $this->flip->resolve($jurisdictionId, $key, $attestation, $operator);
         if (! $decision->permitted) {
-            throw new ConstitutionalViolation($decision->reason ?? 'Carve-out refused.', 'Art. I');
+            throw new ConstitutionalViolation($decision->reason ?? __('Carve-out refused.'), 'Art. I');
         }
 
         return $this->sealThenRedact($decision, $roomId, $eventId, sprintf('[%s] %s', $key, $reference));
@@ -86,7 +86,7 @@ class CarveoutEmitterService
         // Defence in depth: m4 currently always resolves permitted, but never redact on a refusal if a
         // future condition (e.g. seated-legislature-owned knobs) makes it refusable — fail closed.
         if (! $decision->permitted) {
-            throw new ConstitutionalViolation($decision->reason ?? 'Anti-spam action refused.', 'Art. II §3');
+            throw new ConstitutionalViolation($decision->reason ?? __('Anti-spam action refused.'), 'Art. II §3');
         }
 
         return $this->sealThenRedact($decision, $roomId, $eventId, '[m4_antispam] content-neutral rate-limit');

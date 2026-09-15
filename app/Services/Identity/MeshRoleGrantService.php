@@ -57,18 +57,18 @@ class MeshRoleGrantService
     public function request(string $capability, string $scopeJurisdictionId): PeerUpgradeProposal
     {
         if (! in_array($capability, InstanceCapability::CHANNELS, true)) {
-            throw new ConstitutionalViolation("Unknown capability channel [{$capability}].", 'Mesh Roles & Channels of Trust');
+            throw new ConstitutionalViolation(__('Unknown capability channel [:capability].', ['capability' => $capability]), 'Mesh Roles & Channels of Trust');
         }
         if (! InstanceCapability::isGoverned($capability)) {
             throw new ConstitutionalViolation(
-                "[{$capability}] is self-asserted — enable it directly (CapabilityService::registerSelf), it needs no grant.",
+                __('[:capability] is self-asserted — enable it directly (CapabilityService::registerSelf), it needs no grant.', ['capability' => $capability]),
                 'Mesh Roles & Channels of Trust · §3.2',
             );
         }
 
         $exists = DB::table('jurisdictions')->where('id', $scopeJurisdictionId)->whereNull('deleted_at')->exists();
         if (! $exists) {
-            throw new ConstitutionalViolation("Unknown scope jurisdiction {$scopeJurisdictionId}.", 'Mesh Roles & Channels of Trust');
+            throw new ConstitutionalViolation(__('Unknown scope jurisdiction :scopeJurisdictionId.', ['scopeJurisdictionId' => $scopeJurisdictionId]), 'Mesh Roles & Channels of Trust');
         }
 
         // QUALIFY — refuse before opening if the box cannot host the channel.
@@ -120,11 +120,11 @@ class MeshRoleGrantService
     public function selfGrantFounding(string $capability): InstanceCapability
     {
         if (! in_array($capability, InstanceCapability::CHANNELS, true)) {
-            throw new ConstitutionalViolation("Unknown capability channel [{$capability}].", 'Mesh Roles & Channels of Trust');
+            throw new ConstitutionalViolation(__('Unknown capability channel [:capability].', ['capability' => $capability]), 'Mesh Roles & Channels of Trust');
         }
         if (! \App\Support\FoundingContext::isFounding()) {
             throw new ConstitutionalViolation(
-                'A governed channel self-grants only while the node is being founded; after setup it needs the dual-meter consent.',
+                __('A governed channel self-grants only while the node is being founded; after setup it needs the dual-meter consent.'),
                 'Mesh Roles & Channels of Trust · §5',
             );
         }
@@ -169,10 +169,10 @@ class MeshRoleGrantService
         $proposal = $proposal->refresh();
 
         if ($proposal->kind !== PeerUpgradeProposal::KIND_ROLE_GRANT) {
-            throw new ConstitutionalViolation('Not a role-grant proposal.', 'Mesh Roles & Channels of Trust');
+            throw new ConstitutionalViolation(__('Not a role-grant proposal.'), 'Mesh Roles & Channels of Trust');
         }
         if (! $proposal->isOpen()) {
-            throw new ConstitutionalViolation('The role-grant request is not open.', 'Mesh Roles & Channels of Trust');
+            throw new ConstitutionalViolation(__('The role-grant request is not open.'), 'Mesh Roles & Channels of Trust');
         }
 
         $capability = (string) $proposal->capability;
@@ -183,15 +183,13 @@ class MeshRoleGrantService
         if ($leg === 'seated') {
             if (! $this->agreement->meterBPassed($proposal)) {
                 throw new ConstitutionalViolation(
-                    "Granting [{$capability}] in a jurisdiction with a seated government requires that "
-                    .'government\'s supermajority consent (Meter B) — it has not been reached.',
+                    __('Granting [:capability] in a jurisdiction with a seated government requires that government\'s supermajority consent (Meter B) — it has not been reached.', ['capability' => $capability]),
                     'Mesh Roles & Channels of Trust · §5',
                 );
             }
         } elseif (! $this->agreement->meterAPassed($proposal)) {
             throw new ConstitutionalViolation(
-                "Granting [{$capability}] in bootstrap mode requires the operator board's attestation "
-                .'(Meter A) — the scaling-consent threshold has not been reached.',
+                __('Granting [:capability] in bootstrap mode requires the operator board\'s attestation (Meter A) — the scaling-consent threshold has not been reached.', ['capability' => $capability]),
                 'Mesh Roles & Channels of Trust · §5',
             );
         }
@@ -199,8 +197,7 @@ class MeshRoleGrantService
         // Meter C — co-affected peer unanimity, only when the channel acts under a peer's subtree.
         if ($this->prober->affectsPeerSubtree($capability) && ! $this->agreement->meterCPassed($proposal)) {
             throw new ConstitutionalViolation(
-                "[{$capability}] acts under a peer's subtree — every co-affected peer must consent "
-                .'(Meter C, unanimity) before it is granted.',
+                __('[:capability] acts under a peer\'s subtree — every co-affected peer must consent (Meter C, unanimity) before it is granted.', ['capability' => $capability]),
                 'Mesh Roles & Channels of Trust · §5',
             );
         }
@@ -209,8 +206,7 @@ class MeshRoleGrantService
         $authProbe = $this->prober->probe('authority.grant', $scope);
         if (! $authProbe['ok']) {
             throw new ConstitutionalViolation(
-                "This box cannot mint the grant — {$authProbe['detail']}. An authority.grant holder for the "
-                .'scope mints + signs it (the grant is delivered to the grantee for cross-instance requests).',
+                __('This box cannot mint the grant — :detail. An authority.grant holder for the scope mints + signs it (the grant is delivered to the grantee for cross-instance requests).', ['detail' => $authProbe['detail']]),
                 'Mesh Roles & Channels of Trust · §4.3',
             );
         }
@@ -219,7 +215,7 @@ class MeshRoleGrantService
         $granteePubKey = $this->resolvePubKey($granteeServerId);
         if ($granteePubKey === null) {
             throw new ConstitutionalViolation(
-                "Cannot resolve the grantee's public key (server {$granteeServerId}) — discover/handshake it first.",
+                __('Cannot resolve the grantee\'s public key (server :granteeServerId) — discover/handshake it first.', ['granteeServerId' => $granteeServerId]),
                 'Mesh Roles & Channels of Trust',
             );
         }
@@ -292,7 +288,7 @@ class MeshRoleGrantService
         $proposal = $proposal->refresh();
 
         if ($proposal->status !== PeerUpgradeProposal::STATUS_RATIFIED || ! is_array($proposal->grant_payload)) {
-            throw new ConstitutionalViolation('No ratified grant to deliver.', 'Mesh Roles & Channels of Trust');
+            throw new ConstitutionalViolation(__('No ratified grant to deliver.'), 'Mesh Roles & Channels of Trust');
         }
 
         $granteeServerId = (string) $proposal->proposed_by_server_id;

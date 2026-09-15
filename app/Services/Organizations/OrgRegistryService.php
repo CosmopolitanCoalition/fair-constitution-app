@@ -56,7 +56,7 @@ class OrgRegistryService
         $name      = trim((string) ($payload['name'] ?? ''));
 
         if ($name === '') {
-            throw new ConstitutionalViolation('Organization registration requires a name.', 'CGA Forms Catalog (F-IND-012)');
+            throw new ConstitutionalViolation(__('Organization registration requires a name.'), 'CGA Forms Catalog (F-IND-012)');
         }
 
         if (! in_array($type, [
@@ -68,14 +68,14 @@ class OrgRegistryService
             // The CGC branch is validator-rejected pre-commit with the
             // Art. III §5 citation; anything else is malformed.
             throw new ConstitutionalViolation(
-                "Unknown organization type [{$type}] for self-registration.",
+                __('Unknown organization type [:type] for self-registration.', ['type' => $type]),
                 'CGA Forms Catalog (F-IND-012)'
             );
         }
 
         if ($structure !== null && ! in_array($structure, Organization::STRUCTURES, true)) {
             throw new ConstitutionalViolation(
-                "Unknown ownership structure [{$structure}].",
+                __('Unknown ownership structure [:structure].', ['structure' => $structure]),
                 'CGA Forms Catalog (F-IND-012)'
             );
         }
@@ -85,7 +85,7 @@ class OrgRegistryService
         $jurisdictionExists = \App\Models\Jurisdiction::query()->whereKey($jurisdictionId)->exists();
 
         if (! $jurisdictionExists) {
-            throw new ConstitutionalViolation('F-IND-012 requires a valid jurisdiction_id.', 'CGA Forms Catalog (F-IND-012)');
+            throw new ConstitutionalViolation(__('F-IND-012 requires a valid jurisdiction_id.'), 'CGA Forms Catalog (F-IND-012)');
         }
 
         $slug = $this->uniqueSlug($jurisdictionId, $name);
@@ -195,13 +195,13 @@ class OrgRegistryService
     {
         if ($org->is_cgc) {
             throw new ConstitutionalViolation(
-                'A Common Good Corporation dissolves only by legislative act (F-LEG-027).',
+                __('A Common Good Corporation dissolves only by legislative act (F-LEG-027).'),
                 'Art. III §5'
             );
         }
 
         if ($org->status === Organization::STATUS_DISSOLVED) {
-            throw new ConstitutionalViolation('Organization is already dissolved.', 'CGA Forms Catalog (F-ORG-007)');
+            throw new ConstitutionalViolation(__('Organization is already dissolved.'), 'CGA Forms Catalog (F-ORG-007)');
         }
 
         $openContracts = OrgContract::query()
@@ -211,8 +211,7 @@ class OrgRegistryService
 
         if ($openContracts > 0) {
             throw new ConstitutionalViolation(
-                "Dissolution requires settled obligations — {$openContracts} contract(s) are still offered/active "
-                . '(end or void them first).',
+                __('Dissolution requires settled obligations — :openContracts contract(s) are still offered/active (end or void them first).', ['openContracts' => $openContracts]),
                 'CGA Forms Catalog (F-ORG-007) · WF-ORG-10'
             );
         }

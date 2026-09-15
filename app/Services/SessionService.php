@@ -61,7 +61,7 @@ class SessionService
 
         if ($open) {
             throw new ConstitutionalViolation(
-                'The chamber already has an unresolved session (scheduled or open).',
+                __('The chamber already has an unresolved session (scheduled or open).'),
                 'Art. II §2 · as implemented'
             );
         }
@@ -95,7 +95,7 @@ class SessionService
     {
         if (! in_array($session->status, [LegislatureSession::STATUS_SCHEDULED, LegislatureSession::STATUS_FAILED_QUORUM], true)) {
             throw new ConstitutionalViolation(
-                "Session {$session->session_no} cannot open from status [{$session->status}].",
+                __('Session :session_no cannot open from status [:status].', ['session_no' => $session->session_no, 'status' => $session->status]),
                 'Art. II §2 · as implemented'
             );
         }
@@ -157,7 +157,7 @@ class SessionService
         if ($session->status !== LegislatureSession::STATUS_OPEN
             && ! ($viaForm === 'F-SPK-008' && $session->status === LegislatureSession::STATUS_FAILED_QUORUM)) {
             throw new ConstitutionalViolation(
-                'Attendance is recorded against an open session.',
+                __('Attendance is recorded against an open session.'),
                 'Art. II §2 · as implemented'
             );
         }
@@ -165,7 +165,7 @@ class SessionService
         if ((string) $member->legislature_id !== (string) $session->legislature_id
             || ! in_array($member->status, LegislatureMember::CURRENT_STATUSES, true)) {
             throw new ConstitutionalViolation(
-                'Only currently serving members of this chamber register attendance.',
+                __('Only currently serving members of this chamber register attendance.'),
                 'Art. II §2'
             );
         }
@@ -181,7 +181,7 @@ class SessionService
     {
         if ($session->status !== LegislatureSession::STATUS_FAILED_QUORUM) {
             throw new ConstitutionalViolation(
-                'Attendance compulsion follows a failed quorum count (WF-LEG-20).',
+                __('Attendance compulsion follows a failed quorum count (WF-LEG-20).'),
                 'Art. II §2'
             );
         }
@@ -226,7 +226,7 @@ class SessionService
     {
         if (! in_array($session->status, [LegislatureSession::STATUS_OPEN, LegislatureSession::STATUS_FAILED_QUORUM], true)) {
             throw new ConstitutionalViolation(
-                'Quorum is counted in an open session.',
+                __('Quorum is counted in an open session.'),
                 'Art. II §2'
             );
         }
@@ -307,7 +307,7 @@ class SessionService
     public function setAgenda(LegislatureSession $session, array $tail = [], ?string $addressRefId = null): array
     {
         if ($session->status !== LegislatureSession::STATUS_OPEN) {
-            throw new ConstitutionalViolation('Agenda is set on an open session.', 'Art. II §2');
+            throw new ConstitutionalViolation(__('Agenda is set on an open session.'), 'Art. II §2');
         }
 
         $agenda = $session->agenda ?? [];
@@ -326,7 +326,7 @@ class SessionService
 
             if (! $found) {
                 throw new ConstitutionalViolation(
-                    'No pending locked agenda item matches the acknowledgment.',
+                    __('No pending locked agenda item matches the acknowledgment.'),
                     'Art. II §2'
                 );
             }
@@ -340,7 +340,7 @@ class SessionService
 
             if ($item['locked'] ?? false) {
                 throw new ConstitutionalViolation(
-                    'Filings may not insert locked agenda items — the locked head is engine-composed.',
+                    __('Filings may not insert locked agenda items — the locked head is engine-composed.'),
                     'Art. II §2'
                 );
             }
@@ -384,15 +384,15 @@ class SessionService
         ?string $committeeId = null,
     ): Motion {
         if ($session->status !== LegislatureSession::STATUS_OPEN) {
-            throw new ConstitutionalViolation('Motions are submitted in an open session.', 'Art. II §2');
+            throw new ConstitutionalViolation(__('Motions are submitted in an open session.'), 'Art. II §2');
         }
 
         if (! in_array($kind, Motion::KINDS, true)) {
-            throw new ConstitutionalViolation("Unknown motion kind [{$kind}].", 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown motion kind [:kind].', ['kind' => $kind]), 'Art. II §2 · as implemented');
         }
 
         if (in_array($kind, Motion::BILL_KINDS, true) && $billId === null) {
-            throw new ConstitutionalViolation("A [{$kind}] motion names a bill.", 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('A [:kind] motion names a bill.', ['kind' => $kind]), 'Art. II §2 · as implemented');
         }
 
         // FE-C4 — referral motions name their target committee. The motions
@@ -403,7 +403,7 @@ class SessionService
         // motion leaves the pointer inert and re-referable.
         if ($kind === Motion::KIND_REFERRAL) {
             if ($committeeId === null) {
-                throw new ConstitutionalViolation('A referral motion names a committee.', 'Art. II §4 · as implemented');
+                throw new ConstitutionalViolation(__('A referral motion names a committee.'), 'Art. II §4 · as implemented');
             }
 
             $committeeBelongs = DB::table('committees')
@@ -414,7 +414,7 @@ class SessionService
                 ->exists();
 
             if (! $committeeBelongs) {
-                throw new ConstitutionalViolation('The named committee is not a live committee of this chamber.', 'Art. II §4');
+                throw new ConstitutionalViolation(__('The named committee is not a live committee of this chamber.'), 'Art. II §4');
             }
 
             \App\Models\Bill::query()
@@ -522,7 +522,7 @@ class SessionService
     {
         if (! in_array($session->status, [LegislatureSession::STATUS_OPEN, LegislatureSession::STATUS_FAILED_QUORUM], true)) {
             throw new ConstitutionalViolation(
-                "Session {$session->session_no} cannot adjourn from [{$session->status}].",
+                __('Session :session_no cannot adjourn from [:status].', ['session_no' => $session->session_no, 'status' => $session->status]),
                 'Art. II §2 · as implemented'
             );
         }

@@ -56,13 +56,13 @@ class DepartmentService
         $kind = (string) ($payload['kind'] ?? '');
 
         if (! in_array($kind, [...Department::MANDATORY_KINDS, Department::KIND_OTHER], true)) {
-            throw new ConstitutionalViolation("Unknown department kind [{$kind}].", 'Art. II §9');
+            throw new ConstitutionalViolation(__('Unknown department kind [:kind].', ['kind' => $kind]), 'Art. II §9');
         }
 
         $name = trim((string) ($payload['name'] ?? ''));
 
         if ($name === '') {
-            throw new ConstitutionalViolation('A department creation act names the department.', 'Art. II §9');
+            throw new ConstitutionalViolation(__('A department creation act names the department.'), 'Art. II §9');
         }
 
         $executive = Executive::query()->find((string) ($payload['executive_id'] ?? ''));
@@ -70,7 +70,7 @@ class DepartmentService
         if ($executive === null
             || (string) $executive->jurisdiction_id !== (string) $legislature->jurisdiction_id) {
             throw new ConstitutionalViolation(
-                'Oversight is assigned to THIS jurisdiction\'s executive (named in the act).',
+                __('Oversight is assigned to THIS jurisdiction\'s executive (named in the act).'),
                 'Art. II §9 · Art. III §4'
             );
         }
@@ -84,7 +84,7 @@ class DepartmentService
             : [Executive::STATUS_DELEGATED, Executive::STATUS_ELECTED];
         if (! in_array($executive->status, $allowed, true)) {
             throw new ConstitutionalViolation(
-                "The overseeing executive must be delegated or elected (status: {$executive->status}).",
+                __('The overseeing executive must be delegated or elected (status: :status).', ['status' => $executive->status]),
                 'Art. III §1'
             );
         }
@@ -93,7 +93,7 @@ class DepartmentService
 
         if (trim((string) ($charter['function_text'] ?? '')) === '') {
             throw new ConstitutionalViolation(
-                'The charter states the department\'s function.',
+                __('The charter states the department\'s function.'),
                 'Art. II §9'
             );
         }
@@ -102,7 +102,7 @@ class DepartmentService
 
         if ($ownerSeats < 1) {
             throw new ConstitutionalViolation(
-                'The charter fixes at least one governor seat.',
+                __('The charter fixes at least one governor seat.'),
                 'Art. III §4'
             );
         }
@@ -116,7 +116,7 @@ class DepartmentService
 
             if ($exists) {
                 throw new ConstitutionalViolation(
-                    "This jurisdiction already has a live [{$kind}] department.",
+                    __('This jurisdiction already has a live [:kind] department.', ['kind' => $kind]),
                     'Art. II §9'
                 );
             }
@@ -151,7 +151,7 @@ class DepartmentService
         if (LegislatureMember::query()->where('legislature_id', $legislature->id)
                 ->whereIn('status', LegislatureMember::CURRENT_STATUSES)->exists()) {
             throw new ConstitutionalViolation(
-                'A seated chamber charters its departments by vote (F-LEG-016); the system act is for unseated chambers only.',
+                __('A seated chamber charters its departments by vote (F-LEG-016); the system act is for unseated chambers only.'),
                 'Art. II §9'
             );
         }
@@ -259,7 +259,7 @@ class DepartmentService
         if (LegislatureMember::query()->where('legislature_id', $legislature->id)
                 ->whereIn('status', LegislatureMember::CURRENT_STATUSES)->exists()) {
             throw new ConstitutionalViolation(
-                'A seated chamber charters its departments by vote (F-LEG-016); the system act is for unseated chambers only.',
+                __('A seated chamber charters its departments by vote (F-LEG-016); the system act is for unseated chambers only.'),
                 'Art. II §9'
             );
         }
@@ -268,14 +268,14 @@ class DepartmentService
         // executive, forming or later (founding posture).
         if ((string) $executive->jurisdiction_id !== (string) $legislature->jurisdiction_id) {
             throw new ConstitutionalViolation(
-                'Oversight is assigned to THIS jurisdiction\'s executive (named in the act).',
+                __('Oversight is assigned to THIS jurisdiction\'s executive (named in the act).'),
                 'Art. II §9 · Art. III §4'
             );
         }
         $founding = [Executive::STATUS_FORMING, Executive::STATUS_DELEGATED, Executive::STATUS_ELECTED];
         if (! in_array($executive->status, $founding, true)) {
             throw new ConstitutionalViolation(
-                "The overseeing executive must be delegated or elected (status: {$executive->status}).",
+                __('The overseeing executive must be delegated or elected (status: :status).', ['status' => $executive->status]),
                 'Art. III §1'
             );
         }
@@ -292,20 +292,20 @@ class DepartmentService
         foreach ($plans as $plan) {
             $kind = (string) ($plan['kind'] ?? '');
             if (! in_array($kind, [...Department::MANDATORY_KINDS, Department::KIND_OTHER], true)) {
-                throw new ConstitutionalViolation("Unknown department kind [{$kind}].", 'Art. II §9');
+                throw new ConstitutionalViolation(__('Unknown department kind [:kind].', ['kind' => $kind]), 'Art. II §9');
             }
             $name = trim((string) ($plan['name'] ?? ''));
             if ($name === '') {
-                throw new ConstitutionalViolation('A department creation act names the department.', 'Art. II §9');
+                throw new ConstitutionalViolation(__('A department creation act names the department.'), 'Art. II §9');
             }
             $charter  = (array) ($plan['charter'] ?? []);
             $function = trim((string) ($charter['function_text'] ?? ''));
             if ($function === '') {
-                throw new ConstitutionalViolation('The charter states the department\'s function.', 'Art. II §9');
+                throw new ConstitutionalViolation(__('The charter states the department\'s function.'), 'Art. II §9');
             }
             $ownerSeats = (int) ($plan['owner_seats'] ?? 1);
             if ($ownerSeats < 1) {
-                throw new ConstitutionalViolation('The charter fixes at least one governor seat.', 'Art. III §4');
+                throw new ConstitutionalViolation(__('The charter fixes at least one governor seat.'), 'Art. III §4');
             }
             $interval = $charter['reporting_interval_months'] ?? null;
             $norm[] = [
@@ -649,14 +649,14 @@ class DepartmentService
     ): array {
         if ($department->board_id === null) {
             throw new ConstitutionalViolation(
-                'The department has no board to decide the proposal — proposals never bypass the board.',
+                __('The department has no board to decide the proposal — proposals never bypass the board.'),
                 'Art. III §4'
             );
         }
 
         if ((string) $proposer->executive_id !== (string) $department->executive_id) {
             throw new ConstitutionalViolation(
-                'F-EXE-002 is filed by a member of the OVERSEEING executive.',
+                __('F-EXE-002 is filed by a member of the OVERSEEING executive.'),
                 'Art. III §4'
             );
         }
@@ -728,7 +728,7 @@ class DepartmentService
         if ((string) $seat->board_id !== (string) $department->board_id
             || $seat->status !== BoardSeat::STATUS_SEATED) {
             throw new ConstitutionalViolation(
-                'F-BOG-001 is filed by a seated member of THIS department\'s board (R-18).',
+                __('F-BOG-001 is filed by a seated member of THIS department\'s board (R-18).'),
                 'Art. III §4 · §6'
             );
         }
@@ -751,7 +751,7 @@ class DepartmentService
 
             if ($supersedes === null) {
                 throw new ConstitutionalViolation(
-                    'The superseded rule does not belong to this department.',
+                    __('The superseded rule does not belong to this department.'),
                     'Art. III §4'
                 );
             }
@@ -861,7 +861,7 @@ class DepartmentService
         if ((string) $seat->board_id !== (string) $department->board_id
             || $seat->status !== BoardSeat::STATUS_SEATED) {
             throw new ConstitutionalViolation(
-                'F-BOG-002 is filed by a seated member of THIS department\'s board (R-18).',
+                __('F-BOG-002 is filed by a seated member of THIS department\'s board (R-18).'),
                 'Art. III §4'
             );
         }

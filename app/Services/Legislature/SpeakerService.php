@@ -109,7 +109,7 @@ class SpeakerService
     {
         if ($this->openBallotFor($legislature) !== null) {
             throw new ConstitutionalViolation(
-                'A speaker balloting is already open for this chamber — close it before opening another.',
+                __('A speaker balloting is already open for this chamber — close it before opening another.'),
                 'Art. II §3'
             );
         }
@@ -285,7 +285,7 @@ class SpeakerService
     private function assertRankingsAreServingMembers(Legislature $legislature, array $rankings): void
     {
         if ($rankings === []) {
-            throw new ConstitutionalViolation('A speaker ballot must rank at least one candidate.', 'Art. II §3');
+            throw new ConstitutionalViolation(__('A speaker ballot must rank at least one candidate.'), 'Art. II §3');
         }
 
         $serving = LegislatureMember::query()
@@ -299,14 +299,13 @@ class SpeakerService
 
         if ($unknown !== []) {
             throw new ConstitutionalViolation(
-                'Speaker ballot rankings must name serving members of this chamber (candidates = the chamber itself); '
-                . 'unknown: ' . implode(', ', $unknown) . '.',
+                __('Speaker ballot rankings must name serving members of this chamber (candidates = the chamber itself); unknown: :unknown.', ['unknown' => implode(', ', $unknown)]),
                 'Art. II §3'
             );
         }
 
         if (count($rankings) !== count(array_unique(array_map('strval', $rankings)))) {
-            throw new ConstitutionalViolation('Speaker ballot rankings may not repeat a candidate.', 'Art. II §3');
+            throw new ConstitutionalViolation(__('Speaker ballot rankings may not repeat a candidate.'), 'Art. II §3');
         }
     }
 }

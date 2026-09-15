@@ -56,13 +56,13 @@ class UnionService
     public function open(string $kind, Legislature $initiating, array $applicantIds, array $constituentIds, ?string $unionJurisdictionId = null): UnionProcess
     {
         if (! in_array($kind, [UnionProcess::KIND_FORMATION, UnionProcess::KIND_JOIN, UnionProcess::KIND_EXIT], true)) {
-            throw new ConstitutionalViolation("Unknown union process kind [{$kind}].", 'Art. V §7');
+            throw new ConstitutionalViolation(__('Unknown union process kind [:kind].', ['kind' => $kind]), 'Art. V §7');
         }
         if ($kind === UnionProcess::KIND_FORMATION && count($applicantIds) < 2) {
-            throw new ConstitutionalViolation('Forming a union requires two or more independent jurisdictions.', 'Art. V §7');
+            throw new ConstitutionalViolation(__('Forming a union requires two or more independent jurisdictions.'), 'Art. V §7');
         }
         if ($applicantIds === []) {
-            throw new ConstitutionalViolation('A union process names at least one applicant jurisdiction.', 'Art. V §7');
+            throw new ConstitutionalViolation(__('A union process names at least one applicant jurisdiction.'), 'Art. V §7');
         }
 
         return DB::transaction(function () use ($kind, $initiating, $applicantIds, $constituentIds, $unionJurisdictionId) {
@@ -155,11 +155,9 @@ class UnionService
         if (! $process->applicant_supermajority_met || ! $constituentPassed) {
             $process->forceFill(['status' => UnionProcess::STATUS_FAILED])->save();
             throw new ConstitutionalViolation(
-                'A union change requires BOTH a supermajority of the APPLICANT population AND a supermajority of '
-                .'the UNION constituents (Art. V §7) — '
-                .(! $process->applicant_supermajority_met
-                    ? 'the applicant population did not reach supermajority.'
-                    : 'the union constituents did not reach supermajority.'),
+                __('A union change requires BOTH a supermajority of the APPLICANT population AND a supermajority of the UNION constituents (Art. V §7) — :reason', ['reason' => ! $process->applicant_supermajority_met
+                    ? __('the applicant population did not reach supermajority.')
+                    : __('the union constituents did not reach supermajority.')]),
                 'Art. V §7'
             );
         }

@@ -19,7 +19,7 @@ class TransportService
     public function registerSelf(string $transport, string $address, int $priority = 100): FederationTransport
     {
         if (! in_array($transport, FederationTransport::TRANSPORTS, true)) {
-            throw new ConstitutionalViolation("Unknown federation transport [{$transport}].", 'Phase G · G8');
+            throw new ConstitutionalViolation(__('Unknown federation transport [:transport].', ['transport' => $transport]), 'Phase G · G8');
         }
 
         return FederationTransport::query()->updateOrCreate(

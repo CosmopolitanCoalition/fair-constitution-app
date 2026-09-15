@@ -26,7 +26,7 @@ class BorderSettlementService
     public function open(string $jurisdictionA, string $jurisdictionB, array $affectedJurisdictionIds): BorderSettlement
     {
         if ($affectedJurisdictionIds === []) {
-            throw new ConstitutionalViolation('A border settlement names the affected area.', 'Art. V §2');
+            throw new ConstitutionalViolation(__('A border settlement names the affected area.'), 'Art. V §2');
         }
 
         $affectedPopulation = CivicPopulation::forArea($affectedJurisdictionIds);
@@ -71,8 +71,7 @@ class BorderSettlementService
         if (! $settlement->affected_supermajority_met) {
             $settlement->forceFill(['status' => BorderSettlement::STATUS_REJECTED])->save();
             throw new ConstitutionalViolation(
-                'A boundary change is adopted only on a supermajority of the population in the AFFECTED AREA '
-                .'(Art. V §2) — the denominator is the affected sub-jurisdictions, never the whole jurisdiction.',
+                __('A boundary change is adopted only on a supermajority of the population in the AFFECTED AREA (Art. V §2) — the denominator is the affected sub-jurisdictions, never the whole jurisdiction.'),
                 'Art. V §2'
             );
         }

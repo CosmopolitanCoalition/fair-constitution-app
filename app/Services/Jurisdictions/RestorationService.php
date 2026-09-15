@@ -28,7 +28,7 @@ class RestorationService
             RestorationEvent::CONDITION_CAPTURED,
             RestorationEvent::CONDITION_DESTROYED,
         ], true)) {
-            throw new ConstitutionalViolation("Unknown restoration condition [{$condition}].", 'Art. VI §2');
+            throw new ConstitutionalViolation(__('Unknown restoration condition [:condition].', ['condition' => $condition]), 'Art. VI §2');
         }
 
         return DB::transaction(function () use ($jurisdictionId, $condition, $evidence, $reviewCaseId) {
@@ -59,8 +59,7 @@ class RestorationService
     {
         if (! $judicialFinding || $event->review_case_id === null) {
             throw new ConstitutionalViolation(
-                'A restoration condition is activated only on a judicial constitutional finding — '
-                .'no Government may unilaterally declare Article VI active.',
+                __('A restoration condition is activated only on a judicial constitutional finding — no Government may unilaterally declare Article VI active.'),
                 'Art. VI §2'
             );
         }
@@ -89,17 +88,16 @@ class RestorationService
     public function advanceTier(RestorationEvent $event, int $tier, ?string $tierElectionId = null): RestorationEvent
     {
         if (! $event->judicially_confirmed) {
-            throw new ConstitutionalViolation('Restoration tiers run only after judicial confirmation.', 'Art. VI §3');
+            throw new ConstitutionalViolation(__('Restoration tiers run only after judicial confirmation.'), 'Art. VI §3');
         }
         if (! in_array($tier, [1, 2, 3], true)) {
-            throw new ConstitutionalViolation('Restoration tiers are 1, 2, or 3.', 'Art. VI §3');
+            throw new ConstitutionalViolation(__('Restoration tiers are 1, 2, or 3.'), 'Art. VI §3');
         }
 
         $current = (int) ($event->tier ?? 0);
         if ($tier !== $current + 1) {
             throw new ConstitutionalViolation(
-                "Restoration tier {$tier} cannot be entered from tier {$current} — the cascade runs in order "
-                .'(constituents → encompassing → individuals).',
+                __('Restoration tier :tier cannot be entered from tier :current — the cascade runs in order (constituents → encompassing → individuals).', ['tier' => $tier, 'current' => $current]),
                 'Art. VI §3'
             );
         }
@@ -133,11 +131,11 @@ class RestorationService
         $event = $event->refresh();
 
         if (! $event->judicially_confirmed) {
-            throw new ConstitutionalViolation('Restoration completes only after judicial confirmation.', 'Art. VI §3');
+            throw new ConstitutionalViolation(__('Restoration completes only after judicial confirmation.'), 'Art. VI §3');
         }
         if ((int) ($event->tier ?? 0) !== 3) {
             throw new ConstitutionalViolation(
-                'Restoration completes only from the third tier — the cascade runs constituents → encompassing → individuals in order.',
+                __('Restoration completes only from the third tier — the cascade runs constituents → encompassing → individuals in order.'),
                 'Art. VI §3'
             );
         }
@@ -165,7 +163,7 @@ class RestorationService
         $event = $event->refresh();
 
         if (in_array($event->status, [RestorationEvent::STATUS_RESTORED, RestorationEvent::STATUS_ABANDONED], true)) {
-            throw new ConstitutionalViolation('This restoration event has already reached a terminal state.', 'Art. VI §3');
+            throw new ConstitutionalViolation(__('This restoration event has already reached a terminal state.'), 'Art. VI §3');
         }
 
         return DB::transaction(function () use ($event) {

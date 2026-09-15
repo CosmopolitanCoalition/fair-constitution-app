@@ -74,7 +74,7 @@ class JudicialSeatService
         if ($seat->seat_class !== JudicialSeat::CLASS_CONSTITUENT_NOMINATED
             || (string) $seat->nominating_jurisdiction_id !== $nominatingJurisdictionId) {
             throw new ConstitutionalViolation(
-                'A constituent nominates only onto ITS OWN allocated seats (Art. IV §2 — equal number by each).',
+                __('A constituent nominates only onto ITS OWN allocated seats (Art. IV §2 — equal number by each).'),
                 'Art. IV §2'
             );
         }
@@ -104,7 +104,7 @@ class JudicialSeatService
     ): array {
         if ($seat->seat_class !== JudicialSeat::CLASS_COMMITTEE_NOMINATED) {
             throw new ConstitutionalViolation(
-                'Committee nomination fills committee-nominated seats (Art. IV §2).',
+                __('Committee nomination fills committee-nominated seats (Art. IV §2).'),
                 'Art. IV §2'
             );
         }
@@ -130,7 +130,7 @@ class JudicialSeatService
     ): array {
         if ($seat->status !== JudicialSeat::STATUS_VACANT) {
             throw new ConstitutionalViolation(
-                'A judge is nominated onto a VACANT seat of the court.',
+                __('A judge is nominated onto a VACANT seat of the court.'),
                 'Art. IV §2'
             );
         }
@@ -231,7 +231,7 @@ class JudicialSeatService
     ): array {
         if ($seat->status !== JudicialSeat::STATUS_VACANT) {
             throw new ConstitutionalViolation(
-                'A judge is nominated onto a VACANT seat of the court.',
+                __('A judge is nominated onto a VACANT seat of the court.'),
                 'Art. IV §2'
             );
         }
@@ -502,7 +502,7 @@ class JudicialSeatService
         $appointment = Appointment::query()->whereKey($appointment->id)->lockForUpdate()->firstOrFail();
         $vote = ChamberVote::query()->whereKey($appointment->consent_vote_id)->first();
         if ($vote === null) {
-            throw new ConstitutionalViolation('Judicial seating requires its recorded consent vote.', 'Art. IV §2');
+            throw new ConstitutionalViolation(__('Judicial seating requires its recorded consent vote.'), 'Art. IV §2');
         }
         $this->assertConsentVote($appointment, $vote, ChamberVote::OUTCOME_ADOPTED);
         $seat = JudicialSeat::query()->whereKey($appointment->appointable_id)->lockForUpdate()->firstOrFail();
@@ -621,7 +621,7 @@ class JudicialSeatService
             || (string) $vote->legislature_id !== (string) $source->id || (string) $vote->jurisdiction_id !== (string) $court->jurisdiction_id
             || $vote->status !== ChamberVote::STATUS_CLOSED || $vote->outcome !== $outcome
             || ! in_array($outcome, [ChamberVote::OUTCOME_ADOPTED, ChamberVote::OUTCOME_FAILED], true)) {
-            throw new ConstitutionalViolation('Judicial confirmation must resolve the current nomination through its source legislature’s recorded consent.', 'Art. IV §2');
+            throw new ConstitutionalViolation(__('Judicial confirmation must resolve the current nomination through its source legislature’s recorded consent.'), 'Art. IV §2');
         }
     }
 
@@ -769,7 +769,7 @@ class JudicialSeatService
 
         if ($legislature === null) {
             throw new ConstitutionalViolation(
-                'No legislature exists to consent — the judicial consent pipeline requires the chartering chamber.',
+                __('No legislature exists to consent — the judicial consent pipeline requires the chartering chamber.'),
                 'Art. IV §2'
             );
         }
@@ -795,8 +795,7 @@ class JudicialSeatService
 
         if (! $associated) {
             throw new ConstitutionalViolation(
-                'F-LEG-021 nominee holds no active association with the jurisdiction — association '
-                .'is the ONLY eligibility check (Art. I; neutrality is a duty of office).',
+                __('F-LEG-021 nominee holds no active association with the jurisdiction — association is the ONLY eligibility check (Art. I; neutrality is a duty of office).'),
                 'Art. I'
             );
         }

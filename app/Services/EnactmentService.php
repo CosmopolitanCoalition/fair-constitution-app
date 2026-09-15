@@ -53,7 +53,7 @@ class EnactmentService
     {
         if ($bill->status !== Bill::STATUS_PASSED) {
             throw new ConstitutionalViolation(
-                'Only a passed bill enacts (ESM-07).',
+                __('Only a passed bill enacts (ESM-07).'),
                 'Art. II §2 · as implemented'
             );
         }
@@ -61,7 +61,7 @@ class EnactmentService
         $version = $bill->currentVersion();
 
         if ($version === null) {
-            throw new ConstitutionalViolation('Bill has no current version text.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('Bill has no current version text.'), 'Art. II §2 · as implemented');
         }
 
         $law = $this->writeLaw(
@@ -174,7 +174,7 @@ class EnactmentService
         ?string $viaForm = null,
     ): Law {
         if (trim($text) === '') {
-            throw new ConstitutionalViolation('An amendment carries replacement law text.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('An amendment carries replacement law text.'), 'Art. II §2 · as implemented');
         }
 
         $shielded = $law->origin === Law::ORIGIN_REFERENDUM
@@ -183,8 +183,7 @@ class EnactmentService
 
         if ($shielded && $source !== LawVersion::SOURCE_JUDICIAL_REMEDY) {
             throw new ConstitutionalViolation(
-                "Act {$law->act_number} was passed by population supermajority — the legislature cannot "
-                .'modify or repeal it until the next general election certifies (the shield lapses there).',
+                __('Act :act_number was passed by population supermajority — the legislature cannot modify or repeal it until the next general election certifies (the shield lapses there).', ['act_number' => $law->act_number]),
                 'Art. II §6'
             );
         }
@@ -251,7 +250,7 @@ class EnactmentService
         ChamberVote $vote,
     ): Law {
         if ($vote->outcome !== ChamberVote::OUTCOME_ADOPTED) {
-            throw new ConstitutionalViolation('Direct adoption requires an adopted chamber vote.', 'Art. II §2');
+            throw new ConstitutionalViolation(__('Direct adoption requires an adopted chamber vote.'), 'Art. II §2');
         }
 
         return $this->writeLaw(

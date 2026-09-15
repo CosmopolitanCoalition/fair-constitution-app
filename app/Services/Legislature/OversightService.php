@@ -79,8 +79,7 @@ class OversightService
         // judicial seats (Art. IV §4 removal parity).
         if (! in_array($subjectType, ['legislature_members', 'users', 'legislatures', 'executive_members', 'board_seats', 'judicial_seats'], true)) {
             throw new ConstitutionalViolation(
-                "Investigation subjects are legislature_members, users, legislatures, executive_members, "
-                . "board_seats, or judicial_seats — not [{$subjectType}].",
+                __('Investigation subjects are legislature_members, users, legislatures, executive_members, board_seats, or judicial_seats — not [:subjectType].', ['subjectType' => $subjectType]),
                 'CGA Forms Catalog (I-ADM)'
             );
         }
@@ -195,8 +194,7 @@ class OversightService
     ): RemovalProceeding {
         if (! in_array($kind, RemovalProceeding::ACTIVE_KINDS, true)) {
             throw new ConstitutionalViolation(
-                "Proceeding kind [{$kind}] has no seated subjects in Phase C — judge/executive removal "
-                . 'activates when those institutions seat (removal parity preserved in the enum).',
+                __('Proceeding kind [:kind] has no seated subjects in Phase C — judge/executive removal activates when those institutions seat (removal parity preserved in the enum).', ['kind' => $kind]),
                 'Art. II §3 · deferred'
             );
         }
@@ -208,7 +206,7 @@ class OversightService
                 || (string) $subject->legislature_id !== (string) $legislature->id
                 || ! in_array($subject->status, LegislatureMember::CURRENT_STATUSES, true)) {
                 throw new ConstitutionalViolation(
-                    'Removal proceedings run against CURRENT members of this chamber.',
+                    __('Removal proceedings run against CURRENT members of this chamber.'),
                     'Art. II §3'
                 );
             }
@@ -229,7 +227,7 @@ class OversightService
 
             if (! $belongs) {
                 throw new ConstitutionalViolation(
-                    'Executive-removal proceedings run against SEATED members of this jurisdiction\'s executive.',
+                    __('Executive-removal proceedings run against SEATED members of this jurisdiction\'s executive.'),
                     'Art. III §3'
                 );
             }
@@ -250,7 +248,7 @@ class OversightService
 
             if (! $belongs) {
                 throw new ConstitutionalViolation(
-                    'Judge-removal proceedings run against SEATED judges of this jurisdiction\'s judiciary.',
+                    __('Judge-removal proceedings run against SEATED judges of this jurisdiction\'s judiciary.'),
                     'Art. IV §4'
                 );
             }
@@ -290,7 +288,7 @@ class OversightService
 
         if (! in_array($proceeding->status, [RemovalProceeding::STATUS_OPENED, RemovalProceeding::STATUS_PRESIDING_DESIGNATED], true)) {
             throw new ConstitutionalViolation(
-                "Proceeding [{$proceeding->id}] is past presider designation (status: {$proceeding->status}).",
+                __('Proceeding [:id] is past presider designation (status: :status).', ['id' => $proceeding->id, 'status' => $proceeding->status]),
                 'Art. II §3'
             );
         }
@@ -311,13 +309,13 @@ class OversightService
     {
         if ($proceeding->status !== RemovalProceeding::STATUS_PRESIDING_DESIGNATED) {
             throw new ConstitutionalViolation(
-                'The removal vote opens only once a presider is designated (removal.presider, Art. II §3).',
+                __('The removal vote opens only once a presider is designated (removal.presider, Art. II §3).'),
                 'Art. II §3'
             );
         }
 
         if ($proceeding->vote_id !== null) {
-            throw new ConstitutionalViolation('This proceeding already has its vote.', 'Art. II §3');
+            throw new ConstitutionalViolation(__('This proceeding already has its vote.'), 'Art. II §3');
         }
 
         $vote = $this->votes->open(

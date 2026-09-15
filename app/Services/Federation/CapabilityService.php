@@ -25,11 +25,11 @@ class CapabilityService
     public function registerSelf(string $capability, int $priority = 100): InstanceCapability
     {
         if (! in_array($capability, InstanceCapability::CHANNELS, true)) {
-            throw new ConstitutionalViolation("Unknown capability channel [{$capability}].", 'Mesh Roles & Channels of Trust');
+            throw new ConstitutionalViolation(__('Unknown capability channel [:capability].', ['capability' => $capability]), 'Mesh Roles & Channels of Trust');
         }
         if (InstanceCapability::isGoverned($capability)) {
             throw new ConstitutionalViolation(
-                "[{$capability}] is a GOVERNED channel — it is enabled by a grant from the dual-meter consent, never self-asserted.",
+                __('[:capability] is a GOVERNED channel — it is enabled by a grant from the dual-meter consent, never self-asserted.', ['capability' => $capability]),
                 'Mesh Roles & Channels of Trust · decision C'
             );
         }
@@ -44,7 +44,7 @@ class CapabilityService
     public function grantSelf(string $capability, string $grantedByServerId, string $grantSignature, ?int $grantExpiresAt, int $priority = 100): InstanceCapability
     {
         if (! InstanceCapability::isGoverned($capability)) {
-            throw new ConstitutionalViolation("[{$capability}] is not a governed channel.", 'Mesh Roles & Channels of Trust');
+            throw new ConstitutionalViolation(__('[:capability] is not a governed channel.', ['capability' => $capability]), 'Mesh Roles & Channels of Trust');
         }
 
         return InstanceCapability::query()->updateOrCreate(

@@ -66,11 +66,7 @@ class EmergencyPowerService
     {
         if (! in_array($cause, EmergencyPower::CAUSES, true)) {
             throw new ConstitutionalViolation(
-                sprintf(
-                    'Emergency powers exist for natural disaster or actual invasion only — cause %s is '
-                    .'rejected pre-vote (economic, political, or public-order rationales are not causes).',
-                    json_encode($cause)
-                ),
+                __('Emergency powers exist for natural disaster or actual invasion only — cause :cause is rejected pre-vote (economic, political, or public-order rationales are not causes).', ['cause' => json_encode($cause)]),
                 'Art. II §7'
             );
         }
@@ -86,14 +82,7 @@ class EmergencyPowerService
 
         if ($days < 1 || $days > $ceiling) {
             throw new ConstitutionalViolation(
-                sprintf(
-                    'Rejected pre-vote: %s of %d day(s) exceeds the %d-day constitutional ceiling '
-                    .'(resolved emergency_powers_max_days = %d; hardened maximum 90 · CLK-03).',
-                    $what,
-                    $days,
-                    $ceiling,
-                    $resolvedMaxDays
-                ),
+                __('Rejected pre-vote: :what of :days day(s) exceeds the :ceiling-day constitutional ceiling (resolved emergency_powers_max_days = :maxDays; hardened maximum 90 · CLK-03).', ['what' => $what, 'days' => $days, 'ceiling' => $ceiling, 'maxDays' => $resolvedMaxDays]),
                 'Art. II §7'
             );
         }
@@ -129,7 +118,7 @@ class EmergencyPowerService
 
         if ($label === '') {
             throw new ConstitutionalViolation(
-                'An emergency declaration names its emergency.',
+                __('An emergency declaration names its emergency.'),
                 'Art. II §7 · as implemented'
             );
         }
@@ -138,7 +127,7 @@ class EmergencyPowerService
 
         if ($methods === '') {
             throw new ConstitutionalViolation(
-                'An emergency declaration states its methods — "within constitutional order" is published, not implied.',
+                __('An emergency declaration states its methods — "within constitutional order" is published, not implied.'),
                 'Art. II §7'
             );
         }
@@ -147,8 +136,7 @@ class EmergencyPowerService
 
         if (! $this->inSubtree($areaId, (string) $legislature->jurisdiction_id)) {
             throw new ConstitutionalViolation(
-                'The declared area must be this legislature\'s jurisdiction or a descendant — '
-                .'never beyond its authority.',
+                __('The declared area must be this legislature\'s jurisdiction or a descendant — never beyond its authority.'),
                 'Art. II §7'
             );
         }
@@ -253,8 +241,7 @@ class EmergencyPowerService
     {
         if (! in_array($power->status, EmergencyPower::LIVE_STATUSES, true)) {
             throw new ConstitutionalViolation(
-                "An expired or struck power cannot be renewed (status: {$power->status}) — "
-                .'a new emergency requires a new declaration.',
+                __('An expired or struck power cannot be renewed (status: :status) — a new emergency requires a new declaration.', ['status' => $power->status]),
                 'Art. II §7'
             );
         }
@@ -271,12 +258,7 @@ class EmergencyPowerService
 
         if (now()->lt($opensAt)) {
             throw new ConstitutionalViolation(
-                sprintf(
-                    'The renewal window opens %s (the final %d days before expiry) — a renewal vote this '
-                    .'early would pre-commit a future chamber.',
-                    $opensAt->toDateString(),
-                    $windowDays
-                ),
+                __('The renewal window opens :opensAt (the final :windowDays days before expiry) — a renewal vote this early would pre-commit a future chamber.', ['opensAt' => $opensAt->toDateString(), 'windowDays' => $windowDays]),
                 'Art. II §7 · as implemented'
             );
         }
@@ -320,8 +302,7 @@ class EmergencyPowerService
 
         if (! in_array($power->status, EmergencyPower::LIVE_STATUSES, true)) {
             throw new ConstitutionalViolation(
-                "The power expired before the renewal vote closed (status: {$power->status}) — "
-                .'nothing rolls over silently; a new declaration is required.',
+                __('The power expired before the renewal vote closed (status: :status) — nothing rolls over silently; a new declaration is required.', ['status' => $power->status]),
                 'Art. II §7'
             );
         }
@@ -448,7 +429,7 @@ class EmergencyPowerService
 
         if (! in_array($fresh->status, EmergencyPower::LIVE_STATUSES, true)) {
             throw new ConstitutionalViolation(
-                "Only a live emergency power can be reviewed (status: {$fresh->status}).",
+                __('Only a live emergency power can be reviewed (status: :status).', ['status' => $fresh->status]),
                 'Art. II §7'
             );
         }
@@ -485,7 +466,7 @@ class EmergencyPowerService
         $outcome = (string) ($attrs['outcome'] ?? '');
 
         if (! in_array($outcome, ['upheld', 'narrowed', 'struck'], true)) {
-            throw new ConstitutionalViolation('A review upholds, narrows, or strikes the power (Art. II §7).', 'Art. II §7');
+            throw new ConstitutionalViolation(__('A review upholds, narrows, or strikes the power (Art. II §7).'), 'Art. II §7');
         }
 
         $review = \App\Models\EmergencyPowerReview::create([

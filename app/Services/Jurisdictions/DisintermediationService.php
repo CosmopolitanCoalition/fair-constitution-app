@@ -53,7 +53,7 @@ class DisintermediationService
     public function open(Legislature $intermediaryLegislature, string $intermediaryJurisdictionId, string $encompassingJurisdictionId, array $constituentIds): DisintermediationProcess
     {
         if ($constituentIds === []) {
-            throw new ConstitutionalViolation('Disintermediation dissolves an intermediary that HAS constituents.', 'Art. V §8');
+            throw new ConstitutionalViolation(__('Disintermediation dissolves an intermediary that HAS constituents.'), 'Art. V §8');
         }
 
         return DB::transaction(function () use ($intermediaryLegislature, $intermediaryJurisdictionId, $encompassingJurisdictionId, $constituentIds) {
@@ -90,7 +90,7 @@ class DisintermediationService
         // ExecutiveFormationService::openConstituentConsentVote.
         if ($actingChamber !== null && (string) $actingChamber->jurisdiction_id !== (string) $process->encompassing_jurisdiction_id) {
             throw new ConstitutionalViolation(
-                'Only the encompassing jurisdiction may consent to dissolving its intermediary.',
+                __('Only the encompassing jurisdiction may consent to dissolving its intermediary.'),
                 'Art. V §8'
             );
         }
@@ -149,9 +149,7 @@ class DisintermediationService
         if (! $unanimous || ! $process->encompassing_consent) {
             $process->forceFill(['status' => DisintermediationProcess::STATUS_FAILED])->save();
             throw new ConstitutionalViolation(
-                'Disintermediation requires UNANIMITY of all constituent jurisdictions AND the encompassing '
-                .'jurisdiction\'s consent (Art. V §8) — '
-                .($unanimous ? 'the encompassing jurisdiction did not consent.' : 'the constituents were not unanimous.'),
+                __('Disintermediation requires UNANIMITY of all constituent jurisdictions AND the encompassing jurisdiction\'s consent (Art. V §8) — :reason', ['reason' => $unanimous ? __('the encompassing jurisdiction did not consent.') : __('the constituents were not unanimous.')]),
                 'Art. V §8'
             );
         }

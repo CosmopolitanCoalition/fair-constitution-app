@@ -75,19 +75,18 @@ class PetitionService
 
         if (! in_array($jurisdictionId, $associations, true)) {
             throw new ConstitutionalViolation(
-                'A petition is created inside the creator\'s own association chain — '
-                .'association is the only gate (Art. I).',
+                __('A petition is created inside the creator\'s own association chain — association is the only gate (Art. I).'),
                 'Art. I · Art. II §6'
             );
         }
 
         if (trim((string) ($payload['title'] ?? '')) === '') {
-            throw new ConstitutionalViolation('A petition carries a title.', 'Art. II §6 · as implemented');
+            throw new ConstitutionalViolation(__('A petition carries a title.'), 'Art. II §6 · as implemented');
         }
 
         if (trim((string) ($payload['law_text'] ?? '')) === '') {
             throw new ConstitutionalViolation(
-                'A petition carries the binding law text voters would ratify.',
+                __('A petition carries the binding law text voters would ratify.'),
                 'Art. II §6'
             );
         }
@@ -96,8 +95,7 @@ class PetitionService
 
         if (! in_array($actType, Petition::ACT_TYPES, true)) {
             throw new ConstitutionalViolation(
-                "Unknown petition act_type [{$actType}] — ordinary, setting_change, or supermajority "
-                .'(no dual_supermajority by petition).',
+                __('Unknown petition act_type [:actType] — ordinary, setting_change, or supermajority (no dual_supermajority by petition).', ['actType' => $actType]),
                 'Art. II §6 · as implemented'
             );
         }
@@ -108,7 +106,7 @@ class PetitionService
         foreach ($scale as $scaleId) {
             if (! in_array($scaleId, $associations, true)) {
                 throw new ConstitutionalViolation(
-                    "Scale jurisdiction [{$scaleId}] lies outside the creator's association chain.",
+                    __('Scale jurisdiction [:scaleId] lies outside the creator\'s association chain.', ['scaleId' => $scaleId]),
                     'Art. II §6 · as implemented'
                 );
             }
@@ -120,7 +118,7 @@ class PetitionService
 
         if (($actType === 'setting_change') !== ($settingKey !== null)) {
             throw new ConstitutionalViolation(
-                'setting_change petitions (and only they) target a setting key.',
+                __('setting_change petitions (and only they) target a setting key.'),
                 'Art. VII'
             );
         }
@@ -196,8 +194,7 @@ class PetitionService
 
         if (! in_array($fresh->status, Petition::SIGNABLE_STATUSES, true)) {
             throw new ConstitutionalViolation(
-                "Petition is not open for signatures (status: {$fresh->status}) — the audited count "
-                .'froze at the threshold check.',
+                __('Petition is not open for signatures (status: :status) — the audited count froze at the threshold check.', ['status' => $fresh->status]),
                 'Art. II §6'
             );
         }
@@ -212,8 +209,7 @@ class PetitionService
 
         if ($association === null) {
             throw new ConstitutionalViolation(
-                'Signing requires an active association with the petition\'s jurisdiction — '
-                .'association is the only gate.',
+                __('Signing requires an active association with the petition\'s jurisdiction — association is the only gate.'),
                 'Art. I'
             );
         }
@@ -226,7 +222,7 @@ class PetitionService
 
         if ($live) {
             throw new ConstitutionalViolation(
-                'One live signature per person per petition — the existing signature stands (revocable while gathering).',
+                __('One live signature per person per petition — the existing signature stands (revocable while gathering).'),
                 'Art. II §6 · as implemented'
             );
         }
@@ -250,7 +246,7 @@ class PetitionService
 
         if (! in_array($fresh->status, Petition::SIGNABLE_STATUSES, true)) {
             throw new ConstitutionalViolation(
-                "Signatures are revocable until the audit (status: {$fresh->status}).",
+                __('Signatures are revocable until the audit (status: :status).', ['status' => $fresh->status]),
                 'Art. II §6 · as implemented'
             );
         }
@@ -262,7 +258,7 @@ class PetitionService
             ->first();
 
         if ($signature === null) {
-            throw new ConstitutionalViolation('No live signature to revoke.', 'Art. II §6 · as implemented');
+            throw new ConstitutionalViolation(__('No live signature to revoke.'), 'Art. II §6 · as implemented');
         }
 
         $signature->forceFill(['revoked_at' => now()])->save();
@@ -345,7 +341,7 @@ class PetitionService
 
         if ($fresh->status !== Petition::STATUS_THRESHOLD_REACHED) {
             throw new ConstitutionalViolation(
-                "F-ELB-005 audits a petition at its threshold (status: {$fresh->status}).",
+                __('F-ELB-005 audits a petition at its threshold (status: :status).', ['status' => $fresh->status]),
                 'Art. II §6'
             );
         }
@@ -471,7 +467,7 @@ class PetitionService
 
         if ($fresh->status !== Petition::STATUS_CONSTITUTIONAL_REVIEW) {
             throw new ConstitutionalViolation(
-                "Only a petition holding at constitutional review can be stub-validated (status: {$fresh->status}).",
+                __('Only a petition holding at constitutional review can be stub-validated (status: :status).', ['status' => $fresh->status]),
                 'Art. II §6 · deferred'
             );
         }
@@ -482,8 +478,7 @@ class PetitionService
         // still stub-advance; an operating court means use the real review.
         if ($this->hasActiveCourt((string) $fresh->jurisdiction_id)) {
             throw new ConstitutionalViolation(
-                'An active court hears this petition\'s constitutional review — use F-JDG-008, never the '
-                .'Phase C stub (the stub survives only for forming-court jurisdictions).',
+                __('An active court hears this petition\'s constitutional review — use F-JDG-008, never the Phase C stub (the stub survives only for forming-court jurisdictions).'),
                 'Art. II §6'
             );
         }
@@ -532,14 +527,14 @@ class PetitionService
         ?string $contradictionCitation = null,
     ): Petition {
         if (! in_array($outcome, ['cleared', 'struck'], true)) {
-            throw new ConstitutionalViolation('A petition review clears or strikes (Art. II §6).', 'Art. II §6');
+            throw new ConstitutionalViolation(__('A petition review clears or strikes (Art. II §6).'), 'Art. II §6');
         }
 
         $fresh = Petition::query()->whereKey($petition->id)->lockForUpdate()->firstOrFail();
 
         if ($fresh->status !== Petition::STATUS_CONSTITUTIONAL_REVIEW) {
             throw new ConstitutionalViolation(
-                "Only a petition holding at constitutional review can be reviewed (status: {$fresh->status}).",
+                __('Only a petition holding at constitutional review can be reviewed (status: :status).', ['status' => $fresh->status]),
                 'Art. II §6'
             );
         }
