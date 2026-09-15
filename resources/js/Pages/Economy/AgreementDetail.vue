@@ -15,6 +15,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage, router } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -25,6 +26,7 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { formatWhen } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     agreement: { type: Object, required: true },
@@ -67,32 +69,31 @@ const propose = (clauseId, kind) => {
     });
 };
 
-const KIND_LABEL = {
-    labor_recurring: 'Labor — recurring',
-    labor_single: 'Labor — one-off',
-    commercial: 'Commercial',
-    other: 'Free-form',
-};
+const KIND_LABEL = computed(() => ({
+    labor_recurring: t('c_economy.agreement_detail.kind_labor_recurring', 'Labor — recurring'),
+    labor_single: t('c_economy.agreement_detail.kind_labor_single', 'Labor — one-off'),
+    commercial: t('c_economy.agreement_detail.kind_commercial', 'Commercial'),
+    other: t('c_economy.agreement_detail.kind_other', 'Free-form'),
+}));
 
-const STATUS_LABEL = {
-    draft: 'Draft — not yet offered',
-    offered: 'Offered — awaiting a signature',
-    active: 'Active — signed by both parties',
-    ended: 'Ended',
-    voided: 'Voided',
-};
+const STATUS_LABEL = computed(() => ({
+    draft: t('c_economy.agreement_detail.status_draft', 'Draft — not yet offered'),
+    offered: t('c_economy.agreement_detail.status_offered', 'Offered — awaiting a signature'),
+    active: t('c_economy.agreement_detail.status_active', 'Active — signed by both parties'),
+    ended: t('c_economy.agreement_detail.status_ended', 'Ended'),
+    voided: t('c_economy.agreement_detail.status_voided', 'Voided'),
+}));
 </script>
 
 <template>
-    <PageScaffold title="Agreement">
-        <WorkTradeNav active="agreements" back-href="/economy/agreements" back-label="My agreements" />
+    <PageScaffold :title="t('c_economy.agreement_detail.title', 'Agreement')">
+        <WorkTradeNav active="agreements" back-href="/economy/agreements" :back-label="t('c_economy.agreement_detail.back_label', 'My agreements')" />
         <template #intro>
-            One instrument, on the record: the parties, the terms, and both signatures. The floor
-            beneath it cannot be lowered by any clause.
+            {{ t('c_economy.agreement_detail.intro', 'One instrument, on the record: the parties, the terms, and both signatures. The floor beneath it cannot be lowered by any clause.') }}
         </template>
 
         <p class="econ-note">
-            This agreement is visible to its parties only.
+            {{ t('c_economy.agreement_detail.parties_only', 'This agreement is visible to its parties only.') }}
         </p>
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-for="(error, key) in cosign.errors" :key="key" tone="warning" role="alert">{{ error }}</Banner>
@@ -102,80 +103,79 @@ const STATUS_LABEL = {
             <h2 class="agr-title">{{ agreement.org_name }} ↔ {{ agreement.counterparty }}</h2>
             <p class="agr-status-line">{{ STATUS_LABEL[agreement.status] ?? agreement.status }}</p>
             <dl class="agr-dates">
-                <div v-if="agreement.created_at"><dt>Drafted</dt><dd>{{ formatWhen(agreement.created_at) }}</dd></div>
-                <div v-if="agreement.effective_at"><dt>In force since</dt><dd>{{ formatWhen(agreement.effective_at) }}</dd></div>
-                <div v-if="agreement.ended_at"><dt>Ended</dt><dd>{{ formatWhen(agreement.ended_at) }}</dd></div>
+                <div v-if="agreement.created_at"><dt>{{ t('c_economy.agreement_detail.drafted', 'Drafted') }}</dt><dd>{{ formatWhen(agreement.created_at) }}</dd></div>
+                <div v-if="agreement.effective_at"><dt>{{ t('c_economy.agreement_detail.in_force_since', 'In force since') }}</dt><dd>{{ formatWhen(agreement.effective_at) }}</dd></div>
+                <div v-if="agreement.ended_at"><dt>{{ t('c_economy.agreement_detail.date_ended', 'Ended') }}</dt><dd>{{ formatWhen(agreement.ended_at) }}</dd></div>
             </dl>
         </Card>
 
-        <Card as="section" title="The signatures">
+        <Card as="section" :title="t('c_economy.agreement_detail.signatures_title', 'The signatures')">
             <ul class="agr-sig-list">
                 <li :class="agreement.signed_by_org ? 'agr-signed' : 'agr-unsigned'">
                     <strong>{{ agreement.org_name }}</strong>
                     <template v-if="agreement.signed_by_org">
-                        — signed {{ formatWhen(agreement.signed_by_org_at) }}
-                        <template v-if="agreement.org_signer"> by {{ agreement.org_signer }}</template>
+                        {{ t('c_economy.agreement_detail.signed_when', { when: formatWhen(agreement.signed_by_org_at) }) }}
+                        <template v-if="agreement.org_signer">{{ t('c_economy.agreement_detail.signed_by', { who: agreement.org_signer }) }}</template>
                     </template>
-                    <template v-else> — not yet signed</template>
+                    <template v-else>{{ t('c_economy.agreement_detail.not_yet_signed', '— not yet signed') }}</template>
                 </li>
                 <li :class="agreement.signed_by_counterparty ? 'agr-signed' : 'agr-unsigned'">
                     <strong>{{ agreement.counterparty }}</strong>
                     <template v-if="agreement.signed_by_counterparty">
-                        — signed {{ formatWhen(agreement.signed_by_counterparty_at) }}
+                        {{ t('c_economy.agreement_detail.signed_when', { when: formatWhen(agreement.signed_by_counterparty_at) }) }}
                     </template>
-                    <template v-else> — not yet signed</template>
+                    <template v-else>{{ t('c_economy.agreement_detail.not_yet_signed', '— not yet signed') }}</template>
                 </li>
             </ul>
             <p class="econ-note">
-                Both parties sign, or the agreement never takes effect — the record itself refuses
-                an active contract with a missing signature.
+                {{ t('c_economy.agreement_detail.both_sign_note', 'Both parties sign, or the agreement never takes effect — the record itself refuses an active contract with a missing signature.') }}
             </p>
         </Card>
 
-        <Card as="section" title="The terms">
+        <Card as="section" :title="t('c_economy.agreement_detail.terms_title', 'The terms')">
             <p class="agr-terms-full">{{ agreement.terms_full }}</p>
         </Card>
-        <Card v-if="can_cosign" as="section" title="Organization’s signature">
-            <p>Review the terms above before signing for {{ agreement.org_name }}.</p>
-            <p class="econ-note">{{ agreement.signed_by_counterparty ? 'The other party has signed. Your countersignature puts this agreement into effect.' : 'Your signature will be recorded. The agreement takes effect only after both parties sign.' }}</p>
+        <Card v-if="can_cosign" as="section" :title="t('c_economy.agreement_detail.org_signature_title', 'Organization’s signature')">
+            <p>{{ t('c_economy.agreement_detail.review_before_sign', { name: agreement.org_name }) }}</p>
+            <p class="econ-note">{{ agreement.signed_by_counterparty ? t('c_economy.agreement_detail.cosign_note_signed', 'The other party has signed. Your countersignature puts this agreement into effect.') : t('c_economy.agreement_detail.cosign_note_unsigned', 'Your signature will be recorded. The agreement takes effect only after both parties sign.') }}</p>
             <form @submit.prevent="countersign">
-                <Btn type="submit" :disabled="cosign.processing || redline.processing">{{ cosign.processing ? 'Countersigning…' : 'Countersign for the organization' }}</Btn>
+                <Btn type="submit" :disabled="cosign.processing || redline.processing">{{ cosign.processing ? t('c_economy.agreement_detail.countersigning', 'Countersigning…') : t('c_economy.agreement_detail.countersign', 'Countersign for the organization') }}</Btn>
             </form>
         </Card>
 
         <!-- ----------------------------------------------- negotiation -->
-        <Card as="section" title="Negotiation">
+        <Card as="section" :title="t('c_economy.agreement_detail.negotiation_title', 'Negotiation')">
             <p class="econ-note">
-                The terms above are the agreed base. A change is proposed as a redline; when the
-                other party accepts, it amends the instrument and <strong>both signatures clear</strong>
-                — the parties re-sign the changed text. No clause may waive a constitutional right.
+                {{ t('c_economy.agreement_detail.negotiation_note_before', 'The terms above are the agreed base. A change is proposed as a redline; when the other party accepts, it amends the instrument and') }}
+                <strong>{{ t('c_economy.agreement_detail.negotiation_note_strong', 'both signatures clear') }}</strong>
+                {{ t('c_economy.agreement_detail.negotiation_note_after', '— the parties re-sign the changed text. No clause may waive a constitutional right.') }}
             </p>
 
             <!-- amendments already accepted onto the overlay -->
             <div v-if="clauses.length" class="agr-clauses">
-                <h3>Amendments</h3>
+                <h3>{{ t('c_economy.agreement_detail.amendments_heading', 'Amendments') }}</h3>
                 <div v-for="c in clauses" :key="c.id" class="agr-clause">
                     <p><strong v-if="c.heading">{{ c.heading }}: </strong>{{ c.body }}</p>
                     <div v-if="can_negotiate" class="agr-clause-acts">
-                        <button type="button" @click="propose(c.id, 'edit')">Propose an edit</button>
-                        <button type="button" @click="propose(c.id, 'strike')">Propose to strike</button>
+                        <button type="button" @click="propose(c.id, 'edit')">{{ t('c_economy.agreement_detail.propose_edit', 'Propose an edit') }}</button>
+                        <button type="button" @click="propose(c.id, 'strike')">{{ t('c_economy.agreement_detail.propose_strike', 'Propose to strike') }}</button>
                     </div>
                 </div>
             </div>
 
             <!-- pending redlines -->
             <div v-if="redlines.length" class="agr-redlines">
-                <h3>Proposed changes</h3>
+                <h3>{{ t('c_economy.agreement_detail.proposed_changes_heading', 'Proposed changes') }}</h3>
                 <div v-for="r in redlines" :key="r.id" class="agr-redline">
                     <p><strong>{{ r.kind }}</strong>: {{ r.body }}</p>
-                    <p v-if="r.rationale" class="econ-note">Why: {{ r.rationale }}</p>
+                    <p v-if="r.rationale" class="econ-note">{{ t('c_economy.agreement_detail.redline_why', { rationale: r.rationale }) }}</p>
                     <div v-if="can_negotiate" class="agr-redline-acts">
                         <template v-if="r.is_mine">
-                            <button type="button" @click="resolve(r.id, 'withdraw')">Withdraw</button>
+                            <button type="button" @click="resolve(r.id, 'withdraw')">{{ t('c_economy.agreement_detail.withdraw', 'Withdraw') }}</button>
                         </template>
                         <template v-else>
-                            <button type="button" @click="resolve(r.id, 'accept')">Accept (voids signatures)</button>
-                            <button type="button" @click="resolve(r.id, 'reject')">Reject</button>
+                            <button type="button" @click="resolve(r.id, 'accept')">{{ t('c_economy.agreement_detail.accept_voids', 'Accept (voids signatures)') }}</button>
+                            <button type="button" @click="resolve(r.id, 'reject')">{{ t('c_economy.agreement_detail.reject', 'Reject') }}</button>
                         </template>
                     </div>
                 </div>
@@ -183,26 +183,23 @@ const STATUS_LABEL = {
 
             <!-- propose a new amendment -->
             <details v-if="can_negotiate" class="agr-propose">
-                <summary>Propose a change</summary>
+                <summary>{{ t('c_economy.agreement_detail.propose_change_summary', 'Propose a change') }}</summary>
                 <div class="agr-propose-body">
-                    <textarea v-model="redline.body" rows="2" maxlength="10000" aria-label="Proposed amendment" placeholder="The amendment you propose (added as a new clause)"></textarea>
-                    <input v-model="redline.rationale" type="text" maxlength="500" aria-label="Reason for the amendment" placeholder="Why (optional)" />
-                    <button type="button" :disabled="redline.processing || !redline.body" @click="propose(null, 'add')">Propose amendment</button>
+                    <textarea v-model="redline.body" rows="2" maxlength="10000" :aria-label="t('c_economy.agreement_detail.aria_proposed_amendment', 'Proposed amendment')" :placeholder="t('c_economy.agreement_detail.placeholder_amendment', 'The amendment you propose (added as a new clause)')"></textarea>
+                    <input v-model="redline.rationale" type="text" maxlength="500" :aria-label="t('c_economy.agreement_detail.aria_reason', 'Reason for the amendment')" :placeholder="t('c_economy.agreement_detail.placeholder_why', 'Why (optional)')" />
+                    <button type="button" :disabled="redline.processing || !redline.body" @click="propose(null, 'add')">{{ t('c_economy.agreement_detail.propose_amendment_btn', 'Propose amendment') }}</button>
                     <p v-if="redline.errors.constitution" class="agr-err">{{ redline.errors.constitution }}</p>
                 </div>
             </details>
             <p v-else-if="!clauses.length && !redlines.length" class="econ-note">
-                This instrument is {{ agreement.status }} — it is history, and can no longer be negotiated.
+                {{ t('c_economy.agreement_detail.history_note', { status: agreement.status }) }}
             </p>
         </Card>
 
         <details class="agr-propose">
-            <summary>Rights protected in every agreement</summary>
+            <summary>{{ t('c_economy.agreement_detail.rights_summary', 'Rights protected in every agreement') }}</summary>
             <p>
-                No clause in this or any agreement can waive, sell, or sign away a constitutional
-                right — voting, candidacy, residency, petitioning, due process. A clause that tries
-                is void in that part; the rest stands. No agreement may attach a fee or cost to
-                exercising a civic right.
+                {{ t('c_economy.agreement_detail.rights_body', 'No clause in this or any agreement can waive, sell, or sign away a constitutional right — voting, candidacy, residency, petitioning, due process. A clause that tries is void in that part; the rest stands. No agreement may attach a fee or cost to exercising a civic right.') }}
             </p>
         </details>
     </PageScaffold>

@@ -18,6 +18,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -30,6 +31,7 @@ import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 import { formatMoney, formatCount, formatQuantity, formatWhen, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     currency: { type: Object, default: null },
@@ -59,89 +61,86 @@ function settle(orderId) {
 </script>
 
 <template>
-    <PageScaffold :title="listing?.title || 'A listing'">
-        <WorkTradeNav active="market" back-href="/economy/market?tab=offers" back-label="For sale" />
-        <p v-if="!listing" class="econ-note">This listing is no longer available.</p>
+    <PageScaffold :title="listing?.title || t('c_economy.listing.a_listing', 'A listing')">
+        <WorkTradeNav active="market" back-href="/economy/market?tab=offers" :back-label="t('c_economy.listing.back_label', 'For sale')" />
+        <p v-if="!listing" class="econ-note">{{ t('c_economy.listing.no_longer_available', 'This listing is no longer available.') }}</p>
 
         <template v-else>
             <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
             <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
-            <Card as="section" title="What's on offer">
+            <Card as="section" :title="t('c_economy.listing.whats_on_offer', 'What\'s on offer')">
                 <div class="econ-stats">
-                    <Stat :value="formatMoney(listing.price, currency)" label="Price" accent />
-                    <Stat :value="formatQuantity(listing.quantity)" label="Quantity" />
-                    <Stat :value="formatCount(orders)" label="Orders placed" />
+                    <Stat :value="formatMoney(listing.price, currency)" :label="t('c_economy.listing.price_label', 'Price')" accent />
+                    <Stat :value="formatQuantity(listing.quantity)" :label="t('c_economy.listing.quantity_label', 'Quantity')" />
+                    <Stat :value="formatCount(orders)" :label="t('c_economy.listing.orders_placed_label', 'Orders placed')" />
                 </div>
 
                 <p v-if="listing.description" class="lst-desc">{{ listing.description }}</p>
 
                 <dl class="econ-grid">
                     <div>
-                        <dt>Kind</dt>
-                        <dd>{{ listing.kind === 'service' ? 'A service' : 'A thing' }}</dd>
+                        <dt>{{ t('c_economy.listing.kind_label', 'Kind') }}</dt>
+                        <dd>{{ listing.kind === 'service' ? t('c_economy.listing.a_service', 'A service') : t('c_economy.listing.a_thing', 'A thing') }}</dd>
                     </div>
-                    <div><dt>Status</dt><dd>{{ listing.status }}</dd></div>
+                    <div><dt>{{ t('c_economy.listing.status_label', 'Status') }}</dt><dd>{{ listing.status }}</dd></div>
                     <div v-if="listing.asset">
-                        <dt>Item</dt>
-                        <dd>{{ listing.asset.name }} ({{ listing.asset.kind === 'virtual' ? 'digital' : 'physical' }})</dd>
+                        <dt>{{ t('c_economy.listing.item_label', 'Item') }}</dt>
+                        <dd>{{ listing.asset.name }} ({{ listing.asset.kind === 'virtual' ? t('c_economy.listing.digital', 'digital') : t('c_economy.listing.physical', 'physical') }})</dd>
                     </div>
                     <div v-if="listing.seller_org">
-                        <dt>Seller</dt>
+                        <dt>{{ t('c_economy.listing.seller_label', 'Seller') }}</dt>
                         <dd>
                             {{ listing.seller_org.name }}
-                            <span v-if="listing.seller_org.is_cgc" class="econ-cgc-badge">Common-good corporation</span>
+                            <span v-if="listing.seller_org.is_cgc" class="econ-cgc-badge">{{ t('c_economy.listing.common_good_corp', 'Common-good corporation') }}</span>
                         </dd>
                     </div>
                     <div v-else>
-                        <dt>Seller's account</dt>
+                        <dt>{{ t('c_economy.listing.seller_account_label', 'Seller\'s account') }}</dt>
                         <dd class="mono">{{ shortId(listing.seller_account_id) }}</dd>
                     </div>
                 </dl>
 
                 <p v-if="listing.seller_org" class="econ-note">
-                    An organization trades under its own name — its listing is its public act.
+                    {{ t('c_economy.listing.org_trades', 'An organization trades under its own name — its listing is its public act.') }}
                     <template v-if="listing.seller_org.is_cgc">
-                        The common-good badge is informational: a CGC trades on identical terms to
-                        private enterprise, never a different rule.
+                        {{ t('c_economy.listing.cgc_badge_note', 'The common-good badge is informational: a CGC trades on identical terms to private enterprise, never a different rule.') }}
                     </template>
                 </p>
                 <p v-else class="econ-note">
-                    A person selling is shown as an account, not a name. Linking an account to a
-                    person is deliberately not something this page can do.
+                    {{ t('c_economy.listing.person_account_note', 'A person selling is shown as an account, not a name. Linking an account to a person is deliberately not something this page can do.') }}
                 </p>
             </Card>
 
             <Card as="section">
                 <template #title>
-                    <h2>Buying it <FormChip form-id="F-IND-022" name="Marketplace Order" /></h2>
+                    <h2>{{ t('c_economy.listing.buying_it', 'Buying it') }} <FormChip form-id="F-IND-022" name="Marketplace Order" /></h2>
                 </template>
 
                 <template v-if="can_order">
                     <p class="econ-note">
-                        Ordering doesn't move anything on its own. The seller accepts, and then money
-                        and thing move together — both, or neither.
+                        {{ t('c_economy.listing.ordering_note', 'Ordering doesn\'t move anything on its own. The seller accepts, and then money and thing move together — both, or neither.') }}
                     </p>
                     <Btn variant="primary" :disabled="buy.processing" @click="placeOrder">
-                        {{ buy.processing ? 'Ordering…' : `Order for ${formatMoney(listing.price, currency)}` }}
+                        {{ buy.processing ? t('c_economy.listing.ordering', 'Ordering…') : t('c_economy.listing.order_for', { price: formatMoney(listing.price, currency) }) }}
                     </Btn>
                 </template>
 
                 <p v-else-if="is_seller" class="econ-note">
-                    <StatusBadge>Your listing</StatusBadge>
-                    You can't order your own goods.
+                    <StatusBadge>{{ t('c_economy.listing.your_listing', 'Your listing') }}</StatusBadge>
+                    {{ t('c_economy.listing.cant_order_own', 'You can\'t order your own goods.') }}
                 </p>
 
                 <p v-else class="econ-note">
-                    <StatusBadge>Not available to you</StatusBadge>
-                    This listing is closed, or you don't have a wallet in this currency yet.
+                    <StatusBadge>{{ t('c_economy.listing.not_available', 'Not available to you') }}</StatusBadge>
+                    {{ t('c_economy.listing.listing_closed', 'This listing is closed, or you don\'t have a wallet in this currency yet.') }}
                 </p>
 
             </Card>
 
             <Card v-if="is_seller" as="section">
                 <template #title>
-                    <h2>Orders waiting on you <FormChip form-id="F-IND-022" name="Marketplace Settlement" /></h2>
+                    <h2>{{ t('c_economy.listing.orders_waiting', 'Orders waiting on you') }} <FormChip form-id="F-IND-022" name="Marketplace Settlement" /></h2>
                 </template>
 
                 <template v-if="pending_orders.length">
@@ -149,24 +148,23 @@ function settle(orderId) {
                         <li v-for="o in pending_orders" :key="o.id">
                             <span>
                                 <span class="mono">{{ shortId(o.buyer_account_id) }}</span>
-                                ordered {{ formatQuantity(o.quantity) }} · {{ formatWhen(o.at) }}
+                                {{ t('c_economy.listing.ordered_line', { quantity: formatQuantity(o.quantity), when: formatWhen(o.at) }) }}
                             </span>
                             <Btn variant="primary" size="sm" :disabled="accept.processing" @click="settle(o.id)">
-                                {{ accept.processing ? 'Settling…' : 'Accept and settle' }}
+                                {{ accept.processing ? t('c_economy.listing.settling', 'Settling…') : t('c_economy.listing.accept_settle', 'Accept and settle') }}
                             </Btn>
                         </li>
                     </ul>
                     <p class="econ-note">
-                        Buyers are shown as accounts. You are told which order to accept, not who
-                        placed it. Settling moves the money and the thing in one transaction.
+                        {{ t('c_economy.listing.buyers_accounts_note', 'Buyers are shown as accounts. You are told which order to accept, not who placed it. Settling moves the money and the thing in one transaction.') }}
                     </p>
                 </template>
 
-                <p v-else class="econ-note">No pending orders on this page.</p>
-                <nav class="lst-pages" aria-label="Pending order pages">
-                    <Link v-if="pending_order_pages.previous" :href="pending_order_pages.previous" preserve-scroll rel="prev">Previous orders</Link>
-                    <Link v-if="pending_order_pages.next" :href="pending_order_pages.next" preserve-scroll rel="next">Next orders</Link>
-                    <Link :href="`/economy/market/${listing.id}`" preserve-scroll>First page</Link>
+                <p v-else class="econ-note">{{ t('c_economy.listing.no_pending_orders', 'No pending orders on this page.') }}</p>
+                <nav class="lst-pages" :aria-label="t('c_economy.listing.pending_order_pages', 'Pending order pages')">
+                    <Link v-if="pending_order_pages.previous" :href="pending_order_pages.previous" preserve-scroll rel="prev">{{ t('c_economy.listing.previous_orders', 'Previous orders') }}</Link>
+                    <Link v-if="pending_order_pages.next" :href="pending_order_pages.next" preserve-scroll rel="next">{{ t('c_economy.listing.next_orders', 'Next orders') }}</Link>
+                    <Link :href="`/economy/market/${listing.id}`" preserve-scroll>{{ t('c_economy.listing.first_page', 'First page') }}</Link>
                 </nav>
             </Card>
         </template>

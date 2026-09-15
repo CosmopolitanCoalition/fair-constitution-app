@@ -18,7 +18,9 @@
  * receipt is derivable from this page. That is the k-anonymity posture:
  * public aggregate, private line.
  */
+import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -26,6 +28,7 @@ import Banner from '@/Components/Ui/Banner.vue';
 import { formatMoney, formatCount, formatWhen } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     currency: { type: Object, default: null },
@@ -36,83 +39,74 @@ const props = defineProps({
     examples: { type: Array, default: () => [] },
 });
 
-const classLabels = {
+const classLabels = computed(() => ({
     node_operator: {
-        label: 'Node operator',
-        basis: 'Keeps a node of this world running — the infrastructure duty.',
-        who: 'Every node operator, no subset.',
+        label: t('c_economy.stipend.node_operator_label', 'Node operator'),
+        basis: t('c_economy.stipend.node_operator_basis', 'Keeps a node of this world running — the infrastructure duty.'),
+        who: t('c_economy.stipend.node_operator_who', 'Every node operator, no subset.'),
     },
     social_moderator: {
-        label: 'Social moderator',
-        basis: 'Carries the commons moderation duty.',
-        who: 'Every social moderator, no subset.',
+        label: t('c_economy.stipend.social_moderator_label', 'Social moderator'),
+        basis: t('c_economy.stipend.social_moderator_basis', 'Carries the commons moderation duty.'),
+        who: t('c_economy.stipend.social_moderator_who', 'Every social moderator, no subset.'),
     },
     office_holder: {
-        label: 'Office holder',
-        basis: 'Holds a serving civic office — legislator, executive, judge, board.',
-        who: 'Every civic role-holder, no subset. A bump ends the day the duty ends.',
+        label: t('c_economy.stipend.office_holder_label', 'Office holder'),
+        basis: t('c_economy.stipend.office_holder_basis', 'Holds a serving civic office — legislator, executive, judge, board.'),
+        who: t('c_economy.stipend.office_holder_who', 'Every civic role-holder, no subset. A bump ends the day the duty ends.'),
     },
-};
+}));
 
-const roleLabel = (role) => classLabels[role]?.label ?? role;
+const roleLabel = (role) => classLabels.value[role]?.label ?? role;
 </script>
 
 <template>
-    <PageScaffold title="Civic stipend">
+    <PageScaffold :title="t('c_economy.stipend.title', 'Civic stipend')">
         <template #intro>
-            A differential, not a salary. Everyone associated by residency receives the same floor;
-            on top of it, those carrying certain duties receive a small recognition bump. Because
-            pay can never become a qualification for office, the differential is add-only, capped,
-            and writes nothing but the private ledger — it grants no seat, no vote, no advantage.
+            {{ t('c_economy.stipend.intro', 'A differential, not a salary. Everyone associated by residency receives the same floor; on top of it, those carrying certain duties receive a small recognition bump. Because pay can never become a qualification for office, the differential is add-only, capped, and writes nothing but the private ledger — it grants no seat, no vote, no advantage.') }}
         </template>
 
-        <Banner v-if="stipend.enabled === false" tone="info" title="Switched off in this world">
-            A legislature turned the stipend off by act. The formula below is what would apply if
-            it were switched back on — the switch itself is a legislative decision, not a setting
-            anyone edits.
+        <Banner v-if="stipend.enabled === false" tone="info" :title="t('c_economy.stipend.switched_off_title', 'Switched off in this world')">
+            {{ t('c_economy.stipend.switched_off_body', 'A legislature turned the stipend off by act. The formula below is what would apply if it were switched back on — the switch itself is a legislative decision, not a setting anyone edits.') }}
         </Banner>
 
         <!-- ---------------------------------------------------- formula -->
-        <Card as="section" title="How an amount is computed">
+        <Card as="section" :title="t('c_economy.stipend.how_computed', 'How an amount is computed')">
             <p class="stipend-formula">
-                amount = floor + min( Σ eligible-role bumps, cap )<br />
-                = {{ formatMoney(stipend.floor, currency) }} base
-                + min( Σ bumps, {{ formatMoney(stipend.cap, currency) }} cap )
+                {{ t('c_economy.stipend.formula_line1', 'amount = floor + min( Σ eligible-role bumps, cap )') }}<br />
+                {{ t('c_economy.stipend.formula_line2', { floor: formatMoney(stipend.floor, currency), cap: formatMoney(stipend.cap, currency) }) }}
             </p>
             <p class="econ-note">
-                <strong>Who receives it — residency, and nothing else.</strong> It is the same gate
-                that unlocks voting and candidacy: an absolute right, no means test, no
-                application, no qualification of any kind.
+                <strong>{{ t('c_economy.stipend.who_receives_strong', 'Who receives it — residency, and nothing else.') }}</strong>{{ t('c_economy.stipend.who_receives_body', ' It is the same gate that unlocks voting and candidacy: an absolute right, no means test, no application, no qualification of any kind.') }}
             </p>
         </Card>
 
         <!-- ------------------------------------------------------ clock -->
-        <Card as="section" title="When it runs">
+        <Card as="section" :title="t('c_economy.stipend.when_runs', 'When it runs')">
             <dl class="econ-facts">
                 <div>
-                    <dt>Cadence</dt>
-                    <dd>{{ stipend.interval }}<template v-if="stipend.period_days"> ({{ formatCount(stipend.period_days) }} days)</template></dd>
+                    <dt>{{ t('c_economy.stipend.cadence', 'Cadence') }}</dt>
+                    <dd>{{ stipend.interval }}<template v-if="stipend.period_days">{{ t('c_economy.stipend.period_days', { count: formatCount(stipend.period_days) }) }}</template></dd>
                 </div>
                 <div>
-                    <dt>Funded by</dt>
-                    <dd>{{ stipend.funding_source === 'treasury_draw' ? 'the treasury' : 'new issuance' }}</dd>
+                    <dt>{{ t('c_economy.stipend.funded_by', 'Funded by') }}</dt>
+                    <dd>{{ stipend.funding_source === 'treasury_draw' ? t('c_economy.stipend.funding_treasury', 'the treasury') : t('c_economy.stipend.funding_issuance', 'new issuance') }}</dd>
                 </div>
                 <div>
-                    <dt>Last run</dt>
-                    <dd>{{ clock.last_run ? formatWhen(clock.last_run.ran_at) : 'not yet run in this world' }}</dd>
+                    <dt>{{ t('c_economy.stipend.last_run', 'Last run') }}</dt>
+                    <dd>{{ clock.last_run ? formatWhen(clock.last_run.ran_at) : t('c_economy.stipend.not_yet_run', 'not yet run in this world') }}</dd>
                 </div>
                 <div v-if="clock.next_run_estimate">
-                    <dt>Next run (estimated)</dt>
+                    <dt>{{ t('c_economy.stipend.next_run_estimated', 'Next run (estimated)') }}</dt>
                     <dd>{{ formatWhen(clock.next_run_estimate) }}</dd>
                 </div>
             </dl>
         </Card>
 
         <!-- ---------------------------------------------------- classes -->
-        <Card as="section" title="The three differential classes">
+        <Card as="section" :title="t('c_economy.stipend.classes_title', 'The three differential classes')">
             <p class="econ-desc">
-                A bump attaches to a fact about what a person is doing — never to who they are.
-                Stacking them can never exceed the {{ formatMoney(stipend.cap, currency) }} cap.
+                {{ t('c_economy.stipend.classes_desc', { cap: formatMoney(stipend.cap, currency) }) }}
             </p>
             <div class="stipend-classes">
                 <div v-for="(meta, key) in classLabels" :key="key" class="stipend-class">
@@ -121,47 +115,42 @@ const roleLabel = (role) => classLabels[role]?.label ?? role;
                         <span class="stipend-bump">+{{ formatMoney(stipend.bumps[key], currency) }}</span>
                     </div>
                     <p class="econ-desc">{{ meta.basis }}</p>
-                    <p class="econ-meta"><span>Who: {{ meta.who }}</span></p>
+                    <p class="econ-meta"><span>{{ t('c_economy.stipend.who_prefix', { who: meta.who }) }}</span></p>
                 </div>
             </div>
         </Card>
 
         <!-- ----------------------------------------- values + the change path -->
-        <Card as="section" title="The numbers, and how they change">
+        <Card as="section" :title="t('c_economy.stipend.numbers_title', 'The numbers, and how they change')">
             <p class="econ-desc">
-                The current values, on the record. Nobody edits these on a settings screen: each
-                one moves only when <strong>two doors open</strong> — a supermajority of the
-                chamber AND the consent of the people it governs. Because the constituents' own
-                money is spent, they must agree.
+                {{ t('c_economy.stipend.numbers_desc_before', 'The current values, on the record. Nobody edits these on a settings screen: each one moves only when') }} <strong>{{ t('c_economy.stipend.numbers_desc_strong', 'two doors open') }}</strong> {{ t('c_economy.stipend.numbers_desc_after', '— a supermajority of the chamber AND the consent of the people it governs. Because the constituents\' own money is spent, they must agree.') }}
             </p>
             <dl class="econ-facts">
-                <div><dt>Residency floor</dt><dd>{{ formatMoney(stipend.floor, currency) }}</dd></div>
-                <div><dt>Bump cap (max stacked)</dt><dd>{{ formatMoney(stipend.cap, currency) }}</dd></div>
+                <div><dt>{{ t('c_economy.stipend.residency_floor', 'Residency floor') }}</dt><dd>{{ formatMoney(stipend.floor, currency) }}</dd></div>
+                <div><dt>{{ t('c_economy.stipend.bump_cap', 'Bump cap (max stacked)') }}</dt><dd>{{ formatMoney(stipend.cap, currency) }}</dd></div>
             </dl>
             <p>
                 <Link href="/legislature/settings" class="econ-back prose-link">
-                    Propose a change — the settings register
+                    {{ t('c_economy.stipend.propose_change', 'Propose a change — the settings register') }}
                 </Link>
             </p>
             <p class="econ-note">
-                That drafts a proposal for the chamber (F-LEG-031). It never saves a default.
+                {{ t('c_economy.stipend.propose_note', 'That drafts a proposal for the chamber (F-LEG-031). It never saves a default.') }}
             </p>
         </Card>
 
         <!-- --------------------------------------------------- examples -->
-        <Card as="section" title="Worked examples">
+        <Card as="section" :title="t('c_economy.stipend.examples_title', 'Worked examples')">
             <p class="econ-desc">
-                Same floor for all; the spread is only the duty differential. These are computed by
-                the live formula on example role sets — they are illustrations, not anyone's
-                receipt.
+                {{ t('c_economy.stipend.examples_desc', 'Same floor for all; the spread is only the duty differential. These are computed by the live formula on example role sets — they are illustrations, not anyone\'s receipt.') }}
             </p>
             <table class="stipend-examples">
                 <thead>
                     <tr>
-                        <th scope="col">Situation</th>
-                        <th scope="col">Duties</th>
-                        <th scope="col">Base + bump</th>
-                        <th scope="col">Amount</th>
+                        <th scope="col">{{ t('c_economy.stipend.th_situation', 'Situation') }}</th>
+                        <th scope="col">{{ t('c_economy.stipend.th_duties', 'Duties') }}</th>
+                        <th scope="col">{{ t('c_economy.stipend.th_base_bump', 'Base + bump') }}</th>
+                        <th scope="col">{{ t('c_economy.stipend.th_amount', 'Amount') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -169,11 +158,10 @@ const roleLabel = (role) => classLabels[role]?.label ?? role;
                         <td>{{ ex.label }}</td>
                         <td>
                             <template v-if="ex.roles.length">{{ ex.roles.map(roleLabel).join(' · ') }}</template>
-                            <template v-else>none</template>
+                            <template v-else>{{ t('c_economy.stipend.none', 'none') }}</template>
                         </td>
                         <td>
-                            {{ formatMoney(ex.base, currency) }} + {{ formatMoney(ex.bump, currency) }}
-                            <template v-if="ex.capped"> (the cap bites)</template>
+                            {{ formatMoney(ex.base, currency) }} + {{ formatMoney(ex.bump, currency) }}<template v-if="ex.capped">{{ t('c_economy.stipend.cap_bites', ' (the cap bites)') }}</template>
                         </td>
                         <td><strong>{{ formatMoney(ex.amount, currency) }}</strong></td>
                     </tr>
@@ -182,33 +170,29 @@ const roleLabel = (role) => classLabels[role]?.label ?? role;
         </Card>
 
         <!-- -------------------------------------------- public vs private -->
-        <Card as="section" title="Public aggregate vs private receipt">
+        <Card as="section" :title="t('c_economy.stipend.public_private_title', 'Public aggregate vs private receipt')">
             <div class="stipend-split">
                 <div>
-                    <p class="econ-meta"><span>Public — the aggregate</span></p>
+                    <p class="econ-meta"><span>{{ t('c_economy.stipend.public_aggregate', 'Public — the aggregate') }}</span></p>
                     <template v-if="clock.last_run">
                         <p>
                             <strong>{{ formatMoney(clock.last_run.total, currency) }}</strong>
-                            across {{ formatCount(clock.last_run.recipients) }} recipients.
+                            {{ t('c_economy.stipend.across_recipients', { count: formatCount(clock.last_run.recipients) }) }}
                         </p>
                         <p v-if="clock.last_run.short_paid" class="econ-note">
-                            That run was short-paid: the treasury could not cover it in full, so
-                            everyone received the same fraction — never the first N in line.
+                            {{ t('c_economy.stipend.short_paid', 'That run was short-paid: the treasury could not cover it in full, so everyone received the same fraction — never the first N in line.') }}
                         </p>
                     </template>
-                    <p v-else>No run has happened yet — the aggregate appears with the first one.</p>
+                    <p v-else>{{ t('c_economy.stipend.no_run_yet', 'No run has happened yet — the aggregate appears with the first one.') }}</p>
                     <p class="econ-note">
-                        Only the total and the head-count publish. A class with fewer than
-                        {{ formatCount(k_anon_floor) }} recipients is folded into the general
-                        total and never published on its own — a small class would identify its
-                        members.
+                        {{ t('c_economy.stipend.k_anon_note', { floor: formatCount(k_anon_floor) }) }}
                     </p>
                 </div>
                 <div>
-                    <p class="econ-meta"><span>Private — your receipt</span></p>
+                    <p class="econ-meta"><span>{{ t('c_economy.stipend.private_receipt', 'Private — your receipt') }}</span></p>
                     <p>
-                        Each person's own amount writes only to their own private wallet.
-                        <Link href="/economy/wallet" class="econ-back prose-link">My wallet — see your own line</Link>
+                        {{ t('c_economy.stipend.private_receipt_body', 'Each person\'s own amount writes only to their own private wallet.') }}
+                        <Link href="/economy/wallet" class="econ-back prose-link">{{ t('c_economy.stipend.my_wallet_line', 'My wallet — see your own line') }}</Link>
                     </p>
                 </div>
             </div>
