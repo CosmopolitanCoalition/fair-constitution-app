@@ -7,6 +7,9 @@
 //   • Audit history — a live record count (the cold cursor has no a-priori target).
 // ETA/elapsed math + the 2 s poll cadence mirror the setup component exactly.
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     pollUrl: { type: String, default: '/federation/cluster/sync-progress' },
@@ -127,14 +130,20 @@ const lifecycleBadge = computed(
         ] || 'bg-slate-100 text-slate-600'),
 );
 const lifecycleLabel = computed(
-    () => ({ running: 'Syncing…', done: 'Caught up', failed: 'Stalled', idle: 'Idle' }[lifecycle.value] || lifecycle.value),
+    () =>
+        ({
+            running: t('c_civic_components.sync_progress.lifecycle_running', 'Syncing…'),
+            done: t('c_civic_components.sync_progress.lifecycle_done', 'Caught up'),
+            failed: t('c_civic_components.sync_progress.lifecycle_failed', 'Stalled'),
+            idle: t('c_civic_components.sync_progress.lifecycle_idle', 'Idle'),
+        }[lifecycle.value] || lifecycle.value),
 );
 </script>
 
 <template>
     <div v-if="visible" class="rounded border border-sky-200 bg-sky-50/60 p-4">
         <div class="flex items-center justify-between">
-            <h3 class="text-xs font-semibold uppercase tracking-wide text-sky-800">Joining the cluster</h3>
+            <h3 class="text-xs font-semibold uppercase tracking-wide text-sky-800">{{ t('c_civic_components.sync_progress.title', 'Joining the cluster') }}</h3>
             <span class="rounded px-2 py-0.5 text-xs font-medium" :class="lifecycleBadge">{{ lifecycleLabel }}</span>
         </div>
 
@@ -148,11 +157,11 @@ const lifecycleLabel = computed(
                 <div class="flex items-baseline justify-between text-sm">
                     <span class="font-medium text-slate-700">{{ bar.label }}</span>
                     <span class="text-xs text-slate-500">
-                        <template v-if="bar.status === 'done'">done<span v-if="elapsed(bar)"> · {{ fmtDuration(elapsed(bar)) }}</span></template>
-                        <template v-else-if="bar.status === 'failed'">failed</template>
-                        <template v-else-if="bar.status === 'pending'">waiting…</template>
+                        <template v-if="bar.status === 'done'">{{ t('c_civic_components.sync_progress.status_done', 'done') }}<span v-if="elapsed(bar)"> · {{ fmtDuration(elapsed(bar)) }}</span></template>
+                        <template v-else-if="bar.status === 'failed'">{{ t('c_civic_components.sync_progress.status_failed', 'failed') }}</template>
+                        <template v-else-if="bar.status === 'pending'">{{ t('c_civic_components.sync_progress.status_waiting', 'waiting…') }}</template>
                         <template v-else-if="pct(bar) !== null">{{ pct(bar) }}%</template>
-                        <template v-else>working…</template>
+                        <template v-else>{{ t('c_civic_components.sync_progress.status_working', 'working…') }}</template>
                     </span>
                 </div>
 
@@ -162,8 +171,8 @@ const lifecycleLabel = computed(
                         <div class="h-full rounded transition-all" :class="barClass(bar)" :style="{ width: (pct(bar) ?? 0) + '%' }"></div>
                     </div>
                     <div class="mt-1 flex justify-between text-xs text-slate-500">
-                        <span>{{ fmtValue(bar, bar.current) }} of {{ fmtValue(bar, bar.total) }}</span>
-                        <span v-if="bar.status === 'running' && eta(bar) != null">~{{ fmtDuration(eta(bar)) }} left</span>
+                        <span>{{ t('c_civic_components.sync_progress.of', { current: fmtValue(bar, bar.current), total: fmtValue(bar, bar.total) }) }}</span>
+                        <span v-if="bar.status === 'running' && eta(bar) != null">{{ t('c_civic_components.sync_progress.eta_left', { duration: fmtDuration(eta(bar)) }) }}</span>
                     </div>
                 </div>
 
@@ -175,11 +184,11 @@ const lifecycleLabel = computed(
                     </div>
                     <div class="mt-1 flex justify-between text-xs text-slate-500">
                         <span v-if="bar.unit === 'records'">
-                            {{ fmtNum(bar.current) }} records<span v-if="bar.pages"> · {{ fmtNum(bar.pages) }} pages</span>
+                            {{ t('c_civic_components.sync_progress.records', { count: fmtNum(bar.current) }) }}<span v-if="bar.pages"> {{ t('c_civic_components.sync_progress.pages', { count: fmtNum(bar.pages) }) }}</span>
                         </span>
-                        <span v-else-if="bar.status === 'running'">Importing the foundation into the database…</span>
-                        <span v-else-if="bar.status === 'done'">Imported</span>
-                        <span v-else>waiting…</span>
+                        <span v-else-if="bar.status === 'running'">{{ t('c_civic_components.sync_progress.importing', 'Importing the foundation into the database…') }}</span>
+                        <span v-else-if="bar.status === 'done'">{{ t('c_civic_components.sync_progress.imported', 'Imported') }}</span>
+                        <span v-else>{{ t('c_civic_components.sync_progress.status_waiting', 'waiting…') }}</span>
                         <span v-if="bar.status === 'running' && bar.unit === 'records' && ratePerSec(bar)">{{ fmtNum(Math.round(ratePerSec(bar))) }}/s</span>
                     </div>
                 </div>
@@ -187,7 +196,7 @@ const lifecycleLabel = computed(
         </ul>
 
         <p class="mt-3 text-xs text-slate-500">
-            You can leave this page — the sync runs in the background and resumes if interrupted.
+            {{ t('c_civic_components.sync_progress.leave_note', 'You can leave this page — the sync runs in the background and resumes if interrupted.') }}
         </p>
     </div>
 </template>

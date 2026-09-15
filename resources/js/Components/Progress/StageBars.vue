@@ -28,6 +28,9 @@
  * interval so a value always settles before the next one arrives.
  */
 import { reactive, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     stages: { type: Array, default: () => [] },
@@ -108,7 +111,7 @@ function isSettled(s) {
                 </div>
                 <div class="font-mono text-xs text-gray-400 tabular-nums">
                     {{ fmt(shown[s.kind] ?? s.done) }}/{{ fmt(s.total) }}
-                    <span v-if="s.review" class="ml-2 text-amber-400">{{ fmt(s.review) }} to review</span>
+                    <span v-if="s.review" class="ml-2 text-amber-400">{{ t('c_civic_components.stage_bars.to_review', { count: fmt(s.review) }) }}</span>
                 </div>
             </div>
 
@@ -131,7 +134,7 @@ function isSettled(s) {
         </div>
 
         <p v-if="!stages.length" class="text-sm" style="color: var(--gov-fg-subtle)">
-            Nothing to build yet — this fills in once the world has boundaries.
+            {{ t('c_civic_components.stage_bars.empty', 'Nothing to build yet — this fills in once the world has boundaries.') }}
         </p>
     </div>
 </template>

@@ -10,8 +10,11 @@
  * of {threshold} signatures" / "threshold {n} = {pct}% of population".
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     signatures: { type: Number, required: true },
@@ -34,16 +37,16 @@ const met = computed(() => props.signatures >= props.threshold);
             :value="signatures"
             :max="max"
             :threshold="threshold"
-            :label="`Petition signatures — threshold ${threshold.toLocaleString()}`"
+            :label="t('c_civic_components.signature_meter.label', { threshold: threshold.toLocaleString() })"
         >
-            {{ signatures.toLocaleString() }} signatures
+            {{ t('c_civic_components.signature_meter.signatures', { count: signatures.toLocaleString() }) }}
             <template #note>
-                <template v-if="compact">{{ threshold.toLocaleString() }} needed · {{ pct }}%</template>
-                <template v-else>threshold {{ threshold.toLocaleString() }} = {{ pct }}% of population · CLK-17</template>
+                <template v-if="compact">{{ t('c_civic_components.signature_meter.compact_note', { threshold: threshold.toLocaleString(), pct }) }}</template>
+                <template v-else>{{ t('c_civic_components.signature_meter.threshold_note', { threshold: threshold.toLocaleString(), pct }) }}</template>
             </template>
         </ThresholdMeter>
         <div v-if="met && !compact" class="cluster">
-            <StatusBadge tone="success" icon="check">Threshold reached</StatusBadge>
+            <StatusBadge tone="success" icon="check">{{ t('c_civic_components.signature_meter.threshold_reached', 'Threshold reached') }}</StatusBadge>
         </div>
     </div>
 </template>
