@@ -96,7 +96,7 @@ def apply_overrides(work, overrides):
         note = (o.get('note') or '').strip()
         date = o.get('date') or ''
         hist_note = 'Operator set %s.%s' % (st, (' ' + note) if note else '') if st else ('Operator note: ' + note)
-        already = any(h.get('note') == hist_note and h.get('date') == date for h in it.get('history', []))
+        already = any(isinstance(h, dict) and h.get('note') == hist_note and h.get('date') == date for h in it.get('history', []))
         if st and st in STATUSES and it['status'] != st:
             it['status'] = st
             if st in ('done', 'moot'):

@@ -16558,10 +16558,10 @@
     {
       "id": "W-0433",
       "title": "Fix SubforumReconcilerTest collision with live box data (23505 on legislatures_live_jurisdiction_uq)",
-      "phase": "P5",
-      "order": 69,
+      "phase": "done",
+      "order": null,
       "kind": "debt",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "tests/Constitutional/SubforumReconcilerTest.php runs its live pin inside a rolled-back transaction on the live PostgreSQL (LivePgConnection::livePg defaults to fair_constitution). On box E the test inserts a legislature for a jurisdiction that already holds a live legislature, so PostgreSQL refuses it with SQLSTATE 23505 on legislatures_live_jurisdiction_uq. Reproduced 2026-09-14 on main c29012b7: Tests 3, Assertions 11, Errors 1. Pre-existing; first seen by the economy lane commit step.",
       "done_when": "SubforumReconcilerTest passes on box E and on a virgin database: the live pin either builds its fixture in a disposable cga_<domain>_<date>_<nonce> database or picks a jurisdiction with no live legislature.",
@@ -16571,16 +16571,23 @@
       ],
       "evidence": [],
       "history": [
-        "Opened 2026-09-14 by the desk after the economy lane reported the failure; reproduced on main c29012b7."
+        {
+          "date": "2026-09-14",
+          "note": "Opened 2026-09-14 by the desk after the economy lane reported the failure; reproduced on main c29012b7."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. The live pin now creates its own jurisdiction inside the rolled-back transaction, so no live legislature can collide; the old skip path is gone so it runs on a virgin database too. Tests lane commit 2eff65be, merged 82f86b8e. On main in fc_app: OK, 3 tests, 20 assertions (in the 8-test run above)."
+        }
       ]
     },
     {
       "id": "W-0434",
       "title": "Fix CivicsStageTest: the sim civics stage no longer records organization endorsements",
-      "phase": "P1",
-      "order": 70,
+      "phase": "done",
+      "order": null,
       "kind": "debt",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "tests/Constitutional/CivicsStageTest.php:149 asserts that after CivicsStage::run the endorsements of the open election carry both endorser_type organizations and users. On main 778eeb57 the organizations type is absent: Tests 5, Assertions 23, Failures 1 (organizations endorse). Last commits on app/Services/Demo/Stages/CivicsStage.php: c1db6f48, ebb77f0f, caa1ad10 (endorsement source lowered, parties folded into the org path). Pre-existing before the 2026-09-14 lanes; first seen by the siminst lane commit step, reproduced by the desk.",
       "done_when": "CivicsStageTest passes on main: a sim civics pass records endorsements from organizations and from individuals for the open election, or the test is corrected to the ruled behaviour with the ruling cited.",
@@ -16590,7 +16597,14 @@
       ],
       "evidence": [],
       "history": [
-        "Opened 2026-09-14 by the desk after the siminst lane reported the failure; reproduced on main 778eeb57."
+        {
+          "date": "2026-09-14",
+          "note": "Opened 2026-09-14 by the desk after the siminst lane reported the failure; reproduced on main 778eeb57."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Test defect, not a stage defect. Commit c1db6f48 moved the stage to the canonical singular endorser_type (organization, user) and the test still asserted the legacy plural. Tests lane commit 26198c28, merged 82f86b8e. On main in fc_app: CivicsStageTest and SubforumReconcilerTest together OK, 8 tests, 45 assertions."
+        }
       ]
     },
     {
@@ -16609,7 +16623,10 @@
       ],
       "evidence": [],
       "history": [
-        "Opened 2026-09-14 by the desk after the clocks lane reported the failure; reproduced on main 49ccda01."
+        {
+          "date": "2026-09-14",
+          "note": "Opened 2026-09-14 by the desk after the clocks lane reported the failure; reproduced on main 49ccda01."
+        }
       ]
     },
     {
@@ -16628,7 +16645,10 @@
       ],
       "evidence": [],
       "history": [
-        "Opened 2026-09-14 by the desk after the clocks lane reported the failure; reproduced on main 49ccda01."
+        {
+          "date": "2026-09-14",
+          "note": "Opened 2026-09-14 by the desk after the clocks lane reported the failure; reproduced on main 49ccda01."
+        }
       ]
     },
     {
@@ -16647,7 +16667,10 @@
       ],
       "evidence": [],
       "history": [
-        "Opened 2026-09-14 by the desk from the host browser sweep."
+        {
+          "date": "2026-09-14",
+          "note": "Opened 2026-09-14 by the desk from the host browser sweep."
+        }
       ]
     },
     {
@@ -16666,7 +16689,10 @@
       ],
       "evidence": [],
       "history": [
-        "Opened 2026-09-14 by the desk from the host browser sweep."
+        {
+          "date": "2026-09-14",
+          "note": "Opened 2026-09-14 by the desk from the host browser sweep."
+        }
       ]
     },
     {
@@ -16685,7 +16711,10 @@
       ],
       "evidence": [],
       "history": [
-        "Opened 2026-09-14 by the desk from the host browser sweep."
+        {
+          "date": "2026-09-14",
+          "note": "Opened 2026-09-14 by the desk from the host browser sweep."
+        }
       ]
     }
   ]
