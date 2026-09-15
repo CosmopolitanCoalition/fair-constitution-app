@@ -180,7 +180,7 @@ function dateOf(iso) {
 
         <Banner tone="info" icon="lock" :title="t('c_system.public_records.append_only_title', 'This record is append-only.')">
             {{ t('c_system.public_records.append_only_a', 'Corrections append a superseding entry; nothing is deleted or rewritten. Every entry is sealed into the') }} <Link href="/system/audit-chain" class="prose-link">{{ t('c_system.public_records.chained_log_link', 'cryptographically chained audit log') }}</Link>
-            {{ t('c_system.public_records.append_only_b', 'at commit time.') }} <span class="citation">Art. II §2 · WF-SYS-03 · WF-SYS-04</span>
+            {{ t('c_system.public_records.append_only_b', 'at commit time.') }} <span class="citation" data-no-i18n>Art. II §2 · WF-SYS-03 · WF-SYS-04</span>
         </Banner>
 
         <div class="cluster" style="gap: var(--space-6)">
@@ -251,7 +251,7 @@ function dateOf(iso) {
                         <span class="citation" style="display: block">
                             {{ record.actor_display }}
                             <template v-if="record.jurisdiction?.name"> · {{ record.jurisdiction.name }}</template>
-                            <template v-if="viaChip(record.via)"> · via <span data-no-i18n>{{ viaChip(record.via) }}</span></template>
+                            <template v-if="viaChip(record.via)"> {{ t('c_system.public_records.via_label', '· via {chip}', { chip: viaChip(record.via) }) }}</template>
                             · {{ dateOf(record.published_at) }}
                             <template v-if="record.subject?.href"> · <Link :href="record.subject.href">{{ record.subject.label }} →</Link></template>
                             <template v-else-if="record.subject"> · {{ record.subject.label }}</template>

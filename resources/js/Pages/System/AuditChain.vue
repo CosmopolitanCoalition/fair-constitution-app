@@ -115,7 +115,7 @@ function reconcile() {
             </p>
             <p>
                 {{ t('c_system.audit_chain.about_p3a', 'The chain begins with the genesis previous hash') }} <code>{{ chain.genesis }}</code>.
-                {{ t('c_system.audit_chain.about_p3b', 'Each link follows') }} <code>hash(n) = H(hash(n−1) ∥ payload(n))</code>.
+                {{ t('c_system.audit_chain.about_p3b', 'Each link follows') }} <code data-no-i18n>hash(n) = H(hash(n−1) ∥ payload(n))</code>.
                 {{ t('c_system.audit_chain.about_p3c', 'Full verification recalculates the links; browsing a receipt does not verify it.') }}
             </p>
         </template>
