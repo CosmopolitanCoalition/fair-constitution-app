@@ -16982,6 +16982,33 @@
           "note": "Operator ruling (1:40 PM Eastern): integrate into the existing translations board, not a new page."
         }
       ]
+    },
+    {
+      "id": "W-0447",
+      "title": "Accessibility: sweep every page (guest, signed-in, parameterised) from a route-table roster and repair to zero findings",
+      "phase": "P1",
+      "order": 8,
+      "kind": "verify",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "A pinned roster derived from the route table classifies every GET route as page or machine endpoint with a reason; every page route (guest, signed-in via a throwaway sweep account, parameterised with one sampled id per template) has a run file on box E; zero axe violations at 1280 and 375, no horizontal overflow at 375, clean Tab walk on every page; findings repaired, pinned and re-run; the report states N of N with the evidence path.",
+      "depends_on": [],
+      "detail": "The 2026-09-14 sweep covered only the 56 param-free guest routes and was reported as closed without stating that scope (operator finding 2026-09-15). Standard: WCAG 2.1 AA throughout the UI (Architecture Plan 6.5). Roster build (a11y:roster-ids, a11y:sweep-account, roster.test.mjs, signin.mjs) then the sweep one route at a time on the host in Edge, 30-second hold rule, repairs by module.",
+      "evidence": "",
+      "sources": [
+        {
+          "list": "desk",
+          "ref": "operator order 2026-09-15",
+          "title": "Do the same for the other things you failed to do the first time",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-09-15",
+          "note": "Created 2:20 PM Eastern. Roster and sign-in fixture build launched (wf_dde84f77-e24). Previous sweep denominator: 56 guest routes of 59 signed-in + about 90 parameterised page routes still unswept."
+        }
+      ]
     }
   ]
 }
