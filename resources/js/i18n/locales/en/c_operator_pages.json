@@ -593,6 +593,7 @@
   "operations.waiting_supervisor_before": "— waiting for the host supervisor. Is",
   "operations.zone": "zone {id}",
   "roles.active_pill": "Active",
+  "roles.and_word": "and",
   "roles.applies": "Applies:",
   "roles.approval_cite": "Approval mints a verified grant — dual-meter consent (Art. VII admissibility; seated-government supersession), never a self-claim. Dropping one of your own channels is always unilateral.",
   "roles.attest_approve": "Attest & approve",

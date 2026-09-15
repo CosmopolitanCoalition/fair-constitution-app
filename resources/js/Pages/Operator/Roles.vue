@@ -301,7 +301,7 @@ const METERS = [
                 <h2 id="chan-h">{{ t('c_operator_pages.roles.nine_channels_title', 'The nine channels') }}</h2>
                 <p class="page-intro">
                     {{ t('c_operator_pages.roles.nine_intro_1', 'The whole closed vocabulary. Three channels are') }} <strong>{{ t('c_operator_pages.roles.self_asserted_word', 'self-asserted') }}</strong> —
-                    <code>mesh.member</code>, <code>mirror</code>, and <code>etl</code> {{ t('c_operator_pages.roles.nine_intro_2', '— and need no gate at all: they only ever describe what your own box does. The other six are') }}
+                    <span data-no-i18n><code>mesh.member</code>, <code>mirror</code>,</span> {{ t('c_operator_pages.roles.and_word', 'and') }} <code data-no-i18n>etl</code> {{ t('c_operator_pages.roles.nine_intro_2', '— and need no gate at all: they only ever describe what your own box does. The other six are') }}
                     <strong>{{ t('c_operator_pages.roles.governed_word', 'governed') }}</strong>{{ t('c_operator_pages.roles.nine_intro_3', ', because each one grants a duty over others, or hangs a name under a peer’s zone.') }}
                 </p>
 

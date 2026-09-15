@@ -16959,6 +16959,14 @@
         {
           "date": "2026-09-15",
           "note": "ALL 11 gap lanes merged (3:50 PM Eastern, main 7547f647): civic-social 363 keys, judiciary-exec-org 321, legislature 319, elections-jurisdictions 167, shell-operator 123, system 51, js-registries 635, content-data 203, php-a 469, php-b 372, php-support 369. lang/en.json 2,331 lines. All 174 JS catalogue pin tests green; all PHP pins green. Round 2 (wiring) next: gap-wiring-locale (persistence, registry-driven language lists, chrome dict for every locale, six @handle escapes, repo-wide raw-string pin) and gap-format-locale (locale-aware number and date formatting across 199 call sites)."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "OPERATOR RULING (4:10 PM Eastern): one language switcher only, in Settings (the record page settings tab), reachable from the user flyout; registration is the only other place the preference is set. Remove the header language select from AppShell and AppShellV2; add a Settings entry to the user flyout above Log out. Applied at the desk after the gap-wiring-locale lane merges; the lane pin changes to assert the select is gone and the flyout link exists. Guests follow the browser language until registration."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "OPERATOR RULING REVISED (4:22 PM Eastern): keep the header language selector (a guest needs it before registration). The gap-wiring-locale persistence stands: header switch and settings form save one preference; a guest choice is kept in the browser until registration. The Settings entry in the user flyout still goes in."
         }
       ]
     },

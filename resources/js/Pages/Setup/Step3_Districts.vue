@@ -976,7 +976,7 @@ onBeforeUnmount(() => {
                             <span>{{ t('c_setup.step3_districts.sizing_pass', 'Sizing pass — parent legislatures (re-verifies every parent)') }}</span>
                             <span class="tabular-nums">
                                 {{ run.sized_parents.toLocaleString() }} / {{ run.parents_total.toLocaleString() }}
-                                <span v-if="sizingRatePerMin"> · {{ Math.round(sizingRatePerMin).toLocaleString() }}/min</span>
+                                <span v-if="sizingRatePerMin"> · {{ t('c_setup.step3_districts.per_min', '{n}/min', { n: Math.round(sizingRatePerMin).toLocaleString() }) }}</span>
                                 <span> · {{ t('c_setup.step3_districts.eta', 'ETA') }} {{ fmtEta(sizingEtaSeconds) }}</span>
                                 <span v-if="sizingElapsed != null"> · {{ fmtEta(sizingElapsed) }} {{ t('c_setup.step3_districts.elapsed', 'elapsed') }}</span>
                             </span>

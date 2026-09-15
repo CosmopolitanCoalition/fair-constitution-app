@@ -404,8 +404,8 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             <div class="space-y-1 text-xs">
                 <div v-for="tm in timings" :key="tm.part" class="flex items-center gap-3">
                     <span class="w-52 shrink-0 truncate" :class="timingTone(tm.part)">{{ timingLabel(tm.part) }}</span>
-                    <span class="w-20 text-right tabular-nums text-gray-300">{{ tm.avg_ms }} ms</span>
-                    <span class="w-24 text-right tabular-nums text-gray-500 hidden md:inline">{{ t('c_setup.step4_scale_up.max', 'max') }} {{ tm.max_ms }} ms</span>
+                    <span class="w-20 text-right tabular-nums text-gray-300">{{ t('c_setup.step4_scale_up.ms_value', '{n} ms', { n: tm.avg_ms }) }}</span>
+                    <span class="w-24 text-right tabular-nums text-gray-500 hidden md:inline">{{ t('c_setup.step4_scale_up.max_ms', 'max {n} ms', { n: tm.max_ms }) }}</span>
                     <span class="w-20 text-right tabular-nums text-gray-500 hidden md:inline">{{ n(tm.count) }}×</span>
                     <div class="flex-1 h-2 bg-gray-800 rounded overflow-hidden">
                         <div class="h-full transition-all duration-700" :class="timingBar(tm.part)" :style="{ width: pct(tm.total_s, timingMax) + '%' }"></div>
