@@ -69,7 +69,7 @@ class AssetRegistration implements FormHandler
     {
         if ($actor === null) {
             throw new ConstitutionalViolation(
-                'An asset belongs to somebody — system filing is not defined.',
+                __('An asset belongs to somebody — system filing is not defined.'),
                 'CGA Forms Catalog (F-IND-024)'
             );
         }
@@ -81,19 +81,19 @@ class AssetRegistration implements FormHandler
             $toAccountId = (string) ($payload['to_account_id'] ?? '');
 
             if ($toAccountId === '') {
-                throw new ConstitutionalViolation('A transfer names the receiving account.', 'CGA Forms Catalog (F-IND-024)');
+                throw new ConstitutionalViolation(__('A transfer names the receiving account.'), 'CGA Forms Catalog (F-IND-024)');
             }
 
             $asset = \Illuminate\Support\Facades\DB::table('assets')
                 ->where('id', (string) $payload['asset_id'])->first();
 
             if ($asset === null) {
-                throw new ConstitutionalViolation('Unknown asset.', 'CGA Forms Catalog (F-IND-024)');
+                throw new ConstitutionalViolation(__('Unknown asset.'), 'CGA Forms Catalog (F-IND-024)');
             }
 
             if ((string) $asset->owner_account_id !== $accountId) {
                 throw new ConstitutionalViolation(
-                    'You can only hand on a thing you hold.',
+                    __('You can only hand on a thing you hold.'),
                     'Art. I · as implemented'
                 );
             }
@@ -119,7 +119,7 @@ class AssetRegistration implements FormHandler
         $name = trim((string) ($payload['name'] ?? ''));
 
         if ($name === '') {
-            throw new ConstitutionalViolation('A thing needs a name.', 'CGA Forms Catalog (F-IND-024)');
+            throw new ConstitutionalViolation(__('A thing needs a name.'), 'CGA Forms Catalog (F-IND-024)');
         }
 
         $kind = (string) ($payload['kind'] ?? AssetService::KIND_PHYSICAL);
@@ -156,7 +156,7 @@ class AssetRegistration implements FormHandler
 
         if ($accountId === null) {
             throw new ConstitutionalViolation(
-                'You have no account in this world yet — one opens with confirmed residency.',
+                __('You have no account in this world yet — one opens with confirmed residency.'),
                 'Art. I · as implemented'
             );
         }
@@ -179,7 +179,7 @@ class AssetRegistration implements FormHandler
 
         if ($currency === null) {
             throw new ConstitutionalViolation(
-                'This world has no currency yet — the root jurisdiction defines one (Art. V §5).',
+                __('This world has no currency yet — the root jurisdiction defines one (Art. V §5).'),
                 'Art. V §5'
             );
         }

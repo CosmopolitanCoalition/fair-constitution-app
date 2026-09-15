@@ -52,12 +52,12 @@ class DepartmentRuleImplementation implements FormHandler
         $department = Department::query()->find((string) ($payload['department_id'] ?? ''));
 
         if ($department === null) {
-            throw new ConstitutionalViolation('F-BOG-001 names a chartered department.', 'Art. III §4');
+            throw new ConstitutionalViolation(__('F-BOG-001 names a chartered department.'), 'Art. III §4');
         }
 
         if (trim((string) ($payload['name'] ?? '')) === '' || trim((string) ($payload['text'] ?? '')) === '') {
             throw new ConstitutionalViolation(
-                'A department rule carries a name and text, and cites the act that enables it.',
+                __('A department rule carries a name and text, and cites the act that enables it.'),
                 'Art. III §4'
             );
         }
@@ -84,7 +84,7 @@ class DepartmentRuleImplementation implements FormHandler
     {
         if ($actor === null) {
             throw new ConstitutionalViolation(
-                'F-BOG-001 is filed by a seated board member — system filings name no seat.',
+                __('F-BOG-001 is filed by a seated board member — system filings name no seat.'),
                 'Art. III §4 · §6'
             );
         }
@@ -97,7 +97,7 @@ class DepartmentRuleImplementation implements FormHandler
 
         if ($seat === null) {
             throw new ConstitutionalViolation(
-                'F-BOG-001 is filed by a seated member of THIS department\'s board (R-18).',
+                __('F-BOG-001 is filed by a seated member of THIS department\'s board (R-18).'),
                 'Art. III §4 · §6'
             );
         }

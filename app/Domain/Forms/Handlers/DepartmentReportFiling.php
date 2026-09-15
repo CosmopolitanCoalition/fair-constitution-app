@@ -49,7 +49,7 @@ class DepartmentReportFiling implements FormHandler
         $department = Department::query()->find((string) ($payload['department_id'] ?? ''));
 
         if ($department === null) {
-            throw new ConstitutionalViolation('F-BOG-002 names a chartered department.', 'Art. III §4');
+            throw new ConstitutionalViolation(__('F-BOG-002 names a chartered department.'), 'Art. III §4');
         }
 
         $seat = $this->seatFor($actor, $department);
@@ -75,7 +75,7 @@ class DepartmentReportFiling implements FormHandler
     {
         if ($actor === null) {
             throw new ConstitutionalViolation(
-                'F-BOG-002 is filed by a seated board member — system filings name no seat.',
+                __('F-BOG-002 is filed by a seated board member — system filings name no seat.'),
                 'Art. III §4'
             );
         }
@@ -88,7 +88,7 @@ class DepartmentReportFiling implements FormHandler
 
         if ($seat === null) {
             throw new ConstitutionalViolation(
-                'F-BOG-002 is filed by a seated member of THIS department\'s board (R-18).',
+                __('F-BOG-002 is filed by a seated member of THIS department\'s board (R-18).'),
                 'Art. III §4'
             );
         }

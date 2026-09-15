@@ -43,12 +43,12 @@ class CommitteeAgendaSetting implements FormHandler
         $meeting = CommitteeMeeting::query()->find($payload['meeting_id'] ?? null);
 
         if ($meeting === null) {
-            throw new ConstitutionalViolation('F-CHR-002 requires a valid meeting_id.', 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('F-CHR-002 requires a valid meeting_id.'), 'CGA Forms Catalog');
         }
 
         if (! in_array($meeting->status, [CommitteeMeeting::STATUS_SCHEDULED, CommitteeMeeting::STATUS_OPEN], true)) {
             throw new ConstitutionalViolation(
-                "Agendas are set on scheduled/open meetings (status: {$meeting->status}).",
+                __('Agendas are set on scheduled/open meetings (status: :status).', ['status' => $meeting->status]),
                 'CGA Forms Catalog (F-CHR-002)'
             );
         }

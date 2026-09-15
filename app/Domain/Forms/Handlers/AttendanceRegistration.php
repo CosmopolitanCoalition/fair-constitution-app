@@ -50,7 +50,7 @@ class AttendanceRegistration implements FormHandler
         $session = LegislatureSession::query()->find($payload['session_id'] ?? null);
 
         if ($session === null) {
-            throw new ConstitutionalViolation('Unknown session.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown session.'), 'Art. II §2 · as implemented');
         }
 
         $member = $this->currentMemberOf($actor, (string) $session->legislature_id);

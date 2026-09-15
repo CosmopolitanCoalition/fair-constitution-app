@@ -54,7 +54,7 @@ class CaseFiling implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation('F-IND-017 is filed by the complaining resident or their advocate.', 'Art. I');
+            throw new ConstitutionalViolation(__('F-IND-017 is filed by the complaining resident or their advocate.'), 'Art. I');
         }
 
         // The advocate path: an R-21 filing names a client (on-behalf-of). When

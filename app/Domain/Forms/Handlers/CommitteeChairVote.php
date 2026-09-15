@@ -56,7 +56,7 @@ class CommitteeChairVote implements FormHandler
         $committee = Committee::query()->find($payload['committee_id'] ?? null);
 
         if ($committee === null) {
-            throw new ConstitutionalViolation('F-LEG-011 requires a valid committee_id.', 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('F-LEG-011 requires a valid committee_id.'), 'CGA Forms Catalog');
         }
 
         $legislature = Legislature::query()->findOrFail($committee->legislature_id);
@@ -82,7 +82,7 @@ class CommitteeChairVote implements FormHandler
 
         if ($vote === null) {
             throw new ConstitutionalViolation(
-                'No chair balloting is open for this committee.',
+                __('No chair balloting is open for this committee.'),
                 'CGA Forms Catalog (F-LEG-011)'
             );
         }

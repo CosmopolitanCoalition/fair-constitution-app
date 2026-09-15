@@ -52,7 +52,7 @@ class BoardMemberRemovalRequest implements FormHandler
         $seat = BoardSeat::query()->find((string) ($payload['board_seat_id'] ?? ''));
 
         if ($seat === null) {
-            throw new ConstitutionalViolation('F-EXE-003 names a board seat.', 'Art. III §4');
+            throw new ConstitutionalViolation(__('F-EXE-003 names a board seat.'), 'Art. III §4');
         }
 
         $board = Board::query()->findOrFail((string) $seat->board_id);

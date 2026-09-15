@@ -20,7 +20,7 @@ trait ResolvesChairActor
     {
         if ($actor === null) {
             throw new ConstitutionalViolation(
-                "{$formId} is filed by the committee chair (or the alternate when the chair is absent).",
+                __(':formId is filed by the committee chair (or the alternate when the chair is absent).', ['formId' => $formId]),
                 'CGA Roles & Forms Chart (R-12/R-13)'
             );
         }
@@ -33,7 +33,7 @@ trait ResolvesChairActor
 
         if ($member === null) {
             throw new ConstitutionalViolation(
-                "{$formId} must be filed by a currently serving member of the committee's chamber.",
+                __(':formId must be filed by a currently serving member of the committee\'s chamber.', ['formId' => $formId]),
                 'CGA Roles & Forms Chart (R-09)'
             );
         }
@@ -51,7 +51,7 @@ trait ResolvesChairActor
         if ($isAlternate) {
             if (! (bool) ($payload['chair_unavailable'] ?? false)) {
                 throw new ConstitutionalViolation(
-                    'The alternate acts only when the chair is absent — attest chair_unavailable on the filing.',
+                    __('The alternate acts only when the chair is absent — attest chair_unavailable on the filing.'),
                     'CGA Roles & Forms Chart (R-13) · as implemented'
                 );
             }
@@ -60,7 +60,7 @@ trait ResolvesChairActor
         }
 
         throw new ConstitutionalViolation(
-            "{$formId} is filed by THIS committee's chair or alternate.",
+            __(':formId is filed by THIS committee\'s chair or alternate.', ['formId' => $formId]),
             'CGA Roles & Forms Chart (R-12/R-13)'
         );
     }
@@ -70,7 +70,7 @@ trait ResolvesChairActor
         $committee = Committee::query()->find($payload['committee_id'] ?? null);
 
         if ($committee === null) {
-            throw new ConstitutionalViolation("{$formId} requires a valid committee_id.", 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__(':formId requires a valid committee_id.', ['formId' => $formId]), 'CGA Forms Catalog');
         }
 
         return $committee;

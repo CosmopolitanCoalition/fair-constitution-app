@@ -73,7 +73,7 @@ class FundsTransfer implements FormHandler
     {
         if ($actor === null) {
             throw new ConstitutionalViolation(
-                'A transfer is made by a person — system filing is not defined.',
+                __('A transfer is made by a person — system filing is not defined.'),
                 'CGA Forms Catalog (F-IND-023)'
             );
         }
@@ -92,12 +92,12 @@ class FundsTransfer implements FormHandler
         $amount      = (string) ($payload['amount'] ?? '');
 
         if ($toAccountId === '') {
-            throw new ConstitutionalViolation('F-IND-023 names the recipient account.', 'CGA Forms Catalog (F-IND-023)');
+            throw new ConstitutionalViolation(__('F-IND-023 names the recipient account.'), 'CGA Forms Catalog (F-IND-023)');
         }
 
         if ($amount === '' || bccomp($amount, '0', 6) !== 1) {
             throw new ConstitutionalViolation(
-                'A transfer moves a positive amount.',
+                __('A transfer moves a positive amount.'),
                 'CGA Forms Catalog (F-IND-023)'
             );
         }
@@ -108,7 +108,7 @@ class FundsTransfer implements FormHandler
 
         if ($fromAccountId === null) {
             throw new ConstitutionalViolation(
-                'You have no wallet in this currency yet. A wallet opens with confirmed residency.',
+                __('You have no wallet in this currency yet. A wallet opens with confirmed residency.'),
                 'Art. I · as implemented'
             );
         }
@@ -153,13 +153,13 @@ class FundsTransfer implements FormHandler
         $organizationId = (string) ($payload['organization_id'] ?? '');
 
         if ($organizationId === '') {
-            throw new ConstitutionalViolation('A dues payment names the organization.', 'CGA Forms Catalog (F-IND-023)');
+            throw new ConstitutionalViolation(__('A dues payment names the organization.'), 'CGA Forms Catalog (F-IND-023)');
         }
 
         $organization = Organization::query()->whereNull('deleted_at')->find($organizationId);
 
         if ($organization === null) {
-            throw new ConstitutionalViolation('Unknown organization.', 'CGA Forms Catalog (F-IND-023)');
+            throw new ConstitutionalViolation(__('Unknown organization.'), 'CGA Forms Catalog (F-IND-023)');
         }
 
         // Dues follow membership. A non-member owes nothing, so a non-member
@@ -172,19 +172,19 @@ class FundsTransfer implements FormHandler
             ->exists();
 
         if (! $isMember) {
-            throw new ConstitutionalViolation('Only an active member pays dues to an organization.', 'Art. II §8 · as implemented');
+            throw new ConstitutionalViolation(__('Only an active member pays dues to an organization.'), 'Art. II §8 · as implemented');
         }
 
         $amount = app(OrgSettingsService::class)->get($organization, 'dues_amount');
 
         if ($amount === null) {
-            throw new ConstitutionalViolation('This organization charges no dues.', 'Art. II §8 · as implemented');
+            throw new ConstitutionalViolation(__('This organization charges no dues.'), 'Art. II §8 · as implemented');
         }
 
         $amount = (string) $amount;
 
         if (bccomp($amount, '0', 6) !== 1) {
-            throw new ConstitutionalViolation('A dues amount is positive.', 'CGA Forms Catalog (F-IND-023)');
+            throw new ConstitutionalViolation(__('A dues amount is positive.'), 'CGA Forms Catalog (F-IND-023)');
         }
 
         $currency = $this->resolveCurrency($payload);
@@ -193,7 +193,7 @@ class FundsTransfer implements FormHandler
 
         if ($fromAccountId === null) {
             throw new ConstitutionalViolation(
-                'You have no wallet in this currency yet. A wallet opens with confirmed residency.',
+                __('You have no wallet in this currency yet. A wallet opens with confirmed residency.'),
                 'Art. I · as implemented'
             );
         }
@@ -243,7 +243,7 @@ class FundsTransfer implements FormHandler
 
         if ($accountId === null) {
             throw new ConstitutionalViolation(
-                'You have no wallet in this currency yet. A wallet opens with confirmed residency.',
+                __('You have no wallet in this currency yet. A wallet opens with confirmed residency.'),
                 'Art. I · as implemented'
             );
         }
@@ -263,7 +263,7 @@ class FundsTransfer implements FormHandler
                     $accountId,
                 ),
                 default => throw new ConstitutionalViolation(
-                    "Unknown action [{$action}] — transfer, joint_open, joint_propose or joint_approve.",
+                    __('Unknown action [:action] — transfer, joint_open, joint_propose or joint_approve.', ['action' => $action]),
                     'CGA Forms Catalog (F-IND-023)'
                 ),
             };
@@ -280,7 +280,7 @@ class FundsTransfer implements FormHandler
         $name = trim((string) ($payload['name'] ?? ''));
 
         if ($name === '') {
-            throw new ConstitutionalViolation('A joint ledger needs a name.', 'CGA Forms Catalog (F-IND-023)');
+            throw new ConstitutionalViolation(__('A joint ledger needs a name.'), 'CGA Forms Catalog (F-IND-023)');
         }
 
         // The opener is ALWAYS a party — you cannot open a joint ledger you
@@ -319,7 +319,7 @@ class FundsTransfer implements FormHandler
 
         if ($currency === null) {
             throw new ConstitutionalViolation(
-                'This world has no currency yet — the root jurisdiction defines one (Art. V §5).',
+                __('This world has no currency yet — the root jurisdiction defines one (Art. V §5).'),
                 'Art. V §5'
             );
         }

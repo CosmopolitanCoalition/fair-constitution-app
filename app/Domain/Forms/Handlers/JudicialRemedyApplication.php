@@ -57,8 +57,7 @@ class JudicialRemedyApplication implements FormHandler
 
         if ($law === null) {
             throw new ConstitutionalViolation(
-                'This challenge is not at the legislative-window-open stage — there is no remedy to apply '
-                .'(it has already been amended, overridden, or remedied).',
+                __('This challenge is not at the legislative-window-open stage — there is no remedy to apply (it has already been amended, overridden, or remedied).'),
                 'Art. IV §5'
             );
         }
@@ -88,7 +87,7 @@ class JudicialRemedyApplication implements FormHandler
         $challenge = is_string($id) ? ConstitutionalChallenge::query()->find($id) : null;
 
         if ($challenge === null) {
-            throw new ConstitutionalViolation('F-JDG-006 names the challenge it remedies (challenge_id).', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('F-JDG-006 names the challenge it remedies (challenge_id).'), 'Art. IV §5');
         }
 
         return $challenge;

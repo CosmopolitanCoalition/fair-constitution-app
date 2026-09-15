@@ -53,12 +53,12 @@ class BoardElectionAdministration implements FormHandler
         $org = Organization::query()->find($payload['organization_id'] ?? null);
 
         if ($org === null) {
-            throw new ConstitutionalViolation('F-ORG-003 targets an unknown organization.', 'CGA Forms Catalog (F-ORG-003)');
+            throw new ConstitutionalViolation(__('F-ORG-003 targets an unknown organization.'), 'CGA Forms Catalog (F-ORG-003)');
         }
 
         if ($actor !== null && (string) $org->agent_user_id !== (string) $actor->getKey()) {
             throw new ConstitutionalViolation(
-                'Only this organization\'s agent administers its board elections (R-23).',
+                __('Only this organization\'s agent administers its board elections (R-23).'),
                 'CGA Forms Catalog (R-23)'
             );
         }
@@ -110,7 +110,7 @@ class BoardElectionAdministration implements FormHandler
                     || $board->boardable_type !== Board::BOARDABLE_ORGANIZATIONS
                     || (string) $board->boardable_id !== (string) $org->id) {
                     throw new ConstitutionalViolation(
-                        'Select an owner-seat election for this organization\'s board.',
+                        __('Select an owner-seat election for this organization\'s board.'),
                         'CGA Forms Catalog (F-ORG-003)'
                     );
                 }
@@ -119,7 +119,7 @@ class BoardElectionAdministration implements FormHandler
             })(),
 
             default => throw new ConstitutionalViolation(
-                "Unknown F-ORG-003 action [{$action}].",
+                __('Unknown F-ORG-003 action [:action].', ['action' => $action]),
                 'CGA Forms Catalog (F-ORG-003)'
             ),
         };
@@ -131,7 +131,7 @@ class BoardElectionAdministration implements FormHandler
 
         if ($board === null) {
             throw new ConstitutionalViolation(
-                'This organization has no board — provision_board first.',
+                __('This organization has no board — provision_board first.'),
                 'CGA Forms Catalog (F-ORG-003)'
             );
         }

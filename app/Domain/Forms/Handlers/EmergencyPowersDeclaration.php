@@ -57,7 +57,7 @@ class EmergencyPowersDeclaration implements FormHandler
         $legislature = Legislature::query()->find($payload['legislature_id'] ?? null);
 
         if ($legislature === null) {
-            throw new ConstitutionalViolation('Unknown legislature.', 'Art. II §7 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown legislature.'), 'Art. II §7 · as implemented');
         }
 
         $proposer = $this->currentMemberOf($actor, (string) $legislature->id);

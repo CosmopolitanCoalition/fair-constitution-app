@@ -49,14 +49,14 @@ class AttendanceCompulsionOrder implements FormHandler
         $session = LegislatureSession::query()->find($payload['session_id'] ?? null);
 
         if ($session === null) {
-            throw new ConstitutionalViolation('Unknown session.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown session.'), 'Art. II §2 · as implemented');
         }
 
         if ($actor !== null) {
             $member = $this->currentMemberOf($actor, (string) $session->legislature_id);
 
             if ((string) $session->legislature->speaker_id !== (string) $member->id) {
-                throw new ConstitutionalViolation('Only the Speaker issues a compulsion order.', 'Art. II §3');
+                throw new ConstitutionalViolation(__('Only the Speaker issues a compulsion order.'), 'Art. II §3');
             }
         }
 

@@ -48,12 +48,12 @@ class AdvocateCaseFiling implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation('F-ADV-001 is filed by a registered advocate.', 'Art. IV §4');
+            throw new ConstitutionalViolation(__('F-ADV-001 is filed by a registered advocate.'), 'Art. IV §4');
         }
 
         if (! isset($payload['filed_on_behalf_of_user_id'])) {
             throw new ConstitutionalViolation(
-                'F-ADV-001 is filed ON BEHALF OF a client — name filed_on_behalf_of_user_id.',
+                __('F-ADV-001 is filed ON BEHALF OF a client — name filed_on_behalf_of_user_id.'),
                 'Art. IV §4'
             );
         }

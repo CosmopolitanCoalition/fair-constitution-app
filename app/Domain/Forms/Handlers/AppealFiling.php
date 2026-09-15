@@ -57,7 +57,7 @@ class AppealFiling implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation('F-IND-027 is filed by a party to the original case.', 'Art. I');
+            throw new ConstitutionalViolation(__('F-IND-027 is filed by a party to the original case.'), 'Art. I');
         }
 
         $caseId = $payload['case_id'] ?? null;
@@ -69,7 +69,7 @@ class AppealFiling implements FormHandler
             : null;
 
         if ($original === null) {
-            throw new ConstitutionalViolation('F-IND-027 requires a valid case_id (the original case).', 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('F-IND-027 requires a valid case_id (the original case).'), 'CGA Forms Catalog');
         }
 
         // Only a decided or sentenced case may be appealed — a dismissed,
@@ -78,7 +78,7 @@ class AppealFiling implements FormHandler
         // in law and errors found in the cases…" — Art. II §8).
         if (! in_array($original->status, CaseService::APPEALABLE_STATUSES, true)) {
             throw new ConstitutionalViolation(
-                sprintf('Only a decided or sentenced judgement can be appealed — this case is %s.', $original->status),
+                __('Only a decided or sentenced judgement can be appealed — this case is :status.', ['status' => $original->status]),
                 'Art. II §8'
             );
         }
@@ -92,14 +92,14 @@ class AppealFiling implements FormHandler
             ->exists();
 
         if (! $isParty) {
-            throw new ConstitutionalViolation('An appeal is filed by a party to the original case.', 'Art. I');
+            throw new ConstitutionalViolation(__('An appeal is filed by a party to the original case.'), 'Art. I');
         }
 
         $grounds = trim((string) ($payload['grounds'] ?? ''));
 
         if ($grounds === '') {
             throw new ConstitutionalViolation(
-                'F-IND-027 states the grounds — the contradiction in law or the error in the case (Art. II §8).',
+                __('F-IND-027 states the grounds — the contradiction in law or the error in the case (Art. II §8).'),
                 'Art. II §8'
             );
         }
@@ -112,7 +112,7 @@ class AppealFiling implements FormHandler
         $court = $original->judiciary;
 
         if ($court === null) {
-            throw new ConstitutionalViolation('The original case has no court of record to appeal from.', 'Art. IV §4');
+            throw new ConstitutionalViolation(__('The original case has no court of record to appeal from.'), 'Art. IV §4');
         }
 
         // A parent that is not operating (dissolved, reverted, still forming)

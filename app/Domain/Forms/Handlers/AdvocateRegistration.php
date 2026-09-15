@@ -45,13 +45,13 @@ class AdvocateRegistration implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation('F-IND-015 is filed by the registering resident.', 'Art. I');
+            throw new ConstitutionalViolation(__('F-IND-015 is filed by the registering resident.'), 'Art. I');
         }
 
         $judiciaryId = (string) ($payload['judiciary_id'] ?? '');
 
         if ($judiciaryId === '') {
-            throw new ConstitutionalViolation('F-IND-015 names the court (judiciary_id) to register with.', 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('F-IND-015 names the court (judiciary_id) to register with.'), 'CGA Forms Catalog');
         }
 
         $advocate = $this->advocates->register(
