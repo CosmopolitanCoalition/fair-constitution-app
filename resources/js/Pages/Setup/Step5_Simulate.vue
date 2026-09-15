@@ -1,10 +1,13 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import StageBars from '@/Components/Progress/StageBars.vue'
 import { csrfFetch } from '@/lib/csrf'
+
+const { t } = useI18n()
 
 // STEP 5 — SIMULATE (Wave 7). The page triggers the sim engine; the pump owns
 // liveness; halt / resume / roll back are the operator's controls. Same idiom
@@ -51,19 +54,19 @@ const readiness = computed(() => data.value?.readiness ?? { run_done: false, ver
 const SHOW_TIMINGS = true
 const timingMax = computed(() => Math.max(1, ...timings.value.map(t => t.total_s || 0)))
 const TIMING_LABELS = {
-    'lane.between_claims': 'Between claims (idle + acquire)',
-    'lane.claim_next': 'Claim acquisition',
-    'stage.cohort_scope': 'Cohorts (who lives where)',
-    'stage.identity_batch': 'Identities (minting people)',
-    'stage.election_scope': 'Elections (fielding candidates)',
-    'stage.count_election': 'Counting ballots',
-    'stage.seat_scope': 'Seating representatives',
-    'stage.governance_scope': 'Governance (committees, departments)',
-    'stage.judiciary_scope': 'Judiciary (courts, nominations)',
-    'stage.civics_scope': 'Civics (orgs, bills)',
-    'stage.training_scope': 'Training (pre-train the fleet)',
-    'stage.stipend_scope': 'Stipend (the money plane)',
-    'stage.verify_scope': 'Verify (the acceptance scan)',
+    'lane.between_claims': t('c_setup.step5_simulate.timing_between_claims', 'Between claims (idle + acquire)'),
+    'lane.claim_next': t('c_setup.step5_simulate.timing_claim_next', 'Claim acquisition'),
+    'stage.cohort_scope': t('c_setup.step5_simulate.timing_cohort', 'Cohorts (who lives where)'),
+    'stage.identity_batch': t('c_setup.step5_simulate.timing_identity', 'Identities (minting people)'),
+    'stage.election_scope': t('c_setup.step5_simulate.timing_election', 'Elections (fielding candidates)'),
+    'stage.count_election': t('c_setup.step5_simulate.timing_count', 'Counting ballots'),
+    'stage.seat_scope': t('c_setup.step5_simulate.timing_seat', 'Seating representatives'),
+    'stage.governance_scope': t('c_setup.step5_simulate.timing_governance', 'Governance (committees, departments)'),
+    'stage.judiciary_scope': t('c_setup.step5_simulate.timing_judiciary', 'Judiciary (courts, nominations)'),
+    'stage.civics_scope': t('c_setup.step5_simulate.timing_civics', 'Civics (orgs, bills)'),
+    'stage.training_scope': t('c_setup.step5_simulate.timing_training', 'Training (pre-train the fleet)'),
+    'stage.stipend_scope': t('c_setup.step5_simulate.timing_stipend', 'Stipend (the money plane)'),
+    'stage.verify_scope': t('c_setup.step5_simulate.timing_verify', 'Verify (the acceptance scan)'),
 }
 function timingLabel(p) { return TIMING_LABELS[p] ?? p }
 function timingTone(p) {
@@ -100,10 +103,12 @@ function pct(a, b) { return b > 0 ? Math.min(100, Math.max(0, (a / b) * 100)) : 
 
 // ── Per-layer bars ───────────────────────────────────────────────────────────
 function layerHeadline(l) {
-    return `${n(l.done)} / ${n(l.total)} done` + (l.review ? ` · ${n(l.review)} review` : '')
+    return l.review
+        ? t('c_setup.step5_simulate.layer_headline_with_review', { done: n(l.done), total: n(l.total), review: n(l.review) })
+        : t('c_setup.step5_simulate.layer_headline', { done: n(l.done), total: n(l.total) })
 }
 function layerTitle(l) {
-    return `${n(l.done)} done · ${n(l.running)} running · ${n(l.review)} review · ${n(l.pending)} pending`
+    return t('c_setup.step5_simulate.layer_title', { done: n(l.done), running: n(l.running), review: n(l.review), pending: n(l.pending) })
 }
 
 // ── Lane strip ───────────────────────────────────────────────────────────────
@@ -125,22 +130,28 @@ const laneTone = {
     red:    { dot: 'bg-red-400',   label: 'text-red-200',   clock: 'text-red-400',   pulse: 'bg-red-500/60' },
 }
 const KIND_LABELS = {
-    profile_research: 'Researching localities',
-    cohort_scope: 'Deciding who lives where',
-    identity_batch: 'Minting people',
-    election_scope: 'Calling elections',
-    count_election: 'Counting ballots',
-    seat_scope: 'Seating representatives',
-    governance_scope: 'Growing chambers',
-    judiciary_scope: 'Seating courts',
-    civics_scope: 'Modelling civic life',
-    training_scope: 'Training the fleet',
-    stipend_scope: 'Paying the civic stipend',
-    verify_scope: 'Verifying the world',
+    profile_research: t('c_setup.step5_simulate.kind_profile_research', 'Researching localities'),
+    cohort_scope: t('c_setup.step5_simulate.kind_cohort', 'Deciding who lives where'),
+    identity_batch: t('c_setup.step5_simulate.kind_identity', 'Minting people'),
+    election_scope: t('c_setup.step5_simulate.kind_election', 'Calling elections'),
+    count_election: t('c_setup.step5_simulate.kind_count', 'Counting ballots'),
+    seat_scope: t('c_setup.step5_simulate.kind_seat', 'Seating representatives'),
+    governance_scope: t('c_setup.step5_simulate.kind_governance', 'Growing chambers'),
+    judiciary_scope: t('c_setup.step5_simulate.kind_judiciary', 'Seating courts'),
+    civics_scope: t('c_setup.step5_simulate.kind_civics', 'Modelling civic life'),
+    training_scope: t('c_setup.step5_simulate.kind_training', 'Training the fleet'),
+    stipend_scope: t('c_setup.step5_simulate.kind_stipend', 'Paying the civic stipend'),
+    verify_scope: t('c_setup.step5_simulate.kind_verify', 'Verifying the world'),
 }
-function kindLabel(k) { return KIND_LABELS[k] ?? (k || 'between claims') }
+function kindLabel(k) { return KIND_LABELS[k] ?? (k || t('c_setup.step5_simulate.between_claims', 'between claims')) }
 function admLabel(a) {
-    return ['Planet', 'Countries', 'States / Provinces', 'Counties', 'Municipalities', 'Townships', 'Neighborhoods'][a] ?? (a != null ? `Level ${a}` : '')
+    const labels = [
+        t('c_setup.step5_simulate.adm_0', 'Planet'), t('c_setup.step5_simulate.adm_1', 'Countries'),
+        t('c_setup.step5_simulate.adm_2', 'States / Provinces'), t('c_setup.step5_simulate.adm_3', 'Counties'),
+        t('c_setup.step5_simulate.adm_4', 'Municipalities'), t('c_setup.step5_simulate.adm_5', 'Townships'),
+        t('c_setup.step5_simulate.adm_6', 'Neighborhoods'),
+    ]
+    return labels[a] ?? (a != null ? t('c_setup.step5_simulate.adm_level', { level: a }) : '')
 }
 // One section per claim kind, idle lanes last.
 const laneSections = computed(() => {
@@ -151,7 +162,7 @@ const laneSections = computed(() => {
         ;(byKind[w.claim_type] ??= []).push(w)
     }
     const sections = Object.entries(byKind).map(([kind, list]) => ({ key: kind, title: kindLabel(kind), list }))
-    if (idle.length) sections.push({ key: 'idle', title: 'Between claims', list: idle })
+    if (idle.length) sections.push({ key: 'idle', title: t('c_setup.step5_simulate.lane_section_idle', 'Between claims'), list: idle })
     return sections
 })
 
@@ -174,7 +185,7 @@ async function post(url, body = {}, label = '') {
         })
         const json = await res.json().catch(() => ({}))
         if (!res.ok || json.ok === false) {
-            error.value = json.error || json.reason || `Refused (HTTP ${res.status}).`
+            error.value = json.error || json.reason || t('c_setup.step5_simulate.err_refused', { status: res.status })
             return null
         }
         return json
@@ -192,11 +203,11 @@ async function post(url, body = {}, label = '') {
 // so a required aspect can never be skipped — the same closure the backend
 // enforces. base (people + wallets) is always on and not shown.
 const ASPECT_LABELS = {
-    elections: 'Elections & seating',
-    governance: 'Governance & courts',
-    civic_life: 'Civic life (orgs, CGCs, boards)',
-    training: 'Training',
-    money: 'Money (stipends)',
+    elections: t('c_setup.step5_simulate.aspect_elections', 'Elections & seating'),
+    governance: t('c_setup.step5_simulate.aspect_governance', 'Governance & courts'),
+    civic_life: t('c_setup.step5_simulate.aspect_civic_life', 'Civic life (orgs, CGCs, boards)'),
+    training: t('c_setup.step5_simulate.aspect_training', 'Training'),
+    money: t('c_setup.step5_simulate.aspect_money', 'Money (stipends)'),
 }
 const ASPECT_REQUIRES = {
     elections: [],
@@ -224,23 +235,21 @@ const selectedAspects = computed(() => Object.keys(aspects.value).filter(k => as
 
 async function start(resume = false) {
     const r = await post('/api/setup/wizard/step5/start', { resume, aspects: selectedAspects.value }, 'start')
-    if (r) notice.value = r.resumed ? 'Resuming the unfinished run — re-enumerating cleanly.' : 'Run started. The work-list enumerates first; lanes follow within the minute.'
+    if (r) notice.value = r.resumed ? t('c_setup.step5_simulate.notice_resuming', 'Resuming the unfinished run — re-enumerating cleanly.') : t('c_setup.step5_simulate.notice_started', 'Run started. The work-list enumerates first; lanes follow within the minute.')
 }
 async function halt() {
     const r = await post('/api/setup/wizard/step5/halt', {}, 'halt')
-    if (r) notice.value = 'Halt requested. Lanes stop at their next claim boundary; resume picks up where it stopped.'
+    if (r) notice.value = t('c_setup.step5_simulate.notice_halt', 'Halt requested. Lanes stop at their next claim boundary; resume picks up where it stopped.')
 }
 async function resume() {
     const r = await post('/api/setup/wizard/step5/resume', {}, 'resume')
-    if (r) notice.value = 'Resumed. The pump re-seeds workers within the minute.'
+    if (r) notice.value = t('c_setup.step5_simulate.notice_resumed', 'Resumed. The pump re-seeds workers within the minute.')
 }
 async function rollback() {
-    const msg = 'Roll back this SIMULATION run: clear its work-list and lanes so a fresh run can re-enumerate. '
-        + 'The world it already produced (cohorts, people, seats, civic records) is LEFT IN PLACE, and Step 4\'s '
-        + 'institutions and every map are untouched.\n\nThe run must be halted or done. Continue?'
+    const msg = t('c_setup.step5_simulate.rollback_confirm', 'Roll back this SIMULATION run: clear its work-list and lanes so a fresh run can re-enumerate. The world it already produced (cohorts, people, seats, civic records) is LEFT IN PLACE, and Step 4\'s institutions and every map are untouched.\n\nThe run must be halted or done. Continue?')
     if (!confirm(msg)) return
     const r = await post('/api/setup/wizard/step5/rollback', {}, 'rollback')
-    if (r) notice.value = 'Rolled back: ' + Object.entries(r.deleted || {}).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${v.toLocaleString()}`).join(', ')
+    if (r) notice.value = t('c_setup.step5_simulate.notice_rolled_back', { list: Object.entries(r.deleted || {}).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${v.toLocaleString()}`).join(', ') })
 }
 async function lockAndContinue() {
     const r = await post('/api/setup/wizard/step5/complete', {}, 'continue')
@@ -250,10 +259,8 @@ async function finishWithExclusions() {
     const list = (readiness.value.unresolved || []).map(u => `• ${u.name}${u.gaps ? ' — ' + u.gaps : ''}`).join('\n')
     const total = readiness.value.verify_review ?? 0
     const shown = (readiness.value.unresolved || []).length
-    const more = total > shown ? `\n… and ${total - shown} more` : ''
-    const msg = `Finish Step 5 with DOCUMENTED EXCLUSIONS.\n\n${total} scope(s) did not pass verification. `
-        + `The outstanding list below is recorded into the setup completion notes — it is never a silent claim of readiness.\n\n`
-        + `${list}${more}\n\nProceed?`
+    const more = total > shown ? t('c_setup.step5_simulate.exclusions_more', { count: total - shown }) : ''
+    const msg = t('c_setup.step5_simulate.exclusions_confirm', { total, list, more })
     if (!confirm(msg)) return
     const r = await post('/api/setup/wizard/step5/complete', { force: true }, 'continue')
     if (r?.next) router.visit(r.next)
@@ -271,12 +278,9 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
         <SetupStepper :current="5" :completed="settings.setup_step_completed" :steps="settings.ladder" />
 
         <header class="mt-8 mb-6">
-            <h1 class="text-3xl font-bold text-white mb-2">Simulate</h1>
+            <h1 class="text-3xl font-bold text-white mb-2">{{ t('c_setup.step5_simulate.heading', 'Simulate') }}</h1>
             <p class="text-gray-300 leading-relaxed">
-                Step 4 built the institutions. Step 5 populates them: residents decided per place, people minted,
-                the founding elections fielded and counted by the real engine, representatives seated, chambers grown,
-                courts seated, and civic life modelled. Each stage runs the constitution's own forms, never a shortcut.
-                Halt, resume and roll back at any time. Continue locks the result.
+                {{ t('c_setup.step5_simulate.intro', 'Step 4 built the institutions. Step 5 populates them: residents decided per place, people minted, the founding elections fielded and counted by the real engine, representatives seated, chambers grown, courts seated, and civic life modelled. Each stage runs the constitution\'s own forms, never a shortcut. Halt, resume and roll back at any time. Continue locks the result.') }}
             </p>
         </header>
 
@@ -288,28 +292,28 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
         <!-- Summary tiles -->
         <section class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Work items</div>
+                <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.tile_work_items', 'Work items') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ n(ledger.total) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Done</div>
+                <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.tile_done', 'Done') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ n(ledger.done) }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ n(ledger.review) }} in review</div>
+                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step5_simulate.in_review', { n: n(ledger.review) }) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Rate</div>
+                <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.tile_rate', 'Rate') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ run?.rate_per_h != null ? n(run.rate_per_h) : '—' }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ run?.rate_per_h != null ? run.rate_label : 'measuring' }}</div>
+                <div class="text-gray-500 text-xs mt-1">{{ run?.rate_per_h != null ? run.rate_label : t('c_setup.step5_simulate.measuring', 'measuring') }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Elapsed</div>
+                <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.tile_elapsed', 'Elapsed') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ fmtSecs(run?.elapsed_s) }}</div>
-                <div class="text-gray-500 text-xs mt-1">ETA {{ run?.eta_s != null ? fmtSecs(run.eta_s) : '— (measuring)' }}</div>
+                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step5_simulate.eta', { eta: run?.eta_s != null ? fmtSecs(run.eta_s) : t('c_setup.step5_simulate.eta_measuring', '— (measuring)') }) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Lanes</div>
+                <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.tile_lanes', 'Lanes') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ run ? `${run.lanes} / ${run.pool}` : '—' }}</div>
-                <div class="text-gray-500 text-xs mt-1">derived from this host</div>
+                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step5_simulate.derived_from_host', 'derived from this host') }}</div>
             </div>
         </section>
 
@@ -326,38 +330,38 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                     <div class="text-white font-semibold">
-                        <span v-if="!run">No simulation run yet</span>
-                        <span v-else>Run {{ run.id.slice(0, 8) }} · {{ run.status }}<span v-if="run.phase && run.status === 'running'"> · {{ run.phase }}</span><span v-if="run.halt_requested && run.status !== 'halted'"> · halting</span></span>
+                        <span v-if="!run">{{ t('c_setup.step5_simulate.no_run', 'No simulation run yet') }}</span>
+                        <span v-else>{{ t('c_setup.step5_simulate.run_label', 'Run') }} {{ run.id.slice(0, 8) }} · {{ run.status }}<span v-if="run.phase && run.status === 'running'"> · {{ run.phase }}</span><span v-if="run.halt_requested && run.status !== 'halted'"> · {{ t('c_setup.step5_simulate.halting', 'halting') }}</span></span>
                     </div>
                     <div class="text-gray-400 text-sm mt-1" v-if="run">
-                        done {{ n(ledger.done) }} · running {{ n(ledger.running) }} · pending {{ n(ledger.pending) }} · review {{ n(ledger.review) }}
+                        {{ t('c_setup.step5_simulate.ledger_summary', { done: n(ledger.done), running: n(ledger.running), pending: n(ledger.pending), review: n(ledger.review) }) }}
                     </div>
                     <div class="text-red-300 text-xs mt-1" v-if="run?.last_error">{{ run.last_error }}</div>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <button v-if="canStart && !refused" type="button" :disabled="busy !== '' || locked" @click="start(false)"
                         class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold text-sm">
-                        {{ busy === 'start' ? 'Starting…' : 'Start Simulation' }}
+                        {{ busy === 'start' ? t('c_setup.step5_simulate.btn_starting', 'Starting…') : t('c_setup.step5_simulate.btn_start', 'Start Simulation') }}
                     </button>
                     <button v-if="runLive && !refused" type="button" :disabled="busy !== '' || run.halt_requested" @click="halt"
                         class="bg-amber-700 hover:bg-amber-600 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold text-sm">
-                        {{ busy === 'halt' ? 'Halting…' : 'Halt' }}
+                        {{ busy === 'halt' ? t('c_setup.step5_simulate.btn_halting', 'Halting…') : t('c_setup.step5_simulate.btn_halt', 'Halt') }}
                     </button>
                     <button v-if="runHalted && !refused" type="button" :disabled="busy !== ''" @click="resume"
                         class="bg-emerald-700 hover:bg-emerald-600 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold text-sm">
-                        {{ busy === 'resume' ? 'Resuming…' : 'Resume' }}
+                        {{ busy === 'resume' ? t('c_setup.step5_simulate.btn_resuming', 'Resuming…') : t('c_setup.step5_simulate.btn_resume', 'Resume') }}
                     </button>
                     <button v-if="(runHalted || runDone) && !refused" type="button" :disabled="busy !== '' || locked" @click="rollback"
                         class="bg-red-800 hover:bg-red-700 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold text-sm">
-                        {{ busy === 'rollback' ? 'Rolling back…' : 'Roll back run' }}
+                        {{ busy === 'rollback' ? t('c_setup.step5_simulate.btn_rolling_back', 'Rolling back…') : t('c_setup.step5_simulate.btn_rollback', 'Roll back run') }}
                     </button>
                 </div>
             </div>
 
             <!-- Dependency-aware scope: what to simulate (before a run starts) -->
             <div v-if="canStart && !refused && !locked" class="mt-4 border-t border-gray-700/50 pt-3">
-                <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">Scope
-                    <span class="text-gray-500 normal-case">· pick what to simulate — prerequisites are pulled in automatically, so nothing a chosen aspect needs can be left out. People and wallets always run.</span>
+                <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">{{ t('c_setup.step5_simulate.scope_heading', 'Scope') }}
+                    <span class="text-gray-500 normal-case">{{ t('c_setup.step5_simulate.scope_sub', '· pick what to simulate — prerequisites are pulled in automatically, so nothing a chosen aspect needs can be left out. People and wallets always run.') }}</span>
                 </div>
                 <div class="flex flex-wrap gap-3">
                     <label v-for="(label, key) in ASPECT_LABELS" :key="key"
@@ -373,10 +377,10 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             <!-- Phase plan: the whole run in order, so the total scope is visible from the start -->
             <div v-if="run && phasePlan.phases.length" class="mt-5 border-t border-gray-700/50 pt-3">
                 <div class="flex items-center justify-between mb-2">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide">Phases
-                        <span class="text-gray-500 normal-case">· the full run in order</span>
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.phases_heading', 'Phases') }}
+                        <span class="text-gray-500 normal-case">{{ t('c_setup.step5_simulate.phases_sub', '· the full run in order') }}</span>
                     </div>
-                    <div class="text-gray-500 text-xs tabular-nums">{{ phasePlan.phases.filter(p => p.status === 'done').length }} / {{ phasePlan.total }} done</div>
+                    <div class="text-gray-500 text-xs tabular-nums">{{ t('c_setup.step5_simulate.phases_done', { done: phasePlan.phases.filter(p => p.status === 'done').length, total: phasePlan.total }) }}</div>
                 </div>
                 <!-- Accordion: the current phase expands to its OWN layer bars (0->100%,
                      no rewind); finished phases collapse to a checked row. -->
@@ -397,13 +401,13 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                             </div>
                         </div>
                         <div v-if="p.status === 'current'" class="mt-2 pl-6 space-y-1.5">
-                            <div v-if="!layers.length" class="text-gray-500 text-xs">Enumerating this phase&apos;s work-list…</div>
+                            <div v-if="!layers.length" class="text-gray-500 text-xs">{{ t('c_setup.step5_simulate.enumerating', 'Enumerating this phase\'s work-list…') }}</div>
                             <div v-for="l in layers" :key="l.key">
                                 <div class="flex justify-between text-[11px] mb-0.5" :class="l.status === 'done' ? 'text-gray-500' : 'text-gray-400'">
                                     <span>
                                         <span v-if="l.status === 'done'" class="text-emerald-500 mr-1">✓</span>
                                         {{ l.label }}
-                                        <span v-if="l.review" class="text-amber-400 ml-1">· {{ n(l.review) }} review</span>
+                                        <span v-if="l.review" class="text-amber-400 ml-1">· {{ t('c_setup.step5_simulate.n_review', { n: n(l.review) }) }}</span>
                                     </span>
                                     <span class="tabular-nums">{{ layerHeadline(l) }}</span>
                                 </div>
@@ -420,9 +424,9 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
 
             <!-- Colour key for the phase and layer bars above -->
             <div v-if="run" class="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-gray-500">
-                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-emerald-500"></span>Done</span>
-                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>Running</span>
-                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-amber-500"></span>Review</span>
+                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-emerald-500"></span>{{ t('c_setup.step5_simulate.legend_done', 'Done') }}</span>
+                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>{{ t('c_setup.step5_simulate.legend_running', 'Running') }}</span>
+                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-amber-500"></span>{{ t('c_setup.step5_simulate.legend_review', 'Review') }}</span>
             </div>
         </section>
 
@@ -432,29 +436,29 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
         <!-- What the run has produced -->
         <section v-if="run" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">People</div>
+                <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.world_people', 'People') }}</div>
                 <div class="text-white text-xl font-semibold mt-1 tabular-nums">{{ n(world.people) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Chambers governed</div>
+                <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.world_chambers_governed', 'Chambers governed') }}</div>
                 <div class="text-white text-xl font-semibold mt-1 tabular-nums">{{ n(world.chambers_governed) }} <span class="text-gray-500 text-sm">/ {{ n(world.chambers) }}</span></div>
-                <div class="text-gray-500 text-xs mt-1">{{ n(world.chambers_awaiting_election) }} awaiting election</div>
+                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step5_simulate.world_awaiting_election', { n: n(world.chambers_awaiting_election) }) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Cohorts</div>
+                <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.world_cohorts', 'Cohorts') }}</div>
                 <div class="text-white text-xl font-semibold mt-1 tabular-nums">{{ n(world.cohorts) }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ n(world.electorate_modelled) }} electorate</div>
+                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step5_simulate.world_electorate', { n: n(world.electorate_modelled) }) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Residencies</div>
+                <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.world_residencies', 'Residencies') }}</div>
                 <div class="text-white text-xl font-semibold mt-1 tabular-nums">{{ n(world.residencies) }}</div>
             </div>
         </section>
 
         <!-- Lane strip: grouped by kind, warn-coloured -->
         <section v-if="lanes.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
-            <h2 class="text-white font-semibold mb-3">Lanes
-                <span class="text-gray-500 font-normal text-sm">{{ lanes.length }} live / {{ run?.pool ?? '—' }} · half top-down, half bottom-up</span>
+            <h2 class="text-white font-semibold mb-3">{{ t('c_setup.step5_simulate.lanes_heading', 'Lanes') }}
+                <span class="text-gray-500 font-normal text-sm">{{ t('c_setup.step5_simulate.lanes_sub', { live: lanes.length, pool: run?.pool ?? '—' }) }}</span>
             </h2>
             <div class="space-y-3">
                 <div v-for="grp in laneSections" :key="grp.key">
@@ -470,10 +474,10 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                                     <span v-if="w.claim_type" class="truncate min-w-0" :class="laneTone[laneLevel(w)].label">
                                         {{ w.claim_label || kindLabel(w.claim_type) }}
                                     </span>
-                                    <span v-else class="text-gray-500 italic">between claims</span>
+                                    <span v-else class="text-gray-500 italic">{{ t('c_setup.step5_simulate.between_claims', 'between claims') }}</span>
                                 </span>
                                 <span class="flex items-center gap-2 tabular-nums shrink-0" :class="laneTone[laneLevel(w)].clock">
-                                    <span v-if="w.claim_type">{{ fmtSecs(laneSecs(w)) }} on claim<span v-if="laneLevel(w) !== 'normal'"> ({{ laneLevel(w) }})</span></span>
+                                    <span v-if="w.claim_type">{{ fmtSecs(laneSecs(w)) }} {{ t('c_setup.step5_simulate.on_claim', 'on claim') }}<span v-if="laneLevel(w) !== 'normal'"> ({{ laneLevel(w) }})</span></span>
                                     <span class="font-mono text-gray-600">{{ w.id }}</span>
                                 </span>
                             </div>
@@ -489,10 +493,10 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
 
         <!-- Timing: where the time goes, across all lanes -->
         <section v-if="SHOW_TIMINGS && timings.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
-            <h2 class="text-white font-semibold mb-1">Timing
-                <span class="text-gray-500 font-normal text-sm">where the time goes · avg per part, total across all lanes</span>
+            <h2 class="text-white font-semibold mb-1">{{ t('c_setup.step5_simulate.timing_heading', 'Timing') }}
+                <span class="text-gray-500 font-normal text-sm">{{ t('c_setup.step5_simulate.timing_sub', 'where the time goes · avg per part, total across all lanes') }}</span>
             </h2>
-            <p class="text-gray-500 text-xs mb-3">The bar is each part's share of total lane-seconds. Watch <span class="text-amber-300">Between claims</span>: a lane that sits idle is a lane not working. Compare a stage's avg before and after a change to prove it faster or slower.</p>
+            <p class="text-gray-500 text-xs mb-3" v-html="t('c_setup.step5_simulate.timing_note', 'The bar is each part\'s share of total lane-seconds. Watch <span class=&quot;text-amber-300&quot;>Between claims</span>: a lane that sits idle is a lane not working. Compare a stage\'s avg before and after a change to prove it faster or slower.')"></p>
             <div class="space-y-1 text-xs">
                 <div v-for="t in timings" :key="t.part" class="flex items-center gap-3">
                     <span class="w-56 shrink-0 truncate" :class="timingTone(t.part)">{{ timingLabel(t.part) }}</span>
@@ -509,32 +513,32 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
 
         <!-- World-readiness rollup (G1): the acceptance scan's verdict -->
         <section v-if="run" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
-            <h2 class="text-white font-semibold mb-3">World readiness
+            <h2 class="text-white font-semibold mb-3">{{ t('c_setup.step5_simulate.readiness_heading', 'World readiness') }}
                 <span class="font-normal text-sm"
                       :class="guardPasses ? 'text-emerald-400/80' : (verifyPending ? 'text-amber-400/80' : (verifyReview ? 'text-amber-400/80' : 'text-gray-400'))">
-                    <template v-if="guardPasses">verified — {{ n(readiness.verify_done) }} / {{ n(readiness.verify_total) }} scopes pass</template>
-                    <template v-else-if="verifyPending">verification pending — run the acceptance scan before locking</template>
-                    <template v-else-if="verifyReview">{{ n(readiness.verify_review) }} scope(s) unresolved</template>
-                    <template v-else-if="!readiness.run_done">the run must finish before verification</template>
-                    <template v-else>{{ n(readiness.verify_done) }} / {{ n(readiness.verify_total) }} scopes verified</template>
+                    <template v-if="guardPasses">{{ t('c_setup.step5_simulate.readiness_verified', { done: n(readiness.verify_done), total: n(readiness.verify_total) }) }}</template>
+                    <template v-else-if="verifyPending">{{ t('c_setup.step5_simulate.readiness_pending', 'verification pending — run the acceptance scan before locking') }}</template>
+                    <template v-else-if="verifyReview">{{ t('c_setup.step5_simulate.readiness_review', { n: n(readiness.verify_review) }) }}</template>
+                    <template v-else-if="!readiness.run_done">{{ t('c_setup.step5_simulate.readiness_not_done', 'the run must finish before verification') }}</template>
+                    <template v-else>{{ t('c_setup.step5_simulate.readiness_verified_count', { done: n(readiness.verify_done), total: n(readiness.verify_total) }) }}</template>
                 </span>
             </h2>
             <div class="grid grid-cols-3 gap-3 text-sm mb-3">
                 <div class="bg-gray-950/40 rounded p-3">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide">Verify scopes</div>
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.verify_scopes', 'Verify scopes') }}</div>
                     <div class="text-white text-xl font-semibold tabular-nums">{{ n(readiness.verify_total) }}</div>
                 </div>
                 <div class="bg-gray-950/40 rounded p-3">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide">Passed</div>
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.verify_passed', 'Passed') }}</div>
                     <div class="text-emerald-300 text-xl font-semibold tabular-nums">{{ n(readiness.verify_done) }}</div>
                 </div>
                 <div class="bg-gray-950/40 rounded p-3">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide">Unresolved</div>
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.verify_unresolved', 'Unresolved') }}</div>
                     <div class="text-amber-300 text-xl font-semibold tabular-nums">{{ n(readiness.verify_review) }}</div>
                 </div>
             </div>
             <p v-if="verifyPending" class="text-amber-200/80 text-xs">
-                The run finished but the acceptance scan never ran. It is bounded and resumable — run the verify phase, then lock. This state cannot be forced past.
+                {{ t('c_setup.step5_simulate.verify_pending_note', 'The run finished but the acceptance scan never ran. It is bounded and resumable — run the verify phase, then lock. This state cannot be forced past.') }}
             </p>
             <div v-if="readiness.unresolved && readiness.unresolved.length" class="space-y-1 text-xs mt-1">
                 <div v-for="(u, i) in readiness.unresolved" :key="i" class="flex gap-3 text-gray-300">
@@ -547,7 +551,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
 
         <!-- Review drilldown -->
         <section v-if="review.length" class="bg-amber-900/10 border border-amber-900/40 rounded-lg p-5 mb-6">
-            <h2 class="text-amber-200 font-semibold mb-3">Review <span class="text-amber-400/70 font-normal text-sm">{{ n(ledger.review) }} items · what could not be built</span></h2>
+            <h2 class="text-amber-200 font-semibold mb-3">{{ t('c_setup.step5_simulate.review_heading', 'Review') }} <span class="text-amber-400/70 font-normal text-sm">{{ t('c_setup.step5_simulate.review_sub', { n: n(ledger.review) }) }}</span></h2>
             <div class="space-y-1 text-xs">
                 <div v-for="(r, i) in review" :key="i" class="flex gap-3 text-gray-300">
                     <a v-if="r.slug" :href="`/legislatures/${r.slug}`" target="_blank" class="text-blue-300 hover:underline shrink-0">{{ r.jurisdiction }} <span class="text-gray-500">{{ admLabel(r.adm_level) }}</span></a>
@@ -559,7 +563,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
         </section>
 
         <div class="flex justify-between items-center pt-4 border-t border-gray-800 mt-4">
-            <a href="/setup/step/4" class="text-gray-400 hover:text-gray-200 text-sm px-2 py-2">← Back</a>
+            <a href="/setup/step/4" class="text-gray-400 hover:text-gray-200 text-sm px-2 py-2">{{ t('c_setup.step5_simulate.back', '← Back') }}</a>
             <div class="flex items-center gap-3">
                 <button
                     v-if="canForceFinish"
@@ -567,18 +571,18 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                     :disabled="busy !== ''"
                     @click="finishWithExclusions"
                     class="border border-amber-700/60 text-amber-200 hover:bg-amber-900/20 disabled:opacity-50 px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                    title="Record the unresolved scopes into the completion notes and finish"
+                    :title="t('c_setup.step5_simulate.force_finish_title', 'Record the unresolved scopes into the completion notes and finish')"
                 >
-                    {{ busy === 'continue' ? 'Finishing…' : 'Finish with documented exclusions' }}
+                    {{ busy === 'continue' ? t('c_setup.step5_simulate.btn_finishing', 'Finishing…') : t('c_setup.step5_simulate.btn_force_finish', 'Finish with documented exclusions') }}
                 </button>
                 <button
                     type="button"
                     :disabled="busy !== '' || !canLock"
                     @click="lockAndContinue"
                     class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
-                    :title="canLock ? 'Lock the simulated world and continue' : (verifyPending ? 'Run the acceptance scan before locking' : (verifyReview ? 'Resolve the unresolved scopes, or finish with documented exclusions' : 'Continue opens when the run is verified'))"
+                    :title="canLock ? t('c_setup.step5_simulate.lock_title_ready', 'Lock the simulated world and continue') : (verifyPending ? t('c_setup.step5_simulate.lock_title_pending', 'Run the acceptance scan before locking') : (verifyReview ? t('c_setup.step5_simulate.lock_title_review', 'Resolve the unresolved scopes, or finish with documented exclusions') : t('c_setup.step5_simulate.lock_title_wait', 'Continue opens when the run is verified')))"
                 >
-                    {{ busy === 'continue' ? 'Locking…' : (locked ? 'Continue →' : 'Lock and Continue →') }}
+                    {{ busy === 'continue' ? t('c_setup.step5_simulate.btn_locking', 'Locking…') : (locked ? t('c_setup.step5_simulate.btn_continue', 'Continue →') : t('c_setup.step5_simulate.btn_lock_continue', 'Lock and Continue →')) }}
                 </button>
             </div>
         </div>

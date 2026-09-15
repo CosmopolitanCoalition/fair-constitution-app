@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import ReviewIssuesSection from '@/Components/Setup/ReviewIssuesSection.vue'
@@ -18,6 +19,8 @@ defineOptions({
     // are locked by MenuNav while instance.setupComplete is false.
     layout: (h, page) => h(AppShellV2, { variant: 'wide' }, () => page),
 })
+
+const { t } = useI18n()
 
 const props = defineProps({
     step: { type: Number, required: true },
@@ -95,14 +98,14 @@ const pullRunActive = computed(() => pullRun.value && ['running', 'halted'].incl
 // downstream and moves forward from there — no fresh ingestion to test a fix.
 const rewindTarget = ref('fresh')
 const REWIND_OPTS = [
-    { v: 'fresh',              t: 'Fresh run',                    need: null },
-    { v: 'boundaries_rasters', t: 'Re-run boundaries + rasters',  need: ['boundaries', 'rasters'] },
-    { v: 'boundaries',         t: 'Re-run boundaries',            need: ['boundaries'] },
-    { v: 'rasters',            t: 'Re-run rasters',               need: ['rasters'] },
-    { v: 'resolve_attribute',  t: 'Re-resolve + attribute',       need: ['resolving', 'attribution'] },
-    { v: 'resolve',            t: 'Re-resolve',                   need: ['resolving'] },
-    { v: 'attribute',          t: 'Re-attribute',                 need: ['attribution'] },
-    { v: 'scan',               t: 'Re-scan',                      need: ['scanning'] },
+    { v: 'fresh',              t: t('c_setup.step2_map_data.rewind_fresh', 'Fresh run'),                    need: null },
+    { v: 'boundaries_rasters', t: t('c_setup.step2_map_data.rewind_boundaries_rasters', 'Re-run boundaries + rasters'),  need: ['boundaries', 'rasters'] },
+    { v: 'boundaries',         t: t('c_setup.step2_map_data.rewind_boundaries', 'Re-run boundaries'),            need: ['boundaries'] },
+    { v: 'rasters',            t: t('c_setup.step2_map_data.rewind_rasters', 'Re-run rasters'),              need: ['rasters'] },
+    { v: 'resolve_attribute',  t: t('c_setup.step2_map_data.rewind_resolve_attribute', 'Re-resolve + attribute'),       need: ['resolving', 'attribution'] },
+    { v: 'resolve',            t: t('c_setup.step2_map_data.rewind_resolve', 'Re-resolve'),                   need: ['resolving'] },
+    { v: 'attribute',          t: t('c_setup.step2_map_data.rewind_attribute', 'Re-attribute'),                 need: ['attribution'] },
+    { v: 'scan',               t: t('c_setup.step2_map_data.rewind_scan', 'Re-scan'),                      need: ['scanning'] },
 ]
 // THE ESCAPE-HATCH LAW, frontend edition (operator, 2026-08-05 — the FIFTH
 // catch of the same law: the backend learned to seize any state while this
@@ -221,12 +224,12 @@ async function fetchSources() {
             headers: { 'Accept': 'application/json' },
         })
         if (!res.ok) {
-            sourcesError.value = `Could not read your map data (HTTP ${res.status}).`
+            sourcesError.value = t('c_setup.step2_map_data.err_read_sources', { status: res.status })
             return
         }
         sources.value = await res.json()
     } catch (e) {
-        sourcesError.value = 'Could not read your map data. ' + String(e)
+        sourcesError.value = t('c_setup.step2_map_data.err_read_sources_generic', { detail: String(e) })
     } finally {
         sourcesLoading.value = false
     }
@@ -356,7 +359,7 @@ async function saveArchivePath() {
     const archive = archivePathInput.value.trim()
     const protomaps = protomapsPathInput.value.trim()
     if (archive === '' && protomaps === '') {
-        archivePathError.value = 'Enter at least one folder path.'
+        archivePathError.value = t('c_setup.step2_map_data.err_folder_required', 'Enter at least one folder path.')
         return
     }
     savingArchivePath.value = true
@@ -371,11 +374,11 @@ async function saveArchivePath() {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok) {
-            archivePathError.value = data.error || `Could not save the folder (HTTP ${res.status}).`
+            archivePathError.value = data.error || t('c_setup.step2_map_data.err_save_folder', { status: res.status })
             return
         }
         archivePathMessage.value = data.message
-            || 'Saved. Re-run docker compose up -d, then reload this page.'
+            || t('c_setup.step2_map_data.folder_saved', 'Saved. Re-run docker compose up -d, then reload this page.')
         // Surface the backend's recreate command verbatim as a copy-pasteable
         // code block (it explicitly says up -d, not a stop/start).
         archivePathCommand.value = data.command || 'docker compose up -d'
@@ -400,14 +403,14 @@ async function submitRun() {
     // gets an immediate, plain message rather than a round-trip 422.
     if (source.value === 'download') {
         if (!downloadGeoboundaries.value && !downloadWorldpop.value && !downloadProtomaps.value) {
-            submitError.value = 'Choose at least one dataset to download (boundaries, population, and/or basemap tiles).'
+            submitError.value = t('c_setup.step2_map_data.err_choose_dataset', 'Choose at least one dataset to download (boundaries, population, and/or basemap tiles).')
             return
         }
         // Country scope is now OPTIONAL — an empty list downloads ALL countries
         // (a full-world pull). No client gate here; the UI warns about the size.
     }
     if (source.value === 'folder' && customDataRoot.value.trim() === '') {
-        submitError.value = 'Enter the container path to ingest (e.g. /archive/snapshots/2026-05).'
+        submitError.value = t('c_setup.step2_map_data.err_container_path', 'Enter the container path to ingest (e.g. /archive/snapshots/2026-05).')
         return
     }
 
@@ -428,7 +431,7 @@ async function submitRun() {
                 })
                 const rwData = await rw.json().catch(() => ({}))
                 if (!rw.ok) {
-                    submitError.value = rwData.error || `Rewind failed (HTTP ${rw.status}).`
+                    submitError.value = rwData.error || t('c_setup.step2_map_data.err_rewind', { status: rw.status })
                     return
                 }
                 rewindTarget.value = 'fresh'
@@ -450,7 +453,7 @@ async function submitRun() {
             })
             const data = await res.json().catch(() => ({}))
             if (!res.ok) {
-                submitError.value = data.error || `Run submission failed (HTTP ${res.status}).`
+                submitError.value = data.error || t('c_setup.step2_map_data.err_run_submit', { status: res.status })
                 return
             }
             await pullPanel.value?.fetchProgress()
@@ -500,7 +503,7 @@ async function submitRun() {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok) {
-            submitError.value = data.error || `Run submission failed (HTTP ${res.status}).`
+            submitError.value = data.error || t('c_setup.step2_map_data.err_run_submit', { status: res.status })
             return
         }
         // Immediately refresh state so UI flips to "running" before the next tick.
@@ -523,7 +526,7 @@ async function sendControl(action) {
         })
         if (!res.ok) {
             const data = await res.json().catch(() => ({}))
-            submitError.value = data.error || `Control '${action}' failed (HTTP ${res.status}).`
+            submitError.value = data.error || t('c_setup.step2_map_data.err_control', { action, status: res.status })
         }
         // Refresh so pendingControl/paused flip quickly.
         await fetchProgress()
@@ -560,9 +563,9 @@ const accepting = ref(false)
 // Dev sandbox worlds add "simulate at scale" under eager: the sim populates
 // the built world through the real governance engine.
 const MODE_OPTS = [
-    { v: 'eager',      t: 'Activate & Scale Institutions Now' },
-    { v: 'population', t: 'Activate & Scale Institutions As Players Join' },
-    { v: 'manual',     t: 'Activate & Scale Institutions Manually' },
+    { v: 'eager',      t: t('c_setup.step2_map_data.mode_eager', 'Activate & Scale Institutions Now') },
+    { v: 'population', t: t('c_setup.step2_map_data.mode_population', 'Activate & Scale Institutions As Players Join') },
+    { v: 'manual',     t: t('c_setup.step2_map_data.mode_manual', 'Activate & Scale Institutions Manually') },
 ]
 const scaleMode       = ref(props.scale_mode || 'eager')
 const simulateAtScale = ref(false)
@@ -581,12 +584,12 @@ async function startPlanetGeneration() {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {
-            rehookMsg.value = data.error || `start failed (HTTP ${res.status})`
+            rehookMsg.value = data.error || t('c_setup.step2_map_data.err_planet_start', { status: res.status })
             return
         }
         rehookMsg.value = data.autoscale_run_id
-            ? `Planet-wide generation running (run ${String(data.autoscale_run_id).slice(0, 8)}…)`
-            : 'Planet-wide generation started.'
+            ? t('c_setup.step2_map_data.planet_running', { id: String(data.autoscale_run_id).slice(0, 8) })
+            : t('c_setup.step2_map_data.planet_started', 'Planet-wide generation started.')
     } catch (e) {
         rehookMsg.value = String(e?.message || e)
     } finally {
@@ -613,8 +616,9 @@ async function acceptHere() {
         if (res.status === 422 && data.requires_acknowledgment) {
             const f = data.open_flags || {}
             const ok = confirm(
-                `Open data flags remain: ${f.critical ?? 0} critical, ${f.warning ?? 0} warning, ${f.info ?? 0} info.\n\n` +
-                'Accepting closes the repair window with these flags outstanding. Accept anyway?'
+                t('c_setup.step2_map_data.accept_confirm', {
+                    critical: f.critical ?? 0, warning: f.warning ?? 0, info: f.info ?? 0,
+                })
             )
             if (!ok) return
             res = await csrfFetch('/api/jurisdictions/accept-maps', {
@@ -626,7 +630,7 @@ async function acceptHere() {
         }
 
         if (!res.ok || !data.ok) {
-            advanceError.value = data.error || `accept failed (HTTP ${res.status})`
+            advanceError.value = data.error || t('c_setup.step2_map_data.err_accept', { status: res.status })
             return
         }
 
@@ -671,10 +675,10 @@ async function advance() {
         } else {
             // Surface the real failure (apportionment 422/500, or csrfFetch's
             // honest 419 message) instead of a silent dead button.
-            advanceError.value = data.error || data.message || `Could not continue (HTTP ${res.status}).`
+            advanceError.value = data.error || data.message || t('c_setup.step2_map_data.err_continue', { status: res.status })
         }
     } catch (e) {
-        advanceError.value = e.message || 'Network error while continuing to districting.'
+        advanceError.value = e.message || t('c_setup.step2_map_data.err_continue_network', 'Network error while continuing to districting.')
     } finally {
         advancing.value = false
         apportioning.value = false
@@ -693,13 +697,13 @@ const canAdvance = computed(() => counts.value.adm0 > 0 && counts.value.adm1 > 0
 const mapAccepted = computed(() => !! props.settings?.map_accepted_at)
 
 const continueLabel = computed(() => {
-    if (apportioning.value) return 'Sizing legislatures…'
-    if (accepting.value)    return 'Accepting…'
-    if (advancing.value)    return 'Saving…'
+    if (apportioning.value) return t('c_setup.step2_map_data.continue_sizing', 'Sizing legislatures…')
+    if (accepting.value)    return t('c_setup.step2_map_data.continue_accepting', 'Accepting…')
+    if (advancing.value)    return t('c_setup.step2_map_data.continue_saving', 'Saving…')
 
     // ONE plain Continue (operator, 2026-08-08): the mode dropdown beside it
     // carries what acceptance starts; the button just continues.
-    return 'Continue →'
+    return t('c_setup.step2_map_data.continue', 'Continue →')
 })
 
 function continueFromStep2() {
@@ -716,13 +720,13 @@ const downloadPaused = computed(() => !!(bars.value && bars.value._paused_at))
 const handoffLate      = computed(() => (handoff.value?.waiting_seconds ?? 0) > 120)
 const handoffWaitLabel = computed(() => {
     const s = handoff.value?.waiting_seconds ?? 0
-    return s < 90 ? `${s} s` : `${Math.round(s / 60)} min`
+    return s < 90 ? t('c_setup.step2_map_data.wait_seconds', { s }) : t('c_setup.step2_map_data.wait_minutes', { m: Math.round(s / 60) })
 })
 const runOptionsDisabled = computed(() => isRunning.value || submitting.value)
 
 // Label for the primary "Start" button — download runs read differently.
 const startButtonLabel = computed(() => {
-    if (submitting.value) return 'Submitting…'
+    if (submitting.value) return t('c_setup.step2_map_data.btn_submitting', 'Submitting…')
     // ESCAPE-HATCH LAW (frontend enablement layer). The pull-engine Fresh /
     // Rewind control SEIZES from any state, so its label must state the action
     // it will take — never defer to "Run in progress…" because a stale or
@@ -730,11 +734,11 @@ const startButtonLabel = computed(() => {
     // what left Fresh looking inert on a halted run.
     if (enginePull.value) {
         return rewindTarget.value === 'fresh'
-            ? 'Start Multithreaded Ingestion' : 'Rewind & Re-run'
+            ? t('c_setup.step2_map_data.btn_start_ingestion', 'Start Multithreaded Ingestion') : t('c_setup.step2_map_data.btn_rewind_rerun', 'Rewind & Re-run')
     }
-    if (isRunning.value)  return 'Run in progress…'
-    if (source.value === 'download') return 'Download + Ingest'
-    return 'Start ETL Run'
+    if (isRunning.value)  return t('c_setup.step2_map_data.btn_run_in_progress', 'Run in progress…')
+    if (source.value === 'download') return t('c_setup.step2_map_data.btn_download_ingest', 'Download + Ingest')
+    return t('c_setup.step2_map_data.btn_start_etl', 'Start ETL Run')
 })
 
 // ─── Lifecycle ──────────────────────────────────────────────────────────────
@@ -755,36 +759,27 @@ onBeforeUnmount(() => {
 
             <header class="mt-8 mb-6">
                 <h1 class="text-3xl font-bold text-white mb-2">
-                    Load Boundaries + Population Data
+                    {{ t('c_setup.step2_map_data.heading', 'Load Boundaries + Population Data') }}
                 </h1>
                 <p class="text-gray-400 text-sm">
-                    Point at your map data, then run the ETL pipeline. Progress streams live from the
-                    ETL container. Once the run completes, review any flagged discrepancies before
-                    continuing to districting.
+                    {{ t('c_setup.step2_map_data.intro', 'Point at your map data, then run the ETL pipeline. Progress streams live from the ETL container. Once the run completes, review any flagged discrepancies before continuing to districting.') }}
                 </p>
             </header>
 
             <!-- Your map data (detected inventory at the REAL container path) -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
                 <div class="flex items-baseline justify-between mb-1">
-                    <h2 class="text-white font-semibold">1. Your Map Data &amp; Source</h2>
+                    <h2 class="text-white font-semibold">{{ t('c_setup.step2_map_data.section1_heading', '1. Your Map Data & Source') }}</h2>
                     <button
                         type="button"
                         @click="fetchSources"
                         :disabled="sourcesLoading"
                         class="text-xs text-gray-400 hover:text-gray-200 disabled:opacity-50"
                     >
-                        {{ sourcesLoading ? 'Checking…' : 'Re-check ↻' }}
+                        {{ sourcesLoading ? t('c_setup.step2_map_data.checking', 'Checking…') : t('c_setup.step2_map_data.recheck', 'Re-check ↻') }}
                     </button>
                 </div>
-                <p class="text-gray-500 text-xs mb-4">
-                    The ETL reads from the container path
-                    <code class="text-emerald-300">{{ sources?.archive_mount || '/archive' }}</code>,
-                    which your <code>.env</code> maps from a folder on your computer
-                    (<code class="text-sky-300">ARCHIVE_PATH</code>). If nothing is detected below,
-                    the mount is empty or pointed at the wrong folder — set your local folder
-                    or download the data further down.
-                </p>
+                <p class="text-gray-500 text-xs mb-4" v-html="t('c_setup.step2_map_data.etl_reads_from', { mount: sources?.archive_mount || '/archive' })"></p>
 
                 <!-- Half-applied archive: .env points at a real folder but the
                      containers haven't been recreated, so /archive is still
@@ -795,12 +790,8 @@ onBeforeUnmount(() => {
                     v-if="sources?.archive_empty"
                     class="mb-4 rounded-md border border-sky-700 bg-sky-900/20 px-4 py-3 text-sky-100 text-sm"
                 >
-                    <p class="font-semibold text-sky-200">Your folder is mounted and empty</p>
-                    <p class="mt-1 text-sky-100/90">
-                        <code class="text-sky-200 break-all">{{ sources.archive_env_path }}</code> is bound to
-                        <code>/archive</code>. It holds no datasets yet. Download below, or place the files in that
-                        folder, then click Re-check. No container restart is needed.
-                    </p>
+                    <p class="font-semibold text-sky-200">{{ t('c_setup.step2_map_data.empty_title', 'Your folder is mounted and empty') }}</p>
+                    <p class="mt-1 text-sky-100/90" v-html="t('c_setup.step2_map_data.empty_body', { path: sources.archive_env_path })"></p>
                 </div>
                 <div
                     v-else-if="sources?.apply_pending"
@@ -810,15 +801,9 @@ onBeforeUnmount(() => {
                         <span class="text-amber-300 text-base leading-none mt-0.5">⚠</span>
                         <div class="flex-1">
                             <p class="font-semibold text-amber-200">
-                                Your folder isn't loaded yet
+                                {{ t('c_setup.step2_map_data.apply_pending_title', 'Your folder isn\'t loaded yet') }}
                             </p>
-                            <p class="mt-1 text-amber-100/90">
-                                You pointed the app at
-                                <code class="text-amber-200 break-all">{{ sources.archive_env_path || 'your folder' }}</code>,
-                                but the containers haven't picked it up yet. Run this in the app folder
-                                (it <strong>recreates</strong> the containers — a stop/start or restart is
-                                <strong>not</strong> enough), then click Re-check:
-                            </p>
+                            <p class="mt-1 text-amber-100/90" v-html="t('c_setup.step2_map_data.apply_pending_body', { path: sources.archive_env_path || t('c_setup.step2_map_data.your_folder', 'your folder') })"></p>
                             <div class="mt-2 flex items-center gap-3 flex-wrap">
                                 <code
                                     class="select-all inline-block px-2.5 py-1.5 rounded bg-gray-950 border border-amber-700/60 text-emerald-300 font-mono text-xs"
@@ -829,7 +814,7 @@ onBeforeUnmount(() => {
                                     :disabled="sourcesLoading"
                                     class="bg-amber-700 hover:bg-amber-600 disabled:bg-amber-900 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors"
                                 >
-                                    {{ sourcesLoading ? 'Checking…' : 'Re-check ↻' }}
+                                    {{ sourcesLoading ? t('c_setup.step2_map_data.checking', 'Checking…') : t('c_setup.step2_map_data.recheck', 'Re-check ↻') }}
                                 </button>
                             </div>
                         </div>
@@ -839,18 +824,15 @@ onBeforeUnmount(() => {
                 <div v-if="sourcesError" class="mb-3 text-sm text-red-400">{{ sourcesError }}</div>
 
                 <div v-if="sourcesLoading && !sources" class="text-gray-500 text-sm italic">
-                    Reading the archive mount…
+                    {{ t('c_setup.step2_map_data.reading_mount', 'Reading the archive mount…') }}
                 </div>
 
                 <template v-else-if="sources">
                     <div
                         v-if="!sources.archive_present"
                         class="mb-4 rounded-md border border-amber-800/70 bg-amber-900/20 px-3 py-2 text-amber-200 text-xs"
-                    >
-                        The archive mount <code>{{ sources.archive_mount }}</code> is not present in
-                        the ETL container. Set your local folder below (then restart), or download the
-                        data from the official sources.
-                    </div>
+                        v-html="t('c_setup.step2_map_data.mount_not_present', { mount: sources.archive_mount })"
+                    ></div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <!-- geoBoundaries -->
@@ -866,9 +848,9 @@ onBeforeUnmount(() => {
                             </div>
                             <div class="text-xs" :class="sources.datasets.geoboundaries.present ? 'text-emerald-300' : 'text-gray-500'">
                                 <template v-if="sources.datasets.geoboundaries.present">
-                                    {{ sources.datasets.geoboundaries.countries }} countries detected
+                                    {{ t('c_setup.step2_map_data.countries_detected', { n: sources.datasets.geoboundaries.countries }) }}
                                 </template>
-                                <template v-else>Not detected</template>
+                                <template v-else>{{ t('c_setup.step2_map_data.not_detected', 'Not detected') }}</template>
                             </div>
                             <div class="text-gray-600 text-[11px] font-mono mt-1 break-all">
                                 {{ sources.datasets.geoboundaries.path }}
@@ -888,9 +870,9 @@ onBeforeUnmount(() => {
                             </div>
                             <div class="text-xs" :class="sources.datasets.worldpop.present ? 'text-emerald-300' : 'text-gray-500'">
                                 <template v-if="sources.datasets.worldpop.present">
-                                    {{ sources.datasets.worldpop.countries }} countries detected
+                                    {{ t('c_setup.step2_map_data.countries_detected', { n: sources.datasets.worldpop.countries }) }}
                                 </template>
-                                <template v-else>Not detected</template>
+                                <template v-else>{{ t('c_setup.step2_map_data.not_detected', 'Not detected') }}</template>
                             </div>
                             <div class="text-gray-600 text-[11px] font-mono mt-1 break-all">
                                 {{ sources.datasets.worldpop.path }}
@@ -910,9 +892,9 @@ onBeforeUnmount(() => {
                             </div>
                             <div class="text-xs" :class="sources.datasets.protomaps.present ? 'text-emerald-300' : 'text-gray-500'">
                                 <template v-if="sources.datasets.protomaps.present">
-                                    {{ sources.datasets.protomaps.files.length }} basemap file(s)
+                                    {{ t('c_setup.step2_map_data.basemap_files', { n: sources.datasets.protomaps.files.length }) }}
                                 </template>
-                                <template v-else>Not detected (optional)</template>
+                                <template v-else>{{ t('c_setup.step2_map_data.not_detected_optional', 'Not detected (optional)') }}</template>
                             </div>
                             <div class="text-gray-600 text-[11px] font-mono mt-1 break-all">
                                 {{ sources.datasets.protomaps.path }}
@@ -923,18 +905,12 @@ onBeforeUnmount(() => {
 
                 <!-- LOCAL FOLDER override -->
                 <div class="mt-5 pt-5 border-t border-gray-800">
-                    <h3 class="text-white text-sm font-semibold mb-1">Point at a local folder</h3>
-                    <p class="text-gray-500 text-xs mb-3">
-                        If your map files live somewhere else on this computer, enter that folder here.
-                        It's written to <code class="text-sky-300">ARCHIVE_PATH</code> in your
-                        <code>.env</code> so the container remounts <code>/archive</code> from it.
-                        On Windows, use your host path (e.g.
-                        <code class="text-emerald-300">D:\fair-constitution-map-files</code>).
-                    </p>
+                    <h3 class="text-white text-sm font-semibold mb-1">{{ t('c_setup.step2_map_data.local_folder_heading', 'Point at a local folder') }}</h3>
+                    <p class="text-gray-500 text-xs mb-3" v-html="t('c_setup.step2_map_data.local_folder_help', 'If your map files live somewhere else on this computer, enter that folder here. It\'s written to <code class=&quot;text-sky-300&quot;>ARCHIVE_PATH</code> in your <code>.env</code> so the container remounts <code>/archive</code> from it. On Windows, use your host path (e.g. <code class=&quot;text-emerald-300&quot;>D:\\fair-constitution-map-files</code>).')"></p>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <label class="block">
-                            <span class="text-gray-300 text-xs">Map data folder (ARCHIVE_PATH)</span>
+                            <span class="text-gray-300 text-xs">{{ t('c_setup.step2_map_data.archive_path_label', 'Map data folder (ARCHIVE_PATH)') }}</span>
                             <input
                                 type="text"
                                 v-model="archivePathInput"
@@ -944,7 +920,7 @@ onBeforeUnmount(() => {
                             />
                         </label>
                         <label class="block">
-                            <span class="text-gray-300 text-xs">Basemap tiles folder (PROTOMAPS_DIR, optional)</span>
+                            <span class="text-gray-300 text-xs">{{ t('c_setup.step2_map_data.protomaps_path_label', 'Basemap tiles folder (PROTOMAPS_DIR, optional)') }}</span>
                             <input
                                 type="text"
                                 v-model="protomapsPathInput"
@@ -962,7 +938,7 @@ onBeforeUnmount(() => {
                             :disabled="savingArchivePath"
                             class="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white px-4 py-1.5 rounded-md text-sm font-semibold transition-colors"
                         >
-                            {{ savingArchivePath ? 'Saving…' : 'Save folder path' }}
+                            {{ savingArchivePath ? t('c_setup.step2_map_data.saving', 'Saving…') : t('c_setup.step2_map_data.save_folder', 'Save folder path') }}
                         </button>
                         <span v-if="archivePathError" class="text-red-400 text-xs">{{ archivePathError }}</span>
                     </div>
@@ -981,7 +957,7 @@ onBeforeUnmount(() => {
                                 :disabled="sourcesLoading"
                                 class="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors"
                             >
-                                {{ sourcesLoading ? 'Checking…' : 'Re-check ↻' }}
+                                {{ sourcesLoading ? t('c_setup.step2_map_data.checking', 'Checking…') : t('c_setup.step2_map_data.recheck', 'Re-check ↻') }}
                             </button>
                         </div>
                     </div>
@@ -991,7 +967,7 @@ onBeforeUnmount(() => {
                  data you have and where it comes from — so they read as one
                  step. Inventory first, then the chooser that acts on it. -->
             <div class="mt-8 pt-6 border-t border-gray-800">
-                <h3 class="text-white font-semibold mb-4">Data source</h3>
+                <h3 class="text-white font-semibold mb-4">{{ t('c_setup.step2_map_data.data_source_heading', 'Data source') }}</h3>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Local Archive (default) — bind-mounted /archive folder -->
@@ -1002,13 +978,8 @@ onBeforeUnmount(() => {
                         <input type="radio" value="archive" v-model="source"
                                class="mt-1" :disabled="runOptionsDisabled" />
                         <div class="flex-1">
-                            <div class="text-white font-semibold text-sm">Local Archive (default)</div>
-                            <div class="text-gray-400 text-xs mt-1">
-                                Ingest whatever is detected above at the container path
-                                <code class="text-emerald-300">{{ sources?.archive_mount || '/archive' }}</code>
-                                (mapped from your <code class="text-sky-300">ARCHIVE_PATH</code> folder).
-                                Fastest path — no network.
-                            </div>
+                            <div class="text-white font-semibold text-sm">{{ t('c_setup.step2_map_data.source_archive_title', 'Local Archive (default)') }}</div>
+                            <div class="text-gray-400 text-xs mt-1" v-html="t('c_setup.step2_map_data.source_archive_desc', { mount: sources?.archive_mount || '/archive' })"></div>
                         </div>
                     </label>
 
@@ -1020,12 +991,8 @@ onBeforeUnmount(() => {
                         <input type="radio" value="folder" v-model="source"
                                class="mt-1" :disabled="runOptionsDisabled" />
                         <div class="flex-1">
-                            <div class="text-white font-semibold text-sm">Custom Folder</div>
-                            <div class="text-gray-400 text-xs mt-1">
-                                Ingest a specific <em>container</em> path — an alternate snapshot or a
-                                sub-directory of <code>/archive</code>. (To point at a different folder
-                                on your computer, use "Point at a local folder" above instead.)
-                            </div>
+                            <div class="text-white font-semibold text-sm">{{ t('c_setup.step2_map_data.source_folder_title', 'Custom Folder') }}</div>
+                            <div class="text-gray-400 text-xs mt-1" v-html="t('c_setup.step2_map_data.source_folder_desc', 'Ingest a specific <em>container</em> path — an alternate snapshot or a sub-directory of <code>/archive</code>. (To point at a different folder on your computer, use &quot;Point at a local folder&quot; above instead.)')"></div>
                             <input v-if="source === 'folder'"
                                    type="text"
                                    v-model="customDataRoot"
@@ -1044,12 +1011,8 @@ onBeforeUnmount(() => {
                         <input type="radio" value="download" v-model="source"
                                class="mt-1" :disabled="runOptionsDisabled" />
                         <div class="flex-1">
-                            <div class="text-white font-semibold text-sm">Download from official sources</div>
-                            <div class="text-gray-400 text-xs mt-1">
-                                Fetch the open datasets straight from their official repos, then ingest.
-                                Fetches <strong>all countries</strong> — the full-world
-                                archive the multithreaded engine ingests.
-                            </div>
+                            <div class="text-white font-semibold text-sm">{{ t('c_setup.step2_map_data.source_download_title', 'Download from official sources') }}</div>
+                            <div class="text-gray-400 text-xs mt-1" v-html="t('c_setup.step2_map_data.source_download_desc', 'Fetch the open datasets straight from their official repos, then ingest. Fetches <strong>all countries</strong> — the full-world archive the multithreaded engine ingests.')"></div>
 
                             <div v-if="source === 'download'" class="mt-3 space-y-3">
                                 <!-- geoBoundaries -->
@@ -1057,22 +1020,19 @@ onBeforeUnmount(() => {
                                     <label class="flex items-start gap-2 text-gray-200 text-xs">
                                         <input type="checkbox" v-model="downloadGeoboundaries"
                                                :disabled="runOptionsDisabled" class="mt-0.5" />
-                                        <span>
-                                            Jurisdiction boundaries — <strong>geoBoundaries</strong>
-                                            <span class="block text-gray-500">github.com/wmgeolab/geoBoundaries (CC BY 4.0)</span>
-                                        </span>
+                                        <span v-html="t('c_setup.step2_map_data.dl_geoboundaries', 'Jurisdiction boundaries — <strong>geoBoundaries</strong> <span class=&quot;block text-gray-500&quot;>github.com/wmgeolab/geoBoundaries (CC BY 4.0)</span>')"></span>
                                     </label>
                                     <div v-if="downloadGeoboundaries" class="mt-2 ml-6">
                                         <label class="block">
-                                            <span class="text-gray-400 text-[11px]">Release product</span>
+                                            <span class="text-gray-400 text-[11px]">{{ t('c_setup.step2_map_data.release_product', 'Release product') }}</span>
                                             <select
                                                 v-model="gbRelease"
                                                 :disabled="runOptionsDisabled"
                                                 class="mt-1 w-full max-w-xs bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs text-gray-100 focus:border-blue-500 focus:outline-none"
                                             >
-                                                <option value="gbOpen">gbOpen — open license, recommended</option>
-                                                <option value="gbHumanitarian">gbHumanitarian — humanitarian use</option>
-                                                <option value="gbAuthoritative">gbAuthoritative — official government</option>
+                                                <option value="gbOpen">{{ t('c_setup.step2_map_data.gb_open', 'gbOpen — open license, recommended') }}</option>
+                                                <option value="gbHumanitarian">{{ t('c_setup.step2_map_data.gb_humanitarian', 'gbHumanitarian — humanitarian use') }}</option>
+                                                <option value="gbAuthoritative">{{ t('c_setup.step2_map_data.gb_authoritative', 'gbAuthoritative — official government') }}</option>
                                             </select>
                                         </label>
                                     </div>
@@ -1083,16 +1043,11 @@ onBeforeUnmount(() => {
                                     <label class="flex items-start gap-2 text-gray-200 text-xs">
                                         <input type="checkbox" v-model="downloadWorldpop"
                                                :disabled="runOptionsDisabled" class="mt-0.5" />
-                                        <span>
-                                            Population — <strong>WorldPop</strong>
-                                            <span class="block text-gray-500">
-                                                data.worldpop.org (CC BY 4.0) · pulls boundaries too (needed to attribute population)
-                                            </span>
-                                        </span>
+                                        <span v-html="t('c_setup.step2_map_data.dl_worldpop', 'Population — <strong>WorldPop</strong> <span class=&quot;block text-gray-500&quot;>data.worldpop.org (CC BY 4.0) · pulls boundaries too (needed to attribute population)</span>')"></span>
                                     </label>
                                     <div v-if="downloadWorldpop" class="mt-2 ml-6 grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         <label class="block">
-                                            <span class="text-gray-400 text-[11px]">Year</span>
+                                            <span class="text-gray-400 text-[11px]">{{ t('c_setup.step2_map_data.wp_year', 'Year') }}</span>
                                             <select
                                                 v-model="wpYear"
                                                 :disabled="runOptionsDisabled"
@@ -1100,35 +1055,35 @@ onBeforeUnmount(() => {
                                             >
                                                 <option value="2020">2020</option>
                                                 <option value="2023">2023</option>
-                                                <option value="latest">Latest available</option>
+                                                <option value="latest">{{ t('c_setup.step2_map_data.wp_latest', 'Latest available') }}</option>
                                             </select>
                                         </label>
                                         <label class="block">
-                                            <span class="text-gray-400 text-[11px]">Resolution</span>
+                                            <span class="text-gray-400 text-[11px]">{{ t('c_setup.step2_map_data.wp_resolution', 'Resolution') }}</span>
                                             <select
                                                 v-model="wpResolution"
                                                 :disabled="runOptionsDisabled"
                                                 class="mt-1 w-full bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs text-gray-100 focus:border-blue-500 focus:outline-none"
                                             >
-                                                <option value="100m">100m — fine (larger)</option>
-                                                <option value="1km">1km — coarse (smaller)</option>
+                                                <option value="100m">{{ t('c_setup.step2_map_data.wp_res_100m', '100m — fine (larger)') }}</option>
+                                                <option value="1km">{{ t('c_setup.step2_map_data.wp_res_1km', '1km — coarse (smaller)') }}</option>
                                             </select>
                                         </label>
                                         <label class="block">
-                                            <span class="text-gray-400 text-[11px]">Variant</span>
+                                            <span class="text-gray-400 text-[11px]">{{ t('c_setup.step2_map_data.wp_variant', 'Variant') }}</span>
                                             <select
                                                 v-model="wpVariant"
                                                 :disabled="runOptionsDisabled"
                                                 class="mt-1 w-full bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs text-gray-100 focus:border-blue-500 focus:outline-none"
                                             >
-                                                <option value="constrained">Constrained — built-area masked</option>
-                                                <option value="unconstrained">Unconstrained — full extent</option>
+                                                <option value="constrained">{{ t('c_setup.step2_map_data.wp_var_constrained', 'Constrained — built-area masked') }}</option>
+                                                <option value="unconstrained">{{ t('c_setup.step2_map_data.wp_var_unconstrained', 'Unconstrained — full extent') }}</option>
                                             </select>
                                         </label>
                                         <label class="flex items-center gap-2 text-gray-300 text-xs self-end pb-1">
                                             <input type="checkbox" v-model="wpUnAdjusted"
                                                    :disabled="runOptionsDisabled" />
-                                            <span>Un-adjusted (not UN-matched totals)</span>
+                                            <span>{{ t('c_setup.step2_map_data.wp_unadjusted', 'Un-adjusted (not UN-matched totals)') }}</span>
                                         </label>
                                     </div>
                                 </div>
@@ -1138,29 +1093,18 @@ onBeforeUnmount(() => {
                                     <label class="flex items-start gap-2 text-gray-200 text-xs">
                                         <input type="checkbox" v-model="downloadProtomaps"
                                                :disabled="runOptionsDisabled" class="mt-0.5" />
-                                        <span>
-                                            Basemap tiles — <strong>Protomaps</strong>
-                                            <span class="block text-gray-500">
-                                                maps.protomaps.com · vector planet basemap for the map background
-                                            </span>
-                                        </span>
+                                        <span v-html="t('c_setup.step2_map_data.dl_protomaps', 'Basemap tiles — <strong>Protomaps</strong> <span class=&quot;block text-gray-500&quot;>maps.protomaps.com · vector planet basemap for the map background</span>')"></span>
                                     </label>
                                     <div v-if="downloadProtomaps"
-                                         class="mt-2 ml-6 rounded border border-amber-800/70 bg-amber-900/20 px-2.5 py-1.5 text-amber-200 text-[11px]">
-                                        Heads up: the Protomaps planet build is <strong>~100&nbsp;GB</strong> and takes a long
-                                        time to download. Only fetch it if you want the full-world basemap.
-                                    </div>
+                                         class="mt-2 ml-6 rounded border border-amber-800/70 bg-amber-900/20 px-2.5 py-1.5 text-amber-200 text-[11px]"
+                                         v-html="t('c_setup.step2_map_data.protomaps_warning', 'Heads up: the Protomaps planet build is <strong>~100&nbsp;GB</strong> and takes a long time to download. Only fetch it if you want the full-world basemap.')"></div>
                                 </div>
 
                                 <p
                                     v-if="parsedCountries.length === 0"
                                     class="text-amber-300 text-[11px] rounded border border-amber-800/70 bg-amber-900/20 px-2.5 py-1.5"
-                                >
-                                    <strong>No country scope set</strong> — this downloads <strong>ALL countries</strong>
-                                    (the whole world). Expect <strong>14&nbsp;GB+</strong> of boundary + population data
-                                    and <strong>hours</strong> of download time. To limit it, enter an ISO3 list in Run
-                                    Options below (e.g. NZL,USA).
-                                </p>
+                                    v-html="t('c_setup.step2_map_data.no_scope_warning', '<strong>No country scope set</strong> — this downloads <strong>ALL countries</strong> (the whole world). Expect <strong>14&nbsp;GB+</strong> of boundary + population data and <strong>hours</strong> of download time. To limit it, enter an ISO3 list in Run Options below (e.g. NZL,USA).')"
+                                ></p>
                             </div>
                         </div>
                     </label>
@@ -1173,10 +1117,9 @@ onBeforeUnmount(() => {
                         <input type="radio" value="upload" v-model="source"
                                class="mt-1" disabled />
                         <div class="flex-1">
-                            <div class="text-white font-semibold text-sm">Browser Upload (planned)</div>
+                            <div class="text-white font-semibold text-sm">{{ t('c_setup.step2_map_data.source_upload_title', 'Browser Upload (planned)') }}</div>
                             <div class="text-gray-400 text-xs mt-1">
-                                Upload a tarball or folder from this browser. Multipart
-                                upload handler not yet wired.
+                                {{ t('c_setup.step2_map_data.source_upload_desc', 'Upload a tarball or folder from this browser. Multipart upload handler not yet wired.') }}
                             </div>
                         </div>
                     </label>
@@ -1190,9 +1133,7 @@ onBeforeUnmount(() => {
                      find the button that acts on it. -->
                 <div class="mt-6 pt-5 border-t border-gray-800 flex items-center justify-between gap-3 flex-wrap">
                     <p class="text-gray-500 text-xs flex-1 min-w-[16rem]">
-                        Multithreaded pull engine — a pool of workers ingests countries in
-                        parallel with live per-worker view, halt/resume, and incremental
-                        commits. Failures flag for review; they never sink the run.
+                        {{ t('c_setup.step2_map_data.pull_engine_blurb', 'Multithreaded pull engine — a pool of workers ingests countries in parallel with live per-worker view, halt/resume, and incremental commits. Failures flag for review; they never sink the run.') }}
                     </p>
                     <div class="flex items-center gap-3 shrink-0">
                         <span v-if="submitError" class="text-red-400 text-sm">{{ submitError }}</span>
@@ -1201,7 +1142,7 @@ onBeforeUnmount(() => {
                             v-model="rewindTarget"
                             :disabled="submitting"
                             class="bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-md px-3 py-2"
-                            aria-label="Run mode — fresh run or rewind to a completed phase"
+                            :aria-label="t('c_setup.step2_map_data.run_mode_aria', 'Run mode — fresh run or rewind to a completed phase')"
                         >
                             <option v-for="o in rewindOptions" :key="o.v" :value="o.v" :disabled="!o.enabled">
                                 {{ o.t }}
@@ -1249,59 +1190,51 @@ onBeforeUnmount(() => {
             <section v-if="lifecycle === 'handoff'"
                      class="bg-gray-900 border border-sky-900 rounded-lg p-6 mb-6">
                 <div class="flex items-baseline justify-between mb-1">
-                    <h2 class="text-white font-semibold">2. Download complete — waiting for the ingest engine</h2>
+                    <h2 class="text-white font-semibold">{{ t('c_setup.step2_map_data.handoff_heading', '2. Download complete — waiting for the ingest engine') }}</h2>
                     <span class="text-[11px]" :class="handoffLate ? 'text-amber-400' : 'text-sky-400'">
-                        {{ handoffLate ? 'late' : 'handing off' }}
+                        {{ handoffLate ? t('c_setup.step2_map_data.handoff_late', 'late') : t('c_setup.step2_map_data.handoff_handing_off', 'handing off') }}
                     </span>
                 </div>
                 <p class="text-gray-400 text-xs mb-3">
-                    All files are downloaded. The multithreaded pull run starts on the app scheduler's
-                    next tick, normally within one minute. Waiting {{ handoffWaitLabel }}.
+                    {{ t('c_setup.step2_map_data.handoff_body', { wait: handoffWaitLabel }) }}
                 </p>
                 <div v-if="handoffLate"
-                     class="mb-3 rounded-md border border-amber-800/70 bg-amber-900/20 px-3 py-2 text-xs text-amber-200 leading-relaxed">
-                    The handoff has waited more than two minutes. The scheduler container is not consuming it.
-                    On the server run <code class="text-amber-100">docker compose ps scheduler</code> and
-                    <code class="text-amber-100">docker compose logs --tail 50 scheduler</code>. A restart loop
-                    there means its memory cap is below its need: update the app, run the installer again, then
-                    <code class="text-amber-100">docker compose up -d scheduler</code>. The handoff marker stays
-                    on disk and the run starts on the first surviving tick.
-                </div>
+                     class="mb-3 rounded-md border border-amber-800/70 bg-amber-900/20 px-3 py-2 text-xs text-amber-200 leading-relaxed"
+                     v-html="t('c_setup.step2_map_data.handoff_late_note', 'The handoff has waited more than two minutes. The scheduler container is not consuming it. On the server run <code class=&quot;text-amber-100&quot;>docker compose ps scheduler</code> and <code class=&quot;text-amber-100&quot;>docker compose logs --tail 50 scheduler</code>. A restart loop there means its memory cap is below its need: update the app, run the installer again, then <code class=&quot;text-amber-100&quot;>docker compose up -d scheduler</code>. The handoff marker stays on disk and the run starts on the first surviving tick.')"></div>
                 <StackedProgressBars :bars="bars" :current="current" :lifecycle="lifecycle" />
             </section>
 
             <section v-if="isRunning && !pullRunActive"
                      class="bg-gray-900 border border-emerald-900 rounded-lg p-6 mb-6">
                 <div class="flex items-baseline justify-between mb-1">
-                    <h2 class="text-white font-semibold">2. Download &amp; Ingestion — live</h2>
+                    <h2 class="text-white font-semibold">{{ t('c_setup.step2_map_data.live_heading', '2. Download & Ingestion — live') }}</h2>
                     <div class="flex items-center gap-2">
                         <span class="text-[11px]" :class="downloadPaused ? 'text-amber-400' : 'text-emerald-400'">
-                            {{ downloadPaused ? 'paused' : 'running' }}
+                            {{ downloadPaused ? t('c_setup.step2_map_data.status_paused', 'paused') : t('c_setup.step2_map_data.status_running', 'running') }}
                         </span>
                         <button v-if="!downloadPaused" type="button" @click="sendControl('pause')"
                                 :disabled="pendingControl.pause"
                                 class="px-2.5 py-1 rounded text-[11px] font-semibold border border-amber-700 text-amber-200 hover:bg-amber-900/40 disabled:opacity-50">
-                            {{ pendingControl.pause ? 'Pausing…' : 'Pause' }}
+                            {{ pendingControl.pause ? t('c_setup.step2_map_data.btn_pausing', 'Pausing…') : t('c_setup.step2_map_data.btn_pause', 'Pause') }}
                         </button>
                         <button v-else type="button" @click="sendControl('resume')"
                                 :disabled="pendingControl.resume"
                                 class="px-2.5 py-1 rounded text-[11px] font-semibold border border-emerald-700 text-emerald-200 hover:bg-emerald-900/40 disabled:opacity-50">
-                            {{ pendingControl.resume ? 'Resuming…' : 'Resume' }}
+                            {{ pendingControl.resume ? t('c_setup.step2_map_data.btn_resuming', 'Resuming…') : t('c_setup.step2_map_data.btn_resume', 'Resume') }}
                         </button>
                         <button type="button" @click="sendControl('halt')"
                                 :disabled="pendingControl.halt"
                                 class="px-2.5 py-1 rounded text-[11px] font-semibold border border-red-700 text-red-200 hover:bg-red-900/40 disabled:opacity-50">
-                            {{ pendingControl.halt ? 'Halting…' : 'Halt' }}
+                            {{ pendingControl.halt ? t('c_setup.step2_map_data.btn_halting', 'Halting…') : t('c_setup.step2_map_data.btn_halt', 'Halt') }}
                         </button>
                     </div>
                 </div>
                 <p class="text-gray-500 text-xs mb-4">
-                    Fetching from the official hosts on parallel lanes, then ingesting.
-                    Every bar is written by the engine itself — nothing here is fabricated.
+                    {{ t('c_setup.step2_map_data.live_blurb', 'Fetching from the official hosts on parallel lanes, then ingesting. Every bar is written by the engine itself — nothing here is fabricated.') }}
                 </p>
                 <StackedProgressBars :bars="bars" :current="current" :lifecycle="lifecycle" />
                 <div v-if="current?.sub_phase" class="mt-3 text-xs text-gray-400">
-                    <span class="text-gray-500">now:</span>
+                    <span class="text-gray-500">{{ t('c_setup.step2_map_data.now', 'now:') }}</span>
                     {{ current.name || current.iso_code }} — {{ current.sub_phase }}
                 </div>
                 <div v-if="logBuffer.length" class="mt-3 max-h-40 overflow-y-auto rounded bg-gray-950 border border-gray-800 p-2 font-mono text-[11px] text-gray-400 leading-snug">
@@ -1326,19 +1259,12 @@ onBeforeUnmount(() => {
                  viewer's drill-down panels; Step 2 now just links over. -->
             <section v-if="lifecycle === 'done'" class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
                 <div class="flex items-baseline justify-between mb-3">
-                    <h2 class="text-white font-semibold">4. Review & Accept</h2>
+                    <h2 class="text-white font-semibold">{{ t('c_setup.step2_map_data.review_heading', '4. Review & Accept') }}</h2>
                 </div>
                 <p class="text-gray-400 text-xs mb-3">
-                    The import finished. Open the jurisdiction viewer to inspect
-                    boundaries, populations, raster overlays, dual-footprint
-                    relationships, and the map health checks — then accept the
-                    map data there (planet scope). Click Continue below once
-                    accepted — that triggers apportionment.
+                    {{ t('c_setup.step2_map_data.review_body', 'The import finished. Open the jurisdiction viewer to inspect boundaries, populations, raster overlays, dual-footprint relationships, and the map health checks — then accept the map data there (planet scope). Click Continue below once accepted — that triggers apportionment.') }}
                 </p>
-                <p class="text-gray-500 text-[11px] mb-3">
-                    Accepting closes the repair window, so work anything you intend to
-                    repair <span class="text-gray-400">before</span> you accept.
-                </p>
+                <p class="text-gray-500 text-[11px] mb-3" v-html="t('c_setup.step2_map_data.review_repair_note', 'Accepting closes the repair window, so work anything you intend to repair <span class=&quot;text-gray-400&quot;>before</span> you accept.')"></p>
 
                 <!-- The map health scan, sitting directly above the findings it
                      produced. It ran as part of the pull, but it is measurement,
@@ -1355,8 +1281,7 @@ onBeforeUnmount(() => {
                     <div v-if="flagState.open > 0"
                          class="rounded-md border border-amber-800/70 bg-amber-900/20 px-3 py-2 text-xs text-amber-200 flex items-center gap-2 flex-wrap">
                         <span class="relative group inline-flex items-center gap-1">
-                            ⚑ {{ flagState.open }} map health flag{{ flagState.open === 1 ? '' : 's' }}
-                            — review in the Jurisdiction Viewer →
+                            ⚑ {{ t('c_setup.step2_map_data.flag_count', { n: flagState.open, s: flagState.open === 1 ? '' : 's' }) }}
                             <span class="text-amber-400/70 text-[10px] cursor-help select-none">?</span>
 
                             <!-- The count alone reads as "the import failed N times",
@@ -1364,42 +1289,29 @@ onBeforeUnmount(() => {
                                  these describe real geography — see lib/mapHealth.js
                                  for the per-check prose this summarises. -->
                             <div class="pointer-events-none absolute left-0 top-full mt-1 z-50 w-80 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg space-y-1 normal-case font-normal">
-                                <div class="text-gray-200 font-semibold">These are statistics, not failures.</div>
-                                <div>
-                                    Seven checks measure the health of the imported map, the same way
-                                    the district mapping tool measures population equality and shape
-                                    compactness. Only <span class="text-red-300">orphaned rows</span>
-                                    describes something the import got wrong.
-                                </div>
-                                <div>
-                                    The rest describe the world: disputed borders that must coexist in
-                                    one game space, island groups administered from a distant mainland,
-                                    a national source that records the same village at two levels, a
-                                    country the population raster doesn't cover.
-                                    <span class="text-gray-400">Accepting is frequently the correct resolution.</span>
-                                </div>
+                                <div class="text-gray-200 font-semibold">{{ t('c_setup.step2_map_data.tooltip_title', 'These are statistics, not failures.') }}</div>
+                                <div v-html="t('c_setup.step2_map_data.tooltip_p1', 'Seven checks measure the health of the imported map, the same way the district mapping tool measures population equality and shape compactness. Only <span class=&quot;text-red-300&quot;>orphaned rows</span> describes something the import got wrong.')"></div>
+                                <div v-html="t('c_setup.step2_map_data.tooltip_p2', 'The rest describe the world: disputed borders that must coexist in one game space, island groups administered from a distant mainland, a national source that records the same village at two levels, a country the population raster doesn\'t cover. <span class=&quot;text-gray-400&quot;>Accepting is frequently the correct resolution.</span>')"></div>
                                 <div class="pt-1 border-t border-gray-600 text-gray-400">
-                                    A large count is normal on a full-planet import. What matters is
-                                    whether the structural check is clear — open the viewer and read
-                                    each check's own explainer.
+                                    {{ t('c_setup.step2_map_data.tooltip_p3', 'A large count is normal on a full-planet import. What matters is whether the structural check is clear — open the viewer and read each check\'s own explainer.') }}
                                 </div>
                             </div>
                         </span>
                         <span v-if="flagState.critical > 0"
                               class="px-1.5 py-0 rounded text-[10px] bg-red-900 text-red-200 border border-red-700">
-                            {{ flagState.critical }} critical
+                            {{ t('c_setup.step2_map_data.flags_critical', { n: flagState.critical }) }}
                         </span>
                         <span v-if="flagState.warning > 0"
                               class="px-1.5 py-0 rounded text-[10px] bg-amber-900 text-amber-200 border border-amber-700">
-                            {{ flagState.warning }} warning
+                            {{ t('c_setup.step2_map_data.flags_warning', { n: flagState.warning }) }}
                         </span>
                         <span v-if="flagState.info > 0"
                               class="px-1.5 py-0 rounded text-[10px] bg-gray-700 text-gray-300 border border-gray-600">
-                            {{ flagState.info }} info
+                            {{ t('c_setup.step2_map_data.flags_info', { n: flagState.info }) }}
                         </span>
                     </div>
                     <div v-else class="text-xs text-emerald-300">
-                        ✓ Map health clear — no open flags.
+                        {{ t('c_setup.step2_map_data.map_health_clear', '✓ Map health clear — no open flags.') }}
                     </div>
                 </div>
 
@@ -1410,18 +1322,17 @@ onBeforeUnmount(() => {
                 <div class="flex items-center gap-3">
                     <a href="/jurisdictions" target="_blank" rel="noopener"
                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70 text-sm">
-                        Review in Jurisdiction Viewer ↗
+                        {{ t('c_setup.step2_map_data.review_viewer_link', 'Review in Jurisdiction Viewer ↗') }}
                     </a>
                     <span class="text-gray-500 text-xs">
-                        Opens in a new tab — setup stays where it is.
-                        Accept with the button at the bottom of this page.
+                        {{ t('c_setup.step2_map_data.review_viewer_note', 'Opens in a new tab — setup stays where it is. Accept with the button at the bottom of this page.') }}
                     </span>
                 </div>
             </section>
 
             <div class="flex justify-between pt-4 border-t border-gray-800 mt-4">
                 <a href="/setup/step/1" class="text-gray-400 hover:text-gray-200 text-sm px-2 py-2">
-                    ← Back
+                    {{ t('c_setup.step2_map_data.back', '← Back') }}
                 </a>
                 <div class="flex flex-col items-end gap-1">
                     <!-- The single forward control: accepts first when the map
@@ -1433,21 +1344,21 @@ onBeforeUnmount(() => {
                          ONE continue button stays the only continue control;
                          the dropdown beside it chooses what acceptance STARTS. -->
                     <div v-if="!mapAccepted" class="flex flex-col items-end gap-1.5">
-                        <select v-model="scaleMode" aria-label="Activation mode"
+                        <select v-model="scaleMode" :aria-label="t('c_setup.step2_map_data.activation_mode_aria', 'Activation mode')"
                                 class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
                             <option v-for="o in MODE_OPTS" :key="o.v" :value="o.v">{{ o.t }}</option>
                         </select>
                         <label v-if="is_dev_world && scaleMode === 'eager'"
                                class="flex items-center gap-2 text-xs text-violet-300 select-none cursor-pointer">
                             <input type="checkbox" v-model="simulateAtScale" class="accent-violet-500" />
-                            Dev: simulate the data at scale after the build (sandbox world only)
+                            {{ t('c_setup.step2_map_data.dev_simulate', 'Dev: simulate the data at scale after the build (sandbox world only)') }}
                         </label>
                         <span class="text-[11px] text-gray-500 max-w-md text-right">
                             {{ scaleMode === 'eager'
-                                ? 'PREBUILD only: every legislature sized, every map drawn, institution shells provisioned. Simulated people, orgs & bills is the separate Dev option below.'
+                                ? t('c_setup.step2_map_data.mode_desc_eager', 'PREBUILD only: every legislature sized, every map drawn, institution shells provisioned. Simulated people, orgs & bills is the separate Dev option below.')
                                 : scaleMode === 'population'
-                                    ? 'Nothing pre-built — each place boots automatically as verified residents cross its threshold (5–9).'
-                                    : 'Nothing automatic — Activate per jurisdiction on the list, draw maps, build institutions through their forms; on sandbox worlds each activated row also gets a Simulate button.' }}
+                                    ? t('c_setup.step2_map_data.mode_desc_population', 'Nothing pre-built — each place boots automatically as verified residents cross its threshold (5–9).')
+                                    : t('c_setup.step2_map_data.mode_desc_manual', 'Nothing automatic — Activate per jurisdiction on the list, draw maps, build institutions through their forms; on sandbox worlds each activated row also gets a Simulate button.') }}
                         </span>
                     </div>
                     <button
@@ -1457,13 +1368,13 @@ onBeforeUnmount(() => {
                         class="disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-5 py-2 rounded-md font-semibold transition-colors"
                         :class="mapAccepted ? 'bg-blue-600 hover:bg-blue-500' : 'bg-emerald-700 hover:bg-emerald-600'"
                         :title="!canAdvance
-                            ? 'Load at least one nation (ADM1) before continuing'
-                            : (mapAccepted ? '' : 'Accepting closes the repair window, then runs apportionment')"
+                            ? t('c_setup.step2_map_data.continue_title_load', 'Load at least one nation (ADM1) before continuing')
+                            : (mapAccepted ? '' : t('c_setup.step2_map_data.continue_title_accept', 'Accepting closes the repair window, then runs apportionment'))"
                     >
                         {{ continueLabel }}
                     </button>
                     <span v-if="apportioning" class="text-xs text-gray-500 italic">
-                        Running cube-root apportionment across the jurisdiction tree…
+                        {{ t('c_setup.step2_map_data.apportioning_note', 'Running cube-root apportionment across the jurisdiction tree…') }}
                     </span>
                     <!-- THE RE-HOOK: visible once accepted — starts (or resumes)
                          the deferred planet-wide build whenever the manual
@@ -1471,7 +1382,7 @@ onBeforeUnmount(() => {
                     <div v-if="mapAccepted" class="flex items-center justify-end gap-2">
                         <button type="button" :disabled="rehooking" @click="startPlanetGeneration"
                                 class="text-xs px-3 py-1.5 rounded border border-violet-600 text-violet-200 hover:bg-violet-900/40 disabled:opacity-50">
-                            {{ rehooking ? 'Starting…' : 'Start planet-wide generation →' }}
+                            {{ rehooking ? t('c_setup.step2_map_data.btn_starting', 'Starting…') : t('c_setup.step2_map_data.btn_start_planet', 'Start planet-wide generation →') }}
                         </button>
                         <span v-if="rehookMsg" class="text-xs text-gray-400">{{ rehookMsg }}</span>
                     </div>
@@ -1485,7 +1396,7 @@ onBeforeUnmount(() => {
                              whenever the map is unaccepted. -->
                         <a href="/jurisdictions" target="_blank" rel="noopener"
                            class="inline-block mt-1.5 px-2 py-1 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70">
-                            Review first ↗
+                            {{ t('c_setup.step2_map_data.review_first', 'Review first ↗') }}
                         </a>
                     </div>
                     <span v-else-if="advanceError" class="text-xs text-red-400 max-w-sm text-right">

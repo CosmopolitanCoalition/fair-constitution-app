@@ -20,8 +20,11 @@
  */
 import { computed, ref, watch } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import { csrfFetch } from '@/lib/csrf'
+
+const { t } = useI18n()
 
 defineOptions({
     // ShellV2 (operator, 2026-08-04). Setup ran on the v1 shell with
@@ -74,7 +77,7 @@ async function createFounder() {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok) {
-            founderError.value = data.error || data.message || 'Could not create the operator account.'
+            founderError.value = data.error || data.message || t('c_setup.operator_setup.err_create_founder', 'Could not create the operator account.')
             return
         }
         // Account created + logged in. Reload this step so the node/roles/deploy
@@ -123,7 +126,7 @@ async function saveProfile() {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok) {
-            profileError.value = data.error || data.message || 'Could not save.'
+            profileError.value = data.error || data.message || t('c_setup.operator_setup.err_save', 'Could not save.')
             return
         }
         profileSaved.value = true
@@ -171,8 +174,8 @@ function configHref(capability) {
 }
 function configLabel(capability) {
     return BROKER_CHANNELS.includes(capability)
-        ? 'Configure on the broker console'
-        : 'Configure on the operator console'
+        ? t('c_setup.operator_setup.config_broker', 'Configure on the broker console')
+        : t('c_setup.operator_setup.config_operator', 'Configure on the operator console')
 }
 
 async function establishRoles(capabilities /* array | null (= all) */) {
@@ -190,7 +193,7 @@ async function establishRoles(capabilities /* array | null (= all) */) {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok) {
-            rolesError.value = data.error || data.message || 'Could not turn on the roles.'
+            rolesError.value = data.error || data.message || t('c_setup.operator_setup.err_roles', 'Could not turn on the roles.')
             return
         }
         // Only replace the local list from a NON-EMPTY response — an empty
@@ -221,32 +224,32 @@ const turnOnChannel = (cap) => establishRoles([cap])
 // cards grant nothing the channels don't.
 const NAMED_ROLES = [
     {
-        key: 'record_keeper', label: 'Record Keeper', recommended: true,
-        what: 'Mirror the public record and keep the world\'s geodata flowing.',
-        duty: 'Keep your box on and synced; serve the shared record to peers.',
+        key: 'record_keeper', label: t('c_setup.operator_setup.role_record_keeper_label', 'Record Keeper'), recommended: true,
+        what: t('c_setup.operator_setup.role_record_keeper_what', 'Mirror the public record and keep the world\'s geodata flowing.'),
+        duty: t('c_setup.operator_setup.role_record_keeper_duty', 'Keep your box on and synced; serve the shared record to peers.'),
         channels: ['mirror', 'etl'],
-        consent: 'Self-asserted — one click. Your own infrastructure choice.',
+        consent: t('c_setup.operator_setup.role_record_keeper_consent', 'Self-asserted — one click. Your own infrastructure choice.'),
     },
     {
-        key: 'archivist', label: 'Archivist', recommended: false,
-        what: 'A full peer serving browser players the whole application.',
-        duty: 'Serve the app itself — uptime and bandwidth for real people.',
+        key: 'archivist', label: t('c_setup.operator_setup.role_archivist_label', 'Archivist'), recommended: false,
+        what: t('c_setup.operator_setup.role_archivist_what', 'A full peer serving browser players the whole application.'),
+        duty: t('c_setup.operator_setup.role_archivist_duty', 'Serve the app itself — uptime and bandwidth for real people.'),
         channels: ['client.serve'],
-        consent: 'Governed — at founding you self-assert; later changes go through shared consent.',
+        consent: t('c_setup.operator_setup.role_archivist_consent', 'Governed — at founding you self-assert; later changes go through shared consent.'),
     },
     {
-        key: 'social_moderator', label: 'Social Moderator', recommended: false,
-        what: 'Host the live rooms — chat, voice, and the surfaces they run on.',
-        duty: 'Run the homeserver and media plumbing the commons ride on.',
+        key: 'social_moderator', label: t('c_setup.operator_setup.role_social_moderator_label', 'Social Moderator'), recommended: false,
+        what: t('c_setup.operator_setup.role_social_moderator_what', 'Host the live rooms — chat, voice, and the surfaces they run on.'),
+        duty: t('c_setup.operator_setup.role_social_moderator_duty', 'Run the homeserver and media plumbing the commons ride on.'),
         channels: ['matrix.homeserver', 'voice.sfu', 'client.serve'],
-        consent: 'Governed — at founding you self-assert; later changes go through shared consent.',
+        consent: t('c_setup.operator_setup.role_social_moderator_consent', 'Governed — at founding you self-assert; later changes go through shared consent.'),
     },
     {
-        key: 'identity_broker', label: 'Identity Broker', recommended: false,
-        what: 'Real names and certificates for mesh nodes — the heaviest duty.',
-        duty: 'Hold a sealed DNS token; grant names and certs to peers.',
+        key: 'identity_broker', label: t('c_setup.operator_setup.role_identity_broker_label', 'Identity Broker'), recommended: false,
+        what: t('c_setup.operator_setup.role_identity_broker_what', 'Real names and certificates for mesh nodes — the heaviest duty.'),
+        duty: t('c_setup.operator_setup.role_identity_broker_duty', 'Hold a sealed DNS token; grant names and certs to peers.'),
         channels: ['broker.dns', 'broker.tls', 'authority.grant', 'client.serve'],
-        consent: 'Governed — the heaviest bar: co-affected peers consent to later changes.',
+        consent: t('c_setup.operator_setup.role_identity_broker_consent', 'Governed — the heaviest bar: co-affected peers consent to later changes.'),
     },
 ]
 
@@ -265,40 +268,35 @@ function continueNext() {
 <template>
     <div class="max-w-3xl mx-auto w-full px-6 py-12 space-y-8">
         <header>
-            <h1 class="text-3xl font-bold text-white">Set up your node</h1>
+            <h1 class="text-3xl font-bold text-white">{{ t('c_setup.operator_setup.heading', 'Set up your node') }}</h1>
             <p class="text-gray-400 mt-2">
-                Five steps: claim your account, name the instance, pick a role, finish its
-                setup, and you're set. You're the founding operator, so every role is yours
-                to switch on directly.
+                {{ t('c_setup.operator_setup.intro', 'Five steps: claim your account, name the instance, pick a role, finish its setup, and you\'re set. You\'re the founding operator, so every role is yours to switch on directly.') }}
             </p>
         </header>
 
         <!-- ── 0 · Claim your account ── -->
         <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
             <div class="flex items-center justify-between mb-3">
-                <h2 class="text-xl font-semibold text-white">0 · Claim your account</h2>
-                <span v-if="hasFounder" class="text-emerald-400 text-sm">✓ Claimed</span>
+                <h2 class="text-xl font-semibold text-white">{{ t('c_setup.operator_setup.claim_heading', '0 · Claim your account') }}</h2>
+                <span v-if="hasFounder" class="text-emerald-400 text-sm">{{ t('c_setup.operator_setup.claimed', '✓ Claimed') }}</span>
             </div>
 
             <template v-if="!hasFounder">
-                <p class="text-gray-400 text-sm mb-4">
-                    <strong class="text-gray-200">Path A — a fresh local account.</strong>
-                    Your physical-operator credentials; the password works on this box only.
-                </p>
+                <p class="text-gray-400 text-sm mb-4" v-html="t('c_setup.operator_setup.path_a', '<strong class=&quot;text-gray-200&quot;>Path A — a fresh local account.</strong> Your physical-operator credentials; the password works on this box only.')"></p>
                 <div class="space-y-3">
-                    <input v-model="founderName" type="text" aria-label="Your name" placeholder="Your name"
+                    <input v-model="founderName" type="text" :aria-label="t('c_setup.operator_setup.field_name', 'Your name')" :placeholder="t('c_setup.operator_setup.field_name', 'Your name')"
                         class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
-                    <input v-model="founderEmail" type="email" aria-label="Email" placeholder="Email"
+                    <input v-model="founderEmail" type="email" :aria-label="t('c_setup.operator_setup.field_email', 'Email')" :placeholder="t('c_setup.operator_setup.field_email', 'Email')"
                         class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
-                    <input v-model="founderPassword" type="password" aria-label="Password" placeholder="Password (8+ characters)"
+                    <input v-model="founderPassword" type="password" :aria-label="t('c_setup.operator_setup.field_password', 'Password')" :placeholder="t('c_setup.operator_setup.field_password_placeholder', 'Password (8+ characters)')"
                         class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
-                    <input v-model="founderPasswordConfirm" type="password" aria-label="Confirm password" placeholder="Confirm password"
+                    <input v-model="founderPasswordConfirm" type="password" :aria-label="t('c_setup.operator_setup.field_confirm_password', 'Confirm password')" :placeholder="t('c_setup.operator_setup.field_confirm_password', 'Confirm password')"
                         class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
                 </div>
                 <div v-if="founderError" class="mt-3 text-sm text-red-400">{{ founderError }}</div>
                 <button :disabled="!canCreateFounder || creatingFounder" @click="createFounder"
                     class="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-md transition">
-                    {{ creatingFounder ? 'Creating…' : 'Create operator account' }}
+                    {{ creatingFounder ? t('c_setup.operator_setup.btn_creating', 'Creating…') : t('c_setup.operator_setup.btn_create_account', 'Create operator account') }}
                 </button>
 
                 <!-- Path B — device-key linking. The built Flow B (POST /operator/link)
@@ -307,49 +305,37 @@ function continueNext() {
                      rather than simulating the flow. -->
                 <div class="mt-4 bg-gray-950 border border-gray-800 rounded p-4">
                     <p class="text-gray-300 text-sm font-medium mb-1">
-                        Path B — link an existing mesh identity
+                        {{ t('c_setup.operator_setup.path_b_title', 'Path B — link an existing mesh identity') }}
                     </p>
-                    <p class="text-gray-500 text-xs">
-                        Already an operator elsewhere on the mesh? You can recognise yourself
-                        across boxes by <strong>device-key possession</strong> — a key your
-                        identity already trusts signs a one-time proof; no password is ever
-                        replayed between boxes. On this box: claim the account above first,
-                        then link the mesh identity from
-                        <a href="/operator/identity" class="text-blue-400 hover:text-blue-300 underline">Identity → devices</a>
-                        — only the Ed25519 public key enrols; the secret never leaves your device.
-                    </p>
+                    <p class="text-gray-500 text-xs" v-html="t('c_setup.operator_setup.path_b_body', 'Already an operator elsewhere on the mesh? You can recognise yourself across boxes by <strong>device-key possession</strong> — a key your identity already trusts signs a one-time proof; no password is ever replayed between boxes. On this box: claim the account above first, then link the mesh identity from <a href=&quot;/operator/identity&quot; class=&quot;text-blue-400 hover:text-blue-300 underline&quot;>Identity → devices</a> — only the Ed25519 public key enrols; the secret never leaves your device.')"></p>
                 </div>
             </template>
-            <p v-else class="text-gray-400 text-sm">
-                Account claimed. Linking a mesh identity by device key lives on
-                <a href="/operator/identity" class="text-blue-400 hover:text-blue-300 underline">the Identity page</a>.
-            </p>
+            <p v-else class="text-gray-400 text-sm" v-html="t('c_setup.operator_setup.account_claimed', 'Account claimed. Linking a mesh identity by device key lives on <a href=&quot;/operator/identity&quot; class=&quot;text-blue-400 hover:text-blue-300 underline&quot;>the Identity page</a>.')"></p>
         </section>
 
         <template v-if="hasFounder">
             <!-- ── 1 · Name the instance ── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
                 <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-xl font-semibold text-white">1 · Name the instance</h2>
-                    <span v-if="profileSaved" class="text-emerald-400 text-sm">✓ Saved</span>
+                    <h2 class="text-xl font-semibold text-white">{{ t('c_setup.operator_setup.name_heading', '1 · Name the instance') }}</h2>
+                    <span v-if="profileSaved" class="text-emerald-400 text-sm">{{ t('c_setup.operator_setup.saved', '✓ Saved') }}</span>
                 </div>
 
                 <label class="block mb-4">
-                    <span class="block text-xs text-gray-400 mb-1">Node name (optional)</span>
-                    <input v-model="instanceName" type="text" placeholder="e.g. Home node"
+                    <span class="block text-xs text-gray-400 mb-1">{{ t('c_setup.operator_setup.node_name', 'Node name (optional)') }}</span>
+                    <input v-model="instanceName" type="text" :placeholder="t('c_setup.operator_setup.node_name_placeholder', 'e.g. Home node')"
                         class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
                 </label>
 
-                <p class="text-gray-400 text-sm mb-3">Who should be able to reach this node?</p>
+                <p class="text-gray-400 text-sm mb-3">{{ t('c_setup.operator_setup.reach_question', 'Who should be able to reach this node?') }}</p>
                 <div class="space-y-2">
                     <label class="flex items-start gap-3 bg-gray-950 border rounded p-3 cursor-pointer"
                         :class="reach === 'solo' ? 'border-emerald-600' : 'border-gray-800'">
                         <input type="radio" value="solo" v-model="reach" class="mt-1" />
                         <span>
-                            <span class="block text-gray-100 text-sm font-medium">Just me, for now</span>
+                            <span class="block text-gray-100 text-sm font-medium">{{ t('c_setup.operator_setup.reach_solo_title', 'Just me, for now') }}</span>
                             <span class="block text-gray-500 text-xs">
-                                Runs on this computer. No address needed — you can open it to others later
-                                when you're ready to accept peers.
+                                {{ t('c_setup.operator_setup.reach_solo_body', 'Runs on this computer. No address needed — you can open it to others later when you\'re ready to accept peers.') }}
                             </span>
                         </span>
                     </label>
@@ -357,9 +343,9 @@ function continueNext() {
                         :class="reach === 'open' ? 'border-emerald-600' : 'border-gray-800'">
                         <input type="radio" value="open" v-model="reach" class="mt-1" />
                         <span class="flex-1">
-                            <span class="block text-gray-100 text-sm font-medium">Let other computers / people connect</span>
+                            <span class="block text-gray-100 text-sm font-medium">{{ t('c_setup.operator_setup.reach_open_title', 'Let other computers / people connect') }}</span>
                             <span class="block text-gray-500 text-xs mb-2">
-                                Set the address peers dial to reach this box.
+                                {{ t('c_setup.operator_setup.reach_open_body', 'Set the address peers dial to reach this box.') }}
                             </span>
                             <template v-if="reach === 'open'">
                                 <input v-model="selfUrl" type="url" placeholder="http://192.168.1.20:8080"
@@ -367,10 +353,10 @@ function continueNext() {
                                 <div class="flex items-center gap-2 mt-2">
                                     <button type="button" @click="useDetected"
                                         class="text-xs text-blue-400 hover:text-blue-300">
-                                        Use this browser's address ({{ detectedOrigin }})
+                                        {{ t('c_setup.operator_setup.use_browser_address', { origin: detectedOrigin }) }}
                                     </button>
                                     <span v-if="detectedIsLocalhost" class="text-xs text-amber-400">
-                                        — localhost only works on this computer; use your LAN/public address for real peers.
+                                        {{ t('c_setup.operator_setup.localhost_warning', '— localhost only works on this computer; use your LAN/public address for real peers.') }}
                                     </span>
                                 </div>
                             </template>
@@ -379,10 +365,7 @@ function continueNext() {
                 </div>
 
                 <div v-if="profileError" class="mt-3 text-sm text-red-400">{{ profileError }}</div>
-                <div v-if="restartRequired" class="mt-3 text-xs text-amber-400 bg-amber-900/20 border border-amber-800/50 rounded p-2">
-                    The address changed. Re-run the start command
-                    (<code class="text-amber-300">docker compose up -d</code>) so the containers pick it up before peers join.
-                </div>
+                <div v-if="restartRequired" class="mt-3 text-xs text-amber-400 bg-amber-900/20 border border-amber-800/50 rounded p-2" v-html="t('c_setup.operator_setup.restart_required', 'The address changed. Re-run the start command (<code class=&quot;text-amber-300&quot;>docker compose up -d</code>) so the containers pick it up before peers join.')"></div>
 
                 <!-- type="button" is explicit: a <button> with no type defaults
                      to submit, which would navigate (full reload) the moment
@@ -390,18 +373,15 @@ function continueNext() {
                      here declares it; this one was the lone omission. -->
                 <button type="button" :disabled="savingProfile" @click="saveProfile"
                     class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white rounded-md transition">
-                    {{ savingProfile ? 'Saving…' : 'Save' }}
+                    {{ savingProfile ? t('c_setup.operator_setup.btn_saving', 'Saving…') : t('c_setup.operator_setup.btn_save', 'Save') }}
                 </button>
             </section>
 
             <!-- ── 2 · Pick a role ── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
-                <h2 class="text-xl font-semibold text-white mb-3">2 · Pick a role</h2>
+                <h2 class="text-xl font-semibold text-white mb-3">{{ t('c_setup.operator_setup.role_heading', '2 · Pick a role') }}</h2>
                 <p class="text-gray-400 text-sm mb-4">
-                    A role is a friendly grouping over the capability channels — no new power.
-                    Roles are infrastructure duties, not citizen privilege (they buy no vote or
-                    seat). As the founding operator you self-assert directly; once a government
-                    seats, governed roles return to shared consent for later changes.
+                    {{ t('c_setup.operator_setup.role_intro', 'A role is a friendly grouping over the capability channels — no new power. Roles are infrastructure duties, not citizen privilege (they buy no vote or seat). As the founding operator you self-assert directly; once a government seats, governed roles return to shared consent for later changes.') }}
                 </p>
                 <div class="grid sm:grid-cols-2 gap-4 mb-2">
                     <div v-for="role in NAMED_ROLES" :key="role.key"
@@ -409,11 +389,11 @@ function continueNext() {
                         :class="roleEstablished(role) ? 'border-emerald-600' : 'border-gray-800'">
                         <div class="flex items-center justify-between">
                             <span class="text-gray-100 text-sm font-semibold">{{ role.label }}</span>
-                            <span v-if="roleEstablished(role)" class="text-emerald-400 text-xs">✓ Established</span>
-                            <span v-else-if="role.recommended" class="text-amber-300 text-xs">Recommended</span>
+                            <span v-if="roleEstablished(role)" class="text-emerald-400 text-xs">{{ t('c_setup.operator_setup.role_established', '✓ Established') }}</span>
+                            <span v-else-if="role.recommended" class="text-amber-300 text-xs">{{ t('c_setup.operator_setup.role_recommended', 'Recommended') }}</span>
                         </div>
                         <p class="text-gray-400 text-xs">{{ role.what }}</p>
-                        <p class="text-gray-500 text-xs"><strong class="text-gray-400">Your duty:</strong> {{ role.duty }}</p>
+                        <p class="text-gray-500 text-xs"><strong class="text-gray-400">{{ t('c_setup.operator_setup.your_duty', 'Your duty:') }}</strong> {{ role.duty }}</p>
                         <p class="text-gray-500 text-xs">
                             <code v-for="cap in role.channels" :key="cap" class="text-gray-300 mr-1">{{ cap }}</code>
                         </p>
@@ -422,7 +402,7 @@ function continueNext() {
                             :disabled="establishingAll || !!establishingCap || !channels.length"
                             @click="chooseRole(role)"
                             class="mt-auto px-3 py-1.5 bg-gray-800 hover:bg-gray-700 disabled:bg-gray-800/50 disabled:text-gray-600 text-gray-100 text-xs rounded transition">
-                            Choose {{ role.label }}
+                            {{ t('c_setup.operator_setup.choose_role', { role: role.label }) }}
                         </button>
                     </div>
                 </div>
@@ -431,12 +411,11 @@ function continueNext() {
             <!-- ── 3 · Role-specific setup (the channel substrate) ── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
                 <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-xl font-semibold text-white">3 · Role-specific setup</h2>
-                    <span class="text-gray-500 text-xs">{{ activeChannels }} / {{ channels.length }} channels on</span>
+                    <h2 class="text-xl font-semibold text-white">{{ t('c_setup.operator_setup.channels_heading', '3 · Role-specific setup') }}</h2>
+                    <span class="text-gray-500 text-xs">{{ t('c_setup.operator_setup.channels_on', { active: activeChannels, total: channels.length }) }}</span>
                 </div>
                 <p class="text-gray-400 text-sm mb-4">
-                    The channels beneath the role cards — turn any on individually, and finish
-                    the infrastructure config where a channel needs it.
+                    {{ t('c_setup.operator_setup.channels_intro', 'The channels beneath the role cards — turn any on individually, and finish the infrastructure config where a channel needs it.') }}
                 </p>
 
                 <div v-if="rolesError" class="mb-3 text-sm text-red-400 bg-red-900/20 border border-red-800/50 rounded p-2">
@@ -446,8 +425,8 @@ function continueNext() {
                 <button :disabled="establishingAll || !!establishingCap || activeChannels === channels.length"
                     @click="turnOnAll"
                     class="mb-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-md transition">
-                    {{ establishingAll ? 'Turning on…'
-                        : activeChannels === channels.length && channels.length ? '✓ All roles on' : 'Turn on all roles' }}
+                    {{ establishingAll ? t('c_setup.operator_setup.btn_turning_on', 'Turning on…')
+                        : activeChannels === channels.length && channels.length ? t('c_setup.operator_setup.btn_all_on', '✓ All roles on') : t('c_setup.operator_setup.btn_turn_on_all', 'Turn on all roles') }}
                 </button>
 
                 <ul v-if="channels.length" class="space-y-2 mb-4">
@@ -458,26 +437,26 @@ function continueNext() {
                             <code class="text-gray-300 text-xs">{{ c.capability }}</code>
                             <span class="text-gray-500 text-xs"> — {{ c.label }}</span>
                         </span>
-                        <span v-if="c.established" class="text-emerald-400 text-xs whitespace-nowrap">On</span>
+                        <span v-if="c.established" class="text-emerald-400 text-xs whitespace-nowrap">{{ t('c_setup.operator_setup.channel_on', 'On') }}</span>
                         <button v-else :disabled="establishingAll || !!establishingCap"
                             @click="turnOnChannel(c.capability)"
                             class="px-3 py-1 bg-gray-800 hover:bg-gray-700 disabled:bg-gray-800/50 disabled:text-gray-600 text-gray-100 text-xs rounded whitespace-nowrap transition">
-                            {{ establishingCap === c.capability ? 'Turning on…' : 'Turn on' }}
+                            {{ establishingCap === c.capability ? t('c_setup.operator_setup.btn_turning_on', 'Turning on…') : t('c_setup.operator_setup.btn_turn_on', 'Turn on') }}
                         </button>
                     </li>
                 </ul>
                 <p v-else class="text-gray-500 text-sm mb-4">
-                    Roles become available once the operator account above is created.
+                    {{ t('c_setup.operator_setup.channels_locked', 'Roles become available once the operator account above is created.') }}
                 </p>
 
                 <!-- Channels that are on but still need infra config to actually work. -->
                 <div v-if="needsSetup.length"
                     class="mb-4 text-xs bg-amber-900/20 border border-amber-800/50 rounded p-3 space-y-2">
-                    <p class="text-amber-300 font-medium">Some roles still need setup before they work:</p>
+                    <p class="text-amber-300 font-medium">{{ t('c_setup.operator_setup.needs_setup_title', 'Some roles still need setup before they work:') }}</p>
                     <ul class="space-y-1.5">
                         <li v-for="c in needsSetup" :key="c.capability" class="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <code class="text-amber-200">{{ c.capability }}</code>
-                            <span class="text-amber-400/80">— {{ c.what || 'needs configuration' }}</span>
+                            <span class="text-amber-400/80">— {{ c.what || t('c_setup.operator_setup.needs_configuration', 'needs configuration') }}</span>
                             <a :href="configHref(c.capability)"
                                 class="text-blue-400 hover:text-blue-300 underline whitespace-nowrap">
                                 {{ configLabel(c.capability) }} →
@@ -485,39 +464,38 @@ function continueNext() {
                         </li>
                     </ul>
                     <p class="text-amber-400/70">
-                        Infrastructure config comes next — you can turn a role on now and finish its setup there.
+                        {{ t('c_setup.operator_setup.needs_setup_note', 'Infrastructure config comes next — you can turn a role on now and finish its setup there.') }}
                     </p>
                 </div>
 
                 <a href="/operator/roles"
                     class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300">
-                    Prefer the full console? Open the operator console →
+                    {{ t('c_setup.operator_setup.full_console', 'Prefer the full console? Open the operator console →') }}
                 </a>
             </section>
 
             <!-- ── 4 · You're set — share + continue ── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
-                <h2 class="text-lg font-semibold text-white mb-3">4 · You're set — share this deployment</h2>
+                <h2 class="text-lg font-semibold text-white mb-3">{{ t('c_setup.operator_setup.share_heading', '4 · You\'re set — share this deployment') }}</h2>
                 <p class="text-gray-400 text-sm mb-4">
-                    Hand a colleague a one-file start script. Solo = they found their own world; Join = they
-                    mirror this one (needs your node address set above).
+                    {{ t('c_setup.operator_setup.share_intro', 'Hand a colleague a one-file start script. Solo = they found their own world; Join = they mirror this one (needs your node address set above).') }}
                 </p>
                 <div class="grid sm:grid-cols-2 gap-4">
                     <div class="bg-gray-950 border border-gray-800 rounded p-4">
-                        <div class="text-emerald-400 text-xs font-semibold uppercase mb-2">Solo</div>
+                        <div class="text-emerald-400 text-xs font-semibold uppercase mb-2">{{ t('c_setup.operator_setup.share_solo', 'Solo') }}</div>
                         <div class="flex flex-wrap gap-2">
                             <button @click="downloadPackage('windows','solo')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded">Windows</button>
                             <button @click="downloadPackage('unix','solo')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded">macOS / Linux</button>
                         </div>
                     </div>
                     <div class="bg-gray-950 border border-gray-800 rounded p-4">
-                        <div class="text-sky-400 text-xs font-semibold uppercase mb-2">Join</div>
+                        <div class="text-sky-400 text-xs font-semibold uppercase mb-2">{{ t('c_setup.operator_setup.share_join', 'Join') }}</div>
                         <div class="flex flex-wrap gap-2">
                             <button @click="downloadPackage('windows','join')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded">Windows</button>
                             <button @click="downloadPackage('unix','join')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded">macOS / Linux</button>
                         </div>
                         <p v-if="reach !== 'open' || !selfUrl.trim()" class="text-xs text-amber-400 mt-2">
-                            Set a reachable node address above first, or the join script won't know where to dial.
+                            {{ t('c_setup.operator_setup.share_join_warning', 'Set a reachable node address above first, or the join script won\'t know where to dial.') }}
                         </p>
                     </div>
                 </div>
@@ -527,7 +505,7 @@ function continueNext() {
             <section class="flex justify-end">
                 <button @click="continueNext"
                     class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md font-semibold transition">
-                    {{ isJoin ? 'Continue to join →' : 'Continue to cosmic address →' }}
+                    {{ isJoin ? t('c_setup.operator_setup.continue_join', 'Continue to join →') : t('c_setup.operator_setup.continue_cosmic', 'Continue to cosmic address →') }}
                 </button>
             </section>
         </template>

@@ -1,9 +1,12 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import { csrfFetch } from '@/lib/csrf'
+
+const { t } = useI18n()
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
 defineOptions({
@@ -81,9 +84,9 @@ const payOfficeHolder    = ref(c.pay_office_holder   ?? 12)
 const stipendInterval    = ref(c.stipend_interval    ?? 'monthly')
 
 const STIPEND_INTERVALS = [
-    { id: 'monthly',   label: 'Monthly' },
-    { id: 'quarterly', label: 'Quarterly' },
-    { id: 'per_cycle', label: 'Per cycle' },
+    { id: 'monthly',   label: t('c_setup.step1_constants.interval_monthly', 'Monthly') },
+    { id: 'quarterly', label: t('c_setup.step1_constants.interval_quarterly', 'Quarterly') },
+    { id: 'per_cycle', label: t('c_setup.step1_constants.interval_per_cycle', 'Per cycle') },
 ]
 
 // ── Game Mode (WORLD property) ──────────────────────────────────────
@@ -97,13 +100,13 @@ const gameModeError  = ref(null)
 const GAME_MODES = [
     {
         id: 'production',
-        label: 'Production',
-        blurb: 'The world operates strictly within its constitutional constraints. Every role, qualification, and gate is enforced as written.',
+        label: t('c_setup.step1_constants.game_mode_production', 'Production'),
+        blurb: t('c_setup.step1_constants.game_mode_production_blurb', 'The world operates strictly within its constitutional constraints. Every role, qualification, and gate is enforced as written.'),
     },
     {
         id: 'sandbox',
-        label: 'Sandbox / Dev',
-        blurb: 'No constitutional hardening — a dev toolbox can assume any role and manufacture qualifications. For demoing, testing, and building the world before it goes live.',
+        label: t('c_setup.step1_constants.game_mode_sandbox', 'Sandbox / Dev'),
+        blurb: t('c_setup.step1_constants.game_mode_sandbox_blurb', 'No constitutional hardening — a dev toolbox can assume any role and manufacture qualifications. For demoing, testing, and building the world before it goes live.'),
     },
 ]
 
@@ -122,13 +125,13 @@ async function selectGameMode(mode) {
         const data = await res.json()
         if (!res.ok) {
             gameMode.value = previous // revert
-            gameModeError.value = data.error || data.message || 'Could not save game mode.'
+            gameModeError.value = data.error || data.message || t('c_setup.step1_constants.err_game_mode', 'Could not save game mode.')
             return
         }
         gameMode.value = data.settings?.game_mode ?? mode
     } catch (e) {
         gameMode.value = previous // revert
-        gameModeError.value = e.message || 'Network error saving game mode.'
+        gameModeError.value = e.message || t('c_setup.step1_constants.err_game_mode_network', 'Network error saving game mode.')
     } finally {
         gameModeSaving.value = false
     }
@@ -138,20 +141,20 @@ const submitting = ref(false)
 const submitError = ref(null)
 
 const SIZING_LAWS = [
-    { id: 'cube_root', label: 'Cube-Root Law — round(population^(1/3))', enabled: true },
+    { id: 'cube_root', label: t('c_setup.step1_constants.sizing_law_cube_root', 'Cube-Root Law — round(population^(1/3))'), enabled: true },
 ]
 
 // Mirrors SubdivisionAutoseedService::TEMPLATES — the line-split methods for
 // a childless giant. 'shortest' is the compactness-preserving default.
 const AUTOSEED_TEMPLATES = [
-    { id: 'shortest',          label: 'Shortest split-line — shortest balanced cuts (compact, default)' },
-    { id: 'vertical_strips',   label: 'Vertical strips — north–south cuts' },
-    { id: 'horizontal_strips', label: 'Horizontal strips — east–west cuts' },
-    { id: 'community_cells',   label: 'Community cells — balanced population cells' },
+    { id: 'shortest',          label: t('c_setup.step1_constants.autoseed_shortest', 'Shortest split-line — shortest balanced cuts (compact, default)') },
+    { id: 'vertical_strips',   label: t('c_setup.step1_constants.autoseed_vertical', 'Vertical strips — north–south cuts') },
+    { id: 'horizontal_strips', label: t('c_setup.step1_constants.autoseed_horizontal', 'Horizontal strips — east–west cuts') },
+    { id: 'community_cells',   label: t('c_setup.step1_constants.autoseed_cells', 'Community cells — balanced population cells') },
 ]
 
 const VOTING_METHODS = [
-    { id: 'stv_droop', label: 'STV with Droop Quota', enabled: true },
+    { id: 'stv_droop', label: t('c_setup.step1_constants.voting_method_stv', 'STV with Droop Quota'), enabled: true },
 ]
 
 const supermajorityRatio = computed(() => {
@@ -177,11 +180,11 @@ const acceleratedHint = computed(() => {
     if (props.settings.time_mode !== 'accelerated') return null
     const secondsPerYear = props.settings.time_scale_seconds_per_year ?? 31536000
     const totalSeconds = secondsPerYear * (electionInterval.value / 12)
-    if (totalSeconds < 60) return `≈ ${totalSeconds.toFixed(0)}s of wall-clock time`
-    if (totalSeconds < 3600) return `≈ ${(totalSeconds / 60).toFixed(1)} min`
-    if (totalSeconds < 86400) return `≈ ${(totalSeconds / 3600).toFixed(1)} hours`
-    if (totalSeconds < 31536000) return `≈ ${(totalSeconds / 86400).toFixed(1)} days`
-    return `≈ ${(totalSeconds / 31536000).toFixed(1)} years`
+    if (totalSeconds < 60) return t('c_setup.step1_constants.accel_seconds', { n: totalSeconds.toFixed(0) })
+    if (totalSeconds < 3600) return t('c_setup.step1_constants.accel_minutes', { n: (totalSeconds / 60).toFixed(1) })
+    if (totalSeconds < 86400) return t('c_setup.step1_constants.accel_hours', { n: (totalSeconds / 3600).toFixed(1) })
+    if (totalSeconds < 31536000) return t('c_setup.step1_constants.accel_days', { n: (totalSeconds / 86400).toFixed(1) })
+    return t('c_setup.step1_constants.accel_years', { n: (totalSeconds / 31536000).toFixed(1) })
 })
 
 const canSubmit = computed(() =>
@@ -243,12 +246,12 @@ async function onSubmit() {
         })
         const data = await res.json()
         if (!res.ok) {
-            submitError.value = data.error || data.message || 'Submission failed'
+            submitError.value = data.error || data.message || t('c_setup.step1_constants.err_submit', 'Submission failed')
             return
         }
         router.visit(data.next || '/setup/step/2')
     } catch (e) {
-        submitError.value = e.message || 'Network error'
+        submitError.value = e.message || t('c_setup.step1_constants.err_network', 'Network error')
     } finally {
         submitting.value = false
     }
@@ -261,36 +264,24 @@ async function onSubmit() {
 
             <header class="mt-8 mb-6">
                 <h1 class="text-3xl font-bold text-white mb-2">
-                    Constitution &amp; Economy Defaults
+                    {{ t('c_setup.step1_constants.heading', 'Constitution & Economy Defaults') }}
                 </h1>
                 <p class="text-gray-400 text-sm max-w-3xl">
-                    You are founding the constitution and its economy now — the values below are the
-                    Fair Constitution Template's suggested defaults (the "defaults of defaults"),
-                    shown as reference. You can depart from them here.
-                    After setup, any further amendments must go through valid legislative acts.
+                    {{ t('c_setup.step1_constants.intro', 'You are founding the constitution and its economy now — the values below are the Fair Constitution Template\'s suggested defaults (the "defaults of defaults"), shown as reference. You can depart from them here. After setup, any further amendments must go through valid legislative acts.') }}
                 </p>
             </header>
 
             <!-- Set once, inherited everywhere. -->
             <div class="flex items-start gap-3 bg-blue-950/40 border border-blue-900 rounded-lg p-4 mb-6">
                 <div class="text-blue-300 mt-0.5">ℹ</div>
-                <p class="text-sm text-gray-300">
-                    <span class="font-semibold text-gray-100">Set once, inherited everywhere.</span>
-                    Every constitutional and economic default here seeds each jurisdiction's own
-                    amendable settings and cascades to new child jurisdictions as they come online —
-                    so they don't reinvent the wheel. Each jurisdiction can still amend its own
-                    values locally once its legitimacy gate activates.
-                    The <span class="font-semibold text-gray-100">game mode</span> below is a
-                    world-wide property, not per-jurisdiction.
-                </p>
+                <p class="text-sm text-gray-300" v-html="t('c_setup.step1_constants.inherit_note', '<span class=&quot;font-semibold text-gray-100&quot;>Set once, inherited everywhere.</span> Every constitutional and economic default here seeds each jurisdiction\'s own amendable settings and cascades to new child jurisdictions as they come online — so they don\'t reinvent the wheel. Each jurisdiction can still amend its own values locally once its legitimacy gate activates. The <span class=&quot;font-semibold text-gray-100&quot;>game mode</span> below is a world-wide property, not per-jurisdiction.')"></p>
             </div>
 
             <!-- ─────────── Game Mode (WORLD property) ─────────── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
-                <h2 class="text-lg font-semibold text-white mb-1">Game Mode</h2>
+                <h2 class="text-lg font-semibold text-white mb-1">{{ t('c_setup.step1_constants.game_mode_heading', 'Game Mode') }}</h2>
                 <p class="text-sm text-gray-400 mb-4">
-                    A world-wide setting. Choose how strictly this world enforces its constitution.
-                    Saved immediately when you pick.
+                    {{ t('c_setup.step1_constants.game_mode_intro', 'A world-wide setting. Choose how strictly this world enforces its constitution. Saved immediately when you pick.') }}
                 </p>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button
@@ -312,168 +303,148 @@ async function onSubmit() {
                                 v-if="gameMode === mode.id"
                                 class="text-xs font-semibold text-blue-300 bg-blue-900/60 rounded px-2 py-0.5"
                             >
-                                Selected
+                                {{ t('c_setup.step1_constants.selected', 'Selected') }}
                             </span>
                         </div>
                         <p class="text-xs text-gray-400 leading-relaxed">{{ mode.blurb }}</p>
                     </button>
                 </div>
                 <p v-if="gameModeError" class="text-xs text-red-400 mt-3">{{ gameModeError }}</p>
-                <p v-else-if="gameModeSaving" class="text-xs text-gray-500 mt-3">Saving…</p>
+                <p v-else-if="gameModeSaving" class="text-xs text-gray-500 mt-3">{{ t('c_setup.step1_constants.saving', 'Saving…') }}</p>
             </section>
 
             <!-- ─────────── Legislature ─────────── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
-                <h2 class="text-lg font-semibold text-white mb-4">Legislature</h2>
+                <h2 class="text-lg font-semibold text-white mb-4">{{ t('c_setup.step1_constants.section_legislature', 'Legislature') }}</h2>
                 <div class="space-y-5">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Minimum seats per legislature
+                                {{ t('c_setup.step1_constants.min_seats_label', 'Minimum seats per legislature') }}
                             </label>
                             <input
-                                v-model.number="minSeats" aria-label="Minimum seats per legislature"
+                                v-model.number="minSeats" :aria-label="t('c_setup.step1_constants.min_seats_label', 'Minimum seats per legislature')"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">
-                                Default of defaults: <span class="text-gray-300">5</span> · Art. II §2
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.min_seats_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>5</span> · Art. II §2')"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Maximum seats per legislature
+                                {{ t('c_setup.step1_constants.max_seats_label', 'Maximum seats per legislature') }}
                             </label>
                             <input
-                                v-model.number="maxSeats" aria-label="Maximum seats per legislature"
+                                v-model.number="maxSeats" :aria-label="t('c_setup.step1_constants.max_seats_label', 'Maximum seats per legislature')"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">
-                                Default of defaults: <span class="text-gray-300">9</span> (before mandatory subdivision) · Art. II §2
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.max_seats_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>9</span> (before mandatory subdivision) · Art. II §2')"></p>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-200 mb-1">
-                            Legislature Sizing Law
+                            {{ t('c_setup.step1_constants.sizing_law_label', 'Legislature Sizing Law') }}
                         </label>
                         <select
-                            v-model="sizingLaw" aria-label="Legislature Sizing Law"
+                            v-model="sizingLaw" :aria-label="t('c_setup.step1_constants.sizing_law_label', 'Legislature Sizing Law')"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100"
                         >
                             <option v-for="law in SIZING_LAWS" :key="law.id" :value="law.id" :disabled="!law.enabled">
                                 {{ law.label }}
                             </option>
                         </select>
-                        <p class="text-xs text-gray-500 mt-1">
-                            Total legislature size is computed from population, then clamped to
-                            <code class="text-gray-400">[min, max]</code>, then partitioned into districts of size
-                            <code class="text-gray-400">[min_seats, max_seats]</code>.
-                        </p>
+                        <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.sizing_law_hint', 'Total legislature size is computed from population, then clamped to <code class=&quot;text-gray-400&quot;>[min, max]</code>, then partitioned into districts of size <code class=&quot;text-gray-400&quot;>[min_seats, max_seats]</code>.')"></p>
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-200 mb-1">
-                            District Auto-Draw Method (undivided areas)
+                            {{ t('c_setup.step1_constants.autoseed_label', 'District Auto-Draw Method (undivided areas)') }}
                         </label>
                         <select
-                            v-model="autoseedTemplate" aria-label="District Auto-Draw Method (undivided areas)"
+                            v-model="autoseedTemplate" :aria-label="t('c_setup.step1_constants.autoseed_label', 'District Auto-Draw Method (undivided areas)')"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100"
                         >
                             <option v-for="t in AUTOSEED_TEMPLATES" :key="t.id" :value="t.id">
                                 {{ t.label }}
                             </option>
                         </select>
-                        <p class="text-xs text-gray-500 mt-1">
-                            Default of defaults: <span class="text-gray-300">Shortest split-line</span> ·
-                            When an area earns more seats than the maximum but has no smaller
-                            subdivisions to group, the autoseeder cuts its territory directly using
-                            this method. The district mapper can still override per run.
-                        </p>
+                        <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.autoseed_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>Shortest split-line</span> · When an area earns more seats than the maximum but has no smaller subdivisions to group, the autoseeder cuts its territory directly using this method. The district mapper can still override per run.')"></p>
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-200 mb-1">
-                            Max Days Between Meetings
+                            {{ t('c_setup.step1_constants.max_days_label', 'Max Days Between Meetings') }}
                         </label>
                         <input
-                            v-model.number="maxDaysBetweenMeetings" aria-label="Max Days Between Meetings"
+                            v-model.number="maxDaysBetweenMeetings" :aria-label="t('c_setup.step1_constants.max_days_label', 'Max Days Between Meetings')"
                             type="number"
                             min="1"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                         />
-                        <p class="text-xs text-gray-500 mt-1">
-                            Default of defaults: <span class="text-gray-300">90</span> days · Art. II §2
-                        </p>
+                        <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.max_days_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>90</span> days · Art. II §2')"></p>
                     </div>
                 </div>
             </section>
 
             <!-- ─────────── Elections ─────────── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
-                <h2 class="text-lg font-semibold text-white mb-4">Elections</h2>
+                <h2 class="text-lg font-semibold text-white mb-4">{{ t('c_setup.step1_constants.section_elections', 'Elections') }}</h2>
                 <div class="space-y-5">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Election Interval (months)
+                                {{ t('c_setup.step1_constants.election_interval_label', 'Election Interval (months)') }}
                             </label>
                             <input
-                                v-model.number="electionInterval" aria-label="Election Interval (months)"
+                                v-model.number="electionInterval" :aria-label="t('c_setup.step1_constants.election_interval_label', 'Election Interval (months)')"
                                 type="number"
                                 min="1"
                                 max="1200"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
                             <p class="text-xs text-gray-500 mt-1">
-                                Default of defaults: <span class="text-gray-300">60</span> months (5 years) · Art. II §2
+                                <span v-html="t('c_setup.step1_constants.election_interval_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>60</span> months (5 years) · Art. II §2')"></span>
                                 <span v-if="acceleratedHint" class="block">{{ acceleratedHint }}</span>
                             </p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Voting Method
+                                {{ t('c_setup.step1_constants.voting_method_label', 'Voting Method') }}
                             </label>
                             <select
-                                v-model="votingMethod" aria-label="Voting Method"
+                                v-model="votingMethod" :aria-label="t('c_setup.step1_constants.voting_method_label', 'Voting Method')"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100"
                             >
                                 <option v-for="m in VOTING_METHODS" :key="m.id" :value="m.id" :disabled="!m.enabled">
                                     {{ m.label }}
                                 </option>
                             </select>
-                            <p class="text-xs text-gray-500 mt-1">
-                                Default of defaults: <span class="text-gray-300">STV Droop</span> · Art. II §2 ·
-                                currently the only implemented algorithm.
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.voting_method_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>STV Droop</span> · Art. II §2 · currently the only implemented algorithm.')"></p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Special Election — Min Days After Vacancy
+                                {{ t('c_setup.step1_constants.special_min_label', 'Special Election — Min Days After Vacancy') }}
                             </label>
                             <input
-                                v-model.number="specialElectionMinDays" aria-label="Special Election — Min Days After Vacancy"
+                                v-model.number="specialElectionMinDays" :aria-label="t('c_setup.step1_constants.special_min_label', 'Special Election — Min Days After Vacancy')"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">
-                                Default of defaults: <span class="text-gray-300">90</span> days · Art. II §5
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.special_min_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>90</span> days · Art. II §5')"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Special Election — Max Days After Vacancy
+                                {{ t('c_setup.step1_constants.special_max_label', 'Special Election — Max Days After Vacancy') }}
                             </label>
                             <input
-                                v-model.number="specialElectionMaxDays" aria-label="Special Election — Max Days After Vacancy"
+                                v-model.number="specialElectionMaxDays" :aria-label="t('c_setup.step1_constants.special_max_label', 'Special Election — Max Days After Vacancy')"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -483,10 +454,8 @@ async function onSubmit() {
                                     'text-xs mt-1',
                                     specialElectionValid ? 'text-gray-500' : 'text-red-400',
                                 ]"
-                            >
-                                Default of defaults: <span class="text-gray-300">180</span> days · Art. II §5 ·
-                                must be ≥ min.
-                            </p>
+                                v-html="t('c_setup.step1_constants.special_max_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>180</span> days · Art. II §5 · must be ≥ min.')"
+                            ></p>
                         </div>
                     </div>
                 </div>
@@ -494,23 +463,23 @@ async function onSubmit() {
 
             <!-- ─────────── Governance Thresholds ─────────── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
-                <h2 class="text-lg font-semibold text-white mb-4">Governance Thresholds</h2>
+                <h2 class="text-lg font-semibold text-white mb-4">{{ t('c_setup.step1_constants.section_governance', 'Governance Thresholds') }}</h2>
                 <div class="space-y-5">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Supermajority
+                                {{ t('c_setup.step1_constants.supermajority_label', 'Supermajority') }}
                             </label>
                             <div class="flex items-center gap-2">
                                 <input
-                                    v-model.number="supermajorityN" aria-label="Supermajority numerator"
+                                    v-model.number="supermajorityN" :aria-label="t('c_setup.step1_constants.supermajority_numerator', 'Supermajority numerator')"
                                     type="number"
                                     min="1"
                                     class="w-16 bg-gray-950 border border-gray-700 rounded-md px-2 py-2 text-gray-100 text-center"
                                 />
                                 <span class="text-gray-500">/</span>
                                 <input
-                                    v-model.number="supermajorityD" aria-label="Supermajority denominator"
+                                    v-model.number="supermajorityD" :aria-label="t('c_setup.step1_constants.supermajority_denominator', 'Supermajority denominator')"
                                     type="number"
                                     min="2"
                                     class="w-16 bg-gray-950 border border-gray-700 rounded-md px-2 py-2 text-gray-100 text-center"
@@ -522,99 +491,87 @@ async function onSubmit() {
                                     'text-xs mt-1',
                                     supermajorityValid ? 'text-gray-500' : 'text-red-400',
                                 ]"
-                            >
-                                Default of defaults: <span class="text-gray-300">2/3</span> · Art. VII ·
-                                must exceed 1/2 (simple majority).
-                            </p>
+                                v-html="t('c_setup.step1_constants.supermajority_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>2/3</span> · Art. VII · must exceed 1/2 (simple majority).')"
+                            ></p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Emergency Powers Max Duration (days)
+                                {{ t('c_setup.step1_constants.emergency_label', 'Emergency Powers Max Duration (days)') }}
                             </label>
                             <input
-                                v-model.number="emergencyPowersMaxDays" aria-label="Emergency Powers Max Duration (days)"
+                                v-model.number="emergencyPowersMaxDays" :aria-label="t('c_setup.step1_constants.emergency_label', 'Emergency Powers Max Duration (days)')"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">
-                                Default of defaults: <span class="text-gray-300">90</span> days · Art. II §7
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.emergency_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>90</span> days · Art. II §7')"></p>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-200 mb-1">
-                            Citizen Initiative Petition Threshold (% of population)
+                            {{ t('c_setup.step1_constants.initiative_label', 'Citizen Initiative Petition Threshold (% of population)') }}
                         </label>
                         <input
-                            v-model.number="initiativePetitionThresholdPct" aria-label="Citizen Initiative Petition Threshold (% of population)"
+                            v-model.number="initiativePetitionThresholdPct" :aria-label="t('c_setup.step1_constants.initiative_label', 'Citizen Initiative Petition Threshold (% of population)')"
                             type="number"
                             min="0.01"
                             max="100"
                             step="0.01"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                         />
-                        <p class="text-xs text-gray-500 mt-1">
-                            Default of defaults: <span class="text-gray-300">5.00%</span> · Art. II §6
-                        </p>
+                        <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.initiative_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>5.00%</span> · Art. II §6')"></p>
                     </div>
                 </div>
             </section>
 
             <!-- ─────────── Appointments & Judiciary ─────────── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
-                <h2 class="text-lg font-semibold text-white mb-4">Appointments & Judiciary</h2>
+                <h2 class="text-lg font-semibold text-white mb-4">{{ t('c_setup.step1_constants.section_judiciary', 'Appointments & Judiciary') }}</h2>
                 <div class="space-y-5">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Civil Appointment Term (years)
+                                {{ t('c_setup.step1_constants.civil_term_label', 'Civil Appointment Term (years)') }}
                             </label>
                             <input
-                                v-model.number="civilAppointmentYears" aria-label="Civil Appointment Term (years)"
+                                v-model.number="civilAppointmentYears" :aria-label="t('c_setup.step1_constants.civil_term_label', 'Civil Appointment Term (years)')"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">
-                                Default of defaults: <span class="text-gray-300">10</span> years · Art. II §9
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.civil_term_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>10</span> years · Art. II §9')"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Judicial Appointment Term (years)
+                                {{ t('c_setup.step1_constants.judicial_term_label', 'Judicial Appointment Term (years)') }}
                             </label>
                             <input
-                                v-model.number="judicialAppointmentYears" aria-label="Judicial Appointment Term (years)"
+                                v-model.number="judicialAppointmentYears" :aria-label="t('c_setup.step1_constants.judicial_term_label', 'Judicial Appointment Term (years)')"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">
-                                Default of defaults: <span class="text-gray-300">10</span> years · Art. IV §4
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.judicial_term_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>10</span> years · Art. IV §4')"></p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Minimum Judges per Race
+                                {{ t('c_setup.step1_constants.min_judges_label', 'Minimum Judges per Race') }}
                             </label>
                             <input
-                                v-model.number="judiciaryMinJudgesPerRace" aria-label="Minimum Judges per Race"
+                                v-model.number="judiciaryMinJudgesPerRace" :aria-label="t('c_setup.step1_constants.min_judges_label', 'Minimum Judges per Race')"
                                 type="number"
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">
-                                Default of defaults: <span class="text-gray-300">5</span> · Art. IV §4
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.min_judges_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>5</span> · Art. IV §4')"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Judiciary Selection Method
+                                {{ t('c_setup.step1_constants.judiciary_method_label', 'Judiciary Selection Method') }}
                             </label>
                             <div class="flex items-center gap-3 mt-2">
                                 <label class="flex items-center gap-2 text-sm text-gray-200">
@@ -624,7 +581,7 @@ async function onSubmit() {
                                         v-model="judiciaryIsElected"
                                         class="text-blue-500 focus:ring-blue-500"
                                     />
-                                    Appointed
+                                    {{ t('c_setup.step1_constants.judiciary_appointed', 'Appointed') }}
                                 </label>
                                 <label class="flex items-center gap-2 text-sm text-gray-200">
                                     <input
@@ -633,12 +590,10 @@ async function onSubmit() {
                                         v-model="judiciaryIsElected"
                                         class="text-blue-500 focus:ring-blue-500"
                                     />
-                                    Elected
+                                    {{ t('c_setup.step1_constants.judiciary_elected', 'Elected') }}
                                 </label>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">
-                                Default of defaults: <span class="text-gray-300">Appointed</span> · Art. IV §1
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.judiciary_method_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>Appointed</span> · Art. IV §1')"></p>
                         </div>
                     </div>
                 </div>
@@ -646,28 +601,26 @@ async function onSubmit() {
 
             <!-- ─────────── Organizations & Workers ─────────── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
-                <h2 class="text-lg font-semibold text-white mb-4">Organizations & Workers</h2>
+                <h2 class="text-lg font-semibold text-white mb-4">{{ t('c_setup.step1_constants.section_orgs', 'Organizations & Workers') }}</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-200 mb-1">
-                            Worker Rep — First Seat Threshold (employees)
+                            {{ t('c_setup.step1_constants.worker_min_label', 'Worker Rep — First Seat Threshold (employees)') }}
                         </label>
                         <input
-                            v-model.number="workerRepMinEmployees" aria-label="Worker Rep — First Seat Threshold (employees)"
+                            v-model.number="workerRepMinEmployees" :aria-label="t('c_setup.step1_constants.worker_min_label', 'Worker Rep — First Seat Threshold (employees)')"
                             type="number"
                             min="1"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                         />
-                        <p class="text-xs text-gray-500 mt-1">
-                            Default of defaults: <span class="text-gray-300">100</span> · Art. III §6
-                        </p>
+                        <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.worker_min_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>100</span> · Art. III §6')"></p>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-200 mb-1">
-                            Worker : Shareholder Parity (employees)
+                            {{ t('c_setup.step1_constants.worker_parity_label', 'Worker : Shareholder Parity (employees)') }}
                         </label>
                         <input
-                            v-model.number="workerRepParityEmployees" aria-label="Worker : Shareholder Parity (employees)"
+                            v-model.number="workerRepParityEmployees" :aria-label="t('c_setup.step1_constants.worker_parity_label', 'Worker : Shareholder Parity (employees)')"
                             type="number"
                             min="1"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
@@ -677,163 +630,147 @@ async function onSubmit() {
                                 'text-xs mt-1',
                                 workerThresholdsValid ? 'text-gray-500' : 'text-red-400',
                             ]"
-                        >
-                            Default of defaults: <span class="text-gray-300">2000</span> · Art. III §6 ·
-                            must be ≥ first-seat threshold.
-                        </p>
+                            v-html="t('c_setup.step1_constants.worker_parity_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>2000</span> · Art. III §6 · must be ≥ first-seat threshold.')"
+                        ></p>
                     </div>
                 </div>
             </section>
 
             <!-- ─────────── Residency ─────────── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
-                <h2 class="text-lg font-semibold text-white mb-4">Residency</h2>
+                <h2 class="text-lg font-semibold text-white mb-4">{{ t('c_setup.step1_constants.section_residency', 'Residency') }}</h2>
                 <div>
                     <label class="block text-sm font-semibold text-gray-200 mb-1">
-                        Residency Confirmation Window (days)
+                        {{ t('c_setup.step1_constants.residency_label', 'Residency Confirmation Window (days)') }}
                     </label>
                     <input
-                        v-model.number="residencyConfirmationDays" aria-label="Residency Confirmation Window (days)"
+                        v-model.number="residencyConfirmationDays" :aria-label="t('c_setup.step1_constants.residency_label', 'Residency Confirmation Window (days)')"
                         type="number"
                         min="1"
                         class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                     />
-                    <p class="text-xs text-gray-500 mt-1">
-                        Default of defaults: <span class="text-gray-300">30</span> days of qualifying GPS pings
-                        before residency is confirmed and voting/candidacy rights unlock.
-                    </p>
+                    <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.residency_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>30</span> days of qualifying GPS pings before residency is confirmed and voting/candidacy rights unlock.')"></p>
                 </div>
             </section>
 
             <!-- ─────────── Economy ─────────── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
-                <h2 class="text-lg font-semibold text-white mb-1">Economy defaults</h2>
+                <h2 class="text-lg font-semibold text-white mb-1">{{ t('c_setup.step1_constants.section_economy', 'Economy defaults') }}</h2>
                 <p class="text-sm text-gray-400 mb-4">
-                    The starting economy for your world — these cascade to child jurisdictions just
-                    like the constitutional ones.
+                    {{ t('c_setup.step1_constants.economy_intro', 'The starting economy for your world — these cascade to child jurisdictions just like the constitutional ones.') }}
                 </p>
                 <div class="space-y-5">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Currency name
+                                {{ t('c_setup.step1_constants.currency_name_label', 'Currency name') }}
                             </label>
                             <input
-                                v-model="currencyName" aria-label="Currency name"
+                                v-model="currencyName" :aria-label="t('c_setup.step1_constants.currency_name_label', 'Currency name')"
                                 type="text"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">The abstract unit of account.</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ t('c_setup.step1_constants.currency_name_hint', 'The abstract unit of account.') }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Currency symbol
+                                {{ t('c_setup.step1_constants.currency_symbol_label', 'Currency symbol') }}
                             </label>
                             <input
-                                v-model="currencySymbol" aria-label="Currency symbol"
+                                v-model="currencySymbol" :aria-label="t('c_setup.step1_constants.currency_symbol_label', 'Currency symbol')"
                                 type="text"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">Shown on wallets and the exchange.</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ t('c_setup.step1_constants.currency_symbol_hint', 'Shown on wallets and the exchange.') }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Currency code
+                                {{ t('c_setup.step1_constants.currency_code_label', 'Currency code') }}
                             </label>
                             <input
-                                v-model="currencyCode" aria-label="Currency code"
+                                v-model="currencyCode" :aria-label="t('c_setup.step1_constants.currency_code_label', 'Currency code')"
                                 type="text"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">Short ticker, e.g. CVU.</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ t('c_setup.step1_constants.currency_code_hint', 'Short ticker, e.g. CVU.') }}</p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Civic stipend — residency floor
+                                {{ t('c_setup.step1_constants.stipend_floor_label', 'Civic stipend — residency floor') }}
                             </label>
                             <input
-                                v-model.number="civicStipendFloor" aria-label="Civic stipend — residency floor"
+                                v-model.number="civicStipendFloor" :aria-label="t('c_setup.step1_constants.stipend_floor_label', 'Civic stipend — residency floor')"
                                 type="number"
                                 min="0"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">
-                                Everyone with active residency receives this. Default: <span class="text-gray-300">50</span>
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.stipend_floor_hint', 'Everyone with active residency receives this. Default: <span class=&quot;text-gray-300&quot;>50</span>')"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                Stipend bump cap (max stacked)
+                                {{ t('c_setup.step1_constants.bump_cap_label', 'Stipend bump cap (max stacked)') }}
                             </label>
                             <input
-                                v-model.number="stipendBumpCap" aria-label="Stipend bump cap (max stacked)"
+                                v-model.number="stipendBumpCap" :aria-label="t('c_setup.step1_constants.bump_cap_label', 'Stipend bump cap (max stacked)')"
                                 type="number"
                                 min="0"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">
-                                The most the role differentials can add. Default: <span class="text-gray-300">20</span>
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.bump_cap_hint', 'The most the role differentials can add. Default: <span class=&quot;text-gray-300&quot;>20</span>')"></p>
                         </div>
                     </div>
 
                     <div>
-                        <p class="text-sm font-semibold text-gray-200 mb-2">Per-role pay</p>
+                        <p class="text-sm font-semibold text-gray-200 mb-2">{{ t('c_setup.step1_constants.per_role_pay', 'Per-role pay') }}</p>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                    Node operators
+                                    {{ t('c_setup.step1_constants.pay_node_label', 'Node operators') }}
                                 </label>
                                 <input
-                                    v-model.number="payNodeOperator" aria-label="Node operators pay"
+                                    v-model.number="payNodeOperator" :aria-label="t('c_setup.step1_constants.pay_node_aria', 'Node operators pay')"
                                     type="number"
                                     min="0"
                                     class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                                 />
-                                <p class="text-xs text-gray-500 mt-1">
-                                    Civic-duty pay for the people running nodes. Default: <span class="text-gray-300">8</span>
-                                </p>
+                                <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.pay_node_hint', 'Civic-duty pay for the people running nodes. Default: <span class=&quot;text-gray-300&quot;>8</span>')"></p>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                    Social moderators
+                                    {{ t('c_setup.step1_constants.pay_moderator_label', 'Social moderators') }}
                                 </label>
                                 <input
-                                    v-model.number="paySocialModerator" aria-label="Social moderators pay"
+                                    v-model.number="paySocialModerator" :aria-label="t('c_setup.step1_constants.pay_moderator_aria', 'Social moderators pay')"
                                     type="number"
                                     min="0"
                                     class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                                 />
-                                <p class="text-xs text-gray-500 mt-1">
-                                    Civic-duty pay for moderators. Default: <span class="text-gray-300">5</span>
-                                </p>
+                                <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.pay_moderator_hint', 'Civic-duty pay for moderators. Default: <span class=&quot;text-gray-300&quot;>5</span>')"></p>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-200 mb-1">
-                                    Civic office-holders
+                                    {{ t('c_setup.step1_constants.pay_officer_label', 'Civic office-holders') }}
                                 </label>
                                 <input
-                                    v-model.number="payOfficeHolder" aria-label="Civic office-holders pay"
+                                    v-model.number="payOfficeHolder" :aria-label="t('c_setup.step1_constants.pay_officer_aria', 'Civic office-holders pay')"
                                     type="number"
                                     min="0"
                                     class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                                 />
-                                <p class="text-xs text-gray-500 mt-1">
-                                    Civic-duty pay for elected &amp; appointed officers. Default: <span class="text-gray-300">12</span>
-                                </p>
+                                <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.pay_officer_hint', 'Civic-duty pay for elected &amp; appointed officers. Default: <span class=&quot;text-gray-300&quot;>12</span>')"></p>
                             </div>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-200 mb-1">
-                            Stipend interval
+                            {{ t('c_setup.step1_constants.stipend_interval_label', 'Stipend interval') }}
                         </label>
                         <select
-                            v-model="stipendInterval" aria-label="Stipend interval"
+                            v-model="stipendInterval" :aria-label="t('c_setup.step1_constants.stipend_interval_label', 'Stipend interval')"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100"
                         >
                             <option v-for="i in STIPEND_INTERVALS" :key="i.id" :value="i.id">
@@ -841,7 +778,7 @@ async function onSubmit() {
                             </option>
                         </select>
                         <p class="text-xs text-gray-500 mt-1">
-                            How often the economic clock pays out.
+                            {{ t('c_setup.step1_constants.stipend_interval_hint', 'How often the economic clock pays out.') }}
                         </p>
                     </div>
                 </div>
@@ -854,7 +791,7 @@ async function onSubmit() {
                 </div>
                 <div class="flex justify-between pt-2">
                     <a href="/setup/step/0" class="text-gray-400 hover:text-gray-200 text-sm px-2 py-2">
-                        ← Back
+                        {{ t('c_setup.step1_constants.back', '← Back') }}
                     </a>
                     <button
                         type="button"
@@ -862,7 +799,7 @@ async function onSubmit() {
                         @click="onSubmit"
                         class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-5 py-2 rounded-md font-semibold transition-colors"
                     >
-                        {{ submitting ? 'Saving…' : 'Continue →' }}
+                        {{ submitting ? t('c_setup.step1_constants.saving', 'Saving…') : t('c_setup.step1_constants.continue', 'Continue →') }}
                     </button>
                 </div>
             </section>
