@@ -6,12 +6,15 @@
  * and returns it ONCE. Anyone who opens it lands on /i/{token} and can sign up to continue there.
  */
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Btn from '@/Components/Ui/Btn.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     // { kind: 'commons'|'call'|'proceeding', jurisdiction_id?, space?, path?, label?, max_uses?, ttl_days? }
     spec: { type: Object, required: true },
-    label: { type: String, default: 'Invite a friend' },
+    label: { type: String, default: '' },
 });
 
 const url = ref(null);
@@ -28,7 +31,7 @@ async function mint() {
         const { data } = await window.axios.post('/invites', props.spec);
         url.value = data.url;
     } catch (e) {
-        error.value = e?.response?.data?.error ?? 'Could not create an invite link.';
+        error.value = e?.response?.data?.error ?? t('c_civic_components.invite_button.error_default', 'Could not create an invite link.');
     } finally {
         minting.value = false;
     }
@@ -48,7 +51,7 @@ async function copy() {
 async function share() {
     if (!url.value) return;
     try {
-        await navigator.share({ title: 'Join me', url: url.value });
+        await navigator.share({ title: t('c_civic_components.invite_button.share_title', 'Join me'), url: url.value });
     } catch {
         /* the user dismissed the share sheet */
     }
@@ -58,13 +61,13 @@ async function share() {
 <template>
     <div class="invite-button">
         <Btn v-if="!url" variant="secondary" size="sm" :disabled="minting" @click="mint">
-            {{ minting ? 'Creating link…' : label }}
+            {{ minting ? t('c_civic_components.invite_button.creating', 'Creating link…') : (label || t('c_civic_components.invite_button.default_label', 'Invite a friend')) }}
         </Btn>
 
         <div v-else class="invite-link">
-            <input class="field-input invite-url" readonly :value="url" aria-label="Invite link" @focus="$event.target.select()" />
-            <Btn variant="secondary" size="sm" @click="copy">{{ copied ? 'Copied!' : 'Copy' }}</Btn>
-            <Btn v-if="canShare" variant="ghost" size="sm" @click="share">Share</Btn>
+            <input class="field-input invite-url" readonly :value="url" :aria-label="t('c_civic_components.invite_button.invite_link', 'Invite link')" @focus="$event.target.select()" />
+            <Btn variant="secondary" size="sm" @click="copy">{{ copied ? t('c_civic_components.invite_button.copied', 'Copied!') : t('c_civic_components.invite_button.copy', 'Copy') }}</Btn>
+            <Btn v-if="canShare" variant="ghost" size="sm" @click="share">{{ t('c_civic_components.invite_button.share', 'Share') }}</Btn>
         </div>
 
         <p v-if="error" class="invite-error">{{ error }}</p>

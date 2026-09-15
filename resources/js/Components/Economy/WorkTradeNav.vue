@@ -1,5 +1,9 @@
 <script setup>
+import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps({
     active: { type: String, default: '' },
@@ -7,19 +11,19 @@ defineProps({
     backLabel: { type: String, default: '' },
 });
 
-const sections = [
-    { key: 'market', label: 'Market & work', href: '/economy/market' },
-    { key: 'work', label: 'My work & hiring', href: '/economy/work' },
-    { key: 'help', label: 'Give & find help', href: '/economy/help' },
-    { key: 'agreements', label: 'My agreements', href: '/economy/agreements' },
-    { key: 'wallet', label: 'My wallet', href: '/economy/wallet' },
-    { key: 'shares', label: 'Shares', href: '/economy/exchange' },
-];
+const sections = computed(() => [
+    { key: 'market', label: t('c_civic_components.work_trade_nav.market', 'Market & work'), href: '/economy/market' },
+    { key: 'work', label: t('c_civic_components.work_trade_nav.work', 'My work & hiring'), href: '/economy/work' },
+    { key: 'help', label: t('c_civic_components.work_trade_nav.help', 'Give & find help'), href: '/economy/help' },
+    { key: 'agreements', label: t('c_civic_components.work_trade_nav.agreements', 'My agreements'), href: '/economy/agreements' },
+    { key: 'wallet', label: t('c_civic_components.work_trade_nav.wallet', 'My wallet'), href: '/economy/wallet' },
+    { key: 'shares', label: t('c_civic_components.work_trade_nav.shares', 'Shares'), href: '/economy/exchange' },
+]);
 </script>
 
 <template>
-    <nav class="trade-nav" aria-label="Work and trade">
-        <Link href="/economy" class="trade-home">Work &amp; trade</Link>
+    <nav class="trade-nav" :aria-label="t('c_civic_components.work_trade_nav.aria_nav', 'Work and trade')">
+        <Link href="/economy" class="trade-home">{{ t('c_civic_components.work_trade_nav.home', 'Work & trade') }}</Link>
         <div class="trade-sections">
             <Link v-for="section in sections" :key="section.key" :href="section.href"
                 :aria-current="active === section.key ? 'page' : undefined">
