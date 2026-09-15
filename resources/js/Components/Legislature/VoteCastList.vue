@@ -14,8 +14,11 @@
  * (removal votes), SpeakerTools (tie-break record).
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import TagChip from '@/Components/Ui/TagChip.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /**
@@ -29,19 +32,31 @@ const props = defineProps({
 });
 
 const VALUE_BADGES = {
-    yes: { tone: 'success', icon: 'check', text: 'Yes', title: null },
-    no: { tone: 'danger', icon: 'x', text: 'No', title: null },
-    abstain: { tone: 'neutral', icon: null, text: 'Abstain', title: null },
-    absent: {
-        tone: 'warning',
-        icon: 'alert-triangle',
-        text: 'Absent',
-        title: 'Counts the same as a no — peg quorum (Art. II §2)',
-    },
+    yes: { tone: 'success', icon: 'check' },
+    no: { tone: 'danger', icon: 'x' },
+    abstain: { tone: 'neutral', icon: null },
+    absent: { tone: 'warning', icon: 'alert-triangle' },
 };
+const valueText = (v) =>
+    ({
+        yes: t('c_institution_components.vote_cast_list.value_yes', 'Yes'),
+        no: t('c_institution_components.vote_cast_list.value_no', 'No'),
+        abstain: t('c_institution_components.vote_cast_list.value_abstain', 'Abstain'),
+        absent: t('c_institution_components.vote_cast_list.value_absent', 'Absent'),
+    })[v] ?? v;
+const valueTitle = (v) =>
+    v === 'absent' ? t('c_institution_components.vote_cast_list.absent_title', 'Counts the same as a no — peg quorum (Art. II §2)') : null;
 
-const KIND_HEADINGS = { type_a: 'Type A · population-apportioned', type_b: 'Type B · one per constituent' };
-const KIND_CHIPS = { type_a: 'type A', type_b: 'type B' };
+const kindHeading = (kind) =>
+    ({
+        type_a: t('c_institution_components.vote_cast_list.heading_type_a', 'Type A · population-apportioned'),
+        type_b: t('c_institution_components.vote_cast_list.heading_type_b', 'Type B · one per constituent'),
+    })[kind] ?? kind;
+const kindChip = (kind) =>
+    ({
+        type_a: t('c_institution_components.vote_cast_list.chip_type_a', 'type A'),
+        type_b: t('c_institution_components.vote_cast_list.chip_type_b', 'type B'),
+    })[kind] ?? kind;
 
 const groups = computed(() => {
     if (!props.groupByKind) return [{ heading: null, rows: props.casts }];
@@ -52,7 +67,7 @@ const groups = computed(() => {
         byKind.get(key).push(cast);
     }
     return [...byKind.entries()].map(([kind, rows]) => ({
-        heading: KIND_HEADINGS[kind] ?? kind,
+        heading: kindHeading(kind),
         rows,
     }));
 });
@@ -68,26 +83,26 @@ const groups = computed(() => {
                         <strong style="color: var(--gov-fg)">{{ cast.member_name }}</strong>
                         <template v-if="!groupByKind && cast.seat_kind">
                             {{ ' ' }}
-                            <TagChip>{{ KIND_CHIPS[cast.seat_kind] ?? cast.seat_kind }}</TagChip>
+                            <TagChip>{{ kindChip(cast.seat_kind) }}</TagChip>
                         </template>
                         <template v-if="cast.speaker_tiebreak">
                             {{ ' ' }}
-                            <StatusBadge tone="warning" icon="landmark">Speaker · tie-breaking vote · F-SPK-004</StatusBadge>
+                            <StatusBadge tone="warning" icon="landmark">{{ t('c_institution_components.vote_cast_list.speaker_tiebreak', 'Speaker · tie-breaking vote · F-SPK-004') }}</StatusBadge>
                         </template>
                     </span>
                     <span class="cluster" style="gap: var(--space-2)">
                         <details v-if="cast.explanation" style="display: inline-block">
-                            <summary class="citation" style="cursor: pointer">Explanation</summary>
+                            <summary class="citation" style="cursor: pointer">{{ t('c_institution_components.vote_cast_list.explanation', 'Explanation') }}</summary>
                             <p class="cc-small" style="margin-block: var(--space-1) 0">
                                 {{ cast.explanation }}
-                                <span class="citation">published with the vote · Art. II §2</span>
+                                <span class="citation">{{ t('c_institution_components.vote_cast_list.published_with_vote', 'published with the vote · Art. II §2') }}</span>
                             </p>
                         </details>
                         <StatusBadge
                             :tone="VALUE_BADGES[cast.value].tone"
                             :icon="VALUE_BADGES[cast.value].icon ?? undefined"
-                            :title="VALUE_BADGES[cast.value].title ?? undefined"
-                        >{{ VALUE_BADGES[cast.value].text }}</StatusBadge>
+                            :title="valueTitle(cast.value) ?? undefined"
+                        >{{ valueText(cast.value) }}</StatusBadge>
                     </span>
                 </div>
             </div>

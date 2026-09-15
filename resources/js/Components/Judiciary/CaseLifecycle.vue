@@ -22,8 +22,11 @@
  * .card--inset — all already ported, no new CSS.
  */
 import { computed, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /**
@@ -43,9 +46,12 @@ const props = defineProps({
     interactive: { type: Boolean, default: false },
 });
 
-const SIM_BANNER =
-    'Stage changes below are simulation only — the real case record is append-only and ' +
-    'advances when the court acts.';
+const SIM_BANNER = computed(() =>
+    t(
+        'c_institution_components.case_lifecycle.sim_banner',
+        'Stage changes below are simulation only — the real case record is append-only and advances when the court acts.',
+    ),
+);
 
 /* The live record stage drives display; interactive mode previews a cursor
    over the SAME stage list without ever touching the record. */
@@ -78,12 +84,12 @@ function advance() {
 
 <template>
     <div class="stack" style="gap: var(--space-4)">
-        <Banner v-if="interactive" tone="demo" role="note" title="Playable walkthrough">
+        <Banner v-if="interactive" tone="demo" role="note" :title="t('c_institution_components.case_lifecycle.playable_walkthrough', 'Playable walkthrough')">
             {{ SIM_BANNER }}
         </Banner>
 
-        <div class="card card--inset" aria-label="Case state machine">
-            <span class="eyebrow">Case state machine</span>
+        <div class="card card--inset" :aria-label="t('c_institution_components.case_lifecycle.case_esm', 'Case state machine')">
+            <span class="eyebrow">{{ t('c_institution_components.case_lifecycle.case_esm', 'Case state machine') }}</span>
             <div style="margin-block-start: var(--space-2)">
                 <StateStrip :states="machine" :current="stripCurrent" />
             </div>
@@ -106,11 +112,11 @@ function advance() {
             </ol>
 
             <div v-if="interactive" class="cluster" style="margin-block-start: var(--space-4)">
-                <button type="button" class="btn btn--secondary" :disabled="cursor <= 1" @click="back">Back</button>
+                <button type="button" class="btn btn--secondary" :disabled="cursor <= 1" @click="back">{{ t('c_institution_components.case_lifecycle.back', 'Back') }}</button>
                 <button type="button" class="btn btn--primary" :disabled="cursor >= stages.length" @click="advance">
-                    Advance
+                    {{ t('c_institution_components.case_lifecycle.advance', 'Advance') }}
                 </button>
-                <span class="gloss">Back and Advance move through the sequence — simulation only.</span>
+                <span class="gloss">{{ t('c_institution_components.case_lifecycle.walkthrough_gloss', 'Back and Advance move through the sequence — simulation only.') }}</span>
             </div>
         </div>
 

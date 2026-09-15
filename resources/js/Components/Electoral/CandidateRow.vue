@@ -13,10 +13,13 @@
  */
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import ApproveSwitch from '@/Components/Electoral/ApproveSwitch.vue';
 import OrgChip from '@/Components/Ui/OrgChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import TagChip from '@/Components/Ui/TagChip.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /**
@@ -53,10 +56,15 @@ const individualCount = computed(() => props.candidacy.endorsements?.individual_
 const noEndorsements = computed(() => orgs.value.length === 0 && individualCount.value === 0);
 const tags = computed(() => props.candidacy.position_tags ?? []);
 
-const linkTitle = computed(
-    () =>
-        `${props.candidacy.name} — open public profile · ${props.rank === null ? 'awaiting daily ranking' : `rank ${props.rank}`} · ` +
-        `${props.approvals.toLocaleString()} approvals`,
+const linkTitle = computed(() =>
+    t('c_institution_components.candidate_row.link_title', '{name} — open public profile · {standing} · {approvals} approvals', {
+        name: props.candidacy.name,
+        standing:
+            props.rank === null
+                ? t('c_institution_components.candidate_row.awaiting_ranking_low', 'awaiting daily ranking')
+                : t('c_institution_components.candidate_row.rank_n', 'rank {rank}', { rank: props.rank }),
+        approvals: props.approvals.toLocaleString(),
+    }),
 );
 </script>
 
@@ -65,7 +73,7 @@ const linkTitle = computed(
         <ApproveSwitch
             v-if="showSwitch"
             :pressed="approved"
-            :candidate-name="candidacy.name + (candidacy.profile_reference ? `, public profile ${candidacy.public_handle || candidacy.profile_reference}` : '')"
+            :candidate-name="candidacy.name + (candidacy.profile_reference ? t('c_institution_components.candidate_row.public_profile_suffix', ', public profile {handle}', { handle: candidacy.public_handle || candidacy.profile_reference }) : '')"
             :disabled="!approvable"
             :busy="busy"
             @update:pressed="(next) => emit('toggle-approve', candidacy.id, next)"
@@ -74,18 +82,18 @@ const linkTitle = computed(
         <span v-else aria-hidden="true"></span>
 
         <div class="candidate-main">
-            <span class="citation" style="margin-inline-end: var(--space-2)">{{ rank === null ? 'Awaiting daily ranking' : `#${rank}` }}</span>
+            <span class="citation" style="margin-inline-end: var(--space-2)">{{ rank === null ? t('c_institution_components.candidate_row.awaiting_ranking', 'Awaiting daily ranking') : `#${rank}` }}</span>
             <Link class="candidate-name" :href="candidacy.profile_href" :title="linkTitle">{{
                 candidacy.name
             }}</Link>
             {{ ' ' }}
             <Link v-if="candidacy.profile_reference" class="citation" :href="candidacy.profile_href"
-                :title="`Public candidacy reference: ${candidacy.profile_reference}`"
-                :aria-label="`Open ${candidacy.name}'s candidate profile, reference ${candidacy.profile_reference}`"
+                :title="t('c_institution_components.candidate_row.reference_title', 'Public candidacy reference: {reference}', { reference: candidacy.profile_reference })"
+                :aria-label="t('c_institution_components.candidate_row.profile_aria', 'Open {name}’s candidate profile, reference {reference}', { name: candidacy.name, reference: candidacy.profile_reference })"
                 style="margin-inline: var(--space-2)">
                 {{ candidacy.public_handle || `Profile …${candidacy.profile_reference.slice(-12)}` }}
             </Link>
-            <StatusBadge v-if="candidacy.incumbent" tone="neutral">incumbent</StatusBadge>
+            <StatusBadge v-if="candidacy.incumbent" tone="neutral">{{ t('c_institution_components.candidate_row.incumbent', 'incumbent') }}</StatusBadge>
             <span
                 v-if="candidacy.statement"
                 class="cc-small"
@@ -99,9 +107,9 @@ const linkTitle = computed(
                     :org-type="org.type"
                     style="padding-block: 0; font-size: var(--text-xs)"
                 />
-                <TagChip v-if="individualCount">{{ individualCount }} individual endorsements</TagChip>
+                <TagChip v-if="individualCount">{{ t('c_institution_components.candidate_row.individual_endorsements', '{n} individual endorsements', { n: individualCount }) }}</TagChip>
                 <!-- zero-endorsement candidates are first-class -->
-                <TagChip v-if="noEndorsements">no endorsements</TagChip>
+                <TagChip v-if="noEndorsements">{{ t('c_institution_components.candidate_row.no_endorsements', 'no endorsements') }}</TagChip>
                 <TagChip v-for="tag in tags" :key="tag">{{ tag }}</TagChip>
                 <slot name="meta" />
             </span>
@@ -109,10 +117,10 @@ const linkTitle = computed(
 
         <div class="standing">
             <span class="standing-approvals">{{ rank === null ? '—' : approvals.toLocaleString() }}</span>
-            <span v-if="rank === null" class="standing-delta">First daily count pending</span>
-            <span v-else-if="delta > 0" class="standing-delta standing-delta--up">▲ {{ delta }} since yesterday</span>
-            <span v-else-if="delta < 0" class="standing-delta standing-delta--down">▼ {{ Math.abs(delta) }} since yesterday</span>
-            <span v-else class="standing-delta standing-delta--flat">— steady<span class="visually-hidden"> since yesterday</span></span>
+            <span v-if="rank === null" class="standing-delta">{{ t('c_institution_components.candidate_row.first_count_pending', 'First daily count pending') }}</span>
+            <span v-else-if="delta > 0" class="standing-delta standing-delta--up">{{ t('c_institution_components.candidate_row.delta_up', '▲ {n} since yesterday', { n: delta }) }}</span>
+            <span v-else-if="delta < 0" class="standing-delta standing-delta--down">{{ t('c_institution_components.candidate_row.delta_down', '▼ {n} since yesterday', { n: Math.abs(delta) }) }}</span>
+            <span v-else class="standing-delta standing-delta--flat">{{ t('c_institution_components.candidate_row.delta_steady', '— steady') }}<span class="visually-hidden">{{ t('c_institution_components.candidate_row.delta_steady_sr', ' since yesterday') }}</span></span>
         </div>
     </div>
 </template>

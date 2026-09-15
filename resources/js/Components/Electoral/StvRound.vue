@@ -17,8 +17,11 @@
  * "Rounds a–b" <details>).
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Icon from '@/Components/Ui/Icon.vue';
 import StvBar from '@/Components/Electoral/StvBar.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /** One `display[]` entry — exact shape in the design §C contract. */
@@ -87,12 +90,12 @@ const transfer = computed(() => {
     };
 });
 
-const quotaTitle = computed(() => `Droop quota ${props.quota.toLocaleString()}`);
+const quotaTitle = computed(() => t('c_institution_components.stv_round.quota_title', 'Droop quota {quota}', { quota: props.quota.toLocaleString() }));
 </script>
 
 <template>
     <div>
-        <h3>Round {{ round.n }} <span class="citation stv-action">{{ round.action }}</span></h3>
+        <h3>{{ t('c_institution_components.stv_round.round_n', 'Round {n}', { n: round.n }) }} <span class="citation stv-action">{{ round.action }}</span></h3>
 
         <div v-if="round.tallies" class="stv-round">
             <StvBar
@@ -118,9 +121,7 @@ const quotaTitle = computed(() => `Droop quota ${props.quota.toLocaleString()}`)
         >
             <summary>
                 <Icon name="chevron-right" size="sm" />
-                Where {{ transfer.from.name }}&rsquo;s votes went ·
-                {{ transfer.totalMoved.toLocaleString() }} votes
-                {{ transfer.kind === 'surplus' ? '(surplus, fractional Gregory values)' : '(elimination, at current value)' }}
+                {{ t('c_institution_components.stv_round.transfer_summary', 'Where {name}’s votes went · {count} votes {kind}', { name: transfer.from.name, count: transfer.totalMoved.toLocaleString(), kind: transfer.kind === 'surplus' ? t('c_institution_components.stv_round.kind_surplus', '(surplus, fractional Gregory values)') : t('c_institution_components.stv_round.kind_elimination', '(elimination, at current value)') }) }}
             </summary>
             <div class="about-surface-body">
                 <StvBar
@@ -135,7 +136,7 @@ const quotaTitle = computed(() => `Droop quota ${props.quota.toLocaleString()}`)
                     :href="href(row)"
                 />
                 <div v-if="transfer.exhausted" class="stv-cand">
-                    <span class="stv-cand-name" style="color: var(--gov-fg-subtle)">→ exhausted (no further preference)</span>
+                    <span class="stv-cand-name" style="color: var(--gov-fg-subtle)">{{ t('c_institution_components.stv_round.exhausted', '→ exhausted (no further preference)') }}</span>
                     <span class="stv-track" aria-hidden="true"></span>
                     <span class="stv-votes">{{ transfer.exhausted.toLocaleString() }}</span>
                 </div>

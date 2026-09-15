@@ -13,6 +13,9 @@
  * file follows the work order.
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /** X — finalist places. */
@@ -23,10 +26,10 @@ const props = defineProps({
 const text = computed(
     () =>
         props.label ??
-        `finalist line — top ${props.count} advance to the ranked ballot · CLK-21`,
+        t('c_institution_components.finalist_line.text', 'finalist line — top {count} advance to the ranked ballot · CLK-21', { count: props.count }),
 );
 </script>
 
 <template>
-    <div class="finalist-line" role="separator" aria-label="Finalist line">{{ text }}</div>
+    <div class="finalist-line" role="separator" :aria-label="t('c_institution_components.finalist_line.aria', 'Finalist line')">{{ text }}</div>
 </template>

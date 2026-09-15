@@ -1,6 +1,9 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     organization: { type: Object, required: true },
@@ -8,21 +11,21 @@ const props = defineProps({
 });
 const base = computed(() => '/organizations/' + encodeURIComponent(props.organization.id));
 const links = computed(() => [
-    { key: 'overview', label: 'Overview', href: base.value + (props.organization.is_cgc ? '/cgc' : '') },
-    { key: 'board', label: 'Board & elections', href: base.value + '/board-elections' },
-    { key: 'finances', label: 'Finances', href: base.value + '/economy' },
-    { key: 'representation', label: 'Worker representation', href: '/organizations/co-determination?org=' + encodeURIComponent(props.organization.id) },
-    { key: 'ownership', label: 'Ownership changes', href: '/organizations/transfers-conversions?org=' + encodeURIComponent(props.organization.id) },
+    { key: 'overview', label: t('c_institution_components.organization_nav.overview', 'Overview'), href: base.value + (props.organization.is_cgc ? '/cgc' : '') },
+    { key: 'board', label: t('c_institution_components.organization_nav.board', 'Board & elections'), href: base.value + '/board-elections' },
+    { key: 'finances', label: t('c_institution_components.organization_nav.finances', 'Finances'), href: base.value + '/economy' },
+    { key: 'representation', label: t('c_institution_components.organization_nav.representation', 'Worker representation'), href: '/organizations/co-determination?org=' + encodeURIComponent(props.organization.id) },
+    { key: 'ownership', label: t('c_institution_components.organization_nav.ownership', 'Ownership changes'), href: '/organizations/transfers-conversions?org=' + encodeURIComponent(props.organization.id) },
 ]);
 </script>
 
 <template>
     <div class="org-workspace">
         <div class="org-workspace-heading">
-            <Link href="/organizations">All organizations</Link>
+            <Link href="/organizations">{{ t('c_institution_components.organization_nav.all_organizations', 'All organizations') }}</Link>
             <strong>{{ organization.name }}</strong>
         </div>
-        <nav :aria-label="`${organization.name} workspace`">
+        <nav :aria-label="t('c_institution_components.organization_nav.workspace_aria', '{name} workspace', { name: organization.name })">
             <Link v-for="item in links" :key="item.key" :href="item.href" :aria-current="current === item.key ? 'page' : undefined">
                 {{ item.label }}
             </Link>

@@ -13,10 +13,13 @@
  * history is preserved on the public record (WF-ORG-06 internal path).
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import LogRow from '@/Components/Ui/LogRow.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import TagChip from '@/Components/Ui/TagChip.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /** 'stock'|'partnership'|'equal_partnership'|'member_owned'|'worker_owned'|'nonprofit' */
@@ -33,30 +36,30 @@ const props = defineProps({
 /* The current structure's own consent rule — internal restructuring
    proceeds by owner consent under these rules, never the legislature
    (transfers-conversions.html §restructure). */
-const STRUCTURE_RULES = {
-    stock: 'Owner consent counts voting shares — the share register decides.',
-    partnership: 'Changes proceed by the partnership agreement’s own consent rule.',
-    equal_partnership: 'Partnership changes require unanimity of partners.',
-    member_owned: 'Member-owned — changes follow the membership’s own adopted rules.',
-    worker_owned: 'Worker-owned — the worker-members are the owner side.',
-    nonprofit: 'Nonprofit — no ownership stakes; the board governs per its charter.',
-};
+const STRUCTURE_RULES = () => ({
+    stock: t('c_institution_components.ownership_panel.rule_stock', 'Owner consent counts voting shares — the share register decides.'),
+    partnership: t('c_institution_components.ownership_panel.rule_partnership', 'Changes proceed by the partnership agreement’s own consent rule.'),
+    equal_partnership: t('c_institution_components.ownership_panel.rule_equal_partnership', 'Partnership changes require unanimity of partners.'),
+    member_owned: t('c_institution_components.ownership_panel.rule_member_owned', 'Member-owned — changes follow the membership’s own adopted rules.'),
+    worker_owned: t('c_institution_components.ownership_panel.rule_worker_owned', 'Worker-owned — the worker-members are the owner side.'),
+    nonprofit: t('c_institution_components.ownership_panel.rule_nonprofit', 'Nonprofit — no ownership stakes; the board governs per its charter.'),
+});
 
 const structureLabel = computed(() =>
     props.isCgc ? 'Common Good Corporation' : (props.structure ?? '—').replaceAll('_', ' '),
 );
-const rule = computed(() => (props.isCgc ? null : STRUCTURE_RULES[props.structure] ?? null));
+const rule = computed(() => (props.isCgc ? null : STRUCTURE_RULES()[props.structure] ?? null));
 
-const COUNT_LABELS = {
-    members: 'members',
-    shareholders: 'shareholders',
-    partners: 'partners',
-    workers: 'workers',
-};
+const COUNT_LABELS = () => ({
+    members: t('c_institution_components.ownership_panel.count_members', 'members'),
+    shareholders: t('c_institution_components.ownership_panel.count_shareholders', 'shareholders'),
+    partners: t('c_institution_components.ownership_panel.count_partners', 'partners'),
+    workers: t('c_institution_components.ownership_panel.count_workers', 'workers'),
+});
 const counts = computed(() =>
     Object.entries(props.memberCounts ?? {})
         .filter(([, v]) => v !== null && v !== undefined)
-        .map(([key, value]) => ({ key, value, label: COUNT_LABELS[key] ?? key })),
+        .map(([key, value]) => ({ key, value, label: COUNT_LABELS()[key] ?? key })),
 );
 
 const fmt = (n) => Number(n).toLocaleString();
@@ -82,23 +85,22 @@ const fmt = (n) => Number(n).toLocaleString();
         <!-- CGC variant: the owner-ruling card stands where the stakes table would -->
         <div v-if="isCgc" class="card card--inset">
             <p style="margin: 0">
-                In a Common Good Corporation the Board of Governors stands where shareholders
-                would — the owner side runs on the share system everywhere else.
+                {{ t('c_institution_components.ownership_panel.cgc_body', 'In a Common Good Corporation the Board of Governors stands where shareholders would — the owner side runs on the share system everywhere else.') }}
             </p>
             <p class="citation" style="margin-block-start: var(--space-1)">
-                Art. III §5–6 · as implemented (ledger #12)
+                {{ t('c_institution_components.ownership_panel.cgc_cite', 'Art. III §5–6 · as implemented (ledger #12)') }}
             </p>
         </div>
 
         <DataTable
             v-else-if="stakes.length"
             :columns="[
-                { key: 'holder', label: 'Holder' },
-                { key: 'units', label: 'Units', mono: true, align: 'right' },
+                { key: 'holder', label: t('c_institution_components.ownership_panel.col_holder', 'Holder') },
+                { key: 'units', label: t('c_institution_components.ownership_panel.col_units', 'Units'), mono: true, align: 'right' },
                 { key: 'pct', label: '%', mono: true, align: 'right' },
             ]"
             :rows="stakes"
-            caption="Ownership stakes"
+            :caption="t('c_institution_components.ownership_panel.stakes_caption', 'Ownership stakes')"
         >
             <template #cell-holder="{ row }">
                 <a v-if="row.holder.href" :href="row.holder.href">{{ row.holder.name }}</a>
@@ -108,10 +110,10 @@ const fmt = (n) => Number(n).toLocaleString();
             <template #cell-units="{ row }">{{ fmt(row.units) }}</template>
             <template #cell-pct="{ row }">{{ row.pct }}%</template>
         </DataTable>
-        <p v-else class="gloss">No ownership stakes on record for this structure.</p>
+        <p v-else class="gloss">{{ t('c_institution_components.ownership_panel.no_stakes', 'No ownership stakes on record for this structure.') }}</p>
 
         <template v-if="structureHistory.length">
-            <p class="citation" style="margin: 0">structure history preserved — append-only record</p>
+            <p class="citation" style="margin: 0">{{ t('c_institution_components.ownership_panel.history_preserved', 'structure history preserved — append-only record') }}</p>
             <div>
                 <LogRow v-for="(event, i) in structureHistory" :key="event.seq ?? i" :seq="event.seq ?? i + 1">
                     <span style="flex: 1 1 16rem; min-inline-size: 0" data-no-i18n>

@@ -1,7 +1,10 @@
 <script setup>
 import { computed, ref, useId, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import VoteTally from './VoteTally.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     consent: { type: Object, required: true },
@@ -29,7 +32,7 @@ function send(url, payload) {
     router.post(url, payload, {
         preserveScroll: true,
         onStart: () => { busy.value = true; error.value = ''; },
-        onError: errors => { error.value = Object.values(errors)[0] || 'Your vote could not be submitted. Please try again.'; },
+        onError: errors => { error.value = Object.values(errors)[0] || t('c_institution_components.consent_vote_card.submit_failed', 'Your vote could not be submitted. Please try again.'); },
         onSuccess: () => { submitted.value = true; },
         onFinish: () => { busy.value = false; },
     });
@@ -40,15 +43,15 @@ function send(url, payload) {
     <div :aria-busy="busy">
         <VoteTally v-if="consent.tally" v-bind="consent.tally" :can-cast="allowed" :casting="busy" @cast="cast" />
         <form v-if="canBreakTie" class="consent-tiebreak" @submit.prevent>
-            <h4>Speaker’s tie-breaking vote</h4>
-            <label :for="tieExplanationId">Explanation (optional, published with your vote)</label>
+            <h4>{{ t('c_institution_components.consent_vote_card.tiebreak_h', 'Speaker’s tie-breaking vote') }}</h4>
+            <label :for="tieExplanationId">{{ t('c_institution_components.consent_vote_card.explanation_label', 'Explanation (optional, published with your vote)') }}</label>
             <textarea :id="tieExplanationId" v-model="tieExplanation" rows="2" :disabled="busy" />
-            <div><button type="button" :disabled="busy" @click="breakTie('yes')">Break tie: yes</button>
-                <button type="button" :disabled="busy" @click="breakTie('no')">Break tie: no</button></div>
+            <div><button type="button" :disabled="busy" @click="breakTie('yes')">{{ t('c_institution_components.consent_vote_card.break_tie_yes', 'Break tie: yes') }}</button>
+                <button type="button" :disabled="busy" @click="breakTie('no')">{{ t('c_institution_components.consent_vote_card.break_tie_no', 'Break tie: no') }}</button></div>
         </form>
-        <p v-if="busy" role="status">Submitting your vote…</p>
+        <p v-if="busy" role="status">{{ t('c_institution_components.consent_vote_card.submitting', 'Submitting your vote…') }}</p>
         <p v-if="error" role="alert">{{ error }}</p>
-        <p v-if="consent.my_cast || submitted" role="status">Your vote has been recorded.</p>
+        <p v-if="consent.my_cast || submitted" role="status">{{ t('c_institution_components.consent_vote_card.recorded', 'Your vote has been recorded.') }}</p>
         <p v-if="consent.read_only_reason">{{ consent.read_only_reason }}</p>
     </div>
 </template>

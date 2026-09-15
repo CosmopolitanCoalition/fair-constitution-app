@@ -33,6 +33,7 @@
  */
 import { computed, reactive, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
@@ -77,9 +78,14 @@ const props = defineProps({
     can: { type: Object, default: () => ({}) },
 });
 
-const STAGE_GLOSS =
-    'The finding lands on the legislature as a mandatory session priority — constitutional ' +
-    'matters precede the general agenda (WF-LEG-05).';
+const { t } = useI18n();
+
+const STAGE_GLOSS = computed(() =>
+    t(
+        'c_institution_components.art4_section5_tracker.stage_gloss',
+        'The finding lands on the legislature as a mandatory session priority — constitutional matters precede the general agenda (WF-LEG-05).',
+    ),
+);
 
 const ch = computed(() => props.challenge);
 const remedy = computed(() => ch.value?.remedy ?? {});
@@ -105,8 +111,8 @@ function post(action, url, data) {
         preserveScroll: true,
         onStart: () => { busy.value = action; error.value = ''; notice.value = ''; },
         onFinish: () => { busy.value = ''; },
-        onError: (errs) => { error.value = errs.constitution || Object.values(errs)[0] || 'The action was refused. Please retry.'; },
-        onSuccess: () => { notice.value = 'Recorded on the public register — the tracker reflects the new state.'; },
+        onError: (errs) => { error.value = errs.constitution || Object.values(errs)[0] || t('c_institution_components.art4_section5_tracker.action_refused', 'The action was refused. Please retry.'); },
+        onSuccess: () => { notice.value = t('c_institution_components.art4_section5_tracker.recorded_notice', 'Recorded on the public register — the tracker reflects the new state.'); },
     });
 }
 
@@ -137,46 +143,40 @@ function submitRemedy() {
 const steps = computed(() => {
     const resolved = resolution.value !== 'window_open';
     return [
-        { label: 'Finding + remedy', icon: 'scale', state: 'done' },
-        { label: 'Legislative window', icon: 'clock', state: resolved ? 'done' : 'active' },
-        { label: 'Resolved', icon: 'check', state: resolved ? 'done' : 'pending' },
+        { label: t('c_institution_components.art4_section5_tracker.step_finding_remedy', 'Finding + remedy'), icon: 'scale', state: 'done' },
+        { label: t('c_institution_components.art4_section5_tracker.step_legislative_window', 'Legislative window'), icon: 'clock', state: resolved ? 'done' : 'active' },
+        { label: t('c_institution_components.art4_section5_tracker.step_resolved', 'Resolved'), icon: 'check', state: resolved ? 'done' : 'pending' },
     ];
 });
 
 /* Per-path status badge: the engine's resolution decides, never the UI. */
 function pathBadge(path) {
     const r = resolution.value;
+    const resolved = { tone: 'success', icon: 'check', text: t('c_institution_components.art4_section5_tracker.badge_resolved', 'Resolved') };
+    const open = { tone: 'info', icon: 'clock', text: t('c_institution_components.art4_section5_tracker.badge_open', 'Open') };
+    const closed = { tone: 'neutral', icon: 'x', text: t('c_institution_components.art4_section5_tracker.badge_closed', 'Closed — resolved on another path') };
     if (path === 'A') {
-        return r === 'amended'
-            ? { tone: 'success', icon: 'check', text: 'Resolved' }
-            : r === 'window_open'
-              ? { tone: 'info', icon: 'clock', text: 'Open' }
-              : { tone: 'neutral', icon: 'x', text: 'Closed — resolved on another path' };
+        return r === 'amended' ? resolved : r === 'window_open' ? open : closed;
     }
     if (path === 'B') {
-        return r === 'overridden'
-            ? { tone: 'success', icon: 'check', text: 'Resolved' }
-            : r === 'window_open'
-              ? { tone: 'info', icon: 'clock', text: 'Open' }
-              : { tone: 'neutral', icon: 'x', text: 'Closed — resolved on another path' };
+        return r === 'overridden' ? resolved : r === 'window_open' ? open : closed;
     }
     return r === 'applied'
-        ? { tone: 'success', icon: 'check', text: 'Resolved' }
+        ? resolved
         : r === 'window_open'
-          ? { tone: 'neutral', icon: 'clock', text: 'Pending window close' }
-          : { tone: 'neutral', icon: 'x', text: 'Closed — resolved on another path' };
+          ? { tone: 'neutral', icon: 'clock', text: t('c_institution_components.art4_section5_tracker.badge_pending_window', 'Pending window close') }
+          : closed;
 }
 </script>
 
 <template>
     <!-- =================================================== EMPTY STATE === -->
-    <Card v-if="!challenge" as="section" title="No constitutional challenge is open in your jurisdictions">
+    <Card v-if="!challenge" as="section" :title="t('c_institution_components.art4_section5_tracker.empty_title', 'No constitutional challenge is open in your jurisdictions')">
         <div class="cluster" style="margin-block-end: var(--space-3)">
-            <StatusBadge tone="neutral" icon="info">No open challenge</StatusBadge>
+            <StatusBadge tone="neutral" icon="info">{{ t('c_institution_components.art4_section5_tracker.no_open_challenge', 'No open challenge') }}</StatusBadge>
         </div>
         <p>
-            When a court issues a finding under Art. IV §5, this tracker shows the finding, the
-            recommended remedy, both clocks (CLK-11 / CLK-12), and the three resolution paths live.
+            {{ t('c_institution_components.art4_section5_tracker.empty_body', 'When a court issues a finding under Art. IV §5, this tracker shows the finding, the recommended remedy, both clocks (CLK-11 / CLK-12), and the three resolution paths live.') }}
         </p>
         <div v-if="fileForm" class="stack" style="gap: var(--space-3); margin-block-start: var(--space-4)">
             <FormCard :form="fileForm">
@@ -191,39 +191,35 @@ function pathBadge(path) {
         <Banner
             tone="warning"
             role="status"
-            :title="`Legislative window open — override closes ${remedy.veto_closes_on}`"
+            :title="t('c_institution_components.art4_section5_tracker.window_banner_title', 'Legislative window open — override closes {date}', { date: remedy.veto_closes_on })"
         >
-            The legislature has {{ remedy.timeframe_days }} days to modify or remove the law
-            (CLK-12, due {{ remedy.timeframe_due_on }}) and {{ remedy.veto_window_days }} days to
-            override ({{ remedy.veto_clk || 'CLK-11' }}).
+            {{ t('c_institution_components.art4_section5_tracker.window_banner_body', 'The legislature has {days} days to modify or remove the law (CLK-12, due {due}) and {vetoDays} days to override ({clk}).', { days: remedy.timeframe_days, due: remedy.timeframe_due_on, vetoDays: remedy.veto_window_days, clk: remedy.veto_clk || 'CLK-11' }) }}
             <span class="citation" data-no-i18n>{{ remedy.tz || 'stored as UTC' }}</span>
         </Banner>
 
         <!-- 2 · Challenge summary + the F-IND-016 entry point -->
-        <Card as="section" title="Active challenge">
+        <Card as="section" :title="t('c_institution_components.art4_section5_tracker.active_challenge', 'Active challenge')">
             <h2 style="margin-block: var(--space-1) var(--space-2)">{{ ch.name }}</h2>
             <p>
-                <strong style="color: var(--gov-fg)">Law challenged:</strong>
+                <strong style="color: var(--gov-fg)">{{ t('c_institution_components.art4_section5_tracker.law_challenged', 'Law challenged:') }}</strong>
                 <a v-if="ch.law?.href" :href="ch.law.href">{{ ch.law?.name }}</a>
                 <template v-else>{{ ch.law?.name }}</template>
             </p>
             <p>
-                <strong style="color: var(--gov-fg)">Filed:</strong> {{ ch.filed_at }} by
-                {{ ch.filed_by_label }} — any inhabitant may file; no standing gatekeeper beyond
-                jurisdictional association.
+                <strong style="color: var(--gov-fg)">{{ t('c_institution_components.art4_section5_tracker.filed', 'Filed:') }}</strong> {{ ch.filed_at }}
+                {{ t('c_institution_components.art4_section5_tracker.filed_by', 'by {who} — any inhabitant may file; no standing gatekeeper beyond jurisdictional association.', { who: ch.filed_by_label }) }}
             </p>
             <p>
-                <strong style="color: var(--gov-fg)">Heard by:</strong>
+                <strong style="color: var(--gov-fg)">{{ t('c_institution_components.art4_section5_tracker.heard_by', 'Heard by:') }}</strong>
                 <template v-if="ch.is_major">
-                    the full court — all {{ ch.full_court_size }} judges · CLK-16,
-                    {{ ch.writing_judge?.name }} writing.
+                    {{ t('c_institution_components.art4_section5_tracker.full_court', 'the full court — all {n} judges · CLK-16, {judge} writing.', { n: ch.full_court_size, judge: ch.writing_judge?.name }) }}
                     <HardenedChip />
                 </template>
                 <template v-else>
-                    a severity-scaled panel of the {{ ch.court?.name }}, {{ ch.writing_judge?.name }} writing.
+                    {{ t('c_institution_components.art4_section5_tracker.panel_court', 'a severity-scaled panel of the {court}, {judge} writing.', { court: ch.court?.name, judge: ch.writing_judge?.name }) }}
                 </template>
             </p>
-            <p class="citation">Right to challenge · Art. IV §5</p>
+            <p class="citation">{{ t('c_institution_components.art4_section5_tracker.right_to_challenge', 'Right to challenge · Art. IV §5') }}</p>
             <div v-if="fileForm" class="stack" style="gap: var(--space-3); margin-block-start: var(--space-3)">
                 <FormCard :form="fileForm">
                     <slot name="file-fields" />
@@ -233,14 +229,14 @@ function pathBadge(path) {
 
         <!-- 3 · Challenge ESM state strip -->
         <Card as="section" inset>
-            <span class="eyebrow">Constitutional Challenge state machine</span>
+            <span class="eyebrow">{{ t('c_institution_components.art4_section5_tracker.challenge_esm', 'Constitutional Challenge state machine') }}</span>
             <div style="margin-block-start: var(--space-2)">
                 <StateStrip :states="machine" :current="ch.state" />
             </div>
         </Card>
 
         <!-- 4 · Finding & remedy — reference cards (the court's record, not forms here) -->
-        <Card as="section" title="Finding & recommended remedy">
+        <Card as="section" :title="t('c_institution_components.art4_section5_tracker.finding_remedy_title', 'Finding & recommended remedy')">
             <div class="grid-2">
                 <div v-if="ch.finding?.form_card" class="card card--inset">
                     <div class="cluster" style="justify-content: space-between; align-items: baseline">
@@ -257,9 +253,7 @@ function pathBadge(path) {
                     </div>
                     <p class="citation" style="margin-block: var(--space-1)">{{ remedy.form_card.citation }}</p>
                     <p style="font-size: var(--text-sm); color: var(--gov-fg)">
-                        “{{ remedy.text }}.” Timeframe: {{ remedy.timeframe_days }} days
-                        ({{ remedy.clk || 'CLK-12' }}) · veto window: {{ remedy.veto_window_days }} days
-                        ({{ remedy.veto_clk || 'CLK-11' }}).
+                        “{{ remedy.text }}.” {{ t('c_institution_components.art4_section5_tracker.remedy_timeframe', 'Timeframe: {days} days ({clk}) · veto window: {vetoDays} days ({vetoClk}).', { days: remedy.timeframe_days, clk: remedy.clk || 'CLK-12', vetoDays: remedy.veto_window_days, vetoClk: remedy.veto_clk || 'CLK-11' }) }}
                     </p>
                 </div>
             </div>
@@ -268,38 +262,38 @@ function pathBadge(path) {
             <!-- IO-3 · a seated judge records the finding, then the remedy -->
             <div v-if="can.isSeatedJudge" class="a4-controls">
                 <form class="a4-control" :aria-busy="busy === 'finding'" @submit.prevent="submitFinding">
-                    <h4>Record the constitutional finding</h4>
-                    <label :for="`a4-finds-${ch.id}`">Determination</label>
+                    <h4>{{ t('c_institution_components.art4_section5_tracker.record_finding_h', 'Record the constitutional finding') }}</h4>
+                    <label :for="`a4-finds-${ch.id}`">{{ t('c_institution_components.art4_section5_tracker.determination', 'Determination') }}</label>
                     <select :id="`a4-finds-${ch.id}`" v-model="findingForm.finds_contradiction">
-                        <option value="true">A contradiction is found (opens the remedy step)</option>
-                        <option value="false">No contradiction (dismiss the challenge)</option>
+                        <option value="true">{{ t('c_institution_components.art4_section5_tracker.opt_contradiction_found', 'A contradiction is found (opens the remedy step)') }}</option>
+                        <option value="false">{{ t('c_institution_components.art4_section5_tracker.opt_no_contradiction', 'No contradiction (dismiss the challenge)') }}</option>
                     </select>
-                    <label :for="`a4-opinion-${ch.id}`">Opinion</label>
+                    <label :for="`a4-opinion-${ch.id}`">{{ t('c_institution_components.art4_section5_tracker.opinion', 'Opinion') }}</label>
                     <textarea :id="`a4-opinion-${ch.id}`" v-model="findingForm.opinion_text" rows="3" maxlength="10000" />
-                    <label class="a4-check"><input v-model="findingForm.full_court" type="checkbox" /> Heard by the full court</label>
-                    <button type="submit" :disabled="busy !== '' || !can.finding">Record finding</button>
-                    <p v-if="!can.finding" role="status">A finding is recorded while the challenge is under review (Art. IV §5.2).</p>
+                    <label class="a4-check"><input v-model="findingForm.full_court" type="checkbox" /> {{ t('c_institution_components.art4_section5_tracker.heard_full_court', 'Heard by the full court') }}</label>
+                    <button type="submit" :disabled="busy !== '' || !can.finding">{{ t('c_institution_components.art4_section5_tracker.record_finding_btn', 'Record finding') }}</button>
+                    <p v-if="!can.finding" role="status">{{ t('c_institution_components.art4_section5_tracker.finding_gate', 'A finding is recorded while the challenge is under review (Art. IV §5.2).') }}</p>
                 </form>
 
                 <form class="a4-control" :aria-busy="busy === 'recommend'" @submit.prevent="submitRecommend">
-                    <h4>Recommend the remedy and set the windows</h4>
-                    <label :for="`a4-kind-${ch.id}`">Remedy</label>
+                    <h4>{{ t('c_institution_components.art4_section5_tracker.recommend_h', 'Recommend the remedy and set the windows') }}</h4>
+                    <label :for="`a4-kind-${ch.id}`">{{ t('c_institution_components.art4_section5_tracker.remedy', 'Remedy') }}</label>
                     <select :id="`a4-kind-${ch.id}`" v-model="recommendForm.remedy_kind">
-                        <option value="modify">Modify the law (provide replacement text)</option>
-                        <option value="remove">Remove the law (repeal)</option>
+                        <option value="modify">{{ t('c_institution_components.art4_section5_tracker.opt_modify', 'Modify the law (provide replacement text)') }}</option>
+                        <option value="remove">{{ t('c_institution_components.art4_section5_tracker.opt_remove', 'Remove the law (repeal)') }}</option>
                     </select>
                     <template v-if="recommendForm.remedy_kind === 'modify'">
-                        <label :for="`a4-text-${ch.id}`">Replacement text</label>
+                        <label :for="`a4-text-${ch.id}`">{{ t('c_institution_components.art4_section5_tracker.replacement_text', 'Replacement text') }}</label>
                         <textarea :id="`a4-text-${ch.id}`" v-model="recommendForm.recommended_text" rows="3" maxlength="20000" />
                     </template>
-                    <label :for="`a4-rationale-${ch.id}`">Why this makes the law non-contradictory</label>
+                    <label :for="`a4-rationale-${ch.id}`">{{ t('c_institution_components.art4_section5_tracker.rationale', 'Why this makes the law non-contradictory') }}</label>
                     <textarea :id="`a4-rationale-${ch.id}`" v-model="recommendForm.rationale_text" rows="2" maxlength="10000" />
-                    <label :for="`a4-tf-${ch.id}`">Remedy timeframe (days · CLK-12)</label>
+                    <label :for="`a4-tf-${ch.id}`">{{ t('c_institution_components.art4_section5_tracker.remedy_timeframe_label', 'Remedy timeframe (days · CLK-12)') }}</label>
                     <input :id="`a4-tf-${ch.id}`" v-model.number="recommendForm.remedy_timeframe_days" type="number" min="1" />
-                    <label :for="`a4-veto-${ch.id}`">Veto window (days · CLK-11)</label>
+                    <label :for="`a4-veto-${ch.id}`">{{ t('c_institution_components.art4_section5_tracker.veto_window_label', 'Veto window (days · CLK-11)') }}</label>
                     <input :id="`a4-veto-${ch.id}`" v-model.number="recommendForm.veto_window_days" type="number" min="1" />
-                    <button type="submit" :disabled="busy !== '' || !can.recommend">Recommend remedy</button>
-                    <p v-if="!can.recommend" role="status">A remedy is recommended after a contradiction is found (Art. IV §5.3).</p>
+                    <button type="submit" :disabled="busy !== '' || !can.recommend">{{ t('c_institution_components.art4_section5_tracker.recommend_btn', 'Recommend remedy') }}</button>
+                    <p v-if="!can.recommend" role="status">{{ t('c_institution_components.art4_section5_tracker.recommend_gate', 'A remedy is recommended after a contradiction is found (Art. IV §5.3).') }}</p>
                 </form>
                 <p v-if="error" role="alert">{{ error }}</p>
                 <p v-if="notice" role="status">{{ notice }}</p>
@@ -312,38 +306,36 @@ function pathBadge(path) {
         <div
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--space-5)"
             role="group"
-            aria-label="The three Art. IV §5 resolution paths"
+            :aria-label="t('c_institution_components.art4_section5_tracker.paths_group_aria', 'The three Art. IV §5 resolution paths')"
         >
             <!-- Path A — Legislature amends or removes -->
-            <Card as="section" aria-label="Path A">
+            <Card as="section" :aria-label="t('c_institution_components.art4_section5_tracker.path_a_aria', 'Path A')">
                 <div class="cluster" style="justify-content: space-between; margin-block-end: var(--space-2)">
-                    <h3 style="margin-block: 0">Path A — Legislature modifies or removes</h3>
+                    <h3 style="margin-block: 0">{{ t('c_institution_components.art4_section5_tracker.path_a_h', 'Path A — Legislature modifies or removes') }}</h3>
                     <StatusBadge :tone="pathBadge('A').tone" :icon="pathBadge('A').icon">
                         {{ pathBadge('A').text }}
                     </StatusBadge>
                 </div>
                 <p style="font-size: var(--text-sm)">
-                    The legislature modifies or removes the law through the ordinary bill flow within
-                    the judicial timeframe.
+                    {{ t('c_institution_components.art4_section5_tracker.path_a_body', 'The legislature modifies or removes the law through the ordinary bill flow within the judicial timeframe.') }}
                 </p>
-                <p v-if="ch.bill_href"><a :href="ch.bill_href">Amendment bill in committee →</a></p>
+                <p v-if="ch.bill_href"><a :href="ch.bill_href">{{ t('c_institution_components.art4_section5_tracker.amendment_bill_committee', 'Amendment bill in committee →') }}</a></p>
                 <!-- IO-3 · a member of the offending law's legislature opens Path 1 -->
                 <p v-if="can.isLegislatureMember && can.proposeAmendment && ch.amendment_bill_new_href">
-                    <a :href="ch.amendment_bill_new_href">Propose amendment bill →</a>
+                    <a :href="ch.amendment_bill_new_href">{{ t('c_institution_components.art4_section5_tracker.propose_amendment_bill', 'Propose amendment bill →') }}</a>
                 </p>
                 <p v-else-if="can.isLegislatureMember" role="status" class="a4-reason">
-                    A remedial bill is proposed while the legislative window is open (Art. IV §5.3).
+                    {{ t('c_institution_components.art4_section5_tracker.remedial_bill_gate', 'A remedial bill is proposed while the legislative window is open (Art. IV §5.3).') }}
                 </p>
                 <p class="citation">
-                    due within {{ remedy.timeframe_days }} days of the finding · {{ remedy.clk || 'CLK-12' }} ·
-                    Art. IV §5 — opinions remain commentary on the law as edited
+                    {{ t('c_institution_components.art4_section5_tracker.path_a_cite', 'due within {days} days of the finding · {clk} · Art. IV §5 — opinions remain commentary on the law as edited', { days: remedy.timeframe_days, clk: remedy.clk || 'CLK-12' }) }}
                 </p>
             </Card>
 
             <!-- Path B — Supermajority override in the veto window -->
-            <Card as="section" aria-label="Path B">
+            <Card as="section" :aria-label="t('c_institution_components.art4_section5_tracker.path_b_aria', 'Path B')">
                 <div class="cluster" style="justify-content: space-between; margin-block-end: var(--space-2)">
-                    <h3 style="margin-block: 0">Path B — Supermajority override in the veto window</h3>
+                    <h3 style="margin-block: 0">{{ t('c_institution_components.art4_section5_tracker.path_b_h', 'Path B — Supermajority override in the veto window') }}</h3>
                     <StatusBadge :tone="pathBadge('B').tone" :icon="pathBadge('B').icon">
                         {{ pathBadge('B').text }}
                     </StatusBadge>
@@ -371,9 +363,9 @@ function pathBadge(path) {
                         :value="override.yes"
                         :max="override.serving"
                         :threshold="override.required"
-                        label="Override — votes in favor of all serving"
+                        :label="t('c_institution_components.art4_section5_tracker.override_meter_label', 'Override — votes in favor of all serving')"
                     >
-                        {{ override.yes }} of {{ override.serving }} serving members in favor
+                        {{ t('c_institution_components.art4_section5_tracker.override_in_favor', '{yes} of {serving} serving members in favor', { yes: override.yes, serving: override.serving }) }}
                         <template #note>
                             <span data-no-i18n
                                 >needs {{ override.required }} of {{ override.serving }} ·
@@ -384,8 +376,7 @@ function pathBadge(path) {
                 </div>
 
                 <p class="gloss">
-                    Supermajority of all serving members — not just those present — recorded within the
-                    veto window.
+                    {{ t('c_institution_components.art4_section5_tracker.override_gloss', 'Supermajority of all serving members — not just those present — recorded within the veto window.') }}
                 </p>
 
                 <!-- IO-3 · a member of the offending law's legislature opens the override -->
@@ -395,12 +386,11 @@ function pathBadge(path) {
                     :aria-busy="busy === 'override'"
                     @submit.prevent="submitOverride"
                 >
-                    <label :for="`a4-dissent-${ch.id}`">Dissent (optional, public)</label>
+                    <label :for="`a4-dissent-${ch.id}`">{{ t('c_institution_components.art4_section5_tracker.dissent_label', 'Dissent (optional, public)') }}</label>
                     <textarea :id="`a4-dissent-${ch.id}`" v-model="overrideForm.dissent_text" rows="2" maxlength="10000" />
-                    <button type="submit" :disabled="busy !== '' || !can.override">Open override vote</button>
+                    <button type="submit" :disabled="busy !== '' || !can.override">{{ t('c_institution_components.art4_section5_tracker.open_override_btn', 'Open override vote') }}</button>
                     <p v-if="!can.override" role="status">
-                        A supermajority override opens while the legislative window is open, within the veto
-                        window (Art. IV §5.4).
+                        {{ t('c_institution_components.art4_section5_tracker.override_gate', 'A supermajority override opens while the legislative window is open, within the veto window (Art. IV §5.4).') }}
                     </p>
                     <p v-if="error && busy === ''" role="alert">{{ error }}</p>
                 </form>
@@ -409,31 +399,29 @@ function pathBadge(path) {
                     v-if="resolution === 'overridden'"
                     tone="info"
                     role="status"
-                    title="Judgement overruled"
+                    :title="t('c_institution_components.art4_section5_tracker.overruled_title', 'Judgement overruled')"
                 >
-                    The law stands as written; the finding, the override vote, and every member’s
-                    position are on the public record.
+                    {{ t('c_institution_components.art4_section5_tracker.overruled_body', 'The law stands as written; the finding, the override vote, and every member’s position are on the public record.') }}
                     <span class="citation" data-no-i18n>F-LEG-035 · Art. IV §5</span>
                 </Banner>
             </Card>
 
             <!-- Path C — Window closes, judiciary edits the law directly -->
-            <Card as="section" aria-label="Path C">
+            <Card as="section" :aria-label="t('c_institution_components.art4_section5_tracker.path_c_aria', 'Path C')">
                 <div class="cluster" style="justify-content: space-between; margin-block-end: var(--space-2)">
-                    <h3 style="margin-block: 0">Path C — Window closes, judiciary edits the law</h3>
+                    <h3 style="margin-block: 0">{{ t('c_institution_components.art4_section5_tracker.path_c_h', 'Path C — Window closes, judiciary edits the law') }}</h3>
                     <StatusBadge :tone="pathBadge('C').tone" :icon="pathBadge('C').icon">
                         {{ pathBadge('C').text }}
                     </StatusBadge>
                 </div>
                 <p style="font-size: var(--text-sm)">
-                    If the window closes with neither amendment nor override, the judiciary applies its
-                    remedy directly to the law’s text. Version history is preserved.
+                    {{ t('c_institution_components.art4_section5_tracker.path_c_body', 'If the window closes with neither amendment nor override, the judiciary applies its remedy directly to the law’s text. Version history is preserved.') }}
                 </p>
 
                 <LawDiff
                     v-if="diff"
                     :segments="diff.segments"
-                    :label="`${ch.law?.name} — ${diff.applied ? 'as edited by the judiciary' : 'remedy preview'}`"
+                    :label="t('c_institution_components.art4_section5_tracker.law_diff_label', '{name} — {state}', { name: ch.law?.name, state: diff.applied ? t('c_institution_components.art4_section5_tracker.diff_as_edited', 'as edited by the judiciary') : t('c_institution_components.art4_section5_tracker.diff_remedy_preview', 'remedy preview') })"
                 />
                 <div v-if="ch.judicial_remedy_form_card" class="card card--inset" style="margin-block-start: var(--space-2)">
                     <div class="cluster" style="justify-content: space-between; align-items: baseline">
@@ -449,28 +437,26 @@ function pathBadge(path) {
                     :aria-busy="busy === 'remedy'"
                     @submit.prevent="submitRemedy"
                 >
-                    <button type="submit" :disabled="busy !== '' || !can.remedy">Apply the remedy now</button>
+                    <button type="submit" :disabled="busy !== '' || !can.remedy">{{ t('c_institution_components.art4_section5_tracker.apply_remedy_btn', 'Apply the remedy now') }}</button>
                     <p v-if="!can.remedy" role="status">
-                        Available once both the remedy timeframe and the veto window have closed; the CLK-11
-                        sweep applies it automatically otherwise (Art. IV §5.5).
+                        {{ t('c_institution_components.art4_section5_tracker.remedy_gate', 'Available once both the remedy timeframe and the veto window have closed; the CLK-11 sweep applies it automatically otherwise (Art. IV §5.5).') }}
                     </p>
                     <p v-if="error && busy === ''" role="alert">{{ error }}</p>
                 </form>
 
                 <p class="citation" style="margin-block-start: var(--space-2)">
-                    opinions remain commentary on the law as written or edited · Art. IV §5
+                    {{ t('c_institution_components.art4_section5_tracker.path_c_cite', 'opinions remain commentary on the law as written or edited · Art. IV §5') }}
                 </p>
 
                 <Banner
                     v-if="resolution === 'applied'"
                     tone="info"
                     role="status"
-                    title="Remedy applied directly"
+                    :title="t('c_institution_components.art4_section5_tracker.applied_title', 'Remedy applied directly')"
                 >
-                    {{ ch.law?.name }} is edited to the text above; a new law version is published with
-                    the prior version retained in history.
+                    {{ t('c_institution_components.art4_section5_tracker.applied_body', '{name} is edited to the text above; a new law version is published with the prior version retained in history.', { name: ch.law?.name }) }}
                     <a v-if="diff?.history_href" :href="diff.history_href">
-                        Version {{ diff.version_no }} (prior: {{ diff.prior_version_no }}) →
+                        {{ t('c_institution_components.art4_section5_tracker.version_link', 'Version {n} (prior: {prior}) →', { n: diff.version_no, prior: diff.prior_version_no }) }}
                     </a>
                     <span class="citation" data-no-i18n>F-JDG-006 · judicial_remedy · Art. IV §5</span>
                 </Banner>
@@ -478,10 +464,9 @@ function pathBadge(path) {
         </div>
 
         <!-- 6 · Enforcement -->
-        <Banner tone="info" role="note" title="Executives enforce the outcome — whichever path resolves">
-            Enforcement aligns to the final state of the law: amended, upheld by override, or edited by
-            the court.
-            <a v-if="ch.enforcement?.href" :href="ch.enforcement.href">Executive actions</a>
+        <Banner tone="info" role="note" :title="t('c_institution_components.art4_section5_tracker.enforce_title', 'Executives enforce the outcome — whichever path resolves')">
+            {{ t('c_institution_components.art4_section5_tracker.enforce_body', 'Enforcement aligns to the final state of the law: amended, upheld by override, or edited by the court.') }}
+            <a v-if="ch.enforcement?.href" :href="ch.enforcement.href">{{ t('c_institution_components.art4_section5_tracker.executive_actions', 'Executive actions') }}</a>
             <span class="citation" data-no-i18n>Art. IV §5 · WF-EXE-07</span>
         </Banner>
     </div>

@@ -16,13 +16,16 @@
  * pattern: focus-retained, useAnnounce); the server re-guards via the
  * F-SPK-002 handler. Emit-only — the page owns the POST.
  */
-import { nextTick } from 'vue';
+import { computed, nextTick } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import Btn from '@/Components/Ui/Btn.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { useAnnounce } from '@/composables/useAnnounce';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /**
@@ -37,23 +40,32 @@ const props = defineProps({
 const emit = defineEmits(['reorder']);
 const { announce } = useAnnounce();
 
-const KIND_LABELS = {
-    emergency_powers: 'Outstanding emergency powers',
-    constitutional_matters: 'Constitutional matters',
-    committee_report: 'Committee report',
-    priority: 'Member priority',
-    motion: 'Motions',
-    statement: 'Statements',
-    other: 'General',
-};
+const kindLabel = (kind) =>
+    ({
+        emergency_powers: t('c_institution_components.agenda_strip.kind_emergency_powers', 'Outstanding emergency powers'),
+        constitutional_matters: t('c_institution_components.agenda_strip.kind_constitutional_matters', 'Constitutional matters'),
+        committee_report: t('c_institution_components.agenda_strip.kind_committee_report', 'Committee report'),
+        priority: t('c_institution_components.agenda_strip.kind_priority', 'Member priority'),
+        motion: t('c_institution_components.agenda_strip.kind_motion', 'Motions'),
+        statement: t('c_institution_components.agenda_strip.kind_statement', 'Statements'),
+        other: t('c_institution_components.agenda_strip.kind_other', 'General'),
+    })[kind] ?? kind;
 
 const STATUS_BADGES = {
-    pending: { tone: 'info', icon: 'clock', text: 'Pending' },
-    in_progress: { tone: 'warning', icon: 'clock', text: 'In progress' },
-    done: { tone: 'success', icon: 'check', text: 'Done' },
+    pending: { tone: 'info', icon: 'clock' },
+    in_progress: { tone: 'warning', icon: 'clock' },
+    done: { tone: 'success', icon: 'check' },
 };
+const statusText = (s) =>
+    ({
+        pending: t('c_institution_components.agenda_strip.status_pending', 'Pending'),
+        in_progress: t('c_institution_components.agenda_strip.status_in_progress', 'In progress'),
+        done: t('c_institution_components.agenda_strip.status_done', 'Done'),
+    })[s];
 
-const LOCK_TITLE = 'Constitutional order — cannot be reordered or removed · Art. II §2; §7';
+const LOCK_TITLE = computed(() =>
+    t('c_institution_components.agenda_strip.lock_title', 'Constitutional order — cannot be reordered or removed · Art. II §2; §7'),
+);
 
 /* Focus-retention registry, keyed by stable position-at-mount id (the
    RankList function-ref pattern — never index-keyed). */
@@ -92,12 +104,12 @@ async function move(index, dir, kind) {
             break;
         }
     }
-    announce(`${item.title} moved to position ${index + dir + 1} of ${props.items.length}`);
+    announce(t('c_institution_components.agenda_strip.moved_announce', '{title} moved to position {pos} of {total}', { title: item.title, pos: index + dir + 1, total: props.items.length }));
 }
 </script>
 
 <template>
-    <ol class="agenda-list" aria-label="Session agenda — constitutional order">
+    <ol class="agenda-list" :aria-label="t('c_institution_components.agenda_strip.list_aria', 'Session agenda — constitutional order')">
         <li
             v-for="(item, index) in items"
             :key="itemKey(item)"
@@ -108,7 +120,7 @@ async function move(index, dir, kind) {
 
             <div style="flex: 1 1 auto; min-inline-size: 0">
                 <span class="eyebrow">
-                    {{ KIND_LABELS[item.kind] ?? item.kind }}
+                    {{ kindLabel(item.kind) }}
                     <template v-if="item.locked">
                         <Icon name="lock" size="sm" :label="LOCK_TITLE" />
                     </template>
@@ -118,7 +130,7 @@ async function move(index, dir, kind) {
                     <span v-else>{{ item.title }}</span>
                     <template v-if="item.subject">
                         {{ ' ' }}
-                        <Link :href="item.subject.href">Open</Link>
+                        <Link :href="item.subject.href">{{ t('c_institution_components.agenda_strip.open', 'Open') }}</Link>
                     </template>
                 </div>
                 <div v-if="item.locked" style="margin-block-start: var(--space-1)">
@@ -131,7 +143,7 @@ async function move(index, dir, kind) {
                     v-if="STATUS_BADGES[item.status]"
                     :tone="STATUS_BADGES[item.status].tone"
                     :icon="STATUS_BADGES[item.status].icon"
-                >{{ STATUS_BADGES[item.status].text }}</StatusBadge>
+                >{{ statusText(item.status) }}</StatusBadge>
 
                 <template v-if="editable && !item.locked">
                     <Btn
@@ -140,7 +152,7 @@ async function move(index, dir, kind) {
                         size="sm"
                         icon="arrow-up"
                         :disabled="!canMove(index, -1)"
-                        :aria-label="`Move ${item.title} up`"
+                        :aria-label="t('c_institution_components.agenda_strip.move_up_aria', 'Move {title} up', { title: item.title })"
                         @click="move(index, -1, 'up')"
                     />
                     <Btn
@@ -149,7 +161,7 @@ async function move(index, dir, kind) {
                         size="sm"
                         icon="arrow-down"
                         :disabled="!canMove(index, 1)"
-                        :aria-label="`Move ${item.title} down`"
+                        :aria-label="t('c_institution_components.agenda_strip.move_down_aria', 'Move {title} down', { title: item.title })"
                         @click="move(index, 1, 'down')"
                     />
                 </template>

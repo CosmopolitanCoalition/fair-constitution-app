@@ -15,8 +15,11 @@
  * planned-flag chip (deferral #1), consistent with the F-JDG-007 stub.
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /**
@@ -47,9 +50,20 @@ const STATUS_BADGES = {
     struck: ['danger', 'x', 'Struck'],
     revoked: ['neutral', 'minus', 'Revoked'],
 };
+const STATUS_LABELS = () => ({
+    drafted: t('c_institution_components.order_scope_card.status_drafted', 'Drafted'),
+    scope_validated: t('c_institution_components.order_scope_card.status_scope_validated', 'Scope validated'),
+    issued: t('c_institution_components.order_scope_card.status_issued', 'Issued'),
+    rejected_pre_issuance: t('c_institution_components.order_scope_card.status_rejected_pre_issuance', 'Rejected pre-issuance'),
+    reviewed: t('c_institution_components.order_scope_card.status_reviewed', 'Judicially reviewed'),
+    under_review: t('c_institution_components.order_scope_card.status_under_review', 'Under judicial review'),
+    struck: t('c_institution_components.order_scope_card.status_struck', 'Struck'),
+    revoked: t('c_institution_components.order_scope_card.status_revoked', 'Revoked'),
+});
 const badge = computed(() => {
-    const [tone, icon, text] = STATUS_BADGES[props.order.status] ?? ['neutral', null, props.order.status];
-    return { tone, icon, text };
+    const entry = STATUS_BADGES[props.order.status];
+    if (!entry) return { tone: 'neutral', icon: null, text: props.order.status };
+    return { tone: entry[0], icon: entry[1], text: STATUS_LABELS()[props.order.status] ?? props.order.status };
 });
 </script>
 
@@ -70,17 +84,17 @@ const badge = computed(() => {
                     {{ order.enabling.label }}
                 </a>
                 <span v-if="order.enabling?.type === 'emergency_power'" class="citation">
-                    emergency methods widen the delegated scope only within the declared area and duration · Art. II §7 · CLK-03
+                    {{ t('c_institution_components.order_scope_card.emergency_scope', 'emergency methods widen the delegated scope only within the declared area and duration · Art. II §7 · CLK-03') }}
                 </span>
             </span>
 
             <!-- rejection: the engine citation VERBATIM + the record chip -->
             <template v-if="rejected">
                 <span class="citation" style="display: block; margin-block-start: var(--space-1)">
-                    Rejected pre-issuance: {{ order.rejection_citation }}
+                    {{ t('c_institution_components.order_scope_card.rejected_citation', 'Rejected pre-issuance: {citation}', { citation: order.rejection_citation }) }}
                 </span>
                 <span class="cc-small" style="display: block">
-                    The order never took effect; the rejected attempt is on the public record.
+                    {{ t('c_institution_components.order_scope_card.rejected_never_took_effect', 'The order never took effect; the rejected attempt is on the public record.') }}
                     <a v-if="order.public_record" :href="order.public_record.href" class="tag-chip" data-no-i18n>
                         on the public record · #{{ order.public_record.seq }}
                     </a>
@@ -98,7 +112,7 @@ const badge = computed(() => {
 
         <span class="cluster" style="gap: var(--space-2)">
             <StatusBadge :tone="badge.tone" :icon="badge.icon">{{ badge.text }}</StatusBadge>
-            <span v-if="order.status === 'issued'" class="tag-chip">judicially reviewable · Art. IV §5</span>
+            <span v-if="order.status === 'issued'" class="tag-chip">{{ t('c_institution_components.order_scope_card.judicially_reviewable', 'judicially reviewable · Art. IV §5') }}</span>
             <span v-if="order.review" class="planned-flag" data-no-i18n>
                 judicial review · filing arrives with the judiciary · Phase E
             </span>
