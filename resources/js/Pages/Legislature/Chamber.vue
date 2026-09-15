@@ -57,11 +57,11 @@ const bicameral = computed(() => props.legislature?.mode === 'bicameral');
 const highlightId = ref(null);
 
 const rosterColumns = computed(() => [
-    { key: 'seat_no', label: 'Seat', align: 'right' },
-    { key: 'name', label: 'Member' },
-    { key: 'endorsements', label: 'Endorsements' },
-    { key: 'vote_share_norm', label: 'Share (norm)', mono: true, align: 'right' },
-    { key: 'status', label: 'Status' },
+    { key: 'seat_no', label: t('c_legislature_workspace.chamber_page.col_seat', 'Seat'), align: 'right' },
+    { key: 'name', label: t('c_legislature_workspace.chamber_page.col_member', 'Member') },
+    { key: 'endorsements', label: t('c_legislature_workspace.chamber_page.col_endorsements', 'Endorsements') },
+    { key: 'vote_share_norm', label: t('c_legislature_workspace.chamber_page.col_share', 'Share (norm)'), mono: true, align: 'right' },
+    { key: 'status', label: t('c_legislature_workspace.chamber_page.col_status', 'Status') },
     { key: 'seated_on', label: text('member_seated') },
     { key: 'term_ends_on', label: text('member_term_ends') },
 ]);
@@ -92,15 +92,15 @@ function takeOath() {
 
 /* ------------------------------------------- first-sessions actions ---- */
 function stepBadge(step) {
-    if (step.done_at) return { tone: 'success', icon: 'check', text: 'Done' };
-    return { tone: 'neutral', icon: 'clock', text: 'Pending' };
+    if (step.done_at) return { tone: 'success', icon: 'check', text: t('c_legislature_workspace.chamber_page.step_done', 'Done') };
+    return { tone: 'neutral', icon: 'clock', text: t('c_legislature_workspace.chamber_page.step_pending', 'Pending') };
 }
 </script>
 
 <template>
     <PageScaffold
         :surface="surface"
-        :title="legislature ? `Chamber — ${legislature.name}` : 'Chamber'"
+        :title="legislature ? t('c_legislature_workspace.chamber_page.title', { name: legislature.name }, 'Chamber — {name}') : t('c_legislature_workspace.chamber_page.title_empty', 'Chamber')"
     >
         <LegislatureWorkspaceNav v-if="workspace" :workspace="workspace" active="chamber" />
         <Link v-if="legislature" :href="'/rooms/chamber/' + legislature.id" class="btn">{{ t('c_rooms.open_chamber', 'Enter live chamber') }}</Link>
@@ -109,13 +109,13 @@ function stepBadge(step) {
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <!-- ================================== resolver empty state ====== -->
-        <Card v-if="!legislature" as="section" title="No active legislature">
-            <Banner tone="info" role="status" title="No active legislature in your association chain.">
-                {{ empty?.note ?? 'Jurisdictions activate at critical population · CLK-06.' }}
+        <Card v-if="!legislature" as="section" :title="t('c_legislature_workspace.chamber_page.no_active', 'No active legislature')">
+            <Banner tone="info" role="status" :title="t('c_legislature_workspace.chamber_page.no_active_chain', 'No active legislature in your association chain.')">
+                {{ empty?.note ?? t('c_legislature_workspace.chamber_page.empty_note', 'Jurisdictions activate at critical population · CLK-06.') }}
             </Banner>
             <p class="cc-small" style="margin-block-start: var(--space-3)">
-                Browse every legislature on the instance from the
-                <Link href="/legislatures">legislature index</Link>.
+                {{ t('c_legislature_workspace.chamber_page.browse_lead', 'Browse every legislature on the instance from the') }}
+                <Link href="/legislatures">{{ t('c_legislature_workspace.chamber_page.browse_link', 'legislature index') }}</Link>.
             </p>
         </Card>
 
@@ -123,8 +123,8 @@ function stepBadge(step) {
             <!-- ========================================== stat row ====== -->
             <Card as="section" :title="text('thresholds')">
                 <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
-                    <Stat :value="legislature.seats" label="seats" />
-                    <Stat :value="legislature.serving" label="serving" />
+                    <Stat :value="legislature.seats" :label="t('c_legislature_workspace.chamber_page.seats', 'seats')" />
+                    <Stat :value="legislature.serving" :label="t('c_legislature_workspace.chamber_page.serving', 'serving')" />
                     <Stat
                         :value="legislature.quorum ?? '—'"
                         :label="text('quorum')"
@@ -137,11 +137,11 @@ function stepBadge(step) {
                     <template v-if="bicameral && legislature.by_kind">
                         <Stat
                             :value="`${legislature.by_kind.type_a.serving}/${legislature.by_kind.type_a.seats}`"
-                            label="type A serving / seats"
+                            :label="t('c_legislature_workspace.chamber_page.type_a_serving', 'type A serving / seats')"
                         />
                         <Stat
                             :value="`${legislature.by_kind.type_b.serving}/${legislature.by_kind.type_b.seats}`"
-                            label="type B serving / seats"
+                            :label="t('c_legislature_workspace.chamber_page.type_b_serving', 'type B serving / seats')"
                         />
                     </template>
                 </div>
@@ -149,25 +149,22 @@ function stepBadge(step) {
             </Card>
 
             <!-- ===================================== forming state ====== -->
-            <Banner v-if="forming && !members.length" tone="info" role="status" title="Forming — seats fill at certification (WF-ELE-01).">
-                This legislature has no seated members yet. The seat map appears when the
-                first general election certifies; the first-sessions checklist below is the
-                constituting to-do list.
+            <Banner v-if="forming && !members.length" tone="info" role="status" :title="t('c_legislature_workspace.chamber_page.forming_title', 'Forming — seats fill at certification (WF-ELE-01).')">
+                {{ t('c_legislature_workspace.chamber_page.forming_body', 'This legislature has no seated members yet. The seat map appears when the first general election certifies; the first-sessions checklist below is the constituting to-do list.') }}
             </Banner>
 
             <!-- ========================================== seat map ====== -->
             <Card v-if="members.length" as="section" :title="text('chamber_title')">
                 <p class="citation">
-                    seniority-alternating seating · vacancies join at the junior-most position ·
-                    seniority = days served, ties by normalized vote share (ledger #q2)
+                    {{ t('c_legislature_workspace.chamber_page.seat_map_note', 'seniority-alternating seating · vacancies join at the junior-most position · seniority = days served, ties by normalized vote share (ledger #q2)') }}
                 </p>
                 <SeatMap :members="members" :highlight-id="highlightId" :max-width="members.length > 12 ? '30rem' : '22rem'" />
                 <p v-if="bicameral" class="gloss">{{ text('bicameral_note') }}</p>
             </Card>
 
             <!-- ============================================ roster ====== -->
-            <Card v-if="serving.length" id="members" as="section" title="Members">
-                <DataTable :columns="rosterColumns" :rows="serving" row-key="id" caption="Serving members">
+            <Card v-if="serving.length" id="members" as="section" :title="t('c_legislature_workspace.chamber_page.members', 'Members')">
+                <DataTable :columns="rosterColumns" :rows="serving" row-key="id" :caption="t('c_legislature_workspace.chamber_page.serving_members', 'Serving members')">
                     <template #cell-seat_no="{ row }">
                         <span
                             class="mono"
@@ -179,10 +176,10 @@ function stepBadge(step) {
                     <template #cell-name="{ row }">
                         <strong style="color: var(--gov-fg)">{{ row.name }}</strong>
                         <StatusBadge v-if="row.speaker" tone="warning" icon="landmark" style="margin-inline-start: var(--space-2)">
-                            Speaker · neutral
+                            {{ t('c_legislature_workspace.chamber_page.speaker_neutral', 'Speaker · neutral') }}
                         </StatusBadge>
                         <span v-if="bicameral" class="cc-small" style="margin-inline-start: var(--space-2)">
-                            {{ row.seat_kind === 'type_b' ? 'type B' : 'type A' }}
+                            {{ row.seat_kind === 'type_b' ? t('c_legislature_workspace.chamber_page.type_b_chip', 'type B') : t('c_legislature_workspace.chamber_page.type_a_chip', 'type A') }}
                         </span>
                         <span v-if="row.district_label" class="cc-small" style="margin-inline-start: var(--space-2)">
                             {{ row.district_label }}
@@ -198,7 +195,7 @@ function stepBadge(step) {
                                 style="margin-inline-end: var(--space-1)"
                             />
                         </template>
-                        <span v-else class="gloss">no endorsements</span>
+                        <span v-else class="gloss">{{ t('c_legislature_workspace.chamber_page.no_endorsements', 'no endorsements') }}</span>
                     </template>
                     <template #cell-vote_share_norm="{ row }">
                         <span class="mono">{{ row.vote_share_norm != null ? row.vote_share_norm.toFixed(4) : '—' }}</span>
@@ -211,60 +208,57 @@ function stepBadge(step) {
                     <template #cell-term_ends_on="{ value }">{{ fmtDate(value) }}</template>
                 </DataTable>
                 <p class="citation" style="margin-block-start: var(--space-2)">
-                    normalized vote share = the certification's quota-normalized support ·
-                    committee tie-break currency · ledger #q2
+                    {{ t('c_legislature_workspace.chamber_page.norm_share_note', 'normalized vote share = the certification\'s quota-normalized support · committee tie-break currency · ledger #q2') }}
                 </p>
             </Card>
 
             <!-- =========================== term lockstep + vacancies ===== -->
             <div class="grid-2">
-                <Card as="section" title="Term — one clock for every elected office">
+                <Card as="section" :title="t('c_legislature_workspace.chamber_page.term_title', 'Term — one clock for every elected office')">
                     <Stat
                         :value="legislature.term.days_remaining ?? '—'"
-                        :label="`days remaining — term ends ${legislature.term.ends_on ?? '(not yet certified)'}`"
+                        :label="t('c_legislature_workspace.chamber_page.days_remaining', { ends: legislature.term.ends_on ?? t('c_legislature_workspace.chamber_page.not_certified', '(not yet certified)') }, 'days remaining — term ends {ends}')"
                     />
                     <p style="margin-block-start: var(--space-2)">
-                        <HardenedChip>term lockstep · CLK-01 / CLK-10 — elections cannot be skipped or delayed</HardenedChip>
+                        <HardenedChip>{{ t('c_legislature_workspace.chamber_page.term_lockstep', 'term lockstep · CLK-01 / CLK-10 — elections cannot be skipped or delayed') }}</HardenedChip>
                     </p>
                     <p class="cc-small" style="margin-block-start: var(--space-2)">
-                        The next election exists from the moment the prior one certifies.
+                        {{ t('c_legislature_workspace.chamber_page.next_election', 'The next election exists from the moment the prior one certifies.') }}
                         <template v-if="legislature.term.election_id">
-                            <Link :href="`/elections/${legislature.term.election_id}`">Open the successor election →</Link>
+                            <Link :href="`/elections/${legislature.term.election_id}`">{{ t('c_legislature_workspace.chamber_page.open_successor', 'Open the successor election →') }}</Link>
                         </template>
                     </p>
                     <p v-if="legislature.next_session_due" class="citation">
-                        next session due by {{ legislature.next_session_due }} · CLK-02 ·
-                        the scheduler compels it (WF-SYS-02)
+                        {{ t('c_legislature_workspace.chamber_page.next_session_due', { date: legislature.next_session_due }, 'next session due by {date} · CLK-02 · the scheduler compels it (WF-SYS-02)') }}
                     </p>
                 </Card>
 
-                <Card as="section" title="Vacancies">
+                <Card as="section" :title="t('c_legislature_workspace.chamber_page.vacancies', 'Vacancies')">
                     <template v-if="vacancies.length">
                         <div v-for="vacancy in vacancies" :key="vacancy.id" class="card card--inset" style="margin-block-end: var(--space-2)">
                             <p style="margin-block-end: var(--space-1)">
-                                <strong>Seat {{ vacancy.seat_no ?? '—' }}</strong> — {{ vacancy.member_name }}
+                                <strong>{{ t('c_legislature_workspace.chamber_page.vac_seat', { n: vacancy.seat_no ?? '—' }, 'Seat {n}') }}</strong> — {{ vacancy.member_name }}
                                 <StatusBadge
                                     :tone="vacancy.status === 'special_election_scheduled' ? 'warning' : 'info'"
                                     style="margin-inline-start: var(--space-2)"
                                 >{{ vacancy.status.replaceAll('_', ' ') }}</StatusBadge>
                             </p>
                             <p class="citation">
-                                declared via {{ vacancy.declared_via ?? 'system' }} ·
+                                {{ t('c_legislature_workspace.chamber_page.declared_via', { via: vacancy.declared_via ?? t('c_legislature_workspace.chamber_page.via_system', 'system') }, 'declared via {via} ·') }}
                                 <FormChip form-id="F-LEG-036" /> ·
-                                <Link :href="vacancy.href">countback record →</Link>
+                                <Link :href="vacancy.href">{{ t('c_legislature_workspace.chamber_page.countback_record', 'countback record →') }}</Link>
                             </p>
                         </div>
                         <p class="gloss">
-                            Countback first (the voters' prior ballots decide), special election only
-                            when ballots exhaust · Art. II §5.
+                            {{ t('c_legislature_workspace.chamber_page.countback_gloss', 'Countback first (the voters\' prior ballots decide), special election only when ballots exhaust · Art. II §5.') }}
                         </p>
                     </template>
-                    <p v-else class="gloss">No open vacancies — every seat is either serving or filled.</p>
+                    <p v-else class="gloss">{{ t('c_legislature_workspace.chamber_page.no_vacancies', 'No open vacancies — every seat is either serving or filled.') }}</p>
                 </Card>
             </div>
 
             <!-- ========================== first-sessions checklist ======= -->
-            <Card id="first-sessions" as="section" title="First sessions — constituting the chamber (WF-LEG-01)">
+            <Card id="first-sessions" as="section" :title="t('c_legislature_workspace.chamber_page.first_sessions', 'First sessions — constituting the chamber (WF-LEG-01)')">
                 <ol class="agenda-list">
                     <li v-for="(step, i) in firstSessions" :key="step.form_id" class="agenda-slot">
                         <span class="flow-step-n">{{ i + 1 }}</span>
@@ -277,7 +271,7 @@ function stepBadge(step) {
                                 {{ step.basis }}
                                 <template v-if="step.note"> · {{ step.note }}</template>
                                 <template v-if="step.act_href">
-                                    · <Link :href="step.act_href">record →</Link>
+                                    · <Link :href="step.act_href">{{ t('c_legislature_workspace.chamber_page.step_record', 'record →') }}</Link>
                                 </template>
                             </p>
                             <!-- The next undone step renders its live action. -->
@@ -286,14 +280,14 @@ function stepBadge(step) {
                                 class="cluster"
                                 style="margin-block-start: var(--space-2)"
                             >
-                                <Btn variant="primary" size="sm" :disabled="swearing" @click="takeOath">Take the oath</Btn>
+                                <Btn variant="primary" size="sm" :disabled="swearing" @click="takeOath">{{ t('c_legislature_workspace.chamber_page.take_oath', 'Take the oath') }}</Btn>
                             </div>
                             <div
                                 v-else-if="!step.done_at && step.form_id === 'F-LEG-008' && can.isMember"
                                 class="cluster"
                                 style="margin-block-start: var(--space-2)"
                             >
-                                <Link :href="`/legislatures/${legislature.id}/session`">Open the session console — speaker balloting →</Link>
+                                <Link :href="`/legislatures/${legislature.id}/session`">{{ t('c_legislature_workspace.chamber_page.open_session_console', 'Open the session console — speaker balloting →') }}</Link>
                             </div>
                         </div>
                         <StatusBadge :tone="stepBadge(step).tone" :icon="stepBadge(step).icon">
@@ -306,9 +300,7 @@ function stepBadge(step) {
 
         <template #about>
             <p>
-                The chamber is circular — there is no head of the room; the Speaker presides
-                from among equals and votes only to break ties (Art. II §3). Seat-map seniority
-                and the roster's normalized vote share are display of certified records.
+                {{ t('c_legislature_workspace.chamber_page.about', 'The chamber is circular — there is no head of the room; the Speaker presides from among equals and votes only to break ties (Art. II §3). Seat-map seniority and the roster\'s normalized vote share are display of certified records.') }}
             </p>
         </template>
     </PageScaffold>

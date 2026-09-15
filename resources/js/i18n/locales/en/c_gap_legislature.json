@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "executive election",
+  "election_kind.general": "general election",
+  "election_kind.judicial": "judicial election",
+  "election_kind.org_board_owner": "board election (owner seats)",
+  "election_kind.org_board_worker": "board election (worker seats)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "restoration election",
+  "election_kind.special": "special election"
+}

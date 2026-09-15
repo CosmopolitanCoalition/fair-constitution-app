@@ -99,12 +99,12 @@ function toggleHand() {
                 <span v-if="jurisdiction" class="citation">{{ jurisdiction }}</span>
                 <StatusBadge v-if="isStale" tone="warning">{{ text('reconnecting', 'Reconnecting') }}</StatusBadge>
             </div>
-            <Link v-if="urls.rooms" :href="urls.rooms" class="btn btn--secondary btn--sm">Browse rooms</Link>
+            <Link v-if="urls.rooms" :href="urls.rooms" class="btn btn--secondary btn--sm">{{ text('browse_rooms', 'Browse rooms') }}</Link>
             <Link v-if="urls.chamber" :href="urls.chamber" class="btn btn--secondary btn--sm">{{ text('committee_workspace', 'Committee workspace') }}</Link>
         </header>
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="page.props.errors?.floor" tone="warning" role="alert">{{ page.props.errors.floor }}</Banner>
-        <p v-if="status.state === 'adjourned'" class="gloss">This hearing has adjourned. Its public record is closed; informal discussion and the call remain available.</p>
+        <p v-if="status.state === 'adjourned'" class="gloss">{{ text('hearing_adjourned', 'This hearing has adjourned. Its public record is closed; informal discussion and the call remain available.') }}</p>
 
         <LiveRoom v-if="voice.enabled && voice.roomId && voice.myMxid && voice.myUserId"
             :key="voice.roomId" :jurisdiction-id="voice.jurisdictionId" :room="voice.roomId"
@@ -159,8 +159,8 @@ function toggleHand() {
                     <p v-else-if="voice.enabled" class="gloss">{{ text('sign_in_call', 'Sign in to join the hearing’s call. The seating and public record remain open to visitors.') }}</p>
                     <p v-else class="gloss">{{ text('call_not_ready', 'The hearing’s call is not available yet. You can follow the floor and speaking queue here.') }}</p>
                     <Link v-if="urls.commons" :href="urls.commons" class="btn btn--secondary btn--sm">{{ text('open_halls', 'Open the halls') }}</Link>
-                    <p v-if="!chatAvailable" role="status">Room messages are temporarily unavailable.</p>
-                    <p v-else-if="!chat.length">No messages in this hearing yet.</p>
+                    <p v-if="!chatAvailable" role="status">{{ text('messages_unavailable', 'Room messages are temporarily unavailable.') }}</p>
+                    <p v-else-if="!chat.length">{{ text('no_messages', 'No messages in this hearing yet.') }}</p>
                     <ul v-if="chat.length" class="room-list">
                         <li v-for="(message, index) in chat" :key="message.event_id || index">
                             <strong>{{ labelFor(message.sender || message.handle) }}</strong>
@@ -168,11 +168,11 @@ function toggleHand() {
                         </li>
                     </ul>
                     <form v-if="voice.myUserId && voice.roomId" @submit.prevent="sendMessage" class="stack">
-                        <label for="hearing-message">Message to this hearing</label>
+                        <label for="hearing-message">{{ text('message_label', 'Message to this hearing') }}</label>
                         <textarea id="hearing-message" v-model="compose.body" rows="3" maxlength="20000" :aria-invalid="!!compose.errors.body" :aria-describedby="compose.errors.body ? 'hearing-message-note hearing-message-error' : 'hearing-message-note'" />
-                        <small id="hearing-message-note">Discussion only. File formal testimony through the committee workspace.</small>
+                        <small id="hearing-message-note">{{ text('discussion_only', 'Discussion only. File formal testimony through the committee workspace.') }}</small>
                         <p id="hearing-message-error" v-if="compose.errors.body" role="alert">{{ compose.errors.body }}</p>
-                        <Btn type="submit" :disabled="compose.processing || !compose.body.trim()">Send message</Btn>
+                        <Btn type="submit" :disabled="compose.processing || !compose.body.trim()">{{ text('send_message', 'Send message') }}</Btn>
                     </form>
                 </Card>
             </aside>

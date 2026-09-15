@@ -107,31 +107,31 @@ function chairReferToFloor() {
         <BillWorkspaceNav :workspace="workspace" active="record" />
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
-        <Banner v-if="constitutionError" tone="emergency" title="Rejected by the Constitutional Engine.">
+        <Banner v-if="constitutionError" tone="emergency" :title="t('c_bill.bill_detail.rejected_title', 'Rejected by the Constitutional Engine.')">
             {{ constitutionError }}
         </Banner>
 
         <!-- ======================================== scale & scope ======= -->
-        <Card as="section" title="Scale & scope — declared at introduction">
+        <Card as="section" :title="t('c_bill.bill_detail.scale_scope_title', 'Scale & scope — declared at introduction')">
             <div class="grid-2">
                 <div>
-                    <span class="eyebrow">Scale — jurisdictions bound</span>
+                    <span class="eyebrow">{{ t('c_bill.bill_detail.scale_eyebrow', 'Scale — jurisdictions bound') }}</span>
                     <p style="margin-block-start: var(--space-1)">
                         <template v-if="bill.scale.length">
                             <span v-for="entry in bill.scale" :key="entry.id" class="tag-chip" style="margin-inline-end: var(--space-1)">
                                 {{ entry.name }}
                             </span>
                         </template>
-                        <span v-else class="gloss">own jurisdiction</span>
+                        <span v-else class="gloss">{{ t('c_bill.bill_detail.own_jurisdiction', 'own jurisdiction') }}</span>
                     </p>
                 </div>
                 <div>
-                    <span class="eyebrow">Scope — judiciary</span>
+                    <span class="eyebrow">{{ t('c_bill.bill_detail.scope_eyebrow', 'Scope — judiciary') }}</span>
                     <p style="margin-block-start: var(--space-1)">{{ bill.scope.label }}</p>
                 </div>
             </div>
             <p class="citation" style="margin-block-start: var(--space-2)">
-                fixed at introduction — no edit affordance exists anywhere · F-LEG-003 · Art. V §4
+                {{ t('c_bill.bill_detail.scale_scope_note', 'fixed at introduction — no edit affordance exists anywhere · F-LEG-003 · Art. V §4') }}
             </p>
         </Card>
 
@@ -145,13 +145,13 @@ function chairReferToFloor() {
         <div id="bill-votes" class="grid-2 bill-record-section">
             <Card as="section">
                 <template #title>
-                    <h2>Committee stage <FormChip form-id="F-LEG-005" /></h2>
+                    <h2>{{ t('c_bill.bill_detail.committee_stage', 'Committee stage') }} <FormChip form-id="F-LEG-005" /></h2>
                 </template>
                 <p v-if="bill.committee" class="citation" style="margin-block-end: var(--space-2)">
                     {{ bill.committee.name }} ·
-                    <Link :href="bill.committee.href">committee detail →</Link>
-                    · majority of ALL committee members, not those present · Art. II §4
-                    <template v-if="bicameral"> · per-kind committee majorities (q7 binds at committee too)</template>
+                    <Link :href="bill.committee.href">{{ t('c_bill.bill_detail.committee_detail_link', 'committee detail →') }}</Link>
+                    {{ t('c_bill.bill_detail.committee_majority', '· majority of ALL committee members, not those present · Art. II §4') }}
+                    <template v-if="bicameral"> {{ t('c_bill.bill_detail.committee_per_kind', '· per-kind committee majorities (q7 binds at committee too)') }}</template>
                 </p>
 
                 <template v-if="committeeVote">
@@ -171,24 +171,24 @@ function chairReferToFloor() {
                         @cast="(payload) => castOn('committee', committeeVote, payload)"
                     />
                     <details v-if="committeeVote.casts?.length" style="margin-block-start: var(--space-2)">
-                        <summary class="citation" style="cursor: pointer">Published casts ({{ committeeVote.casts.length }})</summary>
+                        <summary class="citation" style="cursor: pointer">{{ t('c_bill.bill_detail.published_casts', { n: committeeVote.casts.length }, 'Published casts ({n})') }}</summary>
                         <VoteCastList :casts="committeeVote.casts" :group-by-kind="bicameral" />
                     </details>
                     <div v-if="can.referToFloor" class="cluster" style="margin-block-start: var(--space-3)">
                         <Btn variant="primary" size="sm" :disabled="referringToFloor" @click="chairReferToFloor">
-                            Refer to the floor (F-CHR-003)
+                            {{ t('c_bill.bill_detail.refer_floor', 'Refer to the floor (F-CHR-003)') }}
                         </Btn>
-                        <span class="citation">enabled only after the committee vote passes — the engine independently rejects premature referral</span>
+                        <span class="citation">{{ t('c_bill.bill_detail.refer_enabled_note', 'enabled only after the committee vote passes — the engine independently rejects premature referral') }}</span>
                     </div>
                 </template>
                 <p v-else class="gloss">
-                    No committee vote — direct-to-floor bills skip this stage by adopted motion.
+                    {{ t('c_bill.bill_detail.no_committee_vote', 'No committee vote — direct-to-floor bills skip this stage by adopted motion.') }}
                 </p>
             </Card>
 
             <Card as="section">
                 <template #title>
-                    <h2>Floor vote <FormChip form-id="F-LEG-004" /></h2>
+                    <h2>{{ t('c_bill.bill_detail.floor_vote', 'Floor vote') }} <FormChip form-id="F-LEG-004" /></h2>
                 </template>
                 <template v-if="floorVote">
                     <VoteTally
@@ -207,28 +207,28 @@ function chairReferToFloor() {
                         @cast="(payload) => castOn('floor', floorVote, payload)"
                     />
                     <details v-if="floorVote.casts?.length" style="margin-block-start: var(--space-2)">
-                        <summary class="citation" style="cursor: pointer">Published casts ({{ floorVote.casts.length }})</summary>
+                        <summary class="citation" style="cursor: pointer">{{ t('c_bill.bill_detail.published_casts', { n: floorVote.casts.length }, 'Published casts ({n})') }}</summary>
                         <VoteCastList :casts="floorVote.casts" :group-by-kind="bicameral" />
                     </details>
                 </template>
 
                 <template v-else-if="can.refer">
                     <p class="cc-small">
-                        Move the bill by motion (F-LEG-007) —
-                        {{ openSession ? `session ${openSession.session_no} is open` : 'requires an open session (F-SPK-001)' }}.
+                        {{ t('c_bill.bill_detail.move_by_motion', 'Move the bill by motion (F-LEG-007) —') }}
+                        {{ openSession ? t('c_bill.bill_detail.session_open', { n: openSession.session_no }, 'session {n} is open') : t('c_bill.bill_detail.requires_session', 'requires an open session (F-SPK-001)') }}.
                     </p>
                     <form novalidate @submit.prevent="refer">
                         <div class="field">
-                            <label class="field-label" for="refer-mode">Path</label>
+                            <label class="field-label" for="refer-mode">{{ t('c_bill.bill_detail.path_label', 'Path') }}</label>
                             <select id="refer-mode" v-model="referForm.mode" class="select">
-                                <option value="floor">direct to floor (the exit-criterion path)</option>
-                                <option value="committee" :disabled="!committees.length">refer to committee</option>
+                                <option value="floor">{{ t('c_bill.bill_detail.opt_direct_floor', 'direct to floor (the exit-criterion path)') }}</option>
+                                <option value="committee" :disabled="!committees.length">{{ t('c_bill.bill_detail.opt_refer_committee', 'refer to committee') }}</option>
                             </select>
                         </div>
                         <div v-if="referForm.mode === 'committee'" class="field">
-                            <label class="field-label" for="refer-committee">Committee</label>
+                            <label class="field-label" for="refer-committee">{{ t('c_bill.bill_detail.committee_label', 'Committee') }}</label>
                             <select id="refer-committee" v-model="referForm.committee_id" class="select">
-                                <option value="">— pick —</option>
+                                <option value="">{{ t('c_bill.bill_detail.opt_pick', '— pick —') }}</option>
                                 <option v-for="committee in committees" :key="committee.id" :value="committee.id">
                                     {{ committee.name }}
                                 </option>
@@ -237,12 +237,12 @@ function chairReferToFloor() {
                         <p v-if="referForm.errors.constitution" class="field-error">{{ referForm.errors.constitution }}</p>
                         <div class="cluster">
                             <Btn type="submit" variant="primary" size="sm" :disabled="referForm.processing">
-                                Move it (F-LEG-007)
+                                {{ t('c_bill.bill_detail.move_it', 'Move it (F-LEG-007)') }}
                             </Btn>
                         </div>
                     </form>
                 </template>
-                <p v-else class="gloss">The floor vote opens when an adopted motion (or the committee chair) moves the bill.</p>
+                <p v-else class="gloss">{{ t('c_bill.bill_detail.floor_opens', 'The floor vote opens when an adopted motion (or the committee chair) moves the bill.') }}</p>
             </Card>
         </div>
 
@@ -251,7 +251,7 @@ function chairReferToFloor() {
              component (PHASE_D_DESIGN_frontend.md §A.1) — the floor tally
              pairs with the multi_jurisdiction_votes process; both
              `required` numbers stay engine snapshots. -->
-        <Card v-if="constituentProcess" as="section" title="Constituent jurisdictions — dual supermajority">
+        <Card v-if="constituentProcess" as="section" :title="t('c_bill.bill_detail.constituent_title', 'Constituent jurisdictions — dual supermajority')">
             <ConstituentConsentPanel
                 :legislature-vote="floorVote?.tally ?? null"
                 :legislature-label="legislature.name"
@@ -285,15 +285,15 @@ function chairReferToFloor() {
         </Card>
 
         <!-- ===================================== enactment / failure ==== -->
-        <Card v-if="enactment" as="section" title="Enacted">
+        <Card v-if="enactment" as="section" :title="t('c_bill.bill_detail.enacted_title', 'Enacted')">
             <p>
                 <strong style="color: var(--gov-fg)" data-no-i18n>{{ enactment.law.act_number }}</strong>
-                — effective {{ fmt(enactment.effective_at) }}.
-                <Link :href="enactment.law.href">public record →</Link>
+                {{ t('c_bill.bill_detail.effective', { date: fmt(enactment.effective_at) }, '— effective {date}.') }}
+                <Link :href="enactment.law.href">{{ t('c_bill.bill_detail.public_record_link', 'public record →') }}</Link>
             </p>
             <p class="citation">
-                versioned · published (WF-SYS-03) · open to Art. IV §5 challenge (Phase E) ·
-                <a :href="enactment.record_href">sealed into the audit chain →</a>
+                {{ t('c_bill.bill_detail.versioned_note', 'versioned · published (WF-SYS-03) · open to Art. IV §5 challenge (Phase E) ·') }}
+                <a :href="enactment.record_href">{{ t('c_bill.bill_detail.sealed_link', 'sealed into the audit chain →') }}</a>
             </p>
             <Card v-if="enactment.setting_change" inset style="margin-block-start: var(--space-2)">
                 <p data-no-i18n>
@@ -301,24 +301,20 @@ function chairReferToFloor() {
                     {{ enactment.setting_change.old }} → <strong>{{ enactment.setting_change.new }}</strong>
                 </p>
                 <p class="citation">
-                    dependent clocks re-derived after commit ·
+                    {{ t('c_bill.bill_detail.clocks_rederived', 'dependent clocks re-derived after commit ·') }}
                     <Link :href="`/system/term-sync?legislature=${legislature.id}`">{{ t('c_term_sync.title') }}</Link> ·
-                    <Link :href="`/legislatures/${legislature.id}/settings`">settings register →</Link>
+                    <Link :href="`/legislatures/${legislature.id}/settings`">{{ t('c_bill.bill_detail.settings_register_link', 'settings register →') }}</Link>
                 </p>
             </Card>
         </Card>
 
-        <Banner v-if="bill.status === 'failed'" tone="warning" title="The bill failed.">
-            Archived with every member's public cast and explanation — the record above is
-            permanent. <span class="citation">Art. II §2</span>
+        <Banner v-if="bill.status === 'failed'" tone="warning" :title="t('c_bill.bill_detail.failed_title', 'The bill failed.')">
+            {{ t('c_bill.bill_detail.failed_body', 'Archived with every member\'s public cast and explanation — the record above is permanent.') }} <span class="citation" data-no-i18n>Art. II §2</span>
         </Banner>
 
         <template #about>
             <p>
-                Entity state machine: Bill — {{ machine.join(' → ') }}. In a bicameral
-                chamber the committee and floor cards each render the dual per-kind tally
-                natively — a failure in either kind, at either stage, fails the act
-                (Art. V §3 · ledger #q7).
+                {{ t('c_bill.bill_detail.about_lead', 'Entity state machine: Bill —') }} {{ machine.join(' → ') }}{{ t('c_bill.bill_detail.about_rest', '. In a bicameral chamber the committee and floor cards each render the dual per-kind tally natively — a failure in either kind, at either stage, fails the act (Art. V §3 · ledger #q7).') }}
             </p>
         </template>
     </PageScaffold>

@@ -46,25 +46,25 @@ const { t } = useI18n();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 
 function displayValue(setting) {
-    if (setting.value === null || setting.value === undefined) return '(default)';
+    if (setting.value === null || setting.value === undefined) return t('c_legislature_workspace.settings_page.val_default', '(default)');
     if (typeof setting.value === 'boolean') return setting.value ? 'true' : 'false';
     return String(setting.value);
 }
 
 function boundsLine(setting) {
-    if (!setting.bounds) return 'engine-validated against its rule';
-    if (setting.bounds.allowed) return `allowed: ${JSON.stringify(setting.bounds.allowed)}`;
-    return `hardened range [${setting.bounds.min}, ${setting.bounds.max}]`;
+    if (!setting.bounds) return t('c_legislature_workspace.settings_page.bounds_engine', 'engine-validated against its rule');
+    if (setting.bounds.allowed) return t('c_legislature_workspace.settings_page.bounds_allowed', { list: JSON.stringify(setting.bounds.allowed) }, 'allowed: {list}');
+    return t('c_legislature_workspace.settings_page.bounds_range', { min: setting.bounds.min, max: setting.bounds.max }, 'hardened range [{min}, {max}]');
 }
 
 function provenance(setting) {
     if (setting.enacted_by) {
-        return `set by ${setting.enacted_by.act_number} · effective ${new Date(setting.enacted_by.effective_at).toLocaleDateString()}`;
+        return t('c_legislature_workspace.settings_page.prov_set_by', { act: setting.enacted_by.act_number, date: new Date(setting.enacted_by.effective_at).toLocaleDateString() }, 'set by {act} · effective {date}');
     }
     if (setting.inherited_from) {
-        return `founding value · inherited from ${setting.inherited_from.jurisdiction_name}`;
+        return t('c_legislature_workspace.settings_page.prov_inherited', { name: setting.inherited_from.jurisdiction_name }, 'founding value · inherited from {name}');
     }
-    return 'Template default · in force since founding';
+    return t('c_legislature_workspace.settings_page.prov_default', 'Template default · in force since founding');
 }
 
 /* The lockstep pair renders as one joined row. */
@@ -150,26 +150,24 @@ function fmt(iso) {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`Constitutional settings register — ${legislature.name}`">
+    <PageScaffold :surface="surface" :title="t('c_legislature_workspace.settings_page.title', { name: legislature.name }, 'Constitutional settings register — {name}')">
         <template #intro>
-            These are the rules this legislature can change by passing a law (its
-            "constitutional settings") — each one inside limits that no law can override.
-            Out-of-range proposals are rejected before any vote is taken.
+            {{ t('c_legislature_workspace.settings_page.intro', 'These are the rules this legislature can change by passing a law (its "constitutional settings") — each one inside limits that no law can override. Out-of-range proposals are rejected before any vote is taken.') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
 
         <!-- ============================================== register ====== -->
-        <Card as="section" title="The amendable register">
+        <Card as="section" :title="t('c_legislature_workspace.settings_page.register_title', 'The amendable register')">
             <div class="table-wrap">
                 <table class="table">
-                    <caption class="visually-hidden">Amendable constitutional settings</caption>
+                    <caption class="visually-hidden">{{ t('c_legislature_workspace.settings_page.register_caption', 'Amendable constitutional settings') }}</caption>
                     <thead>
                         <tr>
-                            <th scope="col">Setting</th>
-                            <th scope="col">Value</th>
-                            <th scope="col">Hardened bounds</th>
-                            <th scope="col">Set by</th>
+                            <th scope="col">{{ t('c_legislature_workspace.settings_page.col_setting', 'Setting') }}</th>
+                            <th scope="col">{{ t('c_legislature_workspace.settings_page.col_value', 'Value') }}</th>
+                            <th scope="col">{{ t('c_legislature_workspace.settings_page.col_bounds', 'Hardened bounds') }}</th>
+                            <th scope="col">{{ t('c_legislature_workspace.settings_page.col_set_by', 'Set by') }}</th>
                             <th v-if="can.propose" scope="col"></th>
                         </tr>
                     </thead>
@@ -179,7 +177,7 @@ function fmt(iso) {
                             <tr v-if="row.joined">
                                 <td>
                                     <span v-for="s in row.joined" :key="s.key" class="mono" data-no-i18n style="display: block">{{ s.key }}</span>
-                                    <span class="citation">must stay in lockstep · CLK-09 / CLK-10</span>
+                                    <span class="citation">{{ t('c_legislature_workspace.settings_page.lockstep_note', 'must stay in lockstep · CLK-09 / CLK-10') }}</span>
                                 </td>
                                 <td>
                                     <AmendableSetting
@@ -204,7 +202,7 @@ function fmt(iso) {
                                         size="sm"
                                         style="display: block; margin-block-end: var(--space-1)"
                                         @click="propose(s.key)"
-                                    >Propose change</Btn>
+                                    >{{ t('c_legislature_workspace.settings_page.propose_change', 'Propose change') }}</Btn>
                                 </td>
                             </tr>
                             <tr v-else>
@@ -229,7 +227,7 @@ function fmt(iso) {
                                     >{{ row.setting.enacted_by.act_number }} →</Link>
                                 </td>
                                 <td v-if="can.propose">
-                                    <Btn variant="secondary" size="sm" @click="propose(row.setting.key)">Propose change</Btn>
+                                    <Btn variant="secondary" size="sm" @click="propose(row.setting.key)">{{ t('c_legislature_workspace.settings_page.propose_change', 'Propose change') }}</Btn>
                                 </td>
                             </tr>
                         </template>
@@ -239,28 +237,28 @@ function fmt(iso) {
         </Card>
 
         <!-- ======================================== hardened floor ====== -->
-        <Card as="section" title="The hardened floor — what no act can change">
+        <Card as="section" :title="t('c_legislature_workspace.settings_page.floor_title', 'The hardened floor — what no act can change')">
             <div class="stack" style="gap: var(--space-2)">
-                <p><HardenedChip>supermajority can never fall below majority + 1 · Art. VII</HardenedChip></p>
-                <p><HardenedChip>voting_method — only a MORE proportional method, never FPTP or plurality · Art. II §2</HardenedChip></p>
+                <p><HardenedChip>{{ t('c_legislature_workspace.settings_page.floor_supermajority', 'supermajority can never fall below majority + 1 · Art. VII') }}</HardenedChip></p>
+                <p><HardenedChip>{{ t('c_legislature_workspace.settings_page.floor_voting_method', 'voting_method — only a MORE proportional method, never FPTP or plurality · Art. II §2') }}</HardenedChip></p>
                 <p class="cc-small">{{ hardenedFloor.note }}</p>
             </div>
         </Card>
 
         <!-- ======================================= propose panel ======== -->
-        <Card v-if="can.propose" id="propose-panel" as="section" title="Propose a change — pre-targeted bill">
+        <Card v-if="can.propose" id="propose-panel" as="section" :title="t('c_legislature_workspace.settings_page.propose_title', 'Propose a change — pre-targeted bill')">
             <p v-if="!target" class="gloss">
-                Pick "Propose change" on any row above to pre-target a bill at that setting.
+                {{ t('c_legislature_workspace.settings_page.propose_hint', 'Pick "Propose change" on any row above to pre-target a bill at that setting.') }}
             </p>
             <template v-else>
                 <Card inset>
-                    <p style="margin-block-end: var(--space-2)" data-no-i18n>
-                        Bill pre-targeted at <span class="kbd">{{ target }}</span> — current value
-                        <strong>{{ targetSetting ? displayValue(targetSetting) : '—' }}</strong>.
-                        <span class="citation">{{ targetSetting ? `${boundsLine(targetSetting)} · ${targetSetting.basis}` : '' }}</span>
+                    <p style="margin-block-end: var(--space-2)">
+                        {{ t('c_legislature_workspace.settings_page.pretargeted_at', 'Bill pre-targeted at') }} <span class="kbd" data-no-i18n>{{ target }}</span> {{ t('c_legislature_workspace.settings_page.current_value', '— current value') }}
+                        <strong data-no-i18n>{{ targetSetting ? displayValue(targetSetting) : '—' }}</strong>.
+                        <span class="citation" data-no-i18n>{{ targetSetting ? `${boundsLine(targetSetting)} · ${targetSetting.basis}` : '' }}</span>
                     </p>
                     <div class="cluster">
-                        <label class="field-label" for="prop-value" style="margin-block-end: 0">Proposed value</label>
+                        <label class="field-label" for="prop-value" style="margin-block-end: 0">{{ t('c_legislature_workspace.settings_page.proposed_value', 'Proposed value') }}</label>
                         <input id="prop-value" v-model="proposedValue" class="field-input" style="inline-size: 10rem" />
                         <Btn
                             variant="primary"
@@ -268,52 +266,49 @@ function fmt(iso) {
                             :disabled="(preflight !== null && preflight.ok === false) || amendForm.processing || proposedValue === ''"
                             @click="submitAmendment"
                         >
-                            Propose amendment (F-LEG-031)
+                            {{ t('c_legislature_workspace.settings_page.propose_amendment', 'Propose amendment (F-LEG-031)') }}
                         </Btn>
                         <Link :href="`${deepLink}`">
                             <Btn variant="secondary" size="sm" :disabled="preflight !== null && preflight.ok === false">
-                                or draft the full bill →
+                                {{ t('c_legislature_workspace.settings_page.draft_full_bill', 'or draft the full bill →') }}
                             </Btn>
                         </Link>
                     </div>
                 </Card>
-                <Banner v-if="constitutionError" tone="emergency" role="alert" title="Rejected — the engine blocked this amendment before any vote.">
+                <Banner v-if="constitutionError" tone="emergency" role="alert" :title="t('c_legislature_workspace.settings_page.rejected_title', 'Rejected — the engine blocked this amendment before any vote.')">
                     {{ constitutionError }}
                 </Banner>
-                <Banner v-if="preflight && preflight.ok" tone="info" role="status" title="In range — the amendment may proceed to a vote.">
-                    A direct filing lands an F-LEG-031 amendment bill; the value applies only when
-                    the chamber enacts it at a peg-quorum floor vote. · WF-LEG-14 · Art. VII.
+                <Banner v-if="preflight && preflight.ok" tone="info" role="status" :title="t('c_legislature_workspace.settings_page.in_range_title', 'In range — the amendment may proceed to a vote.')">
+                    {{ t('c_legislature_workspace.settings_page.in_range_body', 'A direct filing lands an F-LEG-031 amendment bill; the value applies only when the chamber enacts it at a peg-quorum floor vote. · WF-LEG-14 · Art. VII.') }}
                 </Banner>
-                <Banner v-else-if="preflight && !preflight.ok" tone="emergency" title="Rejected pre-vote — outside hardened bounds.">
+                <Banner v-else-if="preflight && !preflight.ok" tone="emergency" :title="t('c_legislature_workspace.settings_page.rejected_prevote_title', 'Rejected pre-vote — outside hardened bounds.')">
                     {{ preflight.message }}
-                    The Constitutional Engine blocks the bill before any vote is taken — no UI,
-                    admin panel, or legislative act can carry an out-of-range value; an actual
-                    filing of this value would land as a rejected=true audit-chain entry.
+                    {{ t('c_legislature_workspace.settings_page.rejected_prevote_body', 'The Constitutional Engine blocks the bill before any vote is taken — no UI, admin panel, or legislative act can carry an out-of-range value; an actual filing of this value would land as a rejected=true audit-chain entry.') }}
                     <span class="citation" data-no-i18n>{{ preflight.citation }} · hardened · WF-LEG-14</span>
                 </Banner>
             </template>
         </Card>
 
         <!-- ======================================= changes history ====== -->
-        <Card as="section" title="Changes history — the enactment receipts">
+        <Card as="section" :title="t('c_legislature_workspace.settings_page.history_title', 'Changes history — the enactment receipts')">
             <p v-if="!changes.length" class="gloss">
-                No setting changes on this page.
+                {{ t('c_legislature_workspace.settings_page.no_changes', 'No setting changes on this page.') }}
             </p>
             <DataTable
                 v-else
                 :columns="[
-                    { key: 'setting_key', label: 'Setting', mono: true },
-                    { key: 'change', label: 'Change' },
-                    { key: 'act_number', label: 'Act' },
-                    { key: 'applied_at', label: 'Effective' },
+                    { key: 'setting_key', label: t('c_legislature_workspace.settings_page.col_change_setting', 'Setting'), mono: true },
+                    { key: 'change', label: t('c_legislature_workspace.settings_page.col_change', 'Change') },
+                    { key: 'act_number', label: t('c_legislature_workspace.settings_page.col_act', 'Act') },
+                    { key: 'applied_at', label: t('c_legislature_workspace.settings_page.col_effective', 'Effective') },
                 ]"
                 :rows="changes" row-key="id"
-                caption="Setting changes — enacting acts"
+                :caption="t('c_legislature_workspace.settings_page.history_caption', 'Setting changes — enacting acts')"
             >
                 <template #cell-change="{ row }">
                     <span class="mono" data-no-i18n>{{ row.old_value }} → {{ row.new_value }}</span>
                     <span class="citation" style="display: block">
-                        dependent clocks re-derived ·
+                        {{ t('c_legislature_workspace.settings_page.clocks_rederived', 'dependent clocks re-derived ·') }}
                         <Link :href="`/system/term-sync?legislature=${legislature.id}`">{{ t('c_term_sync.title') }}</Link>
                     </span>
                 </template>
@@ -323,14 +318,12 @@ function fmt(iso) {
                 </template>
                 <template #cell-applied_at="{ row }">{{ fmt(row.applied_at) }}</template>
             </DataTable>
-            <HistoryPager cursor-key="changes_cursor" :pages="change_pages" :only="['changes', 'change_pages']" :first="change_pages.first || `/legislatures/${legislature.id}/settings`" label="Setting change history pages" />
+            <HistoryPager cursor-key="changes_cursor" :pages="change_pages" :only="['changes', 'change_pages']" :first="change_pages.first || `/legislatures/${legislature.id}/settings`" :label="t('c_legislature_workspace.settings_page.history_pages', 'Setting change history pages')" />
         </Card>
 
         <template #about>
             <p>
-                A setting change is a bill whose enactment writes the constitutional_settings
-                record (WF-LEG-14 wraps the ordinary WF-LEG-06 bill flow). Hardened-layer
-                changes have only one door: constitutional amendment (WF-SYS-05).
+                {{ t('c_legislature_workspace.settings_page.about', 'A setting change is a bill whose enactment writes the constitutional_settings record (WF-LEG-14 wraps the ordinary WF-LEG-06 bill flow). Hardened-layer changes have only one door: constitutional amendment (WF-SYS-05).') }}
             </p>
         </template>
     </PageScaffold>
