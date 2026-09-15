@@ -16938,7 +16938,13 @@
       "done_when": "Every confirmed group from the sweep is wired and pinned; the sweep script re-run reports zero user-visible raw strings in the swept classes; check.mjs coverage regenerated.",
       "depends_on": [],
       "detail": "Six-modality sweep (short template labels and attributes, script literals, PHP responses and the 123 form display names, mail and Blade, shipped content, end-to-end wiring) plus a skeptic pass. Each confirmed group becomes a lane: t() with the lane namespace for JS, __() with lang/en.json for PHP, a flatten step for config arrays. Pins extended so the short-label and attribute classes are guarded, not only 4+ word sentences.",
-      "evidence": [],
+      "evidence": [
+        "tests/js/i18nRawScan.test.mjs (272 .vue files, 0 offenders)",
+        "tests/js/i18nGaps_*.test.mjs (11 lanes) and tests/js/i18nWiring2_*.test.mjs (wiring)",
+        "tests/Unit/PhpGaps_*Test.php, tests/Unit/PhpCatalogue_*Test.php, tests/Unit/LangJsonFlattenTest.php, tests/Unit/MiddlewareOrderTest.php",
+        "lang/en.json 2,331 lines; resources/js/i18n/locales/en 64 namespace files",
+        "live: POST /locale es then GET renders <html lang=\"es\"> (2026-09-15 5:40 PM Eastern)"
+      ],
       "sources": [
         {
           "list": "desk",
@@ -16983,6 +16989,10 @@
         {
           "date": "2026-09-15",
           "note": "5:40 PM Eastern: SetLocale ran BEFORE the session (prepended to the web group), so neither a guest POST /locale choice nor the signed-in stored locale was ever read server-side; only Accept-Language applied. Moved to the append list before HandleInertiaRequests (13849b76), pinned by tests/Unit/MiddlewareOrderTest.php, verified live: POST /locale es then GET renders <html lang=\"es\">. Guest read-back complete; Settings entry in both flyouts merged; header select kept (ruling)."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "READY TO CLOSE (7:28 PM Eastern): every sweep group fixed and pinned; repo-wide raw-string pin green; locale wiring verified live. Desk recommends status done; the operator sets it in the page."
         }
       ]
     },
@@ -16999,7 +17009,11 @@
         "W-0445"
       ],
       "detail": "Integrated into the existing status board /system/translations (no new page): an operator-only card with Export (pick a language, download a zip of its pending chunk files, the export_master.py output with English text, surface context and glossary) and Import (upload a zip or file, see the dry-run report from import_translated.py with accepted and rejected strings and reasons, confirm, then the importer writes the catalogs and the review queue). Both run through a queued job with progress on the board's live deck, never inside the web request. Gated to the operator; every import is audited. The Add-a-language card gains the real request action.",
-      "evidence": [],
+      "evidence": [
+        "app/Http/Controllers/System/TranslationPackageController.php, app/Jobs/I18n/ExportLanguagePackageJob.php, app/Jobs/I18n/ImportLanguagePackageJob.php, app/Services/I18n/LanguagePackageService.php",
+        "tests/Unit/LanguagePackageServiceTest.php 6/6, tests/Feature/LanguagePackageRoutesTest.php 2/2, tests/js/i18nWiring2_w0446_language_packages.test.mjs",
+        "merged d3f08d42; needs docker restart fc_horizon (operator) before the jobs run; card not yet verified in the operator browser"
+      ],
       "sources": [
         {
           "list": "desk",
