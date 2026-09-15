@@ -76,32 +76,41 @@ class CaseController extends Controller
     ];
 
     /** The 10 ordinal lifecycle stage titles (the case-detail track). */
-    private const STAGES = [
-        ['index' => 1, 'title' => 'Filing'],
-        ['index' => 2, 'title' => 'Classification'],
-        ['index' => 3, 'title' => 'Panel assignment'],
-        ['index' => 4, 'title' => 'Initial hearing'],
-        ['index' => 5, 'title' => 'Evidence docket'],
-        ['index' => 6, 'title' => 'Jury selection'],
-        ['index' => 7, 'title' => 'Arguments'],
-        ['index' => 8, 'title' => 'Deliberation'],
-        ['index' => 9, 'title' => 'Judgement'],
-        ['index' => 10, 'title' => 'Opinion'],
-    ];
+    private function stages(): array
+    {
+        return [
+            ['index' => 1, 'title' => __('Filing')],
+            ['index' => 2, 'title' => __('Classification')],
+            ['index' => 3, 'title' => __('Panel assignment')],
+            ['index' => 4, 'title' => __('Initial hearing')],
+            ['index' => 5, 'title' => __('Evidence docket')],
+            ['index' => 6, 'title' => __('Jury selection')],
+            ['index' => 7, 'title' => __('Arguments')],
+            ['index' => 8, 'title' => __('Deliberation')],
+            ['index' => 9, 'title' => __('Judgement')],
+            ['index' => 10, 'title' => __('Opinion')],
+        ];
+    }
 
-    private const SEVERITY_DISPLAY = [
-        CourtCase::SEVERITY_MINOR => 'Minor',
-        CourtCase::SEVERITY_MODERATE => 'Moderate',
-        CourtCase::SEVERITY_SERIOUS => 'Serious',
-        CourtCase::SEVERITY_CONSTITUTIONAL_MAJOR => 'Major constitutional question',
-    ];
+    private function severityDisplay(): array
+    {
+        return [
+            CourtCase::SEVERITY_MINOR => __('Minor'),
+            CourtCase::SEVERITY_MODERATE => __('Moderate'),
+            CourtCase::SEVERITY_SERIOUS => __('Serious'),
+            CourtCase::SEVERITY_CONSTITUTIONAL_MAJOR => __('Major constitutional question'),
+        ];
+    }
 
-    private const KIND_DISPLAY = [
-        CourtCase::KIND_CONSTITUTIONAL => 'Constitutional challenge',
-        CourtCase::KIND_CIVIL => 'Civil',
-        CourtCase::KIND_CRIMINAL => 'Criminal',
-        CourtCase::KIND_ADMINISTRATIVE => 'Administrative',
-    ];
+    private function kindDisplay(): array
+    {
+        return [
+            CourtCase::KIND_CONSTITUTIONAL => __('Constitutional challenge'),
+            CourtCase::KIND_CIVIL => __('Civil'),
+            CourtCase::KIND_CRIMINAL => __('Criminal'),
+            CourtCase::KIND_ADMINISTRATIVE => __('Administrative'),
+        ];
+    }
 
     public function __construct(
         private readonly ConstitutionalEngine $engine,
@@ -130,7 +139,7 @@ class CaseController extends Controller
             'surface' => SurfaceMeta::for('judiciary/case-detail'),
             'case' => $this->caseProps($case),
             'machine' => config('cga.state_machines.case', []),
-            'stages' => self::STAGES,
+            'stages' => $this->stages(),
             'stageStateMap' => self::STAGE_STATE,
             'panel' => $this->panelProps($case),
             'motions' => $this->filingRows($case, CaseFiling::KIND_MOTION),
@@ -172,8 +181,7 @@ class CaseController extends Controller
 
         return back()->with(
             'status',
-            'Case accepted — severity classified and the panel seated with conflict screening '
-            .'(F-JDG-001 · Art. IV §4). Recused judges are excluded and the draw re-runs.'
+            __('Case accepted — severity classified and the panel seated with conflict screening (F-JDG-001 · Art. IV §4). Recused judges are excluded and the draw re-runs.')
         );
     }
 
@@ -189,8 +197,7 @@ class CaseController extends Controller
 
         return back()->with(
             'status',
-            'Jury selection ordered — jurors drawn at random from the eligible pool; the selection '
-            .'seed is published to the audit chain (F-JDG-002 · Art. IV §4 · WF-JUD-04).'
+            __('Jury selection ordered — jurors drawn at random from the eligible pool; the selection seed is published to the audit chain (F-JDG-002 · Art. IV §4 · WF-JUD-04).')
         );
     }
 
@@ -213,8 +220,7 @@ class CaseController extends Controller
 
         return back()->with(
             'status',
-            'Opinion published to the public record — commentary on the law as written or edited; '
-            .'only the Art. IV §5 process can change a law\'s text (F-JDG-003 · Art. IV §4–§5).'
+            __('Opinion published to the public record — commentary on the law as written or edited; only the Art. IV §5 process can change a law\'s text (F-JDG-003 · Art. IV §4–§5).')
         );
     }
 
@@ -236,8 +242,7 @@ class CaseController extends Controller
 
         return back()->with(
             'status',
-            'Appeal filed — a new case opens at the appellate court and the original judgement rests '
-            .'as appealed; its verdict and opinion are preserved (F-IND-027 · Art. II §8).'
+            __('Appeal filed — a new case opens at the appellate court and the original judgement rests as appealed; its verdict and opinion are preserved (F-IND-027 · Art. II §8).')
         );
     }
 
@@ -252,8 +257,7 @@ class CaseController extends Controller
 
         return back()->with(
             'status',
-            'Sentencing order issued on the guilty verdict — the outcome record carries the '
-            .'double-jeopardy flag (F-JDG-009 · Art. II §8).'
+            __('Sentencing order issued on the guilty verdict — the outcome record carries the double-jeopardy flag (F-JDG-009 · Art. II §8).')
         );
     }
 
@@ -272,8 +276,7 @@ class CaseController extends Controller
 
         return back()->with(
             'status',
-            'Warrant issued with a stated reason and (for an arrest) a maximum hold duration — '
-            .'the two constitutional facts are mandatory (F-JDG-010 · Art. II §8).'
+            __('Warrant issued with a stated reason and (for an arrest) a maximum hold duration — the two constitutional facts are mandatory (F-JDG-010 · Art. II §8).')
         );
     }
 
@@ -288,7 +291,7 @@ class CaseController extends Controller
         $formId = (string) $request->input('form_id', '');
 
         if (! in_array($formId, ['F-ADV-002', 'F-ADV-003', 'F-ADV-004'], true)) {
-            return back()->withErrors(['constitution' => 'A case filing is a motion (F-ADV-002), evidence (F-ADV-003), or a brief (F-ADV-004).']);
+            return back()->withErrors(['constitution' => __('A case filing is a motion (F-ADV-002), evidence (F-ADV-003), or a brief (F-ADV-004).')]);
         }
 
         $this->engine->file($formId, $request->user(), [
@@ -298,7 +301,7 @@ class CaseController extends Controller
             'body' => (string) $request->input('body', ''),
         ]);
 
-        return back()->with('status', 'Filing added to the case docket under the attach-window (Art. IV §4).');
+        return back()->with('status', __('Filing added to the case docket under the attach-window (Art. IV §4).'));
     }
 
     /** F-JDG-011 — open arguments (paneled/jury_empaneled → heard). */
@@ -309,7 +312,7 @@ class CaseController extends Controller
             'judiciary_id' => (string) $case->judiciary_id,
         ]);
 
-        return back()->with('status', 'Hearing ordered — arguments are open on the record (F-JDG-011 · Art. IV §4).');
+        return back()->with('status', __('Hearing ordered — arguments are open on the record (F-JDG-011 · Art. IV §4).'));
     }
 
     /** F-JDG-012 — submit the case (heard → deliberation). */
@@ -320,7 +323,7 @@ class CaseController extends Controller
             'judiciary_id' => (string) $case->judiciary_id,
         ]);
 
-        return back()->with('status', 'Case submitted to deliberation — the only unrecorded space; the verdict is recorded (F-JDG-012 · Art. IV §4).');
+        return back()->with('status', __('Case submitted to deliberation — the only unrecorded space; the verdict is recorded (F-JDG-012 · Art. IV §4).'));
     }
 
     /** F-JDG-013 — dismiss a case not justiciable or withdrawn (filed/accepted → dismissed). */
@@ -332,7 +335,7 @@ class CaseController extends Controller
             'reason' => (string) $request->input('reason', ''),
         ]);
 
-        return back()->with('status', 'Case dismissed — the public record names the reason (F-JDG-013 · Art. IV §4).');
+        return back()->with('status', __('Case dismissed — the public record names the reason (F-JDG-013 · Art. IV §4).'));
     }
 
     /** F-JDG-014 — rule on a motion or evidence filing (an appended follow-up). */
@@ -348,7 +351,7 @@ class CaseController extends Controller
             'references_filing_id' => $request->input('references_filing_id'),
         ]);
 
-        return back()->with('status', 'Ruling appended to the docket with its written reason (F-JDG-014 · Art. IV §4).');
+        return back()->with('status', __('Ruling appended to the docket with its written reason (F-JDG-014 · Art. IV §4).'));
     }
 
     /**
@@ -385,8 +388,7 @@ class CaseController extends Controller
 
         return back()->with(
             'status',
-            'Verdict recorded — the outcome is on the public record'
-            .' (a criminal verdict locks double jeopardy · Art. II §8; Art. IV §4).'
+            __('Verdict recorded — the outcome is on the public record (a criminal verdict locks double jeopardy · Art. II §8; Art. IV §4).')
         );
     }
 
@@ -399,15 +401,15 @@ class CaseController extends Controller
     {
         $courtName = $case->judiciary?->court_name
             ?? ($case->judiciary?->jurisdiction?->name !== null
-                ? "{$case->judiciary->jurisdiction->name} court"
-                : 'court');
+                ? __(':name court', ['name' => $case->judiciary->jurisdiction->name])
+                : __('court'));
 
         return [
             'id' => (string) $case->id,
             'judiciary_id' => (string) $case->judiciary_id,
             'docket_no' => $case->docket_no,
             'title' => $case->title,
-            'kind' => self::KIND_DISPLAY[$case->kind] ?? ucfirst((string) $case->kind),
+            'kind' => $this->kindDisplay()[$case->kind] ?? ucfirst((string) $case->kind),
             'kind_raw' => $case->kind,
             'severity' => $this->severityLabel($case),
             'court' => ['name' => $courtName],
@@ -418,7 +420,7 @@ class CaseController extends Controller
             'accusation' => $case->statement_of_claim,
             'filed_at' => $case->created_at?->toDateString(),
             'filed_by_label' => $case->filed_via_form !== null
-                ? "filed via {$case->filed_via_form}"
+                ? __('filed via :form', ['form' => $case->filed_via_form])
                 : null,
             // IO-2 — appeal links (both directions) + the en-banc fact.
             'is_appeal' => $case->isAppeal(),
@@ -505,8 +507,8 @@ class CaseController extends Controller
             'panelSize' => (int) $panel->size,
             'isFullCourt' => (bool) $panel->is_en_banc,
             'rule' => $panel->is_en_banc
-                ? 'Full court — all judges hear major constitutional questions · CLK-16 · Art. IV §4'
-                : '≥3, odd, severity-scaled · CLK-16 · Art. IV §4',
+                ? __('Full court — all judges hear major constitutional questions · CLK-16 · Art. IV §4')
+                : __('≥3, odd, severity-scaled · CLK-16 · Art. IV §4'),
         ];
     }
 
@@ -519,7 +521,7 @@ class CaseController extends Controller
         return [
             'judge' => [
                 'name' => $judge->user?->display_name
-                    ?: ($judge->user?->name ?? 'Judge'),
+                    ?: ($judge->user?->name ?? __('Judge')),
             ],
             'is_presiding' => (bool) $judge->is_presiding,
             'screening' => $recused ? 'recused' : 'no_conflicts',
@@ -571,8 +573,10 @@ class CaseController extends Controller
             'jurors' => (int) $jury->seats,
             'alternates' => (int) $jury->alternates,
             'pool_size' => (int) $jury->pool_size,
-            'pool_label' => number_format((int) $jury->pool_size).' eligible jurisdictionally '
-                .'associated residents of '.($jury->eligibleJurisdiction?->name ?? 'the jurisdiction'),
+            'pool_label' => __(':count eligible jurisdictionally associated residents of :jurisdiction', [
+                'count' => number_format((int) $jury->pool_size),
+                'jurisdiction' => $jury->eligibleJurisdiction?->name ?? __('the jurisdiction'),
+            ]),
             'seed_audit_href' => '/audit-chain',
         ];
     }
@@ -580,16 +584,16 @@ class CaseController extends Controller
     private function severityLabel(CourtCase $case): string
     {
         if ($case->court_severity !== null) {
-            return self::SEVERITY_DISPLAY[$case->court_severity] ?? ucfirst((string) $case->court_severity);
+            return $this->severityDisplay()[$case->court_severity] ?? ucfirst((string) $case->court_severity);
         }
 
         if ($case->claimed_severity !== null) {
-            $label = self::SEVERITY_DISPLAY[$case->claimed_severity] ?? ucfirst((string) $case->claimed_severity);
+            $label = $this->severityDisplay()[$case->claimed_severity] ?? ucfirst((string) $case->claimed_severity);
 
-            return "{$label} (claimed)";
+            return __(':label (claimed)', ['label' => $label]);
         }
 
-        return 'Pending classification';
+        return __('Pending classification');
     }
 
     /**

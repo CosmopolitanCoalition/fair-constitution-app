@@ -50,7 +50,7 @@ class ResultsController extends Controller
         if (in_array($phase, ['approval', 'ranked'], true)) {
             return redirect("/elections/{$election->id}")->with(
                 'status',
-                'No count exists yet — results appear once the ranked window closes and tabulation runs.'
+                __('No count exists yet — results appear once the ranked window closes and tabulation runs.')
             );
         }
 
@@ -131,8 +131,8 @@ class ResultsController extends Controller
             'certification' => $certification !== null ? [
                 'certified_at'      => $certification->certified_at?->toIso8601String(),
                 'by'                => $certification->board?->is_bootstrap
-                    ? 'Bootstrap election board (system)'
-                    : 'Election board',
+                    ? __('Bootstrap election board (system)')
+                    : __('Election board'),
                 'count_record_hash' => $certification->count_record_hash,
             ] : null,
             'can' => [
@@ -156,7 +156,7 @@ class ResultsController extends Controller
         $race = $this->resolveRace($request, $election);
         $tabulation = $this->latestComplete($race, null);
 
-        abort_if($tabulation === null, 404, 'No complete tabulation exists for this race.');
+        abort_if($tabulation === null, 404, __('No complete tabulation exists for this race.'));
 
         $names = $this->presenter->candidateRefs((string) $race->id);
         $name = fn (?string $id): string => $id !== null ? ($names[$id]['name'] ?? $id) : '';
@@ -298,8 +298,8 @@ class ResultsController extends Controller
             ->orderBy('created_at')
             ->get(['id', 'user_id'])
             ->map(fn (Candidacy $candidacy) => [
-                'name'     => ($candidacy->user?->display_name ?: $candidacy->user?->name) . ' (candidate)',
-                'standing' => 'candidate standing',
+                'name'     => __(':name (candidate)', ['name' => $candidacy->user?->display_name ?: $candidacy->user?->name]),
+                'standing' => __('candidate standing'),
                 'href'     => '/candidates/' . $candidacy->id,
                 'attested' => $certified,
             ]);
@@ -309,17 +309,17 @@ class ResultsController extends Controller
 
     private function raceLabel(ElectionRace $race): string
     {
-        $jurisdiction = $race->jurisdiction?->name ?? 'Race';
+        $jurisdiction = $race->jurisdiction?->name ?? __('Race');
 
         if ($race->isAtLarge()) {
-            return "{$jurisdiction} at-large — {$race->seats} seats";
+            return __(':jurisdiction at-large — :seats seats', ['jurisdiction' => $jurisdiction, 'seats' => $race->seats]);
         }
 
         $number = $race->district?->district_number;
 
         return $number !== null
-            ? "{$jurisdiction} — district {$number} · {$race->seats} seats"
-            : "{$jurisdiction} — {$race->seats} seats";
+            ? __(':jurisdiction — district :number · :seats seats', ['jurisdiction' => $jurisdiction, 'number' => $number, 'seats' => $race->seats])
+            : __(':jurisdiction — :seats seats', ['jurisdiction' => $jurisdiction, 'seats' => $race->seats]);
     }
 
     /** µv → full-precision vote string (up to 6 dp, trailing zeros trimmed). */

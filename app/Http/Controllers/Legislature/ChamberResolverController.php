@@ -65,7 +65,7 @@ class ChamberResolverController extends Controller
         if ($seats->count() > 1) {
             return redirect('/legislatures')->with(
                 'status',
-                'You hold seats in more than one chamber — pick one below (its Chamber link opens the legislature surfaces).'
+                __('You hold seats in more than one chamber — pick one below (its Chamber link opens the legislature surfaces).')
             );
         }
 
@@ -95,7 +95,7 @@ class ChamberResolverController extends Controller
             'mapperHref'    => '/legislatures',
             'can'           => ['takeOath' => false, 'oathMemberId' => null, 'isMember' => false],
             'empty'         => [
-                'note' => 'No active legislature in your association chain — jurisdictions activate at critical population · CLK-06.',
+                'note' => __('No active legislature in your association chain — jurisdictions activate at critical population · CLK-06.'),
             ],
         ]);
     }

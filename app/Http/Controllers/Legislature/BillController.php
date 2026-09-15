@@ -201,7 +201,7 @@ class BillController extends Controller
             'targets_challenge_id' => $request->input('targets_challenge_id') ?: null,
         ]);
 
-        return back()->with('status', 'Bill introduced (F-LEG-003) — version 1 recorded; scale & scope are fixed at introduction (Art. V §4).');
+        return back()->with('status', __('Bill introduced (F-LEG-003) — version 1 recorded; scale & scope are fixed at introduction (Art. V §4).'));
     }
 
     /**
@@ -235,7 +235,7 @@ class BillController extends Controller
 
         return back()->with(
             'status',
-            "Cultural-institution recognition proposed ({$data['name']}) — it opens a supermajority chamber vote; the institution is recognised only if the chamber adopts it.",
+            __('Cultural-institution recognition proposed (:name) — it opens a supermajority chamber vote; the institution is recognised only if the chamber adopts it.', ['name' => $data['name']]),
         );
     }
 
@@ -322,7 +322,7 @@ class BillController extends Controller
             'bill' => [
                 'id'              => (string) $bill->id,
                 'title'           => $bill->title,
-                'sponsor'         => ['name' => $bill->sponsor?->user?->display_name ?: 'Member'],
+                'sponsor'         => ['name' => $bill->sponsor?->user?->display_name ?: __('Member')],
                 'status'          => $bill->status,
                 'act_type'        => $bill->act_type,
                 'introduced_at'   => $bill->introduced_at?->toIso8601String(),
@@ -338,7 +338,7 @@ class BillController extends Controller
             'versions' => $versions->map(fn (BillVersion $version) => [
                 'version_no'  => (int) $version->version_no,
                 'change_kind' => $version->change_kind,
-                'changed_by'  => $version->changedBy?->user?->display_name ?: 'Member',
+                'changed_by'  => $version->changedBy?->user?->display_name ?: __('Member'),
                 'created_at'  => $version->created_at?->toIso8601String(),
             ])->values()->all(),
             'diff'    => $diff,
@@ -394,7 +394,7 @@ class BillController extends Controller
                 'jurisdiction_id' => (string) $bill->jurisdiction_id,
             ]);
 
-            return back()->with('status', 'Referred to the floor (F-CHR-003) — the floor vote is open.');
+            return back()->with('status', __('Referred to the floor (F-CHR-003) — the floor vote is open.'));
         }
 
         $session = LegislatureSession::query()
@@ -421,7 +421,7 @@ class BillController extends Controller
             'committee_id'    => $request->input('committee_id'),
         ]);
 
-        return back()->with('status', 'Motion submitted (F-LEG-007) — adoption applies the referral in the same transaction as the closing vote.');
+        return back()->with('status', __('Motion submitted (F-LEG-007) — adoption applies the referral in the same transaction as the closing vote.'));
     }
 
     // =========================================================================
@@ -448,7 +448,7 @@ class BillController extends Controller
         // stays shallow for legibility — deeper ids may be typed by API).
         $scaleOptions = collect([[
             'id'   => $jid,
-            'name' => ($legislature->jurisdiction?->name ?? 'Own jurisdiction') . ' (whole jurisdiction)',
+            'name' => __(':name (whole jurisdiction)', ['name' => $legislature->jurisdiction?->name ?? __('Own jurisdiction')]),
         ]])->concat(
             DB::table('jurisdictions')
                 ->where('parent_id', $jid)
@@ -480,7 +480,7 @@ class BillController extends Controller
             ->get(['jd.id', 'jd.status', 'j.name'])
             ->map(fn ($row) => [
                 'id'    => (string) $row->id,
-                'label' => $row->status === 'forming' ? "{$row->name} judiciary (forming · Phase E)" : "{$row->name} judiciary",
+                'label' => $row->status === 'forming' ? __(':name judiciary (forming · Phase E)', ['name' => $row->name]) : __(':name judiciary', ['name' => $row->name]),
                 'phase' => $row->status === 'forming' ? 'E' : null,
             ])
             ->values()
@@ -503,10 +503,10 @@ class BillController extends Controller
             'scaleOptions' => $scaleOptions,
             'scopeOptions' => $scopeOptions,
             'actTypes'     => [
-                ['value' => Bill::TYPE_ORDINARY, 'label' => 'Ordinary act', 'threshold_gloss' => 'majority of all serving · Art. II §2'],
-                ['value' => Bill::TYPE_SETTING_CHANGE, 'label' => 'Amendable setting change', 'threshold_gloss' => 'majority + pre-vote bounds validation · Art. VII · WF-LEG-14'],
-                ['value' => Bill::TYPE_SUPERMAJORITY, 'label' => 'Supermajority act', 'threshold_gloss' => 'ceil(serving × 2/3) of all serving · Art. VII'],
-                ['value' => Bill::TYPE_DUAL_SUPERMAJORITY, 'label' => 'Dual-supermajority act', 'threshold_gloss' => 'chamber supermajority + 2/3 of constituent jurisdictions · Art. V §6'],
+                ['value' => Bill::TYPE_ORDINARY, 'label' => __('Ordinary act'), 'threshold_gloss' => __('majority of all serving · Art. II §2')],
+                ['value' => Bill::TYPE_SETTING_CHANGE, 'label' => __('Amendable setting change'), 'threshold_gloss' => __('majority + pre-vote bounds validation · Art. VII · WF-LEG-14')],
+                ['value' => Bill::TYPE_SUPERMAJORITY, 'label' => __('Supermajority act'), 'threshold_gloss' => __('ceil(serving × 2/3) of all serving · Art. VII')],
+                ['value' => Bill::TYPE_DUAL_SUPERMAJORITY, 'label' => __('Dual-supermajority act'), 'threshold_gloss' => __('chamber supermajority + 2/3 of constituent jurisdictions · Art. V §6')],
             ],
             'settingKeys'  => $settingKeys,
         ];
@@ -598,7 +598,7 @@ class BillController extends Controller
         $entries = $this->scaleEntries($bill);
 
         return $entries === []
-            ? 'own jurisdiction'
+            ? __('own jurisdiction')
             : implode(', ', array_column($entries, 'name'));
     }
 
@@ -622,7 +622,7 @@ class BillController extends Controller
     private function scopeLabel(Bill $bill): string
     {
         if ($bill->scope_judiciary_id === null) {
-            return 'default judiciary (forming · Phase E)';
+            return __('default judiciary (forming · Phase E)');
         }
 
         $name = DB::table('judiciaries as jd')
@@ -630,6 +630,6 @@ class BillController extends Controller
             ->where('jd.id', (string) $bill->scope_judiciary_id)
             ->value('j.name');
 
-        return $name !== null ? "{$name} judiciary" : 'named judiciary';
+        return $name !== null ? __(':name judiciary', ['name' => $name]) : __('named judiciary');
     }
 }

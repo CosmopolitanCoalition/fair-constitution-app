@@ -93,8 +93,7 @@ class DepartmentReportingController extends Controller
 
         return back()->with(
             'status',
-            'Rule filed (F-BOG-001) — in force, published for comment. Rules implement; they cannot exceed the charter and enabling acts. '
-            .'An emergency-enabled rule expires with the power (CLK-03).'
+            __('Rule filed (F-BOG-001) — in force, published for comment. Rules implement; they cannot exceed the charter and enabling acts. An emergency-enabled rule expires with the power (CLK-03).')
         );
     }
 
@@ -117,7 +116,7 @@ class DepartmentReportingController extends Controller
 
         return back()->with(
             'status',
-            'Report filed (F-BOG-002) — to the executive and the legislature, published to the public record (WF-SYS-03).'
+            __('Report filed (F-BOG-002) — to the executive and the legislature, published to the public record (WF-SYS-03).')
         );
     }
 
@@ -191,7 +190,7 @@ class DepartmentReportingController extends Controller
                 'status' => $rule->status,
                 'version_no' => (int) $rule->version_no,
                 'enabling' => $enabling,
-                'note' => $rule->version_no > 1 ? "version {$rule->version_no} — supersedes a prior rule" : null,
+                'note' => $rule->version_no > 1 ? __('version :n — supersedes a prior rule', ['n' => $rule->version_no]) : null,
             ];
         })->values()->all();
     }
@@ -208,7 +207,7 @@ class DepartmentReportingController extends Controller
 
             return [
                 'type' => 'emergency_power',
-                'label' => $power?->label ?? 'emergency power',
+                'label' => $power?->label ?? __('emergency power'),
                 'href' => '/legislature/emergency-powers',
                 'expires_with_power' => (bool) $rule->expires_with_enabling,
             ];
@@ -218,7 +217,7 @@ class DepartmentReportingController extends Controller
 
         return [
             'type' => 'law',
-            'label' => $law?->act_number ?? ($rule->enabling_type === ExecutiveOrder::ENABLING_CHARTER ? 'charter' : 'enabling act'),
+            'label' => $law?->act_number ?? ($rule->enabling_type === ExecutiveOrder::ENABLING_CHARTER ? __('charter') : __('enabling act')),
             'href' => $this->lawHref($law),
             'expires_with_power' => false,
         ];
@@ -268,7 +267,7 @@ class DepartmentReportingController extends Controller
                 'id' => (string) $report->id,
                 'kind' => $report->kind,
                 'label' => $report->period_label ?? $report->kind,
-                'recipients' => 'Executive + legislature',
+                'recipients' => __('Executive + legislature'),
                 'due_on' => $report->due_on?->toDateString(),
                 'filed_at' => $report->filed_at?->toIso8601String(),
                 'status' => $status,
@@ -302,7 +301,7 @@ class DepartmentReportingController extends Controller
             $options[] = [
                 'type' => ExecutiveOrder::ENABLING_CHARTER,
                 'id' => (string) $department->charterLaw->id,
-                'label' => 'Charter — '.($department->charterLaw->act_number ?? $department->name),
+                'label' => __('Charter — :name', ['name' => $department->charterLaw->act_number ?? $department->name]),
             ];
         }
 
@@ -335,7 +334,7 @@ class DepartmentReportingController extends Controller
             $options[] = [
                 'type' => ExecutiveOrder::ENABLING_EMERGENCY_POWER,
                 'id' => (string) $power->id,
-                'label' => 'Emergency power — '.$power->label.' (expires '.$power->expires_at->toDateString().')',
+                'label' => __('Emergency power — :label (expires :date)', ['label' => $power->label, 'date' => $power->expires_at->toDateString()]),
             ];
         }
 

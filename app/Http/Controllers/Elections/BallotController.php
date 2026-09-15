@@ -71,8 +71,7 @@ class BallotController extends Controller
             // open ballot, with the rights chain spelled out (§B.5).
             return redirect("/elections/{$election->id}/open-ballot")->with(
                 'status',
-                'The ranked ballot requires a jurisdictional association inside this race — voting and '
-                . 'candidacy unlock together at residency verification (Art. I). You can browse the open ballot.'
+                __('The ranked ballot requires a jurisdictional association inside this race — voting and candidacy unlock together at residency verification (Art. I). You can browse the open ballot.')
             );
         }
 
@@ -143,7 +142,7 @@ class BallotController extends Controller
 
         foreach (($agg['first_prefs'] ?? []) as $candidacyId => $votes) {
             if (count($top) < 12) {
-                $top[] = [$names[$candidacyId]['name'] ?? 'Unknown candidate', (int) $votes];
+                $top[] = [$names[$candidacyId]['name'] ?? __('Unknown candidate'), (int) $votes];
             } else {
                 $tail++;
             }
@@ -154,7 +153,9 @@ class BallotController extends Controller
             'quotaIfClosedNow' => (int) $agg['quota'],
             'top'              => $top,
             'remainderNote'    => $tail > 0
-                ? '+'.$tail.' more candidate'.($tail === 1 ? '' : 's').' with first-preference support'
+                ? ($tail === 1
+                    ? __('+:count more candidate with first-preference support', ['count' => $tail])
+                    : __('+:count more candidates with first-preference support', ['count' => $tail]))
                 : null,
         ];
     }
@@ -182,7 +183,7 @@ class BallotController extends Controller
         $receipt = $this->receipts->take();
 
         $redirect = redirect("/elections/{$election->id}/ranked-ballot")
-            ->with('status', 'Ballot committed — your participation is recorded; your choices are sealed.');
+            ->with('status', __('Ballot committed — your participation is recorded; your choices are sealed.'));
 
         if ($receipt !== null) {
             $redirect->with('receipt_hash', $receipt->ballotHash)
@@ -220,7 +221,7 @@ class BallotController extends Controller
         $receipt = $this->receipts->take();
 
         $redirect = redirect("/elections/{$election->id}/ranked-ballot")
-            ->with('status', 'Referendum ballot committed — your participation is recorded; your choice is sealed.');
+            ->with('status', __('Referendum ballot committed — your participation is recorded; your choice is sealed.'));
 
         if ($receipt !== null) {
             $redirect->with('receipt_hash', $receipt->ballotHash)
@@ -245,7 +246,7 @@ class BallotController extends Controller
             return response()->json([
                 'found'   => false,
                 'invalid' => true,
-                'message' => 'Not a receipt hash — receipts are 64 hexadecimal characters.',
+                'message' => __('Not a receipt hash — receipts are 64 hexadecimal characters.'),
             ]);
         }
 
@@ -255,7 +256,7 @@ class BallotController extends Controller
             return response()->json([
                 'found'   => false,
                 'invalid' => false,
-                'message' => 'Not found — check for typos; hashes are 64 characters.',
+                'message' => __('Not found — check for typos; hashes are 64 characters.'),
             ]);
         }
 
@@ -295,7 +296,7 @@ class BallotController extends Controller
 
         return [
             'id'        => (string) $question->id,
-            'title'     => 'Referendum question',
+            'title'     => __('Referendum question'),
             'text'      => $question->question,
             'law_text'  => $question->law_text,
             'act_type'  => $question->act_type,
@@ -394,16 +395,16 @@ class BallotController extends Controller
 
     private function raceLabel(ElectionRace $race): string
     {
-        $jurisdiction = $race->jurisdiction?->name ?? 'Race';
+        $jurisdiction = $race->jurisdiction?->name ?? __('Race');
 
         if ($race->isAtLarge()) {
-            return "{$jurisdiction} at-large — {$race->seats} seats";
+            return __(':jurisdiction at-large — :seats seats', ['jurisdiction' => $jurisdiction, 'seats' => $race->seats]);
         }
 
         $number = $race->district?->district_number;
 
         return $number !== null
-            ? "{$jurisdiction} — district {$number} · {$race->seats} seats"
-            : "{$jurisdiction} — {$race->seats} seats";
+            ? __(':jurisdiction — district :number · :seats seats', ['jurisdiction' => $jurisdiction, 'number' => $number, 'seats' => $race->seats])
+            : __(':jurisdiction — :seats seats', ['jurisdiction' => $jurisdiction, 'seats' => $race->seats]);
     }
 }

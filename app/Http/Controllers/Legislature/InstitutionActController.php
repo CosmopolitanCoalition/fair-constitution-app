@@ -31,7 +31,7 @@ final class InstitutionActController extends Controller
             'surface' => SurfaceMeta::for('legislature/institution-acts'),
             'jurisdictionContext' => $legislature->jurisdiction ? JurisdictionContext::forRoom($legislature->jurisdiction) : null,
             'workspace' => LegislatureWorkspace::for($legislature, $legislature->jurisdiction, $context['isSpeaker']),
-            'legislature' => ['id' => $legislature->id, 'name' => ($legislature->jurisdiction?->name ?? 'This jurisdiction').' legislature'],
+            'legislature' => ['id' => $legislature->id, 'name' => __(':name legislature', ['name' => $legislature->jurisdiction?->name ?? __('This jurisdiction')])],
             'context' => $context, 'filingUrl' => $this->workspace->base($legislature),
             'initialAction' => array_key_exists($request->query('action', ''), InstitutionActWorkspace::ACTIONS) ? $request->query('action') : 'delegate-executive',
             'proposals' => fn () => $this->workspace->proposals($request, $legislature),
@@ -71,7 +71,7 @@ final class InstitutionActController extends Controller
         }
         $this->engine->file($meta['form'], $request->user(), $payload + ['legislature_id' => (string) $legislature->id, 'jurisdiction_id' => (string) $legislature->jurisdiction_id]);
 
-        return redirect($this->workspace->base($legislature).'?action='.$action)->with('status', 'Proposal filed. Its public vote and progress appear below.');
+        return redirect($this->workspace->base($legislature).'?action='.$action)->with('status', __('Proposal filed. Its public vote and progress appear below.'));
     }
 
     public function consent(Request $request, Legislature $legislature, MultiJurisdictionVote $process)
@@ -83,6 +83,6 @@ final class InstitutionActController extends Controller
         $this->engine->file($form, $request->user(), ['action' => 'open_constituent_consent', 'process_id' => (string) $process->id,
             'legislature_id' => (string) $legislature->id, 'jurisdiction_id' => (string) $legislature->jurisdiction_id]);
 
-        return redirect($this->workspace->base($legislature).'?process='.$process->id)->with('status', 'The constituent decision is open for this legislature’s votes.');
+        return redirect($this->workspace->base($legislature).'?process='.$process->id)->with('status', __('The constituent decision is open for this legislature’s votes.'));
     }
 }

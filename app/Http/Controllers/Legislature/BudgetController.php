@@ -35,7 +35,7 @@ class BudgetController extends Controller
             'lines.*.department_id' => ['nullable', 'uuid'],
             'currency_id'           => ['nullable', 'uuid'],
         ], [
-            'lines.*.amount.regex' => 'An amount is a number, up to six decimal places.',
+            'lines.*.amount.regex' => __('An amount is a number, up to six decimal places.'),
         ]);
 
         $this->engine->file('F-LEG-039', $request->user(), [
@@ -46,7 +46,7 @@ class BudgetController extends Controller
             'currency_id'    => $validated['currency_id'] ?? null,
         ]);
 
-        return back()->with('status', 'Budget drafted (F-LEG-039). Move it to enactment for the chamber to vote.');
+        return back()->with('status', __('Budget drafted (F-LEG-039). Move it to enactment for the chamber to vote.'));
     }
 
     public function enact(Request $request, Legislature $legislature, string $budget): RedirectResponse
@@ -57,6 +57,6 @@ class BudgetController extends Controller
             'budget_id'      => $budget,
         ]);
 
-        return back()->with('status', 'Enactment moved (F-LEG-039). The chamber votes; on adoption the lines become appropriations.');
+        return back()->with('status', __('Enactment moved (F-LEG-039). The chamber votes; on adoption the lines become appropriations.'));
     }
 }

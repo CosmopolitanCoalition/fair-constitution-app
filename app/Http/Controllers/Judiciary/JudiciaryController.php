@@ -99,7 +99,7 @@ class JudiciaryController extends Controller
         return [
             'id' => (string) $judiciary->id,
             'name' => $judiciary->court_name
-                ?? ($jurisdiction !== null ? "{$jurisdiction->name} judiciary" : 'Judiciary'),
+                ?? ($jurisdiction !== null ? __(':name judiciary', ['name' => $jurisdiction->name]) : __('Judiciary')),
             'type' => $judiciary->type,
             'status' => $judiciary->status,
             'judges_on_bench' => $judgesOnBench,
@@ -112,8 +112,8 @@ class JudiciaryController extends Controller
             'legislature' => $legislature !== null ? [
                 'id' => (string) $legislature->id,
                 'name' => $legislature->jurisdiction?->name
-                    ? "{$legislature->jurisdiction->name} legislature"
-                    : 'Source legislature',
+                    ? __(':name legislature', ['name' => $legislature->jurisdiction->name])
+                    : __('Source legislature'),
                 'chamber_href' => "/legislatures/{$legislature->id}/chamber",
             ] : null,
         ];
@@ -154,10 +154,10 @@ class JudiciaryController extends Controller
     {
         return [
             'rows' => [
-                ['severity' => 'Minor', 'panel' => '3 judges', 'rule' => 'never below 3, always odd · CLK-16'],
-                ['severity' => 'Moderate', 'panel' => '3 judges', 'rule' => 'CLK-16'],
-                ['severity' => 'Serious', 'panel' => '3–5 judges (+ jury where the accused is entitled)', 'rule' => 'severity-scaled · CLK-16 · Art. IV §4'],
-                ['severity' => 'Major constitutional question', 'panel' => 'Full court — all judges', 'rule' => 'CLK-16 · hardened · Art. IV §4'],
+                ['severity' => __('Minor'), 'panel' => __('3 judges'), 'rule' => __('never below 3, always odd · CLK-16')],
+                ['severity' => __('Moderate'), 'panel' => __('3 judges'), 'rule' => __('CLK-16')],
+                ['severity' => __('Serious'), 'panel' => __('3–5 judges (+ jury where the accused is entitled)'), 'rule' => __('severity-scaled · CLK-16 · Art. IV §4')],
+                ['severity' => __('Major constitutional question'), 'panel' => __('Full court — all judges'), 'rule' => __('CLK-16 · hardened · Art. IV §4')],
             ],
         ];
     }
@@ -209,7 +209,7 @@ class JudiciaryController extends Controller
             : null;
 
         return [
-            'subjectLabel' => 'Conversion to an elected judiciary',
+            'subjectLabel' => __('Conversion to an elected judiciary'),
             'act' => $this->lawChip($law),
             'legislatureVote' => $this->voteForLaw($law),
             'process' => $process !== null ? $this->processProps($process) : null,
@@ -263,7 +263,7 @@ class JudiciaryController extends Controller
                     'result' => $consent->result,
                     'chamber_vote' => $voteId !== null && $voteHref !== null ? [
                         'href' => $voteHref,
-                        'summary' => $voteSummaries[$voteId] ?? 'chamber vote',
+                        'summary' => $voteSummaries[$voteId] ?? __('chamber vote'),
                     ] : null,
                     'decided_at' => $consent->decided_at?->toDateString(),
                 ];
@@ -295,7 +295,7 @@ class JudiciaryController extends Controller
                 $yes = (int) ($tally?->yes ?? 0);
                 $serving = (int) ($tally?->serving ?? $vote->serving_snapshot ?? 0);
 
-                return [(string) $vote->id => "{$yes} of {$serving} serving"];
+                return [(string) $vote->id => __(':yes of :serving serving', ['yes' => $yes, 'serving' => $serving])];
             })
             ->all();
     }

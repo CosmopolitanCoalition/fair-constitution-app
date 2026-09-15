@@ -167,8 +167,7 @@ class DepartmentController extends Controller
 
         return back()->with(
             'status',
-            'Governor nominated (F-EXE-001) — the dossier is published and the F-LEG-020 consent vote '
-            .'is open in the legislature (majority of all serving).'
+            __('Governor nominated (F-EXE-001) — the dossier is published and the F-LEG-020 consent vote is open in the legislature (majority of all serving).')
         );
     }
 
@@ -183,8 +182,7 @@ class DepartmentController extends Controller
 
         return back()->with(
             'status',
-            'Removal requested (F-EXE-003) — grounds published; the legislature decides by ordinary '
-            .'majority of all serving (hiring and firing — never the supermajority machinery).'
+            __('Removal requested (F-EXE-003) — grounds published; the legislature decides by ordinary majority of all serving (hiring and firing — never the supermajority machinery).')
         );
     }
 
@@ -204,7 +202,7 @@ class DepartmentController extends Controller
             'status' => $executive->status,
             'jurisdiction' => [
                 'id' => (string) $executive->jurisdiction_id,
-                'name' => $executive->jurisdiction?->name ?? 'Jurisdiction',
+                'name' => $executive->jurisdiction?->name ?? __('Jurisdiction'),
                 'href' => $executive->jurisdiction?->slug !== null
                     ? "/jurisdictions/{$executive->jurisdiction->slug}"
                     : null,
@@ -220,12 +218,12 @@ class DepartmentController extends Controller
     private function executiveLabel(?Executive $executive): string
     {
         if ($executive === null) {
-            return 'Executive';
+            return __('Executive');
         }
 
         $name = DB::table('jurisdictions')->where('id', $executive->jurisdiction_id)->value('name');
 
-        return ($name ?? 'Jurisdiction').' executive';
+        return __(':name executive', ['name' => $name ?? __('Jurisdiction')]);
     }
 
     /**
@@ -393,7 +391,7 @@ class DepartmentController extends Controller
             return [
                 'department' => $dept !== null
                     ? ['name' => $dept->name, 'href' => '/departments/'.$dept->id]
-                    : ['name' => 'Department', 'href' => '#'],
+                    : ['name' => __('Department'), 'href' => '#'],
                 'nominee' => ['name' => $this->userName($appointment->nominee)],
                 'dossier_at' => $appointment->created_at?->toIso8601String(),
                 'consent' => $vote !== null ? [
@@ -445,8 +443,8 @@ class DepartmentController extends Controller
 
                 return [
                     'name' => $this->userName($term->holder),
-                    'department' => $deptId !== null ? ($deptNames[(string) $deptId] ?? 'Department') : 'Department',
-                    'role_label' => 'Civil officer',
+                    'department' => $deptId !== null ? ($deptNames[(string) $deptId] ?? __('Department')) : __('Department'),
+                    'role_label' => __('Civil officer'),
                     'term' => ['ends_on' => $term->ends_on?->toDateString()],
                     'clock' => 'CLK-09',
                 ];
@@ -604,14 +602,14 @@ class DepartmentController extends Controller
             || ($vote !== null && $vote->status === ChamberVote::STATUS_CLOSED && $vote->outcome === ChamberVote::OUTCOME_ADOPTED);
 
         return [
-            ['label' => 'Nomination dossier · F-EXE-001', 'icon' => 'file-text', 'state' => 'done'],
+            ['label' => __('Nomination dossier · F-EXE-001'), 'icon' => 'file-text', 'state' => 'done'],
             [
-                'label' => 'Consent vote · F-LEG-020',
+                'label' => __('Consent vote · F-LEG-020'),
                 'icon' => 'landmark',
                 'state' => $consented ? 'done' : ($vote !== null && $vote->status === ChamberVote::STATUS_OPEN ? 'active' : 'pending'),
             ],
             [
-                'label' => 'Seated · R-18',
+                'label' => __('Seated · R-18'),
                 'icon' => 'check',
                 'state' => $seated ? 'done' : ($consented ? 'active' : 'pending'),
             ],
@@ -721,6 +719,6 @@ class DepartmentController extends Controller
 
     private function userName(?User $user): string
     {
-        return $user?->display_name ?: ($user?->name ?? 'Unnamed');
+        return $user?->display_name ?: ($user?->name ?? __('Unnamed'));
     }
 }

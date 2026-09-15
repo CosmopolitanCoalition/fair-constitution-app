@@ -84,8 +84,8 @@ class ExecutiveController extends Controller
             'legislature' => $legislature !== null ? [
                 'id' => (string) $legislature->id,
                 'name' => $legislature->jurisdiction?->name
-                    ? "{$legislature->jurisdiction->name} legislature"
-                    : 'Source legislature',
+                    ? __(':name legislature', ['name' => $legislature->jurisdiction->name])
+                    : __('Source legislature'),
                 'chamber_href' => "/legislatures/{$legislature->id}/chamber",
             ] : null,
             'term' => $this->termProps($executive),
@@ -158,7 +158,7 @@ class ExecutiveController extends Controller
             : null;
 
         return [
-            'subjectLabel' => 'Executive office conversion to elected office',
+            'subjectLabel' => __('Executive office conversion to elected office'),
             'act' => $this->lawChip($law),
             'legislatureVote' => $this->voteForLaw($law),
             'process' => $process !== null ? $this->processProps($process) : null,
@@ -212,7 +212,7 @@ class ExecutiveController extends Controller
                     'result' => $consent->result,
                     'chamber_vote' => $voteId !== null && $voteHref !== null ? [
                         'href' => $voteHref,
-                        'summary' => $voteSummaries[$voteId] ?? 'chamber vote',
+                        'summary' => $voteSummaries[$voteId] ?? __('chamber vote'),
                     ] : null,
                     'decided_at' => $consent->decided_at?->toDateString(),
                 ];
@@ -246,7 +246,7 @@ class ExecutiveController extends Controller
                 $yes = (int) ($tally?->yes ?? 0);
                 $serving = (int) ($tally?->serving ?? $vote->serving_snapshot ?? 0);
 
-                return [(string) $vote->id => "{$yes} of {$serving} serving"];
+                return [(string) $vote->id => __(':yes of :serving serving', ['yes' => $yes, 'serving' => $serving])];
             })
             ->all();
     }
@@ -322,7 +322,7 @@ class ExecutiveController extends Controller
 
             return [
                 'id' => (string) $member->id,
-                'name' => $member->user?->display_name ?: ($member->user?->name ?? 'Unknown member'),
+                'name' => $member->user?->display_name ?: ($member->user?->name ?? __('Unknown member')),
                 'role' => $member->role,
                 'rank' => (int) $member->rank,
                 'selection' => $member->selection,

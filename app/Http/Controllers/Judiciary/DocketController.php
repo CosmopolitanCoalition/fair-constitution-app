@@ -39,31 +39,40 @@ use Inertia\Response;
 class DocketController extends Controller
 {
     /** kind value → the display label + the surface a case of that kind links to. */
-    private const KIND_DISPLAY = [
-        CourtCase::KIND_CONSTITUTIONAL => 'Constitutional challenge',
-        CourtCase::KIND_CIVIL => 'Civil',
-        CourtCase::KIND_CRIMINAL => 'Criminal',
-        CourtCase::KIND_ADMINISTRATIVE => 'Administrative',
-    ];
+    private function kindDisplay(): array
+    {
+        return [
+            CourtCase::KIND_CONSTITUTIONAL => __('Constitutional challenge'),
+            CourtCase::KIND_CIVIL => __('Civil'),
+            CourtCase::KIND_CRIMINAL => __('Criminal'),
+            CourtCase::KIND_ADMINISTRATIVE => __('Administrative'),
+        ];
+    }
 
     /** court_severity (or claimed_severity) value → display label. */
-    private const SEVERITY_DISPLAY = [
-        CourtCase::SEVERITY_MINOR => 'Minor',
-        CourtCase::SEVERITY_MODERATE => 'Moderate',
-        CourtCase::SEVERITY_SERIOUS => 'Serious',
-        CourtCase::SEVERITY_CONSTITUTIONAL_MAJOR => 'Major constitutional question',
-    ];
+    private function severityDisplay(): array
+    {
+        return [
+            CourtCase::SEVERITY_MINOR => __('Minor'),
+            CourtCase::SEVERITY_MODERATE => __('Moderate'),
+            CourtCase::SEVERITY_SERIOUS => __('Serious'),
+            CourtCase::SEVERITY_CONSTITUTIONAL_MAJOR => __('Major constitutional question'),
+        ];
+    }
 
     /** adm_level → the natural level label (mirrors Jurisdiction::adm_label). */
-    private const ADM_LABELS = [
-        0 => 'World',
-        1 => 'Country / Territory',
-        2 => 'State / Province / Region',
-        3 => 'County / District',
-        4 => 'Municipality / City',
-        5 => 'Borough / Township',
-        6 => 'Neighbourhood / Ward',
-    ];
+    private function admLabels(): array
+    {
+        return [
+            0 => __('World'),
+            1 => __('Country / Territory'),
+            2 => __('State / Province / Region'),
+            3 => __('County / District'),
+            4 => __('Municipality / City'),
+            5 => __('Borough / Township'),
+            6 => __('Neighbourhood / Ward'),
+        ];
+    }
 
     public function __construct(
         private readonly ConstitutionalEngine $engine,
@@ -94,19 +103,19 @@ class DocketController extends Controller
             'cases' => $this->caseRows($cases),
             'machine' => config('cga.state_machines.case', []),
             'filters' => [
-                'kinds' => array_values(self::KIND_DISPLAY),
+                'kinds' => array_values($this->kindDisplay()),
             ],
             'filingForm' => [
                 'kinds' => [
-                    ['value' => CourtCase::KIND_CIVIL, 'label' => 'Civil'],
-                    ['value' => CourtCase::KIND_CRIMINAL, 'label' => 'Criminal complaint'],
-                    ['value' => CourtCase::KIND_ADMINISTRATIVE, 'label' => 'Administrative'],
+                    ['value' => CourtCase::KIND_CIVIL, 'label' => __('Civil')],
+                    ['value' => CourtCase::KIND_CRIMINAL, 'label' => __('Criminal complaint')],
+                    ['value' => CourtCase::KIND_ADMINISTRATIVE, 'label' => __('Administrative')],
                 ],
                 'scales' => $this->scaleOptions($associations, $judiciary),
                 'severities' => [
-                    ['value' => CourtCase::SEVERITY_MINOR, 'label' => 'Minor'],
-                    ['value' => CourtCase::SEVERITY_MODERATE, 'label' => 'Moderate'],
-                    ['value' => CourtCase::SEVERITY_SERIOUS, 'label' => 'Serious'],
+                    ['value' => CourtCase::SEVERITY_MINOR, 'label' => __('Minor')],
+                    ['value' => CourtCase::SEVERITY_MODERATE, 'label' => __('Moderate')],
+                    ['value' => CourtCase::SEVERITY_SERIOUS, 'label' => __('Serious')],
                 ],
             ],
             'isAssociated' => $isAssociated,
@@ -185,7 +194,7 @@ class DocketController extends Controller
             // A synthetic chain header — no single court owns this aggregate.
             'judiciary' => [
                 'id' => null,
-                'name' => 'your courts',
+                'name' => __('your courts'),
                 'jurisdiction' => null,
                 'home_href' => '/judiciary/docket',
                 'challenges_href' => '/constitutional-challenges',
@@ -195,13 +204,13 @@ class DocketController extends Controller
                 ->sortBy(fn (Judiciary $j) => $j->jurisdiction?->adm_level ?? 99)
                 ->map(fn (Judiciary $j) => [
                     'id' => (string) $j->id,
-                    'name' => $j->court_name ?? (($j->jurisdiction?->name ?? 'Court').' judiciary'),
+                    'name' => $j->court_name ?? __(':name judiciary', ['name' => $j->jurisdiction?->name ?? __('Court')]),
                     'href' => "/judiciaries/{$j->id}/docket",
                 ])->values()->all(),
             'stats' => $this->stats($cases),
             'cases' => $this->caseRows($cases),
             'machine' => config('cga.state_machines.case', []),
-            'filters' => ['kinds' => array_values(self::KIND_DISPLAY)],
+            'filters' => ['kinds' => array_values($this->kindDisplay())],
             'filingForm' => ['kinds' => [], 'scales' => [], 'severities' => []],
             'isAssociated' => $associations !== [],
             'can' => ['fileCase' => false],
@@ -233,7 +242,7 @@ class DocketController extends Controller
 
             if ($clientId === null) {
                 return back()->withErrors([
-                    'constitution' => "F-ADV-001 names the client by registered name or email — \"{$client}\" did not resolve to a resident.",
+                    'constitution' => __('F-ADV-001 names the client by registered name or email — ":client" did not resolve to a resident.', ['client' => $client]),
                 ]);
             }
 
@@ -249,7 +258,7 @@ class DocketController extends Controller
 
             return back()->with(
                 'status',
-                'Case filed on behalf of your client — a docket number is assigned (F-ADV-001 · Art. IV §4).'
+                __('Case filed on behalf of your client — a docket number is assigned (F-ADV-001 · Art. IV §4).')
             );
         }
 
@@ -264,9 +273,7 @@ class DocketController extends Controller
 
         return back()->with(
             'status',
-            'Filing accepted for review — a docket number is assigned. The court will classify '
-            .'justiciability and severity, then assign a panel with conflict screening '
-            .'(F-IND-017 → F-JDG-001 · Art. IV §4).'
+            __('Filing accepted for review — a docket number is assigned. The court will classify justiciability and severity, then assign a panel with conflict screening (F-IND-017 → F-JDG-001 · Art. IV §4).')
         );
     }
 
@@ -282,7 +289,7 @@ class DocketController extends Controller
         return [
             'id' => (string) $judiciary->id,
             'name' => $judiciary->court_name
-                ?? ($jurisdiction !== null ? "{$jurisdiction->name} judiciary" : 'Judiciary'),
+                ?? ($jurisdiction !== null ? __(':name judiciary', ['name' => $jurisdiction->name]) : __('Judiciary')),
             'jurisdiction' => $jurisdiction !== null ? [
                 'id' => (string) $jurisdiction->id,
                 'name' => $jurisdiction->name,
@@ -327,8 +334,8 @@ class DocketController extends Controller
     private function caseRows($cases): array
     {
         $courtName = fn (CourtCase $case) => $case->jurisdiction?->name !== null
-            ? "{$case->jurisdiction->name} court"
-            : 'court';
+            ? __(':name court', ['name' => $case->jurisdiction->name])
+            : __('court');
 
         return $cases->map(function (CourtCase $case) use ($courtName) {
             $isConstitutional = $case->kind === CourtCase::KIND_CONSTITUTIONAL;
@@ -337,7 +344,7 @@ class DocketController extends Controller
                 'id' => (string) $case->id,
                 'docket_no' => $case->docket_no,
                 'title' => $case->title,
-                'kind' => self::KIND_DISPLAY[$case->kind] ?? ucfirst((string) $case->kind),
+                'kind' => $this->kindDisplay()[$case->kind] ?? ucfirst((string) $case->kind),
                 'court' => ['name' => $courtName($case)],
                 'panel' => ['summary' => $this->panelSummary($case)],
                 'severity' => $this->severityLabel($case),
@@ -345,8 +352,8 @@ class DocketController extends Controller
                 'filed_via' => $case->filed_via_form,
                 'double_jeopardy_note' => $case->kind === CourtCase::KIND_CRIMINAL
                     ? ($case->double_jeopardy_locked
-                        ? 'double-jeopardy flag locked · Art. II §8'
-                        : 'criminal — will carry the double-jeopardy flag · Art. II §8')
+                        ? __('double-jeopardy flag locked · Art. II §8')
+                        : __('criminal — will carry the double-jeopardy flag · Art. II §8'))
                     : null,
                 // Art. IV §5 cases route to the challenge tracker; everything
                 // else to the case-detail lifecycle.
@@ -366,32 +373,32 @@ class DocketController extends Controller
         $panel = $case->panel;
 
         if ($panel === null) {
-            return 'Pending acceptance (F-JDG-001)';
+            return __('Pending acceptance (F-JDG-001)');
         }
 
         if ($panel->is_en_banc) {
-            return 'Full court';
+            return __('Full court');
         }
 
-        $base = sprintf('%d judges', (int) $panel->size);
-
-        return $case->jury_entitled ? "{$base} + jury" : $base;
+        return $case->jury_entitled
+            ? __(':size judges + jury', ['size' => (int) $panel->size])
+            : __(':size judges', ['size' => (int) $panel->size]);
     }
 
     /** Severity label — the court's classification once accepted, else the claim. */
     private function severityLabel(CourtCase $case): string
     {
         if ($case->court_severity !== null) {
-            return self::SEVERITY_DISPLAY[$case->court_severity] ?? ucfirst((string) $case->court_severity);
+            return $this->severityDisplay()[$case->court_severity] ?? ucfirst((string) $case->court_severity);
         }
 
         if ($case->claimed_severity !== null) {
-            $label = self::SEVERITY_DISPLAY[$case->claimed_severity] ?? ucfirst((string) $case->claimed_severity);
+            $label = $this->severityDisplay()[$case->claimed_severity] ?? ucfirst((string) $case->claimed_severity);
 
-            return "{$label} (claimed)";
+            return __(':label (claimed)', ['label' => $label]);
         }
 
-        return 'Pending classification';
+        return __('Pending classification');
     }
 
     /**
@@ -410,18 +417,18 @@ class DocketController extends Controller
 
             return [[
                 'value' => (string) $j->id,
-                'label' => $j->name.' ('.($this->admLabel((int) $j->adm_level)).')',
+                'label' => __(':name (:level)', ['name' => $j->name, 'level' => $this->admLabel((int) $j->adm_level)]),
             ]];
         }
 
         return array_map(fn (array $a) => [
             'value' => (string) $a['id'],
-            'label' => $a['name'].' ('.$this->admLabel((int) $a['adm_level']).')',
+            'label' => __(':name (:level)', ['name' => $a['name'], 'level' => $this->admLabel((int) $a['adm_level'])]),
         ], $associations);
     }
 
     private function admLabel(int $level): string
     {
-        return self::ADM_LABELS[$level] ?? "Jurisdiction (Level {$level})";
+        return $this->admLabels()[$level] ?? __('Jurisdiction (Level :level)', ['level' => $level]);
     }
 }

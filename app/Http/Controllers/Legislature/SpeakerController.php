@@ -52,8 +52,8 @@ class SpeakerController extends Controller
                 'workspace' => \App\Support\LegislatureWorkspace::for($legislature, $legislature->jurisdiction, false),
                 'jurisdictionContext' => $legislature->jurisdiction ? \App\Support\JurisdictionContext::for($legislature->jurisdiction) : null,
                 'surface' => SurfaceMeta::for('legislature/speaker-tools'),
-                'legislature' => ['id' => (string) $legislature->id, 'name' => ($legislature->jurisdiction?->name ?? 'Selected place').' legislature'],
-                'speaker' => ['name' => $legislature->speaker_id ? 'See the chamber roster' : 'No Speaker seated yet', 'is_viewer' => false],
+                'legislature' => ['id' => (string) $legislature->id, 'name' => __(':name legislature', ['name' => $legislature->jurisdiction?->name ?? __('Selected place')])],
+                'speaker' => ['name' => $legislature->speaker_id ? __('See the chamber roster') : __('No Speaker seated yet'), 'is_viewer' => false],
                 'preview' => true, 'readOnly' => true, 'can' => ['facilitate' => false, 'preside' => false],
                 'urls' => ['session' => "/legislatures/{$legislature->id}/session",
                     'committees' => "/legislatures/{$legislature->id}/committees",
@@ -89,7 +89,7 @@ class SpeakerController extends Controller
             'legislature' => $this->legislatureProps($legislature),
             'speaker'     => [
                 'member_id' => (string) $legislature->speaker_id,
-                'name'      => ($speakerMember?->user?->display_name ?: 'Member'),
+                'name'      => ($speakerMember?->user?->display_name ?: __('Member')),
                 'is_viewer' => $isSpeaker,
             ],
             'readOnly' => ! $isSpeaker,
@@ -103,7 +103,7 @@ class SpeakerController extends Controller
             ] : null,
             'members' => $members->map(fn (LegislatureMember $m) => [
                 'id'   => (string) $m->id,
-                'name' => ($m?->user?->display_name ?: 'Member'),
+                'name' => ($m?->user?->display_name ?: __('Member')),
             ])->values()->all(),
             'pendingProceedings' => $this->pendingProceedings($legislature),
             'can' => [
@@ -137,7 +137,7 @@ class SpeakerController extends Controller
 
         return back()->with(
             'status',
-            'Member priority facilitated (F-SPK-006) — added to the session\'s unlocked agenda tail; the filing is the priorities log.'
+            __('Member priority facilitated (F-SPK-006) — added to the session\'s unlocked agenda tail; the filing is the priorities log.')
         );
     }
 
@@ -196,7 +196,7 @@ class SpeakerController extends Controller
     private function priorities(Legislature $legislature, $members): array
     {
         $names = $members->mapWithKeys(fn (LegislatureMember $m) => [
-            (string) $m->id => ($m?->user?->display_name ?: 'Member'),
+            (string) $m->id => ($m?->user?->display_name ?: __('Member')),
         ]);
 
         $sessions = LegislatureSession::query()
@@ -220,7 +220,7 @@ class SpeakerController extends Controller
 
                 return [
                     'id'            => (int) $entry->seq,
-                    'who'           => $names[(string) ($payload['member_id'] ?? '')] ?? 'Member',
+                    'who'           => $names[(string) ($payload['member_id'] ?? '')] ?? __('Member'),
                     'text'          => (string) ($payload['text'] ?? ''),
                     'when'          => $entry->occurred_at?->toIso8601String(),
                     'session_no'    => $session !== null ? (int) $session->session_no : null,
@@ -254,7 +254,7 @@ class SpeakerController extends Controller
                     $subject = LegislatureMember::query()
                         ->with('user:id,display_name')
                         ->find($proceeding->subject_id);
-                    $subjectName = ($subject?->user?->display_name ?: 'Member');
+                    $subjectName = ($subject?->user?->display_name ?: __('Member'));
                 }
 
                 return [

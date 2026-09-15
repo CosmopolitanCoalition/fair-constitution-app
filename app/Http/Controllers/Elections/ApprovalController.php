@@ -125,7 +125,7 @@ class ApprovalController extends Controller
 
         $this->approvals->cast($request->user(), $candidacy);
 
-        return back()->with('status', 'Approved — revocable until the finalist cutoff.');
+        return back()->with('status', __('Approved — revocable until the finalist cutoff.'));
     }
 
     // =========================================================================
@@ -146,7 +146,7 @@ class ApprovalController extends Controller
 
         $this->approvals->revoke($request->user(), $row);
 
-        return back()->with('status', 'Approval withdrawn.');
+        return back()->with('status', __('Approval withdrawn.'));
     }
 
     // =========================================================================

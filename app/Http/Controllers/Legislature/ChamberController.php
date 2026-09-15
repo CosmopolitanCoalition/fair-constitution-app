@@ -83,7 +83,7 @@ class ChamberController extends Controller
         abort_unless(
             $request->user() !== null && (string) $member->user_id === (string) $request->user()->getKey(),
             403,
-            'The oath is taken by the seated member themself (F-LEG-001).'
+            __('The oath is taken by the seated member themself (F-LEG-001).')
         );
 
         $this->engine->file('F-LEG-001', $request->user(), [
@@ -91,7 +91,7 @@ class ChamberController extends Controller
             'jurisdiction_id' => (string) $member->legislature?->jurisdiction_id,
         ]);
 
-        return back()->with('status', 'Oath taken — you are seated (F-LEG-001 · Art. II §1). The public record carries the entry.');
+        return back()->with('status', __('Oath taken — you are seated (F-LEG-001 · Art. II §1). The public record carries the entry.'));
     }
 
     // -------------------------------------------------------------------------
@@ -127,14 +127,14 @@ class ChamberController extends Controller
             return [
                 'id'              => (string) $member->id,
                 'seat_no'         => (int) $member->seat_no,
-                'name'            => $member->user?->display_name ?: 'Member',
+                'name'            => $member->user?->display_name ?: __('Member'),
                 'speaker'         => $speakerId !== null && (string) $member->id === $speakerId,
                 'vacant'          => false,
                 'seat_kind'       => $member->seatKind(),
                 'days_served'     => $since !== null ? max(0, (int) CarbonImmutable::parse($since)->diffInDays($today)) : 0,
                 'vote_share_norm' => $member->vote_share_norm !== null ? (float) $member->vote_share_norm : null,
                 'district_label'  => $member->district?->district_number !== null
-                    ? "District {$member->district->district_number}"
+                    ? __('District :number', ['number' => $member->district->district_number])
                     : null,
                 'status'          => $member->status,
                 'seated_on'       => $member->seated_on?->toDateString(),
@@ -172,7 +172,7 @@ class ChamberController extends Controller
                 'vote_share_norm' => null,
                 'district_label'  => null,
                 'status'          => 'vacant',
-                'note'            => 'vacant — ' . ($member->vacancy_reason ?? 'vacated'),
+                'note'            => __('vacant — :reason', ['reason' => $member->vacancy_reason ?? __('vacated')]),
                 'endorsements'    => [],
             ]);
 
@@ -195,7 +195,7 @@ class ChamberController extends Controller
                 return [
                     'id'           => (string) $vacancy->id,
                     'seat_no'      => $member?->seat_no,
-                    'member_name'  => $member?->user?->display_name ?: 'Member',
+                    'member_name'  => $member?->user?->display_name ?: __('Member'),
                     'status'       => $vacancy->status,
                     'declared_via' => $vacancy->declared_via_form,
                     'href'         => "/vacancies/{$vacancy->id}",
@@ -252,26 +252,26 @@ class ChamberController extends Controller
         return [
             [
                 'form_id' => 'F-LEG-001',
-                'name'    => 'Oath of office / seating acceptance',
-                'desc'    => 'Every elected member takes the oath; the seat flips elected → seated.',
+                'name'    => __('Oath of office / seating acceptance'),
+                'desc'    => __('Every elected member takes the oath; the seat flips elected → seated.'),
                 'basis'   => 'Art. II §1',
                 'done_at' => $servingCount > 0 && $seatedCount === $servingCount ? 'all-seated' : null,
-                'note'    => "{$seatedCount} of {$servingCount} serving members seated",
+                'note'    => __(':seated of :serving serving members seated', ['seated' => $seatedCount, 'serving' => $servingCount]),
                 'act_href' => null,
             ],
             [
                 'form_id' => 'F-LEG-008',
-                'name'    => 'Speaker election — supermajority RCV',
-                'desc'    => 'The chamber elects its politically neutral presiding officer.',
+                'name'    => __('Speaker election — supermajority RCV'),
+                'desc'    => __('The chamber elects its politically neutral presiding officer.'),
                 'basis'   => 'Art. II §3',
                 'done_at' => $speakerSeatedAt !== null ? (string) $speakerSeatedAt : ($legislature->speaker_id !== null ? 'done' : null),
-                'note'    => $legislature->speaker_id === null ? 'no Speaker yet — first order of the first session' : null,
+                'note'    => $legislature->speaker_id === null ? __('no Speaker yet — first order of the first session') : null,
                 'act_href' => null,
             ],
             [
                 'form_id' => 'F-LEG-032',
-                'name'    => 'Rules of order adoption',
-                'desc'    => 'Adopted by ordinary majority; versioned as a law.',
+                'name'    => __('Rules of order adoption'),
+                'desc'    => __('Adopted by ordinary majority; versioned as a law.'),
                 'basis'   => 'Art. II §2',
                 'done_at' => $rules?->enacted_at?->toIso8601String(),
                 'note'    => $rules?->act_number,
@@ -279,8 +279,8 @@ class ChamberController extends Controller
             ],
             [
                 'form_id' => 'F-LEG-033',
-                'name'    => 'Ethics code adoption',
-                'desc'    => 'Binds all elected officials and civil officers.',
+                'name'    => __('Ethics code adoption'),
+                'desc'    => __('Binds all elected officials and civil officers.'),
                 'basis'   => 'Art. II §2',
                 'done_at' => $ethics?->enacted_at?->toIso8601String(),
                 'note'    => $ethics?->act_number,
@@ -288,29 +288,29 @@ class ChamberController extends Controller
             ],
             [
                 'form_id' => 'F-LEG-013',
-                'name'    => 'Administrative office creation act',
-                'desc'    => 'The independent admin office (I-ADM) — oversight intake and record-keeping.',
+                'name'    => __('Administrative office creation act'),
+                'desc'    => __('The independent admin office (I-ADM) — oversight intake and record-keeping.'),
                 'basis'   => 'Art. II §2',
                 'done_at' => $adminOffice?->created_at?->toIso8601String(),
-                'note'    => $adminOffice !== null ? "office {$adminOffice->status}" : null,
+                'note'    => $adminOffice !== null ? __('office :status', ['status' => $adminOffice->status]) : null,
                 'act_href' => null,
             ],
             [
                 'form_id' => 'F-LEG-012',
-                'name'    => 'Election board creation act',
-                'desc'    => 'The proper board retires the bootstrap board and takes custody of elections.',
+                'name'    => __('Election board creation act'),
+                'desc'    => __('The proper board retires the bootstrap board and takes custody of elections.'),
                 'basis'   => 'Art. II §2',
                 'done_at' => $properBoard?->created_at?->toIso8601String(),
-                'note'    => $properBoard !== null ? "board {$properBoard->status}" : 'bootstrap board still authoritative',
+                'note'    => $properBoard !== null ? __('board :status', ['status' => $properBoard->status]) : __('bootstrap board still authoritative'),
                 'act_href' => null,
             ],
             [
                 'form_id' => 'F-LEG-009',
-                'name'    => 'Committee creation acts',
-                'desc'    => 'Committees by supermajority; faction-independent assignment follows (F-SPK-005).',
+                'name'    => __('Committee creation acts'),
+                'desc'    => __('Committees by supermajority; faction-independent assignment follows (F-SPK-005).'),
                 'basis'   => 'Art. II §4',
                 'done_at' => $committees > 0 ? 'done' : null,
-                'note'    => $committees > 0 ? "{$committees} committee(s)" : null,
+                'note'    => $committees > 0 ? __(':count committee(s)', ['count' => $committees]) : null,
                 'act_href' => $committees > 0 ? "/legislatures/{$legislature->id}/committees" : null,
             ],
         ];

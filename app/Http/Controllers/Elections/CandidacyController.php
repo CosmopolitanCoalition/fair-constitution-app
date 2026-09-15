@@ -93,8 +93,7 @@ class CandidacyController extends Controller
         if (in_array($model->kind, [Election::KIND_ORG_BOARD_OWNER, Election::KIND_ORG_BOARD_WORKER], true)) {
             return redirect()->route('elections.entry.candidacy')->with(
                 'status',
-                'Board seats are stood for from the organization\'s board-elections page — the worker or owner class '
-                .'decides eligibility there, not the open right to stand for public office (Art. III §6).'
+                __('Board seats are stood for from the organization\'s board-elections page — the worker or owner class decides eligibility there, not the open right to stand for public office (Art. III §6).')
             );
         }
 
@@ -125,7 +124,7 @@ class CandidacyController extends Controller
                 'status' => $mine->status,
                 'office_label' => $mine->race !== null
                     ? ElectionController::raceLabel($mine->race)
-                    : 'Awaiting race binding (F-ELB-002)',
+                    : __('Awaiting race binding (F-ELB-002)'),
                 'validated_at' => $mine->validated_at?->toIso8601String(),
                 'rejection_reason' => $mine->rejection_reason,
             ],
@@ -157,7 +156,7 @@ class CandidacyController extends Controller
             'residency_attested' => true,
         ]);
 
-        return back()->with('status', 'Candidacy registered — awaiting board validation (F-ELB-002; residency is the only check).');
+        return back()->with('status', __('Candidacy registered — awaiting board validation (F-ELB-002; residency is the only check).'));
     }
 
     // =========================================================================
@@ -204,7 +203,7 @@ class CandidacyController extends Controller
 
         $this->engine->file('F-CAN-001', $request->user(), $payload);
 
-        return back()->with('status', 'Campaign profile updated — the change is on the public record.');
+        return back()->with('status', __('Campaign profile updated — the change is on the public record.'));
     }
 
     /** POST /candidates/{candidacy}/withdraw — F-CAN-003 (ballot lock at CLK-21). */
@@ -217,7 +216,7 @@ class CandidacyController extends Controller
             'jurisdiction_id' => (string) $model->election?->jurisdiction_id,
         ]);
 
-        return back()->with('status', 'Candidacy withdrawn — recorded permanently on the public record.');
+        return back()->with('status', __('Candidacy withdrawn — recorded permanently on the public record.'));
     }
 
     /** POST /candidates/{candidacy}/endorsement-requests — F-CAN-002. */
@@ -237,7 +236,7 @@ class CandidacyController extends Controller
             'jurisdiction_id' => (string) $model->election?->jurisdiction_id,
         ]);
 
-        return back()->with('status', 'Endorsement requested — the organization\'s agent decides via F-ORG-002.');
+        return back()->with('status', __('Endorsement requested — the organization\'s agent decides via F-ORG-002.'));
     }
 
     /** POST /candidates/{candidacy}/endorsement — F-IND-025 (a resident's own public endorsement; default private). */
@@ -257,7 +256,7 @@ class CandidacyController extends Controller
             'jurisdiction_id' => (string) $model->election?->jurisdiction_id,
         ]);
 
-        return back()->with('status', 'Endorsement recorded — private unless you chose to make it public.');
+        return back()->with('status', __('Endorsement recorded — private unless you chose to make it public.'));
     }
 
     /** POST /candidates/{candidacy}/endorsement/withdraw — F-IND-026 (retract your own endorsement). */
@@ -270,7 +269,7 @@ class CandidacyController extends Controller
             'jurisdiction_id' => (string) $model->election?->jurisdiction_id,
         ]);
 
-        return back()->with('status', 'Endorsement withdrawn — you may endorse again while the candidacy stands.');
+        return back()->with('status', __('Endorsement withdrawn — you may endorse again while the candidacy stands.'));
     }
 
     // =========================================================================

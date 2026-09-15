@@ -47,12 +47,12 @@ class SubdivisionDrawController extends Controller
             $geoJson = json_encode($geoJson);
         }
         if (!is_string($geoJson) || $geoJson === '' || $scopeId === '') {
-            return response()->json(['error' => 'scope_id and geojson are required'], 422);
+            return response()->json(['error' => __('scope_id and geojson are required')], 422);
         }
 
         $ctx = $this->giantContext($legislature_id, $scopeId);
         if ($ctx === null) {
-            return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
+            return response()->json(['error' => __('Not a districtable leaf giant at this scope')], 422);
         }
 
         // Auto-clip: the operator's real gesture is a big rectangle dragged
@@ -149,17 +149,17 @@ class SubdivisionDrawController extends Controller
             $line = json_encode($line);
         }
         if (!is_string($line) || $line === '' || $scopeId === '') {
-            return response()->json(['error' => 'scope_id and line are required'], 422);
+            return response()->json(['error' => __('scope_id and line are required')], 422);
         }
 
         $ctx = $this->giantContext($legislature_id, $scopeId);
         if ($ctx === null) {
-            return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
+            return response()->json(['error' => __('Not a districtable leaf giant at this scope')], 422);
         }
 
         $blade = $this->bladeEndpoints($line);
         if ($blade === null) {
-            return response()->json(['error' => 'A split line needs at least two points'], 422);
+            return response()->json(['error' => __('A split line needs at least two points')], 422);
         }
 
         // Fast path: classify the giant's cached pixel grid by the blade — no
@@ -205,18 +205,18 @@ class SubdivisionDrawController extends Controller
 
         $ctx = $this->giantContext($legislature_id, $validated['scope_id']);
         if ($ctx === null) {
-            return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
+            return response()->json(['error' => __('Not a districtable leaf giant at this scope')], 422);
         }
 
         $sides = $this->splitSidesByLine($validated['scope_id'], $line, $ctx['quota']);
         if ($sides === null) {
-            return response()->json(['error' => 'The line does not cleanly divide this jurisdiction into two parts'], 422);
+            return response()->json(['error' => __('The line does not cleanly divide this jurisdiction into two parts')], 422);
         }
         // Pre-validate both sides so we never half-commit a bisection.
         foreach ($sides as $s) {
             if ($s['seats'] < $ctx['floor'] || $s['seats'] > $ctx['ceiling']) {
                 return response()->json([
-                    'error' => 'A side of the cut is out of band ('.$s['seats'].' seats, band ['.$ctx['floor'].','.$ctx['ceiling'].']). Move the line.',
+                    'error' => __('A side of the cut is out of band (:seats seats, band [:floor,:ceiling]). Move the line.', ['seats' => $s['seats'], 'floor' => $ctx['floor'], 'ceiling' => $ctx['ceiling']]),
                     'citation' => 'Art. II §2',
                 ], 422);
             }
@@ -265,12 +265,12 @@ class SubdivisionDrawController extends Controller
         $scopeId  = (string) $request->input('scope_id', '');
         $year     = (int) $request->input('population_year', 2023);
         if ($scopeId === '') {
-            return response()->json(['error' => 'scope_id is required'], 422);
+            return response()->json(['error' => __('scope_id is required')], 422);
         }
 
         $ctx = $this->giantContext($legislature_id, $scopeId);
         if ($ctx === null) {
-            return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
+            return response()->json(['error' => __('Not a districtable leaf giant at this scope')], 422);
         }
 
         try {
@@ -329,7 +329,7 @@ class SubdivisionDrawController extends Controller
 
         $ctx = $this->giantContext($legislature_id, $validated['scope_id']);
         if ($ctx === null) {
-            return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
+            return response()->json(['error' => __('Not a districtable leaf giant at this scope')], 422);
         }
 
         // The same map guard F-ELB-008 enforces per filing — checked up
@@ -337,7 +337,7 @@ class SubdivisionDrawController extends Controller
         $map = DB::table('legislature_district_maps')
             ->where('id', $validated['map_id'])->whereNull('deleted_at')->first();
         if ($map === null || $map->legislature_id !== $legislature_id) {
-            return response()->json(['error' => 'Unknown district map for this legislature'], 422);
+            return response()->json(['error' => __('Unknown district map for this legislature')], 422);
         }
         if ($map->status !== 'draft') {
             // Mirror of the handler's SETUP-context posture: the FOUNDING (v1)
@@ -349,8 +349,7 @@ class SubdivisionDrawController extends Controller
                 && \App\Domain\Forms\Support\BoardProvenance::inSetupContext($legJurisdiction);
             if (! $activeFoundingMap) {
                 return response()->json([
-                    'error' => "District map is not a draft (status: {$map->status}) — "
-                        .'a standing government drafts new plans and votes them active.',
+                    'error' => __('District map is not a draft (status: :status) — a standing government drafts new plans and votes them active.', ['status' => $map->status]),
                 ], 422);
             }
         }
@@ -363,9 +362,9 @@ class SubdivisionDrawController extends Controller
         $liveDrawn = $this->liveDrawnCount($validated['scope_id'], $validated['map_id']);
         if ($liveDrawn > 0 && ! $replace) {
             return response()->json([
-                'error' => "This scope already holds {$liveDrawn} drawn district"
-                    .($liveDrawn === 1 ? '' : 's')
-                    .' — accept with replace, or clear them first.',
+                'error' => $liveDrawn === 1
+                    ? __('This scope already holds :count drawn district — accept with replace, or clear them first.', ['count' => $liveDrawn])
+                    : __('This scope already holds :count drawn districts — accept with replace, or clear them first.', ['count' => $liveDrawn]),
             ], 422);
         }
 
@@ -427,12 +426,12 @@ class SubdivisionDrawController extends Controller
 
         $ctx = $this->giantContext($legislature_id, $scopeId);
         if ($ctx === null) {
-            return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
+            return response()->json(['error' => __('Not a districtable leaf giant at this scope')], 422);
         }
 
         $mapId = $this->resolveMapId($legislature_id, $validated['map_id'] ?? null);
         if ($mapId === null) {
-            return response()->json(['error' => 'No district plan exists for this legislature yet'], 422);
+            return response()->json(['error' => __('No district plan exists for this legislature yet')], 422);
         }
 
         // Giant minus the drawn union, with the PROVEN posture: a 1e-8° (~1 mm)
@@ -481,12 +480,12 @@ class SubdivisionDrawController extends Controller
         $slivers = $row === null ? 0 : (int) $row->slivers_dropped;
         if ($parts === 0 || $row->gj === null) {
             return response()->json([
-                'error' => 'Nothing remains to draw — the whole area is already districted.',
+                'error' => __('Nothing remains to draw — the whole area is already districted.'),
             ], 422);
         }
         if ($parts !== 1) {
             return response()->json([
-                'error' => "The remainder is split into {$parts} pieces — draw those separately.",
+                'error' => __('The remainder is split into :parts pieces — draw those separately.', ['parts' => $parts]),
                 'slivers_dropped' => $slivers,
             ], 422);
         }
@@ -531,17 +530,17 @@ class SubdivisionDrawController extends Controller
             $line = json_encode($line);
         }
         if (!is_string($line) || $line === '' || $scopeId === '') {
-            return response()->json(['error' => 'scope_id and line are required'], 422);
+            return response()->json(['error' => __('scope_id and line are required')], 422);
         }
 
         $ctx = $this->giantContext($legislature_id, $scopeId);
         if ($ctx === null) {
-            return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
+            return response()->json(['error' => __('Not a districtable leaf giant at this scope')], 422);
         }
 
         $blade = $this->bladeEndpoints($line);
         if ($blade === null) {
-            return response()->json(['error' => 'A split line needs at least two points'], 422);
+            return response()->json(['error' => __('A split line needs at least two points')], 422);
         }
 
         try {
@@ -781,7 +780,7 @@ class SubdivisionDrawController extends Controller
         );
 
         if ($row === null || (bool) $row->src_empty) {
-            return ['error' => 'The drawn polygon is empty or invalid'];
+            return ['error' => __('The drawn polygon is empty or invalid')];
         }
         if ((int) $row->has_giant === 0 || (bool) $row->within) {
             // No boundary to clip against (the engine will cite the unknown
@@ -790,9 +789,9 @@ class SubdivisionDrawController extends Controller
             // its part count.
             return ['geojson' => $geoJson, 'clipped' => false, 'parts' => (int) $row->src_parts, 'fragments' => (int) $row->src_parts];
         }
-        $name = (string) ($row->giant_name ?? 'the target jurisdiction');
+        $name = (string) ($row->giant_name ?? __('the target jurisdiction'));
         if ((bool) $row->clip_empty) {
-            return ['error' => "The polygon lies entirely outside {$name}."];
+            return ['error' => __('The polygon lies entirely outside :name.', ['name' => $name])];
         }
         // Multi-part clips are admissible when the extra parts are WHOLE
         // detached components of the giant (islands the lasso captured
@@ -845,7 +844,7 @@ class SubdivisionDrawController extends Controller
                 ['gj' => $geoJson, 'scope' => $scopeId]
             );
             if ($repaired === null || $repaired->gj === null) {
-                return ['error' => "The polygon lies entirely outside {$name}."];
+                return ['error' => __('The polygon lies entirely outside :name.', ['name' => $name])];
             }
 
             return [
