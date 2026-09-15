@@ -118,12 +118,14 @@
    override never applied (found by the 2026-09-15 signed-in sweep). The
    fixed sRGB values are deliberate (not tokens): the panel must stay light and
    the ink dark in BOTH themes, which a theme-following token cannot guarantee.
+   Leaflet's own sheet uses the very same two-class selector and loads later,
+   so the extra .leaflet-control class here wins on specificity, not order.
    Ink #1f2937 on the panel measures >= 12:1; link #0b4f7a >= 7:1. */
-.leaflet-container .leaflet-control-attribution {
+.leaflet-container .leaflet-control.leaflet-control-attribution {
   background: rgba(255, 255, 255, .92);
   color: #1f2937;
 }
-.leaflet-container .leaflet-control-attribution a {
+.leaflet-container .leaflet-control.leaflet-control-attribution a {
   color: #0b4f7a;
   text-decoration: underline;
 }

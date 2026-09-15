@@ -35,17 +35,18 @@ const AA = 4.5;
 // Composite an opaque-over-bg blend: out = a*fg + (1-a)*bg, per channel.
 function over(fg, a, bg) { return fg.map((c, i) => Math.round(a * c + (1 - a) * bg[i])); }
 
-const CSS = 'resources/css/app.css'; // unlayered: Leaflet's own CSS is unlayered too
+const CSS = 'resources/css/app.css'; // attribution override: unlayered, like Leaflet's own CSS
+const COMPONENTS_CSS = 'resources/css/cga/components.css'; // banner and prose-link rules
 
 // --- (1) Leaflet attribution -------------------------------------------------
 test('Leaflet attribution: opaque light panel + AA ink and link', () => {
     const css = read(CSS);
-    const panel = css.match(/\.leaflet-container \.leaflet-control-attribution \{([^}]*)\}/);
+    const panel = css.match(/\.leaflet-container \.leaflet-control\.leaflet-control-attribution \{([^}]*)\}/);
     assert.ok(panel, 'attribution panel rule present');
     assert.match(panel[1], /background:\s*rgba\(255,\s*255,\s*255,\s*\.92\)/, 'panel is a .92 opaque white');
     assert.match(panel[1], /color:\s*#1f2937/, 'panel ink is #1f2937');
 
-    const link = css.match(/\.leaflet-container \.leaflet-control-attribution a \{([^}]*)\}/);
+    const link = css.match(/\.leaflet-container \.leaflet-control\.leaflet-control-attribution a \{([^}]*)\}/);
     assert.ok(link, 'attribution link rule present');
     assert.match(link[1], /color:\s*#0b4f7a/, 'link colour is #0b4f7a');
     assert.match(link[1], /text-decoration:\s*underline/, 'link is underlined');
@@ -63,7 +64,7 @@ test('Leaflet attribution: opaque light panel + AA ink and link', () => {
 
 // --- (2) prose links + banner underline --------------------------------------
 test('banner body links underline', () => {
-    const css = read(CSS);
+    const css = read(COMPONENTS_CSS);
     assert.match(css, /\.banner a \{\s*text-decoration:\s*underline;?\s*\}/, '.banner a underline rule present');
 });
 
