@@ -19,7 +19,7 @@
         <!-- Read-only notice — post-acceptance the repair window is closed;
              the queue stays browsable as an audit surface but every mutating
              affordance is hidden. -->
-        <div v-if="readOnly" class="mb-2 text-[11px] text-gray-500 italic">
+        <div v-if="readOnly" class="mb-2 text-[11px] text-gray-400 italic">
             {{ t('c_shell_components.geodata_flag_queue.locked', 'Map data accepted — repairs are locked.') }}
         </div>
 
@@ -28,7 +28,7 @@
             <span class="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
             {{ scanStatus?.started_at ? t('c_shell_components.geodata_flag_queue.scan_running_since', { time: formatTime(scanStatus.started_at) }) : t('c_shell_components.geodata_flag_queue.scan_running', 'Scan running…') }}
         </div>
-        <div v-else-if="scanStatus?.finished_at" class="mb-2 text-[11px] text-gray-500">
+        <div v-else-if="scanStatus?.finished_at" class="mb-2 text-[11px] text-gray-400">
             {{ t('c_shell_components.geodata_flag_queue.last_scan', { time: formatTime(scanStatus.finished_at) }) }}
         </div>
         <div v-if="scanError" class="mb-2 text-[11px] text-red-400">{{ scanError }}</div>
@@ -115,10 +115,10 @@
             </div>
 
             <div v-if="flagsError" class="text-[11px] text-red-400 mb-2">{{ flagsError }}</div>
-            <div v-if="loadingFlags && flags.length === 0" class="text-[11px] text-gray-500 italic">
+            <div v-if="loadingFlags && flags.length === 0" class="text-[11px] text-gray-400 italic">
                 {{ t('c_shell_components.geodata_flag_queue.loading_flags', 'Loading flags…') }}
             </div>
-            <div v-else-if="flags.length === 0" class="text-[11px] text-gray-500 italic">
+            <div v-else-if="flags.length === 0" class="text-[11px] text-gray-400 italic">
                 <template v-if="statusFilter === 'open'">
                     {{ t('c_shell_components.geodata_flag_queue.no_open_flags', 'No open flags. Run a scan to (re)check the imported data.') }}
                 </template>
@@ -151,7 +151,7 @@
                      @click="toggleCategory(group.category)">
                     <span class="text-gray-600 text-xs transition-transform shrink-0"
                           :class="isCategoryOpen(group) ? 'rotate-90' : ''">›</span>
-                    <span class="text-[10px] uppercase font-semibold text-gray-500">
+                    <span class="text-[10px] uppercase font-semibold text-gray-400">
                         {{ categoryLabel(group.category) }}
                     </span>
                     <span class="text-gray-600 normal-case font-normal text-[10px]">{{ group.flags.length }}</span>
@@ -191,7 +191,7 @@
 
                         <!-- Expanded evidence + actions -->
                         <div v-if="expandedId === flag.id" class="px-2 pb-2 border-t border-gray-800 pt-1.5">
-                            <div class="text-[10px] text-gray-500 mb-1.5">
+                            <div class="text-[10px] text-gray-400 mb-1.5">
                                 {{ t('c_shell_components.geodata_flag_queue.detected', { time: formatTime(flag.detected_at) }) }}
                                 <template v-if="flag.status !== 'open'">
                                     · {{ flag.status }}{{ flag.resolved_at ? ` ${formatTime(flag.resolved_at)}` : '' }}
@@ -203,7 +203,7 @@
                             <div class="space-y-1 mb-2">
                                 <div v-for="(value, key) in (flag.payload || {})" :key="key"
                                      class="text-[11px]">
-                                    <span class="text-gray-500">{{ String(key).replace(/_/g, ' ') }}:</span>
+                                    <span class="text-gray-400">{{ String(key).replace(/_/g, ' ') }}:</span>
                                     <template v-if="Array.isArray(value)">
                                         <span class="inline-flex flex-wrap gap-1 ml-1 align-top">
                                             <template v-for="(item, i) in value" :key="i">
@@ -224,7 +224,7 @@
 
                             <!-- Resolution note (accepted / resolved flags) -->
                             <div v-if="flag.resolution" class="mb-2 text-[11px] text-gray-400">
-                                <span class="text-gray-500">{{ t('c_shell_components.geodata_flag_queue.resolution_label', 'resolution:') }}</span>
+                                <span class="text-gray-400">{{ t('c_shell_components.geodata_flag_queue.resolution_label', 'resolution:') }}</span>
                                 <span class="font-mono break-all ml-1">{{ formatScalar(flag.resolution) }}</span>
                             </div>
 
@@ -265,10 +265,10 @@
         <!-- ══ REPAIRS LOG TAB ══ -->
         <template v-else>
             <div v-if="repairsError" class="text-[11px] text-red-400 mb-2">{{ repairsError }}</div>
-            <div v-if="loadingRepairs && repairs.length === 0" class="text-[11px] text-gray-500 italic">
+            <div v-if="loadingRepairs && repairs.length === 0" class="text-[11px] text-gray-400 italic">
                 {{ t('c_shell_components.geodata_flag_queue.loading_repairs', 'Loading repairs…') }}
             </div>
-            <div v-else-if="repairs.length === 0" class="text-[11px] text-gray-500 italic">
+            <div v-else-if="repairs.length === 0" class="text-[11px] text-gray-400 italic">
                 {{ t('c_shell_components.geodata_flag_queue.no_repairs', 'No repairs applied yet.') }}
             </div>
             <div class="space-y-1">
@@ -286,7 +286,7 @@
                             {{ repair.target_slug }}
                         </span>
                     </div>
-                    <div class="mt-1 text-[10px] text-gray-500">
+                    <div class="mt-1 text-[10px] text-gray-400">
                         {{ t('c_shell_components.geodata_flag_queue.applied', { time: formatTime(repair.applied_at) }) }}
                         <span v-if="repair.params?.note" class="text-gray-400 italic">· {{ repair.params.note }}</span>
                     </div>

@@ -2349,17 +2349,17 @@ let _districtLabelData = []   // [{ distId, center, name, seats, popStr, fracStr
 // ── Quality-tier color helpers (used in both map labels and sidebar strip) ────
 // These mirror the thresholds in computeConstitutionalStats() and the sidebar CSS.
 function devColor(dev) {   // population deviation %
-    if (dev == null) return '#6b7280'
+    if (dev == null) return '#9ca3af'
     return Math.abs(dev) <= 5 ? '#34d399' : Math.abs(dev) <= 10 ? '#fbbf24' : '#f87171'
 }
 function chrColor(chr) {   // convex hull ratio
-    if (chr == null) return '#6b7280'
+    if (chr == null) return '#9ca3af'
     return chr >= 0.70 ? '#34d399' : chr >= 0.50 ? '#fbbf24' : '#f87171'
 }
 function contigColor(isContiguous) {
     if (isContiguous === true)  return '#34d399'
     if (isContiguous === false) return '#f87171'
-    return '#6b7280'
+    return '#9ca3af'
 }
 // Label text mirrors Map Quality section headings so users can correlate at a glance:
 //   devLabel       → "Population Equality" section  (e.g. "Dev +1.5%")
@@ -2379,7 +2379,7 @@ function shapeLabel(chr) {
 function integrityColor(hasIntegrity) {
     if (hasIntegrity === true)  return '#34d399'
     if (hasIntegrity === false) return '#f87171'
-    return '#6b7280'
+    return '#9ca3af'
 }
 function integrityLabel(hasIntegrity) {
     if (hasIntegrity === true)  return t('c_legislature_pages_b.type_b_districts.integ_intact', '✓ Intact')

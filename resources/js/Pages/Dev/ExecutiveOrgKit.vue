@@ -199,7 +199,7 @@ const detailedOrder = ref(false);
             <p class="citation" data-no-i18n>
                 workerSeatsFromThresholds() — exported from the component, the same function the explorer runs
             </p>
-            <div class="table-wrap">
+            <div class="table-wrap" tabindex="0" role="region" :aria-label="t('c_operator_pages.executive_org_kit.table_region', 'Results table (scrollable)')">
                 <table class="table">
                     <thead>
                         <tr><th scope="col">{{ t('c_operator_pages.executive_org_kit.th_case', 'Case') }}</th><th scope="col" class="mono">{{ t('c_operator_pages.executive_org_kit.th_expected', 'expected') }}</th><th scope="col" class="mono">{{ t('c_operator_pages.executive_org_kit.th_actual', 'actual') }}</th><th scope="col">{{ t('c_operator_pages.executive_org_kit.th_pin', 'Pin') }}</th></tr>

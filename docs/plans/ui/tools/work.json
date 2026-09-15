@@ -17067,6 +17067,10 @@
         {
           "date": "2026-09-15",
           "note": "5:45 PM Eastern: all six fix lanes merged (fix-a11y-ui 5b3e9f54, fix-access 1c07cba9, fix-guest-locale 51cf1a97, fix-mapper-contrast 4b733719, fix-commons-contrast 879223d2, w0446 d3f08d42); setup step 0 title and helper contrast fixed and the roster now samples wizard steps 0 to 6 (ed2a7c7e; 56 of 62 parameterised templates resolved, 12 with no row). Pass 3 running over 49 routes with a fresh session (square and halls now pass: the community-nav fix confirmed live). Remaining after pass 3: a pass 4 over whatever still fails plus the six new wizard-step URLs, then the report N of N."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "RULING NEEDED (6:10 PM Eastern): /rooms/board/{board} returns 403 for a resident who is not a seated member of that election board (BoardRoomAccess::assertMayJoin, pinned by InstitutionRoomTest as a private boardroom call). The access policy says a page never 403s on a role; the fix lane kept this gate as a genuinely private room. Options: (a) keep the boardroom private and record the 403 as an accepted exception in the roster; (b) render the room page read-only for any resident with join gated. Until ruled, the route stays FAIL in the ledger. Pass 3 (49 routes, fresh session): 29 pass, 7 hold, 13 fail; overall 132 pass of 152 sampled. Probe: the legislature hub mounts in 5 s but holds 9,800 nodes, so axe takes 43 s per width (98 s total); the seven heavy pages need a 150 s budget, which pass 4 uses. Leaflet attribution still fails because the override sits in a cascade layer while Leaflet CSS is unlayered; moving it unlayered."
         }
       ]
     }

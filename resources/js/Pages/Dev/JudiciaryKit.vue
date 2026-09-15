@@ -117,7 +117,7 @@ const overridePin = {
                 panelSize / isFullCourt come from the panels row only — a 'major' severity with
                 panelSize=3 still renders 3
             </p>
-            <div class="table-wrap">
+            <div class="table-wrap" tabindex="0" role="region" :aria-label="t('c_operator_pages.judiciary_kit.table_region', 'Results table (scrollable)')">
                 <table class="table">
                     <thead>
                         <tr><th scope="col">{{ t('c_operator_pages.judiciary_kit.th_case', 'Case') }}</th><th scope="col" class="mono">{{ t('c_operator_pages.judiciary_kit.th_size', 'size') }}</th><th scope="col" class="mono">{{ t('c_operator_pages.judiciary_kit.th_full', 'full') }}</th><th scope="col">{{ t('c_operator_pages.judiciary_kit.th_pin', 'Pin') }}</th></tr>

@@ -1054,24 +1054,6 @@ h3:has(> .stv-action) { margin-block: var(--space-4) var(--space-2); }
    SeatMap (fill/stroke pair of the flat-strip variant above). */
 .seat-dot--worker { fill: color-mix(in oklch, var(--status-info) 55%, var(--gov-bg)); stroke: var(--status-info); }
 
-/* ------------------------------------------ 6e. LEAFLET THIRD-PARTY CONTROLS */
-/* Leaflet's own attribution control ships #0078a8 links on its translucent
-   light panel. Over the dark basemap tiles that link measures 3.11:1 at 12px,
-   below the WCAG 1.4.3 AA floor. Leaflet's own CSS is never loaded or edited;
-   this repaints the control to an OPAQUE light panel with AA-passing ink, so
-   the ratio does not depend on the shell theme or the tiles behind it. The
-   fixed sRGB values are deliberate (not tokens): the panel must stay light and
-   the ink dark in BOTH themes, which a theme-following token cannot guarantee.
-   Ink #1f2937 on the panel measures >= 12:1; link #0b4f7a >= 7:1. */
-.leaflet-container .leaflet-control-attribution {
-  background: rgba(255, 255, 255, .92);
-  color: #1f2937;
-}
-.leaflet-container .leaflet-control-attribution a {
-  color: #0b4f7a;
-  text-decoration: underline;
-}
-
 /* ------------------------------------------------- 7. CONTRAST & FORCED COLORS */
 /* prefers-contrast: more — raise the quiet tiers of the text/border ramps.
    Same token contract, higher-contrast values (WCAG SC 1.4.6 direction). */

@@ -35,7 +35,7 @@ const AA = 4.5;
 // Composite an opaque-over-bg blend: out = a*fg + (1-a)*bg, per channel.
 function over(fg, a, bg) { return fg.map((c, i) => Math.round(a * c + (1 - a) * bg[i])); }
 
-const CSS = 'resources/css/cga/components.css';
+const CSS = 'resources/css/app.css'; // unlayered: Leaflet's own CSS is unlayered too
 
 // --- (1) Leaflet attribution -------------------------------------------------
 test('Leaflet attribution: opaque light panel + AA ink and link', () => {
