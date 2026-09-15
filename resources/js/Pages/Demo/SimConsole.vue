@@ -12,6 +12,7 @@
  */
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { Head } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 /**
  * The bars are lane 3's shared component, not ours (authorised 2026-07-26).
@@ -42,6 +43,8 @@ import { csrfFetch } from '@/lib/csrf'
  * was doing this — which is the argument for eyes over status codes.
  */
 defineOptions({ layout: AppShellV2 })
+
+const { t } = useI18n()
 
 const props = defineProps({
     instanceClass: { type: String, default: 'production' },
@@ -174,30 +177,29 @@ const statusTone = computed(() => {
 <template>
     <div class="mx-auto max-w-5xl px-4 py-6 space-y-6">
         <!-- W-0338: every page names itself; the sweep flagged this one without a title. -->
-        <Head title="Simulated world" />
+        <Head :title="t('c_operator_pages.sim_console.head_title', 'Simulated world')" />
             <header class="flex flex-wrap items-baseline justify-between gap-3">
                 <div>
-                    <h1 class="text-2xl font-semibold text-gray-100">Simulated world — populate engine</h1>
+                    <h1 class="text-2xl font-semibold text-gray-100">{{ t('c_operator_pages.sim_console.h1', 'Simulated world — populate engine') }}</h1>
                     <p class="mt-1 text-sm text-gray-400">
-                        Live. Refreshes every 2 seconds from the work queue itself — no cached counters.
+                        {{ t('c_operator_pages.sim_console.subtitle', 'Live. Refreshes every 2 seconds from the work queue itself — no cached counters.') }}
                     </p>
                 </div>
                 <div class="text-right text-xs text-gray-400">
                     <div>
-                        instance class
+                        {{ t('c_operator_pages.sim_console.instance_class', 'instance class') }}
                         <span :class="isScaleDemo ? 'text-emerald-400' : 'text-amber-400'" class="font-mono">
                             {{ instanceClass }}
                         </span>
                     </div>
-                    <div v-if="lastPoll">updated {{ lastPoll.toLocaleTimeString() }}</div>
+                    <div v-if="lastPoll">{{ t('c_operator_pages.sim_console.updated', { time: lastPoll.toLocaleTimeString() }) }}</div>
                 </div>
             </header>
 
             <!-- A production instance can never run this engine. Say so plainly
                  rather than showing an empty page that looks broken. -->
             <div v-if="!isScaleDemo" class="rounded-lg border border-amber-700/40 bg-amber-950/30 p-4 text-sm text-amber-200">
-                This instance is <span class="font-mono">production</span>, so it carries no synthetic data and
-                the populate engine will refuse to run here. The engine runs only on an instance classed
+                {{ t('c_operator_pages.sim_console.prod_warn_before', 'This instance is') }} <span class="font-mono">production</span>{{ t('c_operator_pages.sim_console.prod_warn_mid', ', so it carries no synthetic data and the populate engine will refuse to run here. The engine runs only on an instance classed') }}
                 <span class="font-mono">scale_demo</span>.
             </div>
 
@@ -206,7 +208,7 @@ const statusTone = computed(() => {
                  SENTENCE renders verbatim where the buttons would be, so the rail
                  is legible rather than a disabled mystery (the D2 contract). -->
             <section v-if="canControl" class="rounded-lg border border-gray-700/60 bg-gray-900/40 p-4">
-                <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">Drive the run</h2>
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ t('c_operator_pages.sim_console.drive_the_run', 'Drive the run') }}</h2>
 
                 <p v-if="controlRefusal" class="mt-2 text-sm text-amber-200">{{ controlRefusal }}</p>
 
@@ -214,12 +216,12 @@ const statusTone = computed(() => {
                     <div class="mt-3 flex flex-wrap items-center gap-3">
                         <template v-if="canStart">
                             <label class="flex items-center gap-2 text-xs text-gray-400">
-                                smoke limit
+                                {{ t('c_operator_pages.sim_console.smoke_limit', 'smoke limit') }}
                                 <input
                                     v-model="smokeLimit"
                                     type="number"
                                     min="1"
-                                    placeholder="all"
+                                    :placeholder="t('c_operator_pages.sim_console.smoke_all', 'all')"
                                     class="w-24 rounded border border-gray-700 bg-gray-950/60 px-2 py-1 font-mono text-sm text-gray-200"
                                 />
                             </label>
@@ -229,7 +231,7 @@ const statusTone = computed(() => {
                                 class="min-h-[44px] rounded bg-emerald-800/70 px-4 py-2 text-sm font-semibold text-emerald-100 ring-1 ring-emerald-700 hover:bg-emerald-700/70 disabled:opacity-50"
                                 @click="startRun"
                             >
-                                {{ busy === 'start' ? 'Starting…' : 'Start populate run' }}
+                                {{ busy === 'start' ? t('c_operator_pages.sim_console.starting', 'Starting…') : t('c_operator_pages.sim_console.start_run', 'Start populate run') }}
                             </button>
                         </template>
 
@@ -240,7 +242,7 @@ const statusTone = computed(() => {
                             class="min-h-[44px] rounded bg-amber-800/70 px-4 py-2 text-sm font-semibold text-amber-100 ring-1 ring-amber-700 hover:bg-amber-700/70 disabled:opacity-50"
                             @click="haltRun"
                         >
-                            {{ busy === 'halt' ? 'Halting…' : 'Halt run' }}
+                            {{ busy === 'halt' ? t('c_operator_pages.sim_console.halting', 'Halting…') : t('c_operator_pages.sim_console.halt_run', 'Halt run') }}
                         </button>
 
                         <button
@@ -250,13 +252,12 @@ const statusTone = computed(() => {
                             class="min-h-[44px] rounded bg-emerald-800/70 px-4 py-2 text-sm font-semibold text-emerald-100 ring-1 ring-emerald-700 hover:bg-emerald-700/70 disabled:opacity-50"
                             @click="resumeRun"
                         >
-                            {{ busy === 'resume' ? 'Resuming…' : 'Resume run' }}
+                            {{ busy === 'resume' ? t('c_operator_pages.sim_console.resuming', 'Resuming…') : t('c_operator_pages.sim_console.resume_run', 'Resume run') }}
                         </button>
                     </div>
 
                     <p v-if="canStart" class="mt-2 text-xs text-gray-400">
-                        A smoke limit enumerates only the N largest jurisdictions — leave it blank to populate the
-                        whole set. Enumeration runs on the queue; the bars come alive within the minute.
+                        {{ t('c_operator_pages.sim_console.smoke_hint', 'A smoke limit enumerates only the N largest jurisdictions — leave it blank to populate the whole set. Enumeration runs on the queue; the bars come alive within the minute.') }}
                     </p>
 
                     <!-- The server's refusal or error, verbatim. -->
@@ -276,9 +277,9 @@ const statusTone = computed(() => {
             </section>
 
             <div v-if="!run" class="rounded-lg border border-gray-700/60 bg-gray-900/40 p-6 text-sm text-gray-400">
-                No populate run yet. Start one with
+                {{ t('c_operator_pages.sim_console.no_run_before', 'No populate run yet. Start one with') }}
                 <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-gray-200">php artisan sim:start</code>
-                — this page comes alive within the minute, when the pump seeds its first workers.
+                {{ t('c_operator_pages.sim_console.no_run_after', '— this page comes alive within the minute, when the pump seeds its first workers.') }}
             </div>
 
             <template v-else>
@@ -286,32 +287,30 @@ const statusTone = computed(() => {
                 <section class="rounded-lg border border-gray-700/60 bg-gray-900/40 p-4">
                     <div class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
                         <div>
-                            <span class="text-xs uppercase tracking-wide text-gray-400">status</span>
+                            <span class="text-xs uppercase tracking-wide text-gray-400">{{ t('c_operator_pages.sim_console.status', 'status') }}</span>
                             <span :class="statusTone" class="ml-2 font-semibold">{{ run.status }}</span>
                         </div>
                         <div>
-                            <span class="text-xs uppercase tracking-wide text-gray-400">stage</span>
+                            <span class="text-xs uppercase tracking-wide text-gray-400">{{ t('c_operator_pages.sim_console.stage', 'stage') }}</span>
                             <span class="ml-2 font-mono text-gray-200">{{ run.phase }}</span>
                         </div>
                         <div>
-                            <span class="text-xs uppercase tracking-wide text-gray-400">workers</span>
+                            <span class="text-xs uppercase tracking-wide text-gray-400">{{ t('c_operator_pages.sim_console.workers', 'workers') }}</span>
                             <span class="ml-2 font-mono text-gray-200">
                                 {{ workers.length }}<span class="text-gray-400">/{{ run.workers_target }}</span>
                             </span>
                         </div>
                         <div v-if="totalItems">
-                            <span class="text-xs uppercase tracking-wide text-gray-400">items</span>
+                            <span class="text-xs uppercase tracking-wide text-gray-400">{{ t('c_operator_pages.sim_console.items', 'items') }}</span>
                             <span class="ml-2 font-mono text-gray-200">{{ fmt(totalDone) }}/{{ fmt(totalItems) }}</span>
                         </div>
                     </div>
 
                     <p v-if="run.halt_requested" class="mt-3 text-sm text-amber-300">
-                        Halt requested — workers stop at their next claim boundary, never mid-item. Clearing the
-                        flag resumes exactly where it stopped.
+                        {{ t('c_operator_pages.sim_console.halt_requested', 'Halt requested — workers stop at their next claim boundary, never mid-item. Clearing the flag resumes exactly where it stopped.') }}
                     </p>
                     <p v-else-if="run.is_paused" class="mt-3 text-sm text-amber-300">
-                        Paused by the database breaker until {{ run.paused_until }} — a Postgres restart was
-                        detected. This pauses claims; it never abandons work.
+                        {{ t('c_operator_pages.sim_console.paused', { until: run.paused_until }) }}
                     </p>
                     <p v-if="run.last_error" class="mt-2 font-mono text-xs text-gray-400">{{ run.last_error }}</p>
 
@@ -331,19 +330,19 @@ const statusTone = computed(() => {
                 <!-- PER-STAGE BARS — the shared component (lane 3's), not a
                      second set of our own. One idiom for every build stage. -->
                 <section v-if="stages.length" class="space-y-3">
-                    <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-400">Stages</h2>
+                    <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-400">{{ t('c_operator_pages.sim_console.stages', 'Stages') }}</h2>
                     <StageBars :stages="stages" :poll-ms="2000" />
                 </section>
 
                 <!-- WORKER STRIP — one honest line per live worker. -->
                 <section v-if="workers.length" class="rounded-lg border border-gray-700/50 bg-gray-900/30 p-3">
                     <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                        Workers ({{ workers.length }})
+                        {{ t('c_operator_pages.sim_console.workers_heading', { count: workers.length }) }}
                     </h2>
                     <ul class="mt-2 space-y-1 font-mono text-xs text-gray-400">
                         <li v-for="w in workers" :key="w.id" class="flex items-baseline gap-2">
                             <span class="text-gray-600">{{ w.id }}</span>
-                            <span class="text-gray-300">{{ w.claim_type || 'idle' }}</span>
+                            <span class="text-gray-300">{{ w.claim_type || t('c_operator_pages.sim_console.idle', 'idle') }}</span>
                             <span class="truncate text-gray-400">{{ w.claim_label }}</span>
                             <span v-if="w.claim_secs !== null" class="ml-auto text-gray-600">{{ w.claim_secs }}s</span>
                         </li>
@@ -352,7 +351,7 @@ const statusTone = computed(() => {
 
                 <!-- WORKING NOW, by place name. -->
                 <section v-if="liveItems.length" class="rounded-lg border border-gray-700/50 bg-gray-900/30 p-3">
-                    <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">Working now</h2>
+                    <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ t('c_operator_pages.sim_console.working_now', 'Working now') }}</h2>
                     <ul class="mt-2 space-y-1 font-mono text-xs text-gray-400">
                         <li v-for="(i, idx) in liveItems" :key="idx">
                             <span class="text-gray-600">{{ i.kind }}</span>
@@ -363,7 +362,7 @@ const statusTone = computed(() => {
 
                 <!-- WHAT THE RUN HAS PRODUCED — the point of the machine. -->
                 <section class="rounded-lg border border-gray-700/60 bg-gray-900/40 p-4">
-                    <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">The world so far</h2>
+                    <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ t('c_operator_pages.sim_console.world_so_far', 'The world so far') }}</h2>
 
                     <!-- BUILT IS NOT GOVERNED. Said first, and plainly, because
                          a visitor reading places and people would otherwise
@@ -371,26 +370,23 @@ const statusTone = computed(() => {
                          state until an election fills it. -->
                     <dl class="mt-3 grid grid-cols-3 gap-x-6 gap-y-3 rounded border border-gray-700/50 bg-gray-950/40 p-3">
                         <div>
-                            <dt class="text-xs text-gray-400">places with a chamber</dt>
+                            <dt class="text-xs text-gray-400">{{ t('c_operator_pages.sim_console.places_with_chamber', 'places with a chamber') }}</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.chambers) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400">chambers with members</dt>
+                            <dt class="text-xs text-gray-400">{{ t('c_operator_pages.sim_console.chambers_with_members', 'chambers with members') }}</dt>
                             <dd class="font-mono text-lg text-emerald-300">{{ fmt(world.chambers_governed) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400">awaiting a first election</dt>
+                            <dt class="text-xs text-gray-400">{{ t('c_operator_pages.sim_console.awaiting_first_election', 'awaiting a first election') }}</dt>
                             <dd class="font-mono text-lg text-amber-300">{{ fmt(world.chambers_awaiting_election) }}</dd>
                         </div>
                     </dl>
                     <p class="mt-2 text-xs text-gray-400">
-                        A chamber exists as soon as a place is activated, but only an election puts people in it —
-                        seating anyone without one would manufacture members nobody voted for. An empty chamber is
-                        the correct state, not a failure.
+                        {{ t('c_operator_pages.sim_console.chamber_note', 'A chamber exists as soon as a place is activated, but only an election puts people in it — seating anyone without one would manufacture members nobody voted for. An empty chamber is the correct state, not a failure.') }}
                         <span v-if="rails.active_district_maps !== undefined">
-                            Active district maps: <span class="font-mono text-gray-400">{{ fmt(rails.active_district_maps) }}</span>
-                            — a drawn map is a <em>draft</em> until adopted, and a chamber above nine seats cannot
-                            elect without an adopted one.
+                            {{ t('c_operator_pages.sim_console.active_maps_label', 'Active district maps:') }} <span class="font-mono text-gray-400">{{ fmt(rails.active_district_maps) }}</span>
+                            {{ t('c_operator_pages.sim_console.draft_before', '— a drawn map is a') }} <em>{{ t('c_operator_pages.sim_console.draft', 'draft') }}</em> {{ t('c_operator_pages.sim_console.draft_after', 'until adopted, and a chamber above nine seats cannot elect without an adopted one.') }}
                         </span>
                     </p>
 
@@ -412,15 +408,12 @@ const statusTone = computed(() => {
                         class="mt-4 rounded border border-amber-500/40 bg-amber-500/5 p-3"
                     >
                         <h3 class="text-xs font-semibold uppercase tracking-wide text-amber-300">
-                            Over the Type B bound — {{ fmt(rails.over_bound.count) }}
-                            {{ rails.over_bound.count === 1 ? 'chamber' : 'chambers' }}
+                            {{ t('c_operator_pages.sim_console.over_bound_title', 'Over the Type B bound') }} — {{ fmt(rails.over_bound.count) }}
+                            {{ rails.over_bound.count === 1 ? t('c_operator_pages.sim_console.chamber', 'chamber') : t('c_operator_pages.sim_console.chambers', 'chambers') }}
                         </h3>
                         <p class="mt-1 text-xs text-gray-400">
-                            Art. V §3 binds the Type B chamber to the Type A total. These exceed it: the seat
-                            ladder floors at two seats per constituent and cannot go lower, and the next step —
-                            grouping constituent jurisdictions into shared panels — is not built. A chamber marked
-                            <span class="text-amber-200">seated</span> has already returned members under a seat
-                            count no settled rule authorises.
+                            {{ t('c_operator_pages.sim_console.over_bound_body_before', 'Art. V §3 binds the Type B chamber to the Type A total. These exceed it: the seat ladder floors at two seats per constituent and cannot go lower, and the next step — grouping constituent jurisdictions into shared panels — is not built. A chamber marked') }}
+                            <span class="text-amber-200">{{ t('c_operator_pages.sim_console.seated', 'seated') }}</span> {{ t('c_operator_pages.sim_console.over_bound_body_after', 'has already returned members under a seat count no settled rule authorises.') }}
                         </p>
                         <ul class="mt-2 space-y-1">
                             <li
@@ -430,12 +423,12 @@ const statusTone = computed(() => {
                             >
                                 <span class="text-gray-200">{{ p.name }}</span>
                                 <span class="font-mono text-gray-400">
-                                    type A {{ p.type_a }} · type B {{ p.type_b }}
+                                    {{ t('c_operator_pages.sim_console.ab_line', { a: p.type_a, b: p.type_b }) }}
                                 </span>
                                 <span
                                     :class="p.seated ? 'text-amber-300' : 'text-gray-400'"
                                     class="font-mono"
-                                >{{ p.seated ? 'seated' : 'not seated' }}</span>
+                                >{{ p.seated ? t('c_operator_pages.sim_console.seated', 'seated') : t('c_operator_pages.sim_console.not_seated', 'not seated') }}</span>
                             </li>
                         </ul>
                     </section>
@@ -453,14 +446,11 @@ const statusTone = computed(() => {
                         class="mt-4 rounded border border-rose-500/40 bg-rose-500/5 p-3"
                     >
                         <h3 class="text-xs font-semibold uppercase tracking-wide text-rose-300">
-                            Seats that cannot be filled — {{ fmt(rails.seat_gap.count) }}
-                            {{ rails.seat_gap.count === 1 ? 'chamber' : 'chambers' }}
+                            {{ t('c_operator_pages.sim_console.seat_gap_title', 'Seats that cannot be filled') }} — {{ fmt(rails.seat_gap.count) }}
+                            {{ rails.seat_gap.count === 1 ? t('c_operator_pages.sim_console.chamber', 'chamber') : t('c_operator_pages.sim_console.chambers', 'chambers') }}
                         </h3>
                         <p class="mt-1 text-xs text-gray-400">
-                            The cube-root law fixes how many seats a chamber has; its districts must sum to
-                            exactly that. Where they do not, the difference is seats the constitution declares
-                            and no election can fill — every count lands short, permanently. This is a defect in
-                            the district plan, and only redrawing it repairs it.
+                            {{ t('c_operator_pages.sim_console.seat_gap_body', 'The cube-root law fixes how many seats a chamber has; its districts must sum to exactly that. Where they do not, the difference is seats the constitution declares and no election can fill — every count lands short, permanently. This is a defect in the district plan, and only redrawing it repairs it.') }}
                         </p>
                         <ul class="mt-2 space-y-1">
                             <li
@@ -470,10 +460,10 @@ const statusTone = computed(() => {
                             >
                                 <span class="text-gray-200">{{ p.name }}</span>
                                 <span class="font-mono text-gray-400">
-                                    type A {{ p.type_a }} · districts draw {{ p.drawn }}
+                                    {{ t('c_operator_pages.sim_console.gap_line', { a: p.type_a, drawn: p.drawn }) }}
                                 </span>
                                 <span class="font-mono text-rose-300">
-                                    {{ p.gap > 0 ? `${p.gap} unfillable` : `${-p.gap} unallotted` }}
+                                    {{ p.gap > 0 ? t('c_operator_pages.sim_console.unfillable', { n: p.gap }) : t('c_operator_pages.sim_console.unallotted', { n: -p.gap }) }}
                                 </span>
                             </li>
                         </ul>
@@ -481,41 +471,39 @@ const statusTone = computed(() => {
 
                     <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
                         <div>
-                            <dt class="text-xs text-gray-400">jurisdictions</dt>
+                            <dt class="text-xs text-gray-400">{{ t('c_operator_pages.sim_console.jurisdictions', 'jurisdictions') }}</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.jurisdictions) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400">cohorts modelled</dt>
+                            <dt class="text-xs text-gray-400">{{ t('c_operator_pages.sim_console.cohorts_modelled', 'cohorts modelled') }}</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.cohorts) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400">people minted</dt>
+                            <dt class="text-xs text-gray-400">{{ t('c_operator_pages.sim_console.people_minted', 'people minted') }}</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.people) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400">active residencies</dt>
+                            <dt class="text-xs text-gray-400">{{ t('c_operator_pages.sim_console.active_residencies', 'active residencies') }}</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.residencies) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400">population modelled</dt>
+                            <dt class="text-xs text-gray-400">{{ t('c_operator_pages.sim_console.population_modelled', 'population modelled') }}</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.population_modelled) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400">electorate modelled</dt>
+                            <dt class="text-xs text-gray-400">{{ t('c_operator_pages.sim_console.electorate_modelled', 'electorate modelled') }}</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.electorate_modelled) }}</dd>
                         </div>
                     </dl>
                     <p class="mt-3 text-xs text-gray-400">
-                        People minted is deliberately far below population modelled: identity is materialized only
-                        where the constitution requires it — a candidate, a member — and everyone else is counted
-                        exactly as a cohort rather than stored as a row.
+                        {{ t('c_operator_pages.sim_console.people_minted_note', 'People minted is deliberately far below population modelled: identity is materialized only where the constitution requires it — a candidate, a member — and everyone else is counted exactly as a cohort rather than stored as a row.') }}
                     </p>
                 </section>
 
                 <!-- WHAT REFUSED. A run never dies of a failed item. -->
                 <section v-if="reviewItems.length" class="rounded-lg border border-amber-800/40 bg-amber-950/20 p-3">
                     <h2 class="text-xs font-semibold uppercase tracking-wide text-amber-300">
-                        Refused ({{ fmt(totalReview) }}) — the run continued
+                        {{ t('c_operator_pages.sim_console.refused_heading', { count: fmt(totalReview) }) }}
                     </h2>
                     <ul class="mt-2 space-y-1 text-xs text-amber-100/80">
                         <li v-for="(i, idx) in reviewItems" :key="idx">
