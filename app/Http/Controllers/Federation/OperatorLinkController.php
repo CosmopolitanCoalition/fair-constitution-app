@@ -38,7 +38,7 @@ class OperatorLinkController extends Controller
             ->where('device_public_key', $data['new_device_public_key'])->exists();
 
         if (! $enrolled) {
-            return back()->withErrors(['link' => 'That device is not enrolled on this operator account — enrol it here before linking.']);
+            return back()->withErrors(['link' => __('That device is not enrolled on this operator account — enrol it here before linking.')]);
         }
 
         try {
@@ -53,6 +53,6 @@ class OperatorLinkController extends Controller
             return back()->withErrors(['link' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'Linked this operator account to the mesh identity by device-possession proof.');
+        return back()->with('status', __('Linked this operator account to the mesh identity by device-possession proof.'));
     }
 }

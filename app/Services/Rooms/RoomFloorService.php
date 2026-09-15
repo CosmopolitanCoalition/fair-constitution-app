@@ -46,7 +46,7 @@ class RoomFloorService
     {
         // Reload the exact institution on each action, rather than trust an earlier preview.
         [$open, $presider] = $this->access($kind, $entityId, $actor);
-        abort_unless($open, 403, 'This institution is closed for live floor actions.');
+        abort_unless($open, 403, __('This institution is closed for live floor actions.'));
         $key = $this->key($kind, $entityId);
         if ($action === 'raise' || $action === 'lower') {
             // First-time participants need the same collision-safe identity and public
@@ -55,14 +55,14 @@ class RoomFloorService
             $action === 'raise' ? $this->floor->raiseHand($key, $own) : $this->floor->lowerHand($key, $own);
             return;
         }
-        abort_unless($presider, 403, 'Only the current presiding officer can manage this room’s floor.');
+        abort_unless($presider, 403, __('Only the current presiding officer can manage this room’s floor.'));
         match ($action) {
             'recognize' => $this->floor->recognize($key, $handle),
             'yield' => $this->floor->yieldFloor($key),
             'witness' => $kind === 'court' && $handle !== null
                 ? $this->floor->recognizeWitness($key, $handle)
-                : abort(422, 'Choose a waiting participant in this court to place on the witness stand.'),
-            default => abort(422, 'Unknown floor action.'),
+                : abort(422, __('Choose a waiting participant in this court to place on the witness stand.')),
+            default => abort(422, __('Unknown floor action.')),
         };
     }
 

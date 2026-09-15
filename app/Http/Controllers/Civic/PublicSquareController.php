@@ -35,42 +35,45 @@ class PublicSquareController extends Controller
      * looser "four carve-outs" wording. This is the community-standards card;
      * lane 6 owns the post rows, presence, handles and a11y on this page.
      */
-    private const COMMUNITY_STANDARDS = [
-        'headline' => 'This square cannot be censored for viewpoint.',
-        'lede' => 'No control on this page removes a post, and no code path removes one for its content or opinion. The only removals are four narrow, content-neutral carve-outs — each judicially authorised and logged on the public record.',
-        'carve_outs' => [
-            [
-                'key' => 'imminent_harm',
-                'label' => 'Imminent harm',
-                'what' => 'A true threat of concrete, imminent violence against a person.',
-                'why' => 'Speech that is itself an act of harm is not a viewpoint — the narrowest floor every free-speech order keeps.',
-                'basis' => 'Legal floor · true_threat (M-5)',
+    private static function communityStandards(): array
+    {
+        return [
+            'headline' => __('This square cannot be censored for viewpoint.'),
+            'lede' => __('No control on this page removes a post, and no code path removes one for its content or opinion. The only removals are four narrow, content-neutral carve-outs — each judicially authorised and logged on the public record.'),
+            'carve_outs' => [
+                [
+                    'key' => 'imminent_harm',
+                    'label' => __('Imminent harm'),
+                    'what' => __('A true threat of concrete, imminent violence against a person.'),
+                    'why' => __('Speech that is itself an act of harm is not a viewpoint — the narrowest floor every free-speech order keeps.'),
+                    'basis' => __('Legal floor · true_threat (M-5)'),
+                ],
+                [
+                    'key' => 'private_data',
+                    'label' => __('Someone else’s private data'),
+                    'what' => __('Publishing another person’s private, identifying data against their will (doxxing).'),
+                    'why' => __('One person’s speech cannot erase another’s Art. I privacy — this protects a right, it does not police an opinion.'),
+                    'basis' => __('F-SOC-003 · rights_protection'),
+                ],
+                [
+                    'key' => 'off_topic_flooding',
+                    'label' => __('Off-topic flooding'),
+                    'what' => __('Volume-based spam suppression — by behaviour and rate, never by what is said.'),
+                    'why' => __('Keeping the room usable is not a viewpoint judgment; identical treatment whatever the message (Art. I equal treatment).'),
+                    'basis' => __('Anti-spam · M-4 (behavioural, content-neutral)'),
+                ],
+                [
+                    'key' => 'legal_floor',
+                    'label' => __('The legal floor'),
+                    'what' => __('CSAM matched by hash, or a specific court order naming the material.'),
+                    'why' => __('The unavoidable legal minimum — a hash match or a named judicial order, never a discretionary content call.'),
+                    'basis' => __('Legal floor · csam_hashmatch / court_order_specific (M-5)'),
+                ],
             ],
-            [
-                'key' => 'private_data',
-                'label' => 'Someone else’s private data',
-                'what' => 'Publishing another person’s private, identifying data against their will (doxxing).',
-                'why' => 'One person’s speech cannot erase another’s Art. I privacy — this protects a right, it does not police an opinion.',
-                'basis' => 'F-SOC-003 · rights_protection',
-            ],
-            [
-                'key' => 'off_topic_flooding',
-                'label' => 'Off-topic flooding',
-                'what' => 'Volume-based spam suppression — by behaviour and rate, never by what is said.',
-                'why' => 'Keeping the room usable is not a viewpoint judgment; identical treatment whatever the message (Art. I equal treatment).',
-                'basis' => 'Anti-spam · M-4 (behavioural, content-neutral)',
-            ],
-            [
-                'key' => 'legal_floor',
-                'label' => 'The legal floor',
-                'what' => 'CSAM matched by hash, or a specific court order naming the material.',
-                'why' => 'The unavoidable legal minimum — a hash match or a named judicial order, never a discretionary content call.',
-                'basis' => 'Legal floor · csam_hashmatch / court_order_specific (M-5)',
-            ],
-        ],
-        'no_viewpoint_path' => 'There is no “remove for content” or “community-guidelines” action anywhere in the code — the carve-out map knows only the classes above. A removal that isn’t one of them cannot be invoked.',
-        'logged' => 'Every carve-out is exercised by judicial authority and written to the public record (a moderation-flip entry) — the removal is as visible as the post was.',
-    ];
+            'no_viewpoint_path' => __('There is no “remove for content” or “community-guidelines” action anywhere in the code — the carve-out map knows only the classes above. A removal that isn’t one of them cannot be invoked.'),
+            'logged' => __('Every carve-out is exercised by judicial authority and written to the public record (a moderation-flip entry) — the removal is as visible as the post was.'),
+        ];
+    }
 
     public function __construct(
         private readonly ConstitutionalEngine $engine,
@@ -114,7 +117,7 @@ class PublicSquareController extends Controller
             'isAssociated'  => $chainIds !== [],
             // Lane 15 §③ educational slice — its own props key (lane 6 routes
             // around it and owns the post rows / presence / a11y).
-            'standards'     => self::COMMUNITY_STANDARDS,
+            'standards'     => self::communityStandards(),
         ]);
     }
 
@@ -136,7 +139,7 @@ class PublicSquareController extends Controller
             'thread_id'       => $validated['thread_id'] ?? null,
         ]);
 
-        return back()->with('status', 'Posted to the public square (F-SOC-001) — open discourse, residency-only, uncensorable (Art. I).');
+        return back()->with('status', __('Posted to the public square (F-SOC-001) — open discourse, residency-only, uncensorable (Art. I).'));
     }
 
     private function threadRow(SocialThread $thread): array

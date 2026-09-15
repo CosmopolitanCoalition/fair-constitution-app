@@ -24,7 +24,7 @@ class CertRequestController extends Controller
         // RAW bytes — the signed canonical request must not be mutated by TrimStrings.
         $body = json_decode((string) $request->getContent(), true);
         if (! is_array($body)) {
-            return response()->json(['error' => 'malformed cert request'], 422);
+            return response()->json(['error' => __('malformed cert request')], 422);
         }
 
         try {
@@ -33,7 +33,7 @@ class CertRequestController extends Controller
             // Client-safe message + the broker's HTTP status; never a token/key/path.
             return response()->json(['error' => $e->getMessage()], $e->status);
         } catch (Throwable $e) {
-            return response()->json(['error' => 'cert issuance failed'], 500);
+            return response()->json(['error' => __('cert issuance failed')], 500);
         }
     }
 }

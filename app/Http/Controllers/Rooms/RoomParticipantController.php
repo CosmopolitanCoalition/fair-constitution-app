@@ -46,11 +46,11 @@ class RoomParticipantController extends Controller
             ->whereNull('space_type')->whereNull('tombstoned_at')->whereNotNull('matrix_room_id')
             ->where('room_type', $private ? MatrixRoom::ROOM_ORG_PRIVATE : MatrixRoom::ROOM_INSTITUTION)
             ->where('is_public', ! $private)->where('is_encrypted', false)->first(['matrix_room_id']);
-        abort_unless($room && $room->matrix_room_id, 403, 'This room is not available.');
+        abort_unless($room && $room->matrix_room_id, 403, __('This room is not available.'));
         if (! $private) {
             abort_unless($institution->jurisdiction_id, 403);
             try { $this->publicRooms->assertMayJoin($request->user(), $institution->jurisdiction_id, $room->matrix_room_id); }
-            catch (VoiceReachFailed) { abort(403, 'This room is not available.'); }
+            catch (VoiceReachFailed) { abort(403, __('This room is not available.')); }
         }
         return response()->json(['roomId' => $room->matrix_room_id, 'roster' => $this->roster->forInstitution($institution, $data['handles'])]);
     }

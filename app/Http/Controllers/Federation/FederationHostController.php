@@ -36,7 +36,7 @@ class FederationHostController extends Controller
 
         return back()
             ->with('minted_key', $plaintext)
-            ->with('status', 'Invite key minted — copy it now; it is shown only once.');
+            ->with('status', __('Invite key minted — copy it now; it is shown only once.'));
     }
 
     /** POST /federation/host/keys/revoke — revoke an invite key by its handle. */
@@ -46,7 +46,7 @@ class FederationHostController extends Controller
 
         $keys->revoke($data['handle']);
 
-        return back()->with('status', "Revoked invite key {$data['handle']}.");
+        return back()->with('status', __('Revoked invite key :handle.', ['handle' => $data['handle']]));
     }
 
     /** POST /federation/host/requests/{id}/approve — vouch an applicant in as a read-only mirror. */
@@ -58,7 +58,7 @@ class FederationHostController extends Controller
             return back()->withErrors(['request' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'Approved — the applicant is admitted as a read-only mirror (authoritative for nothing).');
+        return back()->with('status', __('Approved — the applicant is admitted as a read-only mirror (authoritative for nothing).'));
     }
 
     /** POST /federation/host/requests/{id}/reject */
@@ -70,7 +70,7 @@ class FederationHostController extends Controller
             return back()->withErrors(['request' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'Rejected the adoption request.');
+        return back()->with('status', __('Rejected the adoption request.'));
     }
 
     /**
@@ -83,11 +83,11 @@ class FederationHostController extends Controller
         $request = ReadWriteRequest::query()->find($id);
 
         if ($request === null) {
-            return back()->withErrors(['rw' => 'Read-write petition not found.']);
+            return back()->withErrors(['rw' => __('Read-write petition not found.')]);
         }
 
         $rw->deny($request);
 
-        return back()->with('status', 'Read-write petition denied.');
+        return back()->with('status', __('Read-write petition denied.'));
     }
 }

@@ -37,9 +37,9 @@ class RoomFloorController extends Controller
         ]);
         app(RoomFloorService::class)->act($kind, $id, $request->user(), $data['action'], $data['handle'] ?? null);
         return back()->with('status', match ($data['action']) {
-            'raise' => 'Your hand is raised.', 'lower' => 'Your hand is lowered.',
-            'recognize' => 'The speaking queue has been updated.', 'yield' => 'The floor is open.',
-            'witness' => 'The participant is on the witness stand. Testimony remains part of the formal case record.',
+            'raise' => __('Your hand is raised.'), 'lower' => __('Your hand is lowered.'),
+            'recognize' => __('The speaking queue has been updated.'), 'yield' => __('The floor is open.'),
+            'witness' => __('The participant is on the witness stand. Testimony remains part of the formal case record.'),
         });
     }
 }

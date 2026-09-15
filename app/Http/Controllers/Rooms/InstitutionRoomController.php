@@ -58,7 +58,7 @@ class InstitutionRoomController extends Controller
         ])->all();
         $room = $this->room($request, MatrixRoom::ENTITY_LEGISLATURE, $legislature->id, true, fn () => $this->rooms->reconcileLegislature($legislature));
 
-        return $this->page($request, 'legislature', 'Legislative chamber', $legislature->jurisdiction_id,
+        return $this->page($request, 'legislature', __('Legislative chamber'), $legislature->jurisdiction_id,
             $legislature->id, $room, $rows, $members->count() > self::ROSTER_LIMIT,
             '/legislatures/'.$legislature->id.'/session');
     }
@@ -109,7 +109,7 @@ class InstitutionRoomController extends Controller
         $record = $board->boardable_type === Board::BOARDABLE_ORGANIZATIONS
             ? '/organizations/'.$board->boardable_id.'/board-elections' : '/departments/'.$board->boardable_id;
 
-        return $this->page($request, 'board', 'Board meeting', $board->jurisdictionId(), $board->id, $room,
+        return $this->page($request, 'board', __('Board meeting'), $board->jurisdictionId(), $board->id, $room,
             $rows, $seats->count() > self::ROSTER_LIMIT, $record, '/rooms/board/'.$board->id.'/call-token');
     }
 
@@ -118,7 +118,7 @@ class InstitutionRoomController extends Controller
         $this->boards->assertMayJoin($request->user(), $board);
         // The URL selects the board. A supplied room ID can never substitute another room.
         $room = $this->existingRoom(MatrixRoom::ENTITY_BOARD, (string) $board->id);
-        abort_unless($this->validRoom($room, false), 403, 'This board call is not available.');
+        abort_unless($this->validRoom($room, false), 403, __('This board call is not available.'));
         $identity = app(MatrixIdentityProvisioner::class)->ensureFor($request->user())->matrix_user_id;
         $minted = $tokens->mintAccessToken($identity, $room->matrix_room_id);
         return response()->json(array_merge($minted, ['sfu_url' => $minted['url']]));
@@ -144,11 +144,11 @@ class InstitutionRoomController extends Controller
     {
         abort_unless($request->user(), 403);
         $room = $this->existingRoom($type, $id);
-        abort_unless($this->validRoom($room, ! $private), 403, 'This room discussion is not available.');
+        abort_unless($this->validRoom($room, ! $private), 403, __('This room discussion is not available.'));
         if (! $private) {
             abort_unless($jurisdictionId, 403);
             try { $this->voiceAccess->assertMayJoin($request->user(), $jurisdictionId, $room->matrix_room_id); }
-            catch (\App\Services\Matrix\VoiceReachFailed) { abort(403, 'This room discussion is not available.'); }
+            catch (\App\Services\Matrix\VoiceReachFailed) { abort(403, __('This room discussion is not available.')); }
         }
         $data = $request->validate(['body' => ['required', 'string', 'max:4000']]);
         try {
@@ -156,7 +156,7 @@ class InstitutionRoomController extends Controller
             $this->matrix->sendMessage($room->matrix_room_id, ['msgtype' => 'm.text', 'body' => $data['body']], $identity);
         } catch (\Throwable $error) {
             report($error);
-            return back()->withErrors(['body' => 'The discussion message could not be sent. Please try again.']);
+            return back()->withErrors(['body' => __('The discussion message could not be sent. Please try again.')]);
         }
         return back();
     }

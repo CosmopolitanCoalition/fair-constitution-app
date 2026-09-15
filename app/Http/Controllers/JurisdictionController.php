@@ -479,7 +479,7 @@ class JurisdictionController extends Controller
             $tables = is_array($decoded) ? $decoded : array_filter(array_map('trim', explode(',', $tables)));
         }
         if ($tables !== null && ! is_array($tables)) {
-            return response()->json(['ok' => false, 'error' => 'tables must be an array'], 422);
+            return response()->json(['ok' => false, 'error' => __('tables must be an array')], 422);
         }
 
         if ($async) {
@@ -674,11 +674,11 @@ class JurisdictionController extends Controller
         $dir = storage_path('app/exports');
         // Disallow `..`, slashes, or any non-tarball pattern.
         if (! preg_match('/^[A-Za-z0-9._-]+\.tar\.gz$/', $filename)) {
-            return response()->json(['error' => 'invalid filename'], 400);
+            return response()->json(['error' => __('invalid filename')], 400);
         }
         $path = "{$dir}/{$filename}";
         if (! is_file($path)) {
-            return response()->json(['error' => 'not found'], 404);
+            return response()->json(['error' => __('not found')], 404);
         }
 
         return response()->download($path);
@@ -696,7 +696,7 @@ class JurisdictionController extends Controller
     public function exportMapsHalt(Request $request, string $exportId): JsonResponse
     {
         if (! preg_match('/^[A-Za-z0-9._-]+$/', $exportId)) {
-            return response()->json(['error' => 'invalid export_id'], 400);
+            return response()->json(['error' => __('invalid export_id')], 400);
         }
         \Illuminate\Support\Facades\Cache::put(
             "export.{$exportId}.halt",
@@ -714,7 +714,7 @@ class JurisdictionController extends Controller
     public function exportMapsDelete(Request $request, string $exportId): JsonResponse
     {
         if (! preg_match('/^[A-Za-z0-9._-]+$/', $exportId)) {
-            return response()->json(['error' => 'invalid export_id'], 400);
+            return response()->json(['error' => __('invalid export_id')], 400);
         }
         $dir = storage_path('app/exports');
         @unlink("{$dir}/{$exportId}.status.json");
@@ -744,7 +744,7 @@ class JurisdictionController extends Controller
         if (is_file($controlDir.'/running.json')) {
             return response()->json([
                 'ok' => false,
-                'error' => 'An ETL run is in progress; import would clobber its in-flight data.',
+                'error' => __('An ETL run is in progress; import would clobber its in-flight data.'),
             ], 409);
         }
 
@@ -758,7 +758,7 @@ class JurisdictionController extends Controller
             $tables = is_array($decoded) ? $decoded : array_filter(array_map('trim', explode(',', $tables)));
         }
         if ($tables !== null && ! is_array($tables)) {
-            return response()->json(['ok' => false, 'error' => 'tables must be an array'], 422);
+            return response()->json(['ok' => false, 'error' => __('tables must be an array')], 422);
         }
 
         try {
@@ -831,7 +831,7 @@ class JurisdictionController extends Controller
             case MapAcceptanceResult::MISSING_INSTANCE:
                 return response()->json([
                     'ok' => false,
-                    'error' => 'Instance settings row is missing — bootstrap not complete.',
+                    'error' => __('Instance settings row is missing — bootstrap not complete.'),
                 ], 422);
 
             case MapAcceptanceResult::WORLD_BUILD_INCOMPLETE:
@@ -964,7 +964,7 @@ class JurisdictionController extends Controller
             } catch (\Throwable $e) {
                 return response()->json([
                     'ok' => false,
-                    'error' => 'Activation failed: '.$e->getMessage(),
+                    'error' => __('Activation failed: :error', ['error' => $e->getMessage()]),
                 ], 422);
             }
 
@@ -990,7 +990,7 @@ class JurisdictionController extends Controller
             $tail = substr(trim(\Illuminate\Support\Facades\Artisan::output()), -400);
             return response()->json([
                 'ok' => false,
-                'error' => 'apportionment:seed did not produce a legislature: '.$tail,
+                'error' => __('apportionment:seed did not produce a legislature: :tail', ['tail' => $tail]),
             ], 422);
         }
 
@@ -1010,7 +1010,7 @@ class JurisdictionController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'ok' => false,
-                'error' => 'Seats created, but activation failed: '.$e->getMessage(),
+                'error' => __('Seats created, but activation failed: :error', ['error' => $e->getMessage()]),
             ], 422);
         }
         if ($bootExit !== 0) {
@@ -1152,7 +1152,7 @@ class JurisdictionController extends Controller
         if ($instance === null || $instance->game_mode !== 'sandbox') {
             return response()->json([
                 'ok' => false,
-                'error' => 'Simulation runs only on a sandbox world (game_mode).',
+                'error' => __('Simulation runs only on a sandbox world (game_mode).'),
             ], 422);
         }
 
@@ -1163,7 +1163,7 @@ class JurisdictionController extends Controller
         if (! $hasLegislature) {
             return response()->json([
                 'ok' => false,
-                'error' => 'Activate this jurisdiction first — the sim elects into chambers that exist.',
+                'error' => __('Activate this jurisdiction first — the sim elects into chambers that exist.'),
             ], 422);
         }
 
@@ -1180,7 +1180,7 @@ class JurisdictionController extends Controller
         if (! $hasActiveMap) {
             return response()->json([
                 'ok' => false,
-                'error' => 'No active district map — open Districts → and draw or autoseed one first. Elections need districts to elect from.',
+                'error' => __('No active district map — open Districts → and draw or autoseed one first. Elections need districts to elect from.'),
             ], 422);
         }
 
@@ -1208,7 +1208,7 @@ class JurisdictionController extends Controller
         if ($instance->isSetupComplete()) {
             return response()->json([
                 'ok' => false,
-                'error' => 'Setup is complete — the accepted map data is locked and cannot be reopened.',
+                'error' => __('Setup is complete — the accepted map data is locked and cannot be reopened.'),
             ], 403);
         }
 

@@ -31,7 +31,7 @@ class UpgradeConsentController extends Controller
         $proposalId = (string) ($body['proposal_id'] ?? '');
 
         if ($proposalId === '') {
-            return response()->json(['error' => 'proposal_id is required'], 422);
+            return response()->json(['error' => __('proposal_id is required')], 422);
         }
 
         $proposal = PeerUpgradeProposal::query()->find($proposalId);

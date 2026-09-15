@@ -61,7 +61,7 @@ class WorkController extends Controller
                     $props['applications'] = $this->page($applications, fn ($row) => $this->applicationRow($row, true));
                 }
             } elseif (! empty($input['posting'])) {
-                abort(422, 'Choose the organization before reviewing a posting.');
+                abort(422, __('Choose the organization before reviewing a posting.'));
             }
         } else {
             // The only restricted lookup resolves the signed-in person's own wallets.
@@ -86,38 +86,38 @@ class WorkController extends Controller
             // The new UUID may sort onto any page. Open it directly so the
             // employer can immediately review the opportunity they published.
             return redirect('/economy/work?'.http_build_query(['tab' => 'hiring', 'organization' => $organization, 'posting' => $posting]));
-        }, 'Work posting published.');
+        }, __('Work posting published.'));
     }
 
     public function closePosting(Request $request, string $posting): RedirectResponse
     {
         abort_unless($request->user(), 403);
-        return $this->action(fn () => $this->work->closePosting($posting, $request->user()), 'Posting closed. Pending applicants can still withdraw.');
+        return $this->action(fn () => $this->work->closePosting($posting, $request->user()), __('Posting closed. Pending applicants can still withdraw.'));
     }
 
     public function offer(Request $request, string $application): RedirectResponse
     {
         abort_unless($request->user(), 403);
         $data = $request->validate(['offer_terms' => ['required', 'string', 'max:10000']]);
-        return $this->action(fn () => $this->work->offer($application, $request->user(), $data['offer_terms']), 'Offer recorded. The applicant must explicitly accept these terms.');
+        return $this->action(fn () => $this->work->offer($application, $request->user(), $data['offer_terms']), __('Offer recorded. The applicant must explicitly accept these terms.'));
     }
 
     public function decline(Request $request, string $application): RedirectResponse
     {
         abort_unless($request->user(), 403);
-        return $this->action(fn () => $this->work->decline($application, $request->user()), 'Application declined.');
+        return $this->action(fn () => $this->work->decline($application, $request->user()), __('Application declined.'));
     }
 
     public function accept(Request $request, string $application): RedirectResponse
     {
         abort_unless($request->user(), 403);
-        return $this->action(fn () => $this->work->accept($application, $request->user()), 'Offer accepted. Your agreement is ready for the organization’s countersignature.');
+        return $this->action(fn () => $this->work->accept($application, $request->user()), __('Offer accepted. Your agreement is ready for the organization’s countersignature.'));
     }
 
     public function withdraw(Request $request, string $application): RedirectResponse
     {
         abort_unless($request->user(), 403);
-        return $this->action(fn () => $this->work->withdraw($application, $request->user()), 'Application withdrawn.');
+        return $this->action(fn () => $this->work->withdraw($application, $request->user()), __('Application withdrawn.'));
     }
 
     private function action(callable $action, string $message): RedirectResponse
@@ -179,7 +179,7 @@ class WorkController extends Controller
         $decoded = json_decode(base64_decode(strtr($encoded, '-_', '+/'), true) ?: '', true);
         if (! is_array($decoded) || count($decoded) !== 2 || ! is_bool($decoded['_pointsToNextItems'] ?? null)
             || ! is_string($decoded['id'] ?? null) || ! Str::isUuid($decoded['id'])) {
-            throw ValidationException::withMessages([$name => 'This page link is invalid. Open the work workspace again.']);
+            throw ValidationException::withMessages([$name => __('This page link is invalid. Open the work workspace again.')]);
         }
         return new Cursor(['id' => $decoded['id']], $decoded['_pointsToNextItems']);
     }

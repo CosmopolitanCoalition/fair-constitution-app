@@ -158,7 +158,7 @@ class FederationConsoleController extends Controller
                     'id' => (string) $a->id,
                     'jurisdiction_id' => (string) $a->jurisdiction_id,
                     'resolution' => $a->resolution,
-                    'authority' => $a->claimed_by_peer_id === null ? 'this instance' : ($a->peer?->name ?? 'a peer'),
+                    'authority' => $a->claimed_by_peer_id === null ? __('this instance') : ($a->peer?->name ?? __('a peer')),
                     'flipped_at' => $a->authority_flipped_at?->toIso8601String(),
                 ])->values(),
             // G3c — the HOST adoption console, populated ONLY for an authenticated
@@ -221,7 +221,7 @@ class FederationConsoleController extends Controller
         ]);
 
         if ($mirror->isMirror()) {
-            return back()->withErrors(['host_url' => 'This instance is already a mirror — leave the current cluster first.']);
+            return back()->withErrors(['host_url' => __('This instance is already a mirror — leave the current cluster first.')]);
         }
 
         // Record the instance's geodata posture (the signed GEODATA_ORIGIN channel,
@@ -250,7 +250,7 @@ class FederationConsoleController extends Controller
 
         // Keyless + still queued: the host operator must vouch first — nothing to sync yet.
         if ($membership === null) {
-            return back()->with('status', 'Request submitted — waiting for the host operator to vouch this instance. Re-submit to poll.');
+            return back()->with('status', __('Request submitted — waiting for the host operator to vouch this instance. Re-submit to poll.'));
         }
 
         // Admitted (SYNCING): run the long seed + drain OFF the request thread so this page shows
@@ -259,7 +259,7 @@ class FederationConsoleController extends Controller
         // tail and writes phase markers SyncProgressService surfaces to the progress panel below.
         ClusterJoinJob::dispatch((string) $membership->id);
 
-        return back()->with('status', "Adoption accepted — syncing the host's corpus. Live progress is shown below.");
+        return back()->with('status', __('Adoption accepted — syncing the host\'s corpus. Live progress is shown below.'));
     }
 
     /**
@@ -288,12 +288,12 @@ class FederationConsoleController extends Controller
     public function leave(MirrorService $mirror): RedirectResponse
     {
         if (! $mirror->isMirror()) {
-            return back()->withErrors(['host_url' => 'This instance is not a mirror.']);
+            return back()->withErrors(['host_url' => __('This instance is not a mirror.')]);
         }
 
         $mirror->leave();
 
-        return back()->with('status', 'Left the cluster — this instance is no longer a mirror.');
+        return back()->with('status', __('Left the cluster — this instance is no longer a mirror.'));
     }
 
     /**
@@ -315,7 +315,7 @@ class FederationConsoleController extends Controller
             return back()->withErrors(['rw_request' => $e->getMessage()]);
         }
 
-        return back()->with('status', "Read-write petition sent to the host (state: {$ack['state']}) — its government decides by supermajority (Art. V §7). A mirror stays authoritative for nothing until authority flips.");
+        return back()->with('status', __('Read-write petition sent to the host (state: :state) — its government decides by supermajority (Art. V §7). A mirror stays authoritative for nothing until authority flips.', ['state' => $ack['state']]));
     }
 
     /**
@@ -332,7 +332,7 @@ class FederationConsoleController extends Controller
             return back()->withErrors(['mesh' => $e->getMessage()]);
         }
 
-        return back()->with('status', "Discovered {$peer->name} ({$peer->server_id}). Handshake it to establish trust.");
+        return back()->with('status', __('Discovered :name (:server_id). Handshake it to establish trust.', ['name' => $peer->name, 'server_id' => $peer->server_id]));
     }
 
     /**
@@ -346,7 +346,7 @@ class FederationConsoleController extends Controller
         $peer = FederationPeer::query()->matchingNeedle($validated['peer'])->whereNull('deleted_at')->first();
 
         if ($peer === null) {
-            return back()->withErrors(['mesh' => 'No such peer — discover it first.']);
+            return back()->withErrors(['mesh' => __('No such peer — discover it first.')]);
         }
 
         try {
@@ -355,7 +355,7 @@ class FederationConsoleController extends Controller
             return back()->withErrors(['mesh' => $e->getMessage()]);
         }
 
-        return back()->with('status', "Handshake complete — {$peer->name} is trust_established.");
+        return back()->with('status', __('Handshake complete — :name is trust_established.', ['name' => $peer->name]));
     }
 
     /**
@@ -370,7 +370,7 @@ class FederationConsoleController extends Controller
 
         return back()
             ->with('mesh_probe', $result)
-            ->with('status', "Probe: {$result['reached']}/{$result['total']} transport(s) reached {$result['target']}.");
+            ->with('status', __('Probe: :reached/:total transport(s) reached :target.', ['reached' => $result['reached'], 'total' => $result['total'], 'target' => $result['target']]));
     }
 
     /**
@@ -387,7 +387,7 @@ class FederationConsoleController extends Controller
             return back()->withErrors(['roles' => $e->getMessage()]);
         }
 
-        return back()->with('status', "Established [{$validated['capability']}] (self-asserted — no consent needed).");
+        return back()->with('status', __('Established [:capability] (self-asserted — no consent needed).', ['capability' => $validated['capability']]));
     }
 
     /**
@@ -408,7 +408,7 @@ class FederationConsoleController extends Controller
             return back()->withErrors(['roles' => $e->getMessage()]);
         }
 
-        return back()->with('status', "Requested [{$validated['capability']}] — proposal ".substr((string) $proposal->id, 0, 8).". The dual-meter consent decides.");
+        return back()->with('status', __('Requested [:capability] — proposal :id. The dual-meter consent decides.', ['capability' => $validated['capability'], 'id' => substr((string) $proposal->id, 0, 8)]));
     }
 
     /**
@@ -424,14 +424,14 @@ class FederationConsoleController extends Controller
             ->where('kind', PeerUpgradeProposal::KIND_ROLE_GRANT)
             ->whereKey($validated['proposal_id'])->first();
         if ($proposal === null) {
-            return back()->withErrors(['roles' => 'No such role-grant request.']);
+            return back()->withErrors(['roles' => __('No such role-grant request.')]);
         }
 
         try {
             if ($upgrades->applicableConsentLeg($proposal->affected_root_jurisdiction_id) === 'operator') {
                 $operator = OperatorAccount::query()->whereKey(Auth::guard('operator')->id())->first();
                 if ($operator === null) {
-                    return back()->withErrors(['roles' => 'No operator account to attest as (Meter A).']);
+                    return back()->withErrors(['roles' => __('No operator account to attest as (Meter A).')]);
                 }
                 $upgrades->recordOperatorConsent($proposal, $operator, true);
             }
@@ -440,7 +440,7 @@ class FederationConsoleController extends Controller
             return back()->withErrors(['roles' => $e->getMessage()]);
         }
 
-        return back()->with('status', "Granted [{$ratified->capability}] — channel enabled, grant minted.");
+        return back()->with('status', __('Granted [:capability] — channel enabled, grant minted.', ['capability' => $ratified->capability]));
     }
 
     /** Mesh Roles ★15 — drop one of our channels (always unilateral). The GUI front door to `mesh:role revoke`. */
@@ -450,7 +450,7 @@ class FederationConsoleController extends Controller
 
         $grants->revoke($validated['capability'], 'operator-revoked via console');
 
-        return back()->with('status', "Dropped [{$validated['capability']}].");
+        return back()->with('status', __('Dropped [:capability].', ['capability' => $validated['capability']]));
     }
 
     /**
@@ -471,7 +471,7 @@ class FederationConsoleController extends Controller
             return back()->withErrors(['roles' => $e->getMessage()]);
         }
 
-        return back()->with('status', "Advertised transport [{$validated['transport']}].");
+        return back()->with('status', __('Advertised transport [:transport].', ['transport' => $validated['transport']]));
     }
 
     /** Mesh Roles ★15 — stop advertising a transport (switch method / drop a dead rung). */
@@ -481,7 +481,7 @@ class FederationConsoleController extends Controller
 
         $transports->disableSelf($validated['transport']);
 
-        return back()->with('status', "Stopped advertising [{$validated['transport']}].");
+        return back()->with('status', __('Stopped advertising [:transport].', ['transport' => $validated['transport']]));
     }
 
     /**
@@ -500,7 +500,7 @@ class FederationConsoleController extends Controller
 
         $credentials->setCredential($validated['domain'], $validated['zone_id'], $validated['cloudflare_token']);
 
-        return back()->with('status', "Broker credential stored for {$validated['domain']} (encrypted on this box; it never federates). Qualify broker.tls once lego is installed.");
+        return back()->with('status', __('Broker credential stored for :domain (encrypted on this box; it never federates). Qualify broker.tls once lego is installed.', ['domain' => $validated['domain']]));
     }
 
     /** Mesh Roles — remove a stored broker credential for a domain (local only). Operator-grade. */
@@ -510,6 +510,6 @@ class FederationConsoleController extends Controller
 
         $credentials->forget($validated['domain']);
 
-        return back()->with('status', "Broker credential removed for {$validated['domain']}.");
+        return back()->with('status', __('Broker credential removed for :domain.', ['domain' => $validated['domain']]));
     }
 }

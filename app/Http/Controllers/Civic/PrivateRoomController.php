@@ -78,7 +78,7 @@ class PrivateRoomController extends Controller
         $created = $createdId !== '' ? $rows->firstWhere('id', $createdId) : null;
 
         return Inertia::render('Civic/PrivateRooms', [
-            'surface' => ['title' => 'Messages', 'nav' => 'rooms'],
+            'surface' => ['title' => __('Messages'), 'nav' => 'rooms'],
             'rooms'   => $rows->all(),
             'created' => $created,
         ]);
@@ -92,7 +92,7 @@ class PrivateRoomController extends Controller
     public function create(Request $request): Response
     {
         return Inertia::render('Civic/PrivateRoomCreate', [
-            'surface' => ['title' => 'New message', 'nav' => 'rooms'],
+            'surface' => ['title' => __('New message'), 'nav' => 'rooms'],
         ]);
     }
 
@@ -106,7 +106,7 @@ class PrivateRoomController extends Controller
         // Land back on the Messages inbox with the share step open ("Bring people in") — the invite
         // link is THE way people arrive (no user directory, by design); the room is one click away.
         return redirect('/civic/rooms?created='.$space->id)
-            ->with('status', 'Your conversation is ready — share a link to bring people in.');
+            ->with('status', __('Your conversation is ready — share a link to bring people in.'));
     }
 
     /** GET /civic/rooms/{space} — member-gated room view (timeline + call + invite). */
@@ -117,7 +117,7 @@ class PrivateRoomController extends Controller
         // Member-gate: a non-member sees a "you need an invite" stub — never the room, timeline, or members.
         if (! $this->rooms->isMember($space, $user)) {
             return Inertia::render('Civic/PrivateRoom', [
-                'surface' => ['title' => 'Private room', 'nav' => 'rooms'],
+                'surface' => ['title' => __('Private room'), 'nav' => 'rooms'],
                 'locked'  => true,
                 'room'    => ['id' => (string) $space->id, 'title' => null],
             ]);
@@ -175,7 +175,7 @@ class PrivateRoomController extends Controller
 
         $room = $this->rooms->ensureRoom($space);
         if ($room === null) {
-            return back()->with('status', 'This room has no live channel yet.');
+            return back()->with('status', __('This room has no live channel yet.'));
         }
 
         try {
@@ -184,7 +184,7 @@ class PrivateRoomController extends Controller
             abort(403, $e->getMessage());
         }
 
-        return back()->with('status', 'Posted.');
+        return back()->with('status', __('Posted.'));
     }
 
     /** POST /civic/rooms/{space}/leave — a member leaves (the owner stays). */
@@ -192,7 +192,7 @@ class PrivateRoomController extends Controller
     {
         $this->rooms->leave($space, $request->user());
 
-        return redirect('/civic/rooms')->with('status', 'You left the room.');
+        return redirect('/civic/rooms')->with('status', __('You left the room.'));
     }
 
     /**
@@ -231,7 +231,7 @@ class PrivateRoomController extends Controller
 
         $body = (string) $last['body'];
         $mine = ($last['sender'] ?? '') === $myMxid;
-        $preview = ($mine ? 'You: ' : '').mb_strimwidth($body, 0, 90, '…');
+        $preview = ($mine ? __('You: ') : '').mb_strimwidth($body, 0, 90, '…');
 
         $at = $last['at'] ?? null;
         $atIso = $at !== null

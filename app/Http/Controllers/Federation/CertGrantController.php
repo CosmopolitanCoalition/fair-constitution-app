@@ -36,7 +36,7 @@ class CertGrantController extends Controller
 
         if (! is_array($grant) || $grantSig === ''
             || ($grant['type'] ?? null) !== 'cert_grant' || ($grant['v'] ?? null) !== 1) {
-            return response()->json(['error' => 'malformed cert_grant'], 422);
+            return response()->json(['error' => __('malformed cert_grant')], 422);
         }
 
         $authorityServerId = (string) ($grant['authority_server_id'] ?? '');
@@ -44,15 +44,15 @@ class CertGrantController extends Controller
         $pinned = $this->pinnedKey($authorityServerId, $from);
 
         if ($pinned === null || ! hash_equals($pinned, $authorityPub)) {
-            return response()->json(['error' => 'authority not pinned, or pubkey mismatch'], 403);
+            return response()->json(['error' => __('authority not pinned, or pubkey mismatch')], 403);
         }
         if (! InstanceIdentityService::verify($pinned, AuditService::canonicalJson($grant), $grantSig)) {
-            return response()->json(['error' => 'grant signature invalid'], 403);
+            return response()->json(['error' => __('grant signature invalid')], 403);
         }
 
         // The grant must be addressed to THIS box — never store a cert_grant minted for another grantee.
         if ((string) ($grant['peer_pubkey'] ?? '') !== $this->identity->publicKey()) {
-            return response()->json(['error' => 'grant is not addressed to this box'], 403);
+            return response()->json(['error' => __('grant is not addressed to this box')], 403);
         }
 
         // Verified + addressed to us — PERSIST it so `mesh:request-cert` can pick it up automatically (no operator

@@ -58,7 +58,7 @@ class OrgDelegationController extends Controller
             'reason'          => $validated['reason'] ?? null,
         ]);
 
-        return back()->with('status', 'Task delegated (F-ORG-011) — a scoped staff grant on the audit chain; it confers no constitutional office and you can revoke it.');
+        return back()->with('status', __('Task delegated (F-ORG-011) — a scoped staff grant on the audit chain; it confers no constitutional office and you can revoke it.'));
     }
 
     /** DELETE — F-ORG-011 'revoke_task' (R-23). */
@@ -78,6 +78,6 @@ class OrgDelegationController extends Controller
             'reason'          => $request->input('reason') ?: null,
         ]);
 
-        return back()->with('status', 'Delegation revoked (F-ORG-011) — the person can no longer act for this organization.');
+        return back()->with('status', __('Delegation revoked (F-ORG-011) — the person can no longer act for this organization.'));
     }
 }

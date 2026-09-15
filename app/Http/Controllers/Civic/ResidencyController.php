@@ -116,7 +116,7 @@ class ResidencyController extends Controller
         if ($found === null) {
             return response()->json([
                 'found'   => false,
-                'message' => 'No jurisdiction contains this point — it appears to be in open water or outside every loaded boundary.',
+                'message' => __('No jurisdiction contains this point — it appears to be in open water or outside every loaded boundary.'),
             ], 404);
         }
 
@@ -204,10 +204,10 @@ class ResidencyController extends Controller
         if ($claim !== null && $claim->isMonitoring() && $this->residency->thresholdDays($claim) === 0) {
             $this->residency->verify($claim);
 
-            return back()->with('status', 'Residency confirmed — you now belong to every place that contains your home.');
+            return back()->with('status', __('Residency confirmed — you now belong to every place that contains your home.'));
         }
 
-        return back()->with('status', 'Residency declared — check in from home to confirm it.');
+        return back()->with('status', __('Residency declared — check in from home to confirm it.'));
     }
 
     /**
@@ -221,13 +221,13 @@ class ResidencyController extends Controller
 
         if ($claim === null || ! $claim->isMonitoring()) {
             throw ValidationException::withMessages([
-                'claim' => 'No residency claim is awaiting confirmation.',
+                'claim' => __('No residency claim is awaiting confirmation.'),
             ]);
         }
 
         $this->residency->verify($claim);
 
-        return back()->with('status', 'Residency verified — your jurisdictional associations are active.');
+        return back()->with('status', __('Residency verified — your jurisdictional associations are active.'));
     }
 
     /** Correct the boundary: a new F-IND-003 superseding the open claim. */

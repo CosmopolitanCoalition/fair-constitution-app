@@ -97,7 +97,7 @@ class AuditChainController extends Controller
     /** POST /system/audit-chain/verify — operators only; result flashed. */
     public function verify(Request $request): RedirectResponse
     {
-        abort_unless($request->user()?->is_operator === true, 403, 'Chain verification is operator-triggered.');
+        abort_unless($request->user()?->is_operator === true, 403, __('Chain verification is operator-triggered.'));
 
         $started = hrtime(true);
         $result  = $this->audit->verifyChain();
@@ -108,12 +108,12 @@ class AuditChainController extends Controller
 
             return back()->with(
                 'status',
-                "Chain verified — every link recomputed through head #{$head} in {$ms} ms."
+                __('Chain verified — every link recomputed through head #:head in :ms ms.', ['head' => $head, 'ms' => $ms])
             );
         }
 
         return back()->withErrors([
-            'chain' => "CHAIN BROKEN at seq #{$result} — the link does not recompute. Investigate immediately.",
+            'chain' => __('CHAIN BROKEN at seq #:seq — the link does not recompute. Investigate immediately.', ['seq' => $result]),
         ]);
     }
 
@@ -129,11 +129,11 @@ class AuditChainController extends Controller
      */
     public function reconcile(Request $request, ChainReconciliationService $recon): RedirectResponse
     {
-        abort_unless($request->user()?->is_operator === true, 403, 'Reconciliation is operator-triggered.');
+        abort_unless($request->user()?->is_operator === true, 403, __('Reconciliation is operator-triggered.'));
 
         $reason = trim((string) $request->input('reason', ''));
         if ($reason === '') {
-            return back()->withErrors(['reason' => 'A reason is required — the record must say WHY the break is grounded.']);
+            return back()->withErrors(['reason' => __('A reason is required — the record must say WHY the break is grounded.')]);
         }
 
         $from = $request->input('from') !== null ? (int) $request->input('from') : null;
@@ -141,13 +141,13 @@ class AuditChainController extends Controller
         $unacked = array_values(array_filter($recon->detectBreaks($from), static fn ($b) => ! $b['acknowledged']));
 
         if ($unacked === []) {
-            return back()->with('status', 'No unacknowledged chain breaks — the chain is grounded.');
+            return back()->with('status', __('No unacknowledged chain breaks — the chain is grounded.'));
         }
 
         [$operator, $founder] = $this->resolveSigner();
         if ($operator === null && $founder === null) {
             return back()->withErrors([
-                'reason' => 'No operator account or founder (is_operator) user to sign the acknowledgement.',
+                'reason' => __('No operator account or founder (is_operator) user to sign the acknowledgement.'),
             ]);
         }
 
@@ -166,12 +166,14 @@ class AuditChainController extends Controller
             );
         }
 
-        $signer = $operator !== null ? "operator {$operator->username}" : 'the founder (de-facto operator)';
+        $signer = $operator !== null ? __('operator :username', ['username' => $operator->username]) : __('the founder (de-facto operator)');
         $n = count($unacked);
 
         return back()->with(
             'status',
-            "Re-grounded {$n} chain break".($n === 1 ? '' : 's')." — signed by {$signer}. Run 'Verify the full chain' to confirm.",
+            $n === 1
+                ? __('Re-grounded :n chain break — signed by :signer. Run \'Verify the full chain\' to confirm.', ['n' => $n, 'signer' => $signer])
+                : __('Re-grounded :n chain breaks — signed by :signer. Run \'Verify the full chain\' to confirm.', ['n' => $n, 'signer' => $signer]),
         );
     }
 

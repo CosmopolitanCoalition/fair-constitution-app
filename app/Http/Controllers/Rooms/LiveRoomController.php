@@ -116,7 +116,7 @@ class LiveRoomController extends Controller
             'surface'   => \App\Support\SurfaceMeta::for('legislature/committee-detail'),
             'variant'   => 'committee',
             'entity'    => ['type' => 'committee_meeting', 'id' => (string) $meeting->id],
-            'title'     => $committee->name.' — hearing',
+            'title'     => __(':committee — hearing', ['committee' => $committee->name]),
             'jurisdiction' => $jurisdiction?->name ?? '',
             'jurisdictionContext' => $jurisdiction ? \App\Support\JurisdictionContext::forRoom($jurisdiction) : null,
             'status'    => $this->statusOf($meeting->status),
@@ -130,10 +130,10 @@ class LiveRoomController extends Controller
             'agenda'    => $this->agendaItems($meeting),
             'floor'     => [
                 'kind'     => 'hearing',
-                'title'    => $this->currentAgendaTitle($meeting) ?? 'Committee hearing',
-                'body'     => 'The committee hears the matter, takes testimony, and may report to the floor.',
+                'title'    => $this->currentAgendaTitle($meeting) ?? __('Committee hearing'),
+                'body'     => __('The committee hears the matter, takes testimony, and may report to the floor.'),
                 'form'     => null,
-                'citation' => 'Art. II §4',
+                'citation' => __('Art. II §4'),
                 'deepLink' => "/committees/{$committee->id}",
             ],
             'vote'      => $this->openCommitteeVote($committee),
@@ -153,13 +153,13 @@ class LiveRoomController extends Controller
             'translation' => ['from' => 'en', 'to' => 'en', 'isPrivate' => false, 'rail' => 'server-local'],
             'record'    => $this->recordRows($meeting),
             'residencyGated' => true,
-            'galleryNote' => 'Anyone may watch a committee hearing (Art. II §2). Residents may raise a hand and testify; the seated members vote.',
+            'galleryNote' => __('Anyone may watch a committee hearing (Art. II §2). Residents may raise a hand and testify; the seated members vote.'),
             'forms'     => ['F-CHR-001', 'F-CHR-002', 'F-SOC-002'],
             'chairControls' => [
-                'Recognize the next speaker',
-                'Start the speaking clock',
-                'Advance the agenda',
-                'Call the committee vote',
+                __('Recognize the next speaker'),
+                __('Start the speaking clock'),
+                __('Advance the agenda'),
+                __('Call the committee vote'),
             ],
             'can' => [
                 'recognize' => $floorOpen && ($isChair || $isAlternate),
@@ -192,13 +192,13 @@ class LiveRoomController extends Controller
         abort_unless($request->user(), 403);
         $data = $request->validate(['body' => ['required', 'string', 'max:20000']]);
         $room = $this->existingMeetingRoom($meeting);
-        abort_unless($this->validMeetingRoom($room, $meeting), 403, 'This hearing discussion is not available.');
+        abort_unless($this->validMeetingRoom($room, $meeting), 403, __('This hearing discussion is not available.'));
         $jid = $meeting->committee()->firstOrFail()->legislature()->value('jurisdiction_id');
-        abort_unless($jid, 403, 'This hearing discussion is not available.');
+        abort_unless($jid, 403, __('This hearing discussion is not available.'));
         try {
             app(\App\Services\Matrix\PublicVoiceRoomAccess::class)->assertMayJoin($request->user(), (string) $jid, $room->matrix_room_id);
         } catch (VoiceReachFailed $error) {
-            abort(403, 'This hearing discussion is not available.');
+            abort(403, __('This hearing discussion is not available.'));
         }
         try {
             $identity = app(\App\Services\Matrix\MatrixIdentityProvisioner::class)->ensureFor($request->user());
@@ -206,9 +206,9 @@ class LiveRoomController extends Controller
                 ['msgtype' => 'm.text', 'body' => $data['body']], $identity->matrix_user_id);
         } catch (\Throwable $error) {
             report($error);
-            return back()->withErrors(['body' => 'The message could not be confirmed. Check the conversation before retrying.']);
+            return back()->withErrors(['body' => __('The message could not be confirmed. Check the conversation before retrying.')]);
         }
-        return back()->with('status', 'Message sent to the hearing discussion.');
+        return back()->with('status', __('Message sent to the hearing discussion.'));
     }
 
     private function existingMeetingRoom(CommitteeMeeting $meeting): ?MatrixRoom
@@ -244,7 +244,7 @@ class LiveRoomController extends Controller
             $this->floor->raiseHand($key, $identity->matrix_user_id, 'To speak');
         }
 
-        return back()->with('status', $action === 'lower' ? 'Your hand is lowered.' : 'Your hand is raised — the chair recognizes speakers in turn.');
+        return back()->with('status', $action === 'lower' ? __('Your hand is lowered.') : __('Your hand is raised — the chair recognizes speakers in turn.'));
     }
 
     /** The chair recognizes the next hand (or a named handle) → the floor. */
@@ -257,12 +257,12 @@ class LiveRoomController extends Controller
         $state = $this->floor->recognize($key, is_string($handle) ? $handle : null);
 
         $label = $state['floorHolder'] !== null
-            ? ($this->names->forHandles([$state['floorHolder']])[$state['floorHolder']] ?? 'The next speaker')
+            ? ($this->names->forHandles([$state['floorHolder']])[$state['floorHolder']] ?? __('The next speaker'))
             : null;
 
         return back()->with('status', $state['floorHolder'] !== null
-            ? "{$label} now holds the floor."
-            : 'No hands are raised to recognize.');
+            ? __(':label now holds the floor.', ['label' => $label])
+            : __('No hands are raised to recognize.'));
     }
 
     /** The chair yields the floor / moves on — the ephemeral floor resets. */
@@ -276,7 +276,7 @@ class LiveRoomController extends Controller
         // yields the floor so the next speaker can be recognized.
         $this->floor->yieldFloor($this->floor->key('committee_meeting', (string) $meeting->id));
 
-        return back()->with('status', 'The floor is open — recognize the next speaker.');
+        return back()->with('status', __('The floor is open — recognize the next speaker.'));
     }
 
     /** Only the committee chair (or its alternate) runs the floor. */
@@ -297,7 +297,7 @@ class LiveRoomController extends Controller
         $isChair = $memberId !== null && (string) $committee->chair_member_id === $memberId;
         $isAlternate = $memberId !== null && (string) $committee->alternate_member_id === $memberId;
 
-        abort_unless($isChair || $isAlternate, 403, 'Only the committee chair (or alternate) runs the floor.');
+        abort_unless($isChair || $isAlternate, 403, __('Only the committee chair (or alternate) runs the floor.'));
     }
 
     private function assertFloorOpen(CommitteeMeeting $meeting): void
@@ -306,7 +306,7 @@ class LiveRoomController extends Controller
         if (! in_array($meeting->status, [CommitteeMeeting::STATUS_SCHEDULED, CommitteeMeeting::STATUS_OPEN], true)
             || $committee === null || $committee->status === Committee::STATUS_DISSOLVED
             || $committee->legislature === null || $committee->legislature->status === Legislature::STATUS_DISSOLVED) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['floor' => 'This hearing or institution is closed. Its record and informal discussion remain available.']);
+            throw \Illuminate\Validation\ValidationException::withMessages(['floor' => __('This hearing or institution is closed. Its record and informal discussion remain available.')]);
         }
     }
 
@@ -317,9 +317,9 @@ class LiveRoomController extends Controller
     private function statusOf(string $status): array
     {
         return match ($status) {
-            CommitteeMeeting::STATUS_OPEN => ['state' => 'open', 'label' => 'In session'],
-            CommitteeMeeting::STATUS_ADJOURNED => ['state' => 'adjourned', 'label' => 'Adjourned'],
-            default => ['state' => 'scheduled', 'label' => 'Scheduled'],
+            CommitteeMeeting::STATUS_OPEN => ['state' => 'open', 'label' => __('In session')],
+            CommitteeMeeting::STATUS_ADJOURNED => ['state' => 'adjourned', 'label' => __('Adjourned')],
+            default => ['state' => 'scheduled', 'label' => __('Scheduled')],
         };
     }
 
@@ -332,7 +332,7 @@ class LiveRoomController extends Controller
             'position' => $i + 1,
             'locked'   => false, // a committee has no constitutional lock (Art. II §2 binds the chamber)
             'kind'     => 'other',
-            'title'    => is_string($title) ? $title : (string) ($title['title'] ?? 'Item'),
+            'title'    => is_string($title) ? $title : (string) ($title['title'] ?? __('Item')),
             'subject'  => null,
             'status'   => $i === 0 && $meeting->status === CommitteeMeeting::STATUS_OPEN ? 'in_progress' : 'pending',
         ], $agenda, array_keys($agenda));
@@ -409,7 +409,7 @@ class LiveRoomController extends Controller
             ->get(['title', 'audit_seq'])
             ->map(fn (PublicRecord $r) => [
                 'handle'    => '@u-record',
-                'body'      => $r->title ?? 'Sealed to the record',
+                'body'      => $r->title ?? __('Sealed to the record'),
                 'sealState' => 'recorded',
                 'recordHref' => '/system/audit-chain?seq='.(int) $r->audit_seq,
             ])

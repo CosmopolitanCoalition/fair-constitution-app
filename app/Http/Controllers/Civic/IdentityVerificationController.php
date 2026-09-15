@@ -90,6 +90,6 @@ class IdentityVerificationController extends Controller
             'jurisdiction_id' => $claim?->jurisdiction_id !== null ? (string) $claim->jurisdiction_id : null,
         ]);
 
-        return back()->with('status', 'Attestation appointment requested — your rights are unaffected while this is pending.');
+        return back()->with('status', __('Attestation appointment requested — your rights are unaffected while this is pending.'));
     }
 }

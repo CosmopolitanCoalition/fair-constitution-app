@@ -307,7 +307,7 @@ class EconomyController extends Controller
             return null;
         }
 
-        return (string) (DB::table('jurisdictions')->where('id', $currency->jurisdiction_id)->value('name') ?? 'The root legislature');
+        return (string) (DB::table('jurisdictions')->where('id', $currency->jurisdiction_id)->value('name') ?? __('The root legislature'));
     }
 
     /**
@@ -426,17 +426,17 @@ class EconomyController extends Controller
     private function holderName(string $type, string $id): string
     {
         if ($type === 'organizations') {
-            return (string) (DB::table('organizations')->where('id', $id)->value('name') ?? 'An organization');
+            return (string) (DB::table('organizations')->where('id', $id)->value('name') ?? __('An organization'));
         }
         if ($type === 'jurisdictions') {
-            return (string) (DB::table('jurisdictions')->where('id', $id)->value('name') ?? 'A jurisdiction');
+            return (string) (DB::table('jurisdictions')->where('id', $id)->value('name') ?? __('A jurisdiction'));
         }
 
         // users — the chosen PUBLIC name (display_name), never the legal name,
         // and only because this is the named ownership plane (Ruling B).
         $u = DB::table('users')->where('id', $id)->first(['display_name', 'name']);
 
-        return (string) ($u->display_name ?? $u->name ?? 'A holder');
+        return (string) ($u->display_name ?? $u->name ?? __('A holder'));
     }
 
     /**
@@ -563,7 +563,7 @@ class EconomyController extends Controller
                 'terms'        => (string) $row->terms,
                 'rate'         => $row->rate === null ? null : (string) $row->rate,
                 'status'       => (string) $row->status,
-                'org_name'     => $org === null ? 'An organization' : (string) $org->name,
+                'org_name'     => $org === null ? __('An organization') : (string) $org->name,
                 'org_id'       => $org === null ? null : (string) $org->id,
                 'org_href'     => $org === null ? null : '/organizations/' . rawurlencode((string) $org->id) . ($org->type === 'common_good_corp' ? '/cgc' : ''),
                 'applications' => DB::table('work_applications')->where('posting_id', $row->id)->count(),
@@ -617,10 +617,10 @@ class EconomyController extends Controller
 
         $examples = [];
         foreach ([
-            ['label' => 'A resident with no serving roles', 'roles' => []],
-            ['label' => 'A node operator',                  'roles' => ['node_operator']],
-            ['label' => 'A moderator who also holds office', 'roles' => ['social_moderator', 'office_holder']],
-            ['label' => 'All three duties at once',          'roles' => ['node_operator', 'social_moderator', 'office_holder']],
+            ['label' => __('A resident with no serving roles'), 'roles' => []],
+            ['label' => __('A node operator'),                  'roles' => ['node_operator']],
+            ['label' => __('A moderator who also holds office'), 'roles' => ['social_moderator', 'office_holder']],
+            ['label' => __('All three duties at once'),          'roles' => ['node_operator', 'social_moderator', 'office_holder']],
         ] as $case) {
             $bump = $stipends->bumpFor($case['roles'], $bumps, $cap);
 
@@ -997,7 +997,7 @@ class EconomyController extends Controller
         $names = DB::table('organizations')->whereIn('id', $rows->pluck('organization_id'))->pluck('name', 'id');
 
         return $rows->map(function ($row) use ($names) {
-            $row->org_name = $names[$row->organization_id] ?? 'An organization';
+            $row->org_name = $names[$row->organization_id] ?? __('An organization');
 
             return $row;
         });
@@ -1009,9 +1009,9 @@ class EconomyController extends Controller
         $uid = (string) $request->user()?->id;
 
         $counterparty = match (true) {
-            $c->counterparty_type === 'users' && (string) $c->counterparty_id === $uid => 'You',
-            $c->counterparty_type === 'users' => (string) (DB::table('users')->where('id', $c->counterparty_id)->value('name') ?? 'A resident'),
-            default => (string) (DB::table('organizations')->where('id', $c->counterparty_id)->value('name') ?? 'An organization'),
+            $c->counterparty_type === 'users' && (string) $c->counterparty_id === $uid => __('You'),
+            $c->counterparty_type === 'users' => (string) (DB::table('users')->where('id', $c->counterparty_id)->value('name') ?? __('A resident')),
+            default => (string) (DB::table('organizations')->where('id', $c->counterparty_id)->value('name') ?? __('An organization')),
         };
 
         return [

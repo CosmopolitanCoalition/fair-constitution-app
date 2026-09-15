@@ -66,7 +66,7 @@ class OperatorConsoleController extends Controller
             return back()->withErrors(['operator_tuning' => $e->getMessage()]);
         }
 
-        return back()->with('status', "Updated {$key}.");
+        return back()->with('status', __('Updated :key.', ['key' => $key]));
     }
 
     /** Phase 2 — clear an instant-tier override; the knob reverts to its env default. */
@@ -75,7 +75,7 @@ class OperatorConsoleController extends Controller
         $validated = $request->validate(['key' => ['required', 'string', 'max:64']]);
         $settings->clear($validated['key']);
 
-        return back()->with('status', "Reset {$validated['key']} to its default.");
+        return back()->with('status', __('Reset :key to its default.', ['key' => $validated['key']]));
     }
 
     /**
@@ -93,7 +93,7 @@ class OperatorConsoleController extends Controller
             return back()->withErrors(['operator_apply' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'Apply requested — the host supervisor will rewrite .env and recreate the service. Watch the status below.');
+        return back()->with('status', __('Apply requested — the host supervisor will rewrite .env and recreate the service. Watch the status below.'));
     }
 
     /** Phase 3 — the apply lifecycle poll (operator-gated): pending → applying → applied|failed. */

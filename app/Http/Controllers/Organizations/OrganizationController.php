@@ -57,14 +57,17 @@ use Inertia\Response;
 class OrganizationController extends Controller
 {
     /** ESM-18 ownership-structure rule glosses (the registration select hints). */
-    private const STRUCTURE_GLOSS = [
-        Organization::STRUCTURE_STOCK => 'Shares decide the owner side; members are shareholders.',
-        Organization::STRUCTURE_PARTNERSHIP => 'Partners are the owners; changes follow the partnership agreement.',
-        Organization::STRUCTURE_EQUAL_PARTNERSHIP => 'Equal partners; partnership changes require unanimity.',
-        Organization::STRUCTURE_MEMBER_OWNED => 'Member-owned; the membership governs per its adopted rules.',
-        Organization::STRUCTURE_WORKER_OWNED => 'Worker-owned; the worker-members are the owner side.',
-        Organization::STRUCTURE_NONPROFIT => 'Nonprofit; no ownership stakes — the board governs per its charter.',
-    ];
+    private static function structureGloss(): array
+    {
+        return [
+            Organization::STRUCTURE_STOCK => __('Shares decide the owner side; members are shareholders.'),
+            Organization::STRUCTURE_PARTNERSHIP => __('Partners are the owners; changes follow the partnership agreement.'),
+            Organization::STRUCTURE_EQUAL_PARTNERSHIP => __('Equal partners; partnership changes require unanimity.'),
+            Organization::STRUCTURE_MEMBER_OWNED => __('Member-owned; the membership governs per its adopted rules.'),
+            Organization::STRUCTURE_WORKER_OWNED => __('Worker-owned; the worker-members are the owner side.'),
+            Organization::STRUCTURE_NONPROFIT => __('Nonprofit; no ownership stakes — the board governs per its charter.'),
+        ];
+    }
 
     private const TYPES = [
         Organization::TYPE_POLITICAL_PARTY,
@@ -109,7 +112,7 @@ class OrganizationController extends Controller
                 'types' => self::TYPES,
                 'structures' => array_map(fn (string $s) => [
                     'value' => $s, 'label' => str_replace('_', ' ', $s),
-                    'rule_gloss' => self::STRUCTURE_GLOSS[$s] ?? null,
+                    'rule_gloss' => self::structureGloss()[$s] ?? null,
                 ], Organization::STRUCTURES),
                 // Observation of another place must never create action standing.
                 'jurisdictionOptions' => array_map(fn (array $a) => [
@@ -131,7 +134,7 @@ class OrganizationController extends Controller
             'purpose' => $request->input('purpose') ?: null,
         ]);
 
-        return back()->with('status', 'Organization registered (F-IND-012 · Art. I) — association is the only requirement; the public record carries the entry.');
+        return back()->with('status', __('Organization registered (F-IND-012 · Art. I) — association is the only requirement; the public record carries the entry.'));
     }
 
     // =========================================================================
@@ -310,7 +313,7 @@ class OrganizationController extends Controller
             'purpose' => $request->input('purpose'),
         ]);
 
-        return back()->with('status', 'Profile updated (F-ORG-001 · R-23).');
+        return back()->with('status', __('Profile updated (F-ORG-001 · R-23).'));
     }
 
     /**
@@ -333,7 +336,7 @@ class OrganizationController extends Controller
             'value'           => $validated['value'],
         ]);
 
-        return back()->with('status', 'Setting recorded (F-ORG-001) — an organization\'s own rule about itself, on the audit chain, never a constitutional value.');
+        return back()->with('status', __('Setting recorded (F-ORG-001) — an organization\'s own rule about itself, on the audit chain, never a constitutional value.'));
     }
 
     /** POST /organizations/{o}/memberships — F-IND-013 (R-01). */
@@ -344,7 +347,7 @@ class OrganizationController extends Controller
             'kind' => $request->input('kind') ?: null,
         ]);
 
-        return back()->with('status', 'Membership application filed (F-IND-013 · WF-ORG-03) — R-24 derives on the organization\'s acceptance.');
+        return back()->with('status', __('Membership application filed (F-IND-013 · WF-ORG-03) — R-24 derives on the organization\'s acceptance.'));
     }
 
     /**
@@ -371,8 +374,8 @@ class OrganizationController extends Controller
         ]);
 
         return back()->with('status', $validated['decision'] === 'decline'
-            ? 'Application declined (F-ORG-001) — the applicant may apply again.'
-            : 'Application accepted (F-ORG-001) — R-24 now derives from the active membership.');
+            ? __('Application declined (F-ORG-001) — the applicant may apply again.')
+            : __('Application accepted (F-ORG-001) — R-24 now derives from the active membership.'));
     }
 
     /**
@@ -394,7 +397,7 @@ class OrganizationController extends Controller
             'agent_user_id'   => $validated['agent_user_id'],
         ]);
 
-        return back()->with('status', 'Agency transferred (F-ORG-001) — effective immediately; the new representative now manages this organization.');
+        return back()->with('status', __('Agency transferred (F-ORG-001) — effective immediately; the new representative now manages this organization.'));
     }
 
     /** POST /organizations/{o}/workers — F-IND-014, the headcount feed (R-01). */
@@ -406,7 +409,7 @@ class OrganizationController extends Controller
             'contract_terms' => $request->input('contract_terms') ?: null,
         ]);
 
-        return back()->with('status', 'Worker registration filed (F-IND-014 · Art. III §6) — activates on the organization\'s countersign; headcount feeds the co-determination scale (CLK-13 / CLK-14).');
+        return back()->with('status', __('Worker registration filed (F-IND-014 · Art. III §6) — activates on the organization\'s countersign; headcount feeds the co-determination scale (CLK-13 / CLK-14).'));
     }
 
     /** POST /organizations/{o}/documents — F-ORG-001 'manage_document_package' (R-23). */
@@ -421,7 +424,7 @@ class OrganizationController extends Controller
             'content' => (string) $request->input('content', ''),
         ]);
 
-        return back()->with('status', 'Document package version recorded (F-ORG-001) — internal packages never override the constitutional forms.');
+        return back()->with('status', __('Document package version recorded (F-ORG-001) — internal packages never override the constitutional forms.'));
     }
 
     /** POST /contracts/{contract}/cosign — F-ORG-001 'countersign_contract' (R-23). */
@@ -433,7 +436,7 @@ class OrganizationController extends Controller
             'contract_id' => (string) $contract->id,
         ]);
 
-        return back()->with('status', 'Contract countersigned (F-ORG-001) — both signatures on record; the contract takes effect only with both.');
+        return back()->with('status', __('Contract countersigned (F-ORG-001) — both signatures on record; the contract takes effect only with both.'));
     }
 
     /** POST /organizations/{o}/endorsements/{request}/grant — F-ORG-002 (R-23). */
@@ -445,7 +448,7 @@ class OrganizationController extends Controller
             'statement' => $request->input('statement') ?: null,
         ]);
 
-        return back()->with('status', 'Endorsement decided (F-ORG-002) — a grant is forced public and confers R-07 on the candidate.');
+        return back()->with('status', __('Endorsement decided (F-ORG-002) — a grant is forced public and confers R-07 on the candidate.'));
     }
 
     /**
@@ -461,7 +464,7 @@ class OrganizationController extends Controller
             'request_id' => (string) $endorsementRequest->id,
         ]);
 
-        return back()->with('status', 'Endorsement withdrawn (F-ORG-002) — R-07 no longer derives from it; the organization may re-endorse at any time while the candidacy stands.');
+        return back()->with('status', __('Endorsement withdrawn (F-ORG-002) — R-07 no longer derives from it; the organization may re-endorse at any time while the candidacy stands.'));
     }
 
     /**
@@ -476,7 +479,7 @@ class OrganizationController extends Controller
             'request_id' => (string) $endorsementRequest->id,
         ]);
 
-        return back()->with('status', 'Endorsement re-made (F-ORG-002) — forced public and confers R-07 on the candidate again.');
+        return back()->with('status', __('Endorsement re-made (F-ORG-002) — forced public and confers R-07 on the candidate again.'));
     }
 
     // -------------------------------------------------------------------------
@@ -553,14 +556,14 @@ class OrganizationController extends Controller
             $name = DB::table('users')->where('id', $stake->holder_id)->value('display_name')
                 ?? DB::table('users')->where('id', $stake->holder_id)->value('name');
 
-            return $name !== null ? (string) $name : 'Holder';
+            return $name !== null ? (string) $name : __('Holder');
         }
 
         if ($stake->holder_type === OrgOwnershipStake::HOLDER_ORGANIZATIONS) {
-            return (string) (DB::table('organizations')->where('id', $stake->holder_id)->value('name') ?? 'Organization');
+            return (string) (DB::table('organizations')->where('id', $stake->holder_id)->value('name') ?? __('Organization'));
         }
 
-        return (string) (DB::table('jurisdictions')->where('id', $stake->holder_id)->value('name') ?? 'Jurisdiction');
+        return (string) (DB::table('jurisdictions')->where('id', $stake->holder_id)->value('name') ?? __('Jurisdiction'));
     }
 
     /**
@@ -641,7 +644,7 @@ class OrganizationController extends Controller
             ->map(fn (EndorsementRequest $r) => [
                 'id' => (string) $r->id,
                 'candidate' => [
-                    'name' => $r->candidacy?->user?->display_name ?? $r->candidacy?->user?->name ?? 'Candidate',
+                    'name' => $r->candidacy?->user?->display_name ?? $r->candidacy?->user?->name ?? __('Candidate'),
                     'href' => $r->candidacy_id !== null ? '/candidacies/'.$r->candidacy_id : null,
                 ],
                 'requested_at' => $r->requested_at?->toIso8601String(),
@@ -655,7 +658,7 @@ class OrganizationController extends Controller
                 'id' => (string) $r->id,
                 'candidacy_id' => $r->candidacy_id !== null ? (string) $r->candidacy_id : null,
                 'candidate' => [
-                    'name' => $r->candidacy?->user?->display_name ?? $r->candidacy?->user?->name ?? 'Candidate',
+                    'name' => $r->candidacy?->user?->display_name ?? $r->candidacy?->user?->name ?? __('Candidate'),
                     'href' => $r->candidacy_id !== null ? '/candidacies/'.$r->candidacy_id : null,
                 ],
                 'granted_at' => $r->decided_at?->toIso8601String(),
@@ -726,10 +729,10 @@ class OrganizationController extends Controller
     private function contractTitle(OrgContract $c): string
     {
         return match ($c->kind) {
-            OrgContract::KIND_LABOR_RECURRING => 'Recurring labor contract',
-            OrgContract::KIND_LABOR_SINGLE => 'Single labor contract',
-            OrgContract::KIND_COMMERCIAL => 'Commercial contract',
-            default => 'Contract',
+            OrgContract::KIND_LABOR_RECURRING => __('Recurring labor contract'),
+            OrgContract::KIND_LABOR_SINGLE => __('Single labor contract'),
+            OrgContract::KIND_COMMERCIAL => __('Commercial contract'),
+            default => __('Contract'),
         };
     }
 
@@ -739,10 +742,10 @@ class OrganizationController extends Controller
             $name = DB::table('users')->where('id', $c->counterparty_id)->value('display_name')
                 ?? DB::table('users')->where('id', $c->counterparty_id)->value('name');
 
-            return $name !== null ? (string) $name : 'Counterparty';
+            return $name !== null ? (string) $name : __('Counterparty');
         }
 
-        return (string) (DB::table('organizations')->where('id', $c->counterparty_id)->value('name') ?? 'Organization');
+        return (string) (DB::table('organizations')->where('id', $c->counterparty_id)->value('name') ?? __('Organization'));
     }
 
     /** @return array{kind: string}|null */

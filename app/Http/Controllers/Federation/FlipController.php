@@ -32,7 +32,7 @@ class FlipController extends Controller
         $signature = (string) ($data['signature'] ?? '');
 
         if (! is_array($manifest) || ($manifest['root_jurisdiction_id'] ?? null) === null || $signature === '') {
-            return response()->json(['error' => 'malformed partition bundle'], 422);
+            return response()->json(['error' => __('malformed partition bundle')], 422);
         }
 
         $export = $this->flips->importFlip($manifest, $signature, $peer);
@@ -64,7 +64,7 @@ class FlipController extends Controller
         $sealed = (string) ($data['sealed'] ?? '');
 
         if ($sealed === '') {
-            return response()->json(['error' => 'missing sealed operational bundle'], 422);
+            return response()->json(['error' => __('missing sealed operational bundle')], 422);
         }
 
         try {

@@ -20,6 +20,6 @@ class BoardRoomAccess
 
     public function assertMayJoin(?User $viewer, Board $board): void
     {
-        abort_unless($this->allows($viewer, $board), 403, 'This boardroom is for its current seated members.');
+        abort_unless($this->allows($viewer, $board), 403, __('This boardroom is for its current seated members.'));
     }
 }

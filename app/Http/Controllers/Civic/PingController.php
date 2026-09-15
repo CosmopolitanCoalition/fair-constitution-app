@@ -49,7 +49,7 @@ class PingController extends Controller
 
         return back()->with(
             'status',
-            $days === null ? 'Ping recorded.' : "Ping recorded — {$days} qualifying day(s)."
+            $days === null ? __('Ping recorded.') : __('Ping recorded — :count qualifying day(s).', ['count' => $days])
         );
     }
 

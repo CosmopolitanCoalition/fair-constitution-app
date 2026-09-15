@@ -128,8 +128,7 @@ class TransferController extends Controller
 
         return back()->with(
             'status',
-            'Transfer initiated — your side has consented (F-ORG-005). The transferee must consent before '
-            .'anything moves; the engine rejects completion with anything less than both consents.'
+            __('Transfer initiated — your side has consented (F-ORG-005). The transferee must consent before anything moves; the engine rejects completion with anything less than both consents.')
         );
     }
 
@@ -144,8 +143,7 @@ class TransferController extends Controller
 
         return back()->with(
             'status',
-            'Consent recorded — both consents are now on record (F-ORG-005). Ownership transfers by mutual '
-            .'consent, never by a hostile path.'
+            __('Consent recorded — both consents are now on record (F-ORG-005). Ownership transfers by mutual consent, never by a hostile path.')
         );
     }
 
@@ -166,8 +164,7 @@ class TransferController extends Controller
 
         return back()->with(
             'status',
-            'Conversion request filed (F-ORG-006) — a request, not an act. Both directions are '
-            .'legislature-only; the legislature decides by F-LEG-026 / F-LEG-027 (Art. III §5).'
+            __('Conversion request filed (F-ORG-006) — a request, not an act. Both directions are legislature-only; the legislature decides by F-LEG-026 / F-LEG-027 (Art. III §5).')
         );
     }
 
@@ -186,8 +183,7 @@ class TransferController extends Controller
 
         return back()->with(
             'status',
-            'Dissolution filed (F-ORG-007) — obligations settled, records archived, the audit chain preserved. '
-            .'A CGC dissolves only by legislative act (F-LEG-027).'
+            __('Dissolution filed (F-ORG-007) — obligations settled, records archived, the audit chain preserved. A CGC dissolves only by legislative act (F-LEG-027).')
         );
     }
 
@@ -206,8 +202,7 @@ class TransferController extends Controller
 
         return back()->with(
             'status',
-            'Restructuring proposed (F-ORG-009). Your consent is on it; the change adopts only when '
-            .'the current structure\'s own rule is met — the organization stays private throughout.'
+            __('Restructuring proposed (F-ORG-009). Your consent is on it; the change adopts only when the current structure\'s own rule is met — the organization stays private throughout.')
         );
     }
 
@@ -221,8 +216,7 @@ class TransferController extends Controller
 
         return back()->with(
             'status',
-            'Consented (F-ORG-009). If yours met the current structure\'s rule, the new structure is '
-            .'adopted — structure history stays on the public record.'
+            __('Consented (F-ORG-009). If yours met the current structure\'s rule, the new structure is adopted — structure history stays on the public record.')
         );
     }
 

@@ -132,7 +132,7 @@ class PublicRecordsController extends Controller
             ->whereNull('l.deleted_at')
             ->first(['l.id', 'j.name']);
 
-        return $row === null ? [] : [['id' => (string) $row->id, 'name' => $row->name . ' legislature']];
+        return $row === null ? [] : [['id' => (string) $row->id, 'name' => __(':name legislature', ['name' => $row->name])]];
     }
 
     /**
@@ -161,7 +161,7 @@ class PublicRecordsController extends Controller
             ->orderBy('j.name')
             ->limit(20)
             ->get(['l.id', 'j.name', 'j.adm_level'])
-            ->map(fn ($row) => ['id' => (string) $row->id, 'name' => $row->name . ' legislature', 'adm_level' => (int) $row->adm_level])
+            ->map(fn ($row) => ['id' => (string) $row->id, 'name' => __(':name legislature', ['name' => $row->name]), 'adm_level' => (int) $row->adm_level])
             ->all();
 
         return response()->json(['options' => $options]);
@@ -223,8 +223,9 @@ class PublicRecordsController extends Controller
 
         return back()->with(
             'status',
-            'Statement entered verbatim into the immutable public record (F-LEG-006 · WF-SYS-03)'
-            . ($seq !== null ? " — record #{$seq}, sealed into the audit chain at commit." : '.')
+            $seq !== null
+                ? __('Statement entered verbatim into the immutable public record (F-LEG-006 · WF-SYS-03) — record #:seq, sealed into the audit chain at commit.', ['seq' => $seq])
+                : __('Statement entered verbatim into the immutable public record (F-LEG-006 · WF-SYS-03).')
         );
     }
 
@@ -259,7 +260,7 @@ class PublicRecordsController extends Controller
             'kind'         => $record->kind,
             'title'        => $record->title,
             'body_excerpt' => $record->body !== null ? mb_strimwidth($record->body, 0, 220, '…') : null,
-            'actor_display' => $actor ?? 'Constitutional Engine',
+            'actor_display' => $actor ?? __('Constitutional Engine'),
             'jurisdiction'  => $record->jurisdiction_id !== null
                 ? ['name' => $jurisdictions->get((string) $record->jurisdiction_id)]
                 : null,
@@ -323,7 +324,7 @@ class PublicRecordsController extends Controller
             ->get()
             ->map(fn (LegislatureMember $member) => [
                 'id'   => (string) $member->legislature_id,
-                'name' => ($member->legislature?->jurisdiction?->name ?? 'Unknown') . ' legislature',
+                'name' => __(':name legislature', ['name' => $member->legislature?->jurisdiction?->name ?? __('Unknown')]),
             ])
             ->unique('id')
             ->values()
@@ -344,7 +345,7 @@ class PublicRecordsController extends Controller
             ->map(fn (Bill $bill) => [
                 'type'  => 'bill',
                 'id'    => (string) $bill->id,
-                'label' => 'Bill — ' . $bill->title,
+                'label' => __('Bill — :title', ['title' => $bill->title]),
             ]);
 
         $sessions = LegislatureSession::query()
@@ -355,7 +356,7 @@ class PublicRecordsController extends Controller
             ->map(fn (LegislatureSession $session) => [
                 'type'  => 'session',
                 'id'    => (string) $session->id,
-                'label' => "Session #{$session->session_no}" . ($session->scheduled_for !== null ? " — {$session->scheduled_for->toDateString()}" : ''),
+                'label' => __('Session #:no', ['no' => $session->session_no]) . ($session->scheduled_for !== null ? ' — ' . $session->scheduled_for->toDateString() : ''),
             ]);
 
         $votes = ChamberVote::query()
@@ -367,7 +368,7 @@ class PublicRecordsController extends Controller
             ->map(fn (ChamberVote $vote) => [
                 'type'  => 'vote',
                 'id'    => (string) $vote->id,
-                'label' => "Vote — {$vote->vote_type} ({$vote->status})",
+                'label' => __('Vote — :type (:status)', ['type' => $vote->vote_type, 'status' => $vote->status]),
             ]);
 
         return $bills->concat($sessions)->concat($votes)->values()->all();

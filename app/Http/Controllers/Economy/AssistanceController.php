@@ -105,25 +105,25 @@ class AssistanceController extends Controller
         return $this->action(function () use ($request, $data) {
             $id = $this->help->create($request->user(), $data['title'], $data['need'], $data['privacy'] ?? 'private');
             return redirect('/economy/help/'.$id);
-        }, ($data['privacy'] ?? 'private') === 'public' ? 'Request published.' : 'Private draft saved. Publish it when you are ready to receive offers of help.');
+        }, ($data['privacy'] ?? 'private') === 'public' ? __('Request published.') : __('Private draft saved. Publish it when you are ready to receive offers of help.'));
     }
 
     public function publish(Request $request, string $assistance): RedirectResponse
     {
         abort_unless($request->user(), 403);
-        return $this->action(fn () => $this->help->publish($request->user(), $assistance), 'Request published. Other participants can now offer help.');
+        return $this->action(fn () => $this->help->publish($request->user(), $assistance), __('Request published. Other participants can now offer help.'));
     }
 
     public function withdraw(Request $request, string $assistance): RedirectResponse
     {
         abort_unless($request->user(), 403);
-        return $this->action(fn () => $this->help->withdraw($request->user(), $assistance), 'Request withdrawn. Its history is retained.');
+        return $this->action(fn () => $this->help->withdraw($request->user(), $assistance), __('Request withdrawn. Its history is retained.'));
     }
 
     public function resolve(Request $request, string $assistance): RedirectResponse
     {
         abort_unless($request->user(), 403);
-        return $this->action(fn () => $this->help->resolve($request->user(), $assistance), 'Request marked complete. This records your confirmation; no payment or contract is created.');
+        return $this->action(fn () => $this->help->resolve($request->user(), $assistance), __('Request marked complete. This records your confirmation; no payment or contract is created.'));
     }
 
     public function respond(Request $request, string $assistance): RedirectResponse
@@ -133,13 +133,13 @@ class AssistanceController extends Controller
         return $this->action(function () use ($request, $assistance, $data) {
             $this->help->respond($request->user(), $assistance, $data['message']);
             return redirect('/economy/help/'.$assistance);
-        }, 'Offer sent privately to the requester.');
+        }, __('Offer sent privately to the requester.'));
     }
 
     public function match(Request $request, string $assistance, string $response): RedirectResponse
     {
         abort_unless($request->user(), 403);
-        return $this->action(fn () => $this->help->match($request->user(), $assistance, $response), 'Offer accepted. Mark the request complete after the help has been provided.');
+        return $this->action(fn () => $this->help->match($request->user(), $assistance, $response), __('Offer accepted. Mark the request complete after the help has been provided.'));
     }
 
     public function withdrawResponse(Request $request, string $assistance, string $response): RedirectResponse
@@ -149,7 +149,7 @@ class AssistanceController extends Controller
             $this->help->withdrawResponse($request->user(), $assistance, $response);
             // Withdrawal can remove access to a private match. Return to a safe page.
             return redirect('/economy/help?tab=responding');
-        }, 'Offer withdrawn. If it was the selected offer, the request is open again.');
+        }, __('Offer withdrawn. If it was the selected offer, the request is open again.'));
     }
 
     private function action(callable $action, string $message): RedirectResponse
@@ -165,7 +165,7 @@ class AssistanceController extends Controller
     private function participation(Request $request): array
     {
         $available = $request->user() !== null && $this->help->participationAccount($request->user()) !== null;
-        return ['canParticipate' => $available, 'participationNotice' => $available ? null : 'An open personal wallet is required to post a request or offer help. Your account identity is kept out of these pages.'];
+        return ['canParticipate' => $available, 'participationNotice' => $available ? null : __('An open personal wallet is required to post a request or offer help. Your account identity is kept out of these pages.')];
     }
 
     private function requestRow(object $row): array
@@ -187,7 +187,7 @@ class AssistanceController extends Controller
         $decoded = json_decode(base64_decode(strtr($encoded, '-_', '+/'), true) ?: '', true);
         if (! is_array($decoded) || count($decoded) !== 2 || ! is_bool($decoded['_pointsToNextItems'] ?? null)
             || ! is_string($decoded['id'] ?? null) || ! Str::isUuid($decoded['id'])) {
-            throw ValidationException::withMessages(['cursor' => 'This page link is invalid. Open the help workspace again.']);
+            throw ValidationException::withMessages(['cursor' => __('This page link is invalid. Open the help workspace again.')]);
         }
         return new Cursor(['id' => $decoded['id']], $decoded['_pointsToNextItems']);
     }

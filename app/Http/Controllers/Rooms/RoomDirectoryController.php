@@ -37,10 +37,10 @@ class RoomDirectoryController extends Controller
         $pagination = ['previous' => null, 'next' => null];
         $commons = [];
         if ($place !== null) {
-            $commons[] = ['title' => 'Public square', 'detail' => 'Open conversation, text, voice and video.',
+            $commons[] = ['title' => __('Public square'), 'detail' => __('Open conversation, text, voice and video.'),
                 'href' => '/civic/commons/square?jurisdiction='.$place->id];
             if (Legislature::query()->where('jurisdiction_id', $place->id)->where('status', 'active')->exists()) {
-                $commons[] = ['title' => 'Halls of governance', 'detail' => 'Civic discussion and public testimony.',
+                $commons[] = ['title' => __('Halls of governance'), 'detail' => __('Civic discussion and public testimony.'),
                     'href' => '/civic/commons/halls?jurisdiction='.$place->id];
             }
         }
@@ -58,8 +58,8 @@ class RoomDirectoryController extends Controller
                     Board::BOARDABLE_DEPARTMENTS => Department::query()->find($board->boardable_id, ['id', 'name']),
                     default => null,
                 };
-                $rows[] = ['id' => $seat->id, 'title' => ($owner?->name ?? 'Organization').' board',
-                    'detail' => 'Private · current board members', 'href' => '/rooms/board/'.$board->id];
+                $rows[] = ['id' => $seat->id, 'title' => __(':owner board', ['owner' => $owner?->name ?? __('Organization')]),
+                    'detail' => __('Private · current board members'), 'href' => '/rooms/board/'.$board->id];
             }
         } elseif ($place !== null && $section !== 'boards') {
             if ($section === 'chambers') {
@@ -80,18 +80,18 @@ class RoomDirectoryController extends Controller
             foreach ($page->items() as $record) {
                 $detail = ucfirst(str_replace('_', ' ', $record->status));
                 if ($section === 'chambers') {
-                    $rows[] = ['id' => $record->id, 'title' => $place->name.' chamber', 'detail' => $detail,
+                    $rows[] = ['id' => $record->id, 'title' => __(':place chamber', ['place' => $place->name]), 'detail' => $detail,
                         'href' => '/rooms/chamber/'.$record->id];
                 } elseif ($section === 'courts') {
-                    $rows[] = ['id' => $record->id, 'title' => $record->title ?: 'Court hearing', 'detail' => $detail,
+                    $rows[] = ['id' => $record->id, 'title' => $record->title ?: __('Court hearing'), 'detail' => $detail,
                         'href' => '/rooms/court/'.$record->id];
                 } else {
                     $meeting = CommitteeMeeting::query()->where('committee_id', $record->id)
                         ->orderByDesc('scheduled_for')->orderByDesc('id')->first(['id', 'status']);
                     $rows[] = ['id' => $record->id, 'title' => $record->name, 'detail' => $meeting
-                        ? 'Latest meeting · '.ucfirst($meeting->status) : 'No meeting scheduled',
+                        ? __('Latest meeting · :status', ['status' => ucfirst($meeting->status)]) : __('No meeting scheduled'),
                         'href' => $meeting ? '/rooms/committee/'.$meeting->id : '/committees/'.$record->id,
-                        'action' => $meeting ? 'Open room' : 'Committee record'];
+                        'action' => $meeting ? __('Open room') : __('Committee record')];
                 }
             }
         }
@@ -113,7 +113,7 @@ class RoomDirectoryController extends Controller
         $data = json_decode(base64_decode(strtr($encoded, '-_', '+/'), true) ?: '', true);
         if (! is_array($data) || count($data) !== 2 || ! is_bool($data['_pointsToNextItems'] ?? null)
             || ! is_string($data['id'] ?? null) || ! Str::isUuid($data['id'])) {
-            throw ValidationException::withMessages(['cursor' => 'This page link is invalid. Open the room directory again.']);
+            throw ValidationException::withMessages(['cursor' => __('This page link is invalid. Open the room directory again.')]);
         }
         return new Cursor(['id' => $data['id']], $data['_pointsToNextItems']);
     }
