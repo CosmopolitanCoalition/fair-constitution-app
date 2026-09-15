@@ -54,7 +54,7 @@ class ResidentAgreement implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation('An agreement is entered by a person.', 'CGA Forms Catalog (F-IND-020)');
+            throw new ConstitutionalViolation(__('An agreement is entered by a person.'), 'CGA Forms Catalog (F-IND-020)');
         }
 
         $me     = (string) $actor->getKey();
@@ -67,8 +67,7 @@ class ResidentAgreement implements FormHandler
             'accept_redline'   => $this->resolveRedline($me, $payload, 'accept'),
             'reject_redline'   => $this->resolveRedline($me, $payload, 'reject'),
             'withdraw_redline' => $this->resolveRedline($me, $payload, 'withdraw'),
-            default            => throw new ConstitutionalViolation(
-                "Unknown F-IND-020 action [{$action}].",
+            default            => throw new ConstitutionalViolation(__('Unknown F-IND-020 action [:action].', ['action' => $action]),
                 'CGA Forms Catalog (F-IND-020)'
             ),
         };
@@ -81,7 +80,7 @@ class ResidentAgreement implements FormHandler
         $terms = trim((string) ($payload['terms'] ?? ''));
 
         if ($title === '' || $terms === '') {
-            throw new ConstitutionalViolation('An agreement needs a title and its terms.', 'CGA Forms Catalog (F-IND-020)');
+            throw new ConstitutionalViolation(__('An agreement needs a title and its terms.'), 'CGA Forms Catalog (F-IND-020)');
         }
 
         $signers = is_array($payload['signers'] ?? null) ? $payload['signers'] : [];
@@ -127,7 +126,7 @@ class ResidentAgreement implements FormHandler
         $redline   = DB::table('redlines')->where('id', $redlineId)->first();
 
         if ($redline === null) {
-            throw new ConstitutionalViolation('Unknown redline.', 'CGA Forms Catalog (F-IND-020)');
+            throw new ConstitutionalViolation(__('Unknown redline.'), 'CGA Forms Catalog (F-IND-020)');
         }
 
         $this->assertParty((string) $redline->subject_type, (string) $redline->subject_id, $me);
@@ -156,8 +155,7 @@ class ResidentAgreement implements FormHandler
         };
 
         if (! $isParty) {
-            throw new ConstitutionalViolation(
-                'Only a party to this agreement may negotiate it.',
+            throw new ConstitutionalViolation(__('Only a party to this agreement may negotiate it.'),
                 'Art. I'
             );
         }

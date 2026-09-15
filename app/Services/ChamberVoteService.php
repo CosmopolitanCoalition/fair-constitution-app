@@ -139,9 +139,7 @@ class ChamberVoteService
         if ($session !== null
             && $session->pendingFirstBusiness() !== []
             && ! in_array($voteType, self::FIRST_BUSINESS_VOTE_TYPES, true)) {
-            throw new ConstitutionalViolation(
-                'Active emergency powers are the first order of business — '
-                . "general business ({$voteType}) cannot open while slot-1 agenda items are pending.",
+            throw new ConstitutionalViolation(__('Active emergency powers are the first order of business — general business (:votetype) cannot open while slot-1 agenda items are pending.', ['votetype' => $voteType]),
                 'Art. II §2'
             );
         }
@@ -231,15 +229,13 @@ class ChamberVoteService
             $fresh = ChamberVote::query()->whereKey($vote->id)->lockForUpdate()->firstOrFail();
 
             if ($fresh->status !== ChamberVote::STATUS_OPEN) {
-                throw new ConstitutionalViolation(
-                    "Vote {$fresh->id} is not open (status: {$fresh->status}).",
+                throw new ConstitutionalViolation(__('Vote :id is not open (status: :status).', ['id' => $fresh->id, 'status' => $fresh->status]),
                     'Art. II §2'
                 );
             }
 
             if (! in_array($member->status, LegislatureMember::CURRENT_STATUSES, true)) {
-                throw new ConstitutionalViolation(
-                    'Only currently serving members may cast.',
+                throw new ConstitutionalViolation(__('Only currently serving members may cast.'),
                     'Art. II §2'
                 );
             }
@@ -263,15 +259,13 @@ class ChamberVoteService
             // Method/value pairing (the DB CHECK is the backstop).
             if ($fresh->vote_method === ChamberVote::METHOD_YES_NO) {
                 if (! in_array($value, [VoteCast::VALUE_YES, VoteCast::VALUE_NO, VoteCast::VALUE_ABSTAIN], true) || $rankings !== null) {
-                    throw new ConstitutionalViolation(
-                        'A yes/no vote takes exactly one of yes|no|abstain (no rankings).',
+                    throw new ConstitutionalViolation(__('A yes/no vote takes exactly one of yes|no|abstain (no rankings).'),
                         'Art. II §2'
                     );
                 }
             } else {
                 if ($value !== null || ! is_array($rankings) || $rankings === []) {
-                    throw new ConstitutionalViolation(
-                        'A ranked vote takes a non-empty ranking list (no yes/no value).',
+                    throw new ConstitutionalViolation(__('A ranked vote takes a non-empty ranking list (no yes/no value).'),
                         'Art. II §2'
                     );
                 }
@@ -279,8 +273,7 @@ class ChamberVoteService
             }
 
             if (VoteCast::query()->where('vote_id', $fresh->id)->where('member_id', $member->id)->exists()) {
-                throw new ConstitutionalViolation(
-                    'Member has already cast on this vote — casts are immutable (the record is the record).',
+                throw new ConstitutionalViolation(__('Member has already cast on this vote — casts are immutable (the record is the record).'),
                     'Art. II §2'
                 );
             }
@@ -373,8 +366,7 @@ class ChamberVoteService
             }
 
             if ($fresh->vote_method !== ChamberVote::METHOD_YES_NO) {
-                throw new ConstitutionalViolation(
-                    'castManyYes is the yes/no bulk path — a ranked vote is cast through cast().',
+                throw new ConstitutionalViolation(__('castManyYes is the yes/no bulk path — a ranked vote is cast through cast().'),
                     'Art. II §2'
                 );
             }
@@ -500,23 +492,20 @@ class ChamberVoteService
             $fresh = ChamberVote::query()->whereKey($vote->id)->lockForUpdate()->firstOrFail();
 
             if ($fresh->status !== ChamberVote::STATUS_OPEN) {
-                throw new ConstitutionalViolation(
-                    "Vote {$fresh->id} is not open (status: {$fresh->status}).",
+                throw new ConstitutionalViolation(__('Vote :id is not open (status: :status).', ['id' => $fresh->id, 'status' => $fresh->status]),
                     'Art. III §6'
                 );
             }
 
             if ($fresh->body_type !== ChamberVote::BODY_BOARD) {
-                throw new ConstitutionalViolation(
-                    'Board-seat casts belong to board votes — chamber members cast through their member row.',
+                throw new ConstitutionalViolation(__('Board-seat casts belong to board votes — chamber members cast through their member row.'),
                     'Art. III §6 · as implemented'
                 );
             }
 
             if ((string) $seat->board_id !== (string) $fresh->body_id
                 || $seat->status !== \App\Models\BoardSeat::STATUS_SEATED) {
-                throw new ConstitutionalViolation(
-                    'Only currently SEATED members of this board may cast on its votes.',
+                throw new ConstitutionalViolation(__('Only currently SEATED members of this board may cast on its votes.'),
                     'Art. III §6'
                 );
             }
@@ -524,15 +513,13 @@ class ChamberVoteService
             // Method/value pairing — identical to cast().
             if ($fresh->vote_method === ChamberVote::METHOD_YES_NO) {
                 if (! in_array($value, [VoteCast::VALUE_YES, VoteCast::VALUE_NO, VoteCast::VALUE_ABSTAIN], true) || $rankings !== null) {
-                    throw new ConstitutionalViolation(
-                        'A yes/no vote takes exactly one of yes|no|abstain (no rankings).',
+                    throw new ConstitutionalViolation(__('A yes/no vote takes exactly one of yes|no|abstain (no rankings).'),
                         'Art. III §6 · as implemented'
                     );
                 }
             } else {
                 if ($value !== null || ! is_array($rankings) || $rankings === []) {
-                    throw new ConstitutionalViolation(
-                        'A ranked vote takes a non-empty ranking list (no yes/no value).',
+                    throw new ConstitutionalViolation(__('A ranked vote takes a non-empty ranking list (no yes/no value).'),
                         'Art. III §6 · as implemented'
                     );
                 }
@@ -540,8 +527,7 @@ class ChamberVoteService
             }
 
             if (VoteCast::query()->where('vote_id', $fresh->id)->where('board_seat_id', $seat->id)->exists()) {
-                throw new ConstitutionalViolation(
-                    'This seat has already cast on this vote — casts are immutable (the record is the record).',
+                throw new ConstitutionalViolation(__('This seat has already cast on this vote — casts are immutable (the record is the record).'),
                     'Art. III §6 · as implemented'
                 );
             }
@@ -715,22 +701,19 @@ class ChamberVoteService
             $fresh = ChamberVote::query()->whereKey($vote->id)->lockForUpdate()->firstOrFail();
 
             if ($fresh->status !== ChamberVote::STATUS_CLOSED || $fresh->outcome !== ChamberVote::OUTCOME_TIED) {
-                throw new ConstitutionalViolation(
-                    'A tie-breaking vote may only be cast on a vote that closed tied.',
+                throw new ConstitutionalViolation(__('A tie-breaking vote may only be cast on a vote that closed tied.'),
                     'Art. II §3'
                 );
             }
 
             if (! in_array($value, [VoteCast::VALUE_YES, VoteCast::VALUE_NO], true)) {
-                throw new ConstitutionalViolation(
-                    'A tie-breaking vote is yes or no.',
+                throw new ConstitutionalViolation(__('A tie-breaking vote is yes or no.'),
                     'Art. II §3'
                 );
             }
 
             if ($fresh->threshold_basis === ChamberVote::BASIS_SUPERMAJORITY) {
-                throw new ConstitutionalViolation(
-                    'A supermajority tie is unbreakable by a single vote — the tie-break never manufactures a supermajority.',
+                throw new ConstitutionalViolation(__('A supermajority tie is unbreakable by a single vote — the tie-break never manufactures a supermajority.'),
                     'Art. II §3 · Art. VII'
                 );
             }
@@ -743,8 +726,7 @@ class ChamberVoteService
                 ->first();
 
             if ($speakerMember === null || (string) $speakerMember->user_id !== (string) $speaker->getKey()) {
-                throw new ConstitutionalViolation(
-                    'Only the chamber\'s Speaker may cast the tie-breaking vote.',
+                throw new ConstitutionalViolation(__('Only the chamber\'s Speaker may cast the tie-breaking vote.'),
                     'Art. II §3'
                 );
             }
@@ -755,8 +737,7 @@ class ChamberVoteService
             $tally = $fresh->tallies()->where('lane', $lane)->lockForUpdate()->first();
 
             if ($tally === null || ! ($tally->yes === $tally->no && $tally->yes === $tally->required_yes - 1)) {
-                throw new ConstitutionalViolation(
-                    "The {$lane} lane is not in a resolvable tie state for the Speaker's vote.",
+                throw new ConstitutionalViolation(__('The :lane lane is not in a resolvable tie state for the Speaker\'s vote.', ['lane' => $lane]),
                     'Art. II §3'
                 );
             }
@@ -1024,9 +1005,7 @@ class ChamberVoteService
     public static function assertMemberMayCast(bool $isSpeaker, string $voteMethod, string $viaForm): void
     {
         if ($isSpeaker && $voteMethod === ChamberVote::METHOD_YES_NO && $viaForm !== 'F-SPK-004') {
-            throw new ConstitutionalViolation(
-                'The Speaker votes only to break ties (F-SPK-004) — they remain a serving member '
-                . 'and stay in every denominator.',
+            throw new ConstitutionalViolation(__('The Speaker votes only to break ties (F-SPK-004) — they remain a serving member and stay in every denominator.'),
                 'Art. II §3'
             );
         }
@@ -1104,8 +1083,7 @@ class ChamberVoteService
                 ->count();
 
             if ($seated < 1) {
-                throw new ConstitutionalViolation(
-                    'A board vote needs at least one seated board member.',
+                throw new ConstitutionalViolation(__('A board vote needs at least one seated board member.'),
                     'Art. III §6'
                 );
             }
@@ -1126,8 +1104,7 @@ class ChamberVoteService
     {
         if ($vote->body_type === ChamberVote::BODY_COMMITTEE) {
             if (! $this->roster->isMember($vote->body_id, (string) $member->id)) {
-                throw new ConstitutionalViolation(
-                    'Only seated members of the committee may cast on its votes.',
+                throw new ConstitutionalViolation(__('Only seated members of the committee may cast on its votes.'),
                     'Art. II §2'
                 );
             }
@@ -1137,15 +1114,14 @@ class ChamberVoteService
             $lane = $vote->bicameral ? $this->roster->laneOf($vote->body_id, (string) $member->id) : ChamberVoteTally::LANE_ALL;
 
             if ($lane === null || ! $vote->tallies()->where('lane', $lane)->exists()) {
-                throw new ConstitutionalViolation('Member has no lane on this committee vote.', 'Art. V §3');
+                throw new ConstitutionalViolation(__('Member has no lane on this committee vote.'), 'Art. V §3');
             }
 
             return $lane;
         }
 
         if ((string) $member->legislature_id !== (string) $vote->legislature_id) {
-            throw new ConstitutionalViolation(
-                'Only members of the voting body may cast.',
+            throw new ConstitutionalViolation(__('Only members of the voting body may cast.'),
                 'Art. II §2'
             );
         }
@@ -1153,7 +1129,7 @@ class ChamberVoteService
         $lane = $vote->bicameral ? $member->seatKind() : ChamberVoteTally::LANE_ALL;
 
         if (! $vote->tallies()->where('lane', $lane)->exists()) {
-            throw new ConstitutionalViolation("Member's seat kind has no lane on this vote.", 'Art. V §3');
+            throw new ConstitutionalViolation(__("Member's seat kind has no lane on this vote."), 'Art. V §3');
         }
 
         return $lane;

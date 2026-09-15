@@ -49,13 +49,13 @@ class PublicRecordStatement implements FormHandler
         $body = trim((string) ($payload['body'] ?? ''));
 
         if ($body === '') {
-            throw new ConstitutionalViolation('A statement carries text.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('A statement carries text.'), 'Art. II §2 · as implemented');
         }
 
         $legislature = Legislature::query()->find($payload['legislature_id'] ?? null);
 
         if ($legislature === null) {
-            throw new ConstitutionalViolation('Unknown legislature.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown legislature.'), 'Art. II §2 · as implemented');
         }
 
         $member = $this->currentMemberOf($actor, (string) $legislature->id);

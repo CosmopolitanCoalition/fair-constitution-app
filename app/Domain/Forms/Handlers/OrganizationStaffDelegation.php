@@ -52,21 +52,19 @@ class OrganizationStaffDelegation implements FormHandler
         $org = Organization::query()->find($payload['organization_id'] ?? null);
 
         if ($org === null) {
-            throw new ConstitutionalViolation('F-ORG-011 targets an unknown organization.', 'CGA Forms Catalog (F-ORG-011)');
+            throw new ConstitutionalViolation(__('F-ORG-011 targets an unknown organization.'), 'CGA Forms Catalog (F-ORG-011)');
         }
 
         // Grant/revoke are the agent's alone and are never delegable (a system
         // filing has no agent to record, so a person is required).
         if ($actor === null) {
-            throw new ConstitutionalViolation(
-                'Staff delegation is granted by a person — system filing is not defined.',
+            throw new ConstitutionalViolation(__('Staff delegation is granted by a person — system filing is not defined.'),
                 'CGA Forms Catalog (F-ORG-011)'
             );
         }
 
         if ((string) $org->agent_user_id !== (string) $actor->getKey()) {
-            throw new ConstitutionalViolation(
-                'Only this organization\'s agent may delegate staff, and delegation itself is never delegable (R-23).',
+            throw new ConstitutionalViolation(__('Only this organization\'s agent may delegate staff, and delegation itself is never delegable (R-23).'),
                 'CGA Forms Catalog (R-23)'
             );
         }
@@ -81,8 +79,7 @@ class OrganizationStaffDelegation implements FormHandler
         $result = match ($action) {
             'grant_task'  => $this->grant($delegation, $org, $actor, $granteeId, $bucket),
             'revoke_task' => $this->revoke($delegation, $org, $granteeId, $bucket, $actor, $reason),
-            default       => throw new ConstitutionalViolation(
-                "Unknown F-ORG-011 action [{$action}].",
+            default       => throw new ConstitutionalViolation(__('Unknown F-ORG-011 action [:action].', ['action' => $action]),
                 'CGA Forms Catalog (F-ORG-011)'
             ),
         };
@@ -96,7 +93,7 @@ class OrganizationStaffDelegation implements FormHandler
         $grantee = User::query()->find($granteeId);
 
         if ($grantee === null) {
-            throw new ConstitutionalViolation('Staff delegation names an unknown person.', 'CGA Forms Catalog (F-ORG-011)');
+            throw new ConstitutionalViolation(__('Staff delegation names an unknown person.'), 'CGA Forms Catalog (F-ORG-011)');
         }
 
         $grant = $delegation->grant($org, $actor, (string) $grantee->getKey(), $bucket);

@@ -47,13 +47,13 @@ class PublicPrivateConversionRequest implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation('A conversion request names its requester.', 'CGA Forms Catalog (F-ORG-006)');
+            throw new ConstitutionalViolation(__('A conversion request names its requester.'), 'CGA Forms Catalog (F-ORG-006)');
         }
 
         $org = Organization::query()->find($payload['organization_id'] ?? null);
 
         if ($org === null) {
-            throw new ConstitutionalViolation('F-ORG-006 targets an unknown organization.', 'CGA Forms Catalog (F-ORG-006)');
+            throw new ConstitutionalViolation(__('F-ORG-006 targets an unknown organization.'), 'CGA Forms Catalog (F-ORG-006)');
         }
 
         // SCOPE: the request is filed by THIS org's own agent (R-23 proves agency over SOME org — board-blind)
@@ -63,8 +63,7 @@ class PublicPrivateConversionRequest implements FormHandler
         $isOrgAgent = (string) $org->agent_user_id === (string) $actor->getKey();
         $isLegislator = in_array('R-09', $this->roles->rolesFor($actor), true);
         if (! $isOrgAgent && ! $isLegislator) {
-            throw new ConstitutionalViolation(
-                "A conversion request is filed by the organization's own agent or a serving legislator.",
+            throw new ConstitutionalViolation(__("A conversion request is filed by the organization's own agent or a serving legislator."),
                 'CGA Forms Catalog (R-23)'
             );
         }

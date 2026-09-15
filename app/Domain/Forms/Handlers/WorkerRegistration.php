@@ -49,14 +49,14 @@ class WorkerRegistration implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation('A worker registration belongs to a person.', 'CGA Forms Catalog (F-IND-014)');
+            throw new ConstitutionalViolation(__('A worker registration belongs to a person.'), 'CGA Forms Catalog (F-IND-014)');
         }
 
         $employerType = (string) ($payload['employer_type'] ?? OrgWorker::EMPLOYER_ORGANIZATIONS);
         $employerId   = (string) ($payload['employer_id'] ?? ($payload['organization_id'] ?? ''));
 
         if ($employerId === '') {
-            throw new ConstitutionalViolation('F-IND-014 names the employer.', 'CGA Forms Catalog (F-IND-014)');
+            throw new ConstitutionalViolation(__('F-IND-014 names the employer.'), 'CGA Forms Catalog (F-IND-014)');
         }
 
         $result = $this->memberships->registerWorker(

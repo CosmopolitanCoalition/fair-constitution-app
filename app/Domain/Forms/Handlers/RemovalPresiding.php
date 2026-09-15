@@ -62,8 +62,7 @@ class RemovalPresiding implements FormHandler
             'open'      => $this->open($actor, $payload),
             'designate' => $this->designate($actor, $payload),
             'open_vote' => $this->openVote($actor, $payload),
-            default     => throw new ConstitutionalViolation(
-                'F-SPK-007 actions: open, designate, open_vote.',
+            default     => throw new ConstitutionalViolation(__('F-SPK-007 actions: open, designate, open_vote.'),
                 'CGA Forms Catalog (F-SPK-007)'
             ),
         };
@@ -78,7 +77,7 @@ class RemovalPresiding implements FormHandler
             ->first();
 
         if ($subject === null) {
-            throw new ConstitutionalViolation('F-SPK-007 open requires a subject_member_id.', 'Art. II §3');
+            throw new ConstitutionalViolation(__('F-SPK-007 open requires a subject_member_id.'), 'Art. II §3');
         }
 
         // Default presider = the Speaker — except their own case, where
@@ -92,9 +91,7 @@ class RemovalPresiding implements FormHandler
                 && (string) $legislature->speaker_id === (string) $actorMember->id;
 
             if (! $isSpeaker) {
-                throw new ConstitutionalViolation(
-                    'Only the Speaker opens removal proceedings; a designated presider takes over '
-                    . 'AFTER designation (Art. II §3).',
+                throw new ConstitutionalViolation(__('Only the Speaker opens removal proceedings; a designated presider takes over AFTER designation (Art. II §3).'),
                     'Art. II §3'
                 );
             }
@@ -134,8 +131,7 @@ class RemovalPresiding implements FormHandler
             ->first();
 
         if ($presider === null) {
-            throw new ConstitutionalViolation(
-                'The designated presider must be a currently serving member of this chamber.',
+            throw new ConstitutionalViolation(__('The designated presider must be a currently serving member of this chamber.'),
                 'Art. II §3'
             );
         }
@@ -171,8 +167,7 @@ class RemovalPresiding implements FormHandler
                 && (string) $proceeding->presided_by_member_id === (string) $opener->id;
 
             if (! $isPresider && ! $isSpeaker) {
-                throw new ConstitutionalViolation(
-                    'Only the proceeding\'s presider (or the Speaker, where they preside) opens its vote.',
+                throw new ConstitutionalViolation(__('Only the proceeding\'s presider (or the Speaker, where they preside) opens its vote.'),
                     'Art. II §3'
                 );
             }
@@ -193,7 +188,7 @@ class RemovalPresiding implements FormHandler
         $proceeding = RemovalProceeding::query()->find($payload['proceeding_id'] ?? null);
 
         if ($proceeding === null) {
-            throw new ConstitutionalViolation('F-SPK-007 requires a valid proceeding_id.', 'Art. II §3');
+            throw new ConstitutionalViolation(__('F-SPK-007 requires a valid proceeding_id.'), 'Art. II §3');
         }
 
         return $proceeding;

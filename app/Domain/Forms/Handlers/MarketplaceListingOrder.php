@@ -67,8 +67,7 @@ class MarketplaceListingOrder implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation(
-                'Buying and selling is done by a person — system filing is not defined.',
+            throw new ConstitutionalViolation(__('Buying and selling is done by a person — system filing is not defined.'),
                 'CGA Forms Catalog (F-IND-022)'
             );
         }
@@ -78,8 +77,7 @@ class MarketplaceListingOrder implements FormHandler
         $accountId = $this->accounts->accountIdFor('users', (string) $actor->id, $currency->id);
 
         if ($accountId === null) {
-            throw new ConstitutionalViolation(
-                'You have no wallet in this currency yet — one opens with confirmed residency.',
+            throw new ConstitutionalViolation(__('You have no wallet in this currency yet — one opens with confirmed residency.'),
                 'Art. I · as implemented'
             );
         }
@@ -89,8 +87,7 @@ class MarketplaceListingOrder implements FormHandler
                 'list'   => $this->list($accountId, $currency, $payload),
                 'order'  => $this->order($accountId, $payload),
                 'settle' => $this->settle($accountId, $payload),
-                default  => throw new ConstitutionalViolation(
-                    "Unknown market action [{$action}] — list, order or settle.",
+                default  => throw new ConstitutionalViolation(__('Unknown market action [:action] — list, order or settle.', ['action' => $action]),
                     'CGA Forms Catalog (F-IND-022)'
                 ),
             };
@@ -107,7 +104,7 @@ class MarketplaceListingOrder implements FormHandler
         $title = trim((string) ($payload['title'] ?? ''));
 
         if ($title === '') {
-            throw new ConstitutionalViolation('A listing needs a title.', 'CGA Forms Catalog (F-IND-022)');
+            throw new ConstitutionalViolation(__('A listing needs a title.'), 'CGA Forms Catalog (F-IND-022)');
         }
 
         $listingId = $this->market->list(
@@ -129,7 +126,7 @@ class MarketplaceListingOrder implements FormHandler
         $listingId = (string) ($payload['listing_id'] ?? '');
 
         if ($listingId === '') {
-            throw new ConstitutionalViolation('An order names the listing.', 'CGA Forms Catalog (F-IND-022)');
+            throw new ConstitutionalViolation(__('An order names the listing.'), 'CGA Forms Catalog (F-IND-022)');
         }
 
         $orderId = $this->market->order(
@@ -146,7 +143,7 @@ class MarketplaceListingOrder implements FormHandler
         $orderId = (string) ($payload['order_id'] ?? '');
 
         if ($orderId === '') {
-            throw new ConstitutionalViolation('Settlement names the order.', 'CGA Forms Catalog (F-IND-022)');
+            throw new ConstitutionalViolation(__('Settlement names the order.'), 'CGA Forms Catalog (F-IND-022)');
         }
 
         // Only the SELLER settles — accepting an order is the seller's act,
@@ -154,15 +151,14 @@ class MarketplaceListingOrder implements FormHandler
         $order = \Illuminate\Support\Facades\DB::table('marketplace_orders')->where('id', $orderId)->first();
 
         if ($order === null) {
-            throw new ConstitutionalViolation('Unknown order.', 'CGA Forms Catalog (F-IND-022)');
+            throw new ConstitutionalViolation(__('Unknown order.'), 'CGA Forms Catalog (F-IND-022)');
         }
 
         $sellerAccountId = \Illuminate\Support\Facades\DB::table('marketplace_listings')
             ->where('id', $order->listing_id)->value('seller_account_id');
 
         if ((string) $sellerAccountId !== $accountId) {
-            throw new ConstitutionalViolation(
-                'Only the seller accepts an order — a buyer cannot settle their own purchase.',
+            throw new ConstitutionalViolation(__('Only the seller accepts an order — a buyer cannot settle their own purchase.'),
                 'Art. I · as implemented'
             );
         }
@@ -192,8 +188,7 @@ class MarketplaceListingOrder implements FormHandler
         }
 
         if ($currency === null) {
-            throw new ConstitutionalViolation(
-                'This world has no currency yet — the root jurisdiction defines one (Art. V §5).',
+            throw new ConstitutionalViolation(__('This world has no currency yet — the root jurisdiction defines one (Art. V §5).'),
                 'Art. V §5'
             );
         }

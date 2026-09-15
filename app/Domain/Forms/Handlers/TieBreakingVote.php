@@ -47,8 +47,7 @@ class TieBreakingVote implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation(
-                'The tie-breaking vote is the Speaker\'s own — never the system\'s.',
+            throw new ConstitutionalViolation(__('The tie-breaking vote is the Speaker\'s own — never the system\'s.'),
                 'Art. II §3'
             );
         }
@@ -56,7 +55,7 @@ class TieBreakingVote implements FormHandler
         $vote = ChamberVote::query()->find($payload['vote_id'] ?? null);
 
         if ($vote === null) {
-            throw new ConstitutionalViolation('F-SPK-004 requires a valid vote_id.', 'Art. II §3');
+            throw new ConstitutionalViolation(__('F-SPK-004 requires a valid vote_id.'), 'Art. II §3');
         }
 
         $resolved = $this->votes->tiebreak(

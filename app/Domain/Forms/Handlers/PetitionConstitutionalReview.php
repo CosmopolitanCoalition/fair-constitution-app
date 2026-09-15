@@ -58,13 +58,13 @@ class PetitionConstitutionalReview implements FormHandler
         $petition = Petition::query()->find((string) ($payload['petition_id'] ?? ''));
 
         if ($petition === null) {
-            throw new ConstitutionalViolation('F-JDG-008 names the petition it reviews (petition_id).', 'Art. II §6');
+            throw new ConstitutionalViolation(__('F-JDG-008 names the petition it reviews (petition_id).'), 'Art. II §6');
         }
 
         $judiciaryId = (string) ($payload['judiciary_id'] ?? '');
 
         if ($judiciaryId === '') {
-            throw new ConstitutionalViolation('F-JDG-008 names the reviewing court (judiciary_id).', 'Art. II §6');
+            throw new ConstitutionalViolation(__('F-JDG-008 names the reviewing court (judiciary_id).'), 'Art. II §6');
         }
 
         // The acting judge must be SEATED on THIS court.
@@ -73,13 +73,13 @@ class PetitionConstitutionalReview implements FormHandler
         $outcome = (string) ($payload['outcome'] ?? '');
 
         if (! in_array($outcome, ['cleared', 'struck'], true)) {
-            throw new ConstitutionalViolation('A petition review clears or strikes (outcome).', 'Art. II §6');
+            throw new ConstitutionalViolation(__('A petition review clears or strikes (outcome).'), 'Art. II §6');
         }
 
         $opinionText = trim((string) ($payload['opinion_text'] ?? ''));
 
         if ($opinionText === '') {
-            throw new ConstitutionalViolation('A petition review carries its opinion (opinion_text).', 'Art. II §6');
+            throw new ConstitutionalViolation(__('A petition review carries its opinion (opinion_text).'), 'Art. II §6');
         }
 
         // Open the review case (the petition's review_case_id; the cases agent

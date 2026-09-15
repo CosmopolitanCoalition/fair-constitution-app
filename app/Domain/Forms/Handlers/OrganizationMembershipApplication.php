@@ -45,13 +45,13 @@ class OrganizationMembershipApplication implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation('Membership belongs to a person.', 'CGA Forms Catalog (F-IND-013)');
+            throw new ConstitutionalViolation(__('Membership belongs to a person.'), 'CGA Forms Catalog (F-IND-013)');
         }
 
         $org = Organization::query()->find($payload['organization_id'] ?? null);
 
         if ($org === null) {
-            throw new ConstitutionalViolation('F-IND-013 targets an unknown organization.', 'CGA Forms Catalog (F-IND-013)');
+            throw new ConstitutionalViolation(__('F-IND-013 targets an unknown organization.'), 'CGA Forms Catalog (F-IND-013)');
         }
 
         $membership = $this->memberships->apply(

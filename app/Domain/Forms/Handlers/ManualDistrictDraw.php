@@ -82,20 +82,19 @@ class ManualDistrictDraw implements FormHandler
             $geoJson = json_encode($geoJson);
         }
         if (! is_string($geoJson) || $geoJson === '') {
-            throw new ConstitutionalViolation(
-                'F-ELB-008 requires a drawn polygon (geojson).',
+            throw new ConstitutionalViolation(__('F-ELB-008 requires a drawn polygon (geojson).'),
                 'CGA Forms Catalog (F-ELB-008)'
             );
         }
 
         $leg = DB::table('legislatures')->where('id', $legislatureId)->whereNull('deleted_at')->first();
         if ($leg === null) {
-            throw new ConstitutionalViolation('F-ELB-008 targets an unknown legislature.', 'CGA Forms Catalog (F-ELB-008)');
+            throw new ConstitutionalViolation(__('F-ELB-008 targets an unknown legislature.'), 'CGA Forms Catalog (F-ELB-008)');
         }
 
         $map = DB::table('legislature_district_maps')->where('id', $mapId)->whereNull('deleted_at')->first();
         if ($map === null || $map->legislature_id !== $leg->id) {
-            throw new ConstitutionalViolation('F-ELB-008 targets an unknown district map.', 'CGA Forms Catalog (F-ELB-008)');
+            throw new ConstitutionalViolation(__('F-ELB-008 targets an unknown district map.'), 'CGA Forms Catalog (F-ELB-008)');
         }
         if ($map->status !== 'draft') {
             // SETUP-context exception, same posture as the provenance skip below:
@@ -106,9 +105,7 @@ class ManualDistrictDraw implements FormHandler
             $activeFoundingMap = $map->status === 'active'
                 && BoardProvenance::inSetupContext((string) $leg->jurisdiction_id);
             if (! $activeFoundingMap) {
-                throw new ConstitutionalViolation(
-                    "District map [{$map->id}] is not a draft (status: {$map->status}) — "
-                    .'a standing government drafts new plans and votes them active.',
+                throw new ConstitutionalViolation(__('District map [:id] is not a draft (status: :status) — a standing government drafts new plans and votes them active.', ['id' => $map->id, 'status' => $map->status]),
                     'CGA Forms Catalog (F-ELB-008)'
                 );
             }
@@ -125,8 +122,7 @@ class ManualDistrictDraw implements FormHandler
                 ->whereNull('deleted_at')
                 ->exists();
             if ($labelTaken) {
-                throw new ConstitutionalViolation(
-                    "A drawn district named \"{$label}\" already exists in this plan — choose another label.",
+                throw new ConstitutionalViolation(__('A drawn district named ":label" already exists in this plan — choose another label.', ['label' => $label]),
                     'CGA Forms Catalog (F-ELB-008)'
                 );
             }
@@ -153,7 +149,7 @@ class ManualDistrictDraw implements FormHandler
 
         $giant = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
         if ($giant === null || $giant->geom === null) {
-            throw new ConstitutionalViolation('F-ELB-008 targets an unknown jurisdiction.', 'CGA Forms Catalog (F-ELB-008)');
+            throw new ConstitutionalViolation(__('F-ELB-008 targets an unknown jurisdiction.'), 'CGA Forms Catalog (F-ELB-008)');
         }
 
         $floor = ConstitutionalDefaults::floor($leg->jurisdiction_id);
@@ -174,10 +170,7 @@ class ManualDistrictDraw implements FormHandler
         if ($ctx === null) {
             $childCount = (int) DB::table('jurisdictions')
                 ->where('parent_id', $scopeId)->whereNull('deleted_at')->count();
-            throw new ConstitutionalViolation(
-                "{$giant->name} is not a childless leaf giant at its parent's scope "
-                ."({$childCount} children) — manual line-drawing applies only to the case "
-                .'composite cannot: a giant with no children.',
+            throw new ConstitutionalViolation(__(':name is not a childless leaf giant at its parent\'s scope (:childcount children) — manual line-drawing applies only to the case composite cannot: a giant with no children.', ['name' => $giant->name, 'childcount' => $childCount]),
                 'Art. II §8'
             );
         }
@@ -226,7 +219,7 @@ class ManualDistrictDraw implements FormHandler
         }
 
         if ($geo === null || (bool) $geo->empty) {
-            throw new ConstitutionalViolation('The drawn polygon is empty or invalid.', 'Art. II §2');
+            throw new ConstitutionalViolation(__('The drawn polygon is empty or invalid.'), 'Art. II §2');
         }
         $parts = (int) $geo->parts;
         $cutComponents = (int) $geo->cut_components;
@@ -239,16 +232,12 @@ class ManualDistrictDraw implements FormHandler
         // files with its parts recorded and is_contiguous scored, never
         // refused. The hand-draw path keeps the refusal as guidance.
         if (! $machinePiece && ($cutComponents > 1 || $fragmentPieces > 1)) {
-            throw new ConstitutionalViolation(
-                "A district may not fragment {$giant->name}'s territory (the drawn shape cuts "
-                ."{$cutComponents} separate landmasses and carries the cut territory in {$fragmentPieces} "
-                .'disconnected chunks — at most one connected cut fragment of one landmass is allowed).',
+            throw new ConstitutionalViolation(__('A district may not fragment :name\'s territory (the drawn shape cuts :cutcomponents separate landmasses and carries the cut territory in :fragmentpieces disconnected chunks — at most one connected cut fragment of one landmass is allowed).', ['name' => $giant->name, 'cutcomponents' => $cutComponents, 'fragmentpieces' => $fragmentPieces]),
                 'Art. II §8'
             );
         }
         if (! (bool) $geo->within) {
-            throw new ConstitutionalViolation(
-                "The drawn district extends outside {$giant->name}'s boundary.",
+            throw new ConstitutionalViolation(__('The drawn district extends outside :name\'s boundary.', ['name' => $giant->name]),
                 'Art. II §8'
             );
         }
@@ -300,12 +289,7 @@ class ManualDistrictDraw implements FormHandler
         // composite side's sub-floor bins record, seated by nearest rounding
         // with no total-forcing).
         if ($seats < 1 || $seats > $ceiling || ($seats < $floor && ! $floorPosture)) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    'The drawn district holds %s people (%.2f of the local quota %.1f) — %d seats, '
-                    .'outside the resolved band [%d, %d]. Redraw it larger or smaller.',
-                    number_format($pop), $fractional, $quota, $seats, $floor, $ceiling
-                ),
+            throw new ConstitutionalViolation(__('The drawn district holds :pop people (:fractional of the local quota :quota) — :seats seats, outside the resolved band [:floor, :ceiling]. Redraw it larger or smaller.', ['pop' => number_format($pop), 'fractional' => sprintf('%.2f', $fractional), 'quota' => sprintf('%.1f', $quota), 'seats' => (int) ($seats), 'floor' => (int) ($floor), 'ceiling' => (int) ($ceiling)]),
                 'Art. II §2'
             );
         }
@@ -321,8 +305,7 @@ class ManualDistrictDraw implements FormHandler
             [$mapId, $scopeId, $geoJson]
         );
         if ((int) ($overlap->n ?? 0) > 0) {
-            throw new ConstitutionalViolation(
-                'The drawn district overlaps a district already drawn in this plan — voter pools may not overlap.',
+            throw new ConstitutionalViolation(__('The drawn district overlaps a district already drawn in this plan — voter pools may not overlap.'),
                 'Art. II §8'
             );
         }

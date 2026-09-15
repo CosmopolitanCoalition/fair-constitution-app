@@ -56,7 +56,7 @@ class ReferendumActModification implements FormHandler
         $law = Law::query()->find($payload['law_id'] ?? null);
 
         if ($law === null) {
-            throw new ConstitutionalViolation('F-LEG-034 targets an unknown law.', 'Art. II §6');
+            throw new ConstitutionalViolation(__('F-LEG-034 targets an unknown law.'), 'Art. II §6');
         }
 
         $legislature = $law->legislature()->firstOrFail();

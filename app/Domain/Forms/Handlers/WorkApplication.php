@@ -56,8 +56,7 @@ class WorkApplication implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation(
-                'Applying for work is done by a person — system filing is not defined.',
+            throw new ConstitutionalViolation(__('Applying for work is done by a person — system filing is not defined.'),
                 'CGA Forms Catalog (F-IND-019)'
             );
         }
@@ -65,15 +64,14 @@ class WorkApplication implements FormHandler
         $postingId = (string) ($payload['posting_id'] ?? '');
 
         if ($postingId === '') {
-            throw new ConstitutionalViolation('An application names the posting.', 'CGA Forms Catalog (F-IND-019)');
+            throw new ConstitutionalViolation(__('An application names the posting.'), 'CGA Forms Catalog (F-IND-019)');
         }
 
         $currency = $this->currency();
         $accountId = $this->accounts->accountIdFor('users', (string) $actor->id, $currency->id);
 
         if ($accountId === null) {
-            throw new ConstitutionalViolation(
-                'You have no wallet in this currency yet — one opens with confirmed residency.',
+            throw new ConstitutionalViolation(__('You have no wallet in this currency yet — one opens with confirmed residency.'),
                 'Art. I · as implemented'
             );
         }
@@ -111,8 +109,7 @@ class WorkApplication implements FormHandler
             : Currency::query()->where('jurisdiction_id', $rootId)->whereNull('deleted_at')->first();
 
         if ($currency === null) {
-            throw new ConstitutionalViolation(
-                'This world has no currency yet — the root jurisdiction defines one (Art. V §5).',
+            throw new ConstitutionalViolation(__('This world has no currency yet — the root jurisdiction defines one (Art. V §5).'),
                 'Art. V §5'
             );
         }

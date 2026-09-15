@@ -59,8 +59,7 @@ class BillService
     {
         if ((string) $sponsor->legislature_id !== (string) $legislature->id
             || ! in_array($sponsor->status, LegislatureMember::CURRENT_STATUSES, true)) {
-            throw new ConstitutionalViolation(
-                'Only a currently seated member of this legislature may sponsor a bill.',
+            throw new ConstitutionalViolation(__('Only a currently seated member of this legislature may sponsor a bill.'),
                 'Art. II §2'
             );
         }
@@ -68,13 +67,13 @@ class BillService
         $actType = (string) ($payload['act_type'] ?? '');
 
         if (! in_array($actType, Bill::ACT_TYPES, true)) {
-            throw new ConstitutionalViolation("Unknown act_type [{$actType}].", 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown act_type [:acttype].', ['acttype' => $actType]), 'Art. II §2 · as implemented');
         }
 
         $lawText = (string) ($payload['law_text'] ?? '');
 
         if (trim($lawText) === '') {
-            throw new ConstitutionalViolation('A bill carries binding law text.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('A bill carries binding law text.'), 'Art. II §2 · as implemented');
         }
 
         // Scale: defaults to the legislature's own jurisdiction; every
@@ -84,8 +83,7 @@ class BillService
 
         foreach ($scale as $jurisdictionId) {
             if (! $this->inSubtree($jurisdictionId, (string) $legislature->jurisdiction_id)) {
-                throw new ConstitutionalViolation(
-                    "Scale jurisdiction [{$jurisdictionId}] lies outside this legislature's jurisdiction subtree.",
+                throw new ConstitutionalViolation(__('Scale jurisdiction [:jurisdictionid] lies outside this legislature\'s jurisdiction subtree.', ['jurisdictionid' => $jurisdictionId]),
                     'Art. V §4'
                 );
             }
@@ -100,8 +98,7 @@ class BillService
 
             if ($judiciaryJurisdiction === null
                 || ! $this->inSubtree((string) $legislature->jurisdiction_id, (string) $judiciaryJurisdiction)) {
-                throw new ConstitutionalViolation(
-                    'scope_judiciary_id must name a judiciary of this jurisdiction or an encompassing one.',
+                throw new ConstitutionalViolation(__('scope_judiciary_id must name a judiciary of this jurisdiction or an encompassing one.'),
                     'Art. IV §1 · as implemented'
                 );
             }
@@ -112,8 +109,7 @@ class BillService
         $proposedValue = $payload['proposed_value'] ?? null;
 
         if (($actType === Bill::TYPE_SETTING_CHANGE) !== ($settingKey !== null)) {
-            throw new ConstitutionalViolation(
-                'setting_change bills (and only they) target a setting key.',
+            throw new ConstitutionalViolation(__('setting_change bills (and only they) target a setting key.'),
                 'Art. VII'
             );
         }
@@ -374,8 +370,7 @@ class BillService
     private function assertStatus(Bill $bill, array $allowed): void
     {
         if (! in_array($bill->status, $allowed, true)) {
-            throw new ConstitutionalViolation(
-                "Illegal bill transition from [{$bill->status}] (ESM-07).",
+            throw new ConstitutionalViolation(__('Illegal bill transition from [:status] (ESM-07).', ['status' => $bill->status]),
                 'Art. II §2 · as implemented'
             );
         }

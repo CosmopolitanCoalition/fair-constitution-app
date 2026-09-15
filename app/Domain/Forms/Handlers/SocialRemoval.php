@@ -51,7 +51,7 @@ class SocialRemoval implements FormHandler
     {
         $post = SocialPost::query()->find($payload['target_post_id'] ?? null);
         if ($post === null) {
-            throw new ConstitutionalViolation('Unknown post.', 'Art. I');
+            throw new ConstitutionalViolation(__('Unknown post.'), 'Art. I');
         }
 
         $thread = SocialThread::query()->findOrFail($post->thread_id);
