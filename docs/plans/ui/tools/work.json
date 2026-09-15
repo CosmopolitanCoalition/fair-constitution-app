@@ -17071,6 +17071,10 @@
         {
           "date": "2026-09-15",
           "note": "RULING NEEDED (6:10 PM Eastern): /rooms/board/{board} returns 403 for a resident who is not a seated member of that election board (BoardRoomAccess::assertMayJoin, pinned by InstitutionRoomTest as a private boardroom call). The access policy says a page never 403s on a role; the fix lane kept this gate as a genuinely private room. Options: (a) keep the boardroom private and record the 403 as an accepted exception in the roster; (b) render the room page read-only for any resident with join gated. Until ruled, the route stays FAIL in the ledger. Pass 3 (49 routes, fresh session): 29 pass, 7 hold, 13 fail; overall 132 pass of 152 sampled. Probe: the legislature hub mounts in 5 s but holds 9,800 nodes, so axe takes 43 s per width (98 s total); the seven heavy pages need a 150 s budget, which pass 4 uses. Leaflet attribution still fails because the override sits in a cascade layer while Leaflet CSS is unlayered; moving it unlayered."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Pass 4 done 6:32 PM Eastern (23 routes at 150 s): 13 pass, 2 hold, 8 fail. Standing: 145 of 155 pages pass (152 sampled minus 5 JSON endpoints reclassified as machine, plus 6 wizard steps). Remaining: the six setup wizard steps 1 to 6 (new findings, 4 to 150 nodes each: gray-500 helper text, white on emerald-600 buttons, missing titles, two narrow-width overflows) assigned to lane fix-setup-wizard-a11y; the jurisdiction map (its pass-4 result was stale; a live probe shows the fixes applied, re-run pending); the boardroom 403 (ruling pending). The two held routes were JSON endpoints (jurisdiction search, dev users), reclassified (5d741a9d). A guest re-sweep of the 56 guest pages runs now, since the fixes changed shared components after the 09-14 guest pass."
         }
       ]
     }
