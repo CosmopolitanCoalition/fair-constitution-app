@@ -61,7 +61,13 @@ function writeResult(name, obj) {
  * and needs none of this.
  */
 const DEV_ASSET_RE = /:\/\/localhost:5173\//;
+// Host runs (operator order 2026-09-14): with CGA_BROWSER_BASE_URL pointing at a
+// localhost origin the page origin is already on Vite's CORS allowlist, and the
+// bridge below breaks Edge's module loads (net::ERR_FAILED, the app never mounts).
+// The bridge is for the http://nginx origin inside the container only.
+const HOST_RUN = /^https?:\/\/(localhost|127\.0\.0\.1)/.test(process.env.CGA_BROWSER_BASE_URL || '');
 async function bootAssets(page) {
+    if (HOST_RUN) return;
     const origin = () => {
         try {
             return new URL(page.url()).origin;

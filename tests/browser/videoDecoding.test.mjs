@@ -530,7 +530,10 @@ test('live /videos page renders as guest without console errors', async ({ page 
     // real responses, the Access-Control-Allow-Origin header the host browser
     // would receive. The app HTML/JS is served unchanged; only the missing CORS
     // header for the nginx origin is supplied.
-    await page.route('http://localhost:5173/**', async (route) => {
+    // Host runs (CGA_BROWSER_BASE_URL on a localhost origin) need no bridge: that
+    // origin is on Vite's allowlist and the bridge breaks Edge's module loads.
+    const hostRun = /^https?:\/\/(localhost|127\.0\.0\.1)/.test(process.env.CGA_BROWSER_BASE_URL || '');
+    if (!hostRun) await page.route('http://localhost:5173/**', async (route) => {
         const resp = await route.fetch();
         let origin = 'http://nginx';
         try { origin = new URL(page.url()).origin; } catch {}

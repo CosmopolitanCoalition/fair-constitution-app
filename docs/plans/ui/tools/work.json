@@ -8355,10 +8355,10 @@
     {
       "id": "W-0234",
       "title": "Apply Atlas accessibility findings: card headings, th scope, targets, contrast",
-      "phase": "P1",
-      "order": 18,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "detail": "resources/js/Pages/System/Atlas.vue + atlas-* CSS; findings at docs/plans/ui/L6W5_ATLAS_A11Y_FINDINGS.md (9f0f5e9) (low). A review, not a rebuild; Atlas.vue untouched. Does not block the walk.",
       "done_when": "Atlas vital-signs and domain cards carry an h3 or aria-labelledby; th elements carry scope; touch targets are at least 24px at 375px; the off-toggle meets contrast; the axe scan of Atlas passes with zero violations. After-screenshots are captured for every fixed Atlas surface.",
@@ -8441,6 +8441,10 @@
         {
           "date": "2026-09-14",
           "note": "Note: VERIFIED 2026-09-08 (next): docs/plans/ui/L6W5_ATLAS_A11Y_FINDINGS.md is present with open findings. No a11y fix or screenshot capture was committed in the recent set. Evidence: docs/plans/ui/L6W5_ATLAS_A11Y_FINDINGS.md exists and contains open findings (confirmed present). No commit in the leads list fixes a11y issues or captures after-screenshots. | docs/plans/ui/L6W5_ATLAS_A11Y_FINDINGS.md: one medium (domain cards need h3 / region) and three low. Capture the owed after-screenshots at review time."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Host browser sweep in Edge 2026-09-14 (docs/audits/2026-09-14/A11Y_SWEEP_HOST.md): /atlas clean at 1280 and 375 px, zero axe nodes, zero overflow, zero focus or name gaps. Semantics pinned by the a11y lane tests (a11yAtlasSemantics, a11yContrastFixes). After-shot taken in the operator's Edge at 8:24 PM Eastern."
         }
       ]
     },
@@ -13011,6 +13015,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Distinct a11y fix (contrast); 1,008 axe nodes recorded."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: Host sweep 2026-09-14: 39 of 41 guest routes tested; 26 clean. color-contrast remains on /building only: 14 nodes at each width, the seven step cards (.rounded-lg.border.p-3 heading row and the .mt-1.5.text-gray-500 line). /jurisdictions and /legislatures skipped on operator order pending pagination."
         }
       ]
     },
@@ -13047,6 +13055,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Distinct a11y fix (prose links)."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: Host sweep 2026-09-14: link-in-text-block remains on 5 routes at both widths: /achievements, /register, /support/report (the sign-in link a[href$=login]) and /civic/commons/halls, /civic/commons/square (a[href$=jurisdictions]). One node each."
         }
       ]
     },
@@ -13083,6 +13095,10 @@
         {
           "date": "2026-09-14",
           "note": "Disposition open: Distinct a11y fix (semantics)."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: Host sweep 2026-09-14: document-title clean on every tested route. scrollable-region-focusable remains on /coverage-ops at 375 px: 3 nodes, .card:nth-child(4..6) > .table-wrap."
         }
       ]
     },
@@ -16613,6 +16629,63 @@
       "evidence": [],
       "history": [
         "Opened 2026-09-14 by the desk after the clocks lane reported the failure; reproduced on main 49ccda01."
+      ]
+    },
+    {
+      "id": "W-0437",
+      "title": "Fix /system/public-records: nginx answers 502 for a guest",
+      "phase": "P1",
+      "order": 73,
+      "kind": "debt",
+      "status": "open",
+      "blocker": "",
+      "detail": "The host browser sweep of 2026-09-14 (docs/audits/2026-09-14/A11Y_SWEEP_HOST.md) recorded HTTP 502 from nginx on GET /system/public-records as a guest. A 502 means PHP-FPM died or timed out on the request. Not reproduced by hand yet; the route is on the guest roster.",
+      "done_when": "GET /system/public-records answers 200 for a guest within the nginx timeout on box E, and the a11y sweep establishes the route.",
+      "depends_on": [],
+      "sources": [
+        "desk: host a11y sweep 2026-09-14"
+      ],
+      "evidence": [],
+      "history": [
+        "Opened 2026-09-14 by the desk from the host browser sweep."
+      ]
+    },
+    {
+      "id": "W-0438",
+      "title": "Fix 375 px horizontal overflow on /learn/manage and /videos",
+      "phase": "P1",
+      "order": 74,
+      "kind": "debt",
+      "status": "open",
+      "blocker": "",
+      "detail": "Host sweep 2026-09-14: /learn/manage overflows by 88 px at 375 px (span.status, right edge 463 px); /videos overflows by 8 px (input.vplayer-volume, right edge 383 px). The register criterion is no horizontal overflow at 375 px.",
+      "done_when": "The accessibility sweep reports overflow 0 at 375 px on /learn/manage and /videos.",
+      "depends_on": [],
+      "sources": [
+        "desk: host a11y sweep 2026-09-14"
+      ],
+      "evidence": [],
+      "history": [
+        "Opened 2026-09-14 by the desk from the host browser sweep."
+      ]
+    },
+    {
+      "id": "W-0439",
+      "title": "Decide /people: guest roster lists it, the app walls it behind /login",
+      "phase": "P5",
+      "order": 75,
+      "kind": "debt",
+      "status": "open",
+      "blocker": "",
+      "detail": "Host sweep 2026-09-14: GET /people redirects a guest to /login, while tests/browser/roster derives it as a guest page from the route table. Either the people directory is a read surface that W-0283 should have opened, or the roster pin is wrong.",
+      "done_when": "Either /people renders for a guest, or the roster excludes it and the pin is updated deliberately, with the ruling recorded.",
+      "depends_on": [],
+      "sources": [
+        "desk: host a11y sweep 2026-09-14"
+      ],
+      "evidence": [],
+      "history": [
+        "Opened 2026-09-14 by the desk from the host browser sweep."
       ]
     }
   ]

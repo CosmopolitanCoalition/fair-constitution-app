@@ -407,6 +407,27 @@
    "note": "Built by the clocks lane, commit bc5b0dc6, merged 49ccda01. CLK-22 Civic Stipend Period registered (handler RunCivicStipendJob, seeder, migration 2026_09_14_120000 applied on box E, 22 clocks), armed at mint, fired in keyset chunks, re-armed each period; treasury next_run reads the armed timer. Pinned by CivicStipendClockTest (10). Clocks lane tests on main: 42 tests, 245 assertions.",
    "date": "2026-09-14",
    "title": "Arm a clock to fire the standalone stipend pass in bounded chunks"
+  },
+  "W-0234": {
+   "status": "done",
+   "note": "Host browser sweep in Edge 2026-09-14 (docs/audits/2026-09-14/A11Y_SWEEP_HOST.md): /atlas clean at 1280 and 375 px, zero axe nodes, zero overflow, zero focus or name gaps. Semantics pinned by the a11y lane tests (a11yAtlasSemantics, a11yContrastFixes). After-shot taken in the operator's Edge at 8:24 PM Eastern.",
+   "date": "2026-09-14",
+   "title": "Apply Atlas accessibility findings: card headings, th scope, targets, contrast"
+  },
+  "W-0336": {
+   "note": "Host sweep 2026-09-14: 39 of 41 guest routes tested; 26 clean. color-contrast remains on /building only: 14 nodes at each width, the seven step cards (.rounded-lg.border.p-3 heading row and the .mt-1.5.text-gray-500 line). /jurisdictions and /legislatures skipped on operator order pending pagination.",
+   "date": "2026-09-14",
+   "title": "Fix color contrast: raise subtle-fg token, replace opacity and Tailwind dimming"
+  },
+  "W-0337": {
+   "note": "Host sweep 2026-09-14: link-in-text-block remains on 5 routes at both widths: /achievements, /register, /support/report (the sign-in link a[href$=login]) and /civic/commons/halls, /civic/commons/square (a[href$=jurisdictions]). One node each.",
+   "date": "2026-09-14",
+   "title": "Give prose links an underline or 3:1 contrast"
+  },
+  "W-0338": {
+   "note": "Host sweep 2026-09-14: document-title clean on every tested route. scrollable-region-focusable remains on /coverage-ops at 375 px: 3 nodes, .card:nth-child(4..6) > .table-wrap.",
+   "date": "2026-09-14",
+   "title": "Make DataTable scroll container focusable and add Bootstrap page title"
   }
  }
 }
