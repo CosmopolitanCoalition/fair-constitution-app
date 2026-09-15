@@ -42,16 +42,20 @@ final class SurfaceMeta
             );
         }
 
+        // Display strings pass through __() at build time so the shared
+        // lang/en.json catalog can translate them. The config file stays raw
+        // English because it is cached. The English default returns verbatim
+        // when no catalog line exists.
         return [
             'id'        => $id,
-            'title'     => $record['title'] ?? $id,
+            'title'     => __($record['title'] ?? $id),
             'module'    => $record['module'] ?? '',
             'nav'       => $record['nav'] ?? null,
             'roles'     => $record['roles'] ?? [],
             'workflows' => $record['workflows'] ?? [],
             'forms'     => array_map(self::form(...), $record['forms'] ?? []),
             'clocks'    => $record['clocks'] ?? [],
-            'citation'  => $record['citation'] ?? null,
+            'citation'  => isset($record['citation']) ? __($record['citation']) : null,
         ];
     }
 
@@ -79,7 +83,9 @@ final class SurfaceMeta
             'name'        => $meta['name'],
             'alias'       => $drift[0] ?? null,
             'availableTo' => $entry['availableTo'] ?? $meta['roles'],
-            'citation'    => $entry['citation'] ?? null,
+            // The per-form citation is a display string sourced from this
+            // config. It passes through __() so the catalog can translate it.
+            'citation'    => isset($entry['citation']) ? __($entry['citation']) : null,
         ];
     }
 }
