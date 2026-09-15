@@ -194,7 +194,7 @@ function consentSummary(consent) {
         <Card v-if="machine.length" as="section" :title="t('c_institutions.departments.lifecycle_title', 'Department lifecycle (ESM-17)')">
             <StateStrip :states="machine" />
             <p class="citation" style="margin-block-start: var(--space-2)">
-                {{ t('c_institutions.departments.lifecycle_cite_before', 'An open governor-removal request splices a live') }} <strong>removal_requested</strong> {{ t('c_institutions.departments.lifecycle_cite_after', 'state into the machine without disturbing the stored status · Art. III §4.') }}
+                {{ t('c_institutions.departments.lifecycle_cite_before', 'An open governor-removal request splices a live') }} <strong data-no-i18n>removal_requested</strong> {{ t('c_institutions.departments.lifecycle_cite_after', 'state into the machine without disturbing the stored status · Art. III §4.') }}
             </p>
         </Card>
 

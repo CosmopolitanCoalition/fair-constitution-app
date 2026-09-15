@@ -296,7 +296,7 @@ const panelColumns = [
         <!-- ===================================== term lockstep ========= -->
         <Card as="section" :title="t('c_institutions.judiciary_home.term_title', 'Term length — judicial appointments')">
             <AmendableSetting
-                :value="`${term.years} years`"
+                :value="t('c_institutions.judiciary_home.term_years', { years: term.years })"
                 setting-key="judicial_appointment_years"
                 :default-value="10"
                 :citation="t('c_institutions.judiciary_home.term_citation', { clk: term.clk, civil: term.civilLockstep })"

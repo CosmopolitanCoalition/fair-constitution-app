@@ -161,7 +161,7 @@ const issuanceRows = () => props.issuance.map(i => ({ id: i.id, when: formatWhen
             <HistoryPager cursor-key="revenue_cursor" :pages="revenue_pages" :only="['revenue', 'revenue_pages']" :first="revenue_pages.first ?? '/economy/treasury'" :label="t('c_economy.treasury.revenue_sources_label', 'Revenue sources')" />
             <section v-if="finance_scope.revenue_source" aria-labelledby="levies-title">
                 <h3 id="levies-title">{{ t('c_economy.treasury.levies_for', { name: finance_scope.revenue_source.name }) }}</h3>
-                <ul class="econ-list"><li v-for="levy in levies" :key="levy.id">{{ levy.rate }} on {{ levy.base.replaceAll('_', ' ') }}<template v-if="levy.civic_exempt">{{ t('c_economy.treasury.civic_use_exempt', ' · civic use exempt') }}</template></li></ul>
+                <ul class="econ-list"><li v-for="levy in levies" :key="levy.id">{{ t('c_economy.treasury.levy_line', { rate: levy.rate, base: levy.base.replaceAll('_', ' ') }) }}<template v-if="levy.civic_exempt">{{ t('c_economy.treasury.civic_use_exempt', ' · civic use exempt') }}</template></li></ul>
                 <p v-if="!levies.length" class="econ-note">{{ t('c_economy.treasury.no_levies', 'No levies on this page.') }}</p>
                 <HistoryPager cursor-key="levies_cursor" :pages="levies_pages" :only="['levies', 'levies_pages']" :first="levies_pages.first ?? '/economy/treasury'" :label="t('c_economy.treasury.levies_label', 'Levies')" />
             </section>

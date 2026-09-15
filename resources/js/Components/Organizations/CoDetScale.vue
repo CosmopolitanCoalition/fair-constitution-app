@@ -135,13 +135,13 @@ function resetToLive() {
 <template>
     <div class="stack" style="gap: var(--space-3)">
         <p v-if="entityLabel" class="cc-small" style="margin: 0">
-            <strong style="color: var(--gov-fg)">{{ entityLabel }}</strong> —
-            {{ fmt(workers) }} workers against {{ ownerSeats }} owner-side seats.
+            <strong style="color: var(--gov-fg)">{{ entityLabel }}</strong>
+            {{ t('c_references.co_det_scale.entity_line', { workers: fmt(workers), owner: ownerSeats }) }}
         </p>
 
         <!-- explorer slider -->
         <div v-if="interactive" class="field" style="margin: 0">
-            <label class="field-label" :for="sliderId">Worker headcount (explorer)</label>
+            <label class="field-label" :for="sliderId">{{ text('co_det_scale.explorer_label', 'Worker headcount (explorer)') }}</label>
             <input
                 :id="sliderId"
                 v-model.number="slider"
@@ -162,7 +162,7 @@ function resetToLive() {
                 :aria-valuemin="0"
                 :aria-valuemax="trackMax"
                 :aria-valuenow="shownWorkers"
-                :aria-label="`Worker headcount on the co-determination scale${entityLabel ? ` — ${entityLabel}` : ''}`"
+                :aria-label="entityLabel ? t('c_references.co_det_scale.meter_aria_entity', { name: entityLabel }) : t('c_references.co_det_scale.meter_aria', 'Worker headcount on the co-determination scale')"
             >
                 <span
                     class="meter-fill"
@@ -190,7 +190,7 @@ function resetToLive() {
                     v-if="shownNextStep !== null && shownWorkers >= thresholds.min"
                     class="citation"
                     style="display: block; margin-block-start: var(--space-1)"
-                >next seat at {{ fmt(shownNextStep) }} workers (projection)</span>
+                >{{ t('c_references.co_det_scale.next_seat_at', { count: fmt(shownNextStep) }) }}</span>
             </div>
         </div>
 
@@ -200,7 +200,7 @@ function resetToLive() {
                 {{ text('workforce_projection', 'Projection — live seats update when the workforce changes') }}
             </StatusBadge>
             <Btn variant="secondary" size="sm" icon="refresh-cw" @click="resetToLive">
-                Reset to live ({{ fmt(workers) }} workers · {{ workerSeats }} seats)
+                {{ t('c_references.co_det_scale.reset_to_live', { workers: fmt(workers), seats: workerSeats }) }}
             </Btn>
         </div>
 
@@ -212,8 +212,7 @@ function resetToLive() {
             </div>
             <p class="citation" style="margin: 0">
                 <ReferenceText>
-                    Scales uniformly between the first seat ({{ fmt(thresholds.min) }}) and parity
-                    ({{ fmt(thresholds.parity) }}) · Art. III §6
+                    {{ t('c_references.co_det_scale.scales_uniformly', { min: fmt(thresholds.min), parity: fmt(thresholds.parity) }) }}
                 </ReferenceText>
             </p>
         </details>

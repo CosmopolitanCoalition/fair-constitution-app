@@ -37,7 +37,7 @@ const selectedContexts = useRemember(reactive({}), `resident-agreement-party-con
 const searchInput = ref(props.party_directory.query ?? '');
 const searching = ref(false);
 const searchError = ref('');
-const selectedParties = computed(() => draft.signers.map(id => ({ ...selectedContexts[id], id, name: selectedNames[id] ?? 'Previously selected party' })));
+const selectedParties = computed(() => draft.signers.map(id => ({ ...selectedContexts[id], id, name: selectedNames[id] ?? t('c_economy.resident_agreements.previously_selected', 'Previously selected party') })));
 
 watch(() => props.party_directory.query, query => { searchInput.value = query ?? ''; });
 watch(() => props.candidates, candidates => {

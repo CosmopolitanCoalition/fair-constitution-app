@@ -324,6 +324,7 @@
   "organization_nav.workspace_aria": "{name} workspace",
   "ownership_panel.cgc_body": "In a Common Good Corporation the Board of Governors stands where shareholders would — the owner side runs on the share system everywhere else.",
   "ownership_panel.cgc_cite": "Art. III §5–6 · as implemented (ledger #12)",
+  "ownership_panel.cgc_structure": "Common Good Corporation",
   "ownership_panel.col_holder": "Holder",
   "ownership_panel.col_units": "Units",
   "ownership_panel.count_members": "members",

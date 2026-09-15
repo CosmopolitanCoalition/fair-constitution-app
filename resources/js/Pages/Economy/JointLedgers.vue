@@ -162,7 +162,7 @@ function submitApprove(movementId) {
                     <div v-for="m in l.movements" :key="m.id" class="jl-movement">
                         <p>
                             <strong>{{ formatMoney(m.amount, currency) }}</strong>
-                            to <span class="mono">{{ shortId(m.to_account_id) }}</span>
+                            {{ t('c_economy.joint_ledgers.movement_to', 'to') }} <span class="mono">{{ shortId(m.to_account_id) }}</span>
                             <template v-if="m.memo"> — {{ m.memo }}</template>
                         </p>
                         <p class="econ-note">

@@ -152,11 +152,11 @@ const chairRounds = computed(() => props.chair?.rounds?.rounds ?? []);
 
 /* ------------------------------------ open-nomination window (v3.2 0d) -- */
 const WINDOW_PHASES = ['nominations', 'ranking', 'count'];
-const WINDOW_LABELS = {
-    nominations: 'Nominations open',
-    ranking: 'Ranking open',
-    count: 'Count & seating',
-};
+const WINDOW_LABELS = computed(() => ({
+    nominations: text('window_nominations_open', 'Nominations open'),
+    ranking: text('window_ranking_open', 'Ranking open'),
+    count: text('window_count', 'Count & seating'),
+}));
 
 /* A one-line date summary off the election row. The dates are engine
    snapshots (the controller read them straight off the row); this only
@@ -166,10 +166,10 @@ function windowDates(nom) {
     const d = (iso) => (iso ? new Date(iso).toLocaleDateString() : null);
     const parts = [];
     if (d(nom.nominations_open_at) && d(nom.nominations_close_at)) {
-        parts.push(`nominations ${d(nom.nominations_open_at)} → ${d(nom.nominations_close_at)}`);
+        parts.push(`${text('window_nominations', 'nominations')} ${d(nom.nominations_open_at)} → ${d(nom.nominations_close_at)}`);
     }
     if (d(nom.ranking_open_at) && d(nom.ranking_close_at)) {
-        parts.push(`ranking ${d(nom.ranking_open_at)} → ${d(nom.ranking_close_at)}`);
+        parts.push(`${text('window_ranking', 'ranking')} ${d(nom.ranking_open_at)} → ${d(nom.ranking_close_at)}`);
     }
     return parts.length ? parts.join(' · ') : null;
 }
@@ -178,8 +178,8 @@ function windowDates(nom) {
 const nominationStrips = computed(() => {
     const out = [];
     for (const [key, label, track] of [
-        ['owner', 'Owner track', props.ownerTrack],
-        ['worker', 'Worker track', props.workerTrack],
+        ['owner', text('owner_track', 'Owner track'), props.ownerTrack],
+        ['worker', text('worker_track', 'Worker track'), props.workerTrack],
     ]) {
         if (track?.nomination) {
             out.push({ key, label, phase: track.nomination.phase, dates: windowDates(track.nomination) });
@@ -190,7 +190,7 @@ const nominationStrips = computed(() => {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`Board elections — ${organization.name}`">
+    <PageScaffold :surface="surface" :title="t('c_references.board_elections.page_title', { name: organization.name })">
         <template #intro>
             {{ intro }}
         </template>
@@ -204,8 +204,8 @@ const nominationStrips = computed(() => {
         <CgcGovernors v-if="isCgc && appointmentContext" :organization="organization" :context="appointmentContext" :appointments="governorAppointments" :pages="governorPages" :directory="nomineeDirectory" />
 
         <!-- ===================================== no board yet =========== -->
-        <Card v-if="!composition" as="section" title="No board constituted">
-            <Banner tone="info" role="status" title="This organization has no board yet.">
+        <Card v-if="!composition" as="section" :title="text('no_board_title', 'No board constituted')">
+            <Banner tone="info" role="status" :title="text('no_board_banner', 'This organization has no board yet.')">
                 {{ isCgc
                     ? text('cgc_no_board', 'No governing board has been established for this organization yet. Governor appointments and worker elections will appear here when available.')
                     : text('no_board', 'No governing board has been established for this organization yet. Worker seats become available as the workforce reaches the required size.') }}
@@ -224,15 +224,15 @@ const nominationStrips = computed(() => {
 
         <template v-else>
             <!-- ====================================== stat cluster ====== -->
-            <Card as="section" title="The board">
+            <Card as="section" :title="text('the_board', 'The board')">
                 <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
                     <Stat :value="composition.ownerSeats" :label="ownerSeatLabel" />
                     <Stat :value="composition.workerSeats" :label="text('worker_seats', 'Worker-elected seats')" accent />
-                    <Stat :value="composition.chair?.name ?? 'Unfilled'" :label="text('chair', 'Board chair')" />
+                    <Stat :value="composition.chair?.name ?? text('unfilled', 'Unfilled')" :label="text('chair', 'Board chair')" />
                 </div>
                 <p v-if="!composition.compositionValid" style="margin-block-start: var(--space-3)">
                     <StatusBadge tone="warning" icon="alert-triangle">
-                        Composition invalid — a worker-track election is required before the board acts
+                        {{ text('composition_invalid', 'Composition invalid — a worker-track election is required before the board acts') }}
                     </StatusBadge>
                 </p>
             </Card>
@@ -275,8 +275,7 @@ const nominationStrips = computed(() => {
                     </div>
                 </template>
                 <p v-else class="gloss" style="margin-block-start: var(--space-2)">
-                    No board election is scheduled yet — the nomination → ranking → count phases
-                    appear here once a track opens.
+                    {{ text('no_election_scheduled', 'No board election is scheduled yet — the nomination → ranking → count phases appear here once a track opens.') }}
                 </p>
             </Card>
 
@@ -300,18 +299,17 @@ const nominationStrips = computed(() => {
 
                 <!-- live race → link to the Phase B ballot surface -->
                 <p v-if="ownerTrack.election?.live" class="cluster" style="margin-block: var(--space-2)">
-                    <StatusBadge tone="info" icon="clock">election in flight · {{ ownerTrack.election.status }}</StatusBadge>
-                    <Link :href="ownerTrack.election.href">vote on the ranked ballot →</Link>
-                    <span class="citation">eligible owners see the race on their ballot surface</span>
+                    <StatusBadge tone="info" icon="clock">{{ t('c_references.board_elections.election_in_flight', { status: ownerTrack.election.status }) }}</StatusBadge>
+                    <Link :href="ownerTrack.election.href">{{ text('vote_ranked_ballot', 'vote on the ranked ballot →') }}</Link>
+                    <span class="citation">{{ text('owners_see_ballot', 'eligible owners see the race on their ballot surface') }}</span>
                 </p>
 
                 <!-- certified result: final-round StvBar rows + the Droop line -->
                 <template v-if="ownerTrack.result && ownerFinal">
                     <p class="gloss" style="margin-block-start: var(--space-2)">
-                        Gold tick = the Droop quota; reaching it elects a candidate. Final round of the
-                        certified count.
+                        {{ text('gold_tick_note', 'Gold tick = the Droop quota; reaching it elects a candidate. Final round of the certified count.') }}
                     </p>
-                    <span class="visually-hidden">Droop quota {{ ownerTrack.result.quota.toLocaleString() }}</span>
+                    <span class="visually-hidden">{{ t('c_references.board_elections.droop_quota', { quota: ownerTrack.result.quota.toLocaleString() }) }}</span>
                     <StvRound
                         :round="ownerFinal"
                         :quota="ownerTrack.result.quota"
@@ -362,16 +360,16 @@ const nominationStrips = computed(() => {
                     </div>
 
                     <p v-if="workerTrack.election?.live" class="cluster" style="margin-block: var(--space-2)">
-                        <StatusBadge tone="info" icon="clock">election in flight · {{ workerTrack.election.status }}</StatusBadge>
-                        <Link :href="workerTrack.election.href">vote on the ranked ballot →</Link>
-                        <span class="citation">eligible workers see the race on their ballot surface</span>
+                        <StatusBadge tone="info" icon="clock">{{ t('c_references.board_elections.election_in_flight', { status: workerTrack.election.status }) }}</StatusBadge>
+                        <Link :href="workerTrack.election.href">{{ text('vote_ranked_ballot', 'vote on the ranked ballot →') }}</Link>
+                        <span class="citation">{{ text('workers_see_ballot', 'eligible workers see the race on their ballot surface') }}</span>
                     </p>
 
                     <template v-if="workerTrack.result && workerFinal">
                         <p class="gloss" style="margin-block-start: var(--space-2)">
-                            Final round of the certified worker-track count.
+                            {{ text('worker_final_round', 'Final round of the certified worker-track count.') }}
                         </p>
-                        <span class="visually-hidden">Droop quota {{ workerTrack.result.quota.toLocaleString() }}</span>
+                        <span class="visually-hidden">{{ t('c_references.board_elections.droop_quota', { quota: workerTrack.result.quota.toLocaleString() }) }}</span>
                         <StvRound
                             :round="workerFinal"
                             :quota="workerTrack.result.quota"
@@ -410,14 +408,14 @@ const nominationStrips = computed(() => {
             <!-- ===================================== joint chair ======== -->
             <Card as="section" :title="text('chair_election', 'Board chair election')">
                 <p style="margin-block-end: var(--space-2)">
-                    <HardenedChip>Chair elected jointly by the entire Board · Art. III §6</HardenedChip>
+                    <HardenedChip>{{ text('chair_joint_chip', 'Chair elected jointly by the entire Board · Art. III §6') }}</HardenedChip>
                 </p>
 
                 <!-- composition changed → a fresh chair election is required -->
                 <Banner
                     v-if="chair?.pending_reason === 'composition_changed'"
                     tone="warning"
-                    title="Composition changed — a fresh joint chair election is required before the board acts."
+                    :title="text('composition_changed_title', 'Composition changed — a fresh joint chair election is required before the board acts.')"
                 >
                     {{ text('chair_re_election', 'When the board’s membership changes, the entire board elects its chair again.') }}
                 </Banner>
@@ -460,10 +458,10 @@ const nominationStrips = computed(() => {
                         </div>
                     </div>
                     <p class="citation" style="margin-block: var(--space-2)">
-                        majority of the full board:
-                        <template v-if="chair.required != null">{{ chair.required }} of {{ chair.board_size }} seated</template>
-                        <template v-else>the winner must reach a majority of all seated board seats</template>
-                        — every seated seat casts, equal votes
+                        {{ text('majority_full_board', 'majority of the full board:') }}
+                        <template v-if="chair.required != null">{{ t('c_references.board_elections.required_of_seated', { required: chair.required, size: chair.board_size }) }}</template>
+                        <template v-else>{{ text('winner_majority', 'the winner must reach a majority of all seated board seats') }}</template>
+                        {{ text('every_seat_casts', '— every seated seat casts, equal votes') }}
                     </p>
                     <VoteTally
                         mode="unicameral"
@@ -486,7 +484,7 @@ const nominationStrips = computed(() => {
                             style="margin-block-end: var(--space-2)"
                         >
                             <span class="eyebrow">
-                                round {{ round.round }} — {{ round.action }}{{ round.subject ? ` · ${round.subject}` : '' }}
+                                {{ t('c_references.board_elections.round_action', { n: round.round, action: round.action }) }}<template v-if="round.subject"> · {{ round.subject }}</template>
                             </span>
                             <p class="cc-small mono" data-no-i18n style="margin-block: var(--space-1) 0">
                                 <template v-for="tally in round.tallies" :key="tally.member_id">
@@ -500,9 +498,8 @@ const nominationStrips = computed(() => {
                     </template>
                 </template>
 
-                <Banner v-else-if="chair && !chair.pending_reason" tone="info" role="status" title="No chair election on record yet.">
-                    The joint chair election opens once the board has at least two seated members
-                    (Art. III §6). It re-triggers on any composition change.
+                <Banner v-else-if="chair && !chair.pending_reason" tone="info" role="status" :title="text('no_chair_election_title', 'No chair election on record yet.')">
+                    {{ text('no_chair_election_body', 'The joint chair election opens once the board has at least two seated members (Art. III §6). It re-triggers on any composition change.') }}
                 </Banner>
                 <form v-if="chair?.canOpen" @submit.prevent="submitChair(chairOpen)">
                     <p>{{ text('chair_retry_help', 'The chair is unfilled. Open a ballot so all seated members can submit a new ranking.') }}</p>
@@ -512,7 +509,7 @@ const nominationStrips = computed(() => {
             </Card>
 
             <!-- ===================================== seated board ======= -->
-            <Card v-if="seated && seated.seats.length" as="section" title="The seated board">
+            <Card v-if="seated && seated.seats.length" as="section" :title="text('seated_board_title', 'The seated board')">
                 <BoardStrip
                     :seats="seated.seats"
                     :composition-valid="seated.compositionValid"
@@ -522,7 +519,7 @@ const nominationStrips = computed(() => {
                     {{ text('chair_re_election', 'When the board’s membership changes, the entire board elects its chair again.') }}
                 </p>
             </Card>
-            <Card v-else as="section" title="The seated board">
+            <Card v-else as="section" :title="text('seated_board_title', 'The seated board')">
                 <p class="gloss">
                     {{ text('no_seated_members', 'No seats have been filled yet. Members appear here after their election or appointment.') }}
                 </p>
