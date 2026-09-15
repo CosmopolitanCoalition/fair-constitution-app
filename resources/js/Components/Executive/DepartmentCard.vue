@@ -14,9 +14,12 @@
  * comparison happens here.
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import BoardStrip from '@/Components/Organizations/BoardStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import TagChip from '@/Components/Ui/TagChip.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /**
@@ -50,26 +53,37 @@ const STATUS_TONES = {
     rechartered: ['neutral', 'refresh-cw', 'Re-chartered'],
     dissolved: ['neutral', 'minus', 'Dissolved'],
 };
+const STATUS_LABELS = () => ({
+    operating: t('c_institution_components.department_card.status_operating', 'Operating'),
+    chartered: t('c_institution_components.department_card.status_chartered', 'Chartered'),
+    oversight_assigned: t('c_institution_components.department_card.status_oversight_assigned', 'Oversight assigned'),
+    governors_nominated: t('c_institution_components.department_card.status_governors_nominated', 'Governors nominated'),
+    consented: t('c_institution_components.department_card.status_consented', 'Consented'),
+    reporting: t('c_institution_components.department_card.status_reporting', 'Reporting'),
+    rechartered: t('c_institution_components.department_card.status_rechartered', 'Re-chartered'),
+    dissolved: t('c_institution_components.department_card.status_dissolved', 'Dissolved'),
+});
 const statusBadge = computed(() => {
-    const [tone, icon, text] = STATUS_TONES[props.department.status] ?? ['neutral', null, props.department.status];
-    return { tone, icon, text };
+    const entry = STATUS_TONES[props.department.status];
+    if (!entry) return { tone: 'neutral', icon: null, text: props.department.status };
+    return { tone: entry[0], icon: entry[1], text: STATUS_LABELS()[props.department.status] ?? props.department.status };
 });
 
 /* Co-determination cell — state from engine seat counts only. */
 const codet = computed(() => {
     const board = props.department.board;
     if (!board || board.worker_seats === 0) {
-        return { tone: 'neutral', icon: 'minus', text: 'below threshold', citation: `${fmt(props.department.worker_count)} workers below the CLK-13 minimum` };
+        return { tone: 'neutral', icon: 'minus', text: t('c_institution_components.department_card.codet_below', 'below threshold'), citation: t('c_institution_components.department_card.codet_below_cite', '{n} workers below the CLK-13 minimum', { n: fmt(props.department.worker_count) }) };
     }
     if (board.worker_seats >= board.owner_seats) {
-        return { tone: 'success', icon: 'users', text: 'parity', citation: `${fmt(props.department.worker_count)} workers · worker seats equal owner seats · CLK-14` };
+        return { tone: 'success', icon: 'users', text: t('c_institution_components.department_card.codet_parity', 'parity'), citation: t('c_institution_components.department_card.codet_parity_cite', '{n} workers · worker seats equal owner seats · CLK-14', { n: fmt(props.department.worker_count) }) };
     }
     const n = board.worker_seats;
     return {
         tone: 'info',
         icon: 'users',
-        text: `${n} worker seat${n > 1 ? 's' : ''} · scaling`,
-        citation: `${fmt(props.department.worker_count)} workers past the CLK-13 minimum`,
+        text: t('c_institution_components.department_card.codet_scaling', '{n} worker seat{s} · scaling', { n, s: n > 1 ? 's' : '' }),
+        citation: t('c_institution_components.department_card.codet_scaling_cite', '{n} workers past the CLK-13 minimum', { n: fmt(props.department.worker_count) }),
     };
 });
 
@@ -77,9 +91,9 @@ const codet = computed(() => {
 const reportChip = computed(() => {
     const report = props.department.next_report;
     if (!report) return null;
-    if (report.status === 'overdue') return { tone: 'warning', icon: 'alert-triangle', text: `report overdue · was due ${report.due_on}` };
-    if (report.status === 'due_soon') return { tone: 'warning', icon: 'clock', text: `report due ${report.due_on}` };
-    return { tone: 'neutral', icon: 'clock', text: `next report ${report.due_on}` };
+    if (report.status === 'overdue') return { tone: 'warning', icon: 'alert-triangle', text: t('c_institution_components.department_card.report_overdue', 'report overdue · was due {date}', { date: report.due_on }) };
+    if (report.status === 'due_soon') return { tone: 'warning', icon: 'clock', text: t('c_institution_components.department_card.report_due_soon', 'report due {date}', { date: report.due_on }) };
+    return { tone: 'neutral', icon: 'clock', text: t('c_institution_components.department_card.report_next', 'next report {date}', { date: report.due_on }) };
 });
 
 const fmt = (n) => Number(n ?? 0).toLocaleString();
@@ -96,7 +110,7 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
         <p class="cluster" style="gap: var(--space-2)">
             <TagChip data-no-i18n>{{ kindLabel }}</TagChip>
             <StatusBadge :tone="statusBadge.tone" :icon="statusBadge.icon">{{ statusBadge.text }}</StatusBadge>
-            <StatusBadge tone="info" icon="users">{{ fmt(department.worker_count) }} workers</StatusBadge>
+            <StatusBadge tone="info" icon="users">{{ t('c_institution_components.department_card.workers', '{n} workers', { n: fmt(department.worker_count) }) }}</StatusBadge>
         </p>
 
         <BoardStrip
@@ -123,11 +137,11 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
         </p>
 
         <p v-if="department.oversees_cgcs?.length" class="citation" style="margin: 0">
-            oversees:
+            {{ t('c_institution_components.department_card.oversees', 'oversees:') }}
             <template v-for="(cgc, i) in department.oversees_cgcs" :key="cgc.name">
                 <template v-if="i > 0"> · </template><a :href="cgc.href">{{ cgc.name }}</a>
             </template>
-            — CGC IP perpetually public domain · Art. III §5
+            {{ t('c_institution_components.department_card.cgc_public_domain', '— CGC IP perpetually public domain · Art. III §5') }}
         </p>
     </div>
 </template>

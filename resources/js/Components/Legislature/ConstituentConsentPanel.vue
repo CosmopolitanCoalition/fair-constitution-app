@@ -28,12 +28,15 @@
  * ({ jurisdiction: {id,name,adm_chip}, result, chamber_vote, decided_at }).
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /**
@@ -62,9 +65,20 @@ const props = defineProps({
     subjectLabel: { type: String, default: null },
 });
 
-const GLOSS =
-    'Both meters must clear their threshold — the legislature’s own supermajority and a ' +
-    'supermajority of the constituent jurisdictions, each counted independently.';
+const GLOSS = computed(() =>
+    t(
+        'c_institution_components.constituent_consent_panel.gloss',
+        'Both meters must clear their threshold — the legislature’s own supermajority and a supermajority of the constituent jurisdictions, each counted independently.',
+    ),
+);
+const RESULT_LABELS = () => ({
+    yes: t('c_institution_components.constituent_consent_panel.result_yes', 'yes'),
+    no: t('c_institution_components.constituent_consent_panel.result_no', 'no'),
+    pending: t('c_institution_components.constituent_consent_panel.result_pending', 'pending'),
+});
+function resultLabel(r) {
+    return RESULT_LABELS()[r] ?? r;
+}
 
 /* ---------------------------------------------- consent-row tolerance --- */
 function jurName(row) {
@@ -85,12 +99,12 @@ const namesParenthetical = computed(() => {
     const names = consents.value.slice(0, 7).map(jurName);
     if (!names.length) return '';
     const more = Math.max(0, (props.process.total ?? names.length) - names.length);
-    return ` (${names.join(', ')}${more > 0 ? ` + ${more} more` : ''})`;
+    return ` (${names.join(', ')}${more > 0 ? t('c_institution_components.constituent_consent_panel.more', ' + {n} more', { n: more }) : ''})`;
 });
 
 const leftCaption = computed(
     () =>
-        `Constituent jurisdictions: ${props.process.yes} of ${props.process.total} in favor` +
+        t('c_institution_components.constituent_consent_panel.left_caption', 'Constituent jurisdictions: {yes} of {total} in favor', { yes: props.process.yes, total: props.process.total }) +
         namesParenthetical.value,
 );
 
@@ -115,12 +129,12 @@ const combined = computed(() => {
 
     if (legFailed || procFailed) {
         const failing = [];
-        if (legFailed) failing.push(props.legislatureLabel ?? 'the legislature’s own supermajority');
-        if (procFailed) failing.push('the constituent-jurisdiction supermajority');
+        if (legFailed) failing.push(props.legislatureLabel ?? t('c_institution_components.constituent_consent_panel.own_supermajority', 'the legislature’s own supermajority'));
+        if (procFailed) failing.push(t('c_institution_components.constituent_consent_panel.constituent_supermajority', 'the constituent-jurisdiction supermajority'));
         return {
             tone: 'warning',
             icon: 'x',
-            title: `The act fails — ${failing.join(' and ')} did not clear the threshold`,
+            title: t('c_institution_components.constituent_consent_panel.act_fails', 'The act fails — {which} did not clear the threshold', { which: failing.join(t('c_institution_components.constituent_consent_panel.and_join', ' and ')) }),
         };
     }
     if (procPassed && (legPassed || leg === null)) {
@@ -129,14 +143,14 @@ const combined = computed(() => {
             icon: 'check',
             title:
                 leg === null
-                    ? 'Constituent supermajority reached'
-                    : 'Both supermajorities cleared — the act is adopted',
+                    ? t('c_institution_components.constituent_consent_panel.constituent_reached', 'Constituent supermajority reached')
+                    : t('c_institution_components.constituent_consent_panel.both_cleared', 'Both supermajorities cleared — the act is adopted'),
         };
     }
     return {
         tone: 'info',
         icon: 'clock',
-        title: 'Open — both supermajorities must clear, each counted independently',
+        title: t('c_institution_components.constituent_consent_panel.open_both', 'Open — both supermajorities must clear, each counted independently'),
     };
 });
 </script>
@@ -150,7 +164,7 @@ const combined = computed(() => {
 
         <!-- Block 1 — the legislature's own supermajority -->
         <div v-if="legislatureVote" class="card card--inset">
-            <span class="eyebrow">{{ legislatureLabel ?? 'Legislature' }}: own supermajority</span>
+            <span class="eyebrow">{{ t('c_institution_components.constituent_consent_panel.own_supermajority_eyebrow', '{name}: own supermajority', { name: legislatureLabel ?? t('c_institution_components.constituent_consent_panel.legislature', 'Legislature') }) }}</span>
             <div style="margin-block-start: var(--space-2)">
                 <VoteTally
                     :mode="legislatureVote.mode"
@@ -168,30 +182,30 @@ const combined = computed(() => {
 
         <!-- Block 2 — the constituent-jurisdiction supermajority -->
         <div class="card card--inset">
-            <span class="eyebrow">Constituent jurisdictions: supermajority of the bodies</span>
+            <span class="eyebrow">{{ t('c_institution_components.constituent_consent_panel.bodies_eyebrow', 'Constituent jurisdictions: supermajority of the bodies') }}</span>
             <div style="margin-block-start: var(--space-2)">
                 <ThresholdMeter
                     :value="process.yes"
                     :max="process.total"
                     :threshold="process.required"
-                    label="Constituent jurisdictions in favor"
+                    :label="t('c_institution_components.constituent_consent_panel.meter_label', 'Constituent jurisdictions in favor')"
                 >
                     {{ leftCaption }}
                     <template #note><span data-no-i18n>{{ rightCaption }}</span></template>
                 </ThresholdMeter>
             </div>
             <p v-if="process.closes_at" class="citation" style="margin-block-start: var(--space-1)">
-                window closes {{ process.closes_at }} · stored as UTC
+                {{ t('c_institution_components.constituent_consent_panel.window_closes', 'window closes {date} · stored as UTC', { date: process.closes_at }) }}
             </p>
 
             <DataTable
                 :columns="[
-                    { key: 'jurisdiction', label: 'Constituent legislature' },
-                    { key: 'result', label: 'Consent' },
-                    ...(hasVoteLinks ? [{ key: 'record', label: 'Chamber vote' }] : []),
+                    { key: 'jurisdiction', label: t('c_institution_components.constituent_consent_panel.col_jurisdiction', 'Constituent legislature') },
+                    { key: 'result', label: t('c_institution_components.constituent_consent_panel.col_result', 'Consent') },
+                    ...(hasVoteLinks ? [{ key: 'record', label: t('c_institution_components.constituent_consent_panel.col_record', 'Chamber vote') }] : []),
                 ]"
                 :rows="consents"
-                caption="Constituent consents — each constituent legislature votes as a body"
+                :caption="t('c_institution_components.constituent_consent_panel.table_caption', 'Constituent consents — each constituent legislature votes as a body')"
             >
                 <template #cell-jurisdiction="{ row }">
                     <span class="cluster" style="gap: var(--space-2)">
@@ -203,7 +217,7 @@ const combined = computed(() => {
                     <StatusBadge
                         :tone="RESULT_TONES[row.result] ?? 'neutral'"
                         :icon="row.result === 'yes' ? 'check' : row.result === 'no' ? 'x' : 'clock'"
-                    >{{ row.result }}</StatusBadge>
+                    >{{ resultLabel(row.result) }}</StatusBadge>
                 </template>
                 <template v-if="hasVoteLinks" #cell-record="{ row }">
                     <a v-if="row.chamber_vote" :href="row.chamber_vote.href">{{ row.chamber_vote.summary }}</a>
@@ -211,7 +225,7 @@ const combined = computed(() => {
                 </template>
             </DataTable>
             <p v-if="hasVoteLinks" class="citation" style="margin-block-start: var(--space-1)">
-                each constituent legislature votes as a body — its own chamber-vote record linked above
+                {{ t('c_institution_components.constituent_consent_panel.body_vote_note', 'each constituent legislature votes as a body — its own chamber-vote record linked above') }}
             </p>
         </div>
 

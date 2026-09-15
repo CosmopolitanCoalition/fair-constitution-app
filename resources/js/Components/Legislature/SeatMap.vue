@@ -25,6 +25,9 @@
  * contract, as in the mockup.
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /**
@@ -91,17 +94,25 @@ const c = computed(() => size.value / 2);
 const bicameral = computed(() => props.members.some((m) => m.seat_kind === 'type_b'));
 const servingCount = computed(() => props.members.filter((m) => !m.vacant).length);
 
-const KIND_LABELS = { type_a: 'type A (population-apportioned)', type_b: 'type B (one per constituent)' };
+const kindLabel = (kind) =>
+    ({
+        type_a: t('c_institution_components.seat_map.kind_type_a', 'type A (population-apportioned)'),
+        type_b: t('c_institution_components.seat_map.kind_type_b', 'type B (one per constituent)'),
+    })[kind] ?? kind;
 
 function seatLabel(m) {
     if (m.vacant) {
-        return `Seat ${m.seat_no} — vacant (countback running); joins at the junior-most position`;
+        return t('c_institution_components.seat_map.seat_vacant', 'Seat {n} — vacant (countback running); joins at the junior-most position', { n: m.seat_no });
     }
-    let label =
-        `Seat ${m.seat_no} — ${m.name}${m.speaker ? ' (Speaker)' : ''}` +
-        ` · ${m.days_served || 0} days served · share ${(m.vote_share_norm || 0).toFixed(2)}`;
-    if (bicameral.value && m.seat_kind) label += ` · ${KIND_LABELS[m.seat_kind] ?? m.seat_kind}`;
-    if (m.district_label) label += ` · ${m.district_label}`;
+    let label = t('c_institution_components.seat_map.seat_occupied', 'Seat {n} — {name}{speaker} · {days} days served · share {share}', {
+        n: m.seat_no,
+        name: m.name,
+        speaker: m.speaker ? t('c_institution_components.seat_map.speaker_suffix', ' (Speaker)') : '',
+        days: m.days_served || 0,
+        share: (m.vote_share_norm || 0).toFixed(2),
+    });
+    if (bicameral.value && m.seat_kind) label += t('c_institution_components.seat_map.kind_suffix', ' · {kind}', { kind: kindLabel(m.seat_kind) });
+    if (m.district_label) label += t('c_institution_components.seat_map.district_suffix', ' · {label}', { label: m.district_label });
     return label;
 }
 
@@ -145,12 +156,12 @@ const dots = computed(() => {
         <svg
             :viewBox="`0 0 ${size} ${size}`"
             role="img"
-            :aria-label="`Circular chamber seat map — ${members.length} seats, ${servingCount} serving`"
+            :aria-label="t('c_institution_components.seat_map.chamber_aria', 'Circular chamber seat map — {seats} seats, {serving} serving', { seats: members.length, serving: servingCount })"
             xmlns="http://www.w3.org/2000/svg"
         >
             <!-- The dashed "floor" circle at the center — no head of the room. -->
             <circle :cx="c" :cy="c" r="22" fill="none" stroke="var(--gov-border)" stroke-dasharray="3 4" />
-            <text :x="c" :y="c + 4" text-anchor="middle" font-size="9" fill="var(--gov-fg-subtle)">floor</text>
+            <text :x="c" :y="c + 4" text-anchor="middle" font-size="9" fill="var(--gov-fg-subtle)">{{ t('c_institution_components.seat_map.floor', 'floor') }}</text>
 
             <g v-for="dot in dots" :key="dot.m.id ?? `seat-${dot.m.seat_no}`" role="img" :aria-label="dot.label">
                 <title>{{ dot.label }}</title>
@@ -196,7 +207,7 @@ const dots = computed(() => {
             </g>
         </svg>
         <figcaption v-if="bicameral" class="gloss">
-            Gold ring = Speaker · dashed = vacant · blue ring = type B (one per constituent) · Art. V §3
+            {{ t('c_institution_components.seat_map.legend', 'Gold ring = Speaker · dashed = vacant · blue ring = type B (one per constituent) · Art. V §3') }}
         </figcaption>
     </figure>
 </template>

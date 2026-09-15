@@ -18,10 +18,13 @@
  * Casting is emit-only: the page owns the POST /votes/{vote}/cast.
  */
 import { computed, ref, useId } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /** 'unicameral' | 'bicameral' — legislatures.type_b_seats > 0. */
@@ -56,48 +59,56 @@ const props = defineProps({
 
 const emit = defineEmits(['cast']);
 
-const PEG_GLOSS =
-    'Peg quorum: the denominator is every serving seat. An absent member counts the same as a no.';
+const PEG_GLOSS = computed(() =>
+    t(
+        'c_institution_components.vote_tally.peg_gloss',
+        'Peg quorum: the denominator is every serving seat. An absent member counts the same as a no.',
+    ),
+);
 
 const isSupermajority = computed(() => props.thresholdClass.includes('supermajority'));
-const stageLabel = computed(() => (props.stage === 'committee' ? 'at committee' : 'on the floor'));
+const stageLabel = computed(() =>
+    props.stage === 'committee'
+        ? t('c_institution_components.vote_tally.stage_committee', 'at committee')
+        : t('c_institution_components.vote_tally.stage_floor', 'on the floor'),
+);
 
 /* ------------------------------------------------------- unicameral ---- */
 const yes = computed(() => props.tallies?.yes ?? 0);
 const no = computed(() => props.tallies?.no ?? 0);
 
 const leftCaption = computed(() => {
-    if (props.tallies === null) return `pending — 0 of ${props.serving} recorded`;
+    if (props.tallies === null) return t('c_institution_components.vote_tally.left_pending', 'pending — 0 of {serving} recorded', { serving: props.serving });
     if (props.thresholdClass === 'committee_majority') {
-        return `${yes.value} yes of ${props.serving} committee members`;
+        return t('c_institution_components.vote_tally.left_committee', '{yes} yes of {serving} committee members', { yes: yes.value, serving: props.serving });
     }
-    return `${yes.value} yes of ${props.serving} (all serving)`;
+    return t('c_institution_components.vote_tally.left_all_serving', '{yes} yes of {serving} (all serving)', { yes: yes.value, serving: props.serving });
 });
 
 const rightCaption = computed(() => {
     if (props.thresholdClass === 'committee_majority') {
-        return `needs ${props.requiredYes} of ${props.serving} — all members, not those present · ${props.basis}`;
+        return t('c_institution_components.vote_tally.right_committee', 'needs {req} of {serving} — all members, not those present · {basis}', { req: props.requiredYes, serving: props.serving, basis: props.basis });
     }
     if (isSupermajority.value || props.thresholdClass === 'rcv') {
         /* Display of the server snapshot — the formula gloss is composed
            from snapshotted numbers, never computed here. */
-        return `needs ceil(${props.serving} × 2/3) = ${props.requiredYes} of ${props.serving} · Art. VII`;
+        return t('c_institution_components.vote_tally.right_supermajority', 'needs ceil({serving} × 2/3) = {req} of {serving} · Art. VII', { serving: props.serving, req: props.requiredYes });
     }
-    return `needs ${props.requiredYes} of ${props.serving} · ${props.basis}`;
+    return t('c_institution_components.vote_tally.right_majority', 'needs {req} of {serving} · {basis}', { req: props.requiredYes, serving: props.serving, basis: props.basis });
 });
 
 const outcomeBadge = computed(() => {
     switch (props.outcome) {
         case 'adopted':
-            return { tone: 'success', icon: 'check', text: `Adopted ${yes.value}–${no.value}` };
+            return { tone: 'success', icon: 'check', text: t('c_institution_components.vote_tally.adopted', 'Adopted {yes}–{no}', { yes: yes.value, no: no.value }) };
         case 'failed':
-            return { tone: 'danger', icon: 'x', text: `Failed ${yes.value}–${no.value}` };
+            return { tone: 'danger', icon: 'x', text: t('c_institution_components.vote_tally.failed', 'Failed {yes}–{no}', { yes: yes.value, no: no.value }) };
         case 'tied':
-            return { tone: 'warning', icon: 'clock', text: `Tied ${yes.value}–${no.value} — awaiting the Speaker` };
+            return { tone: 'warning', icon: 'clock', text: t('c_institution_components.vote_tally.tied', 'Tied {yes}–{no} — awaiting the Speaker', { yes: yes.value, no: no.value }) };
         case 'tied_broken':
-            return { tone: 'success', icon: 'check', text: `Adopted ${yes.value}–${no.value} — tie broken by the Speaker` };
+            return { tone: 'success', icon: 'check', text: t('c_institution_components.vote_tally.tied_broken', 'Adopted {yes}–{no} — tie broken by the Speaker', { yes: yes.value, no: no.value }) };
         default:
-            return { tone: 'info', icon: 'clock', text: 'Vote open' };
+            return { tone: 'info', icon: 'clock', text: t('c_institution_components.vote_tally.vote_open', 'Vote open') };
     }
 });
 
@@ -110,28 +121,30 @@ const tiebreakLine = computed(() => {
 /* -------------------------------------------------------- bicameral ---- */
 const combined = computed(() => {
     if (props.mode !== 'bicameral') return null;
+    const failBody = t('c_institution_components.vote_tally.combined_body', 'A failure in either kind, at either stage, fails the act.');
     if (props.outcome === 'adopted') {
         return {
             tone: 'info',
             icon: 'check',
-            title: `Both kinds agree ${stageLabel.value} — the act passes`,
-            body: 'A failure in either kind, at either stage, fails the act.',
+            title: t('c_institution_components.vote_tally.combined_pass', 'Both kinds agree {stage} — the act passes', { stage: stageLabel.value }),
+            body: failBody,
         };
     }
     if (props.outcome === 'failed') {
         const failing = (props.kinds ?? []).filter((k) => k.agreed === false).map((k) => k.label);
+        const which = failing.length ? failing.join(t('c_institution_components.vote_tally.and_join', ' and ')) : t('c_institution_components.vote_tally.a_kind', 'a kind');
         return {
             tone: 'warning',
             icon: 'x',
-            title: `The act fails — ${failing.length ? failing.join(' and ') : 'a kind'} did not agree ${stageLabel.value}`,
-            body: 'A failure in either kind, at either stage, fails the act.',
+            title: t('c_institution_components.vote_tally.combined_fail', 'The act fails — {which} did not agree {stage}', { which, stage: stageLabel.value }),
+            body: failBody,
         };
     }
     return {
         tone: 'info',
         icon: 'clock',
-        title: `Vote open — both kinds must independently agree ${stageLabel.value}`,
-        body: 'A failure in either kind, at either stage, fails the act.',
+        title: t('c_institution_components.vote_tally.combined_open', 'Vote open — both kinds must independently agree {stage}', { stage: stageLabel.value }),
+        body: failBody,
     };
 });
 
@@ -142,16 +155,16 @@ const combinedCitation = computed(
 );
 
 function kindAgreement(kind) {
-    if (kind.agreed === true) return { tone: 'success', icon: 'check', text: 'This kind agrees' };
-    if (kind.agreed === false) return { tone: 'danger', icon: 'x', text: 'This kind does not agree' };
-    return { tone: 'info', icon: 'clock', text: 'Pending' };
+    if (kind.agreed === true) return { tone: 'success', icon: 'check', text: t('c_institution_components.vote_tally.kind_agrees', 'This kind agrees') };
+    if (kind.agreed === false) return { tone: 'danger', icon: 'x', text: t('c_institution_components.vote_tally.kind_disagrees', 'This kind does not agree') };
+    return { tone: 'info', icon: 'clock', text: t('c_institution_components.vote_tally.kind_pending', 'Pending') };
 }
 
 function kindRightCaption(kind) {
     if (isSupermajority.value) {
-        return `needs ceil(${kind.serving} × 2/3) = ${kind.requiredYes} · Art. V §3 · ledger #q7`;
+        return t('c_institution_components.vote_tally.kind_right_supermajority', 'needs ceil({serving} × 2/3) = {req} · Art. V §3 · ledger #q7', { serving: kind.serving, req: kind.requiredYes });
     }
-    return `needs ${kind.requiredYes} · Art. V §3 · ledger #q7`;
+    return t('c_institution_components.vote_tally.kind_right_majority', 'needs {req} · Art. V §3 · ledger #q7', { req: kind.requiredYes });
 }
 
 /* ---------------------------------------------------------- casting ---- */
@@ -171,10 +184,10 @@ function cast(value) {
                     :value="quorum.present"
                     :max="serving"
                     :threshold="quorum.required"
-                    label="Quorum — present of all serving"
+                    :label="t('c_institution_components.vote_tally.quorum_label', 'Quorum — present of all serving')"
                 >
-                    {{ quorum.present }} of {{ serving }} serving present
-                    <template #note>peg quorum: {{ quorum.required }} of {{ serving }} serving · Art. II §2</template>
+                    {{ t('c_institution_components.vote_tally.serving_present', '{present} of {serving} serving present', { present: quorum.present, serving }) }}
+                    <template #note>{{ t('c_institution_components.vote_tally.peg_quorum_note', 'peg quorum: {req} of {serving} serving · Art. II §2', { req: quorum.required, serving }) }}</template>
                 </ThresholdMeter>
             </div>
 
@@ -182,7 +195,7 @@ function cast(value) {
                 :value="yes"
                 :max="serving"
                 :threshold="requiredYes"
-                :label="`${thresholdClass === 'rcv' ? 'Supermajority RCV outcome' : 'Votes in favor'} — of all serving`"
+                :label="t('c_institution_components.vote_tally.favor_label', '{prefix} — of all serving', { prefix: thresholdClass === 'rcv' ? t('c_institution_components.vote_tally.rcv_outcome', 'Supermajority RCV outcome') : t('c_institution_components.vote_tally.votes_in_favor', 'Votes in favor') })"
             >
                 {{ leftCaption }}
                 <template #note>{{ rightCaption }}</template>
@@ -213,11 +226,11 @@ function cast(value) {
                             :value="kind.quorum.present"
                             :max="kind.serving"
                             :threshold="kind.quorum.required"
-                            :label="`Quorum of this kind — ${kind.label}`"
+                            :label="t('c_institution_components.vote_tally.kind_quorum_label', 'Quorum of this kind — {label}', { label: kind.label })"
                         >
-                            {{ kind.quorum.present }} of {{ kind.serving }} serving present
+                            {{ t('c_institution_components.vote_tally.serving_present', '{present} of {serving} serving present', { present: kind.quorum.present, serving: kind.serving }) }}
                             <template #note>
-                                peg quorum of this kind: {{ kind.quorum.required }} of {{ kind.serving }} serving
+                                {{ t('c_institution_components.vote_tally.kind_peg_note', 'peg quorum of this kind: {req} of {serving} serving', { req: kind.quorum.required, serving: kind.serving }) }}
                             </template>
                         </ThresholdMeter>
 
@@ -225,9 +238,9 @@ function cast(value) {
                             :value="kind.yes ?? 0"
                             :max="kind.serving"
                             :threshold="kind.requiredYes"
-                            :label="`Votes in favor — ${kind.label}`"
+                            :label="t('c_institution_components.vote_tally.kind_favor_label', 'Votes in favor — {label}', { label: kind.label })"
                         >
-                            {{ kind.yes ?? 0 }} yes of {{ kind.serving }} (all serving of this kind)
+                            {{ t('c_institution_components.vote_tally.kind_yes_of', '{yes} yes of {serving} (all serving of this kind)', { yes: kind.yes ?? 0, serving: kind.serving }) }}
                             <template #note>{{ kindRightCaption(kind) }}</template>
                         </ThresholdMeter>
 
@@ -241,7 +254,7 @@ function cast(value) {
                 </div>
             </div>
 
-            <p class="gloss">{{ PEG_GLOSS }} Each kind meets its own peg quorum — vacancies stay in the denominator.</p>
+            <p class="gloss">{{ PEG_GLOSS }} {{ t('c_institution_components.vote_tally.bicameral_peg_extra', 'Each kind meets its own peg quorum — vacancies stay in the denominator.') }}</p>
 
             <Banner v-if="combined" :tone="combined.tone" :icon="combined.icon" role="status" :title="combined.title">
                 {{ combined.body }}
@@ -252,7 +265,7 @@ function cast(value) {
         <!-- ================================================= CASTING ==== -->
         <div v-if="canCast && outcome === 'pending'" class="stack" style="gap: var(--space-2)">
             <div class="field">
-                <label class="field-label" :for="explanationId">Explanation (optional)</label>
+                <label class="field-label" :for="explanationId">{{ t('c_institution_components.vote_tally.explanation_label', 'Explanation (optional)') }}</label>
                 <textarea
                     :id="explanationId"
                     v-model="explanation"
@@ -260,12 +273,12 @@ function cast(value) {
                     rows="2"
                     :disabled="casting"
                 ></textarea>
-                <span class="field-hint">Published with your vote · Art. II §2</span>
+                <span class="field-hint">{{ t('c_institution_components.vote_tally.published_hint', 'Published with your vote · Art. II §2') }}</span>
             </div>
             <div class="cluster">
-                <Btn variant="primary" size="sm" icon="check" :disabled="casting" @click="cast('yes')">Vote yes</Btn>
-                <Btn variant="danger" size="sm" icon="x" :disabled="casting" @click="cast('no')">Vote no</Btn>
-                <Btn variant="secondary" size="sm" :disabled="casting" @click="cast('abstain')">Abstain</Btn>
+                <Btn variant="primary" size="sm" icon="check" :disabled="casting" @click="cast('yes')">{{ t('c_institution_components.vote_tally.vote_yes', 'Vote yes') }}</Btn>
+                <Btn variant="danger" size="sm" icon="x" :disabled="casting" @click="cast('no')">{{ t('c_institution_components.vote_tally.vote_no', 'Vote no') }}</Btn>
+                <Btn variant="secondary" size="sm" :disabled="casting" @click="cast('abstain')">{{ t('c_institution_components.vote_tally.abstain', 'Abstain') }}</Btn>
             </div>
         </div>
     </div>

@@ -14,8 +14,11 @@
  *    interruption — every mockup uses role="status").
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 import CitationLine from '@/Components/Ui/CitationLine.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /** Frozen vocabulary. */
@@ -44,10 +47,9 @@ const visible = computed(() => props.phase !== 'approval' || props.context === '
         v-if="visible && context === 'registration' && phase === 'approval'"
         tone="info"
         icon="clock"
-        title="Registration is open now."
+        :title="t('c_institution_components.phase_banner.reg_open_title', 'Registration is open now.')"
     >
-        The approval phase is live — validated candidates appear on the open ballot
-        immediately.
+        {{ t('c_institution_components.phase_banner.reg_open_body', 'The approval phase is live — validated candidates appear on the open ballot immediately.') }}
         <CitationLine text="CLK-18 · open since prior certification" />
     </Banner>
 
@@ -57,11 +59,11 @@ const visible = computed(() => props.phase !== 'approval' || props.context === '
         tone="warning"
         role="status"
         icon="clock"
-        title="The finalist cutoff has passed for the current race."
+        :title="t('c_institution_components.phase_banner.reg_closed_title', 'The finalist cutoff has passed for the current race.')"
     >
-        <template v-if="phase === 'ranked'">The ranked window is open; </template>
-        <template v-else>Tabulation and certification are under way; </template>
-        registration reopens for the next cycle the moment results certify.
+        <template v-if="phase === 'ranked'">{{ t('c_institution_components.phase_banner.reg_ranked_lead', 'The ranked window is open;') }} </template>
+        <template v-else>{{ t('c_institution_components.phase_banner.reg_tabulating_lead', 'Tabulation and certification are under way;') }} </template>
+        {{ t('c_institution_components.phase_banner.reg_reopens', 'registration reopens for the next cycle the moment results certify.') }}
         <CitationLine text="CLK-18 · closes at finalist cutoff · reopens at certification" />
     </Banner>
 
@@ -71,19 +73,19 @@ const visible = computed(() => props.phase !== 'approval' || props.context === '
         tone="warning"
         role="status"
         icon="clock"
-        title="The approval phase has closed — finalists are locked."
+        :title="t('c_institution_components.phase_banner.open_locked_title', 'The approval phase has closed — finalists are locked.')"
     >
         <template v-if="phase === 'ranked'">
-            The ranked window is open:
-            <a v-if="links.rankedBallot" :href="links.rankedBallot">rank your ballot now</a>
-            <template v-else>rank your ballot now</template>.
+            {{ t('c_institution_components.phase_banner.open_ranked_lead', 'The ranked window is open:') }}
+            <a v-if="links.rankedBallot" :href="links.rankedBallot">{{ t('c_institution_components.phase_banner.rank_now', 'rank your ballot now') }}</a>
+            <template v-else>{{ t('c_institution_components.phase_banner.rank_now', 'rank your ballot now') }}</template>.
         </template>
         <template v-else>
-            Tabulation is under way:
-            <a v-if="links.results" :href="links.results">watch the count</a>
-            <template v-else>watch the count</template>.
+            {{ t('c_institution_components.phase_banner.open_tabulating_lead', 'Tabulation is under way:') }}
+            <a v-if="links.results" :href="links.results">{{ t('c_institution_components.phase_banner.watch_count', 'watch the count') }}</a>
+            <template v-else>{{ t('c_institution_components.phase_banner.watch_count', 'watch the count') }}</template>.
         </template>
-        Standings below are the frozen cutoff.
+        {{ t('c_institution_components.phase_banner.frozen_cutoff', 'Standings below are the frozen cutoff.') }}
         <CitationLine text="CLK-21 · finalist cutoff" />
     </Banner>
 
@@ -93,10 +95,10 @@ const visible = computed(() => props.phase !== 'approval' || props.context === '
         tone="warning"
         role="status"
         icon="clock"
-        title="The approval phase has closed — this standing is frozen at the finalist cutoff."
+        :title="t('c_institution_components.phase_banner.profile_frozen_title', 'The approval phase has closed — this standing is frozen at the finalist cutoff.')"
     >
-        <template v-if="isFinalist === true">This candidate is a finalist on the ranked ballot. </template>
-        <template v-else-if="isFinalist === false">This candidate did not reach the finalist line and remains write-in eligible. </template>
+        <template v-if="isFinalist === true">{{ t('c_institution_components.phase_banner.profile_is_finalist', 'This candidate is a finalist on the ranked ballot.') }} </template>
+        <template v-else-if="isFinalist === false">{{ t('c_institution_components.phase_banner.profile_not_finalist', 'This candidate did not reach the finalist line and remains write-in eligible.') }} </template>
         <CitationLine text="CLK-21 · finalist cutoff · Art. II §2" />
     </Banner>
 </template>

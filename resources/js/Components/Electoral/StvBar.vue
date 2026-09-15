@@ -16,8 +16,11 @@
  */
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import TagChip from '@/Components/Ui/TagChip.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     name: { type: String, required: true },
@@ -72,11 +75,13 @@ const votesTitle = computed(() =>
 const linkTitle = computed(() => {
     const electedRound = props.elected && props.badge ? props.badge.match(/^r(\d+)$/) : null;
     const tip = electedRound
-        ? `elected in round ${electedRound[1]}`
+        ? t('c_institution_components.stv_bar.elected_in_round', 'elected in round {n}', { n: electedRound[1] })
         : props.votes !== null
-          ? `${Math.round(props.votes).toLocaleString()} votes`
+          ? t('c_institution_components.stv_bar.votes', '{n} votes', { n: Math.round(props.votes).toLocaleString() })
           : null;
-    return `${props.name} — open public profile${tip ? ` · ${tip}` : ''}`;
+    return tip
+        ? t('c_institution_components.stv_bar.link_title_tip', '{name} — open public profile · {tip}', { name: props.name, tip })
+        : t('c_institution_components.stv_bar.link_title', '{name} — open public profile', { name: props.name });
 });
 </script>
 
@@ -90,7 +95,7 @@ const linkTitle = computed(() => {
             <Link v-if="href" :href="href" :title="linkTitle">{{ name }}</Link>
             <template v-else>{{ name }}</template>
             {{ ' ' }}
-            <TagChip v-if="writeIn">write-in</TagChip>
+            <TagChip v-if="writeIn">{{ t('c_institution_components.stv_bar.write_in', 'write-in') }}</TagChip>
             <StatusBadge
                 v-if="badge"
                 tone="success"

@@ -14,10 +14,13 @@
  * approved.
  */
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import { useAnnounce } from '@/composables/useAnnounce';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /** 64-hex; rendered in 8-char groups (mockup format). */
@@ -43,14 +46,14 @@ async function copy() {
         } else {
             fallbackCopy(props.hash);
         }
-        announce('Receipt copied');
+        announce(t('c_institution_components.ballot_receipt.copied_announce', 'Receipt copied'));
         copied.value = true;
         setTimeout(() => {
             copied.value = false;
         }, 2000);
     } catch {
         fallbackCopy(props.hash);
-        announce('Receipt copied');
+        announce(t('c_institution_components.ballot_receipt.copied_announce', 'Receipt copied'));
     }
 }
 
@@ -70,21 +73,20 @@ function fallbackCopy(text) {
 
 <template>
     <p v-if="compact" class="citation" role="status" data-no-i18n>
-        <slot>Receipt</slot> {{ groupedCompact }}
+        <slot>{{ t('c_institution_components.ballot_receipt.receipt_label', 'Receipt') }}</slot> {{ groupedCompact }}
     </p>
 
     <div v-else class="stack" style="gap: var(--space-3)">
         <Banner tone="warning">
-            This receipt is shown <strong>once</strong>. Copy it now — it is never
-            retrievable later, by you or by anyone.
+            {{ t('c_institution_components.ballot_receipt.shown_pre', 'This receipt is shown') }} <strong>{{ t('c_institution_components.ballot_receipt.shown_once', 'once') }}</strong>{{ t('c_institution_components.ballot_receipt.shown_post', '. Copy it now — it is never retrievable later, by you or by anyone.') }}
         </Banner>
         <p class="receipt" data-no-i18n>{{ grouped }}</p>
         <div class="cluster">
             <Btn v-if="copyable" variant="secondary" size="sm" icon="copy" @click="copy">
-                {{ copied ? 'Copied ✓' : 'Copy receipt' }}
+                {{ copied ? t('c_institution_components.ballot_receipt.copied', 'Copied ✓') : t('c_institution_components.ballot_receipt.copy', 'Copy receipt') }}
             </Btn>
             <a v-if="resultsHref" :href="resultsHref">
-                Self-audit in the public count record
+                {{ t('c_institution_components.ballot_receipt.self_audit', 'Self-audit in the public count record') }}
                 <Icon name="arrow-right" size="sm" />
             </a>
         </div>

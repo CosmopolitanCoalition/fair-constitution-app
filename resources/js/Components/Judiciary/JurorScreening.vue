@@ -20,8 +20,11 @@
  * no new CSS.
  */
 import { computed, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 import RadioGroup from '@/Components/Ui/RadioGroup.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /**
@@ -46,10 +49,10 @@ const emit = defineEmits(['submit']);
 
 /* Local form state — defaults to 'no' per question (the mockup's checked No). */
 const form = reactive({});
-const OPTIONS = [
-    { value: 'no', label: 'No' },
-    { value: 'yes', label: 'Yes' },
-];
+const OPTIONS = computed(() => [
+    { value: 'no', label: t('c_institution_components.juror_screening.opt_no', 'No') },
+    { value: 'yes', label: t('c_institution_components.juror_screening.opt_yes', 'Yes') },
+]);
 for (const q of props.questions) {
     form[q.id] = props.answers?.[q.id] ?? 'no';
 }
@@ -64,12 +67,11 @@ function submit() {
 <template>
     <form class="stack" style="gap: var(--space-3)" novalidate @submit.prevent="submit">
         <p>
-            Answer honestly — screening removes conflicts of interest, never opinions, demographics, or
-            politics. Your answers go to the panel judges only.
+            {{ t('c_institution_components.juror_screening.honesty', 'Answer honestly — screening removes conflicts of interest, never opinions, demographics, or politics. Your answers go to the panel judges only.') }}
         </p>
 
         <fieldset style="border: 0; padding: 0; margin: 0">
-            <legend class="visually-hidden">Conflict screening questions</legend>
+            <legend class="visually-hidden">{{ t('c_institution_components.juror_screening.legend', 'Conflict screening questions') }}</legend>
             <div
                 v-for="(q, i) in questions"
                 :key="q.id"
@@ -88,7 +90,7 @@ function submit() {
 
         <div v-if="!readOnly" class="cluster">
             <button type="submit" class="btn btn--primary" :disabled="submitting">
-                {{ submitting ? 'Submitting…' : 'Submit screening answers' }}
+                {{ submitting ? t('c_institution_components.juror_screening.submitting', 'Submitting…') : t('c_institution_components.juror_screening.submit', 'Submit screening answers') }}
             </button>
         </div>
 
@@ -96,19 +98,18 @@ function submit() {
             v-if="outcome === 'flagged'"
             tone="warning"
             role="status"
-            title="Flagged for voir dire review"
+            :title="t('c_institution_components.juror_screening.flagged_title', 'Flagged for voir dire review')"
         >
-            A panel judge follows up on the answers you flagged. If a conflict is confirmed you are
-            excused without penalty and the draw selects a replacement.
+            {{ t('c_institution_components.juror_screening.flagged_body', 'A panel judge follows up on the answers you flagged. If a conflict is confirmed you are excused without penalty and the draw selects a replacement.') }}
             <span class="citation" data-no-i18n>conflict screening · Art. IV §4 · WF-JUD-04</span>
         </Banner>
         <Banner
             v-else-if="outcome === 'clean'"
             tone="info"
             role="status"
-            title="No conflicts declared"
+            :title="t('c_institution_components.juror_screening.clean_title', 'No conflicts declared')"
         >
-            You remain in the panel pool. Empanelment is confirmed at voir dire.
+            {{ t('c_institution_components.juror_screening.clean_body', 'You remain in the panel pool. Empanelment is confirmed at voir dire.') }}
             <span class="citation" data-no-i18n>conflict screening · Art. IV §4 · WF-JUD-04</span>
         </Banner>
     </form>
