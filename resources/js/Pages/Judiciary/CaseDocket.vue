@@ -18,6 +18,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -35,6 +36,7 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -94,12 +96,12 @@ const shownCases = computed(() =>
 );
 
 const docketColumns = [
-    { key: 'title', label: 'Case' },
-    { key: 'kind', label: 'Kind' },
-    { key: 'court', label: 'Court' },
-    { key: 'panel', label: 'Panel' },
-    { key: 'severity', label: 'Severity' },
-    { key: 'state', label: 'State' },
+    { key: 'title', label: t('c_institutions.case_docket.col_case', 'Case') },
+    { key: 'kind', label: t('c_institutions.case_docket.col_kind', 'Kind') },
+    { key: 'court', label: t('c_institutions.case_docket.col_court', 'Court') },
+    { key: 'panel', label: t('c_institutions.case_docket.col_panel', 'Panel') },
+    { key: 'severity', label: t('c_institutions.case_docket.col_severity', 'Severity') },
+    { key: 'state', label: t('c_institutions.case_docket.col_state', 'State') },
 ];
 
 /* The mockup STATE_BADGE map — case-docket.html lines 173-179, by ESM state. */
@@ -149,40 +151,35 @@ function submitFiling() {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`Case docket — ${judiciary.name}`">
+    <PageScaffold :surface="surface" :title="t('c_institutions.case_docket.page_title', { name: judiciary.name })">
         <template #intro>
             <template v-if="aggregate">
-                Every case before every court in your jurisdictions — from your neighbourhood up to
-                the world court — in one docket. This is a read-only view; to file, open the court
-                you want below.
+                {{ t('c_institutions.case_docket.intro_aggregate', 'Every case before every court in your jurisdictions — from your neighbourhood up to the world court — in one docket. This is a read-only view; to file, open the court you want below.') }}
             </template>
             <template v-else>
-                Every case filed in this court, from local civil disputes to full-court constitutional
-                questions. Anyone who lives here (a verified resident) can file; panels are assigned by
-                the court with conflict screening.
+                {{ t('c_institutions.case_docket.intro_single', 'Every case filed in this court, from local civil disputes to full-court constitutional questions. Anyone who lives here (a verified resident) can file; panels are assigned by the court with conflict screening.') }}
             </template>
         </template>
 
         <!-- engine 422: the rejection citation, verbatim -->
-        <Banner v-if="constitutionError" tone="emergency" role="alert" title="The filing was not accepted.">
+        <Banner v-if="constitutionError" tone="emergency" role="alert" :title="t('c_institutions.case_docket.not_accepted_title', 'The filing was not accepted.')">
             {{ constitutionError }}
         </Banner>
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
 
         <!-- ============================================ header links ===== -->
         <div class="cluster">
-            <Link v-if="!aggregate" :href="judiciary.home_href">Judiciary home →</Link>
-            <Link :href="judiciary.challenges_href">Constitutional challenges →</Link>
+            <Link v-if="!aggregate" :href="judiciary.home_href">{{ t('c_institutions.case_docket.judiciary_home', 'Judiciary home →') }}</Link>
+            <Link :href="judiciary.challenges_href">{{ t('c_institutions.case_docket.const_challenges', 'Constitutional challenges →') }}</Link>
         </div>
 
         <!-- ==================================== the chain's courts (aggregate) -->
-        <Card v-if="aggregate" as="section" title="Your courts">
+        <Card v-if="aggregate" as="section" :title="t('c_institutions.case_docket.your_courts_title', 'Your courts')">
             <p v-if="courts.length" class="gloss">
-                Cases below span these courts. Open one to file, or to see its full docket.
+                {{ t('c_institutions.case_docket.courts_span', 'Cases below span these courts. Open one to file, or to see its full docket.') }}
             </p>
             <p v-else class="gloss">
-                No court has formed in your jurisdictions yet — a court forms when a legislature
-                creates one (F-LEG-017). This docket will fill as courts appear.
+                {{ t('c_institutions.case_docket.no_courts', 'No court has formed in your jurisdictions yet — a court forms when a legislature creates one (F-LEG-017). This docket will fill as courts appear.') }}
             </p>
             <ul v-if="courts.length" class="cluster" style="list-style: none; padding: 0; gap: var(--space-3)">
                 <li v-for="court in courts" :key="court.id">
@@ -192,24 +189,23 @@ function submitFiling() {
         </Card>
 
         <!-- =============================================== stat tiles ===== -->
-        <Card as="section" title="Open cases">
+        <Card as="section" :title="t('c_institutions.case_docket.open_cases_title', 'Open cases')">
             <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
-                <Stat :value="stats.open" label="open" accent />
-                <Stat :value="stats.by_kind.constitutional ?? 0" label="constitutional" />
-                <Stat :value="stats.by_kind.civil ?? 0" label="civil" />
-                <Stat :value="stats.by_kind.criminal ?? 0" label="criminal" />
-                <Stat :value="stats.by_kind.administrative ?? 0" label="administrative" />
+                <Stat :value="stats.open" :label="t('c_institutions.case_docket.stat_open', 'open')" accent />
+                <Stat :value="stats.by_kind.constitutional ?? 0" :label="t('c_institutions.case_docket.stat_constitutional', 'constitutional')" />
+                <Stat :value="stats.by_kind.civil ?? 0" :label="t('c_institutions.case_docket.stat_civil', 'civil')" />
+                <Stat :value="stats.by_kind.criminal ?? 0" :label="t('c_institutions.case_docket.stat_criminal', 'criminal')" />
+                <Stat :value="stats.by_kind.administrative ?? 0" :label="t('c_institutions.case_docket.stat_administrative', 'administrative')" />
             </div>
             <p class="citation" style="margin-block-start: var(--space-2)">
-                Panels of at least 3, odd, scaled to severity · full court for major constitutional
-                questions · Art. IV §4 · CLK-16
+                {{ t('c_institutions.case_docket.panels_cite', 'Panels of at least 3, odd, scaled to severity · full court for major constitutional questions · Art. IV §4 · CLK-16') }}
             </p>
         </Card>
 
         <!-- ================================================ the docket ==== -->
-        <Card as="section" title="Cases on this docket">
-            <FilterBar label="Filter cases">
-                <span class="eyebrow">Kind</span>
+        <Card as="section" :title="t('c_institutions.case_docket.docket_title', 'Cases on this docket')">
+            <FilterBar :label="t('c_institutions.case_docket.filter_cases', 'Filter cases')">
+                <span class="eyebrow">{{ t('c_institutions.case_docket.kind_eyebrow', 'Kind') }}</span>
                 <ChipToggle
                     v-for="kind in filters.kinds"
                     :key="kind"
@@ -217,20 +213,20 @@ function submitFiling() {
                     @update:pressed="(v) => toggleKind(kind, v)"
                 >{{ kind }}</ChipToggle>
                 <label class="field">
-                    <span class="visually-hidden">Search cases</span>
+                    <span class="visually-hidden">{{ t('c_institutions.case_docket.search_cases', 'Search cases') }}</span>
                     <input
                         v-model="search"
                         type="search"
                         class="field-input"
-                        placeholder="Search cases"
+                        :placeholder="t('c_institutions.case_docket.search_cases', 'Search cases')"
                         style="inline-size: 11rem; padding-block: var(--space-1)"
                     />
                 </label>
-                <button type="button" class="btn btn--ghost btn--sm" @click="clearFilters">Clear filters</button>
+                <button type="button" class="btn btn--ghost btn--sm" @click="clearFilters">{{ t('c_institutions.case_docket.clear_filters', 'Clear filters') }}</button>
             </FilterBar>
 
             <p class="citation" style="margin-block: var(--space-2)">
-                {{ shownCases.length }} of {{ cases.length }} cases shown
+                {{ t('c_institutions.case_docket.cases_shown', { shown: shownCases.length, total: cases.length }) }}
             </p>
 
             <DataTable
@@ -238,7 +234,7 @@ function submitFiling() {
                 :columns="docketColumns"
                 :rows="shownCases"
                 row-key="id"
-                caption="Open cases with kind, court, panel, severity, and state"
+                :caption="t('c_institutions.case_docket.docket_caption', 'Open cases with kind, court, panel, severity, and state')"
             >
                 <template #cell-title="{ row }">
                     <Link :href="row.href">{{ row.title }}</Link>
@@ -258,9 +254,9 @@ function submitFiling() {
                 </template>
             </DataTable>
             <Banner v-else tone="info" role="status">
-                <template v-if="cases.length">No cases match the current filters.</template>
+                <template v-if="cases.length">{{ t('c_institutions.case_docket.no_match', 'No cases match the current filters.') }}</template>
                 <template v-else>
-                    No cases on this docket — anyone jurisdictionally associated can file (Art. I).
+                    {{ t('c_institutions.case_docket.no_cases', 'No cases on this docket — anyone jurisdictionally associated can file (Art. I).') }}
                 </template>
             </Banner>
         </Card>
@@ -271,18 +267,15 @@ function submitFiling() {
                 :form="surfaceForm('F-IND-017')"
                 :inertia-form="filing"
                 :disabled="!can.fileCase"
-                submit-label="Submit filing"
+                :submit-label="t('c_institutions.case_docket.submit_filing', 'Submit filing')"
                 @submit="submitFiling"
             >
                 <p style="margin-block-end: var(--space-3)">
-                    Filing states a <strong>claimed scale</strong> (which jurisdiction's law is at
-                    issue, so the right court level hears it) and a <strong>claimed severity</strong>
-                    (which the court reclassifies on acceptance). You can file yourself or through a
-                    registered advocate.
+                    {{ t('c_institutions.case_docket.filing_intro_1', 'Filing states a') }} <strong>{{ t('c_institutions.case_docket.filing_intro_scale', 'claimed scale') }}</strong> {{ t('c_institutions.case_docket.filing_intro_2', "(which jurisdiction's law is at issue, so the right court level hears it) and a") }} <strong>{{ t('c_institutions.case_docket.filing_intro_severity', 'claimed severity') }}</strong> {{ t('c_institutions.case_docket.filing_intro_3', '(which the court reclassifies on acceptance). You can file yourself or through a registered advocate.') }}
                 </p>
 
                 <div class="grid-2">
-                    <Field label="Case kind" :error="filing.errors.kind">
+                    <Field :label="t('c_institutions.case_docket.case_kind_label', 'Case kind')" :error="filing.errors.kind">
                         <template #control="{ id, describedBy }">
                             <select :id="id" v-model="filing.kind" class="select" :aria-describedby="describedBy">
                                 <option v-for="k in filingForm.kinds" :key="k.value" :value="k.value">{{ k.label }}</option>
@@ -291,8 +284,8 @@ function submitFiling() {
                     </Field>
 
                     <Field
-                        label="Claimed scale"
-                        hint="The jurisdiction whose law the case arises under."
+                        :label="t('c_institutions.case_docket.claimed_scale_label', 'Claimed scale')"
+                        :hint="t('c_institutions.case_docket.claimed_scale_hint', 'The jurisdiction whose law the case arises under.')"
                         :error="filing.errors.jurisdiction_id"
                     >
                         <template #control="{ id, describedBy }">
@@ -303,8 +296,8 @@ function submitFiling() {
                     </Field>
 
                     <Field
-                        label="Claimed severity"
-                        hint="The court reclassifies severity at acceptance — panel size follows the court's classification, not yours."
+                        :label="t('c_institutions.case_docket.claimed_severity_label', 'Claimed severity')"
+                        :hint="t('c_institutions.case_docket.claimed_severity_hint', 'The court reclassifies severity at acceptance — panel size follows the court\'s classification, not yours.')"
                         :error="filing.errors.claimed_severity"
                     >
                         <template #control="{ id, describedBy }">
@@ -314,13 +307,13 @@ function submitFiling() {
                         </template>
                     </Field>
 
-                    <Field label="Case title" :error="filing.errors.title">
+                    <Field :label="t('c_institutions.case_docket.case_title_label', 'Case title')" :error="filing.errors.title">
                         <template #control="{ id, invalid, describedBy }">
                             <input
                                 :id="id"
                                 v-model="filing.title"
                                 class="field-input"
-                                placeholder="e.g. Okafor v. Crown Ridge LLC"
+                                :placeholder="t('c_institutions.case_docket.case_title_placeholder', 'e.g. Okafor v. Crown Ridge LLC')"
                                 :aria-invalid="invalid ? 'true' : undefined"
                                 :aria-describedby="describedBy"
                             />
@@ -328,43 +321,40 @@ function submitFiling() {
                     </Field>
                 </div>
 
-                <Field label="Statement of claim" :error="filing.errors.statement_of_claim">
+                <Field :label="t('c_institutions.case_docket.claim_label', 'Statement of claim')" :error="filing.errors.statement_of_claim">
                     <template #control="{ id, describedBy }">
                         <textarea
                             :id="id"
                             v-model="filing.statement_of_claim"
                             class="field-input"
                             rows="3"
-                            placeholder="What happened, and what remedy you seek"
+                            :placeholder="t('c_institutions.case_docket.claim_placeholder', 'What happened, and what remedy you seek')"
                             :aria-describedby="describedBy"
                         />
                     </template>
                 </Field>
 
                 <p class="citation">
-                    Civil/criminal case filing · F-IND-017 → F-JDG-001 · the court classifies
-                    justiciability and severity, then assigns a panel with conflict screening ·
-                    Art. IV §4 · Art. I (Right to Fair Trial)
+                    {{ t('c_institutions.case_docket.filing_cite', 'Civil/criminal case filing · F-IND-017 → F-JDG-001 · the court classifies justiciability and severity, then assigns a panel with conflict screening · Art. IV §4 · Art. I (Right to Fair Trial)') }}
                 </p>
             </FormCard>
         </template>
 
         <!-- Unassociated reader: read-only docket + residency CTA (never 403). -->
-        <Card v-else-if="!isAssociated" as="section" title="File a case">
-            <Banner tone="info" role="status" title="Confirm residency to file.">
-                The docket is public to read. Filing a case is open to anyone jurisdictionally
-                associated (Art. I) — confirm your residency to unlock filing.
+        <Card v-else-if="!isAssociated" as="section" :title="t('c_institutions.case_docket.file_case_title', 'File a case')">
+            <Banner tone="info" role="status" :title="t('c_institutions.case_docket.confirm_residency_title', 'Confirm residency to file.')">
+                {{ t('c_institutions.case_docket.confirm_residency_body', 'The docket is public to read. Filing a case is open to anyone jurisdictionally associated (Art. I) — confirm your residency to unlock filing.') }}
                 <span style="display: block; margin-block-start: var(--space-2)">
-                    <Link href="/civic/residency">Confirm residency →</Link>
+                    <Link href="/civic/residency">{{ t('c_institutions.case_docket.confirm_residency_link', 'Confirm residency →') }}</Link>
                 </span>
             </Banner>
         </Card>
 
         <!-- ===================== other entries + what's next ============= -->
         <div class="grid-2">
-            <Card as="section" title="Other ways cases arrive">
+            <Card as="section" :title="t('c_institutions.case_docket.other_ways_title', 'Other ways cases arrive')">
                 <p class="citation" style="margin-block-end: var(--space-3)">
-                    Reference cards — the filing instruments that open a case from a different door.
+                    {{ t('c_institutions.case_docket.reference_cards', 'Reference cards — the filing instruments that open a case from a different door.') }}
                 </p>
                 <div class="stack" style="gap: var(--space-3)">
                     <div
@@ -377,12 +367,12 @@ function submitFiling() {
                             {{ ' ' }}
                             <FormChip :form-id="f.id" :alias="f.alias" />
                         </p>
-                        <p class="citation">available to {{ (f.availableTo ?? []).join(', ') }} · {{ f.citation }}</p>
+                        <p class="citation">{{ t('c_institutions.case_docket.available_to', 'available to') }} {{ (f.availableTo ?? []).join(', ') }} · {{ f.citation }}</p>
                     </div>
                 </div>
             </Card>
 
-            <Card as="section" title="What the court does next">
+            <Card as="section" :title="t('c_institutions.case_docket.next_title', 'What the court does next')">
                 <div v-if="surfaceForm('F-JDG-001')" class="card card--inset" style="margin-block-end: var(--space-3)">
                     <p style="margin-block-end: var(--space-1)">
                         <strong style="color: var(--gov-fg)">{{ surfaceForm('F-JDG-001').name }}</strong>
@@ -390,22 +380,19 @@ function submitFiling() {
                         <FormChip :form-id="surfaceForm('F-JDG-001').id" :alias="surfaceForm('F-JDG-001').alias" />
                     </p>
                     <p class="citation">
-                        available to {{ (surfaceForm('F-JDG-001').availableTo ?? []).join(', ') }} ·
+                        {{ t('c_institutions.case_docket.available_to', 'available to') }} {{ (surfaceForm('F-JDG-001').availableTo ?? []).join(', ') }} ·
                         {{ surfaceForm('F-JDG-001').citation }}
                     </p>
                 </div>
                 <p>
-                    <strong>Conflict screening:</strong> before a panel is fixed, every candidate judge
-                    is screened for personal, financial, or prior-involvement conflicts; conflicted
-                    judges are excluded and the draw re-runs. Screening results attach to the case
-                    record.
+                    <strong>{{ t('c_institutions.case_docket.conflict_label', 'Conflict screening:') }}</strong> {{ t('c_institutions.case_docket.conflict_body', 'before a panel is fixed, every candidate judge is screened for personal, financial, or prior-involvement conflicts; conflicted judges are excluded and the draw re-runs. Screening results attach to the case record.') }}
                 </p>
                 <p class="citation" style="margin-block: var(--space-2)">
-                    <HardenedChip>Panel assignment with conflict screening · full court for major constitutional questions · Art. IV §4 · CLK-16</HardenedChip>
+                    <HardenedChip>{{ t('c_institutions.case_docket.conflict_chip', 'Panel assignment with conflict screening · full court for major constitutional questions · Art. IV §4 · CLK-16') }}</HardenedChip>
                 </p>
                 <p>
                     <Link :href="cases.length ? cases[0].href : judiciary.home_href">
-                        Walk a case through the full lifecycle →
+                        {{ t('c_institutions.case_docket.walk_lifecycle', 'Walk a case through the full lifecycle →') }}
                     </Link>
                 </p>
             </Card>
@@ -413,10 +400,7 @@ function submitFiling() {
 
         <template #about>
             <p>
-                The case lifecycle (WF-JUD-03) carries every filing from a claimed scale and severity
-                through acceptance, panel assignment with conflict screening, hearing, and judgement.
-                Constitutional challenges branch into the Art. IV §5 tracker (WF-JUD-05); jury
-                paneling runs as WF-JUD-04. The Case state machine:
+                {{ t('c_institutions.case_docket.about_body', 'The case lifecycle (WF-JUD-03) carries every filing from a claimed scale and severity through acceptance, panel assignment with conflict screening, hearing, and judgement. Constitutional challenges branch into the Art. IV §5 tracker (WF-JUD-05); jury paneling runs as WF-JUD-04. The Case state machine:') }}
             </p>
             <StateStrip v-if="machine.length" :states="machine" />
         </template>

@@ -19,6 +19,7 @@
  */
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AmendableSetting from '@/Components/Ui/AmendableSetting.vue';
@@ -34,6 +35,7 @@ import ReferenceText from '@/Components/Ui/ReferenceText.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -73,18 +75,18 @@ const explorerScale = computed(() => ({
 }));
 
 const appliesColumns = [
-    { key: 'entity', label: 'Entity' },
-    { key: 'kind', label: 'Kind' },
-    { key: 'workers', label: 'Workers', mono: true, align: 'right' },
-    { key: 'owner_side', label: 'Owner side' },
-    { key: 'worker_seats', label: 'Worker seats', mono: true, align: 'right' },
-    { key: 'state', label: 'State' },
+    { key: 'entity', label: t('c_institutions.co_determination.col_entity', 'Entity') },
+    { key: 'kind', label: t('c_institutions.co_determination.col_kind', 'Kind') },
+    { key: 'workers', label: t('c_institutions.co_determination.col_workers', 'Workers'), mono: true, align: 'right' },
+    { key: 'owner_side', label: t('c_institutions.co_determination.col_owner_side', 'Owner side') },
+    { key: 'worker_seats', label: t('c_institutions.co_determination.col_worker_seats', 'Worker seats'), mono: true, align: 'right' },
+    { key: 'state', label: t('c_institutions.co_determination.col_state', 'State') },
 ];
 
 const STATE_BADGE = {
-    below: { tone: 'neutral', icon: 'minus', text: 'below threshold' },
-    scaling: { tone: 'info', icon: 'users', text: 'scaling' },
-    parity: { tone: 'success', icon: 'users', text: 'parity' },
+    below: { tone: 'neutral', icon: 'minus', text: t('c_institutions.co_determination.state_below', 'below threshold') },
+    scaling: { tone: 'info', icon: 'users', text: t('c_institutions.co_determination.state_scaling', 'scaling') },
+    parity: { tone: 'success', icon: 'users', text: t('c_institutions.co_determination.state_parity', 'parity') },
 };
 function stateBadge(row) {
     return STATE_BADGE[row.state] ?? STATE_BADGE.below;
@@ -92,28 +94,22 @@ function stateBadge(row) {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="focus ? `Worker representation — ${focus.entity.name}` : 'Worker representation'">
+    <PageScaffold :surface="surface" :title="focus ? t('c_institutions.co_determination.page_title', { name: focus.entity.name }) : t('c_institutions.co_determination.page_title_generic', 'Worker representation')">
         <template #intro>
-            When a company employs {{ clk13.value.toLocaleString() }} or more people, its workers
-            start electing seats on its board. The first worker seat arrives at that threshold,
-            and worker seats grow evenly until they match the owners' seats at
-            {{ clk14.value.toLocaleString() }} workers. The formal name for this is
-            <em>co-determination</em>. The same scale applies to private companies, Common Good
-            Corporations, and government departments.
+            {{ t('c_institutions.co_determination.intro_before', { min: clk13.value.toLocaleString(), parity: clk14.value.toLocaleString() }) }}
+            <em>{{ t('c_institutions.co_determination.intro_em', 'co-determination') }}</em>{{ t('c_institutions.co_determination.intro_after', '. The same scale applies to private companies, Common Good Corporations, and government departments.') }}
         </template>
 
         <OrganizationNav v-if="organization" :organization="organization" current="representation" />
-        <p v-else-if="focus"><Link :href="focus.entity.href">Back to {{ focus.entity.name }}</Link></p>
+        <p v-else-if="focus"><Link :href="focus.entity.href">{{ t('c_institutions.co_determination.back_to', { name: focus.entity.name }) }}</Link></p>
 
         <!-- ============================== the CoDetScale explorer ======== -->
-        <Card as="section" :title="focus?.scale ? `On the scale — ${focus.entity.name}` : 'Explore the representation scale'">
+        <Card as="section" :title="focus?.scale ? t('c_institutions.co_determination.scale_title', { name: focus.entity.name }) : t('c_institutions.co_determination.scale_title_generic', 'Explore the representation scale')">
             <p v-if="focus && !focus.scale" class="gloss" style="margin-block-end: var(--space-3)">
-                {{ focus.entity.name }} has no active board recorded. The explorer below illustrates
-                the applicable rules; it does not show a seated board.
+                {{ t('c_institutions.co_determination.no_board_focus', { name: focus.entity.name }) }}
             </p>
             <p v-else-if="!focus" class="gloss" style="margin-block-end: var(--space-3)">
-                Explore how worker representation changes with headcount, or choose a board
-                from the register below to see its recorded numbers.
+                {{ t('c_institutions.co_determination.explore_gloss', 'Explore how worker representation changes with headcount, or choose a board from the register below to see its recorded numbers.') }}
             </p>
 
             <CoDetScale
@@ -126,15 +122,12 @@ function stateBadge(row) {
         </Card>
 
         <!-- ===================== composition change → joint chair ======== -->
-        <Card as="section" title="Choosing a chair after board changes">
+        <Card as="section" :title="t('c_institutions.co_determination.chair_title', 'Choosing a chair after board changes')">
             <p style="margin-block-end: var(--space-2)">
-                <HardenedChip>chair elected jointly by the entire board · Art. III §6</HardenedChip>
+                <HardenedChip>{{ t('c_institutions.co_determination.chair_chip', 'chair elected jointly by the entire board · Art. III §6') }}</HardenedChip>
             </p>
             <p style="margin: 0">
-                Any composition change — a seat added by the scale, a vacancy, a transfer —
-                triggers a fresh joint chair election by the entire board. The board is valid
-                only while its composition matches the scale; until the worker-track election and
-                the joint chair election complete, the board cannot act.
+                {{ t('c_institutions.co_determination.chair_body', 'Any composition change — a seat added by the scale, a vacancy, a transfer — triggers a fresh joint chair election by the entire board. The board is valid only while its composition matches the scale; until the worker-track election and the joint chair election complete, the board cannot act.') }}
             </p>
 
             <div v-if="jointChairForm" class="card card--inset" style="margin-block-start: var(--space-3)">
@@ -142,31 +135,30 @@ function stateBadge(row) {
                     <FormChip :form-id="jointChairForm.id" :name="jointChairForm.name" :alias="jointChairForm.alias" />
                 </p>
                 <p class="citation" style="margin-block-end: var(--space-2)">
-                    <ReferenceText v-if="jointChairForm.availableTo?.length">Available to {{ jointChairForm.availableTo.join(', ') }}</ReferenceText>
+                    <ReferenceText v-if="jointChairForm.availableTo?.length">{{ t('c_institutions.co_determination.available_to', { list: jointChairForm.availableTo.join(', ') }) }}</ReferenceText>
                     <template v-if="jointChairForm.availableTo?.length && jointChairForm.citation"> · </template>
                     <template v-if="jointChairForm.citation">{{ jointChairForm.citation }}</template>
                 </p>
                 <p class="cc-small" style="margin: 0">
-                    Manage worker elections and elect the chair in the
-                    <Link v-if="organization" :href="`/organizations/${organization.id}/board-elections`">Board &amp; elections workspace</Link>
-                    <Link v-else :href="focus?.entity.href ?? '/organizations'">organization or department</Link>.
+                    {{ t('c_institutions.co_determination.chair_manage_before', 'Manage worker elections and elect the chair in the') }}
+                    <Link v-if="organization" :href="`/organizations/${organization.id}/board-elections`">{{ t('c_institutions.co_determination.chair_workspace', 'Board & elections workspace') }}</Link>
+                    <Link v-else :href="focus?.entity.href ?? '/organizations'">{{ t('c_institutions.co_determination.chair_org_dept', 'organization or department') }}</Link>.
                 </p>
             </div>
         </Card>
 
         <!-- ============================ the applies-equally table ======== -->
-        <Card as="section" :title="focus ? 'This board’s representation' : 'Browse recorded boards'">
+        <Card as="section" :title="focus ? t('c_institutions.co_determination.applies_title_focus', 'This board’s representation') : t('c_institutions.co_determination.applies_title_all', 'Browse recorded boards')">
             <p class="citation" style="margin-block-end: var(--space-3)">
-                Worker representation follows the same scale in private enterprises, Common Good
-                Corporations, and executive departments. The numbers below are recorded board values.
+                {{ t('c_institutions.co_determination.applies_cite', 'Worker representation follows the same scale in private enterprises, Common Good Corporations, and executive departments. The numbers below are recorded board values.') }}
             </p>
-            <p v-if="focus"><Link href="/organizations/co-determination">Compare with other boards</Link></p>
+            <p v-if="focus"><Link href="/organizations/co-determination">{{ t('c_institutions.co_determination.compare_boards', 'Compare with other boards') }}</Link></p>
 
             <template v-if="appliesTable.length">
                 <DataTable
                     :columns="appliesColumns"
                     :rows="appliesTable"
-                    :caption="focus ? `Worker representation at ${focus.entity.name}` : 'Worker representation — current page of boards'"
+                    :caption="focus ? t('c_institutions.co_determination.applies_caption_focus', { name: focus.entity.name }) : t('c_institutions.co_determination.applies_caption_all', 'Worker representation — current page of boards')"
                 >
                     <template #cell-entity="{ row }">
                         <Link v-if="row.entity.representation_href" :href="row.entity.representation_href">
@@ -178,7 +170,7 @@ function stateBadge(row) {
                             tone="warning"
                             icon="alert-triangle"
                             style="margin-inline-start: var(--space-2)"
-                        >composition invalid</StatusBadge>
+                        >{{ t('c_institutions.co_determination.composition_invalid', 'composition invalid') }}</StatusBadge>
                     </template>
                     <template #cell-workers="{ row }">
                         <span class="mono">{{ row.workers.toLocaleString() }}</span>
@@ -201,81 +193,77 @@ function stateBadge(row) {
                             class="citation"
                             style="display: block; margin-block-start: var(--space-1)"
                         >
-                            Worker election
+                            {{ t('c_institutions.co_determination.worker_election', 'Worker election') }}
                             <template v-if="row.election">
-                                <Link :href="row.election.href">view record ({{ row.election.status.replaceAll('_', ' ') }}) →</Link>
+                                <Link :href="row.election.href">{{ t('c_institutions.co_determination.view_record', { status: row.election.status.replaceAll('_', ' ') }) }}</Link>
                             </template>
-                            <template v-else>required; no election is recorded yet.</template>
+                            <template v-else>{{ t('c_institutions.co_determination.election_required', 'required; no election is recorded yet.') }}</template>
                         </span>
                     </template>
                 </DataTable>
             </template>
 
-            <Banner v-else tone="info" role="status" :title="focus ? 'No active board is recorded for this entity.' : 'No active boards on this page.'">
-                You can explore the representation scale above or
-                <Link href="/organizations">choose an organization</Link>.
+            <Banner v-else tone="info" role="status" :title="focus ? t('c_institutions.co_determination.no_board_title_focus', 'No active board is recorded for this entity.') : t('c_institutions.co_determination.no_board_title_all', 'No active boards on this page.')">
+                {{ t('c_institutions.co_determination.no_board_before', 'You can explore the representation scale above or') }}
+                <Link href="/organizations">{{ t('c_institutions.co_determination.choose_org', 'choose an organization') }}</Link>.
             </Banner>
 
-            <nav v-if="pagination?.previous || pagination?.next" aria-label="Board register pages" class="board-pagination">
-                <Link v-if="pagination.previous" :href="pagination.previous" rel="prev">Previous boards</Link>
-                <Link v-if="pagination.next" :href="pagination.next" rel="next">Next boards</Link>
+            <nav v-if="pagination?.previous || pagination?.next" :aria-label="t('c_institutions.co_determination.pages_aria', 'Board register pages')" class="board-pagination">
+                <Link v-if="pagination.previous" :href="pagination.previous" rel="prev">{{ t('c_institutions.co_determination.previous_boards', 'Previous boards') }}</Link>
+                <Link v-if="pagination.next" :href="pagination.next" rel="next">{{ t('c_institutions.co_determination.next_boards', 'Next boards') }}</Link>
             </nav>
         </Card>
 
         <!-- ===================== CLK-13 / CLK-14 amendable cards ========= -->
         <div class="grid-2">
-            <Card as="section" title="First worker seat">
+            <Card as="section" :title="t('c_institutions.co_determination.first_seat_title', 'First worker seat')">
                 <p style="margin-block-end: var(--space-2)">
                     <AmendableSetting
                         :value="clk13.value.toLocaleString()"
                         setting-key="worker_rep_min_employees"
-                        label="Workers needed for the first board seat"
+                        :label="t('c_institutions.co_determination.first_seat_amend_label', 'Workers needed for the first board seat')"
                         :default-value="clk13.default.toLocaleString()"
                         :citation="clk13.basis"
                     />
                 </p>
                 <p class="cc-small" style="margin: 0">
-                    The active worker headcount at which the first worker-elected seat is required.
-                    Amendable within bounds — it {{ clk13.bounds_gloss }}.
+                    {{ t('c_institutions.co_determination.first_seat_body', { gloss: clk13.bounds_gloss }) }}
                 </p>
                 <p class="citation" style="margin-block-start: var(--space-2)">
                     <template v-if="clk13.enacted_by">
-                        enacted by {{ clk13.enacted_by.act }} ·
-                        <Link :href="clk13.enacted_by.href">record →</Link>
+                        {{ t('c_institutions.co_determination.enacted_by', { act: clk13.enacted_by.act }) }} ·
+                        <Link :href="clk13.enacted_by.href">{{ t('c_institutions.co_determination.record_link', 'record →') }}</Link>
                     </template>
-                    <template v-else>Template default · founding value</template>
+                    <template v-else>{{ t('c_institutions.co_determination.template_default', 'Template default · founding value') }}</template>
                 </p>
             </Card>
 
-            <Card as="section" title="Equal worker and owner representation">
+            <Card as="section" :title="t('c_institutions.co_determination.parity_title', 'Equal worker and owner representation')">
                 <p style="margin-block-end: var(--space-2)">
                     <AmendableSetting
                         :value="clk14.value.toLocaleString()"
                         setting-key="worker_rep_parity_employees"
-                        label="Workers needed for equal representation"
+                        :label="t('c_institutions.co_determination.parity_amend_label', 'Workers needed for equal representation')"
                         :default-value="clk14.default.toLocaleString()"
                         :citation="clk14.basis"
                     />
                 </p>
                 <p class="cc-small" style="margin: 0">
-                    The headcount at which worker seats reach parity with the owner side — the
-                    ceiling. Amendable within bounds — it {{ clk14.bounds_gloss }}.
+                    {{ t('c_institutions.co_determination.parity_body', { gloss: clk14.bounds_gloss }) }}
                 </p>
                 <p class="citation" style="margin-block-start: var(--space-2)">
                     <template v-if="clk14.enacted_by">
-                        enacted by {{ clk14.enacted_by.act }} ·
-                        <Link :href="clk14.enacted_by.href">record →</Link>
+                        {{ t('c_institutions.co_determination.enacted_by', { act: clk14.enacted_by.act }) }} ·
+                        <Link :href="clk14.enacted_by.href">{{ t('c_institutions.co_determination.record_link', 'record →') }}</Link>
                     </template>
-                    <template v-else>Template default · founding value</template>
+                    <template v-else>{{ t('c_institutions.co_determination.template_default', 'Template default · founding value') }}</template>
                 </p>
             </Card>
         </div>
 
         <template #about>
             <p>
-                Workers elect representatives to share in their organization’s decisions.
-                This page shows the required worker seats and recorded board composition.
-                Use the explorer to see how representation changes as the workforce grows.
+                {{ t('c_institutions.co_determination.about', 'Workers elect representatives to share in their organization’s decisions. This page shows the required worker seats and recorded board composition. Use the explorer to see how representation changes as the workforce grows.') }}
             </p>
         </template>
     </PageScaffold>

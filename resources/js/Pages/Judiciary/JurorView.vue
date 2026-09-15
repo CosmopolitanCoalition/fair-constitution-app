@@ -27,6 +27,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -41,6 +42,7 @@ import JurorScreening from '@/Components/Judiciary/JurorScreening.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -75,12 +77,12 @@ const formMeta = (id) => props.surface.forms.find((f) => f.id === id) ?? null;
    screening → Empaneled → Trial → Deliberation → Discharged), positioned
    from the server `serviceState`. */
 const STEPS = [
-    { key: 'summoned', label: 'Summoned' },
-    { key: 'conflict_screening', label: 'Conflict screening' },
-    { key: 'empaneled', label: 'Empaneled' },
-    { key: 'trial', label: 'Trial' },
-    { key: 'deliberation', label: 'Deliberation' },
-    { key: 'discharged', label: 'Discharged' },
+    { key: 'summoned', label: t('c_institutions.juror_view.step_summoned', 'Summoned') },
+    { key: 'conflict_screening', label: t('c_institutions.juror_view.step_conflict_screening', 'Conflict screening') },
+    { key: 'empaneled', label: t('c_institutions.juror_view.step_empaneled', 'Empaneled') },
+    { key: 'trial', label: t('c_institutions.juror_view.step_trial', 'Trial') },
+    { key: 'deliberation', label: t('c_institutions.juror_view.step_deliberation', 'Deliberation') },
+    { key: 'discharged', label: t('c_institutions.juror_view.step_discharged', 'Discharged') },
 ];
 
 const steps = computed(() => {
@@ -117,11 +119,9 @@ function submitScreening({ answers }) {
         <div class="stack">
             <header>
                 <span class="eyebrow" data-no-i18n>Jury service · WF-JUD-04</span>
-                <h1>Juror summons — {{ summons.case.title }}</h1>
+                <h1>{{ t('c_institutions.juror_view.heading', { title: summons.case.title }) }}</h1>
                 <p class="page-intro">
-                    You were drawn at random from the eligible pool of verified residents. Service is
-                    a protected civic obligation — nobody can interfere with it, and nothing about it
-                    can ever cost you a fee.
+                    {{ t('c_institutions.juror_view.intro', 'You were drawn at random from the eligible pool of verified residents. Service is a protected civic obligation — nobody can interfere with it, and nothing about it can ever cost you a fee.') }}
                 </p>
                 <p class="citation" data-no-i18n>
                     Jury of peers · Art. IV §4 — service protected · Art. II §8
@@ -131,33 +131,33 @@ function submitScreening({ answers }) {
             <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
 
             <!-- Service status — the 6-step stepper -->
-            <Card as="section" title="Your service status">
+            <Card as="section" :title="t('c_institutions.juror_view.service_status_title', 'Your service status')">
                 <Stepper :steps="steps" />
             </Card>
 
             <!-- The summons facts -->
-            <Card as="section" title="The summons">
+            <Card as="section" :title="t('c_institutions.juror_view.summons_title', 'The summons')">
                 <div class="grid-2">
                     <div class="stack" style="gap: var(--space-1)">
                         <p>
-                            <strong style="color: var(--gov-fg)">Drawn:</strong>
+                            <strong style="color: var(--gov-fg)">{{ t('c_institutions.juror_view.drawn_label', 'Drawn:') }}</strong>
                             <span class="citation" data-no-i18n>{{ summons.drawn_at ?? 'pending' }}</span>
                         </p>
                         <p>
-                            <strong style="color: var(--gov-fg)">Pool:</strong>
+                            <strong style="color: var(--gov-fg)">{{ t('c_institutions.juror_view.pool_label', 'Pool:') }}</strong>
                             {{ summons.pool_label }}
                         </p>
                         <p>
-                            <strong style="color: var(--gov-fg)">Draw integrity:</strong>
-                            the random-selection seed is published to the
-                            <Link :href="summons.seed_audit_href">audit chain</Link> — anyone can verify the draw
+                            <strong style="color: var(--gov-fg)">{{ t('c_institutions.juror_view.draw_integrity_label', 'Draw integrity:') }}</strong>
+                            {{ t('c_institutions.juror_view.draw_integrity_before', 'the random-selection seed is published to the') }}
+                            <Link :href="summons.seed_audit_href">{{ t('c_institutions.juror_view.audit_chain', 'audit chain') }}</Link> {{ t('c_institutions.juror_view.draw_integrity_after', '— anyone can verify the draw') }}
                         </p>
                         <p>
-                            <strong style="color: var(--gov-fg)">Report:</strong>
+                            <strong style="color: var(--gov-fg)">{{ t('c_institutions.juror_view.report_label', 'Report:') }}</strong>
                             <span class="citation" data-no-i18n>{{ summons.report_at ?? 'to be set' }}</span>
                         </p>
                         <p>
-                            <strong style="color: var(--gov-fg)">Where:</strong>
+                            <strong style="color: var(--gov-fg)">{{ t('c_institutions.juror_view.where_label', 'Where:') }}</strong>
                             {{ summons.location }}
                         </p>
                         <p class="citation" data-no-i18n>
@@ -166,7 +166,7 @@ function submitScreening({ answers }) {
                     </div>
 
                     <!-- F-JDG-002 — the source of this summons (reference card, not interactive) -->
-                    <Card v-if="formMeta('F-JDG-002')" inset eyebrow="Source of this summons">
+                    <Card v-if="formMeta('F-JDG-002')" inset :eyebrow="t('c_institutions.juror_view.source_eyebrow', 'Source of this summons')">
                         <div
                             class="cluster"
                             style="justify-content: space-between; align-items: baseline; margin-block-start: var(--space-1)"
@@ -195,14 +195,14 @@ function submitScreening({ answers }) {
 
                 <p style="margin-block-start: var(--space-3)">
                     <Link :href="summons.case.href">
-                        See the case this summons belongs to
+                        {{ t('c_institutions.juror_view.see_case', 'See the case this summons belongs to') }}
                         <Icon name="arrow-right" size="sm" />
                     </Link>
                 </p>
             </Card>
 
             <!-- The voir-dire conflict questionnaire (composes JurorScreening) -->
-            <Card as="section" title="Conflict screening questionnaire">
+            <Card as="section" :title="t('c_institutions.juror_view.screening_title', 'Conflict screening questionnaire')">
                 <JurorScreening
                     :summons="summons"
                     :questions="questions"
@@ -215,36 +215,31 @@ function submitScreening({ answers }) {
             </Card>
 
             <!-- Your service is protected — the two Art. II §8 shields -->
-            <Card as="section" title="Your service is protected">
+            <Card as="section" :title="t('c_institutions.juror_view.protected_title', 'Your service is protected')">
                 <div class="cluster" style="margin-block-end: var(--space-3)">
                     <HardenedChip />
                 </div>
                 <ul>
                     <li>
-                        <strong style="color: var(--gov-fg)">No interference.</strong> Your employer cannot
-                        penalize, dismiss, or obstruct you for serving; nobody — public or private — may impede
-                        a civic obligation.
+                        <strong style="color: var(--gov-fg)">{{ t('c_institutions.juror_view.no_interference_label', 'No interference.') }}</strong> {{ t('c_institutions.juror_view.no_interference_body', 'Your employer cannot penalize, dismiss, or obstruct you for serving; nobody — public or private — may impede a civic obligation.') }}
                         <span class="citation" style="display: block" data-no-i18n
                             >Art. II §8 · Non-Interference with Civic Obligations</span
                         >
                     </li>
                     <li style="margin-block-start: var(--space-3)">
-                        <strong style="color: var(--gov-fg)">No fees, ever.</strong> No payment, fee, or fine
-                        can be required of you to exercise a civic right or fulfill this obligation — attendance,
-                        filings, and verification cost you nothing.
+                        <strong style="color: var(--gov-fg)">{{ t('c_institutions.juror_view.no_fees_label', 'No fees, ever.') }}</strong> {{ t('c_institutions.juror_view.no_fees_body', 'No payment, fee, or fine can be required of you to exercise a civic right or fulfill this obligation — attendance, filings, and verification cost you nothing.') }}
                         <span class="citation" style="display: block" data-no-i18n
                             >Art. II §8 · Prohibition of Compulsory Payments for Civic Rights</span
                         >
                     </li>
                 </ul>
                 <p class="gloss">
-                    Art. II §8 is the constitution's list of actions forbidden to legislatures — these two
-                    subsections shield jurors from both interference and charges.
+                    {{ t('c_institutions.juror_view.protected_gloss', "Art. II §8 is the constitution's list of actions forbidden to legislatures — these two subsections shield jurors from both interference and charges.") }}
                 </p>
             </Card>
 
             <!-- Jury deliberation room — locked until the deliberation state -->
-            <Card as="section" title="Jury deliberation room">
+            <Card as="section" :title="t('c_institutions.juror_view.room_title', 'Jury deliberation room')">
                 <div class="cluster" style="margin-block-end: var(--space-3)">
                     <StatusBadge
                         :tone="deliberationRoom.unlocked ? 'success' : 'neutral'"
@@ -252,28 +247,26 @@ function submitScreening({ answers }) {
                     >
                         {{
                             deliberationRoom.unlocked
-                                ? 'Open — the case is in deliberation'
-                                : 'Locked — opens when the case reaches deliberation'
+                                ? t('c_institutions.juror_view.room_open', 'Open — the case is in deliberation')
+                                : t('c_institutions.juror_view.room_locked', 'Locked — opens when the case reaches deliberation')
                         }}
                     </StatusBadge>
                 </div>
                 <p>
-                    The deliberation room is access-controlled: jurors only. The jury deliberates separately
-                    from the judges' chambers, with no contact from parties, advocates, or judges. Deliberation
-                    is the only unrecorded space in the trial — the verdict itself is recorded.
+                    {{ t('c_institutions.juror_view.room_body', "The deliberation room is access-controlled: jurors only. The jury deliberates separately from the judges' chambers, with no contact from parties, advocates, or judges. Deliberation is the only unrecorded space in the trial — the verdict itself is recorded.") }}
                 </p>
                 <Btn
                     variant="secondary"
                     :disabled="!deliberationRoom.unlocked"
                     :title="
                         deliberationRoom.unlocked
-                            ? 'Enter the jury deliberation room'
-                            : 'The room unlocks at the deliberation stage'
+                            ? t('c_institutions.juror_view.enter_title', 'Enter the jury deliberation room')
+                            : t('c_institutions.juror_view.enter_locked_title', 'The room unlocks at the deliberation stage')
                     "
                     style="margin-block-start: var(--space-3)"
                 >
                     <Icon name="lock" size="sm" />
-                    Enter deliberation room
+                    {{ t('c_institutions.juror_view.enter_room', 'Enter deliberation room') }}
                 </Btn>
                 <p class="citation" style="margin-block-start: var(--space-3)" data-no-i18n>
                     Separate deliberation preserves the independence of the jury of peers · Art. IV §4

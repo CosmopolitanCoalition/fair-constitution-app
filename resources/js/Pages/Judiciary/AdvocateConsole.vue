@@ -25,6 +25,7 @@
  */
 import { computed, reactive, ref, watch } from 'vue';
 import { Link, router, useForm, usePage, useRemember } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -38,6 +39,7 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -107,7 +109,7 @@ const filingForm = useForm(draftKey, {
     title: '',
     body: '',
 });
-const selectedCaseLabel = computed(() => selectedCase.value?.id === filingForm.case_id ? selectedCase.value : { id: filingForm.case_id, title: 'Selected case', docket_no: '' });
+const selectedCaseLabel = computed(() => selectedCase.value?.id === filingForm.case_id ? selectedCase.value : { id: filingForm.case_id, title: t('c_institutions.advocate_console.selected_case_fallback', 'Selected case'), docket_no: '' });
 const directories = reactive({
     roster: { query: props.case_pages.query ?? '', by: props.case_pages.by ?? 'title', busy: false, error: '' },
     composer: { query: props.composer_case_pages.query ?? '', by: props.composer_case_pages.by ?? 'title', busy: false, error: '' },
@@ -140,7 +142,7 @@ function browseCases(kind, url = null) {
         preserveState: true, preserveScroll: true,
         onStart: () => { state.busy = true; state.error = ''; },
         onFinish: () => { state.busy = false; },
-        onError: errors => { state.error = Object.values(errors)[0] || 'Cases could not be loaded. Try again.'; },
+        onError: errors => { state.error = Object.values(errors)[0] || t('c_institutions.advocate_console.cases_load_error', 'Cases could not be loaded. Try again.'); },
     });
 }
 watch(isNewCase, value => { if (!value && !props.composer_case_pages.loaded) browseCases('composer'); }, { immediate: true });
@@ -152,13 +154,13 @@ function chooseCase(item) {
 function clearCase() { filingForm.case_id = ''; selectedCase.value = null; }
 
 const activeHint = computed(
-    () => props.composer.types.find((t) => t.id === composerType.value)?.hint ?? '',
+    () => props.composer.types.find((ct) => ct.id === composerType.value)?.hint ?? '',
 );
 
 function submitFiling() {
     if (!props.can.file || filingBusy.value) return;
     if (!isNewCase.value && !filingForm.case_id) {
-        filingForm.setError('case_id', 'Choose the case this filing belongs to.');
+        filingForm.setError('case_id', t('c_institutions.advocate_console.choose_case', 'Choose the case this filing belongs to.'));
         return;
     }
     const options = {
@@ -207,51 +209,46 @@ function submitFiling() {
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            Your filings, motions, evidence, and briefs — everything you submit lands on the public
-            docket of the case it belongs to. Representation is a constitutional right of your clients;
-            registration keeps the bar of advocates zealous and competent.
+            {{ t('c_institutions.advocate_console.intro', 'Your filings, motions, evidence, and briefs — everything you submit lands on the public docket of the case it belongs to. Representation is a constitutional right of your clients; registration keeps the bar of advocates zealous and competent.') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <!-- ====================================== registration status ==== -->
-        <Card v-if="can.isRegistered" as="section" title="Registration status">
+        <Card v-if="can.isRegistered" as="section" :title="t('c_institutions.advocate_console.registration_status', 'Registration status')">
             <div class="cluster" style="margin-block-end: var(--space-3)">
-                <StatusBadge tone="success" icon="check">Registered advocate</StatusBadge>
+                <StatusBadge tone="success" icon="check">{{ t('c_institutions.advocate_console.registered_advocate', 'Registered advocate') }}</StatusBadge>
                 <span class="citation">
-                    granted {{ fmtDate(advocate.granted_at) }} · {{ advocate.judiciary.name }}
+                    {{ t('c_institutions.advocate_console.granted_line', { date: fmtDate(advocate.granted_at), name: advocate.judiciary.name }) }}
                 </span>
             </div>
             <p>
-                Registered for <strong>{{ advocate.persona.name }}</strong> — practice rights cover
-                {{ advocate.practice_scope }}.
+                {{ t('c_institutions.advocate_console.reg_for', 'Registered for') }} <strong>{{ advocate.persona.name }}</strong> {{ t('c_institutions.advocate_console.reg_scope', { scope: advocate.practice_scope }) }}
             </p>
             <p style="margin-block-start: var(--space-3)">
-                <Link :href="advocate.judiciary.href">Your judiciary →</Link>
+                <Link :href="advocate.judiciary.href">{{ t('c_institutions.advocate_console.your_judiciary', 'Your judiciary →') }}</Link>
             </p>
         </Card>
 
         <template v-else>
             <!-- Prerequisites checklist — what registration needs, and whether
                  you meet it. Two rows, each with an honest met / not-yet badge. -->
-            <Card v-if="prerequisites" as="section" title="Before you register">
+            <Card v-if="prerequisites" as="section" :title="t('c_institutions.advocate_console.before_register', 'Before you register')">
                 <ul class="stack" style="gap: var(--space-2); list-style: none; padding: 0">
                     <li class="cluster" style="gap: var(--space-2)">
                         <StatusBadge
                             :tone="prerequisites.residency.met ? 'success' : 'warning'"
                             :icon="prerequisites.residency.met ? 'check' : 'clock'"
                         >
-                            {{ prerequisites.residency.met ? 'Met' : 'Not yet' }}
+                            {{ prerequisites.residency.met ? t('c_institutions.advocate_console.met', 'Met') : t('c_institutions.advocate_console.not_yet', 'Not yet') }}
                         </StatusBadge>
                         <span>
                             <template v-if="prerequisites.residency.met">
-                                You live in <strong>{{ prerequisites.residency.name }}</strong> —
-                                association is the only eligibility the bar checks.
+                                {{ t('c_institutions.advocate_console.residency_met_before', 'You live in') }} <strong>{{ prerequisites.residency.name }}</strong> {{ t('c_institutions.advocate_console.residency_met_after', '— association is the only eligibility the bar checks.') }}
                             </template>
                             <template v-else>
-                                You need a confirmed residency first — say where you live, and the
-                                courts of that place open to you.
+                                {{ t('c_institutions.advocate_console.residency_not_met', 'You need a confirmed residency first — say where you live, and the courts of that place open to you.') }}
                             </template>
                         </span>
                     </li>
@@ -260,23 +257,17 @@ function submitFiling() {
                             :tone="prerequisites.judiciary.met ? 'success' : 'warning'"
                             :icon="prerequisites.judiciary.met ? 'check' : 'clock'"
                         >
-                            {{ prerequisites.judiciary.met ? 'Met' : 'Not yet' }}
+                            {{ prerequisites.judiciary.met ? t('c_institutions.advocate_console.met', 'Met') : t('c_institutions.advocate_console.not_yet', 'Not yet') }}
                         </StatusBadge>
                         <span>
                             <template v-if="prerequisites.judiciary.met">
-                                <strong>{{ prerequisites.judiciary.court_name }}</strong> is operating
-                                in {{ prerequisites.judiciary.jurisdiction }}
-                                ({{ prerequisites.judiciary.type }}).
+                                <strong>{{ prerequisites.judiciary.court_name }}</strong> {{ t('c_institutions.advocate_console.jud_operating', { jurisdiction: prerequisites.judiciary.jurisdiction, type: prerequisites.judiciary.type }) }}
                             </template>
                             <template v-else-if="prerequisites.judiciary.court_name">
-                                <strong>{{ prerequisites.judiciary.court_name }}</strong> exists in
-                                {{ prerequisites.judiciary.jurisdiction }} but is still
-                                {{ prerequisites.judiciary.status }} — it can take registrations once
-                                it is seated.
+                                <strong>{{ prerequisites.judiciary.court_name }}</strong> {{ t('c_institutions.advocate_console.jud_exists', { jurisdiction: prerequisites.judiciary.jurisdiction, status: prerequisites.judiciary.status }) }}
                             </template>
                             <template v-else>
-                                No court has formed in your jurisdiction yet — one appears when a
-                                legislature creates it (F-LEG-017).
+                                {{ t('c_institutions.advocate_console.jud_none', 'No court has formed in your jurisdiction yet — one appears when a legislature creates it (F-LEG-017).') }}
                             </template>
                         </span>
                     </li>
@@ -287,21 +278,19 @@ function submitFiling() {
                 v-if="registrationForm && registerTargetId"
                 :form="registrationForm"
                 :inertia-form="regForm"
-                submit-label="Register as an advocate"
+                :submit-label="t('c_institutions.advocate_console.register_submit', 'Register as an advocate')"
                 @submit="submitRegistration"
             >
                 <p class="gloss" style="margin-block-end: var(--space-3)">
-                    Representation is a constitutional right of your clients; registration keeps the
-                    bar of advocates zealous and competent. Registration is open to any associated
-                    resident — association with the court's jurisdiction is the only eligibility check.
+                    {{ t('c_institutions.advocate_console.register_gloss', "Representation is a constitutional right of your clients; registration keeps the bar of advocates zealous and competent. Registration is open to any associated resident — association with the court's jurisdiction is the only eligibility check.") }}
                 </p>
 
                 <!-- Jurisdiction of practice — only when more than one court is
                      open to you. One court needs no choice; the target is set. -->
                 <Field
                     v-if="practiceOptions.length > 1"
-                    label="Court of practice"
-                    hint="You live in more than one jurisdiction — choose whose court to join. You can register with the others later."
+                    :label="t('c_institutions.advocate_console.court_of_practice_label', 'Court of practice')"
+                    :hint="t('c_institutions.advocate_console.court_of_practice_hint', 'You live in more than one jurisdiction — choose whose court to join. You can register with the others later.')"
                 >
                     <template #control="{ id, describedBy }">
                         <select
@@ -316,14 +305,14 @@ function submitFiling() {
                                 :value="opt.id"
                                 :disabled="!opt.operating"
                             >
-                                {{ opt.court_name }} · {{ opt.jurisdiction }}{{ opt.operating ? '' : ' (not yet seated)' }}
+                                {{ opt.court_name }} · {{ opt.jurisdiction }}{{ opt.operating ? '' : t('c_institutions.advocate_console.not_seated_suffix', ' (not yet seated)') }}
                             </option>
                         </select>
                     </template>
                 </Field>
                 <Field
-                    label="Qualifications note (optional)"
-                    hint="Recorded with your registration; the bar's competence is a property of the bar, never a gate on your client's right."
+                    :label="t('c_institutions.advocate_console.qualifications_label', 'Qualifications note (optional)')"
+                    :hint="t('c_institutions.advocate_console.qualifications_hint', 'Recorded with your registration; the bar\'s competence is a property of the bar, never a gate on your client\'s right.')"
                     :error="regForm.errors.qualifications_note"
                 >
                     <template #control="{ id, describedBy }">
@@ -337,30 +326,28 @@ function submitFiling() {
                     </template>
                 </Field>
                 <p class="cc-small" style="margin-block-start: var(--space-2)">
-                    Representing yourself never requires registration — this role exists so others
-                    can be competently represented, never as a gate on your own right to be heard.
+                    {{ t('c_institutions.advocate_console.self_rep_note', 'Representing yourself never requires registration — this role exists so others can be competently represented, never as a gate on your own right to be heard.') }}
                 </p>
             </FormCard>
 
-            <Card v-else as="section" title="Registration status">
-                <Banner tone="info" role="status" title="No judiciary in your association chain yet.">
-                    Advocate registration is open to any associated resident, but a court must exist
-                    in your jurisdiction first — courts form when a legislature creates one (F-LEG-017).
+            <Card v-else as="section" :title="t('c_institutions.advocate_console.registration_status', 'Registration status')">
+                <Banner tone="info" role="status" :title="t('c_institutions.advocate_console.no_judiciary_title', 'No judiciary in your association chain yet.')">
+                    {{ t('c_institutions.advocate_console.no_judiciary_body', 'Advocate registration is open to any associated resident, but a court must exist in your jurisdiction first — courts form when a legislature creates one (F-LEG-017).') }}
                 </Banner>
             </Card>
         </template>
 
         <!-- ================================================= your cases ==== -->
-        <Card as="section" title="Your cases">
-            <p class="gloss">Cases you filed on behalf of clients, including completed cases. Browse by title or docket number.</p>
+        <Card as="section" :title="t('c_institutions.advocate_console.your_cases_title', 'Your cases')">
+            <p class="gloss">{{ t('c_institutions.advocate_console.your_cases_gloss', 'Cases you filed on behalf of clients, including completed cases. Browse by title or docket number.') }}</p>
             <form v-if="can.file" class="case-search" @submit.prevent="browseCases('roster')">
-                <label>Search by<select v-model="directories.roster.by"><option value="title">Title</option><option value="docket">Docket number</option></select></label>
-                <label>Starts with<input v-model="directories.roster.query" type="search" maxlength="160" /></label>
-                <button type="submit" :disabled="directories.roster.busy">Search cases</button>
-                <button v-if="case_pages.query" type="button" :disabled="directories.roster.busy" @click="directories.roster.query = ''; browseCases('roster')">All my cases</button>
+                <label>{{ t('c_institutions.advocate_console.search_by', 'Search by') }}<select v-model="directories.roster.by"><option value="title">{{ t('c_institutions.advocate_console.opt_title', 'Title') }}</option><option value="docket">{{ t('c_institutions.advocate_console.opt_docket', 'Docket number') }}</option></select></label>
+                <label>{{ t('c_institutions.advocate_console.starts_with', 'Starts with') }}<input v-model="directories.roster.query" type="search" maxlength="160" /></label>
+                <button type="submit" :disabled="directories.roster.busy">{{ t('c_institutions.advocate_console.search_cases', 'Search cases') }}</button>
+                <button v-if="case_pages.query" type="button" :disabled="directories.roster.busy" @click="directories.roster.query = ''; browseCases('roster')">{{ t('c_institutions.advocate_console.all_my_cases', 'All my cases') }}</button>
             </form>
             <p v-if="directories.roster.error" role="alert">{{ directories.roster.error }}</p>
-            <p role="status">{{ directories.roster.busy ? 'Loading cases…' : '' }}</p>
+            <p role="status">{{ directories.roster.busy ? t('c_institutions.advocate_console.loading_cases', 'Loading cases…') : '' }}</p>
 
             <div v-if="myCases.length" class="stack" :aria-busy="directories.roster.busy" style="gap: var(--space-3); margin-block-start: var(--space-3)">
                 <Card v-for="c in myCases" :key="c.id" inset>
@@ -368,7 +355,7 @@ function submitFiling() {
                         <div>
                             <strong style="color: var(--gov-fg)">{{ c.title }}</strong>
                             <span class="citation" style="display: block">
-                                {{ c.docket_no }} · {{ c.kind }} · {{ c.court }} · panel: {{ c.panel }}
+                                {{ c.docket_no }} · {{ c.kind }} · {{ c.court }} · {{ t('c_institutions.advocate_console.panel_label', 'panel:') }} {{ c.panel }}
                             </span>
                         </div>
                         <StatusBadge :tone="c.state_tone" icon="file-text">{{ c.state }}</StatusBadge>
@@ -377,25 +364,25 @@ function submitFiling() {
                         {{ c.next_action }}
                     </p>
                     <p style="margin-block-start: var(--space-2)">
-                        <Link :href="c.href">Open case →</Link>
+                        <Link :href="c.href">{{ t('c_institutions.advocate_console.open_case', 'Open case →') }}</Link>
                     </p>
                 </Card>
             </div>
             <p v-else class="gloss" style="margin-block-start: var(--space-3)">
-                {{ case_pages.query ? 'No cases match this beginning. Try another title or docket number.' : 'Cases you file on behalf of clients appear here.' }}
+                {{ case_pages.query ? t('c_institutions.advocate_console.no_cases_match', 'No cases match this beginning. Try another title or docket number.') : t('c_institutions.advocate_console.no_cases', 'Cases you file on behalf of clients appear here.') }}
             </p>
-            <nav class="case-pages" aria-label="Your case pages">
-                <button v-if="case_pages.previous" :disabled="directories.roster.busy" @click="browseCases('roster', case_pages.previous)">Previous cases</button>
-                <button v-if="case_pages.next" :disabled="directories.roster.busy" @click="browseCases('roster', case_pages.next)">More cases</button>
-                <button v-if="case_pages.previous || directories.roster.error" :disabled="directories.roster.busy" @click="browseCases('roster', case_pages.first)">First page</button>
+            <nav class="case-pages" :aria-label="t('c_institutions.advocate_console.case_pages_aria', 'Your case pages')">
+                <button v-if="case_pages.previous" :disabled="directories.roster.busy" @click="browseCases('roster', case_pages.previous)">{{ t('c_institutions.advocate_console.previous_cases', 'Previous cases') }}</button>
+                <button v-if="case_pages.next" :disabled="directories.roster.busy" @click="browseCases('roster', case_pages.next)">{{ t('c_institutions.advocate_console.more_cases', 'More cases') }}</button>
+                <button v-if="case_pages.previous || directories.roster.error" :disabled="directories.roster.busy" @click="browseCases('roster', case_pages.first)">{{ t('c_institutions.advocate_console.first_page', 'First page') }}</button>
             </nav>
         </Card>
 
         <!-- ============================================= new filing ====== -->
-        <Card as="section" title="New filing">
+        <Card as="section" :title="t('c_institutions.advocate_console.new_filing_title', 'New filing')">
             <form class="stack" style="gap: var(--space-3)" novalidate @submit.prevent="submitFiling">
                 <div class="grid-2">
-                    <Field label="Filing type" :error="filingForm.errors.form_id">
+                    <Field :label="t('c_institutions.advocate_console.filing_type_label', 'Filing type')" :error="filingForm.errors.form_id">
                         <template #control="{ id }">
                             <select :id="id" v-model="composerType" class="select">
                                 <option v-for="t in composer.types" :key="t.id" :value="t.id">
@@ -407,43 +394,43 @@ function submitFiling() {
                 </div>
 
                 <fieldset v-if="!isNewCase" class="case-picker">
-                    <legend>Case for this filing</legend>
+                    <legend>{{ t('c_institutions.advocate_console.case_for_filing', 'Case for this filing') }}</legend>
                     <p class="gloss">{{ activeHint }}</p>
                     <div v-if="filingForm.case_id" class="selected-case">
-                        <strong>Selected: {{ selectedCaseLabel.title }}</strong>
+                        <strong>{{ t('c_institutions.advocate_console.selected_label', 'Selected:') }} {{ selectedCaseLabel.title }}</strong>
                         <span>{{ selectedCaseLabel.docket_no }}</span>
-                        <Link :href="`/cases/${filingForm.case_id}`">Open selected case</Link>
-                        <small>Case reference: {{ filingForm.case_id }}</small>
-                        <button type="button" @click="clearCase">Change case</button>
+                        <Link :href="`/cases/${filingForm.case_id}`">{{ t('c_institutions.advocate_console.open_selected_case', 'Open selected case') }}</Link>
+                        <small>{{ t('c_institutions.advocate_console.case_reference', 'Case reference:') }} {{ filingForm.case_id }}</small>
+                        <button type="button" @click="clearCase">{{ t('c_institutions.advocate_console.change_case', 'Change case') }}</button>
                     </div>
                     <p v-if="filingForm.errors.case_id" role="alert">{{ filingForm.errors.case_id }}</p>
                     <div class="case-search">
-                        <label>Search by<select v-model="directories.composer.by"><option value="title">Title</option><option value="docket">Docket number</option></select></label>
-                        <label>Starts with<input v-model="directories.composer.query" type="search" maxlength="160" @keydown.enter.prevent="browseCases('composer')" /></label>
-                        <button type="button" :disabled="directories.composer.busy || !can.file" @click="browseCases('composer')">Find a case</button>
-                        <button v-if="composer_case_pages.query" type="button" :disabled="directories.composer.busy" @click="directories.composer.query = ''; browseCases('composer')">All my cases</button>
+                        <label>{{ t('c_institutions.advocate_console.search_by', 'Search by') }}<select v-model="directories.composer.by"><option value="title">{{ t('c_institutions.advocate_console.opt_title', 'Title') }}</option><option value="docket">{{ t('c_institutions.advocate_console.opt_docket', 'Docket number') }}</option></select></label>
+                        <label>{{ t('c_institutions.advocate_console.starts_with', 'Starts with') }}<input v-model="directories.composer.query" type="search" maxlength="160" @keydown.enter.prevent="browseCases('composer')" /></label>
+                        <button type="button" :disabled="directories.composer.busy || !can.file" @click="browseCases('composer')">{{ t('c_institutions.advocate_console.find_a_case', 'Find a case') }}</button>
+                        <button v-if="composer_case_pages.query" type="button" :disabled="directories.composer.busy" @click="directories.composer.query = ''; browseCases('composer')">{{ t('c_institutions.advocate_console.all_my_cases', 'All my cases') }}</button>
                     </div>
                     <p v-if="directories.composer.error" role="alert">{{ directories.composer.error }}</p>
                     <div :aria-busy="directories.composer.busy">
-                        <p role="status">{{ directories.composer.busy ? 'Loading cases for this filing…' : (!composer_case_pages.loaded ? 'Find a case to select it for this filing.' : (!composer_cases.length ? 'No matching cases on this page. Try another title or docket number.' : 'Choose the case this filing belongs to.')) }}</p>
+                        <p role="status">{{ directories.composer.busy ? t('c_institutions.advocate_console.loading_filing_cases', 'Loading cases for this filing…') : (!composer_case_pages.loaded ? t('c_institutions.advocate_console.find_case_prompt', 'Find a case to select it for this filing.') : (!composer_cases.length ? t('c_institutions.advocate_console.no_matching_page', 'No matching cases on this page. Try another title or docket number.') : t('c_institutions.advocate_console.choose_case', 'Choose the case this filing belongs to.'))) }}</p>
                         <ul class="case-options">
                             <li v-for="item in composer_cases" :key="item.id">
-                                <div><strong>{{ item.title }}</strong><span>{{ item.docket_no }} · {{ item.state }}</span><Link :href="item.href">Open case</Link><small>Case reference: {{ item.id }}</small></div>
-                                <button type="button" :disabled="filingForm.case_id === item.id || directories.composer.busy" :aria-label="`Select ${item.title}, ${item.docket_no}, case ${item.id}`" @click="chooseCase(item)">Select case</button>
+                                <div><strong>{{ item.title }}</strong><span>{{ item.docket_no }} · {{ item.state }}</span><Link :href="item.href">{{ t('c_institutions.advocate_console.open_case_short', 'Open case') }}</Link><small>{{ t('c_institutions.advocate_console.case_reference', 'Case reference:') }} {{ item.id }}</small></div>
+                                <button type="button" :disabled="filingForm.case_id === item.id || directories.composer.busy" :aria-label="t('c_institutions.advocate_console.select_case_aria', { title: item.title, docket: item.docket_no, id: item.id })" @click="chooseCase(item)">{{ t('c_institutions.advocate_console.select_case', 'Select case') }}</button>
                             </li>
                         </ul>
                     </div>
-                    <nav class="case-pages" aria-label="Filing case choices">
-                        <button v-if="composer_case_pages.previous" type="button" :disabled="directories.composer.busy" @click="browseCases('composer', composer_case_pages.previous)">Previous choices</button>
-                        <button v-if="composer_case_pages.next" type="button" :disabled="directories.composer.busy" @click="browseCases('composer', composer_case_pages.next)">More choices</button>
-                        <button v-if="composer_case_pages.previous || directories.composer.error" type="button" :disabled="directories.composer.busy" @click="browseCases('composer', composer_case_pages.first)">First page</button>
+                    <nav class="case-pages" :aria-label="t('c_institutions.advocate_console.filing_choices_aria', 'Filing case choices')">
+                        <button v-if="composer_case_pages.previous" type="button" :disabled="directories.composer.busy" @click="browseCases('composer', composer_case_pages.previous)">{{ t('c_institutions.advocate_console.previous_choices', 'Previous choices') }}</button>
+                        <button v-if="composer_case_pages.next" type="button" :disabled="directories.composer.busy" @click="browseCases('composer', composer_case_pages.next)">{{ t('c_institutions.advocate_console.more_choices', 'More choices') }}</button>
+                        <button v-if="composer_case_pages.previous || directories.composer.error" type="button" :disabled="directories.composer.busy" @click="browseCases('composer', composer_case_pages.first)">{{ t('c_institutions.advocate_console.first_page', 'First page') }}</button>
                     </nav>
                 </fieldset>
 
                 <Field
                     v-if="isNewCase"
-                    label="Client"
-                    hint="Your client retains you; the retainer is recorded with the filing."
+                    :label="t('c_institutions.advocate_console.client_label', 'Client')"
+                    :hint="t('c_institutions.advocate_console.client_hint', 'Your client retains you; the retainer is recorded with the filing.')"
                     :error="filingForm.errors.client"
                 >
                     <template #control="{ id, describedBy }">
@@ -452,49 +439,49 @@ function submitFiling() {
                             v-model="filingForm.client"
                             class="field-input"
                             type="text"
-                            placeholder="Who you are filing for"
+                            :placeholder="t('c_institutions.advocate_console.client_placeholder', 'Who you are filing for')"
                             :aria-describedby="describedBy"
                         />
                     </template>
                 </Field>
 
-                <Field label="Title" :error="filingForm.errors.title">
+                <Field :label="t('c_institutions.advocate_console.title_label', 'Title')" :error="filingForm.errors.title">
                     <template #control="{ id }">
                         <input
                             :id="id"
                             v-model="filingForm.title"
                             class="field-input"
                             type="text"
-                            placeholder="A short label for this filing"
+                            :placeholder="t('c_institutions.advocate_console.title_placeholder', 'A short label for this filing')"
                         />
                     </template>
                 </Field>
 
-                <Field label="Summary" :error="filingForm.errors.body">
+                <Field :label="t('c_institutions.advocate_console.summary_label', 'Summary')" :error="filingForm.errors.body">
                     <template #control="{ id }">
                         <textarea
                             :id="id"
                             v-model="filingForm.body"
                             class="field-input"
                             rows="3"
-                            placeholder="What this filing asks the court to do"
+                            :placeholder="t('c_institutions.advocate_console.summary_placeholder', 'What this filing asks the court to do')"
                         />
                     </template>
                 </Field>
 
                 <div class="cluster">
                     <button type="submit" class="btn btn--primary" :disabled="!can.file || filingBusy">
-                        {{ filingBusy ? 'Submitting…' : 'Submit to the docket' }}
+                        {{ filingBusy ? t('c_institutions.advocate_console.submitting', 'Submitting…') : t('c_institutions.advocate_console.submit_docket', 'Submit to the docket') }}
                     </button>
                     <span v-if="!can.file" class="gloss">
-                        Register as an advocate (F-IND-015) to file on behalf of a client.
+                        {{ t('c_institutions.advocate_console.register_to_file', 'Register as an advocate (F-IND-015) to file on behalf of a client.') }}
                     </span>
                 </div>
             </form>
         </Card>
 
         <!-- =========================================== recent filings ==== -->
-        <Card as="section" title="Filing history">
+        <Card as="section" :title="t('c_institutions.advocate_console.filing_history_title', 'Filing history')">
             <div v-if="filings.length" class="stack" style="gap: 0; margin-block-start: var(--space-2)">
                 <LogRow v-for="g in filings" :key="g.seq" :seq="g.seq">
                     <FormChip :form-id="g.form" />
@@ -503,17 +490,17 @@ function submitFiling() {
                         <Link v-if="g.case" :href="g.case.href" class="citation">{{ g.case.title }}</Link>
                     </span>
                     <span class="citation">{{ fmtDate(g.when) }}</span>
-                    <StatusBadge tone="success" icon="check">Accepted · docketed</StatusBadge>
+                    <StatusBadge tone="success" icon="check">{{ t('c_institutions.advocate_console.accepted_docketed', 'Accepted · docketed') }}</StatusBadge>
                 </LogRow>
             </div>
             <p v-else class="gloss" style="margin-block-start: var(--space-2)">
-                No docketed filings on this page.
+                {{ t('c_institutions.advocate_console.no_docketed', 'No docketed filings on this page.') }}
             </p>
-            <HistoryPager :pages="filing_pages" :only="['filings', 'filing_pages']" :first="filing_pages.first" cursor-key="filings_cursor" label="Advocate filing history pages" />
+            <HistoryPager :pages="filing_pages" :only="['filings', 'filing_pages']" :first="filing_pages.first" cursor-key="filings_cursor" :label="t('c_institutions.advocate_console.filing_history_pager', 'Advocate filing history pages')" />
         </Card>
 
         <!-- ========================================= four instruments ==== -->
-        <Card as="section" title="Your four instruments">
+        <Card as="section" :title="t('c_institutions.advocate_console.four_instruments_title', 'Your four instruments')">
             <div class="grid-2" style="margin-block-start: var(--space-2)">
                 <Card v-for="fid in instrumentIds" :key="fid" inset>
                     <template v-if="surfaceForm(fid)">
@@ -522,7 +509,7 @@ function submitFiling() {
                             <FormChip :form-id="fid" :alias="surfaceForm(fid).alias" />
                         </div>
                         <span class="citation" style="display: block; margin-block-start: var(--space-1)">
-                            available to {{ (surfaceForm(fid).availableTo ?? []).join(', ') }}
+                            {{ t('c_institutions.advocate_console.available_to', 'available to') }} {{ (surfaceForm(fid).availableTo ?? []).join(', ') }}
                             <template v-if="surfaceForm(fid).citation"> · {{ surfaceForm(fid).citation }}</template>
                         </span>
                     </template>
@@ -532,14 +519,10 @@ function submitFiling() {
 
         <template #about>
             <p>
-                <strong>Workflows:</strong> registration is WF-CIV-07; every filing feeds the
-                WF-JUD-03 case lifecycle.
+                <strong>{{ t('c_institutions.advocate_console.about_workflows_label', 'Workflows:') }}</strong> {{ t('c_institutions.advocate_console.about_workflows', 'registration is WF-CIV-07; every filing feeds the WF-JUD-03 case lifecycle.') }}
             </p>
             <p>
-                <strong>Entity state machine:</strong> Case — filings attach at specific states
-                (motions before and during hearing, evidence on the open docket, briefs until
-                deliberation); the case detail page plays the full sequence. The attach-window is
-                enforced by the engine, not this page.
+                <strong>{{ t('c_institutions.advocate_console.about_esm_label', 'Entity state machine:') }}</strong> {{ t('c_institutions.advocate_console.about_esm', 'Case — filings attach at specific states (motions before and during hearing, evidence on the open docket, briefs until deliberation); the case detail page plays the full sequence. The attach-window is enforced by the engine, not this page.') }}
             </p>
         </template>
     </PageScaffold>
