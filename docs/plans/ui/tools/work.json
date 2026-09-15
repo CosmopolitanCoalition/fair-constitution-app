@@ -12849,6 +12849,10 @@
         {
           "date": "2026-09-14",
           "note": "Catalogue campaign progress (11:45 PM Eastern): merged lanes i18n-ui-a (79debc8f), i18n-ui-b (dc2c4da1), i18n-system (8b443aa4, 612 keys), i18n-civic-components (454af0ad), php-surfaces (aac2cb4d, lang/en.json 380 entries). Running: economy, setup, civic, legislature-a/b, operator, jurisdictions, institutions, front, setup-components, institution-components, shell-components, php-refusals-a/b/c, php-machinery."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Catalogue merges (11:58 PM Eastern): i18n-economy (835 keys), i18n-civic (9e4ac6a6), i18n-setup-components (b1f43da8), php-refusals-a (d4448620; lang/en.json union 380+106 = 486 entries, 0 clashes). Pins green. Remaining: setup, legislature-a/b, operator, jurisdictions, institutions, front, institution-components, shell-components, php-refusals-b/c, php-machinery."
         }
       ]
     },

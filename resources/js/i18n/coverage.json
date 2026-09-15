@@ -1,61 +1,61 @@
 {
-  "generated_at": "2026-09-15T03:40:21.421Z",
-  "source_keys": 7264,
-  "namespaces": 54,
+  "generated_at": "2026-09-15T03:55:35.643Z",
+  "source_keys": 8802,
+  "namespaces": 56,
   "locales": [
     {
       "locale": "ar",
-      "total": 7264,
+      "total": 8802,
       "present": 4312,
-      "missing": 2952,
+      "missing": 4490,
       "orphan": 8,
       "identical": 15,
-      "pct": 59.4
+      "pct": 49
     },
     {
       "locale": "es",
-      "total": 7264,
+      "total": 8802,
       "present": 4350,
-      "missing": 2914,
+      "missing": 4452,
       "orphan": 8,
       "identical": 26,
-      "pct": 59.9
+      "pct": 49.4
     },
     {
       "locale": "fr",
-      "total": 7264,
+      "total": 8802,
       "present": 4136,
-      "missing": 3128,
+      "missing": 4666,
       "orphan": 8,
       "identical": 32,
-      "pct": 56.9
+      "pct": 47
     },
     {
       "locale": "hi",
-      "total": 7264,
+      "total": 8802,
       "present": 4357,
-      "missing": 2907,
+      "missing": 4445,
       "orphan": 8,
       "identical": 19,
-      "pct": 60
+      "pct": 49.5
     },
     {
       "locale": "pt",
-      "total": 7264,
+      "total": 8802,
       "present": 4139,
-      "missing": 3125,
+      "missing": 4663,
       "orphan": 8,
       "identical": 31,
-      "pct": 57
+      "pct": 47
     },
     {
       "locale": "zh-Hans",
-      "total": 7264,
+      "total": 8802,
       "present": 4119,
-      "missing": 3145,
+      "missing": 4683,
       "orphan": 8,
       "identical": 12,
-      "pct": 56.7
+      "pct": 46.8
     }
   ],
   "by_namespace": [
@@ -97,7 +97,7 @@
     },
     {
       "namespace": "c_civic",
-      "total": 8,
+      "total": 469,
       "locales": {
         "ar": 8,
         "es": 8,
@@ -122,6 +122,18 @@
     {
       "namespace": "c_community",
       "total": 7,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_economy",
+      "total": 837,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -381,6 +393,18 @@
         "hi": 100,
         "pt": 100,
         "zh-Hans": 100
+      }
+    },
+    {
+      "namespace": "c_setup_components",
+      "total": 240,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
       }
     },
     {
@@ -708,10 +732,10 @@
       }
     }
   ],
-  "failures": 18225,
+  "failures": 27453,
   "warnings": 4294,
   "failure_codes": {
-    "C1-missing": 18171,
+    "C1-missing": 27399,
     "C2-orphan": 48,
     "C4-idtoken": 6
   }
