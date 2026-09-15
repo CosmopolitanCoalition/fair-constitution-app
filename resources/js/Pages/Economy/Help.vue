@@ -35,7 +35,7 @@ function create() {
         <WorkTradeNav active="help" back-href="/economy/market?tab=assistance" back-label="Market requests" />
         <Banner v-if="page.props.flash?.status" tone="info" role="status">{{ page.props.flash.status }}</Banner>
         <Banner v-if="errors.length" tone="emergency" role="alert"><p v-for="error in errors" :key="error">{{ error }}</p></Banner>
-        <Banner v-if="participationNotice" tone="info">{{ participationNotice }} <Link href="/economy/wallet">Open my wallet</Link></Banner>
+        <Banner v-if="participationNotice" tone="info">{{ participationNotice }} <Link href="/economy/wallet" class="prose-link">Open my wallet</Link></Banner>
         <Card v-if="canParticipate" as="section" title="Ask for help">
             <details><summary>Write a request</summary>
                 <form @submit.prevent="create">

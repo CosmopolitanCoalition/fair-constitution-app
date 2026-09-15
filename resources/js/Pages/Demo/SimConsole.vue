@@ -11,6 +11,7 @@
  * reads as a glitch and a counter that eases reads as a machine working.
  */
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { Head } from '@inertiajs/vue3'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 /**
  * The bars are lane 3's shared component, not ours (authorised 2026-07-26).
@@ -160,6 +161,8 @@ const statusTone = computed(() => {
 
 <template>
     <div class="mx-auto max-w-5xl px-4 py-6 space-y-6">
+        <!-- W-0338: every page names itself; the sweep flagged this one without a title. -->
+        <Head title="Simulated world" />
             <header class="flex flex-wrap items-baseline justify-between gap-3">
                 <div>
                     <h1 class="text-2xl font-semibold text-gray-100">Simulated world — populate engine</h1>
@@ -167,7 +170,7 @@ const statusTone = computed(() => {
                         Live. Refreshes every 2 seconds from the work queue itself — no cached counters.
                     </p>
                 </div>
-                <div class="text-right text-xs text-gray-500">
+                <div class="text-right text-xs text-gray-400">
                     <div>
                         instance class
                         <span :class="isScaleDemo ? 'text-emerald-400' : 'text-amber-400'" class="font-mono">
@@ -239,7 +242,7 @@ const statusTone = computed(() => {
                         </button>
                     </div>
 
-                    <p v-if="canStart" class="mt-2 text-xs text-gray-500">
+                    <p v-if="canStart" class="mt-2 text-xs text-gray-400">
                         A smoke limit enumerates only the N largest jurisdictions — leave it blank to populate the
                         whole set. Enumeration runs on the queue; the bars come alive within the minute.
                     </p>
@@ -248,14 +251,14 @@ const statusTone = computed(() => {
                     <p v-if="actionError" class="mt-2 text-sm text-rose-300">{{ actionError }}</p>
 
                     <!-- The last action's echo, so a start is visible before the run row exists. -->
-                    <p v-if="controlMarker && controlMarker.note" class="mt-2 text-xs text-gray-500">
+                    <p v-if="controlMarker && controlMarker.note" class="mt-2 text-xs text-gray-400">
                         <span class="font-mono text-gray-400">{{ controlMarker.action }}</span>
                         <span v-if="controlMarker.status"> · {{ controlMarker.status }}</span>
                         — {{ controlMarker.note }}
                     </p>
                     <pre
                         v-else-if="controlMarker && controlMarker.tail"
-                        class="mt-2 max-h-40 overflow-auto whitespace-pre-wrap font-mono text-[11px] text-gray-500"
+                        class="mt-2 max-h-40 overflow-auto whitespace-pre-wrap font-mono text-[11px] text-gray-400"
                     >{{ controlMarker.tail }}</pre>
                 </template>
             </section>
@@ -271,21 +274,21 @@ const statusTone = computed(() => {
                 <section class="rounded-lg border border-gray-700/60 bg-gray-900/40 p-4">
                     <div class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
                         <div>
-                            <span class="text-xs uppercase tracking-wide text-gray-500">status</span>
+                            <span class="text-xs uppercase tracking-wide text-gray-400">status</span>
                             <span :class="statusTone" class="ml-2 font-semibold">{{ run.status }}</span>
                         </div>
                         <div>
-                            <span class="text-xs uppercase tracking-wide text-gray-500">stage</span>
+                            <span class="text-xs uppercase tracking-wide text-gray-400">stage</span>
                             <span class="ml-2 font-mono text-gray-200">{{ run.phase }}</span>
                         </div>
                         <div>
-                            <span class="text-xs uppercase tracking-wide text-gray-500">workers</span>
+                            <span class="text-xs uppercase tracking-wide text-gray-400">workers</span>
                             <span class="ml-2 font-mono text-gray-200">
-                                {{ workers.length }}<span class="text-gray-500">/{{ run.workers_target }}</span>
+                                {{ workers.length }}<span class="text-gray-400">/{{ run.workers_target }}</span>
                             </span>
                         </div>
                         <div v-if="totalItems">
-                            <span class="text-xs uppercase tracking-wide text-gray-500">items</span>
+                            <span class="text-xs uppercase tracking-wide text-gray-400">items</span>
                             <span class="ml-2 font-mono text-gray-200">{{ fmt(totalDone) }}/{{ fmt(totalItems) }}</span>
                         </div>
                     </div>
@@ -298,7 +301,7 @@ const statusTone = computed(() => {
                         Paused by the database breaker until {{ run.paused_until }} — a Postgres restart was
                         detected. This pauses claims; it never abandons work.
                     </p>
-                    <p v-if="run.last_error" class="mt-2 font-mono text-xs text-gray-500">{{ run.last_error }}</p>
+                    <p v-if="run.last_error" class="mt-2 font-mono text-xs text-gray-400">{{ run.last_error }}</p>
 
                     <!-- The phase DAG, so the run's position is legible at a glance. -->
                     <div class="mt-4 flex flex-wrap gap-1.5">
@@ -308,7 +311,7 @@ const statusTone = computed(() => {
                             class="rounded px-2 py-0.5 text-xs font-mono"
                             :class="p === run.phase
                                 ? 'bg-emerald-900/60 text-emerald-300 ring-1 ring-emerald-700'
-                                : 'bg-gray-800/60 text-gray-500'"
+                                : 'bg-gray-800/60 text-gray-400'"
                         >{{ p }}</span>
                     </div>
                 </section>
@@ -329,7 +332,7 @@ const statusTone = computed(() => {
                         <li v-for="w in workers" :key="w.id" class="flex items-baseline gap-2">
                             <span class="text-gray-600">{{ w.id }}</span>
                             <span class="text-gray-300">{{ w.claim_type || 'idle' }}</span>
-                            <span class="truncate text-gray-500">{{ w.claim_label }}</span>
+                            <span class="truncate text-gray-400">{{ w.claim_label }}</span>
                             <span v-if="w.claim_secs !== null" class="ml-auto text-gray-600">{{ w.claim_secs }}s</span>
                         </li>
                     </ul>
@@ -356,19 +359,19 @@ const statusTone = computed(() => {
                          state until an election fills it. -->
                     <dl class="mt-3 grid grid-cols-3 gap-x-6 gap-y-3 rounded border border-gray-700/50 bg-gray-950/40 p-3">
                         <div>
-                            <dt class="text-xs text-gray-500">places with a chamber</dt>
+                            <dt class="text-xs text-gray-400">places with a chamber</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.chambers) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-500">chambers with members</dt>
+                            <dt class="text-xs text-gray-400">chambers with members</dt>
                             <dd class="font-mono text-lg text-emerald-300">{{ fmt(world.chambers_governed) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-500">awaiting a first election</dt>
+                            <dt class="text-xs text-gray-400">awaiting a first election</dt>
                             <dd class="font-mono text-lg text-amber-300">{{ fmt(world.chambers_awaiting_election) }}</dd>
                         </div>
                     </dl>
-                    <p class="mt-2 text-xs text-gray-500">
+                    <p class="mt-2 text-xs text-gray-400">
                         A chamber exists as soon as a place is activated, but only an election puts people in it —
                         seating anyone without one would manufacture members nobody voted for. An empty chamber is
                         the correct state, not a failure.
@@ -414,11 +417,11 @@ const statusTone = computed(() => {
                                 class="flex flex-wrap items-baseline gap-x-2 text-xs"
                             >
                                 <span class="text-gray-200">{{ p.name }}</span>
-                                <span class="font-mono text-gray-500">
+                                <span class="font-mono text-gray-400">
                                     type A {{ p.type_a }} · type B {{ p.type_b }}
                                 </span>
                                 <span
-                                    :class="p.seated ? 'text-amber-300' : 'text-gray-500'"
+                                    :class="p.seated ? 'text-amber-300' : 'text-gray-400'"
                                     class="font-mono"
                                 >{{ p.seated ? 'seated' : 'not seated' }}</span>
                             </li>
@@ -454,7 +457,7 @@ const statusTone = computed(() => {
                                 class="flex flex-wrap items-baseline gap-x-2 text-xs"
                             >
                                 <span class="text-gray-200">{{ p.name }}</span>
-                                <span class="font-mono text-gray-500">
+                                <span class="font-mono text-gray-400">
                                     type A {{ p.type_a }} · districts draw {{ p.drawn }}
                                 </span>
                                 <span class="font-mono text-rose-300">
@@ -466,31 +469,31 @@ const statusTone = computed(() => {
 
                     <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
                         <div>
-                            <dt class="text-xs text-gray-500">jurisdictions</dt>
+                            <dt class="text-xs text-gray-400">jurisdictions</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.jurisdictions) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-500">cohorts modelled</dt>
+                            <dt class="text-xs text-gray-400">cohorts modelled</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.cohorts) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-500">people minted</dt>
+                            <dt class="text-xs text-gray-400">people minted</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.people) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-500">active residencies</dt>
+                            <dt class="text-xs text-gray-400">active residencies</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.residencies) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-500">population modelled</dt>
+                            <dt class="text-xs text-gray-400">population modelled</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.population_modelled) }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-500">electorate modelled</dt>
+                            <dt class="text-xs text-gray-400">electorate modelled</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.electorate_modelled) }}</dd>
                         </div>
                     </dl>
-                    <p class="mt-3 text-xs text-gray-500">
+                    <p class="mt-3 text-xs text-gray-400">
                         People minted is deliberately far below population modelled: identity is materialized only
                         where the constitution requires it — a candidate, a member — and everyone else is counted
                         exactly as a cohort rather than stored as a row.

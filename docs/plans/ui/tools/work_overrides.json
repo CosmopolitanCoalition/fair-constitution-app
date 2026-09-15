@@ -461,6 +461,35 @@
    "note": "/people with no id is the viewer's own profile, so the sign-in redirect is correct. The roster now derives viewer-bound pages as a third pinned list (PIN_VIEWER_BOUND) and never scans them; 40 guest pages remain. Roster pin passes in the host sweep.",
    "date": "2026-09-14",
    "title": "Decide /people: guest roster lists it, the app walls it behind /login"
+  },
+  "W-0435": {
+   "status": "done",
+   "note": "Cause: the act-gate (ruling A5) runs before the validator, and the fixture member had no live legislature training, so the first refusal was the training redirect. The fixture now completes F-EDU-001 through the engine inside the rolled-back transaction. On box E live PG: OK, 5 tests, 40 assertions. The shield refusal itself was unchanged.",
+   "date": "2026-09-14",
+   "title": "Fix ReferendumShieldTest: the shielded-act refusal no longer cites Art. II §6"
+  },
+  "W-0436": {
+   "status": "done",
+   "note": "The pin matches the exact dev URI. A second assertion states activate-legislature's gate: no auth middleware, the controller refuses anyone but the operator as its first statement, before the subtree boot dispatch. OK.",
+   "date": "2026-09-14",
+   "title": "Fix JurisdictionActivateParityTest: the dev-gate pin matches activate-legislature instead of the dev activate route"
+  },
+  "W-0440": {
+   "status": "done",
+   "note": "Migration 2026_09_14_213000 adds an index on lower(name) text_pattern_ops (applied on box E in 6 s). GET /api/public-records/legislatures?q= answers a two-character prefix with at most 20 rows in 0.3 to 0.4 s (was 3 to 6 s). The page's dropdown is a typeahead; the id filter for deep links stays. Pinned in PublicRecordsFacetTest.",
+   "date": "2026-09-14",
+   "title": "Public records: typed legislature search backed by a jurisdictions.name index"
+  },
+  "W-0442": {
+   "status": "done",
+   "note": "Swept alone in Edge on the host 2026-09-14: PASS in 17.4 s, zero nodes at both widths. The earlier crashes were the bulk runs on a memory-starved host, not the page. Server side was already paginated.",
+   "date": "2026-09-14",
+   "title": "Make /jurisdictions survive the browser sweep: measure and bound what the page loads after render"
+  },
+  "W-0441": {
+   "note": "Server side done: the hub walks adm levels with one bounded query per level, the election picks are bounded by the hub ids, the total is cached; guest GET 30.9 s to 1.8 s; pinned by LegislatureIndexBoundedTest. Open: the response is still 500 rows (286 KB) and the sweep takes 98 s; next step per operator ruling 2026-09-14 is pagination of the hub (50 a page).",
+   "date": "2026-09-14",
+   "title": "Bound the /legislatures index: no planet-wide count, no unbounded ordered join"
   }
  }
 }

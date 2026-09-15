@@ -110,8 +110,8 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
 
     <div class="mx-auto max-w-5xl space-y-6 p-6">
         <header>
-            <h1 class="text-lg font-semibold text-slate-900">Host resources and services</h1>
-            <p class="mt-1 max-w-3xl text-sm text-slate-600">
+            <h1 class="text-lg font-semibold" style="color: var(--gov-fg-strong)">Host resources and services</h1>
+            <p class="mt-1 max-w-3xl text-sm" style="color: var(--gov-fg-muted)">
                 Review this host’s infrastructure and edit supported settings. Each setting shows whether
                 it applies immediately, requires a service restart, or is managed elsewhere.
             </p>
@@ -169,7 +169,7 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
                         <span class="rounded px-1.5 py-0.5 text-[10px] font-medium uppercase" :class="tierBadge(it.tier)">{{ it.tier }}</span>
 
                         <span v-if="it.secret" class="text-sm">
-                            <span v-if="!it.configured" class="text-slate-400">not set</span>
+                            <span v-if="!it.configured" class="text-slate-600">not set</span>
                             <span v-else class="text-slate-700">configured</span>
                             <span v-if="it.dev_default" class="ml-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-medium text-rose-700">dev default — rotate</span>
                         </span>
@@ -193,18 +193,18 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
                         </template>
 
                         <!-- Read-only -->
-                        <span v-else class="break-all font-mono text-sm" :class="it.configured ? 'text-slate-800' : 'text-slate-400'">
+                        <span v-else class="break-all font-mono text-sm" :class="it.configured ? 'text-slate-800' : 'text-slate-600'">
                             {{ it.configured ? it.value : '—' }}
                         </span>
 
-                        <span v-if="it.note" class="basis-full pl-48 text-xs text-slate-400">{{ it.note }}</span>
+                        <span v-if="it.note" class="basis-full pl-48 text-xs text-slate-600">{{ it.note }}</span>
                     </div>
                 </div>
 
                 <!-- Installed certs -->
                 <div v-if="s.certs" class="mt-4">
                     <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Installed certificates</h3>
-                    <p v-if="!s.certs.length" class="mt-1 text-xs text-slate-400">None installed under the TLS path.</p>
+                    <p v-if="!s.certs.length" class="mt-1 text-xs text-slate-600">None installed under the TLS path.</p>
                     <ul v-else class="mt-1 space-y-1">
                         <li v-for="c in s.certs" :key="c.fqdn" class="flex flex-wrap items-center gap-x-3 text-sm" :class="certClass(c)">
                             <span class="font-mono">{{ c.fqdn }}</span>
@@ -221,7 +221,7 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
                 <!-- Broker credentials (write-only — domains/zones only) -->
                 <div v-if="s.credentials" class="mt-4">
                     <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">DNS credentials</h3>
-                    <p v-if="!s.credentials.length" class="mt-1 text-xs text-slate-400">
+                    <p v-if="!s.credentials.length" class="mt-1 text-xs text-slate-600">
                         No DNS credential stored. Set one (write-only) on the Federation console.
                     </p>
                     <ul v-else class="mt-1 space-y-1">
@@ -283,7 +283,7 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
                 </div>
             </section>
 
-            <p class="text-xs text-slate-400">
+            <p class="text-xs text-slate-600">
                 Instant-tier knobs are edited in place (applied on the next request). Restart-tier LiveKit
                 networking is applied via the host supervisor above. Secret rotation is intentionally not yet
                 wired — it is gated on the credential-security pass; rotate via <code class="font-mono">matrix:setup</code> for now.

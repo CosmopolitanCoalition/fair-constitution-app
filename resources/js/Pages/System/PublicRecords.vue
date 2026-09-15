@@ -82,6 +82,37 @@ function clearFilters() {
 
 const hasFilters = computed(() => q.value !== '' || activeKinds.value.length > 0 || legislature.value !== '');
 
+/* W-0440: typed legislature search. The server never lists every chamber on
+   the box; it answers a name prefix with at most 20 matches, and the page
+   keeps the active legislature's name in filters.legislatures (one row). */
+const legislatureOptions = ref([]);
+const legislatureQuery = ref('');
+const activeLegislatureName = computed(() => props.filters.legislatures.find((l) => l.id === legislature.value)?.name ?? '');
+let searchTimer = null;
+function searchLegislatures() {
+    const term = legislatureQuery.value.trim();
+    clearTimeout(searchTimer);
+    if (term.length < 2) { legislatureOptions.value = []; return; }
+    searchTimer = setTimeout(async () => {
+        try {
+            const res = await fetch('/api/public-records/legislatures?q=' + encodeURIComponent(term), { headers: { Accept: 'application/json' } });
+            legislatureOptions.value = res.ok ? (await res.json()).options ?? [] : [];
+        } catch { legislatureOptions.value = []; }
+    }, 250);
+}
+function pickLegislature() {
+    const hit = legislatureOptions.value.find((l) => l.name === legislatureQuery.value.trim());
+    if (!hit) return;
+    legislature.value = hit.id;
+    legislatureQuery.value = '';
+    applyFilters();
+}
+function clearLegislature() {
+    legislature.value = '';
+    legislatureQuery.value = '';
+    applyFilters();
+}
+
 function loadOlder() {
     router.get('/system/public-records', {
         q: q.value || undefined,
@@ -163,13 +194,29 @@ function dateOf(iso) {
                     @change="applyFilters"
                 />
             </label>
+            <!-- W-0440: a typed legislature search (prefix, at most 20 matches) replaces the
+                 planet-wide dropdown; the active legislature keeps its name from the server. -->
             <label class="cc-small" style="color: var(--gov-fg-muted)">
                 <span class="visually-hidden">Legislature</span>
-                <select v-model="legislature" class="select" style="inline-size: auto" @change="applyFilters">
-                    <option value="">All legislatures</option>
-                    <option v-for="l in filters.legislatures" :key="l.id" :value="l.id">{{ l.name }}</option>
-                </select>
+                <input
+                    v-model="legislatureQuery"
+                    class="field-input"
+                    style="inline-size: 14rem; padding-block: var(--space-1)"
+                    type="search"
+                    list="public-records-legislatures"
+                    placeholder="Legislature name"
+                    autocomplete="off"
+                    @input="searchLegislatures"
+                    @change="pickLegislature"
+                />
+                <datalist id="public-records-legislatures">
+                    <option v-for="l in legislatureOptions" :key="l.id" :value="l.name" />
+                </datalist>
             </label>
+            <span v-if="activeLegislatureName" class="badge">
+                {{ activeLegislatureName }}
+                <button type="button" class="form-chip" style="margin-inline-start: var(--space-1)" @click="clearLegislature">clear</button>
+            </span>
             <span class="eyebrow">Kind</span>
             <span class="cluster" style="gap: var(--space-1)">
                 <ChipToggle

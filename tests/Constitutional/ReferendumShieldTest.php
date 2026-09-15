@@ -317,7 +317,47 @@ class ReferendumShieldTest extends TestCase
             ->when($legislature->speaker_id !== null, fn ($q) => $q->whereKeyNot($legislature->speaker_id))
             ->firstOrFail();
 
-        return [$legislature, User::query()->findOrFail($member->user_id)];
+        $user = User::query()->findOrFail($member->user_id);
+        $this->satisfyTrainingGate($user);
+
+        return [$legislature, $user];
+    }
+
+    /**
+     * W-0435. The act-gate (operator ruling A5, 2026-07-29) runs BEFORE the
+     * validator: an untrained member filing F-LEG-034 draws the structured
+     * training refusal, not the Art. II §6 shield refusal this pin is about.
+     * The gate arms only when live 'legislature' training is published, which
+     * the education seed did on 2026-09-13. The fixture member therefore
+     * completes that training through the engine first (F-EDU-001, the same
+     * door TrainingGateEndToEndTest walks), inside the rolled-back transaction,
+     * so the shield check is the first refusal the pin meets. When no live
+     * module exists the gate is open and nothing is filed.
+     */
+    private function satisfyTrainingGate(User $user): void
+    {
+        $gate = app(\App\Services\Education\TrainingGateService::class);
+        $track = $gate->trackFor('F-LEG-034');
+
+        if ($track === null || ! $gate->hasLiveTraining($track) || $gate->hasCompleted($user, $track)) {
+            return;
+        }
+
+        $moduleKey = DB::table('education_tracks as t')
+            ->join('education_modules as m', 'm.track_id', '=', 't.id')
+            ->where('t.key', $track)->where('t.status', 'live')->whereNull('t.deleted_at')
+            ->where('m.status', 'live')->whereNull('m.deleted_at')
+            ->orderBy('m.key')
+            ->value('m.key');
+
+        app(ConstitutionalEngine::class)->file('F-EDU-001', $user, [
+            'track_key'  => $track,
+            'module_key' => (string) $moduleKey,
+            'passed'     => true,
+            'score_pct'  => 100,
+        ]);
+
+        $this->assertTrue($gate->hasCompleted($user, $track), 'the fixture member holds the live training so the shield refusal is the first refusal');
     }
 
     private function livePg(): Connection

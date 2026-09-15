@@ -139,7 +139,7 @@ const roleLabel = (role) => classLabels[role]?.label ?? role;
                 <div><dt>Bump cap (max stacked)</dt><dd>{{ formatMoney(stipend.cap, currency) }}</dd></div>
             </dl>
             <p>
-                <Link href="/legislature/settings" class="econ-back">
+                <Link href="/legislature/settings" class="econ-back prose-link">
                     Propose a change — the settings register
                 </Link>
             </p>
@@ -208,7 +208,7 @@ const roleLabel = (role) => classLabels[role]?.label ?? role;
                     <p class="econ-meta"><span>Private — your receipt</span></p>
                     <p>
                         Each person's own amount writes only to their own private wallet.
-                        <Link href="/economy/wallet" class="econ-back">My wallet — see your own line</Link>
+                        <Link href="/economy/wallet" class="econ-back prose-link">My wallet — see your own line</Link>
                     </p>
                 </div>
             </div>

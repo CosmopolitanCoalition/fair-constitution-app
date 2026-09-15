@@ -47,6 +47,32 @@ class PublicRecordsFacetTest extends TestCase
         $this->assertStringNotContainsString('->get(', $facet, 'never a list');
     }
 
+    public function test_typed_search_is_bounded_by_prefix_and_limit(): void
+    {
+        // W-0440
+        $search = $this->body('legislatureSearch');
+
+        $this->assertStringContainsString('mb_strlen($q) < 2', $search, 'a prefix of at least two characters');
+        $this->assertStringContainsString("whereRaw('lower(j.name) LIKE ?'", $search, 'the indexed prefix form');
+        $this->assertStringContainsString("[\$escaped . '%']", $search, 'prefix only, wildcards escaped');
+        $this->assertStringContainsString('->limit(20)', $search, 'at most twenty rows');
+
+        $route = \Illuminate\Support\Facades\Route::getRoutes()->getByName('system.public-records.legislatures');
+        $this->assertNotNull($route, 'the search route is registered');
+        $this->assertSame('api/public-records/legislatures', $route->uri(), 'a JSON endpoint lives under /api so the guest roster records it as a non-page');
+        $this->assertContains('auth', $route->excludedMiddleware(), 'public read like the page');
+
+        $migration = base_path('database/migrations/2026_09_14_213000_index_jurisdictions_lower_name.php');
+        $this->assertFileExists($migration, 'the lower(name) prefix index migration exists');
+        $src = file_get_contents($migration);
+        $this->assertStringContainsString('lower(name) text_pattern_ops', $src);
+        $this->assertStringContainsString("DB::getDriverName() !== 'pgsql'", $src, 'sqlite fixtures take no index');
+        $m = require $migration;
+        $m->up();
+        $m->up(); // rerunnable on the sqlite fixture: a no-op twice
+        $this->assertTrue(true);
+    }
+
     public function test_stats_are_a_high_water_mark_plus_cached_kind_counts(): void
     {
         $stats = $this->body('stats');

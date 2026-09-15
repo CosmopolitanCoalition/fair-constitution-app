@@ -39,7 +39,10 @@ export function isAuthClass(m) {
 
 // Non-HTML endpoints (JSON APIs, discovery documents, health probe): guest-
 // readable but not axe-scannable pages. Recorded in the roster, never scanned.
-const NON_PAGE_RE = [/^\/api\//, /^\/\.well-known\//, /^\/oauth\//];
+// /federation/cluster/sync-progress is a JSON progress poll that lives outside
+// /api (verified 2026-09-14: application/json, 0.1 KB); listed by name so the
+// sweep never scans it as a page.
+const NON_PAGE_RE = [/^\/api\//, /^\/\.well-known\//, /^\/oauth\//, /^\/federation\/cluster\/sync-progress$/];
 function isNonPage(u) {
     return u === '/up' || NON_PAGE_RE.some((re) => re.test(u));
 }
@@ -70,8 +73,9 @@ export function deriveGuestPages() {
     return { pages: dedupe(pages), nonPageEndpoints: dedupe(nonPageEndpoints), viewerBound: dedupe(viewerBound) };
 }
 
-// ── THE PIN. 40 guest pages, 35 non-page endpoints and 1 viewer-bound page as
-// resolved from the route table captured 2026-09-14. If route-list.json is
+// ── THE PIN. 55 guest pages, 38 non-page endpoints and 1 viewer-bound page as
+// resolved from the route table captured 2026-09-14 (refreshed after the reads lane
+// opened the economy, sim console and operator read pages to guests). If route-list.json is
 // refreshed and the derivation changes, these arrays must be updated
 // deliberately (that is the point). ──
 export const PIN_PAGES = [
@@ -84,6 +88,18 @@ export const PIN_PAGES = [
     '/continue',
     '/coverage',
     '/coverage-ops',
+    '/economy',
+    '/economy/agreements',
+    '/economy/exchange',
+    '/economy/help',
+    '/economy/joint-ledgers',
+    '/economy/market',
+    '/economy/resident-agreements',
+    '/economy/stipend',
+    '/economy/treasury',
+    '/economy/units',
+    '/economy/wallet',
+    '/economy/work',
     '/explore',
     '/federation',
     '/journeys',
@@ -98,7 +114,9 @@ export const PIN_PAGES = [
     '/learn/manage',
     '/legislatures',
     '/login',
+    '/operator/federation',
     '/operator/login',
+    '/operator/operations',
     '/reach',
     '/register',
     '/rooms',
@@ -107,6 +125,7 @@ export const PIN_PAGES = [
     '/setup/join',
     '/setup/mode',
     '/setup/operator',
+    '/simworld',
     '/support/report',
     '/system/accessibility',
     '/system/clocks',
@@ -134,6 +153,7 @@ export const PIN_NONPAGE = [
     '/api/jurisdictions/activation-status',
     '/api/maps/latest-pmtiles',
     '/api/mesh/nearest',
+    '/api/public-records/legislatures',
     '/api/session/heartbeat',
     '/api/setup/bootstrap/status',
     '/api/setup/state',
@@ -150,6 +170,8 @@ export const PIN_NONPAGE = [
     '/api/setup/wizard/step3/summary',
     '/api/setup/wizard/step4/progress',
     '/api/setup/wizard/step5/progress',
+    '/api/simworld/progress',
+    '/federation/cluster/sync-progress',
     '/oauth/jwks',
     '/oauth/userinfo',
     '/up',

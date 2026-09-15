@@ -130,7 +130,7 @@ function formatDate(iso) {
                 :caption="t('c_legislature_workspace.index.caption', 'Legislatures, by jurisdiction')"
             >
                 <template #cell-jurisdiction="{ row }">
-                    <Link :href="`/legislatures/${row.slug}`">{{ row.jurisdiction }}</Link>
+                    <Link :href="`/legislatures/${row.slug}`" class="prose-link">{{ row.jurisdiction }}</Link>
                     <span class="cc-small mono" style="margin-inline-start: var(--space-2)">{{ row.slug }}</span>
                 </template>
 
@@ -161,6 +161,7 @@ function formatDate(iso) {
                     <Link
                         v-if="row.members_count > 0"
                         :href="`/legislatures/${row.id}/chamber`"
+                        class="prose-link"
                         style="margin-inline-start: var(--space-2)"
                     >{{ t('c_legislature_workspace.index.chamber', 'Chamber') }}</Link>
                 </template>
@@ -173,7 +174,7 @@ function formatDate(iso) {
                      phase badge, and a Results link once certified. -->
                 <template #cell-election="{ row }">
                     <template v-if="row.election">
-                        <Link :href="`/elections/${row.election.id}`">{{ t('c_legislature_workspace.index.election', 'Election') }}</Link>
+                        <Link :href="`/elections/${row.election.id}`" class="prose-link">{{ t('c_legislature_workspace.index.election', 'Election') }}</Link>
                         <StatusBadge
                             :tone="electionBadge(row.election.status).tone"
                             style="margin-inline-start: var(--space-2)"
@@ -181,6 +182,7 @@ function formatDate(iso) {
                         <Link
                             v-if="row.results_election_id"
                             :href="`/elections/${row.results_election_id}/results`"
+                            class="prose-link"
                             style="margin-inline-start: var(--space-2)"
                         >{{ t('c_legislature_workspace.index.results', 'Results') }}</Link>
                     </template>

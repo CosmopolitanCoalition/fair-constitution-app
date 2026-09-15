@@ -249,7 +249,9 @@ const bounds = (b) => {
 .lever-act {
     font-style: italic;
 }
+/* No opacity dimming: the label reads at the subtle token, which clears AA on
+   every surface (W-0336); 0.7 opacity over muted text fell to about 3:1. */
 .lever-act--default {
-    opacity: 0.7;
+    color: var(--gov-fg-subtle);
 }
 </style>

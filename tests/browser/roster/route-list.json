@@ -1,6 +1,6 @@
 {
- "_provenance": "php artisan route:list --json (fc_app), GET routes only, normalized to {uri,name,middleware}. Regenerate: docker exec fc_app php artisan route:list --json | node tests/browser/roster/refresh-route-list.mjs",
- "_capturedAt": "2026-09-14",
+ "_provenance": "php artisan route:list --json (fc_app), GET routes only, normalized to {uri,name,middleware}. Refresh: tests/browser/roster/refresh-route-list.mjs",
+ "_capturedAt": "2026-09-15",
  "routes": [
   {
    "uri": "/",
@@ -292,10 +292,25 @@
    ]
   },
   {
+   "uri": "/api/me/video-prefs",
+   "name": "api.me.video-prefs.show",
+   "middleware": [
+    "auth",
+    "web"
+   ]
+  },
+  {
    "uri": "/api/mesh/nearest",
    "name": null,
    "middleware": [
     "throttle:60,1"
+   ]
+  },
+  {
+   "uri": "/api/public-records/legislatures",
+   "name": "system.public-records.legislatures",
+   "middleware": [
+    "web"
    ]
   },
   {
@@ -436,7 +451,6 @@
    "uri": "/api/simworld/progress",
    "name": "api.simworld.progress",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -612,7 +626,6 @@
    "uri": "/committees/{committee}",
    "name": "committees.show",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -657,7 +670,6 @@
    "uri": "/departments/{department}",
    "name": "executive.department-detail",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -665,7 +677,6 @@
    "uri": "/departments/{department}/reporting",
    "name": "departments.reporting",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -736,7 +747,6 @@
    "uri": "/economy",
    "name": "economy.home",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -744,7 +754,6 @@
    "uri": "/economy/agreements",
    "name": "economy.agreements",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -752,7 +761,6 @@
    "uri": "/economy/agreements/{contract}",
    "name": "economy.agreement",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -760,7 +768,6 @@
    "uri": "/economy/exchange",
    "name": "economy.exchange",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -768,7 +775,6 @@
    "uri": "/economy/help",
    "name": "economy.help",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -776,7 +782,6 @@
    "uri": "/economy/help/{assistance}",
    "name": "economy.help.show",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -784,7 +789,6 @@
    "uri": "/economy/joint-ledgers",
    "name": "economy.joint",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -792,7 +796,6 @@
    "uri": "/economy/market",
    "name": "economy.market",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -800,7 +803,6 @@
    "uri": "/economy/market/{listing}",
    "name": "economy.listing",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -808,7 +810,6 @@
    "uri": "/economy/requests/{posting}",
    "name": "economy.request",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -816,7 +817,6 @@
    "uri": "/economy/resident-agreements",
    "name": "economy.resident-agreements",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -824,7 +824,6 @@
    "uri": "/economy/stipend",
    "name": "economy.stipend",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -832,7 +831,6 @@
    "uri": "/economy/treasury",
    "name": "economy.treasury",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -840,7 +838,6 @@
    "uri": "/economy/units",
    "name": "economy.units",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -848,7 +845,6 @@
    "uri": "/economy/wallet",
    "name": "economy.wallet",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -856,7 +852,6 @@
    "uri": "/economy/work",
    "name": "economy.work",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -1011,7 +1006,6 @@
    "uri": "/federation/cluster/sync-progress",
    "name": "federation.cluster.sync-progress",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -1379,7 +1373,6 @@
    "uri": "/legislatures/{legislature}/committees",
    "name": "committees.index",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -1387,7 +1380,6 @@
    "uri": "/legislatures/{legislature}/emergency-powers",
    "name": "emergency-powers.index",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -1409,7 +1401,6 @@
    "uri": "/legislatures/{legislature}/referendums",
    "name": "referendums.index",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -1500,7 +1491,6 @@
    "uri": "/operator/federation",
    "name": "federation.show",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -1539,7 +1529,6 @@
    "uri": "/operator/operations",
    "name": "operator.operations",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -1736,7 +1725,6 @@
    "uri": "/simworld",
    "name": "simworld.console",
    "middleware": [
-    "auth",
     "web"
    ]
   },

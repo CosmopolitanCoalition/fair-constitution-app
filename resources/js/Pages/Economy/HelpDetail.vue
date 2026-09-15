@@ -48,7 +48,7 @@ function respond() {
         <Banner v-if="page.props.flash?.status" tone="info" role="status">{{ page.props.flash.status }}</Banner>
         <Banner v-if="errors.length" tone="emergency" role="alert"><p v-for="error in errors" :key="error">{{ error }}</p></Banner>
         <p v-if="busy" role="status">Saving…</p>
-        <Banner v-if="participationNotice" tone="info">{{ participationNotice }} <Link href="/economy/wallet">Open my wallet</Link></Banner>
+        <Banner v-if="participationNotice" tone="info">{{ participationNotice }} <Link href="/economy/wallet" class="prose-link">Open my wallet</Link></Banner>
         <Card as="section" title="The request">
             <p class="help-note">{{ assistance.privacy === 'public' ? 'Public request' : assistance.privacy === 'private' ? 'Private request' : 'Restricted request' }}<template v-if="assistance.created_at"> · {{ formatWhen(assistance.created_at) }}</template></p>
             <p class="help-body">{{ assistance.need }}</p>

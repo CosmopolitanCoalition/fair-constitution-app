@@ -156,8 +156,8 @@ const forgetBrokerCred = (domain) => {
 
     <div class="mx-auto max-w-5xl space-y-6 p-6">
         <header>
-            <h1 class="text-2xl font-semibold text-slate-900">Host connections and access</h1>
-            <p class="mt-1 max-w-2xl text-sm text-slate-600">
+            <h1 class="text-2xl font-semibold" style="color: var(--gov-fg-strong)">Host connections and access</h1>
+            <p class="mt-1 max-w-2xl text-sm" style="color: var(--gov-fg-muted)">
                 Connect this host to the network, manage invitations and access requests, and verify peer connections.
                 For the current peer list and synchronization record, open Peers and sync.
             </p>
@@ -207,9 +207,9 @@ const forgetBrokerCred = (domain) => {
                         <span class="text-sm font-semibold text-slate-800">{{ c.label }}</span>
                         <span :class="channelStateClass(c.state)" class="rounded px-2 py-0.5 text-xs font-medium">{{ c.state }}</span>
                     </div>
-                    <p class="mt-1 font-mono text-[11px] text-slate-400">{{ c.capability }}</p>
+                    <p class="mt-1 font-mono text-[11px] text-slate-600">{{ c.capability }}</p>
                     <p class="mt-1 text-xs text-slate-600">{{ c.what }}</p>
-                    <p class="mt-1 text-[11px] uppercase tracking-wide text-slate-400">
+                    <p class="mt-1 text-[11px] uppercase tracking-wide text-slate-600">
                         {{ c.kind }}<span v-if="c.affects_peer_subtree"> · co-affected peers consent</span>
                     </p>
 
@@ -219,7 +219,7 @@ const forgetBrokerCred = (domain) => {
                                   class="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold">
                                 {{ gateMark(g.status) }}
                             </span>
-                            <span class="text-slate-600">{{ g.label }} <span class="text-slate-400">— {{ g.detail }}</span></span>
+                            <span class="text-slate-600">{{ g.label }} <span class="text-slate-600">— {{ g.detail }}</span></span>
                         </li>
                     </ul>
 
@@ -230,7 +230,7 @@ const forgetBrokerCred = (domain) => {
                         <button v-if="c.kind === 'governed' && c.state === 'qualifiable'" type="button"
                                 @click="requestChannel(c.capability)"
                                 class="rounded bg-sky-700 px-2 py-1 text-xs font-medium text-white hover:bg-sky-600">Request</button>
-                        <span v-if="c.kind === 'governed' && c.state === 'needs-config'" class="text-[11px] italic text-slate-400">
+                        <span v-if="c.kind === 'governed' && c.state === 'needs-config'" class="text-[11px] italic text-slate-600">
                             drop the required token/key to qualify
                         </span>
                         <span v-if="c.state === 'requested'" class="text-[11px] italic text-amber-600">awaiting consent (see Pending requests)</span>
@@ -478,7 +478,7 @@ const forgetBrokerCred = (domain) => {
                             </select>
                         </label>
                         <label class="grow text-sm">
-                            <span class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Note <span class="font-normal normal-case text-slate-400">(optional)</span></span>
+                            <span class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Note <span class="font-normal normal-case text-slate-600">(optional)</span></span>
                             <input v-model="rwForm.note" type="text" maxlength="1000" placeholder="why we run a vetted node here"
                                    class="mt-1 w-full rounded border border-slate-300 px-2 py-1 text-sm" />
                         </label>
@@ -497,7 +497,7 @@ const forgetBrokerCred = (domain) => {
                 <!-- Step indicator -->
                 <ol class="mb-4 flex flex-wrap gap-2 text-xs">
                     <li v-for="(label, i) in ['Host & key', 'What to pull', 'Relationship', 'Review']" :key="i"
-                        :class="joinStep === i + 1 ? 'bg-sky-600 text-white' : (joinStep > i + 1 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500')"
+                        :class="joinStep === i + 1 ? 'bg-sky-700 text-white' : (joinStep > i + 1 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600')"
                         class="rounded-full px-3 py-1 font-medium">
                         {{ i + 1 }}. {{ label }}
                     </li>
@@ -517,7 +517,7 @@ const forgetBrokerCred = (domain) => {
                         <span v-if="joinForm.errors.host_url" class="mt-1 block text-xs text-rose-600">{{ joinForm.errors.host_url }}</span>
                     </label>
                     <label class="block text-sm">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Join key <span class="font-normal normal-case text-slate-400">(optional — leave blank to request a vouch)</span></span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Join key <span class="font-normal normal-case text-slate-600">(optional — leave blank to request a vouch)</span></span>
                         <input v-model="joinForm.join_key" type="text" placeholder="handle.secret"
                                class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 font-mono text-sm focus:border-sky-400 focus:outline-none" />
                     </label>
@@ -552,7 +552,7 @@ const forgetBrokerCred = (domain) => {
                         </label>
                         <label class="mt-1 flex items-center gap-2 text-slate-700">
                             <input type="radio" value="pull_from_origin" v-model="joinForm.geodata_posture" />
-                            Pull geodata from the origin <span class="text-xs text-slate-400">(CC BY 4.0; rasters delivered in Phase H)</span>
+                            Pull geodata from the origin <span class="text-xs text-slate-600">(CC BY 4.0; rasters delivered in Phase H)</span>
                         </label>
                         <label class="mt-1 flex items-center gap-2 text-slate-700">
                             <input type="radio" value="skip" v-model="joinForm.geodata_posture" /> Skip — text-only mirror
@@ -582,7 +582,7 @@ const forgetBrokerCred = (domain) => {
                     </div>
 
                     <label class="block text-sm">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Note to the host operator <span class="font-normal normal-case text-slate-400">(optional)</span></span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Note to the host operator <span class="font-normal normal-case text-slate-600">(optional)</span></span>
                         <input v-model="joinForm.note" type="text" maxlength="1000" placeholder="why we want to mirror"
                                class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 text-sm focus:border-sky-400 focus:outline-none" />
                     </label>
@@ -682,12 +682,12 @@ const forgetBrokerCred = (domain) => {
                         <li v-for="r in host.requests" :key="r.id" class="flex items-start justify-between gap-3 border-t border-slate-100 pt-2">
                             <span class="min-w-0">
                                 <span class="text-slate-700">{{ r.applicant_name || 'Unnamed applicant' }}</span>
-                                <span class="font-mono text-slate-400"> · {{ r.applicant_server_id }}…</span>
+                                <span class="font-mono text-slate-600"> · {{ r.applicant_server_id }}…</span>
                                 <span v-if="r.requested_relation === 'co_member'"
                                       class="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">intends read-write</span>
                                 <span v-else class="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600">mirror</span>
                                 <span v-if="r.requested_scope" class="block text-xs text-slate-500">scope: <span class="font-mono">{{ r.requested_scope }}…</span></span>
-                                <span v-if="r.note" class="block text-xs text-slate-400">{{ r.note }}</span>
+                                <span v-if="r.note" class="block text-xs text-slate-600">{{ r.note }}</span>
                                 <span v-if="r.requested_relation === 'co_member'" class="block text-xs text-amber-700">
                                     Approving admits a read-only mirror only — read-write is the jurisdiction's government's call (Art. V §7).
                                 </span>
@@ -712,7 +712,7 @@ const forgetBrokerCred = (domain) => {
                                 <span class="font-mono text-slate-600">{{ r.applicant_server_id }}…</span>
                                 <span class="text-slate-500"> wants read-write over </span>
                                 <span class="font-mono text-slate-600">{{ r.root_jurisdiction_id }}…</span>
-                                <span v-if="r.note" class="block text-xs text-slate-400">{{ r.note }}</span>
+                                <span v-if="r.note" class="block text-xs text-slate-600">{{ r.note }}</span>
                             </span>
                             <button type="button" @click="denyRw(r.id)"
                                     class="rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Deny</button>
@@ -720,7 +720,7 @@ const forgetBrokerCred = (domain) => {
                     </ul>
                 </div>
 
-                <p class="text-xs text-slate-400">
+                <p class="text-xs text-slate-600">
                     Approving an adoption admits a <strong>read-only mirror</strong> (authoritative for nothing).
                     Read-write is a separate <strong>governed</strong> grant — decided by the jurisdiction's standing
                     government (Art. V §7) or, where there is none, the de-facto operator board — not a console click.
@@ -730,9 +730,9 @@ const forgetBrokerCred = (domain) => {
 
         <!-- Peers -->
         <section class="rounded-lg border border-slate-200 bg-white p-5">
-            <h2 class="text-sm font-semibold text-slate-900">Peers <span class="text-slate-400">({{ peers.length }})</span></h2>
+            <h2 class="text-sm font-semibold text-slate-900">Peers <span class="text-slate-600">({{ peers.length }})</span></h2>
             <p v-if="peers.length === 0" class="mt-2 text-sm text-slate-500">
-                No peers yet — discover one with <code class="rounded bg-slate-100 px-1">federation:peer:discover &lt;url&gt;</code>.
+                No peers yet — discover one with <code class="rounded bg-slate-100 px-1 text-slate-700">federation:peer:discover &lt;url&gt;</code>.
             </p>
             <table v-else class="mt-3 w-full text-left text-sm">
                 <thead class="text-xs uppercase tracking-wide text-slate-500">
@@ -752,7 +752,7 @@ const forgetBrokerCred = (domain) => {
 
         <!-- Sync ledger -->
         <section class="rounded-lg border border-slate-200 bg-white p-5">
-            <h2 class="text-sm font-semibold text-slate-900">Sync ledger <span class="text-slate-400">(append-only)</span></h2>
+            <h2 class="text-sm font-semibold text-slate-900">Sync ledger <span class="text-slate-600">(append-only)</span></h2>
             <p v-if="sync.length === 0" class="mt-2 text-sm text-slate-500">No sync exchanges recorded yet.</p>
             <table v-else class="mt-3 w-full text-left text-sm">
                 <thead class="text-xs uppercase tracking-wide text-slate-500">
@@ -797,3 +797,13 @@ const forgetBrokerCred = (domain) => {
         </div>
     </div>
 </template>
+
+<style scoped>
+/* W-0336: placeholder text at slate-500 (4.7:1 on the white fields); the browser
+   default grey-400 measured 2.6:1 in the host sweep of 2026-09-14. */
+input::placeholder,
+textarea::placeholder { color: #64748b; opacity: 1; }
+/* The fields on this console are light (white ground); the shell's muted field colour
+   measured 2.6:1 on them. Typed text reads at slate-900. */
+input, textarea, select { color: #0f172b; }
+</style>

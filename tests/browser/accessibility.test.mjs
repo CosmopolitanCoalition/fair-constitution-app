@@ -111,10 +111,14 @@ async function bootAssets(page) {
 async function settle(page) {
     await page.waitForLoadState('domcontentloaded').catch(() => {});
 
+    // A painted content element is ANY main/form/h1 with text outside the
+    // loader, not the first one in document order: /operator/operations opens
+    // with a text-less form ahead of its main, and the first-match probe waited
+    // 30 s for text that element never has (found 2026-09-14, single-route pass).
     const probe = () => {
         const loader = document.getElementById('initial-page-loading');
-        const el = document.querySelector('main, [role="main"], form, h1');
-        const painted = !!el && (el.textContent || '').trim().length > 0 && !(loader && loader.contains(el));
+        const painted = Array.from(document.querySelectorAll('main, [role="main"], form, h1'))
+            .some((el) => (el.textContent || '').trim().length > 0 && !(loader && loader.contains(el)));
         if (loader && loader.getAttribute('role') === 'alert') return 'boot-failed';
         return !loader && painted ? 'ready-marker' : false;
     };
@@ -143,8 +147,8 @@ async function settle(page) {
             const painted = await page
                 .evaluate(() => {
                     const loader = document.getElementById('initial-page-loading');
-                    const el = document.querySelector('main, [role="main"], form, h1');
-                    return !!el && (el.textContent || '').trim().length > 0 && !(loader && loader.getAttribute('role') === 'alert');
+                    return Array.from(document.querySelectorAll('main, [role="main"], form, h1'))
+                        .some((el) => (el.textContent || '').trim().length > 0) && !(loader && loader.getAttribute('role') === 'alert');
                 })
                 .catch(() => false);
             if (painted) {

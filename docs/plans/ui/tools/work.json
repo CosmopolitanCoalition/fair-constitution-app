@@ -16622,10 +16622,10 @@
     {
       "id": "W-0435",
       "title": "Fix ReferendumShieldTest: the shielded-act refusal no longer cites Art. II §6",
-      "phase": "P1",
-      "order": 71,
+      "phase": "done",
+      "order": null,
       "kind": "debt",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "tests/Constitutional/ReferendumShieldTest.php:197 (test_shielded_act_rejects_modification_until_the_shield_election_certifies) expects the refusal reason Art. II §6 and receives GOVERNING EFFECTIVELY (ruling A5) · as implemented. Reproduced on main 49ccda01: Tests 1, Assertions 1, Failures 1. Either the modification is now refused for a different reason before the shield check runs (a behaviour change to confirm against ruling A5) or only the message changed. Pre-existing before the 2026-09-14 lanes; first seen by the clocks lane.",
       "done_when": "ReferendumShieldTest passes on main. The shield refusal for a modification during the shield window cites Art. II §6, or the test is corrected to the ruled refusal with the ruling cited and the shield behaviour itself is shown still enforced by a passing assertion.",
@@ -16638,16 +16638,20 @@
         {
           "date": "2026-09-14",
           "note": "Opened 2026-09-14 by the desk after the clocks lane reported the failure; reproduced on main 49ccda01."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Cause: the act-gate (ruling A5) runs before the validator, and the fixture member had no live legislature training, so the first refusal was the training redirect. The fixture now completes F-EDU-001 through the engine inside the rolled-back transaction. On box E live PG: OK, 5 tests, 40 assertions. The shield refusal itself was unchanged."
         }
       ]
     },
     {
       "id": "W-0436",
       "title": "Fix JurisdictionActivateParityTest: the dev-gate pin matches activate-legislature instead of the dev activate route",
-      "phase": "P5",
-      "order": 72,
+      "phase": "done",
+      "order": null,
       "kind": "debt",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "tests/Constitutional/JurisdictionActivateParityTest.php:43 (test_the_web_activate_door_is_dev_gated) asserts DevToolsEnabled on the first route whose URI contains jurisdictions/{jurisdiction}/activate. The first match is api/jurisdictions/{jurisdiction}/activate-legislature (routes/web.php:473, not dev-gated), not the dev activate route. Reproduced on main 49ccda01: Tests 1, Assertions 2, Failures 1. Pre-existing; first seen by the clocks lane safety reviewer.",
       "done_when": "JurisdictionActivateParityTest passes on main: the pin matches the exact dev activate URI, and a separate assertion states the intended gate of activate-legislature (dev-gated or operator-gated) so the collision cannot recur.",
@@ -16660,6 +16664,10 @@
         {
           "date": "2026-09-14",
           "note": "Opened 2026-09-14 by the desk after the clocks lane reported the failure; reproduced on main 49ccda01."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. The pin matches the exact dev URI. A second assertion states activate-legislature's gate: no auth middleware, the controller refuses anyone but the operator as its first statement, before the subtree boot dispatch. OK."
         }
       ]
     },
@@ -16744,10 +16752,10 @@
     {
       "id": "W-0440",
       "title": "Public records: typed legislature search backed by a jurisdictions.name index",
-      "phase": "P5",
-      "order": 76,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "W-0437 removed the planet-wide legislature dropdown from /system/public-records (940,328 rows joined and sorted on every request). The filter still works by id from a chamber page, but a visitor cannot type a legislature name. A bounded search endpoint (name prefix, LIMIT 20) takes 3 to 6 s without an index: jurisdictions has no index on name (measured 2026-09-14 on 951,626 rows). Needs a real-dated additive migration adding an index on lower(name) text_pattern_ops, a GET endpoint bounded by prefix and limit, and a typeahead in PublicRecords.vue.",
       "done_when": "A typed name search on /system/public-records answers in under 200 ms on box E for any prefix, returns at most 20 rows, and the index migration is pinned; the page keeps the id filter for deep links.",
@@ -16762,6 +16770,10 @@
         {
           "date": "2026-09-14",
           "note": "Opened by the desk while repairing W-0437."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Migration 2026_09_14_213000 adds an index on lower(name) text_pattern_ops (applied on box E in 6 s). GET /api/public-records/legislatures?q= answers a two-character prefix with at most 20 rows in 0.3 to 0.4 s (was 3 to 6 s). The page's dropdown is a typeahead; the id filter for deep links stays. Pinned in PublicRecordsFacetTest."
         }
       ]
     },
@@ -16784,16 +16796,20 @@
         {
           "date": "2026-09-14",
           "note": "Opened by the desk after measuring the route. Operator reading: a planet loaded without pagination."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator note: Server side done: the hub walks adm levels with one bounded query per level, the election picks are bounded by the hub ids, the total is cached; guest GET 30.9 s to 1.8 s; pinned by LegislatureIndexBoundedTest. Open: the response is still 500 rows (286 KB) and the sweep takes 98 s; next step per operator ruling 2026-09-14 is pagination of the hub (50 a page)."
         }
       ]
     },
     {
       "id": "W-0442",
       "title": "Make /jurisdictions survive the browser sweep: measure and bound what the page loads after render",
-      "phase": "P1",
-      "order": 78,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "Measured 2026-09-14 on box E: GET /jurisdictions as a guest answers in 1.2 s with 13 KB, paginated 24 places per page (JurisdictionController::index, simplePaginate). The browser sweep still crashed the renderer on this route in every attempt (3.8 minutes in the container run, timeout on the host). The weight is client-side after render, not the HTML; the planet map tiles are the first suspect. Not yet measured.",
       "done_when": "The route establishes in the browser sweep and reports zero nodes at both widths within the 120 s test budget; the page load is measured (requests, bytes, peak renderer memory) and whatever exceeds the budget is bounded or deferred until the viewer asks for it.",
@@ -16806,6 +16822,32 @@
         {
           "date": "2026-09-14",
           "note": "Opened by the desk after measuring the route: the server side is already paginated."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. Swept alone in Edge on the host 2026-09-14: PASS in 17.4 s, zero nodes at both widths. The earlier crashes were the bulk runs on a memory-starved host, not the page. Server side was already paginated."
+        }
+      ]
+    },
+    {
+      "id": "W-0443",
+      "title": "Sim console: lazy-load the honesty rails and bound them (no planet walk in a request)",
+      "phase": "P1",
+      "order": 79,
+      "kind": "build",
+      "status": "open",
+      "blocker": "",
+      "detail": "Measured 2026-09-14 on box E: GET /simworld answers a guest in 94 s and the page polls every 2 s. SimConsoleController::world() runs three planet-wide rails on every request: a count of active district maps, the over-bound chambers (Type B above Type A) and the seat-gap chambers (a correlated SUM of drawn district seats for every chamber with an active map). Operator ruling 2026-09-14: fix the load with pagination or lazy loading, no cache, no scheduler.",
+      "done_when": "The page renders its live bars without the rails; the rails come from their own endpoint requested once after mount, each bounded: over-bound is an indexed predicate with a 25-row page, the active-map figure is an indexed count, and the seat gap compares Type A seats with a drawn-seat total stored on the map row by the districting engine (additive migration, written at draw time), so no request sums districts across the planet. GET /simworld answers a guest in under 2 s on box E; the sweep establishes the route and reports zero nodes; a pin asserts the query shapes.",
+      "depends_on": [],
+      "sources": [
+        "desk: single-route sweep 2026-09-14"
+      ],
+      "evidence": [],
+      "history": [
+        {
+          "date": "2026-09-14",
+          "note": "Opened by the desk after the single-route pass. A cache-and-scheduler patch was built and reverted on operator order the same evening."
         }
       ]
     }

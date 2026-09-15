@@ -78,3 +78,15 @@ Follow-up filed: a typed legislature search for the public-records filter needs 
 - W-0337 (prose links): open, 5 routes carry link-in-text-block.
 - W-0338 (scrollable regions and page title): open, `/coverage-ops` carries 3 scrollable-region-focusable nodes at 375 px; the document-title half is clean.
 - New: `/system/public-records` answers 502 for a guest; `/learn/manage` and `/videos` overflow at 375 px; `/people` is auth-walled while the roster lists it as a guest page.
+
+## Single-route pass (operator procedure, 9:15 PM to 10:15 PM Eastern)
+
+The roster was refreshed after the reads lane opened the economy, sim console and operator pages to guests: 55 guest pages, 38 non-page endpoints, 1 viewer-bound page (`/people`). Every route then ran ALONE with a 30 s budget (HOLD past 30 s, requeued at 60 s, then examined), per-route results in `storage/logs/a11y_one/*`.
+
+| Result | Count | Routes |
+|---|---|---|
+| PASS | 53 | every route not listed below, including `/jurisdictions` (17.4 s alone; its earlier crashes were the bulk runs) |
+| Fixed this pass, then PASS | 6 | `/economy/help`, `/economy/stipend` (wallet links underlined), `/economy/units` (default lever label at the subtle token), `/operator/federation` (14 slate-400 texts raised, header and step chips, placeholder and field colours), `/operator/operations` (header colours; and a harness defect: the ready probe read only the first main/form/h1, this page opens with a text-less form), `/simworld` (26 grey-500 labels, page title) |
+| Open | 2 | `/legislatures` (server fixed, sweep 98 s over 500 rows, pagination next, W-0441); `/simworld` (server 94 s from three planet-wide rails on every poll, lazy-load and bound them, W-0443; a cache patch was reverted on operator order) |
+
+Per-route timing on the host: median 8 s; 33 of 45 under 15 s; the slow ones were `/login` 78 s (first host run, host at 300 MB free), `/building` 42 to 55 s.

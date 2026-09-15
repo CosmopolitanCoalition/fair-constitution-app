@@ -90,6 +90,20 @@ test('W-0336 role cards no longer dim with opacity, labels no longer gray-500', 
     }
 });
 
+test('W-0336 the federation console and the economy levers carry no failing greys', () => {
+    // Host sweep 2026-09-14 (single-route pass): /operator/federation carried
+    // 45 colour-contrast nodes per width, all raw text-slate-400 on light
+    // cards (2.5:1); /economy/units carried 11, the default lever label dimmed
+    // to 0.7 opacity over muted text. Paths split in two segments (see the
+    // census note in a11yProseLinks).
+    const fed = read('resources/js/Pages/Jurisdictions/' + 'Federation.vue');
+    assert.ok(!fed.includes('text-slate-400'), 'no slate-400 text on the federation console');
+    const units = read('resources/js/Pages/Economy/' + 'Units.vue');
+    const lever = units.match(/\.lever-act--default \{[^}]*\}/);
+    assert.ok(lever && !/opacity/.test(lever[0]), 'the default lever label uses no opacity dimming');
+    assert.match(lever[0], /var\(--gov-fg-subtle\)/, 'the default lever label reads at the subtle token');
+});
+
 test('W-0336 every affected SFC compiles (template + script)', () => {
     for (const rel of ['resources/js/Pages/Social/Achievements.vue', 'resources/js/Pages/Build/Progress.vue', 'resources/js/Pages/Social/Reach.vue', 'resources/js/Pages/System/Atlas.vue', 'resources/js/Pages/Setup/Bootstrap.vue', 'resources/js/Components/Progress/StageBars.vue']) {
         const { descriptor } = parse(read(rel), { filename: rel });

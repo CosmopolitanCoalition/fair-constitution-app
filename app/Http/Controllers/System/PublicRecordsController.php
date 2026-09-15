@@ -136,6 +136,38 @@ class PublicRecordsController extends Controller
     }
 
     /**
+     * GET /api/public-records/legislatures?q=<prefix>
+     *
+     * W-0440: the typed legislature search behind the filter. Bounded twice:
+     * a name prefix of at least two characters, matched through the
+     * lower(name) text_pattern_ops index (migration 2026_09_14_213000), and
+     * at most 20 rows. Public read, like the page.
+     */
+    public function legislatureSearch(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $q = mb_strtolower(trim((string) $request->query('q', '')));
+
+        if (mb_strlen($q) < 2) {
+            return response()->json(['options' => []]);
+        }
+
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q);
+
+        $options = DB::table('legislatures as l')
+            ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
+            ->whereNull('l.deleted_at')
+            ->whereRaw('lower(j.name) LIKE ?', [$escaped . '%'])
+            ->orderBy('j.adm_level')
+            ->orderBy('j.name')
+            ->limit(20)
+            ->get(['l.id', 'j.name', 'j.adm_level'])
+            ->map(fn ($row) => ['id' => (string) $row->id, 'name' => $row->name . ' legislature', 'adm_level' => (int) $row->adm_level])
+            ->all();
+
+        return response()->json(['options' => $options]);
+    }
+
+    /**
      * Register statistics, bounded.
      *
      * The total is the sealed sequence high-water mark (public_records is

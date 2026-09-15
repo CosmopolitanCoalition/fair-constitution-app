@@ -37,6 +37,10 @@ test('W-0337 sentence links outside p elements opt in with prose-link', () => {
         ['resources/js/Pages/Support/' + 'Report.vue', '<Link href="/login" class="prose-link">'],
         ['resources/js/Pages/Civic/' + 'MatrixCommons.vue', '<Link href="/jurisdictions" class="prose-link">'],
         ['resources/js/Pages/System/' + 'PublicRecords.vue', '<Link href="/system/audit-chain" class="prose-link">cryptographically'],
+        ['resources/js/Pages/Economy/' + 'Help.vue', '<Link href="/economy/wallet" class="prose-link">Open my wallet</Link>'],
+        ['resources/js/Pages/Economy/' + 'HelpDetail.vue', '<Link href="/economy/wallet" class="prose-link">Open my wallet</Link>'],
+        ['resources/js/Pages/Economy/' + 'Stipend.vue', '<Link href="/economy/wallet" class="econ-back prose-link">'],
+        ['resources/js/Pages/Legislature/' + 'Index.vue', 'class="prose-link">{{ row.jurisdiction }}</Link>'],
     ];
     for (const [rel, needle] of cases) {
         const src = read(rel);

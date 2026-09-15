@@ -1109,6 +1109,8 @@ Route::middleware('auth')->group(function () {
     // ── FE-C11 — PublicRecords + TermSync (batch 3) ─────────────────────────
     Route::get('/system/public-records', [\App\Http\Controllers\System\PublicRecordsController::class, 'index'])
         ->name('system.public-records')->withoutMiddleware('auth'); // public read (Art. II §2)
+    Route::get('/api/public-records/legislatures', [\App\Http\Controllers\System\PublicRecordsController::class, 'legislatureSearch'])
+        ->name('system.public-records.legislatures')->withoutMiddleware('auth'); // W-0440 typed search, public read
     Route::post('/system/public-records/statements', [\App\Http\Controllers\System\PublicRecordsController::class, 'statement'])
         ->name('system.public-records.statements');                           // F-LEG-006
     Route::get('/system/term-sync', [\App\Http\Controllers\System\TermSyncController::class, 'show'])

@@ -109,72 +109,74 @@ class LegislatureController extends Controller
      * the setup-founded root legislature is the expected case). Same auth
      * posture as show(): public, like the jurisdiction viewer.
      */
+    /** The hub lists this many chambers, the largest first. */
+    private const HUB_ROWS = 500;
+
+    /** The deepest adm level the hub walks before it stops filling. */
+    private const HUB_MAX_ADM_LEVEL = 6;
+
     public function index(): Response
     {
-        // Per-chamber election affordances: the CURRENT election (latest
-        // non-cancelled; live phases rank ahead of certified/final) and the
-        // latest CERTIFIED election (drives the Results link). Two
-        // DISTINCT ON picks keyed by legislature_id — /legislatures is the
-        // hub for reaching every chamber's election surfaces.
-        $currentElections = collect(DB::select(
-            "SELECT DISTINCT ON (legislature_id) legislature_id, id, status
-             FROM elections
-             WHERE deleted_at IS NULL
-               AND status <> 'cancelled'
-               AND legislature_id IS NOT NULL
-             ORDER BY legislature_id,
-                      CASE WHEN status IN ('certified', 'final') THEN 1 ELSE 0 END,
-                      created_at DESC"
-        ))->keyBy('legislature_id');
-
-        $certifiedElections = collect(DB::select(
-            "SELECT DISTINCT ON (legislature_id) legislature_id, id
-             FROM elections
-             WHERE deleted_at IS NULL
-               AND status <> 'cancelled'
-               AND legislature_id IS NOT NULL
-               AND certified_at IS NOT NULL
-             ORDER BY legislature_id, certified_at DESC"
-        ))->keyBy('legislature_id');
-
         // Autoscale (True All Scale, 2026-07-18): 951k legislatures exist
         // after acceptance — an unpaginated render dies in the Inertia
         // payload. Cap the hub at the LARGEST chambers (adm ASC, seats DESC:
         // Earth, the countries, the provinces) and carry the true total;
         // everything deeper is reached through the jurisdiction viewer's
         // drill, which is how sub-province chambers are addressed anyway.
-        $totalLegislatures = (int) DB::table('legislatures')->whereNull('deleted_at')->count();
+        //
+        // W-0441 (2026-09-14): the old shape was one join over every
+        // legislature on the box ordered by seats with a trailing LIMIT, plus
+        // a live count of the table and two DISTINCT ON scans over every
+        // election, on each request: 30.9 s and 286 KB for a guest. A LIMIT
+        // does not bound a query; the input does. The hub now walks adm
+        // levels upward (1 chamber at level 0, 232 at level 1, 3,238 at
+        // level 2 on a planet), each level a query bounded by the
+        // jurisdictions.adm_level index, until HUB_ROWS are collected; the
+        // election picks are bounded by those ids; the total is cached.
+        $totalLegislatures = (int) Cache::remember(
+            'legislatures.index.total',
+            now()->addMinutes(15),
+            fn () => DB::table('legislatures')->whereNull('deleted_at')->count(),
+        );
 
-        $rows = DB::table('legislatures as l')
-            ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
-            ->leftJoin('jurisdiction_activations as a', function ($join) {
-                $join->on('a.jurisdiction_id', '=', 'l.jurisdiction_id')
-                     ->whereNull('a.deleted_at');
-            })
-            ->whereNull('l.deleted_at')
-            ->orderBy('j.adm_level')
-            ->orderByDesc(DB::raw('l.type_a_seats + l.type_b_seats'))
-            ->limit(500)
-            ->get([
-                'l.id',
-                'l.type_a_seats',
-                'l.type_b_seats',
-                'l.status',
-                'j.name as jurisdiction_name',
-                'j.slug as jurisdiction_slug',
-                'j.adm_level',
-                'a.state as activation_state',
-                'a.activated_at',
-                DB::raw('(SELECT count(*) FROM legislature_districts ld
-                          WHERE ld.legislature_id = l.id AND ld.deleted_at IS NULL) as district_count'),
-                // FE-C2 — seated chamber detection: rows with current
-                // members gain the Chamber link + seated/forming badge
-                // (PHASE_C_DESIGN_frontend.md §B nav integration).
-                DB::raw("(SELECT count(*) FROM legislature_members lm
-                          WHERE lm.legislature_id = l.id
-                            AND lm.status IN ('elected', 'seated')
-                            AND lm.deleted_at IS NULL) as members_count"),
-            ])
+        $rows = $this->hubRows();
+        $ids = $rows->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+        // Per-chamber election affordances: the CURRENT election (latest
+        // non-cancelled; live phases rank ahead of certified/final) and the
+        // latest CERTIFIED election (drives the Results link). Two
+        // DISTINCT ON picks keyed by legislature_id, bounded to the hub's
+        // chambers — /legislatures is the hub for reaching every listed
+        // chamber's election surfaces.
+        $currentElections = collect();
+        $certifiedElections = collect();
+        if ($ids !== []) {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $currentElections = collect(DB::select(
+                "SELECT DISTINCT ON (legislature_id) legislature_id, id, status
+                 FROM elections
+                 WHERE deleted_at IS NULL
+                   AND status <> 'cancelled'
+                   AND legislature_id IN ({$placeholders})
+                 ORDER BY legislature_id,
+                          CASE WHEN status IN ('certified', 'final') THEN 1 ELSE 0 END,
+                          created_at DESC",
+                $ids
+            ))->keyBy('legislature_id');
+
+            $certifiedElections = collect(DB::select(
+                "SELECT DISTINCT ON (legislature_id) legislature_id, id
+                 FROM elections
+                 WHERE deleted_at IS NULL
+                   AND status <> 'cancelled'
+                   AND legislature_id IN ({$placeholders})
+                   AND certified_at IS NOT NULL
+                 ORDER BY legislature_id, certified_at DESC",
+                $ids
+            ))->keyBy('legislature_id');
+        }
+
+        $rows = $rows
             ->map(function ($r) use ($currentElections, $certifiedElections) {
                 $current = $currentElections->get($r->id);
 
@@ -206,6 +208,57 @@ class LegislatureController extends Controller
             'legislatures'       => $rows,
             'total_legislatures' => $totalLegislatures,
         ]);
+    }
+
+    /**
+     * The hub's chambers: adm level by adm level, largest first, until
+     * HUB_ROWS are collected. Every query is bounded by one adm level
+     * (jurisdictions.adm_level is indexed), so the sort never sees more than
+     * that level's chambers.
+     *
+     * @return \Illuminate\Support\Collection<int, object>
+     */
+    private function hubRows(): \Illuminate\Support\Collection
+    {
+        $rows = collect();
+
+        for ($level = 0; $level <= self::HUB_MAX_ADM_LEVEL && $rows->count() < self::HUB_ROWS; $level++) {
+            $rows = $rows->concat(
+                DB::table('legislatures as l')
+                    ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
+                    ->leftJoin('jurisdiction_activations as a', function ($join) {
+                        $join->on('a.jurisdiction_id', '=', 'l.jurisdiction_id')
+                             ->whereNull('a.deleted_at');
+                    })
+                    ->where('j.adm_level', $level)
+                    ->whereNull('l.deleted_at')
+                    ->orderByDesc(DB::raw('l.type_a_seats + l.type_b_seats'))
+                    ->orderBy('j.name')
+                    ->limit(self::HUB_ROWS - $rows->count())
+                    ->get([
+                        'l.id',
+                        'l.type_a_seats',
+                        'l.type_b_seats',
+                        'l.status',
+                        'j.name as jurisdiction_name',
+                        'j.slug as jurisdiction_slug',
+                        'j.adm_level',
+                        'a.state as activation_state',
+                        'a.activated_at',
+                        DB::raw('(SELECT count(*) FROM legislature_districts ld
+                                  WHERE ld.legislature_id = l.id AND ld.deleted_at IS NULL) as district_count'),
+                        // FE-C2 — seated chamber detection: rows with current
+                        // members gain the Chamber link + seated/forming badge
+                        // (PHASE_C_DESIGN_frontend.md §B nav integration).
+                        DB::raw("(SELECT count(*) FROM legislature_members lm
+                                  WHERE lm.legislature_id = l.id
+                                    AND lm.status IN ('elected', 'seated')
+                                    AND lm.deleted_at IS NULL) as members_count"),
+                    ])
+            );
+        }
+
+        return $rows;
     }
 
     /**
