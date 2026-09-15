@@ -12,6 +12,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -30,6 +31,8 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
    floating header, tour-as-a-mode, bottom command bar (Menu + Learn). */
 defineOptions({ layout: AppShellV2 });
 
+const { t } = useI18n();
+
 const props = defineProps({
     surface: { type: Object, required: true },
     records: { type: Object, required: true },
@@ -46,12 +49,22 @@ const constitutionError = computed(() => page.props.errors?.constitution ?? null
 
 const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
 
-const KIND_LABELS = {
-    registration: 'Registration', residency: 'Residency', participation: 'Participation',
-    statement: 'Statement', vote: 'Vote', bill: 'Bill', act: 'Act', minutes: 'Minutes',
-    opinion: 'Opinion', certification: 'Certification', testimony: 'Testimony',
-    violation: 'Violation', correction: 'Correction', other: 'Record',
-};
+const KIND_LABELS = computed(() => ({
+    registration: t('c_system.public_records.kind_registration', 'Registration'),
+    residency: t('c_system.public_records.kind_residency', 'Residency'),
+    participation: t('c_system.public_records.kind_participation', 'Participation'),
+    statement: t('c_system.public_records.kind_statement', 'Statement'),
+    vote: t('c_system.public_records.kind_vote', 'Vote'),
+    bill: t('c_system.public_records.kind_bill', 'Bill'),
+    act: t('c_system.public_records.kind_act', 'Act'),
+    minutes: t('c_system.public_records.kind_minutes', 'Minutes'),
+    opinion: t('c_system.public_records.kind_opinion', 'Opinion'),
+    certification: t('c_system.public_records.kind_certification', 'Certification'),
+    testimony: t('c_system.public_records.kind_testimony', 'Testimony'),
+    violation: t('c_system.public_records.kind_violation', 'Violation'),
+    correction: t('c_system.public_records.kind_correction', 'Correction'),
+    other: t('c_system.public_records.kind_other', 'Record'),
+}));
 
 /* ------------------------------------------------------------- filters -- */
 const q = ref(props.filters.active.q ?? '');
@@ -159,37 +172,34 @@ function dateOf(iso) {
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            Every statement, bill, vote, and explanation made in your jurisdictions — published
-            the moment it is recorded, readable by anyone, and never edited in place. This is the
-            surface the constitution calls "public and readily available records".
+            {{ t('c_system.public_records.intro', 'Every statement, bill, vote, and explanation made in your jurisdictions — published the moment it is recorded, readable by anyone, and never edited in place. This is the surface the constitution calls "public and readily available records".') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
-        <Banner tone="info" icon="lock" title="This record is append-only.">
-            Corrections append a superseding entry; nothing is deleted or rewritten. Every entry is
-            sealed into the <Link href="/system/audit-chain" class="prose-link">cryptographically chained audit log</Link>
-            at commit time. <span class="citation">Art. II §2 · WF-SYS-03 · WF-SYS-04</span>
+        <Banner tone="info" icon="lock" :title="t('c_system.public_records.append_only_title', 'This record is append-only.')">
+            {{ t('c_system.public_records.append_only_a', 'Corrections append a superseding entry; nothing is deleted or rewritten. Every entry is sealed into the') }} <Link href="/system/audit-chain" class="prose-link">{{ t('c_system.public_records.chained_log_link', 'cryptographically chained audit log') }}</Link>
+            {{ t('c_system.public_records.append_only_b', 'at commit time.') }} <span class="citation">Art. II §2 · WF-SYS-03 · WF-SYS-04</span>
         </Banner>
 
         <div class="cluster" style="gap: var(--space-6)">
-            <Stat :value="stats.total.toLocaleString()" label="entries on the record" accent />
-            <Stat :value="stats.acts.toLocaleString()" label="acts" />
-            <Stat :value="stats.votes.toLocaleString()" label="votes (with explanations)" />
-            <Stat :value="stats.statements.toLocaleString()" label="statements" />
+            <Stat :value="stats.total.toLocaleString()" :label="t('c_system.public_records.stat_entries', 'entries on the record')" accent />
+            <Stat :value="stats.acts.toLocaleString()" :label="t('c_system.public_records.stat_acts', 'acts')" />
+            <Stat :value="stats.votes.toLocaleString()" :label="t('c_system.public_records.stat_votes', 'votes (with explanations)')" />
+            <Stat :value="stats.statements.toLocaleString()" :label="t('c_system.public_records.stat_statements', 'statements')" />
         </div>
 
         <!-- ==================================== filters ================== -->
-        <FilterBar label="Filter the public record">
+        <FilterBar :label="t('c_system.public_records.filter_label', 'Filter the public record')">
             <label class="cc-small" style="color: var(--gov-fg-muted)">
-                <span class="visually-hidden">Search the record</span>
+                <span class="visually-hidden">{{ t('c_system.public_records.search_record', 'Search the record') }}</span>
                 <input
                     v-model="q"
                     class="field-input"
                     style="inline-size: 13rem; padding-block: var(--space-1)"
                     type="search"
-                    placeholder="Search title or author"
+                    :placeholder="t('c_system.public_records.search_placeholder', 'Search title or author')"
                     @keyup.enter="applyFilters"
                     @change="applyFilters"
                 />
@@ -197,14 +207,14 @@ function dateOf(iso) {
             <!-- W-0440: a typed legislature search (prefix, at most 20 matches) replaces the
                  planet-wide dropdown; the active legislature keeps its name from the server. -->
             <label class="cc-small" style="color: var(--gov-fg-muted)">
-                <span class="visually-hidden">Legislature</span>
+                <span class="visually-hidden">{{ t('c_system.public_records.legislature_label', 'Legislature') }}</span>
                 <input
                     v-model="legislatureQuery"
                     class="field-input"
                     style="inline-size: 14rem; padding-block: var(--space-1)"
                     type="search"
                     list="public-records-legislatures"
-                    placeholder="Legislature name"
+                    :placeholder="t('c_system.public_records.legislature_placeholder', 'Legislature name')"
                     autocomplete="off"
                     @input="searchLegislatures"
                     @change="pickLegislature"
@@ -215,9 +225,9 @@ function dateOf(iso) {
             </label>
             <span v-if="activeLegislatureName" class="badge">
                 {{ activeLegislatureName }}
-                <button type="button" class="form-chip" style="margin-inline-start: var(--space-1)" @click="clearLegislature">clear</button>
+                <button type="button" class="form-chip" style="margin-inline-start: var(--space-1)" @click="clearLegislature">{{ t('c_system.public_records.clear', 'clear') }}</button>
             </span>
-            <span class="eyebrow">Kind</span>
+            <span class="eyebrow">{{ t('c_system.public_records.kind_eyebrow', 'Kind') }}</span>
             <span class="cluster" style="gap: var(--space-1)">
                 <ChipToggle
                     v-for="kind in filters.kinds"
@@ -226,12 +236,12 @@ function dateOf(iso) {
                     @update:pressed="toggleKind(kind)"
                 >{{ KIND_LABELS[kind] ?? kind }}</ChipToggle>
             </span>
-            <Btn variant="ghost" size="sm" :disabled="!hasFilters" @click="clearFilters">Clear filters</Btn>
+            <Btn variant="ghost" size="sm" :disabled="!hasFilters" @click="clearFilters">{{ t('c_system.public_records.clear_filters', 'Clear filters') }}</Btn>
         </FilterBar>
 
         <!-- ==================================== the feed ================= -->
-        <Card as="section" title="The record">
-            <p class="citation" style="margin-block-end: var(--space-2)">stored as UTC · shown in your timezone</p>
+        <Card as="section" :title="t('c_system.public_records.record_title', 'The record')">
+            <p class="citation" style="margin-block-end: var(--space-2)">{{ t('c_system.public_records.stored_utc', 'stored as UTC · shown in your timezone') }}</p>
 
             <div v-if="records.data.length" class="stack" style="gap: var(--space-1)" aria-live="polite">
                 <LogRow v-for="record in records.data" :key="record.seq" :seq="record.seq.toLocaleString()">
@@ -247,31 +257,30 @@ function dateOf(iso) {
                             <template v-else-if="record.subject"> · {{ record.subject.label }}</template>
                         </span>
                         <span v-if="record.supersedes" class="citation" style="display: block">
-                            supersedes <span data-no-i18n>#{{ record.supersedes.seq.toLocaleString() }}</span> —
-                            corrections append, never edit; both entries stay visible.
+                            {{ t('c_system.public_records.supersedes', 'supersedes') }} <span data-no-i18n>#{{ record.supersedes.seq.toLocaleString() }}</span> {{ t('c_system.public_records.supersedes_note', '— corrections append, never edit; both entries stay visible.') }}
                         </span>
                     </div>
                     <StatusBadge v-if="record.translations.total > 0" :tone="record.translations.done >= record.translations.total ? 'success' : 'warning'"
                         :title="record.translations.locales.map((l) => `${l.code}: ${l.quality}`).join(' · ')">
-                        {{ record.translations.done }}/{{ record.translations.total }} languages
+                        {{ t('c_system.public_records.languages_count', '{done}/{total} languages', { done: record.translations.done, total: record.translations.total }) }}
                     </StatusBadge>
-                    <StatusBadge v-else tone="neutral" title="machine translation pipeline · Planned · Phase F">original</StatusBadge>
+                    <StatusBadge v-else tone="neutral" :title="t('c_system.public_records.mt_pipeline', 'machine translation pipeline · Planned · Phase F')">{{ t('c_system.public_records.original', 'original') }}</StatusBadge>
                     <Link
                         v-if="record.audit_seq !== null"
                         class="form-chip"
                         :href="`/system/audit-chain?seq=${record.audit_seq}`"
-                        title="sealed into the audit chain at commit"
-                    >sealed · audit <span class="form-id" data-no-i18n>#{{ record.audit_seq }}</span></Link>
+                        :title="t('c_system.public_records.sealed_title', 'sealed into the audit chain at commit')"
+                    >{{ t('c_system.public_records.sealed_audit', 'sealed · audit') }} <span class="form-id" data-no-i18n>#{{ record.audit_seq }}</span></Link>
                 </LogRow>
             </div>
             <p v-else class="cc-small gloss">
-                No records match
-                {{ hasFilters ? 'the current filters — the empty view is the filter, not the record.' : '— the register fills as institutions act.' }}
+                {{ t('c_system.public_records.no_records', 'No records match') }}
+                {{ hasFilters ? t('c_system.public_records.no_records_filtered', 'the current filters — the empty view is the filter, not the record.') : t('c_system.public_records.no_records_empty', '— the register fills as institutions act.') }}
             </p>
 
             <div class="cluster" style="margin-block-start: var(--space-3)">
-                <Btn v-if="records.next_cursor" variant="secondary" size="sm" @click="loadOlder">Older entries →</Btn>
-                <span v-if="records.next_cursor" class="citation">cursor pagination — the record is append-only; pages never shift</span>
+                <Btn v-if="records.next_cursor" variant="secondary" size="sm" @click="loadOlder">{{ t('c_system.public_records.older_entries', 'Older entries →') }}</Btn>
+                <span v-if="records.next_cursor" class="citation">{{ t('c_system.public_records.cursor_note', 'cursor pagination — the record is append-only; pages never shift') }}</span>
             </div>
         </Card>
 
@@ -280,10 +289,10 @@ function dateOf(iso) {
             v-if="can.statement && formMeta('F-LEG-006')"
             :form="formMeta('F-LEG-006')"
             :inertia-form="statement"
-            submit-label="Submit to the public record"
+            :submit-label="t('c_system.public_records.submit_label', 'Submit to the public record')"
             @submit="submitStatement"
         >
-            <Field v-if="composer.legislatures.length > 1" label="Chamber" :error="statement.errors.legislature_id">
+            <Field v-if="composer.legislatures.length > 1" :label="t('c_system.public_records.field_chamber', 'Chamber')" :error="statement.errors.legislature_id">
                 <template #control="{ id }">
                     <select :id="id" v-model="statement.legislature_id" class="select">
                         <option v-for="l in composer.legislatures" :key="l.id" :value="l.id">{{ l.name }}</option>
@@ -291,13 +300,13 @@ function dateOf(iso) {
                 </template>
             </Field>
             <Field
-                label="Attach to"
-                hint="Statements attach to the bill, session, or vote they explain — readers see them in context."
+                :label="t('c_system.public_records.field_attach', 'Attach to')"
+                :hint="t('c_system.public_records.field_attach_hint', 'Statements attach to the bill, session, or vote they explain — readers see them in context.')"
                 :error="statement.errors.subject_type"
             >
                 <template #control="{ id }">
                     <select :id="id" v-model="statement.subject" class="select">
-                        <option value="general">General record (no attachment)</option>
+                        <option value="general">{{ t('c_system.public_records.subject_general', 'General record (no attachment)') }}</option>
                         <option v-for="s in composer.subjects" :key="`${s.type}:${s.id}`" :value="`${s.type}:${s.id}`">
                             {{ s.label }}
                         </option>
@@ -305,8 +314,8 @@ function dateOf(iso) {
                 </template>
             </Field>
             <Field
-                label="Statement"
-                hint="Once submitted, a statement can be superseded but never edited or withdrawn."
+                :label="t('c_system.public_records.field_statement', 'Statement')"
+                :hint="t('c_system.public_records.field_statement_hint', 'Once submitted, a statement can be superseded but never edited or withdrawn.')"
                 :error="statement.errors.body ?? statement.errors.constitution"
                 required
             >
@@ -316,29 +325,26 @@ function dateOf(iso) {
                         v-model="statement.body"
                         class="field-input"
                         rows="4"
-                        placeholder="Your statement, explanation, or position — published verbatim and permanently."
+                        :placeholder="t('c_system.public_records.statement_placeholder', 'Your statement, explanation, or position — published verbatim and permanently.')"
                         :aria-invalid="invalid ? 'true' : undefined"
                         :aria-describedby="describedBy"
                     ></textarea>
                 </template>
             </Field>
             <p class="citation" style="margin-block-end: var(--space-2)">
-                entered verbatim into the immutable public record · WF-SYS-03 · sealed into the audit chain at commit
+                {{ t('c_system.public_records.composer_cite', 'entered verbatim into the immutable public record · WF-SYS-03 · sealed into the audit chain at commit') }}
             </p>
         </FormCard>
 
         <!-- ==================================== hardened footer ========== -->
-        <Card as="section" title="Public records vs the audit chain">
+        <Card as="section" :title="t('c_system.public_records.vs_title', 'Public records vs the audit chain')">
             <p class="cc-small">
-                <strong>This page</strong> is the curated register citizens read — statements, votes
-                with explanations, acts, certifications; corrections append superseding entries.
+                <strong>{{ t('c_system.public_records.this_page', 'This page') }}</strong> {{ t('c_system.public_records.vs_body_a', 'is the curated register citizens read — statements, votes with explanations, acts, certifications; corrections append superseding entries.') }}
                 {{ ' ' }}
-                <Link href="/system/audit-chain">The audit chain</Link> is the raw hash-linked log
-                auditors verify — every state transition including rejections, payload hashes, and
-                chain verification; nothing ever supersedes there.
+                <Link href="/system/audit-chain">{{ t('c_system.public_records.audit_chain_link', 'The audit chain') }}</Link> {{ t('c_system.public_records.vs_body_b', 'is the raw hash-linked log auditors verify — every state transition including rejections, payload hashes, and chain verification; nothing ever supersedes there.') }}
             </p>
             <p class="cc-small" style="margin-block-start: var(--space-2)">
-                <HardenedChip>Record-keeping cannot be suspended under emergency powers · nothing is publishable-optional · Art. II §2 · WF-SYS-03</HardenedChip>
+                <HardenedChip>{{ t('c_system.public_records.hardened_chip', 'Record-keeping cannot be suspended under emergency powers · nothing is publishable-optional · Art. II §2 · WF-SYS-03') }}</HardenedChip>
             </p>
         </Card>
     </PageScaffold>

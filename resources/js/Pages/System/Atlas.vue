@@ -31,11 +31,14 @@
  */
 import { computed, reactive, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 
 defineOptions({ layout: AppShellV2 });
+
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, default: null },
@@ -86,18 +89,17 @@ function pct(n, places = 2) {
     return n == null ? '—' : Number(n).toFixed(places) + '%';
 }
 
-const admLabels = {
-    0: 'World',
-    1: 'Country',
-    2: 'State / Province',
-    3: 'County / District',
-    4: 'ADM 4',
-    5: 'ADM 5',
-    6: 'ADM 6',
-};
-
 function admLabel(level) {
-    return admLabels[level] ?? `ADM ${level}`;
+    const admLabels = {
+        0: t('c_system.atlas.adm_0', 'World'),
+        1: t('c_system.atlas.adm_1', 'Country'),
+        2: t('c_system.atlas.adm_2', 'State / Province'),
+        3: t('c_system.atlas.adm_3', 'County / District'),
+        4: t('c_system.atlas.adm_4', 'ADM 4'),
+        5: t('c_system.atlas.adm_5', 'ADM 5'),
+        6: t('c_system.atlas.adm_6', 'ADM 6'),
+    };
+    return admLabels[level] ?? t('c_system.atlas.adm_n', 'ADM {level}', { level });
 }
 
 /* ── the living map ─────────────────────────────────────────────────────────
@@ -165,12 +167,12 @@ const placeDots = computed(() =>
         .map((p) => ({ ...p, tone: Math.min(p.tier, 3) })),
 );
 
-const LAYERS = [
-    { key: 'nodes', label: 'Nodes', icon: 'globe' },
-    { key: 'people', label: 'People', icon: 'users' },
-    { key: 'orgs', label: 'Organizations', icon: 'building' },
-    { key: 'places', label: 'Places', icon: 'map-pin' },
-];
+const LAYERS = computed(() => [
+    { key: 'nodes', label: t('c_system.atlas.layer_nodes', 'Nodes'), icon: 'globe' },
+    { key: 'people', label: t('c_system.atlas.layer_people', 'People'), icon: 'users' },
+    { key: 'orgs', label: t('c_system.atlas.layer_orgs', 'Organizations'), icon: 'building' },
+    { key: 'places', label: t('c_system.atlas.layer_places', 'Places'), icon: 'map-pin' },
+]);
 
 const layerOn = reactive({ nodes: true, people: true, orgs: true, places: true });
 
@@ -180,27 +182,27 @@ function layerCount(key) {
 
 // The REAL federation_peers.status vocabulary (App\Models\FederationPeer) —
 // not the mockup's invented authoritative/healthy/degraded set.
-const NODE_TONES = {
-    discovered: { tone: 'info', label: 'Discovered' },
-    handshake: { tone: 'wait', label: 'Handshake' },
-    trust_established: { tone: 'live', label: 'Trusted' },
-    syncing: { tone: 'wait', label: 'Syncing' },
-    conflict_resolution: { tone: 'wait', label: 'Resolving conflicts' },
-    border_settled: { tone: 'info', label: 'Border settled' },
-    merged: { tone: 'info', label: 'Merged' },
-    departed: { tone: 'closed', label: 'Departed' },
-};
+const NODE_TONES = computed(() => ({
+    discovered: { tone: 'info', label: t('c_system.atlas.node_discovered', 'Discovered') },
+    handshake: { tone: 'wait', label: t('c_system.atlas.node_handshake', 'Handshake') },
+    trust_established: { tone: 'live', label: t('c_system.atlas.node_trusted', 'Trusted') },
+    syncing: { tone: 'wait', label: t('c_system.atlas.node_syncing', 'Syncing') },
+    conflict_resolution: { tone: 'wait', label: t('c_system.atlas.node_resolving', 'Resolving conflicts') },
+    border_settled: { tone: 'info', label: t('c_system.atlas.node_border_settled', 'Border settled') },
+    merged: { tone: 'info', label: t('c_system.atlas.node_merged', 'Merged') },
+    departed: { tone: 'closed', label: t('c_system.atlas.node_departed', 'Departed') },
+}));
 
 function nodeTone(status) {
-    return NODE_TONES[status] ?? { tone: 'info', label: status || 'unknown' };
+    return NODE_TONES.value[status] ?? { tone: 'info', label: status || t('c_system.atlas.node_unknown', 'unknown') };
 }
 
 function nodeTitle(n) {
     return [
         n.label,
-        n.operator ? `operator ${n.operator}` : null,
-        `${dash(n.residents)} residents`,
-        n.uptimePct == null ? null : `${n.uptimePct}% up`,
+        n.operator ? t('c_system.atlas.node_operator', 'operator {name}', { name: n.operator }) : null,
+        t('c_system.atlas.node_residents', '{n} residents', { n: dash(n.residents) }),
+        n.uptimePct == null ? null : t('c_system.atlas.node_up', '{pct}% up', { pct: n.uptimePct }),
     ]
         .filter(Boolean)
         .join(' · ');
@@ -272,147 +274,147 @@ const domains = computed(() => {
     return [
         {
             key: 'world',
-            title: 'The world',
+            title: t('c_system.atlas.world_title', 'The world'),
             icon: 'globe',
             accent: 'adm-0-fg',
             tiles: [
-                { n: dash(w.jurisdictions), label: 'jurisdictions' },
+                { n: dash(w.jurisdictions), label: t('c_system.atlas.world_jurisdictions', 'jurisdictions') },
                 { n: dash(byAdm[0]), label: admLabel(0) },
                 { n: dash(byAdm[1]), label: admLabel(1) },
                 { n: dash(byAdm[2]), label: admLabel(2) },
                 { n: dash(byAdm[3]), label: admLabel(3) },
-                { n: formatPop(w.earthPopulation), label: 'people on Earth' },
-                { n: formatPop(w.modeledPopulation), label: 'in modeled places' },
-                { n: dash(w.civicActive), label: 'civic-active' },
+                { n: formatPop(w.earthPopulation), label: t('c_system.atlas.world_people', 'people on Earth') },
+                { n: formatPop(w.modeledPopulation), label: t('c_system.atlas.world_modeled', 'in modeled places') },
+                { n: dash(w.civicActive), label: t('c_system.atlas.world_civic_active', 'civic-active') },
             ],
         },
         {
             key: 'reach',
-            title: 'Reach & legitimacy',
+            title: t('c_system.atlas.reach_title', 'Reach & legitimacy'),
             icon: 'bar-chart',
             accent: 'cc-gold-400',
             tiles: [
-                { n: dash(r.verifiedTotal), label: 'verified residents', tone: 'success' },
-                { n: dash(r.measuredPlaces), label: 'measured places' },
-                { n: homeMeasured.value ? pct(home.value.reachPct) : '—', label: `reach · ${home.value?.name ?? 'your place'}` },
-                { n: dash(r.placesGauged), label: 'places gauged' },
+                { n: dash(r.verifiedTotal), label: t('c_system.atlas.reach_verified', 'verified residents'), tone: 'success' },
+                { n: dash(r.measuredPlaces), label: t('c_system.atlas.reach_measured', 'measured places') },
+                { n: homeMeasured.value ? pct(home.value.reachPct) : '—', label: t('c_system.atlas.reach_place', 'reach · {name}', { name: home.value?.name ?? t('c_system.atlas.your_place', 'your place') }) },
+                { n: dash(r.placesGauged), label: t('c_system.atlas.reach_gauged', 'places gauged') },
             ],
         },
         {
             key: 'representation',
-            title: 'Representation',
+            title: t('c_system.atlas.rep_title', 'Representation'),
             icon: 'landmark',
             accent: 'adm-2-fg',
             tiles: [
-                { n: dash(rep.legislatures), label: 'legislatures' },
-                { n: dash(rep.seats), label: 'seats' },
-                { n: dash(rep.seatsFilled), label: 'seats filled', tone: 'success' },
-                { n: dash(rep.seatsOpen), label: 'seats open', tone: 'danger' },
-                { n: dash(rep.electionsOpen), label: 'elections open' },
-                { n: dash(rep.seatsUp), label: 'seats up for election' },
-                { n: dash(rep.candidates), label: 'candidates standing' },
-                { n: dash(rep.petitionsGathering), label: 'petitions gathering', tone: 'warning' },
-                { n: dash(rep.committees), label: 'committees' },
-                { n: dash(rep.bills), label: 'bills in flight' },
+                { n: dash(rep.legislatures), label: t('c_system.atlas.rep_legislatures', 'legislatures') },
+                { n: dash(rep.seats), label: t('c_system.atlas.rep_seats', 'seats') },
+                { n: dash(rep.seatsFilled), label: t('c_system.atlas.rep_seats_filled', 'seats filled'), tone: 'success' },
+                { n: dash(rep.seatsOpen), label: t('c_system.atlas.rep_seats_open', 'seats open'), tone: 'danger' },
+                { n: dash(rep.electionsOpen), label: t('c_system.atlas.rep_elections_open', 'elections open') },
+                { n: dash(rep.seatsUp), label: t('c_system.atlas.rep_seats_up', 'seats up for election') },
+                { n: dash(rep.candidates), label: t('c_system.atlas.rep_candidates', 'candidates standing') },
+                { n: dash(rep.petitionsGathering), label: t('c_system.atlas.rep_petitions', 'petitions gathering'), tone: 'warning' },
+                { n: dash(rep.committees), label: t('c_system.atlas.rep_committees', 'committees') },
+                { n: dash(rep.bills), label: t('c_system.atlas.rep_bills', 'bills in flight') },
             ],
         },
         {
             key: 'executive',
-            title: 'The executive',
+            title: t('c_system.atlas.exec_title', 'The executive'),
             icon: 'briefcase',
             accent: 'wong-orange',
             tiles: [
-                { n: dash(ex.departments), label: 'departments' },
-                { n: dash(ex.governorSeats), label: 'governor seats' },
-                { n: dash(ex.workerSeats), label: 'worker-elected seats', tone: 'success' },
-                { n: dash(ex.civilServiceWorkers), label: 'civil-service workers' },
-                { n: dash(ex.emergencyPowersActive), label: 'emergency powers active', tone: 'danger' },
-                { n: dash(ex.emergencyDaysLeft), label: 'days left on it' },
+                { n: dash(ex.departments), label: t('c_system.atlas.exec_departments', 'departments') },
+                { n: dash(ex.governorSeats), label: t('c_system.atlas.exec_governor_seats', 'governor seats') },
+                { n: dash(ex.workerSeats), label: t('c_system.atlas.exec_worker_seats', 'worker-elected seats'), tone: 'success' },
+                { n: dash(ex.civilServiceWorkers), label: t('c_system.atlas.exec_civil_workers', 'civil-service workers') },
+                { n: dash(ex.emergencyPowersActive), label: t('c_system.atlas.exec_emergency_active', 'emergency powers active'), tone: 'danger' },
+                { n: dash(ex.emergencyDaysLeft), label: t('c_system.atlas.exec_days_left', 'days left on it') },
             ],
         },
         {
             key: 'judiciary',
-            title: 'The judiciary',
+            title: t('c_system.atlas.jud_title', 'The judiciary'),
             icon: 'scale',
             accent: 'wong-purple',
             tiles: [
-                { n: dash(ju.courts), label: 'courts' },
-                { n: dash(ju.casesOpen), label: 'cases open' },
-                { n: dash(ju.constitutionalChallenges), label: 'constitutional challenges' },
-                { n: dash(ju.juriesSeated), label: 'juries seated' },
-                { n: dash(ju.remedyWindows), label: 'remedy windows running', tone: 'warning' },
-                { n: '5+', label: 'judges per race' },
+                { n: dash(ju.courts), label: t('c_system.atlas.jud_courts', 'courts') },
+                { n: dash(ju.casesOpen), label: t('c_system.atlas.jud_cases_open', 'cases open') },
+                { n: dash(ju.constitutionalChallenges), label: t('c_system.atlas.jud_challenges', 'constitutional challenges') },
+                { n: dash(ju.juriesSeated), label: t('c_system.atlas.jud_juries', 'juries seated') },
+                { n: dash(ju.remedyWindows), label: t('c_system.atlas.jud_remedy', 'remedy windows running'), tone: 'warning' },
+                { n: '5+', label: t('c_system.atlas.jud_judges_per_race', 'judges per race') },
             ],
         },
         {
             key: 'organizations',
-            title: 'Organizations',
+            title: t('c_system.atlas.org_title', 'Organizations'),
             icon: 'building',
             accent: 'wong-skyblue',
             tiles: [
-                { n: dash(or.total), label: 'organizations' },
-                { n: dash(or.politicalParties), label: 'political parties' },
-                { n: dash(or.businesses), label: 'businesses' },
-                { n: dash(or.nonprofits), label: 'nonprofits' },
-                { n: dash(or.commonGoodCorps), label: 'common-good corps' },
-                { n: dash(or.endorsements), label: 'endorsements made' },
-                { n: dash(or.workersRepresented), label: 'workers represented' },
-                { n: dash(or.publicDomainWorks), label: 'public-domain works' },
+                { n: dash(or.total), label: t('c_system.atlas.org_total', 'organizations') },
+                { n: dash(or.politicalParties), label: t('c_system.atlas.org_parties', 'political parties') },
+                { n: dash(or.businesses), label: t('c_system.atlas.org_businesses', 'businesses') },
+                { n: dash(or.nonprofits), label: t('c_system.atlas.org_nonprofits', 'nonprofits') },
+                { n: dash(or.commonGoodCorps), label: t('c_system.atlas.org_cgc', 'common-good corps') },
+                { n: dash(or.endorsements), label: t('c_system.atlas.org_endorsements', 'endorsements made') },
+                { n: dash(or.workersRepresented), label: t('c_system.atlas.org_workers', 'workers represented') },
+                { n: dash(or.publicDomainWorks), label: t('c_system.atlas.org_pd_works', 'public-domain works') },
             ],
         },
         {
             key: 'economy',
-            title: 'The economy',
+            title: t('c_system.atlas.econ_title', 'The economy'),
             icon: 'refresh-cw',
             accent: 'wong-green',
             planned: true,
-            lead: 'Money is an abstract unit of account — no payment rails, no custody. A wallet is private, like a ballot.',
+            lead: t('c_system.atlas.econ_lead', 'Money is an abstract unit of account — no payment rails, no custody. A wallet is private, like a ballot.'),
             tiles: [
-                { n: dash(ec.mintedThisCycle), label: 'minted this cycle' },
-                { n: formatPop(ec.stipendRecipients), label: 'stipend recipients' },
-                { n: dash(ec.stipendFloor), label: 'stipend floor' },
-                { n: dash(ec.marketVolumeToday), label: 'market volume today' },
-                { n: dash(ec.publicBudget), label: 'public budget' },
-                { n: dash(ec.openAgreements), label: 'open agreements' },
-                { n: dash(ec.jointLedgers), label: 'joint ledgers' },
-                { n: dash(ec.marketListings), label: 'market listings' },
+                { n: dash(ec.mintedThisCycle), label: t('c_system.atlas.econ_minted', 'minted this cycle') },
+                { n: formatPop(ec.stipendRecipients), label: t('c_system.atlas.econ_stipend_recipients', 'stipend recipients') },
+                { n: dash(ec.stipendFloor), label: t('c_system.atlas.econ_stipend_floor', 'stipend floor') },
+                { n: dash(ec.marketVolumeToday), label: t('c_system.atlas.econ_market_volume', 'market volume today') },
+                { n: dash(ec.publicBudget), label: t('c_system.atlas.econ_public_budget', 'public budget') },
+                { n: dash(ec.openAgreements), label: t('c_system.atlas.econ_open_agreements', 'open agreements') },
+                { n: dash(ec.jointLedgers), label: t('c_system.atlas.econ_joint_ledgers', 'joint ledgers') },
+                { n: dash(ec.marketListings), label: t('c_system.atlas.econ_market_listings', 'market listings') },
             ],
         },
         {
             key: 'people',
-            title: 'People & achievements',
+            title: t('c_system.atlas.people_title', 'People & achievements'),
             icon: 'users',
             accent: 'adm-4-fg',
             planned: true,
-            lead: 'Individual achievements are private by default and confer no governance advantage — hard-separated from votes, seats, and money.',
+            lead: t('c_system.atlas.people_lead', 'Individual achievements are private by default and confer no governance advantage — hard-separated from votes, seats, and money.'),
             tiles: [
-                { n: dash(pe.verifiedResidents), label: 'verified residents', tone: 'success' },
-                { n: dash(pe.namedRoleHolders), label: 'named role-holders' },
-                { n: dash(pe.organizations), label: 'organizations' },
-                { n: dash(pe.registeredAdvocates), label: 'registered advocates' },
-                { n: dash(pe.achievementTracks), label: 'achievement tracks' },
+                { n: dash(pe.verifiedResidents), label: t('c_system.atlas.people_verified', 'verified residents'), tone: 'success' },
+                { n: dash(pe.namedRoleHolders), label: t('c_system.atlas.people_role_holders', 'named role-holders') },
+                { n: dash(pe.organizations), label: t('c_system.atlas.people_organizations', 'organizations') },
+                { n: dash(pe.registeredAdvocates), label: t('c_system.atlas.people_advocates', 'registered advocates') },
+                { n: dash(pe.achievementTracks), label: t('c_system.atlas.people_tracks', 'achievement tracks') },
                 {
                     n: pe.achievementsEarned == null ? '—' : `${dash(pe.achievementsEarned)} / ${dash(pe.achievementsTotal)}`,
-                    label: 'achievements earned',
+                    label: t('c_system.atlas.people_achievements', 'achievements earned'),
                 },
             ],
         },
         {
             key: 'mesh',
-            title: 'The servers carrying the world',
+            title: t('c_system.atlas.mesh_title', 'The servers carrying the world'),
             icon: 'shield',
             accent: 'cc-blue-400',
-            lead: 'Volunteer-run — keeping the world online buys no vote and no seat. If one node survives, the world survives.',
+            lead: t('c_system.atlas.mesh_lead', 'Volunteer-run — keeping the world online buys no vote and no seat. If one node survives, the world survives.'),
             tiles: [
-                { n: dash(me.nodes), label: 'nodes' },
-                { n: dash(me.alive), label: 'alive now', tone: 'success' },
-                { n: dash(me.connectedPeers), label: 'connected to each other' },
+                { n: dash(me.nodes), label: t('c_system.atlas.mesh_nodes', 'nodes') },
+                { n: dash(me.alive), label: t('c_system.atlas.mesh_alive', 'alive now'), tone: 'success' },
+                { n: dash(me.connectedPeers), label: t('c_system.atlas.mesh_connected', 'connected to each other') },
                 {
                     n: me.onLatest == null ? '—' : `${dash(me.onLatest)} / ${dash(me.onLatestOf)}`,
-                    label: 'on the latest version',
+                    label: t('c_system.atlas.mesh_latest', 'on the latest version'),
                 },
-                { n: dash(me.transportsUp), label: 'ways to reach each other' },
-                { n: me.caughtUp ?? '—', label: 'caught up on the record' },
+                { n: dash(me.transportsUp), label: t('c_system.atlas.mesh_transports', 'ways to reach each other') },
+                { n: me.caughtUp ?? '—', label: t('c_system.atlas.mesh_caught_up', 'caught up on the record') },
             ],
         },
     ];
@@ -421,17 +423,17 @@ const domains = computed(() => {
 /* ── growth trends ─────────────────────────────────────────────────────────
    Twelve monthly points per series, downsampled by the controller from the
    daily rollup rows — the Atlas never walks the world to draw these. */
-const TREND_ROWS = [
-    { key: 'verifiedResidents', label: 'Verified residents' },
-    { key: 'nodes', label: 'Nodes on the mesh' },
-    { key: 'jurisdictions', label: 'Jurisdictions live' },
-    { key: 'candidates', label: 'Candidates standing' },
-    { key: 'organizations', label: 'Organizations' },
-    { key: 'onMapOptIns', label: 'On-the-map opt-ins' },
-];
+const TREND_ROWS = computed(() => [
+    { key: 'verifiedResidents', label: t('c_system.atlas.trend_verified', 'Verified residents') },
+    { key: 'nodes', label: t('c_system.atlas.trend_nodes', 'Nodes on the mesh') },
+    { key: 'jurisdictions', label: t('c_system.atlas.trend_jurisdictions', 'Jurisdictions live') },
+    { key: 'candidates', label: t('c_system.atlas.trend_candidates', 'Candidates standing') },
+    { key: 'organizations', label: t('c_system.atlas.trend_organizations', 'Organizations') },
+    { key: 'onMapOptIns', label: t('c_system.atlas.trend_optins', 'On-the-map opt-ins') },
+]);
 
 const trendRows = computed(() =>
-    TREND_ROWS.map((row) => {
+    TREND_ROWS.value.map((row) => {
         const arr = (props.trends?.series?.[row.key] ?? []).filter((v) => v != null);
         const last = arr.length ? arr[arr.length - 1] : null;
         const delta = arr.length > 1 ? last - arr[0] : null;
@@ -468,7 +470,7 @@ function putMeOnTheMap() {
         {
             preserveScroll: true,
             onSuccess: () => {
-                optInSaid.value = 'You now appear as a single approximate pixel — grid-snapped, no name attached.';
+                optInSaid.value = t('c_system.atlas.optin_said', 'You now appear as a single approximate pixel — grid-snapped, no name attached.');
             },
             onFinish: () => {
                 optInBusy.value = false;
@@ -480,29 +482,27 @@ function putMeOnTheMap() {
 const heroStats = computed(() => {
     const h = props.hero ?? {};
     return [
-        { n: dash(h.nodesAlive), label: 'nodes alive', tone: 'success' },
-        { n: dash(h.verifiedResidents), label: 'verified residents' },
-        { n: dash(h.electionsOpen), label: 'elections open' },
-        { n: dash(h.seatsOpen), label: 'seats open', tone: 'danger' },
-        { n: dash(h.candidatesStanding), label: 'candidates standing' },
-        { n: dash(h.jurisdictions), label: 'jurisdictions' },
+        { n: dash(h.nodesAlive), label: t('c_system.atlas.hero_nodes_alive', 'nodes alive'), tone: 'success' },
+        { n: dash(h.verifiedResidents), label: t('c_system.atlas.hero_verified', 'verified residents') },
+        { n: dash(h.electionsOpen), label: t('c_system.atlas.hero_elections_open', 'elections open') },
+        { n: dash(h.seatsOpen), label: t('c_system.atlas.hero_seats_open', 'seats open'), tone: 'danger' },
+        { n: dash(h.candidatesStanding), label: t('c_system.atlas.hero_candidates', 'candidates standing') },
+        { n: dash(h.jurisdictions), label: t('c_system.atlas.hero_jurisdictions', 'jurisdictions') },
     ];
 });
 </script>
 
 <template>
-    <PageScaffold :surface="surface" title="The Atlas">
+    <PageScaffold :surface="surface" :title="t('c_system.atlas.page_title', 'The Atlas')">
         <template #intro>
-            One screen for the whole game: a living map of every node, place, organization, and willing
-            resident — and the vital signs of representation, justice, the economy, and the mesh. The
-            health of the world, and of everyone playing it.
+            {{ t('c_system.atlas.intro', 'One screen for the whole game: a living map of every node, place, organization, and willing resident — and the vital signs of representation, justice, the economy, and the mesh. The health of the world, and of everyone playing it.') }}
         </template>
 
         <!-- Honest posture. A synthetic world never masquerades as a live civilization. -->
         <div v-if="instance.synthetic" class="banner banner--demo">
             <div>
-                <span class="banner-title">A simulated world.</span>
-                {{ instance.label || 'These are the vital signs of a demonstration instance, not a live civilization.' }}
+                <span class="banner-title">{{ t('c_system.atlas.simulated_title', 'A simulated world.') }}</span>
+                {{ instance.label || t('c_system.atlas.simulated_body', 'These are the vital signs of a demonstration instance, not a live civilization.') }}
             </div>
         </div>
 
@@ -522,19 +522,18 @@ const heroStats = computed(() => {
         <section class="card atlas-map-card" aria-labelledby="atlas-map-h">
             <div class="cluster" style="justify-content: space-between; align-items: flex-start; gap: var(--space-3)">
                 <div>
-                    <span class="eyebrow" id="atlas-map-h"><Icon name="globe" size="sm" /> The living map</span>
+                    <span class="eyebrow" id="atlas-map-h"><Icon name="globe" size="sm" /> {{ t('c_system.atlas.living_map', 'The living map') }}</span>
                     <p class="gloss" style="margin: var(--space-1) 0 0">
-                        Every node, place, organization, and opt-in resident on one Earth. Approximate
-                        positions only — this is orientation, not surveillance.
+                        {{ t('c_system.atlas.living_map_gloss', 'Every node, place, organization, and opt-in resident on one Earth. Approximate positions only — this is orientation, not surveillance.') }}
                     </p>
                 </div>
                 <span v-if="mesh.nodes != null" class="pill pill--live">
                     <span class="dotlive" aria-hidden="true"></span>
-                    {{ dash(mesh.alive) }} of {{ dash(mesh.nodes) }} nodes alive
+                    {{ t('c_system.atlas.nodes_alive_of', '{alive} of {total} nodes alive', { alive: dash(mesh.alive), total: dash(mesh.nodes) }) }}
                 </span>
             </div>
 
-            <div class="atlas-controls cluster" role="group" aria-label="Map layers">
+            <div class="atlas-controls cluster" role="group" :aria-label="t('c_system.atlas.map_layers_label', 'Map layers')">
                 <button
                     v-for="ly in LAYERS"
                     :key="ly.key"
@@ -655,7 +654,7 @@ const heroStats = computed(() => {
                 style="justify-content: space-between; gap: var(--space-3); margin-block-start: var(--space-2)"
             >
                 <p class="citation" style="margin: 0">
-                    Land is a simplified outline drawn for orientation. Positions are city-level and approximate.
+                    {{ t('c_system.atlas.land_note', 'Land is a simplified outline drawn for orientation. Positions are city-level and approximate.') }}
                 </p>
                 <button
                     type="button"
@@ -664,7 +663,7 @@ const heroStats = computed(() => {
                     @click="putMeOnTheMap"
                 >
                     <Icon name="map-pin" size="sm" />
-                    {{ optIn.on ? 'You are on the map' : 'Put yourself on the map' }}
+                    {{ optIn.on ? t('c_system.atlas.optin_on', 'You are on the map') : t('c_system.atlas.optin_off', 'Put yourself on the map') }}
                 </button>
             </div>
             <p role="status" class="gloss" style="margin: var(--space-1) 0 0">
@@ -673,12 +672,12 @@ const heroStats = computed(() => {
 
             <div class="banner banner--info" style="margin-block-start: var(--space-3)">
                 <Icon name="lock" size="sm" />
-                <div><strong>Opt-in &amp; approximate.</strong> {{ privacy.note }}</div>
+                <div><strong>{{ t('c_system.atlas.optin_approx', 'Opt-in & approximate.') }}</strong> {{ privacy.note }}</div>
             </div>
         </section>
 
         <!-- ── vital signs ────────────────────────────────────────────── -->
-        <h2 class="atlas-section-h">Vital signs</h2>
+        <h2 class="atlas-section-h">{{ t('c_system.atlas.vital_signs', 'Vital signs') }}</h2>
 
         <div class="grid-2 atlas-grid">
             <section v-for="d in domains" :key="d.key" class="card atlas-domain">
@@ -686,7 +685,7 @@ const heroStats = computed(() => {
                     <h3 class="eyebrow" :style="{ color: `var(--${d.accent})` }">
                         <Icon :name="d.icon" size="sm" /> {{ d.title }}
                     </h3>
-                    <span v-if="d.planned" class="pill pill--planned">Planned</span>
+                    <span v-if="d.planned" class="pill pill--planned">{{ t('c_system.atlas.planned', 'Planned') }}</span>
                 </div>
 
                 <p v-if="d.lead" class="gloss atlas-domain-lead">{{ d.lead }}</p>
@@ -720,15 +719,14 @@ const heroStats = computed(() => {
                         </svg>
                         <div class="atlas-dial-c">
                             <span class="atlas-dial-n">{{ homeMeasured ? pct(home.reachPct, 1) : '—' }}</span>
-                            <span class="atlas-dial-l">reach · {{ home?.name ?? 'your place' }}</span>
+                            <span class="atlas-dial-l">{{ t('c_system.atlas.reach_place', 'reach · {name}', { name: home?.name ?? t('c_system.atlas.your_place', 'your place') }) }}</span>
                         </div>
                     </div>
 
                     <div class="atlas-reach-side">
                         <p class="gloss" style="margin: 0 0 var(--space-2)">
-                            Reach is the share of a place that is verified and present. It is a
-                            <strong>display-only transparency gauge — never a governance input</strong>, and
-                            never a per-person score.
+                            {{ t('c_system.atlas.reach_gloss_a', 'Reach is the share of a place that is verified and present. It is a') }}
+                            <strong>{{ t('c_system.atlas.reach_gloss_strong', 'display-only transparency gauge — never a governance input') }}</strong>{{ t('c_system.atlas.reach_gloss_b', ', and never a per-person score.') }}
                         </p>
 
                         <svg
@@ -737,16 +735,16 @@ const heroStats = computed(() => {
                             viewBox="0 0 200 44"
                             preserveAspectRatio="none"
                             role="img"
-                            :aria-label="`Reach over 30 nights, ${home?.name ?? 'your place'}`"
+                            :aria-label="t('c_system.atlas.reach_spark_label', 'Reach over 30 nights, {name}', { name: home?.name ?? t('c_system.atlas.your_place', 'your place') })"
                         >
                             <path :d="homeSpark" />
                         </svg>
                         <p v-else class="gloss" style="margin: 0">
-                            Not enough measured nights yet to draw a trend. A withheld night is a gap, never a zero.
+                            {{ t('c_system.atlas.reach_no_nights', 'Not enough measured nights yet to draw a trend. A withheld night is a gap, never a zero.') }}
                         </p>
 
                         <p v-if="homeMeasured" class="citation" style="margin: var(--space-1) 0 0">
-                            30 nights · {{ home.provenance }} {{ home.populationYear }}
+                            {{ t('c_system.atlas.reach_nights_prefix', '30 nights ·') }} {{ home.provenance }} {{ home.populationYear }}
                         </p>
 
                         <label
@@ -754,7 +752,7 @@ const heroStats = computed(() => {
                             class="gloss"
                             style="display: block; margin-block-start: var(--space-2)"
                         >
-                            Look at another place
+                            {{ t('c_system.atlas.look_another', 'Look at another place') }}
                             <select
                                 v-model="placeChoice"
                                 style="margin-inline-start: var(--space-1)"
@@ -769,8 +767,8 @@ const heroStats = computed(() => {
                 <div v-if="d.key === 'mesh' && mesh.health" class="atlas-mesh-health">
                     <span class="health-line">
                         <span class="health-dot" :class="`health-dot--${mesh.health}`"></span>
-                        Health: <strong>{{ mesh.health }}</strong>
-                        <template v-if="mesh.lastSync"> · everyone last compared notes {{ mesh.lastSync }}</template>
+                        {{ t('c_system.atlas.health_label', 'Health:') }} <strong>{{ mesh.health }}</strong>
+                        <template v-if="mesh.lastSync"> {{ t('c_system.atlas.last_compared', '· everyone last compared notes {when}', { when: mesh.lastSync }) }}</template>
                     </span>
                 </div>
             </section>
@@ -779,7 +777,7 @@ const heroStats = computed(() => {
         <!-- ── growth ─────────────────────────────────────────────────── -->
         <section class="card atlas-trends" aria-labelledby="atlas-trends-h">
             <div class="card-title">
-                <span class="eyebrow" id="atlas-trends-h"><Icon name="bar-chart" size="sm" /> Growth — the last year</span>
+                <span class="eyebrow" id="atlas-trends-h"><Icon name="bar-chart" size="sm" /> {{ t('c_system.atlas.growth_title', 'Growth — the last year') }}</span>
             </div>
 
             <div class="grid-2">
@@ -799,7 +797,7 @@ const heroStats = computed(() => {
                         viewBox="0 0 200 44"
                         preserveAspectRatio="none"
                         role="img"
-                        :aria-label="`${row.label} over the last year`"
+                        :aria-label="t('c_system.atlas.trend_spark_label', '{label} over the last year', { label: row.label })"
                     >
                         <path :d="row.path" />
                     </svg>
@@ -809,8 +807,7 @@ const heroStats = computed(() => {
             <p class="lr-note" style="margin-block-start: var(--space-3)">
                 <Icon name="info" size="sm" />
                 <span>
-                    Growth and reach are shown to celebrate participation and keep the network honest — never as
-                    a lever on anyone’s rights.
+                    {{ t('c_system.atlas.growth_note', 'Growth and reach are shown to celebrate participation and keep the network honest — never as a lever on anyone’s rights.') }}
                 </span>
             </p>
         </section>
@@ -818,7 +815,7 @@ const heroStats = computed(() => {
         <!-- ── what needs people ──────────────────────────────────────── -->
         <section v-if="ctas.length" class="card atlas-ctas" aria-labelledby="atlas-ctas-h">
             <div class="card-title">
-                <span class="eyebrow" id="atlas-ctas-h"><Icon name="bell" size="sm" /> What needs people right now</span>
+                <span class="eyebrow" id="atlas-ctas-h"><Icon name="bell" size="sm" /> {{ t('c_system.atlas.needs_people', 'What needs people right now') }}</span>
             </div>
             <ul class="atlas-cta-list">
                 <li v-for="(c, i) in ctas" :key="i" class="atlas-cta" :class="`atlas-cta--${c.tone}`">
@@ -834,31 +831,30 @@ const heroStats = computed(() => {
         <!-- ── nodes & operators ──────────────────────────────────────── -->
         <section v-if="directory.length" class="card atlas-dir" aria-labelledby="atlas-dir-h">
             <div class="card-title">
-                <span class="eyebrow" id="atlas-dir-h"><Icon name="globe" size="sm" /> Nodes &amp; operators</span>
+                <span class="eyebrow" id="atlas-dir-h"><Icon name="globe" size="sm" /> {{ t('c_system.atlas.nodes_operators', 'Nodes & operators') }}</span>
             </div>
             <p class="gloss">
-                The servers keeping the mesh alive, and the residents who run them. Open an operator to reach
-                their public profile.
+                {{ t('c_system.atlas.dir_gloss', 'The servers keeping the mesh alive, and the residents who run them. Open an operator to reach their public profile.') }}
             </p>
             <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
-                            <th scope="col">Node</th>
-                            <th scope="col">Where</th>
-                            <th scope="col">Operator</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Role</th>
-                            <th scope="col">Residents</th>
-                            <th scope="col">Uptime</th>
-                            <th scope="col">Sync</th>
+                            <th scope="col">{{ t('c_system.atlas.col_node', 'Node') }}</th>
+                            <th scope="col">{{ t('c_system.atlas.col_where', 'Where') }}</th>
+                            <th scope="col">{{ t('c_system.atlas.col_operator', 'Operator') }}</th>
+                            <th scope="col">{{ t('c_system.atlas.col_status', 'Status') }}</th>
+                            <th scope="col">{{ t('c_system.atlas.col_role', 'Role') }}</th>
+                            <th scope="col">{{ t('c_system.atlas.col_residents', 'Residents') }}</th>
+                            <th scope="col">{{ t('c_system.atlas.col_uptime', 'Uptime') }}</th>
+                            <th scope="col">{{ t('c_system.atlas.col_sync', 'Sync') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="n in directory" :key="n.label">
                             <td>
                                 <strong style="color: var(--gov-fg)">{{ n.label }}</strong>
-                                <span v-if="n.self" class="badge badge--info">this node</span>
+                                <span v-if="n.self" class="badge badge--info">{{ t('c_system.atlas.this_node', 'this node') }}</span>
                                 <span class="citation" style="display: block">{{ n.name }}</span>
                             </td>
                             <td>{{ n.place || '—' }}</td>
@@ -882,14 +878,12 @@ const heroStats = computed(() => {
         </section>
 
         <p v-if="generatedAt" class="citation">
-            Vital signs from the nightly world rollup · {{ generatedAt }}. The Atlas reads a snapshot, never a
-            live count of the world.
+            {{ t('c_system.atlas.rollup_footer', 'Vital signs from the nightly world rollup · {when}. The Atlas reads a snapshot, never a live count of the world.', { when: generatedAt }) }}
         </p>
         <div v-else class="banner banner--info">
             <Icon name="info" size="sm" />
             <div>
-                <strong>No rollup yet.</strong> The nightly world snapshot has not run on this instance, so the
-                vital signs read as gaps rather than zeros.
+                <strong>{{ t('c_system.atlas.no_rollup_title', 'No rollup yet.') }}</strong> {{ t('c_system.atlas.no_rollup_body', 'The nightly world snapshot has not run on this instance, so the vital signs read as gaps rather than zeros.') }}
             </div>
         </div>
     </PageScaffold>

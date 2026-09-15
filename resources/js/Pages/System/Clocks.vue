@@ -10,6 +10,7 @@
  */
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -20,6 +21,8 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -56,12 +59,12 @@ const FAMILY_DEADLINES = 'Deadlines & windows';
 const FAMILY_THRESHOLDS = 'Thresholds & floors';
 const FAMILY_FORMULAS = 'Formulas & flags';
 
-const FAMILIES = [
-    { name: FAMILY_INTERVALS, desc: 'Recurring and derived schedules — the clocks that re-arm themselves.' },
-    { name: FAMILY_DEADLINES, desc: 'Countdowns, rolling deadlines, and bounded or continuous windows.' },
-    { name: FAMILY_THRESHOLDS, desc: 'Quantity watchers — population, headcount, signatures, seats.' },
-    { name: FAMILY_FORMULAS, desc: 'Derived values and term-scoped protections.' },
-];
+const FAMILIES = computed(() => [
+    { name: FAMILY_INTERVALS, label: t('c_system.clocks.family_intervals', 'Intervals & schedules'), desc: t('c_system.clocks.family_intervals_desc', 'Recurring and derived schedules — the clocks that re-arm themselves.') },
+    { name: FAMILY_DEADLINES, label: t('c_system.clocks.family_deadlines', 'Deadlines & windows'), desc: t('c_system.clocks.family_deadlines_desc', 'Countdowns, rolling deadlines, and bounded or continuous windows.') },
+    { name: FAMILY_THRESHOLDS, label: t('c_system.clocks.family_thresholds', 'Thresholds & floors'), desc: t('c_system.clocks.family_thresholds_desc', 'Quantity watchers — population, headcount, signatures, seats.') },
+    { name: FAMILY_FORMULAS, label: t('c_system.clocks.family_formulas', 'Formulas & flags'), desc: t('c_system.clocks.family_formulas_desc', 'Derived values and term-scoped protections.') },
+]);
 
 function familyOf(clock) {
     switch (clock.type) {
@@ -81,7 +84,7 @@ function familyOf(clock) {
 }
 
 const families = computed(() =>
-    FAMILIES.map((fam) => ({
+    FAMILIES.value.map((fam) => ({
         ...fam,
         rows: props.clocks.filter((clock) => familyOf(clock) === fam.name),
     })).filter((fam) => fam.rows.length > 0),
@@ -123,28 +126,26 @@ function dateOf(iso) {
     return iso ? new Date(iso).toLocaleDateString() : null;
 }
 
-const columns = [
-    { key: 'name', label: 'Name' },
-    { key: 'type', label: 'Type' },
-    { key: 'default', label: 'Default' },
-    { key: 'amendable', label: 'Amendable' },
-    { key: 'live', label: 'Live' },
-    { key: 'basis', label: 'Basis', mono: true },
-];
+const columns = computed(() => [
+    { key: 'name', label: t('c_system.clocks.col_name', 'Name') },
+    { key: 'type', label: t('c_system.clocks.col_type', 'Type') },
+    { key: 'default', label: t('c_system.clocks.col_default', 'Default') },
+    { key: 'amendable', label: t('c_system.clocks.col_amendable', 'Amendable') },
+    { key: 'live', label: t('c_system.clocks.col_live', 'Live') },
+    { key: 'basis', label: t('c_system.clocks.col_basis', 'Basis'), mono: true },
+]);
 </script>
 
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            The scheduled sweeps that drive the world — every interval, deadline, window, and
-            threshold that starts a process without anyone asking. Time and population do the
-            triggering; officials never do, and nothing here needs a human to remember it.
+            {{ t('c_system.clocks.intro', 'The scheduled sweeps that drive the world — every interval, deadline, window, and threshold that starts a process without anyone asking. Time and population do the triggering; officials never do, and nothing here needs a human to remember it.') }}
         </template>
 
         <div class="cluster" style="gap: var(--space-6)">
-            <Stat :value="stats.total" label="clocks in the registry" accent />
-            <Stat :value="stats.amendable" label="amendable via settings" />
-            <Stat :value="stats.hardened" label="hardened or structural" />
+            <Stat :value="stats.total" :label="t('c_system.clocks.stat_total', 'clocks in the registry')" accent />
+            <Stat :value="stats.amendable" :label="t('c_system.clocks.stat_amendable', 'amendable via settings')" />
+            <Stat :value="stats.hardened" :label="t('c_system.clocks.stat_hardened', 'hardened or structural')" />
         </div>
 
         <!-- ============================= playtest time controls (P2+P3) ==
@@ -153,10 +154,9 @@ const columns = [
              the read-only registry and nothing more. The component shows
              the dry run BEFORE apply, always, and renders the gate's
              refusal sentence verbatim if the controls shut mid-session. -->
-        <Card v-if="playtest" as="section" title="Advance the world (playtest control)">
+        <Card v-if="playtest" as="section" :title="t('c_system.clocks.playtest_title', 'Advance the world (playtest control)')">
             <p class="cc-small">
-                Pulls every registered deadline closer instead of touching the wall clock —
-                audit-marked as a dev action, dry run rendered before anything moves.
+                {{ t('c_system.clocks.playtest_body', 'Pulls every registered deadline closer instead of touching the wall clock — audit-marked as a dev action, dry run rendered before anything moves.') }}
             </p>
             <DevClockControls />
         </Card>
@@ -164,10 +164,10 @@ const columns = [
         <!-- ==================================== the four families ======== -->
         <Card v-for="fam in families" :key="fam.name" as="section">
             <template #title>
-                <h2>{{ fam.name }} <span class="citation">{{ fam.rows.length }} clocks</span></h2>
+                <h2>{{ fam.label }} <span class="citation">{{ t('c_system.clocks.family_count', '{n} clocks', { n: fam.rows.length }) }}</span></h2>
             </template>
             <p class="cc-small">{{ fam.desc }}</p>
-            <DataTable :columns="columns" :rows="fam.rows" row-key="id" :caption="fam.name">
+            <DataTable :columns="columns" :rows="fam.rows" row-key="id" :caption="fam.label">
                 <template #cell-name="{ row }">
                     <span style="color: var(--gov-fg-strong)">{{ row.name }}</span>
                     <span class="citation" style="display: block" data-no-i18n>
@@ -176,15 +176,15 @@ const columns = [
                 </template>
                 <template #cell-default="{ row }">
                     <template v-if="defaultOf(row)">{{ defaultOf(row) }}</template>
-                    <span v-else class="citation">derived — see the workflow it fires</span>
+                    <span v-else class="citation">{{ t('c_system.clocks.default_derived', 'derived — see the workflow it fires') }}</span>
                 </template>
                 <template #cell-amendable="{ row }">
-                    <StatusBadge v-if="row.amendable" tone="info" icon="sliders">Amendable</StatusBadge>
-                    <StatusBadge v-else tone="neutral" icon="lock">No — hardened</StatusBadge>
+                    <StatusBadge v-if="row.amendable" tone="info" icon="sliders">{{ t('c_system.clocks.amendable_yes', 'Amendable') }}</StatusBadge>
+                    <StatusBadge v-else tone="neutral" icon="lock">{{ t('c_system.clocks.amendable_no', 'No — hardened') }}</StatusBadge>
                 </template>
                 <template #cell-live="{ row }">
                     <template v-if="liveOf(row)">
-                        {{ liveOf(row).count }} armed
+                        {{ t('c_system.clocks.armed_count', '{n} armed', { n: liveOf(row).count }) }}
                         <span
                             v-if="liveOf(row).next_fires_at"
                             class="citation"
@@ -195,7 +195,7 @@ const columns = [
                              deadline that is still armed means the sweep did
                              not fire it — a fault, not a status. -->
                         <StatusBadge v-if="overdueOf(row)" tone="warning" icon="alert-triangle">
-                            {{ overdueOf(row) }} overdue
+                            {{ t('c_system.clocks.overdue_count', '{n} overdue', { n: overdueOf(row) }) }}
                         </StatusBadge>
                     </template>
                     <template v-else>—</template>
@@ -207,42 +207,30 @@ const columns = [
         </Card>
 
         <!-- ==================================== reading the registry ===== -->
-        <Card as="section" title="Reading the registry">
+        <Card as="section" :title="t('c_system.clocks.reading_title', 'Reading the registry')">
             <ul style="margin-block-end: var(--space-2)">
                 <li>
-                    <strong>Type</strong> is the scheduler contract: recurring intervals re-arm on
-                    fire; countdowns expire once; windows open and close; thresholds watch a
-                    quantity and fire on crossing.
+                    <strong>{{ t('c_system.clocks.reading_type_label', 'Type') }}</strong> {{ t('c_system.clocks.reading_type_body', 'is the scheduler contract: recurring intervals re-arm on fire; countdowns expire once; windows open and close; thresholds watch a quantity and fire on crossing.') }}
                 </li>
                 <li>
-                    <strong>Amendable</strong> means a valid legislative act can change the default
-                    within fixed bounds — see <Link href="/system/amendments">amendments</Link>;
-                    hardened and structural clocks are fixed in code.
+                    <strong>{{ t('c_system.clocks.reading_amendable_label', 'Amendable') }}</strong> {{ t('c_system.clocks.reading_amendable_body', 'means a valid legislative act can change the default within fixed bounds — see') }} <Link href="/system/amendments">{{ t('c_system.clocks.amendments_link', 'amendments') }}</Link>{{ t('c_system.clocks.reading_amendable_body2', '; hardened and structural clocks are fixed in code.') }}
                 </li>
                 <li>
-                    <strong>Live</strong> is what the scheduler is actually holding right now —
-                    armed timers and the soonest real deadline, straight from the timer table.
+                    <strong>{{ t('c_system.clocks.reading_live_label', 'Live') }}</strong> {{ t('c_system.clocks.reading_live_body', 'is what the scheduler is actually holding right now — armed timers and the soonest real deadline, straight from the timer table.') }}
                 </li>
                 <li>
-                    Every fire event is appended to the
-                    <Link href="/system/audit-chain">audit chain</Link>.
+                    {{ t('c_system.clocks.reading_fire_body', 'Every fire event is appended to the') }}
+                    <Link href="/system/audit-chain">{{ t('c_system.clocks.audit_chain_link', 'audit chain') }}</Link>.
                 </li>
             </ul>
             <p class="gloss">
-                Glossary: quorum here always counts all serving members, never just those present;
-                the Droop quota is the smallest vote count that mathematically guarantees a seat;
-                the number of ballot finalists grows with the seats in the race.
+                {{ t('c_system.clocks.glossary', 'Glossary: quorum here always counts all serving members, never just those present; the Droop quota is the smallest vote count that mathematically guarantees a seat; the number of ballot finalists grows with the seats in the race.') }}
             </p>
         </Card>
 
         <template #about>
             <p>
-                The scheduler itself is the engine behind term synchronization and 90-day meeting
-                enforcement. This page doubles as the scheduler spec — the production scheduler
-                implements exactly these clock records, one row, one trigger source. Amendable
-                defaults change by legislative act; hardened and structural clocks are fixed in
-                code. Clocks themselves hold no state — they move other things (elections,
-                emergency powers, vacancies, residency claims) through their stages.
+                {{ t('c_system.clocks.about', 'The scheduler itself is the engine behind term synchronization and 90-day meeting enforcement. This page doubles as the scheduler spec — the production scheduler implements exactly these clock records, one row, one trigger source. Amendable defaults change by legislative act; hardened and structural clocks are fixed in code. Clocks themselves hold no state — they move other things (elections, emergency powers, vacancies, residency claims) through their stages.') }}
             </p>
         </template>
     </PageScaffold>

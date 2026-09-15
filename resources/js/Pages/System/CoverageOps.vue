@@ -12,6 +12,7 @@
  */
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -21,6 +22,8 @@ import { PLAYER_NAV, SITEMAP, TOUR } from '@/registry/surfaces.js';
 import { flattenRegistryNav, computeCoverageDrift, NAV_ALLOWLIST } from '@/registry/coverage.js';
 
 defineOptions({ layout: AppShellV2 });
+
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -77,27 +80,24 @@ const tone = (s) =>
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            Live proof of coverage, row by row: every surface, every registry nav row, and every
-            tour stop against the routes the app serves. Each build stage turns its scope green
-            before it commits — that green is what "done" means.
+            {{ t('c_system.coverage_ops.intro', 'Live proof of coverage, row by row: every surface, every registry nav row, and every tour stop against the routes the app serves. Each build stage turns its scope green before it commits — that green is what "done" means.') }}
         </template>
 
-        <p class="citation"><Link href="/coverage">← back to the coverage dashboard</Link></p>
+        <p class="citation"><Link href="/coverage">{{ t('c_system.coverage_ops.back_link', '← back to the coverage dashboard') }}</Link></p>
 
-        <Banner v-if="!drift.ok" tone="emergency" title="Drift detected">
-            {{ drift.deadNavLinks.length }} dead nav link(s) · {{ drift.deadTourStops.length }} dead
-            tour stop(s) · {{ drift.navUnresolved.length }} unresolved surface nav(s).
+        <Banner v-if="!drift.ok" tone="emergency" :title="t('c_system.coverage_ops.drift_title', 'Drift detected')">
+            {{ t('c_system.coverage_ops.drift_body', '{dead} dead nav link(s) · {tour} dead tour stop(s) · {nav} unresolved surface nav(s).', { dead: drift.deadNavLinks.length, tour: drift.deadTourStops.length, nav: drift.navUnresolved.length }) }}
         </Banner>
-        <Banner v-else tone="info" title="All rows resolve">
-            Every registry row, tour stop, and surface nav resolves against the running app.
+        <Banner v-else tone="info" :title="t('c_system.coverage_ops.all_resolve_title', 'All rows resolve')">
+            {{ t('c_system.coverage_ops.all_resolve_body', 'Every registry row, tour stop, and surface nav resolves against the running app.') }}
         </Banner>
 
         <!-- ─────────────────────────────── registry nav rows ── -->
-        <Card as="section" title="Registry nav rows → routes">
+        <Card as="section" :title="t('c_system.coverage_ops.nav_rows_title', 'Registry nav rows → routes')">
             <!-- W-0338: these tables scroll sideways at narrow widths; the wrapper is a named, focusable region. -->
-            <div class="table-wrap" tabindex="0" role="region" aria-label="Registry nav rows (scrollable)">
+            <div class="table-wrap" tabindex="0" role="region" :aria-label="t('c_system.coverage_ops.nav_rows_region', 'Registry nav rows (scrollable)')">
                 <table class="table">
-                    <thead><tr><th>ID</th><th>Section</th><th>Href</th><th>Roles</th><th>Status</th></tr></thead>
+                    <thead><tr><th>{{ t('c_system.coverage_ops.col_id', 'ID') }}</th><th>{{ t('c_system.coverage_ops.col_section', 'Section') }}</th><th>{{ t('c_system.coverage_ops.col_href', 'Href') }}</th><th>{{ t('c_system.coverage_ops.col_roles', 'Roles') }}</th><th>{{ t('c_system.coverage_ops.col_status', 'Status') }}</th></tr></thead>
                     <tbody>
                         <tr v-for="r in navMatrix" :key="r.section + ':' + r.id">
                             <td class="mono">{{ r.id }}</td>
@@ -112,10 +112,10 @@ const tone = (s) =>
         </Card>
 
         <!-- ─────────────────────────────── surfaces → nav ── -->
-        <Card as="section" title="Registered surfaces → menu id (SurfaceMeta::ids())">
-            <div class="table-wrap" tabindex="0" role="region" aria-label="Registered surfaces (scrollable)">
+        <Card as="section" :title="t('c_system.coverage_ops.surfaces_title', 'Registered surfaces → menu id (SurfaceMeta::ids())')">
+            <div class="table-wrap" tabindex="0" role="region" :aria-label="t('c_system.coverage_ops.surfaces_region', 'Registered surfaces (scrollable)')">
                 <table class="table">
-                    <thead><tr><th>Surface id</th><th>Module</th><th>Nav</th><th>Status</th></tr></thead>
+                    <thead><tr><th>{{ t('c_system.coverage_ops.col_surface_id', 'Surface id') }}</th><th>{{ t('c_system.coverage_ops.col_module', 'Module') }}</th><th>{{ t('c_system.coverage_ops.col_nav', 'Nav') }}</th><th>{{ t('c_system.coverage_ops.col_status', 'Status') }}</th></tr></thead>
                     <tbody>
                         <tr v-for="s in surfaceMatrix" :key="s.id">
                             <td class="mono">{{ s.id }}</td>
@@ -129,10 +129,10 @@ const tone = (s) =>
         </Card>
 
         <!-- ─────────────────────────────── tour stops → routes ── -->
-        <Card as="section" title="Tour stops → routes">
-            <div class="table-wrap" tabindex="0" role="region" aria-label="Tour stops (scrollable)">
+        <Card as="section" :title="t('c_system.coverage_ops.tour_title', 'Tour stops → routes')">
+            <div class="table-wrap" tabindex="0" role="region" :aria-label="t('c_system.coverage_ops.tour_region', 'Tour stops (scrollable)')">
                 <table class="table">
-                    <thead><tr><th>#</th><th>Act</th><th>Stop</th><th>Href</th><th>Status</th></tr></thead>
+                    <thead><tr><th>{{ t('c_system.coverage_ops.col_hash', '#') }}</th><th>{{ t('c_system.coverage_ops.col_act', 'Act') }}</th><th>{{ t('c_system.coverage_ops.col_stop', 'Stop') }}</th><th>{{ t('c_system.coverage_ops.col_href', 'Href') }}</th><th>{{ t('c_system.coverage_ops.col_status', 'Status') }}</th></tr></thead>
                     <tbody>
                         <tr v-for="t in tourMatrix" :key="t.i">
                             <td class="mono">{{ t.i }}</td>
