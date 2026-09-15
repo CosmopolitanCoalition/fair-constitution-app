@@ -17075,6 +17075,14 @@
         {
           "date": "2026-09-15",
           "note": "Pass 4 done 6:32 PM Eastern (23 routes at 150 s): 13 pass, 2 hold, 8 fail. Standing: 145 of 155 pages pass (152 sampled minus 5 JSON endpoints reclassified as machine, plus 6 wizard steps). Remaining: the six setup wizard steps 1 to 6 (new findings, 4 to 150 nodes each: gray-500 helper text, white on emerald-600 buttons, missing titles, two narrow-width overflows) assigned to lane fix-setup-wizard-a11y; the jurisdiction map (its pass-4 result was stale; a live probe shows the fixes applied, re-run pending); the boardroom 403 (ruling pending). The two held routes were JSON endpoints (jurisdiction search, dev users), reclassified (5d741a9d). A guest re-sweep of the 56 guest pages runs now, since the fixes changed shared components after the 09-14 guest pass."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Guest re-sweep after the 09-15 fixes (operator: fan out, six lanes, one route per lane): 55 guest pages, 52 pass on the first visit, 3 heavy pages held at 60 s (building, legislatures, coverage-ops) and re-run at 150 s in one lane; /continue is a redirector with no page and moved to the machine class (9c895022, derivation shared at 5e450f65). Per-lane ledgers storage/logs/a11y_full/ledger_guest_1..6.txt; heavy re-run ledger_guest_heavy.txt. The one-route-at-a-time hold-kill now stops only its own process tree (sweep_one3.ps1), so lanes cannot kill each other."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "GUEST ROSTER COMPLETE 6:50 PM Eastern: 55 of 55 guest pages pass as a guest after the 09-15 fixes (three heavy pages passed at the 150 s budget: building 55 s, legislatures 96 s, coverage-ops 25 s). Signed-in standing: 145 of 155 pages pass; remaining: wizard steps 1 to 6 (lane building), the jurisdiction map re-run, the boardroom page (ruling pending)."
         }
       ]
     }
