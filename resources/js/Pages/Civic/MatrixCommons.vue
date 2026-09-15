@@ -132,26 +132,26 @@ useLiveRoom({
         </Banner>
         <Banner v-else-if="roomState === 'waiting_for_government'" tone="info" class="mb-4">
             {{ text('waiting_for_government') }}
-            <Link :href="`/civic/commons/square?jurisdiction=${encodeURIComponent(jurisdictionId)}`">{{ text('open_square') }}</Link>
+            <Link :href="`/civic/commons/square?jurisdiction=${encodeURIComponent(jurisdictionId)}`" class="prose-link">{{ text('open_square') }}</Link>
         </Banner>
         <Banner v-else-if="!reachable" tone="warning" class="mb-4">
             {{ text('unavailable') }}
-            <Link :href="roomHref" preserve-state preserve-scroll>{{ text('retry') }}</Link>
+            <Link :href="roomHref" preserve-state preserve-scroll class="prose-link">{{ text('retry') }}</Link>
         </Banner>
         <Banner v-else-if="!roomId" tone="info" class="mb-4">
             {{ text('not_ready') }}
-            <Link :href="roomHref" preserve-state preserve-scroll>{{ text('retry') }}</Link>
+            <Link :href="roomHref" preserve-state preserve-scroll class="prose-link">{{ text('retry') }}</Link>
         </Banner>
         <Banner v-if="selectedPlace && !myUserId" tone="info" class="mb-4">
             {{ text('guest') }}
-            <Link href="/login">{{ text('sign_in') }}</Link>
+            <Link href="/login" class="prose-link">{{ text('sign_in') }}</Link>
         </Banner>
 
         <Card v-if="roomId && myUserId" class="mb-4">
             <div class="flex items-center justify-between gap-3 flex-wrap">
                 <div>
                     <h3 class="text-base font-semibold">{{ text('invite_title') }}</h3>
-                    <p class="text-sm opacity-70">
+                    <p class="text-sm text-gray-300">
                         {{ text('invite_share', { space: isHalls ? text('space_hall') : text('space_square') }) }}
                     </p>
                 </div>
@@ -177,7 +177,7 @@ useLiveRoom({
                 <h3 class="text-base font-semibold">{{ text('timeline') }}</h3>
             </div>
 
-            <p v-if="messages.length === 0" class="text-sm opacity-70 py-6 text-center">
+            <p v-if="messages.length === 0" class="text-sm text-gray-300 py-6 text-center">
                 {{ reachable ? text('no_messages') : text('no_messages_offline') }}
             </p>
 
@@ -186,7 +186,7 @@ useLiveRoom({
                     <div class="flex items-center gap-2 text-sm">
                         <span class="font-medium">{{ senderLabel(m.sender) }}</span>
                         <StatusBadge v-if="m.seat" tone="info">{{ m.seat }}</StatusBadge>
-                        <span v-if="mine(m)" class="text-xs opacity-60">{{ text('you') }}</span>
+                        <span v-if="mine(m)" class="text-xs text-gray-300">{{ text('you') }}</span>
                     </div>
                     <p class="mt-1 whitespace-pre-wrap">{{ m.body }}</p>
                     <div v-if="isHalls && mine(m)" class="mt-1">
