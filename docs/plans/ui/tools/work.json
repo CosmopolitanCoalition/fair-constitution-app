@@ -16971,6 +16971,10 @@
         {
           "date": "2026-09-15",
           "note": "Round 2 merged 4:30 PM Eastern: gap-wiring-locale (493282ba) and gap-format-locale (b7e14cfb, 113 files). Repo-wide raw-string pin green: 272 .vue files, 0 offenders. INCIDENT: the merge script committed a conflict block in Setup/Step3_Districts.vue to main for about three minutes (pushed); resolved at cfa897eb by combining both changes; all 198 JS pin tests green after. The merge helper no longer auto-commits non-JSON conflicts."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "INCIDENT 5:34 PM Eastern: the desk escaped the @ in person_profile.handle_hint and broke the PersonProfile.vue template compile for about three minutes on main (efc5eac6, pushed); fixed at 56df9bcf (JS unicode escapes for the quotes); civic-social pin 9/9 and raw-scan pin green after. Cause: a shell heredoc mangled the backslashes in the edit; edits now use explicit byte sequences."
         }
       ]
     },
@@ -17004,6 +17008,10 @@
         {
           "date": "2026-09-15",
           "note": "Operator ruling (1:40 PM Eastern): integrate into the existing translations board, not a new page."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "BUILT and merged (d3f08d42, 5:28 PM Eastern): operator-only Language packages card on /system/translations: Export queues ExportLanguagePackageJob (export_master.py per locale, zipped), Import uploads a zip or JSON, dry-run report from import_translated.py, Confirm runs the import and one audit entry; Request-a-language records to storage/app/i18n-packages/requests.json and lists on the board. Pins: LanguagePackageServiceTest 6/6, LanguagePackageRoutesTest 2/2, JS pin green. ACTION FOR THE OPERATOR: docker restart fc_horizon so the two new job classes load (the desk never restarts Docker). Not yet verified in the operator browser."
         }
       ]
     },
@@ -17047,6 +17055,10 @@
         {
           "date": "2026-09-15",
           "note": "First pass complete 4:22 PM Eastern: 152 of 152 routes run; 74 pass, 65 hold, 13 findings. HOLD PATTERN (probe with stage timings): the page mount takes 48 to 62 s on first visit in a fresh browser because Vite transforms each page module graph on demand and again after every merge invalidates its cache; axe itself takes 1 to 14 s. Server answers in 3 s. Pass 2 started 4:32 PM: 78 held or failed routes at 60 s, one retry after a hold (the first visit absorbs the transform), no merges during the batch. Fix lanes launched in parallel (operator cleared multi-lane fan-out): fix-a11y-ui (Leaflet attribution contrast, in-text links, private-room contrast, residency map nested-interactive), fix-access (delegations 403 and board-room 403 are read pages under the access policy; resolver picks a CGC org), fix-guest-locale (guest POST /locale read-back, Settings in the flyout, @handle escapes in the six locale catalogs), w0446-language-packages."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Pass 2 complete 5:22 PM Eastern (78 routes at 60 s, one retry after a hold): 26 passed (12 on the retry), 4 held, 36 failed; 28 of the 36 failures were the sweep session expiring at 5:00 PM (SESSION_LIFETIME 120 min), not defects; they re-run in pass 3 with a fresh sign-in. Real findings grouped: mapper pages (districts, panels, type-b-map: 34 contrast nodes each on Tailwind grey utilities over the dark shell; no <Head title>), jurisdiction map (8 + title), commons square (6 contrast) and halls (2 in-text links), residency (Leaflet attribution + nested-interactive), executive actions (in-text link), private room (opacity dimming). Merged: fix-a11y-ui (5b3e9f54), fix-access (1c07cba9: delegations page reads for any resident; board room renders a no-live-call state; resolver picks a CGC org). Running: fix-mapper-contrast, fix-commons-contrast, fix-guest-locale (repair). Three JSON polls outside /api moved to the machine class (18ddcad5). Pass 3 started 5:33 PM."
         }
       ]
     }
