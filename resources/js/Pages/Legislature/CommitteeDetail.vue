@@ -341,7 +341,7 @@ function submitReport() {
                     </div>
                 </Card>
             </div>
-            <HistoryPager cursor-key="bills_cursor" :pages="billPages" :only="recordPageProps" :first="billPages.first ?? urls.current" label="Committee bill pages" />
+            <HistoryPager cursor-key="bills_cursor" :pages="billPages" :only="recordPageProps" :first="billPages.first ?? urls.current" :label="t('c_legislature_pages.committee_detail.bill_pages', 'Committee bill pages')" />
         </Card>
 
         <Card id="committee-reports" as="section" :title="t('c_legislature_pages.committee_detail.reports_title', 'Published committee reports')">

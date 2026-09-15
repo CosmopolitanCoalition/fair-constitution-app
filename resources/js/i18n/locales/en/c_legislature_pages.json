@@ -361,6 +361,7 @@
   "districts.integrity_unknown_title": "Integrity not computed",
   "districts.integrity_yes_title": "Drawn along admin boundaries",
   "districts.issue_count": "{count} issue(s)",
+  "districts.key_space": "Space",
   "districts.legislature_seats": "Legislature Seats",
   "districts.loading": "loading…",
   "districts.loading_raster": "Loading raster…",

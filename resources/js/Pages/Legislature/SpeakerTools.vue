@@ -66,66 +66,64 @@ function submitPriority() {
     });
 }
 
-const tieBreakColumns = [
-    { key: 'context', label: 'Vote', mono: true },
-    { key: 'tally', label: 'Tied at', mono: true },
-    { key: 'cast', label: 'Speaker cast' },
-    { key: 'outcome', label: 'Outcome', mono: true },
-    { key: 'at', label: 'When' },
-];
+const tieBreakColumns = computed(() => [
+    { key: 'context', label: t('c_legislature_workspace.speaker_tools.col_vote', 'Vote'), mono: true },
+    { key: 'tally', label: t('c_legislature_workspace.speaker_tools.col_tied_at', 'Tied at'), mono: true },
+    { key: 'cast', label: t('c_legislature_workspace.speaker_tools.col_speaker_cast', 'Speaker cast') },
+    { key: 'outcome', label: t('c_legislature_workspace.speaker_tools.col_outcome', 'Outcome'), mono: true },
+    { key: 'at', label: t('c_legislature_workspace.speaker_tools.col_when', 'When') },
+]);
 const tieBreakRows = computed(() =>
     props.tieBreaks.map((tb) => ({ ...tb, at: fmt(tb.at) })),
 );
 
-const priorityColumns = [
-    { key: 'who', label: 'Member' },
-    { key: 'text', label: 'Priority' },
-    { key: 'session_no', label: 'Session', mono: true },
-    { key: 'agenda_status', label: 'Status' },
-];
+const priorityColumns = computed(() => [
+    { key: 'who', label: t('c_legislature_workspace.speaker_tools.col_member', 'Member') },
+    { key: 'text', label: t('c_legislature_workspace.speaker_tools.col_priority', 'Priority') },
+    { key: 'session_no', label: t('c_legislature_workspace.speaker_tools.col_session', 'Session'), mono: true },
+    { key: 'agenda_status', label: t('c_legislature_workspace.speaker_tools.col_status', 'Status') },
+]);
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`Speaker tools — ${legislature.name}`">
+    <PageScaffold :surface="surface" :title="t('c_legislature_workspace.speaker_tools.title', { name: legislature.name }, 'Speaker tools — {name}')">
         <LegislatureWorkspaceNav :workspace="workspace" active="speaker" />
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
-        <Banner v-if="preview" tone="info" role="status" title="Explore the Speaker’s role">
-            Follow this office through the public chamber, live room and session records. Official actions use the current officeholder’s account.
+        <Banner v-if="preview" tone="info" role="status" :title="t('c_legislature_workspace.speaker_tools.explore_title', 'Explore the Speaker’s role')">
+            {{ t('c_legislature_workspace.speaker_tools.explore_body', 'Follow this office through the public chamber, live room and session records. Official actions use the current officeholder’s account.') }}
         </Banner>
-        <Banner v-else-if="readOnly" tone="info" role="status" title="Read-only view">
+        <Banner v-else-if="readOnly" tone="info" role="status" :title="t('c_legislature_workspace.speaker_tools.read_only_title', 'Read-only view')">
             {{ text('speaker_read_only') }}
         </Banner>
 
         <!-- ================================== neutrality =============== -->
-        <Card as="section" title="Neutral chair">
+        <Card as="section" :title="t('c_legislature_workspace.speaker_tools.neutral_chair', 'Neutral chair')">
             <p v-if="preview && workspace.hasSpeaker" class="cc-small">
-                Find the current Speaker in the <Link :href="workspace.chamber">chamber roster</Link>.
+                {{ t('c_legislature_workspace.speaker_tools.find_speaker', 'Find the current Speaker in the') }} <Link :href="workspace.chamber">{{ t('c_legislature_workspace.speaker_tools.chamber_roster', 'chamber roster') }}</Link>.
             </p>
             <p v-else class="cc-small">
-                Speaker: <strong>{{ speaker.name }}</strong>
-                <StatusBadge v-if="speaker.is_viewer" tone="warning" icon="landmark">you</StatusBadge>
+                {{ t('c_legislature_workspace.speaker_tools.speaker_label', 'Speaker:') }} <strong>{{ speaker.name }}</strong>
+                <StatusBadge v-if="speaker.is_viewer" tone="warning" icon="landmark">{{ t('c_legislature_workspace.speaker_tools.you', 'you') }}</StatusBadge>
             </p>
             <p>
-                <HardenedChip>politically neutral · votes only to break ties · Art. II §3</HardenedChip>
+                <HardenedChip>{{ t('c_legislature_workspace.speaker_tools.neutral_chip', 'politically neutral · votes only to break ties · Art. II §3') }}</HardenedChip>
             </p>
             <p class="gloss">
-                The Speaker stays in every quorum and threshold denominator. On yes/no business a
-                Speaker cast is rejected pre-commit unless the vote stands tied — and a tie-break
-                never manufactures a supermajority (Art. VII).
+                {{ t('c_legislature_workspace.speaker_tools.neutral_gloss', 'The Speaker stays in every quorum and threshold denominator. On yes/no business a Speaker cast is rejected pre-commit unless the vote stands tied — and a tie-break never manufactures a supermajority (Art. VII).') }}
             </p>
         </Card>
 
         <section class="card" aria-labelledby="speaker-work-h">
-            <h2 id="speaker-work-h">Follow the Speaker’s work</h2>
+            <h2 id="speaker-work-h">{{ t('c_legislature_workspace.speaker_tools.follow_work', 'Follow the Speaker’s work') }}</h2>
             <div class="stack">
-                <Link :href="workspace.rooms">Enter the live chamber — recognize speakers and follow the speaking queue</Link>
-                <Link :href="urls.session">Open the session workspace — attendance, quorum, agenda and minutes</Link>
-                <Link :href="workspace.sessions">Browse session records — past agendas, votes and public statements</Link>
-                <Link :href="urls.committees">Follow committee work — hearings, evidence and reports</Link>
-                <Link :href="urls.oversight">Open oversight — removal proceedings and presiding responsibilities</Link>
+                <Link :href="workspace.rooms">{{ t('c_legislature_workspace.speaker_tools.link_chamber', 'Enter the live chamber — recognize speakers and follow the speaking queue') }}</Link>
+                <Link :href="urls.session">{{ t('c_legislature_workspace.speaker_tools.link_session', 'Open the session workspace — attendance, quorum, agenda and minutes') }}</Link>
+                <Link :href="workspace.sessions">{{ t('c_legislature_workspace.speaker_tools.link_records', 'Browse session records — past agendas, votes and public statements') }}</Link>
+                <Link :href="urls.committees">{{ t('c_legislature_workspace.speaker_tools.link_committees', 'Follow committee work — hearings, evidence and reports') }}</Link>
+                <Link :href="urls.oversight">{{ t('c_legislature_workspace.speaker_tools.link_oversight', 'Open oversight — removal proceedings and presiding responsibilities') }}</Link>
             </div>
         </section>
 
@@ -133,19 +131,18 @@ const priorityColumns = [
             <!-- ============================== tie-break record ========= -->
             <section class="card" aria-labelledby="tiebreak-h">
                 <h2 id="tiebreak-h">
-                    Tie-break record
-                    <StatusBadge tone="neutral">{{ tieBreaks.length }} this term</StatusBadge>
+                    {{ t('c_legislature_workspace.speaker_tools.tiebreak_record', 'Tie-break record') }}
+                    <StatusBadge tone="neutral">{{ t('c_legislature_workspace.speaker_tools.this_term', { n: tieBreaks.length }, '{n} this term') }}</StatusBadge>
                 </h2>
                 <p class="gloss">
-                    The only Speaker votes on record — each cast via F-SPK-004 on a vote that
-                    closed tied, recomputed against the unchanged peg threshold.
+                    {{ t('c_legislature_workspace.speaker_tools.tiebreak_gloss', 'The only Speaker votes on record — each cast via F-SPK-004 on a vote that closed tied, recomputed against the unchanged peg threshold.') }}
                 </p>
                 <DataTable
                     v-if="tieBreakRows.length"
                     :columns="tieBreakColumns"
                     :rows="tieBreakRows"
                     row-key="vote_id"
-                    caption="Speaker tie-breaking votes"
+                    :caption="t('c_legislature_workspace.speaker_tools.tiebreak_caption', 'Speaker tie-breaking votes')"
                 >
                     <template #cell-context="{ row }">
                         <Link v-if="row.vote_href" :href="row.vote_href">{{ row.context }}</Link>
@@ -156,15 +153,14 @@ const priorityColumns = [
                         <StatusBadge tone="warning" icon="landmark">{{ row.cast }} · F-SPK-004</StatusBadge>
                     </template>
                 </DataTable>
-                <p v-else class="cc-small gloss">No tie has needed breaking this term.</p>
+                <p v-else class="cc-small gloss">{{ t('c_legislature_workspace.speaker_tools.no_tie', 'No tie has needed breaking this term.') }}</p>
             </section>
 
             <!-- ============================== presiding ================ -->
             <section class="card" aria-labelledby="presiding-h">
-                <h2 id="presiding-h">Removal presiding (F-SPK-007)</h2>
+                <h2 id="presiding-h">{{ t('c_legislature_workspace.speaker_tools.removal_presiding', 'Removal presiding (F-SPK-007)') }}</h2>
                 <p class="gloss">
-                    The Speaker presides over every removal proceeding except their own case,
-                    where the chamber designates a substitute.
+                    {{ t('c_legislature_workspace.speaker_tools.presiding_gloss', 'The Speaker presides over every removal proceeding except their own case, where the chamber designates a substitute.') }}
                 </p>
                 <div v-if="pendingProceedings.length" class="stack" style="gap: var(--space-2)">
                     <Card v-for="proceeding in pendingProceedings" :key="proceeding.id" inset>
@@ -174,24 +170,21 @@ const priorityColumns = [
                             <StatusBadge tone="info">{{ proceeding.status }}</StatusBadge>
                         </p>
                         <Banner v-if="proceeding.presiding_blocked && speaker.is_viewer" tone="warning" role="status">
-                            You are the subject — the engine blocks you from presiding; the chamber
-                            designates a substitute · Art. II §3 (removal.presider, hardened).
+                            {{ t('c_legislature_workspace.speaker_tools.subject_blocked', 'You are the subject — the engine blocks you from presiding; the chamber designates a substitute · Art. II §3 (removal.presider, hardened).') }}
                         </Banner>
                         <p class="cc-small">
-                            <a :href="urls.oversight">Preside on the oversight page →</a>
+                            <a :href="urls.oversight">{{ t('c_legislature_workspace.speaker_tools.preside_oversight', 'Preside on the oversight page →') }}</a>
                         </p>
                     </Card>
                 </div>
-                <p v-else class="cc-small gloss">No removal proceedings are pending.</p>
+                <p v-else class="cc-small gloss">{{ t('c_legislature_workspace.speaker_tools.no_proceedings', 'No removal proceedings are pending.') }}</p>
             </section>
         </div>
 
         <!-- ================================== priorities queue ========= -->
-        <Card v-if="!preview" as="section" title="Member priorities queue (F-SPK-006)">
+        <Card v-if="!preview" as="section" :title="t('c_legislature_workspace.speaker_tools.priorities_title', 'Member priorities queue (F-SPK-006)')">
             <p class="gloss">
-                Members hand the Speaker their priorities; facilitation appends each to the next
-                session's unlocked agenda tail. The filing itself is the priorities log — slots
-                1–2 (emergency powers, constitutional matters) stay locked (Art. II §2).
+                {{ t('c_legislature_workspace.speaker_tools.priorities_gloss', 'Members hand the Speaker their priorities; facilitation appends each to the next session\'s unlocked agenda tail. The filing itself is the priorities log — slots 1–2 (emergency powers, constitutional matters) stay locked (Art. II §2).') }}
             </p>
 
             <DataTable
@@ -199,9 +192,9 @@ const priorityColumns = [
                 :columns="priorityColumns"
                 :rows="priorities"
                 row-key="id"
-                caption="Facilitated member priorities"
+                :caption="t('c_legislature_workspace.speaker_tools.priorities_caption', 'Facilitated member priorities')"
             />
-            <p v-else class="cc-small gloss">No priorities facilitated yet.</p>
+            <p v-else class="cc-small gloss">{{ t('c_legislature_workspace.speaker_tools.no_priorities', 'No priorities facilitated yet.') }}</p>
             <nav v-if="priorityPages?.older || priorityPages?.newer" class="cluster" :aria-label="text('priority_pages')">
                 <Link v-if="priorityPages.older" :href="priorityPages.older">{{ text('older') }}</Link>
                 <Link v-if="priorityPages.newer" :href="priorityPages.newer">{{ text('newer') }}</Link>
@@ -212,14 +205,14 @@ const priorityColumns = [
                     v-if="can.facilitate && formMeta('F-SPK-006')"
                     :form="formMeta('F-SPK-006')"
                     :inertia-form="priorityForm"
-                    submit-label="Add to next agenda"
+                    :submit-label="t('c_legislature_workspace.speaker_tools.add_agenda', 'Add to next agenda')"
                     @submit="submitPriority"
                 >
                     <p class="cc-small" style="margin-block-end: var(--space-2)">
-                        Target: session {{ prioritySession.session_no }}
+                        {{ t('c_legislature_workspace.speaker_tools.target_session', { n: prioritySession.session_no }, 'Target: session {n}') }}
                         <StatusBadge tone="info">{{ prioritySession.status }}</StatusBadge>
                     </p>
-                    <Field label="Member" :error="priorityForm.errors.member_id" required>
+                    <Field :label="t('c_legislature_workspace.speaker_tools.field_member', 'Member')" :error="priorityForm.errors.member_id" required>
                         <template #control="{ id, invalid, describedBy }">
                             <select
                                 :id="id"
@@ -228,7 +221,7 @@ const priorityColumns = [
                                 :aria-invalid="invalid ? 'true' : undefined"
                                 :aria-describedby="describedBy"
                             >
-                                <option value="" disabled>— choose a member —</option>
+                                <option value="" disabled>{{ t('c_legislature_workspace.speaker_tools.choose_member', '— choose a member —') }}</option>
                                 <option v-for="member in members" :key="member.id" :value="member.id">
                                     {{ member.name }}
                                 </option>
@@ -236,7 +229,7 @@ const priorityColumns = [
                         </template>
                     </Field>
                     <Field
-                        label="Priority"
+                        :label="t('c_legislature_workspace.speaker_tools.field_priority', 'Priority')"
                         :error="priorityForm.errors.text ?? priorityForm.errors.constitution"
                         required
                     >
@@ -253,18 +246,15 @@ const priorityColumns = [
                     </Field>
                 </FormCard>
                 <p v-else class="citation">
-                    Facilitation targets an upcoming session — none is scheduled; call one on the
-                    <a :href="urls.session">session console</a> (F-SPK-001).
+                    {{ t('c_legislature_workspace.speaker_tools.facilitation_none', 'Facilitation targets an upcoming session — none is scheduled; call one on the') }}
+                    <a :href="urls.session">{{ t('c_legislature_workspace.speaker_tools.session_console_link', 'session console') }}</a> (F-SPK-001).
                 </p>
             </template>
         </Card>
 
         <template #about>
             <p>
-                This page never duplicates a console: F-SPK-001/002/003/008/009 run on the
-                session console, F-SPK-005 on the committees page, F-SPK-007 on oversight. The
-                tie-break record and priorities queue live here because they are records of the
-                office itself.
+                {{ t('c_legislature_workspace.speaker_tools.about', 'This page never duplicates a console: F-SPK-001/002/003/008/009 run on the session console, F-SPK-005 on the committees page, F-SPK-007 on oversight. The tie-break record and priorities queue live here because they are records of the office itself.') }}
             </p>
         </template>
     </PageScaffold>

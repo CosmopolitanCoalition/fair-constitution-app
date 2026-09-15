@@ -1670,13 +1670,13 @@
                             bg-gray-900/90 border border-gray-700 text-gray-300 whitespace-nowrap">
                     <span class="pointer-events-none">
                         <template v-if="isSpaceHeld">
-                            <span class="text-cyan-400">{{ t('c_legislature_pages.districts.pan_mode', 'Pan mode') }}</span> {{ t('c_legislature_pages.districts.pan_release', '— release') }} <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">Space</kbd> {{ t('c_legislature_pages.districts.pan_resume', 'to resume select') }}
+                            <span class="text-cyan-400">{{ t('c_legislature_pages.districts.pan_mode', 'Pan mode') }}</span> {{ t('c_legislature_pages.districts.pan_release', '— release') }} <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">{{ t('c_legislature_pages.districts.key_space', 'Space') }}</kbd> {{ t('c_legislature_pages.districts.pan_resume', 'to resume select') }}
                         </template>
                         <template v-else>
                             <span class="text-blue-400">{{ t('c_legislature_pages.districts.hint_drag', 'Drag') }}</span> {{ t('c_legislature_pages.districts.hint_to_add', 'to add ·') }}
                             <span class="text-blue-300">{{ t('c_legislature_pages.districts.hint_shift_drag', 'Shift+drag') }}</span> {{ t('c_legislature_pages.districts.hint_incl_assigned', 'incl. assigned ·') }}
                             <span class="text-red-400">{{ t('c_legislature_pages.districts.hint_ctrl_drag', 'Ctrl+drag') }}</span> {{ t('c_legislature_pages.districts.hint_to_remove', 'to remove ·') }}
-                            <span class="text-gray-500">{{ t('c_legislature_pages.districts.hint_hold', 'hold') }}</span> <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">Space</kbd> <span class="text-gray-500">{{ t('c_legislature_pages.districts.hint_to_pan', 'to pan') }}</span>
+                            <span class="text-gray-500">{{ t('c_legislature_pages.districts.hint_hold', 'hold') }}</span> <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">{{ t('c_legislature_pages.districts.key_space', 'Space') }}</kbd> <span class="text-gray-500">{{ t('c_legislature_pages.districts.hint_to_pan', 'to pan') }}</span>
                         </template>
                     </span>
                     <button @click.stop="cancelEdit"

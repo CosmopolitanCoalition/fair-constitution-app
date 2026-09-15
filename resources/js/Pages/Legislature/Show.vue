@@ -65,21 +65,21 @@ function fmtNum(n) {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`${legislature.name} — legislature`">
+    <PageScaffold :surface="surface" :title="t('c_legislature_workspace.show.title', { name: legislature.name }, '{name} — legislature')">
         <LegislatureWorkspaceNav :workspace="workspace" active="overview" />
 
         <!-- ===================================== districts & maps ====== -->
         <Card as="section" :title="text('maps')">
             <p>{{ text('map_intro') }}</p>
             <div class="cluster" style="gap: var(--space-5); align-items: flex-start; margin-block: var(--space-3)">
-                <Stat :value="fmtNum(maps.total)" :label="maps.total === 1 ? 'district map' : 'district maps'" />
+                <Stat :value="fmtNum(maps.total)" :label="maps.total === 1 ? t('c_legislature_workspace.show.district_map', 'district map') : t('c_legislature_workspace.show.district_maps', 'district maps')" />
                 <Stat
                     v-if="maps.active"
                     :value="fmtNum(maps.active.district_count)"
-                    :label="`districts on “${maps.active.name}” (${maps.active.status})`"
+                    :label="t('c_legislature_workspace.show.active_map', { name: maps.active.name, status: maps.active.status }, 'districts on “{name}” ({status})')"
                     accent
                 />
-                <Stat v-else value="—" label="no active map yet" />
+                <Stat v-else value="—" :label="t('c_legislature_workspace.show.no_active_map', 'no active map yet')" />
             </div>
             <Btn :as="Link" :href="districtsHref" variant="primary" icon="map">
                 {{ text('open_maps') }}
@@ -87,29 +87,29 @@ function fmtNum(n) {
         </Card>
 
         <!-- =========================================== the chamber ====== -->
-        <Card as="section" title="Seats &amp; term">
+        <Card as="section" :title="t('c_legislature_workspace.show.seats_term', 'Seats & term')">
             <div class="cluster" style="gap: var(--space-3); margin-block-end: var(--space-3)">
                 <StatusBadge :tone="statusTone">{{ legislature.status }}</StatusBadge>
                 <span v-if="legislature.term_number" class="cc-small">
-                    Term {{ legislature.term_number }}
+                    {{ t('c_legislature_workspace.show.term', { n: legislature.term_number }, 'Term {n}') }}
                     <template v-if="legislature.term_starts_on">
                         · {{ fmtDate(legislature.term_starts_on) }} →
                         {{ fmtDate(legislature.term_ends_on) }}
                     </template>
                 </span>
                 <span v-if="legislature.speaker_name" class="cc-small">
-                    Speaker: {{ legislature.speaker_name }}
+                    {{ t('c_legislature_workspace.show.speaker', { name: legislature.speaker_name }, 'Speaker: {name}') }}
                 </span>
             </div>
             <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
-                <Stat :value="fmtNum(totalSeats)" label="seats" />
+                <Stat :value="fmtNum(totalSeats)" :label="t('c_legislature_workspace.show.seats', 'seats')" />
                 <Stat :value="fmtNum(legislature.type_a_seats)" :label="text('type_a')" />
                 <Stat
                     v-if="legislature.type_b_seats > 0"
                     :value="fmtNum(legislature.type_b_seats)"
                     :label="text('type_b')"
                 />
-                <Stat :value="fmtNum(legislature.serving)" label="serving now" accent />
+                <Stat :value="fmtNum(legislature.serving)" :label="t('c_legislature_workspace.show.serving_now', 'serving now')" accent />
             </div>
         </Card>
 
