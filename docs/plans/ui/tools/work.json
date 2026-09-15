@@ -12800,7 +12800,9 @@
       "blocker": "operator_go",
       "detail": "Merged item (operator, 2026-09-14): the absent per-locale catalog files and the untranslated keys are one job. The export writes each missing file with its keys; the machine first pass (local model on box E, ruling translation-first-pass-provider = A) or any AI translates; the importer validates and writes. Blocked until the surfaces settle. Tooling built (LG-0): scripts/i18n/export_master.py, import_translated.py, the Ollama provider; procedure in docs/plans/i18n/MASTER_EXPORT.md.",
       "done_when": "Every English namespace file exists for every registry row with target: true (75 non-English: the UN six, pl, it, tr and the Coalition website programme languages) and tests/js/i18nCoverage.test.mjs reports zero missing keys for the six conference locales; human naturalness review stays separate.",
-      "depends_on": [],
+      "depends_on": [
+        "W-0445"
+      ],
       "sources": [
         {
           "list": "punch",
@@ -12869,6 +12871,10 @@
         {
           "date": "2026-09-15",
           "note": "CATALOGUE COMPLETE (12:50 PM Eastern). Lane i18n-institutions merged (e1577018, 15 pages, 1032 keys); 21 of 21 lanes on main. All 16 JS lane pins green together (107 tests); the 5 PHP pins and LangJsonFlattenTest were green at their merges. English catalogue: 64 JS namespace files, 14,152 keys, plus lang/en.json 1,120 lines. Export dry run for Polish: 15,235 strings across 65 namespaces. The blocker (surfaces not settled / strings not catalogued) is cleared; the translation pass waits on the operator GO. Note: Docker Desktop was not running at 12:46 PM (Vite and nginx unreachable); the desk does not restart it. Pre-existing i18nCoverage failures (4) are the missing target-locale catalogs this item fills."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Now depends on W-0445 (gap fill) per the operator order of 2026-09-15; W-0446 (export/import page) follows the gap fill."
         }
       ]
     },
@@ -16914,6 +16920,62 @@
         {
           "date": "2026-09-14",
           "note": "Operator set done. organizations.index, organizations.show and organizations.cgc.show read for a guest (withoutMiddleware auth; the controllers already treat a null viewer as holding no capability), 'organizations' joined the setup ALLOW list, PublicReadSurfaceGateTest pins the three routes and both paths, the roster gained /organizations (56 guest pages). Guest probes on box E: registry 200, Foundation profile 200, Coalition profile 200. Registry swept alone in Edge: PASS 19.9 s; Foundation profile scanned alone: 0 nodes at both widths. Slug resolution dropped from scope: slugs are unique per jurisdiction, not globally, so a bare slug route would be ambiguous; pages link by id."
+        }
+      ]
+    },
+    {
+      "id": "W-0445",
+      "title": "Fill the remaining translation catalogue gaps found by the 2026-09-15 sweep",
+      "phase": "P1",
+      "order": 9,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Every confirmed group from the sweep is wired and pinned; the sweep script re-run reports zero user-visible raw strings in the swept classes; check.mjs coverage regenerated.",
+      "depends_on": [],
+      "detail": "Six-modality sweep (short template labels and attributes, script literals, PHP responses and the 123 form display names, mail and Blade, shipped content, end-to-end wiring) plus a skeptic pass. Each confirmed group becomes a lane: t() with the lane namespace for JS, __() with lang/en.json for PHP, a flatten step for config arrays. Pins extended so the short-label and attribute classes are guarded, not only 4+ word sentences.",
+      "evidence": "",
+      "sources": [
+        {
+          "list": "desk",
+          "ref": "i18n gap sweep 2026-09-15",
+          "title": "Operator order 2026-09-15: search for remaining catalogue gaps, fill them, then build the export/import interface",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-09-15",
+          "note": "Created by the desk on the operator order of 2026-09-15 (12:45 PM Eastern)."
+        }
+      ]
+    },
+    {
+      "id": "W-0446",
+      "title": "Operator page: export and import a language package",
+      "phase": "P1",
+      "order": 11,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Operator can export a language package and import a translated one from the page; dry-run report shown before write; pins cover the gate, the job and the round trip on a fixture locale.",
+      "depends_on": [
+        "W-0445"
+      ],
+      "detail": "One operator-only page under /system/translations (linked from the translations board and the operator console): Export picks a language and downloads a zip of its pending chunk files (the export_master.py output: English text, surface context, glossary); Import uploads a zip or file, shows the dry-run report from import_translated.py (accepted, rejected with reasons), then writes the catalogs and the review queue on confirm. Both run through a queued job, never inside the web request. Gated to the operator; every import is audited.",
+      "evidence": "",
+      "sources": [
+        {
+          "list": "desk",
+          "ref": "i18n gap sweep 2026-09-15",
+          "title": "Operator order 2026-09-15: search for remaining catalogue gaps, fill them, then build the export/import interface",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-09-15",
+          "note": "Created by the desk on the operator order of 2026-09-15 (12:45 PM Eastern)."
         }
       ]
     }
