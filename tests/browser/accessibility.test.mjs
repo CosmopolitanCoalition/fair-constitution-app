@@ -3,7 +3,8 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
 import path from 'node:path';
-import { deriveGuestPages, PIN_PAGES, PIN_NONPAGE, PIN_VIEWER_BOUND, AUTH_WALLS } from './roster/roster.mjs';
+import { fileURLToPath } from 'node:url';
+import { deriveGuestPages, deriveRoster, PIN_PAGES, PIN_NONPAGE, PIN_VIEWER_BOUND, AUTH_WALLS } from './roster/roster.mjs';
 
 /**
  * L2 · accessibility (pass 2, browser). Register criterion:
@@ -32,9 +33,45 @@ import { deriveGuestPages, PIN_PAGES, PIN_NONPAGE, PIN_VIEWER_BOUND, AUTH_WALLS 
  * NOT ESTABLISHED with its name and not scanned, per the register.
  */
 
+// ─────────────────────────────────────────────────────────────────────────
+// Signed-in mode. When CGA_A11Y_STATE points at a Playwright storageState file
+// (written by tests/browser/signin.mjs after a11y:sweep-account), every context
+// loads it and the sweep runs as a signed-in resident. The roster then widens
+// to the signed-in param-free pages, the viewer-bound page, and the
+// parameterised pages resolved to live sample URLs (param-ids.json). A route
+// that still redirects a signed-in resident to a login wall becomes an ACCESS
+// finding, never a skip: operator policy is that every page READS for a
+// resident, and a role gates ACTIONS, not the page. When the variable is absent
+// the guest behaviour below is unchanged.
+// ─────────────────────────────────────────────────────────────────────────
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const STATE = process.env.CGA_A11Y_STATE && fs.existsSync(process.env.CGA_A11Y_STATE) ? process.env.CGA_A11Y_STATE : null;
+if (STATE) test.use({ storageState: STATE });
+
+// Parameterised sample routes, committed by resolve-ids.mjs. Each entry is
+// [substituted URL, route template] so the one-route filter (--grep) can target
+// either the concrete URL or the {param} template.
+function paramSampleRoutes() {
+    try {
+        const raw = fs.readFileSync(path.join(HERE, 'roster', 'param-ids.json'), 'utf8');
+        const j = JSON.parse(raw);
+        return (j.resolved || []).map((r) => [r.url, r.uri]);
+    } catch {
+        return [];
+    }
+}
+
 // Guest-page roster derived from the authoritative route table. [uri, name].
 const DERIVED = deriveGuestPages();
-const CANDIDATES = DERIVED.pages.map((p) => [p.uri, p.name]);
+const ROSTER = deriveRoster();
+const CANDIDATES = STATE
+    ? [
+          ...ROSTER.guestPages.map((p) => [p.uri, p.name]),
+          ...ROSTER.signedInPages.map((p) => [p.uri, p.name]),
+          ...ROSTER.viewerBound.map((p) => [p.uri, p.name]),
+          ...paramSampleRoutes(),
+      ]
+    : DERIVED.pages.map((p) => [p.uri, p.name]);
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
@@ -373,8 +410,21 @@ for (const [uri, name] of CANDIDATES) {
         const requested = uri.replace(/\/$/, '') || '/';
         const wall = AUTH_WALLS.find((w) => finalPath === w);
         if (wall && requested !== wall) {
-            result.established = false;
             result.redirectedTo = finalPath;
+            if (STATE) {
+                // Signed in: a redirect to a login wall is an access-policy
+                // defect, not a skip. Every page must read for a resident.
+                result.access = {
+                    finding: 'ACCESS',
+                    detail: `signed-in resident redirected to ${finalPath}; every page must read for a resident (a role gates actions, never the page)`,
+                };
+                result.established = false;
+                result.notes.push('ACCESS — ' + result.access.detail);
+                writeResult(name, result);
+                expect(result.access, `ACCESS finding on ${uri}: ${result.access.detail}`).toBeFalsy();
+                return;
+            }
+            result.established = false;
             result.notes.push(`NOT ESTABLISHED — redirects to ${finalPath} (guest session required)`);
             writeResult(name, result);
             // Recorded outcome, not a failure: login-gated route by name.

@@ -88,3 +88,7 @@ docker/matrix/mas/config.generated.yaml
 # Parallel build lanes: git worktrees kept under the repo so the Docker bind mount sees them.
 /.wt/
 /test-results/
+
+# Accessibility signed-in sweep: throwaway storageState (contains a session cookie).
+# Written by tests/browser/signin.mjs; never committed.
+/storage/logs/a11y/
