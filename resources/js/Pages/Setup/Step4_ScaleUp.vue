@@ -1,7 +1,7 @@
 <script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
 const localeFmt = useLocaleFormat();
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
@@ -122,7 +122,7 @@ function laneLevel(w) {
     return 'normal'
 }
 const laneTone = {
-    normal: { dot: 'bg-blue-400', label: 'text-gray-200', clock: 'text-gray-500', bar: 'bg-blue-500', pulse: 'bg-blue-500/60' },
+    normal: { dot: 'bg-blue-400', label: 'text-gray-200', clock: 'text-gray-400', bar: 'bg-blue-500', pulse: 'bg-blue-500/60' },
     amber:  { dot: 'bg-amber-400', label: 'text-amber-200', clock: 'text-amber-400', bar: 'bg-amber-500', pulse: 'bg-amber-500/60' },
     red:    { dot: 'bg-red-400',   label: 'text-red-200',   clock: 'text-red-400',   bar: 'bg-red-500',   pulse: 'bg-red-500/60' },
 }
@@ -220,6 +220,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
 
 <template>
     <div class="max-w-5xl mx-auto px-6 py-8 w-full">
+        <Head :title="t('c_setup.step4_scale_up.heading', 'Scale Up Institutions')" />
         <SetupStepper :current="4" :completed="settings.setup_step_completed" :steps="settings.ladder" />
 
         <header class="mt-8 mb-6">
@@ -238,22 +239,22 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step4_scale_up.tile_founded', 'Founded') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ n(ledger.units_done) }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step4_scale_up.in_review', { n: n(ledger.review) }) }}</div>
+                <div class="text-gray-400 text-xs mt-1">{{ t('c_setup.step4_scale_up.in_review', { n: n(ledger.review) }) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step4_scale_up.tile_rate', 'Rate') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ run?.rate_per_h != null ? n(run.rate_per_h) : '—' }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ run?.rate_per_h != null ? run.rate_label : t('c_setup.step4_scale_up.measuring', 'measuring') }}</div>
+                <div class="text-gray-400 text-xs mt-1">{{ run?.rate_per_h != null ? run.rate_label : t('c_setup.step4_scale_up.measuring', 'measuring') }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step4_scale_up.tile_elapsed', 'Elapsed') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ fmtSecs(run?.elapsed_s) }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step4_scale_up.eta', { eta: run?.eta_s != null ? fmtSecs(run.eta_s) : t('c_setup.step4_scale_up.eta_measuring', '— (measuring)') }) }}</div>
+                <div class="text-gray-400 text-xs mt-1">{{ t('c_setup.step4_scale_up.eta', { eta: run?.eta_s != null ? fmtSecs(run.eta_s) : t('c_setup.step4_scale_up.eta_measuring', '— (measuring)') }) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step4_scale_up.tile_lanes', 'Lanes') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ run ? `${run.lanes} / ${run.pool}` : '—' }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step4_scale_up.derived_from_host', 'derived from this host') }}</div>
+                <div class="text-gray-400 text-xs mt-1">{{ t('c_setup.step4_scale_up.derived_from_host', 'derived from this host') }}</div>
             </div>
         </section>
 
@@ -279,7 +280,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                             {{ t('c_setup.step4_scale_up.ledger_summary', { shells: n(ledger.shells_done), units: n(ledger.units_done), running: n((ledger.shells_running ?? 0) + (ledger.units_running ?? 0)), review: n(ledger.review) }) }}
                         </span>
                     </div>
-                    <div class="text-gray-500 text-xs mt-1" v-if="run?.baseline?.elapsed_seconds != null">
+                    <div class="text-gray-400 text-xs mt-1" v-if="run?.baseline?.elapsed_seconds != null">
                         {{ t('c_setup.step4_scale_up.baseline', { elapsed: fmtSecs(run.baseline.elapsed_seconds), units: n(run.baseline.units_done), lanes: run.baseline.lanes }) }}
                     </div>
                     <div class="text-amber-300 text-xs mt-1" v-if="data?.maps_running">{{ t('c_setup.step4_scale_up.maps_running', 'The district maps are still being drawn. Step 4 starts when the map run is done.') }}</div>
@@ -294,7 +295,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                         {{ busy === 'halt' ? t('c_setup.step4_scale_up.btn_halting', 'Halting…') : t('c_setup.step4_scale_up.btn_halt', 'Halt') }}
                     </button>
                     <button v-if="runHalted" type="button" :disabled="busy !== ''" @click="resume(false)"
-                        class="bg-emerald-700 hover:bg-emerald-600 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold text-sm">
+                        class="bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold text-sm">
                         {{ busy === 'resume' ? t('c_setup.step4_scale_up.btn_resuming', 'Resuming…') : t('c_setup.step4_scale_up.btn_resume', 'Resume') }}
                     </button>
                     <button v-if="(runHalted || runDone) && (ledger.review ?? 0) > 0" type="button" :disabled="busy !== ''" @click="resume(true)"
@@ -330,7 +331,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                 <div class="space-y-2">
                     <div v-for="l in layers" :key="l.key">
                         <div class="flex justify-between text-xs mb-0.5"
-                             :class="l.status === 'done' ? 'text-gray-500' : 'text-gray-400'">
+                             :class="l.status === 'done' ? 'text-gray-400' : 'text-gray-400'">
                             <span>
                                 <span v-if="l.status === 'done'" class="text-emerald-500 mr-1">✓</span>
                                 <span v-else-if="l.status === 'running'" class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse mr-1"></span>
@@ -355,11 +356,11 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
         <!-- Lane strip: grouped, breadcrumbed, warn-coloured -->
         <section v-if="lanes.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
             <h2 class="text-white font-semibold mb-3">{{ t('c_setup.step4_scale_up.lanes_heading', 'Lanes') }}
-                <span class="text-gray-500 font-normal text-sm">{{ t('c_setup.step4_scale_up.lanes_sub', { live: lanes.length, pool: run?.pool ?? '—' }) }}</span>
+                <span class="text-gray-400 font-normal text-sm">{{ t('c_setup.step4_scale_up.lanes_sub', { live: lanes.length, pool: run?.pool ?? '—' }) }}</span>
             </h2>
             <div class="space-y-3">
                 <div v-for="grp in laneSections" :key="grp.key">
-                    <div class="text-gray-500 text-[11px] uppercase tracking-wide mb-1">{{ grp.title }} <span class="text-gray-600">({{ grp.list.length }})</span></div>
+                    <div class="text-gray-400 text-[11px] uppercase tracking-wide mb-1">{{ grp.title }} <span class="text-gray-600">({{ grp.list.length }})</span></div>
                     <ul class="space-y-1.5">
                         <li v-for="w in grp.list" :key="w.id"
                             class="text-xs bg-gray-800/60 rounded px-2.5 py-2"
@@ -371,14 +372,14 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                                     <!-- Unit lane: the legislature it is founding, linked, with its layer -->
                                     <span v-if="w.claim_type === 'unit' && w.leg_name" class="truncate min-w-0" :class="laneTone[laneLevel(w)].label">
                                         <a :href="`/legislatures/${w.leg_slug || ''}`" target="_blank" class="font-medium underline-offset-2 hover:underline">{{ w.leg_name }}</a>
-                                        <span v-if="w.adm_level != null" class="text-gray-500 ml-1">{{ admLabel(w.adm_level) }}</span>
-                                        <span class="text-gray-500"> · {{ t('c_setup.step4_scale_up.founding', 'founding') }}</span>
+                                        <span v-if="w.adm_level != null" class="text-gray-400 ml-1">{{ admLabel(w.adm_level) }}</span>
+                                        <span class="text-gray-400"> · {{ t('c_setup.step4_scale_up.founding', 'founding') }}</span>
                                     </span>
                                     <!-- Shell lane: the batch -->
                                     <span v-else-if="w.claim_type === 'shell_batch'" class="font-medium truncate" :class="laneTone[laneLevel(w)].label">
-                                        {{ t('c_setup.step4_scale_up.shell_batch', 'Shell batch') }}<span v-if="shellCount(w)" class="text-gray-500"> {{ t('c_setup.step4_scale_up.shell_places', { count: shellCount(w) }) }}</span>
+                                        {{ t('c_setup.step4_scale_up.shell_batch', 'Shell batch') }}<span v-if="shellCount(w)" class="text-gray-400"> {{ t('c_setup.step4_scale_up.shell_places', { count: shellCount(w) }) }}</span>
                                     </span>
-                                    <span v-else class="text-gray-500 italic">{{ t('c_setup.step4_scale_up.between_claims', 'between claims') }}</span>
+                                    <span v-else class="text-gray-400 italic">{{ t('c_setup.step4_scale_up.between_claims', 'between claims') }}</span>
                                 </span>
                                 <span class="flex items-center gap-2 tabular-nums shrink-0" :class="laneTone[laneLevel(w)].clock">
                                     <span v-if="w.claim_type">{{ fmtSecs(laneSecs(w)) }} {{ t('c_setup.step4_scale_up.on_claim', 'on claim') }}<span v-if="laneLevel(w) !== 'normal'"> ({{ laneLevel(w) }})</span></span>
@@ -399,15 +400,15 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
         <!-- Timing: where the time goes, across all lanes -->
         <section v-if="SHOW_TIMINGS && timings.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
             <h2 class="text-white font-semibold mb-1">{{ t('c_setup.step4_scale_up.timing_heading', 'Timing') }}
-                <span class="text-gray-500 font-normal text-sm">{{ t('c_setup.step4_scale_up.timing_sub', 'where the time goes · avg per part, total across all lanes') }}</span>
+                <span class="text-gray-400 font-normal text-sm">{{ t('c_setup.step4_scale_up.timing_sub', 'where the time goes · avg per part, total across all lanes') }}</span>
             </h2>
-            <p class="text-gray-500 text-xs mb-3" v-html="t('c_setup.step4_scale_up.timing_note', 'The bar is each part\'s share of total lane-seconds. Watch <span class=&quot;text-amber-300&quot;>Between claims</span>: a lane that sits idle is a lane not working.')"></p>
+            <p class="text-gray-400 text-xs mb-3" v-html="t('c_setup.step4_scale_up.timing_note', 'The bar is each part\'s share of total lane-seconds. Watch <span class=&quot;text-amber-300&quot;>Between claims</span>: a lane that sits idle is a lane not working.')"></p>
             <div class="space-y-1 text-xs">
                 <div v-for="tm in timings" :key="tm.part" class="flex items-center gap-3">
                     <span class="w-52 shrink-0 truncate" :class="timingTone(tm.part)">{{ timingLabel(tm.part) }}</span>
                     <span class="w-20 text-right tabular-nums text-gray-300">{{ t('c_setup.step4_scale_up.ms_value', '{n} ms', { n: tm.avg_ms }) }}</span>
-                    <span class="w-24 text-right tabular-nums text-gray-500 hidden md:inline">{{ t('c_setup.step4_scale_up.max_ms', 'max {n} ms', { n: tm.max_ms }) }}</span>
-                    <span class="w-20 text-right tabular-nums text-gray-500 hidden md:inline">{{ n(tm.count) }}×</span>
+                    <span class="w-24 text-right tabular-nums text-gray-400 hidden md:inline">{{ t('c_setup.step4_scale_up.max_ms', 'max {n} ms', { n: tm.max_ms }) }}</span>
+                    <span class="w-20 text-right tabular-nums text-gray-400 hidden md:inline">{{ n(tm.count) }}×</span>
                     <div class="flex-1 h-2 bg-gray-800 rounded overflow-hidden">
                         <div class="h-full transition-all duration-700" :class="timingBar(tm.part)" :style="{ width: pct(tm.total_s, timingMax) + '%' }"></div>
                     </div>
@@ -421,7 +422,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             <h2 class="text-amber-200 font-semibold mb-3">{{ t('c_setup.step4_scale_up.review_heading', 'Review') }} <span class="text-amber-400/70 font-normal text-sm">{{ t('c_setup.step4_scale_up.review_sub', { n: n(ledger.review) }) }}</span></h2>
             <div class="space-y-1 text-xs">
                 <div v-for="r in review" :key="r.legislature_id" class="flex gap-3 text-gray-300">
-                    <a :href="`/legislatures/${r.slug || r.legislature_id}`" target="_blank" class="text-blue-300 hover:underline shrink-0">{{ r.name }} <span class="text-gray-500">{{ admLabel(r.adm_level) }}</span></a>
+                    <a :href="`/legislatures/${r.slug || r.legislature_id}`" target="_blank" class="text-blue-300 hover:underline shrink-0">{{ r.name }} <span class="text-gray-400">{{ admLabel(r.adm_level) }}</span></a>
                     <span class="text-gray-400 truncate">{{ r.reason }}</span>
                 </div>
             </div>
@@ -433,7 +434,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                 type="button"
                 :disabled="busy !== '' || (!runDone && !locked)"
                 @click="lockAndContinue"
-                class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
+                class="bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
                 :title="runDone || locked ? t('c_setup.step4_scale_up.continue_title_ready', 'Lock the scaled world and continue') : t('c_setup.step4_scale_up.continue_title_wait', 'Continue opens when the run is done')"
             >
                 {{ busy === 'continue' ? t('c_setup.step4_scale_up.btn_locking', 'Locking…') : (locked ? t('c_setup.step4_scale_up.btn_continue', 'Continue →') : t('c_setup.step4_scale_up.btn_lock_continue', 'Lock and Continue →')) }}

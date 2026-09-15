@@ -1,7 +1,7 @@
 <script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
 const localeFmt = useLocaleFormat();
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
@@ -126,7 +126,7 @@ function laneLevel(w) {
     return 'normal'
 }
 const laneTone = {
-    normal: { dot: 'bg-blue-400', label: 'text-gray-200', clock: 'text-gray-500', pulse: 'bg-blue-500/60' },
+    normal: { dot: 'bg-blue-400', label: 'text-gray-200', clock: 'text-gray-400', pulse: 'bg-blue-500/60' },
     amber:  { dot: 'bg-amber-400', label: 'text-amber-200', clock: 'text-amber-400', pulse: 'bg-amber-500/60' },
     red:    { dot: 'bg-red-400',   label: 'text-red-200',   clock: 'text-red-400',   pulse: 'bg-red-500/60' },
 }
@@ -276,6 +276,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
 
 <template>
     <div class="max-w-5xl mx-auto px-6 py-8 w-full">
+        <Head :title="t('c_setup.step5_simulate.heading', 'Simulate')" />
         <SetupStepper :current="5" :completed="settings.setup_step_completed" :steps="settings.ladder" />
 
         <header class="mt-8 mb-6">
@@ -299,22 +300,22 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.tile_done', 'Done') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ n(ledger.done) }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step5_simulate.in_review', { n: n(ledger.review) }) }}</div>
+                <div class="text-gray-400 text-xs mt-1">{{ t('c_setup.step5_simulate.in_review', { n: n(ledger.review) }) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.tile_rate', 'Rate') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ run?.rate_per_h != null ? n(run.rate_per_h) : '—' }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ run?.rate_per_h != null ? run.rate_label : t('c_setup.step5_simulate.measuring', 'measuring') }}</div>
+                <div class="text-gray-400 text-xs mt-1">{{ run?.rate_per_h != null ? run.rate_label : t('c_setup.step5_simulate.measuring', 'measuring') }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.tile_elapsed', 'Elapsed') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ fmtSecs(run?.elapsed_s) }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step5_simulate.eta', { eta: run?.eta_s != null ? fmtSecs(run.eta_s) : t('c_setup.step5_simulate.eta_measuring', '— (measuring)') }) }}</div>
+                <div class="text-gray-400 text-xs mt-1">{{ t('c_setup.step5_simulate.eta', { eta: run?.eta_s != null ? fmtSecs(run.eta_s) : t('c_setup.step5_simulate.eta_measuring', '— (measuring)') }) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.tile_lanes', 'Lanes') }}</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ run ? `${run.lanes} / ${run.pool}` : '—' }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step5_simulate.derived_from_host', 'derived from this host') }}</div>
+                <div class="text-gray-400 text-xs mt-1">{{ t('c_setup.step5_simulate.derived_from_host', 'derived from this host') }}</div>
             </div>
         </section>
 
@@ -349,7 +350,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                         {{ busy === 'halt' ? t('c_setup.step5_simulate.btn_halting', 'Halting…') : t('c_setup.step5_simulate.btn_halt', 'Halt') }}
                     </button>
                     <button v-if="runHalted && !refused" type="button" :disabled="busy !== ''" @click="resume"
-                        class="bg-emerald-700 hover:bg-emerald-600 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold text-sm">
+                        class="bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold text-sm">
                         {{ busy === 'resume' ? t('c_setup.step5_simulate.btn_resuming', 'Resuming…') : t('c_setup.step5_simulate.btn_resume', 'Resume') }}
                     </button>
                     <button v-if="(runHalted || runDone) && !refused" type="button" :disabled="busy !== '' || locked" @click="rollback"
@@ -362,7 +363,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             <!-- Dependency-aware scope: what to simulate (before a run starts) -->
             <div v-if="canStart && !refused && !locked" class="mt-4 border-t border-gray-700/50 pt-3">
                 <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">{{ t('c_setup.step5_simulate.scope_heading', 'Scope') }}
-                    <span class="text-gray-500 normal-case">{{ t('c_setup.step5_simulate.scope_sub', '· pick what to simulate — prerequisites are pulled in automatically, so nothing a chosen aspect needs can be left out. People and wallets always run.') }}</span>
+                    <span class="text-gray-400 normal-case">{{ t('c_setup.step5_simulate.scope_sub', '· pick what to simulate — prerequisites are pulled in automatically, so nothing a chosen aspect needs can be left out. People and wallets always run.') }}</span>
                 </div>
                 <div class="flex flex-wrap gap-3">
                     <label v-for="(label, key) in ASPECT_LABELS" :key="key"
@@ -379,9 +380,9 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             <div v-if="run && phasePlan.phases.length" class="mt-5 border-t border-gray-700/50 pt-3">
                 <div class="flex items-center justify-between mb-2">
                     <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.phases_heading', 'Phases') }}
-                        <span class="text-gray-500 normal-case">{{ t('c_setup.step5_simulate.phases_sub', '· the full run in order') }}</span>
+                        <span class="text-gray-400 normal-case">{{ t('c_setup.step5_simulate.phases_sub', '· the full run in order') }}</span>
                     </div>
-                    <div class="text-gray-500 text-xs tabular-nums">{{ t('c_setup.step5_simulate.phases_done', { done: phasePlan.phases.filter(p => p.status === 'done').length, total: phasePlan.total }) }}</div>
+                    <div class="text-gray-400 text-xs tabular-nums">{{ t('c_setup.step5_simulate.phases_done', { done: phasePlan.phases.filter(p => p.status === 'done').length, total: phasePlan.total }) }}</div>
                 </div>
                 <!-- Accordion: the current phase expands to its OWN layer bars (0->100%,
                      no rewind); finished phases collapse to a checked row. -->
@@ -390,21 +391,21 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                          class="rounded"
                          :class="p.status === 'current' ? 'bg-blue-900/20 ring-1 ring-blue-700/40 px-2 py-2' : 'px-2 py-1'">
                         <div class="flex items-center gap-2 text-sm"
-                             :class="p.status === 'done' ? 'text-emerald-300' : p.status === 'current' ? 'text-blue-100' : 'text-gray-500'">
-                            <span class="tabular-nums text-xs opacity-50 w-4 text-right">{{ p.n }}</span>
+                             :class="p.status === 'done' ? 'text-emerald-300' : p.status === 'current' ? 'text-blue-100' : 'text-gray-400'">
+                            <span class="tabular-nums text-xs text-gray-400 w-4 text-right">{{ p.n }}</span>
                             <span v-if="p.status === 'done'" class="text-emerald-400">✓</span>
                             <span v-else-if="p.status === 'current'" class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
                             <span v-else class="inline-block w-1.5 h-1.5 rounded-full border border-gray-600"></span>
                             <span class="font-medium">{{ p.label }}</span>
-                            <span v-if="p.status === 'current' && p.total" class="text-blue-300/70 tabular-nums text-xs">{{ n(p.done) }} / {{ n(p.total) }}</span>
+                            <span v-if="p.status === 'current' && p.total" class="text-blue-300 tabular-nums text-xs">{{ n(p.done) }} / {{ n(p.total) }}</span>
                             <div v-if="p.status === 'current' && p.total" class="flex-1 h-1 bg-gray-800 rounded overflow-hidden ml-1" style="max-width:35%">
                                 <div class="h-full bg-emerald-500 transition-all duration-700" :style="{ width: pct(p.done, p.total) + '%' }"></div>
                             </div>
                         </div>
                         <div v-if="p.status === 'current'" class="mt-2 pl-6 space-y-1.5">
-                            <div v-if="!layers.length" class="text-gray-500 text-xs">{{ t('c_setup.step5_simulate.enumerating', 'Enumerating this phase\'s work-list…') }}</div>
+                            <div v-if="!layers.length" class="text-gray-400 text-xs">{{ t('c_setup.step5_simulate.enumerating', 'Enumerating this phase\'s work-list…') }}</div>
                             <div v-for="l in layers" :key="l.key">
-                                <div class="flex justify-between text-[11px] mb-0.5" :class="l.status === 'done' ? 'text-gray-500' : 'text-gray-400'">
+                                <div class="flex justify-between text-[11px] mb-0.5" :class="l.status === 'done' ? 'text-gray-400' : 'text-gray-400'">
                                     <span>
                                         <span v-if="l.status === 'done'" class="text-emerald-500 mr-1">✓</span>
                                         {{ l.label }}
@@ -424,7 +425,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             </div>
 
             <!-- Colour key for the phase and layer bars above -->
-            <div v-if="run" class="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-gray-500">
+            <div v-if="run" class="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-gray-400">
                 <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-emerald-500"></span>{{ t('c_setup.step5_simulate.legend_done', 'Done') }}</span>
                 <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>{{ t('c_setup.step5_simulate.legend_running', 'Running') }}</span>
                 <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-amber-500"></span>{{ t('c_setup.step5_simulate.legend_review', 'Review') }}</span>
@@ -442,13 +443,13 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.world_chambers_governed', 'Chambers governed') }}</div>
-                <div class="text-white text-xl font-semibold mt-1 tabular-nums">{{ n(world.chambers_governed) }} <span class="text-gray-500 text-sm">/ {{ n(world.chambers) }}</span></div>
-                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step5_simulate.world_awaiting_election', { n: n(world.chambers_awaiting_election) }) }}</div>
+                <div class="text-white text-xl font-semibold mt-1 tabular-nums">{{ n(world.chambers_governed) }} <span class="text-gray-400 text-sm">/ {{ n(world.chambers) }}</span></div>
+                <div class="text-gray-400 text-xs mt-1">{{ t('c_setup.step5_simulate.world_awaiting_election', { n: n(world.chambers_awaiting_election) }) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.world_cohorts', 'Cohorts') }}</div>
                 <div class="text-white text-xl font-semibold mt-1 tabular-nums">{{ n(world.cohorts) }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ t('c_setup.step5_simulate.world_electorate', { n: n(world.electorate_modelled) }) }}</div>
+                <div class="text-gray-400 text-xs mt-1">{{ t('c_setup.step5_simulate.world_electorate', { n: n(world.electorate_modelled) }) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.world_residencies', 'Residencies') }}</div>
@@ -459,11 +460,11 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
         <!-- Lane strip: grouped by kind, warn-coloured -->
         <section v-if="lanes.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
             <h2 class="text-white font-semibold mb-3">{{ t('c_setup.step5_simulate.lanes_heading', 'Lanes') }}
-                <span class="text-gray-500 font-normal text-sm">{{ t('c_setup.step5_simulate.lanes_sub', { live: lanes.length, pool: run?.pool ?? '—' }) }}</span>
+                <span class="text-gray-400 font-normal text-sm">{{ t('c_setup.step5_simulate.lanes_sub', { live: lanes.length, pool: run?.pool ?? '—' }) }}</span>
             </h2>
             <div class="space-y-3">
                 <div v-for="grp in laneSections" :key="grp.key">
-                    <div class="text-gray-500 text-[11px] uppercase tracking-wide mb-1">{{ grp.title }} <span class="text-gray-600">({{ grp.list.length }})</span></div>
+                    <div class="text-gray-400 text-[11px] uppercase tracking-wide mb-1">{{ grp.title }} <span class="text-gray-600">({{ grp.list.length }})</span></div>
                     <ul class="space-y-1.5">
                         <li v-for="w in grp.list" :key="w.id"
                             class="text-xs bg-gray-800/60 rounded px-2.5 py-2"
@@ -475,7 +476,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                                     <span v-if="w.claim_type" class="truncate min-w-0" :class="laneTone[laneLevel(w)].label">
                                         {{ w.claim_label || kindLabel(w.claim_type) }}
                                     </span>
-                                    <span v-else class="text-gray-500 italic">{{ t('c_setup.step5_simulate.between_claims', 'between claims') }}</span>
+                                    <span v-else class="text-gray-400 italic">{{ t('c_setup.step5_simulate.between_claims', 'between claims') }}</span>
                                 </span>
                                 <span class="flex items-center gap-2 tabular-nums shrink-0" :class="laneTone[laneLevel(w)].clock">
                                     <span v-if="w.claim_type">{{ fmtSecs(laneSecs(w)) }} {{ t('c_setup.step5_simulate.on_claim', 'on claim') }}<span v-if="laneLevel(w) !== 'normal'"> ({{ laneLevel(w) }})</span></span>
@@ -495,15 +496,15 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
         <!-- Timing: where the time goes, across all lanes -->
         <section v-if="SHOW_TIMINGS && timings.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
             <h2 class="text-white font-semibold mb-1">{{ t('c_setup.step5_simulate.timing_heading', 'Timing') }}
-                <span class="text-gray-500 font-normal text-sm">{{ t('c_setup.step5_simulate.timing_sub', 'where the time goes · avg per part, total across all lanes') }}</span>
+                <span class="text-gray-400 font-normal text-sm">{{ t('c_setup.step5_simulate.timing_sub', 'where the time goes · avg per part, total across all lanes') }}</span>
             </h2>
-            <p class="text-gray-500 text-xs mb-3" v-html="t('c_setup.step5_simulate.timing_note', 'The bar is each part\'s share of total lane-seconds. Watch <span class=&quot;text-amber-300&quot;>Between claims</span>: a lane that sits idle is a lane not working. Compare a stage\'s avg before and after a change to prove it faster or slower.')"></p>
-            <div class="space-y-1 text-xs">
-                <div v-for="tm in timings" :key="tm.part" class="flex items-center gap-3">
+            <p class="text-gray-400 text-xs mb-3" v-html="t('c_setup.step5_simulate.timing_note', 'The bar is each part\'s share of total lane-seconds. Watch <span class=&quot;text-amber-300&quot;>Between claims</span>: a lane that sits idle is a lane not working. Compare a stage\'s avg before and after a change to prove it faster or slower.')"></p>
+            <div class="space-y-1 text-xs overflow-x-auto">
+                <div v-for="tm in timings" :key="tm.part" class="flex items-center gap-3 min-w-[20rem]">
                     <span class="w-56 shrink-0 truncate" :class="timingTone(tm.part)">{{ timingLabel(tm.part) }}</span>
                     <span class="w-20 text-right tabular-nums text-gray-300">{{ t('c_setup.step5_simulate.ms_value', '{n} ms', { n: tm.avg_ms }) }}</span>
-                    <span class="w-24 text-right tabular-nums text-gray-500 hidden md:inline">{{ t('c_setup.step5_simulate.max_ms', 'max {n} ms', { n: tm.max_ms }) }}</span>
-                    <span class="w-20 text-right tabular-nums text-gray-500 hidden md:inline">{{ n(tm.count) }}×</span>
+                    <span class="w-24 text-right tabular-nums text-gray-400 hidden md:inline">{{ t('c_setup.step5_simulate.max_ms', 'max {n} ms', { n: tm.max_ms }) }}</span>
+                    <span class="w-20 text-right tabular-nums text-gray-400 hidden md:inline">{{ n(tm.count) }}×</span>
                     <div class="flex-1 h-2 bg-gray-800 rounded overflow-hidden">
                         <div class="h-full transition-all duration-700" :class="timingBar(tm.part)" :style="{ width: pct(tm.total_s, timingMax) + '%' }"></div>
                     </div>
@@ -543,7 +544,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             </p>
             <div v-if="readiness.unresolved && readiness.unresolved.length" class="space-y-1 text-xs mt-1">
                 <div v-for="(u, i) in readiness.unresolved" :key="i" class="flex gap-3 text-gray-300">
-                    <a v-if="u.slug" :href="`/jurisdictions/${u.slug}`" target="_blank" class="text-blue-300 hover:underline shrink-0">{{ u.name }} <span class="text-gray-500">{{ admLabel(u.adm_level) }}</span></a>
+                    <a v-if="u.slug" :href="`/jurisdictions/${u.slug}`" target="_blank" class="text-blue-300 hover:underline shrink-0">{{ u.name }} <span class="text-gray-400">{{ admLabel(u.adm_level) }}</span></a>
                     <span v-else class="text-gray-300 shrink-0">{{ u.name }}</span>
                     <span class="text-gray-400 truncate">{{ u.gaps }}</span>
                 </div>
@@ -555,9 +556,9 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             <h2 class="text-amber-200 font-semibold mb-3">{{ t('c_setup.step5_simulate.review_heading', 'Review') }} <span class="text-amber-400/70 font-normal text-sm">{{ t('c_setup.step5_simulate.review_sub', { n: n(ledger.review) }) }}</span></h2>
             <div class="space-y-1 text-xs">
                 <div v-for="(r, i) in review" :key="i" class="flex gap-3 text-gray-300">
-                    <a v-if="r.slug" :href="`/legislatures/${r.slug}`" target="_blank" class="text-blue-300 hover:underline shrink-0">{{ r.jurisdiction }} <span class="text-gray-500">{{ admLabel(r.adm_level) }}</span></a>
+                    <a v-if="r.slug" :href="`/legislatures/${r.slug}`" target="_blank" class="text-blue-300 hover:underline shrink-0">{{ r.jurisdiction }} <span class="text-gray-400">{{ admLabel(r.adm_level) }}</span></a>
                     <span v-else class="text-gray-300 shrink-0">{{ r.jurisdiction }}</span>
-                    <span class="text-gray-500 shrink-0">{{ kindLabel(r.kind) }}</span>
+                    <span class="text-gray-400 shrink-0">{{ kindLabel(r.kind) }}</span>
                     <span class="text-gray-400 truncate">{{ r.reason }}</span>
                 </div>
             </div>
@@ -580,7 +581,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                     type="button"
                     :disabled="busy !== '' || !canLock"
                     @click="lockAndContinue"
-                    class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
+                    class="bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
                     :title="canLock ? t('c_setup.step5_simulate.lock_title_ready', 'Lock the simulated world and continue') : (verifyPending ? t('c_setup.step5_simulate.lock_title_pending', 'Run the acceptance scan before locking') : (verifyReview ? t('c_setup.step5_simulate.lock_title_review', 'Resolve the unresolved scopes, or finish with documented exclusions') : t('c_setup.step5_simulate.lock_title_wait', 'Continue opens when the run is verified')))"
                 >
                     {{ busy === 'continue' ? t('c_setup.step5_simulate.btn_locking', 'Locking…') : (locked ? t('c_setup.step5_simulate.btn_continue', 'Continue →') : t('c_setup.step5_simulate.btn_lock_continue', 'Lock and Continue →')) }}

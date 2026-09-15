@@ -232,13 +232,13 @@ watch(() => props.jurisdictionId, (id) => requestLoad(id))
         <div ref="mapContainer" class="absolute inset-0 rounded-md bg-gray-950" />
         <div
             v-if="status === 'idle'"
-            class="absolute inset-0 flex items-center justify-center text-gray-500 text-xs"
+            class="absolute inset-0 flex items-center justify-center text-gray-400 text-xs"
         >
             {{ t('c_setup_components.mini_map.preparing', 'Preparing next jurisdiction…') }}
         </div>
         <div
             v-else-if="status === 'loading'"
-            class="absolute inset-0 flex items-center justify-center text-gray-500 text-xs"
+            class="absolute inset-0 flex items-center justify-center text-gray-400 text-xs"
         >
             {{ t('c_setup_components.mini_map.loading_map', 'Loading map…') }}
         </div>

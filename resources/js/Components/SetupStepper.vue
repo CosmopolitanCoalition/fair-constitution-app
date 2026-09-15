@@ -70,7 +70,7 @@ function clickable(s) {
                 :class="[
                     'flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition-colors w-full',
                     s.status === 'current' && 'bg-blue-600 border-blue-500 text-white',
-                    s.status === 'done' && 'bg-emerald-700 border-emerald-600 text-emerald-50 hover:bg-emerald-600',
+                    s.status === 'done' && 'bg-emerald-700 border-emerald-600 text-emerald-50 hover:bg-emerald-800',
                     s.status === 'reachable' && 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700',
                     s.status === 'locked' && 'bg-gray-900 border-gray-800 text-gray-600 cursor-not-allowed',
                     s.status === 'skipped' && 'bg-gray-900 border-dashed border-gray-800 text-gray-600 cursor-not-allowed',

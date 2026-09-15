@@ -226,12 +226,12 @@ const eta = computed(() => {
     <div
         class="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-950 border border-gray-800 rounded-lg p-4"
     >
-        <div v-if="!current && lifecycle === 'running'" class="flex items-center gap-3 text-gray-500 text-sm">
+        <div v-if="!current && lifecycle === 'running'" class="flex items-center gap-3 text-gray-400 text-sm">
             <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
             {{ t('c_setup_components.current_jurisdiction_card.waiting_heartbeat', 'Waiting for first heartbeat…') }}
         </div>
 
-        <div v-else-if="!current" class="text-gray-500 text-sm italic">
+        <div v-else-if="!current" class="text-gray-400 text-sm italic">
             {{ t('c_setup_components.current_jurisdiction_card.no_job_running', 'No job running.') }}
         </div>
 
@@ -239,7 +239,7 @@ const eta = computed(() => {
             <!-- Left: info column -->
             <div class="flex flex-col gap-3 min-w-0">
                 <div>
-                    <div class="text-gray-500 text-xs uppercase tracking-wider">
+                    <div class="text-gray-400 text-xs uppercase tracking-wider">
                         {{ t('c_setup_components.current_jurisdiction_card.currently_processing', 'Currently processing') }}
                     </div>
                     <div
@@ -304,11 +304,11 @@ const eta = computed(() => {
 
                 <div v-if="current.population != null || current.area_km2 != null" class="grid grid-cols-2 gap-2 text-sm">
                     <div v-if="current.population != null" class="bg-gray-950 border border-gray-800 rounded p-2">
-                        <div class="text-gray-500 text-xs">{{ t('c_setup_components.current_jurisdiction_card.population', 'Population') }}</div>
+                        <div class="text-gray-400 text-xs">{{ t('c_setup_components.current_jurisdiction_card.population', 'Population') }}</div>
                         <div class="text-gray-100 font-mono">{{ fmtPop(current.population) }}</div>
                     </div>
                     <div v-if="current.area_km2 != null" class="bg-gray-950 border border-gray-800 rounded p-2">
-                        <div class="text-gray-500 text-xs">{{ t('c_setup_components.current_jurisdiction_card.area_km2', 'Area (km²)') }}</div>
+                        <div class="text-gray-400 text-xs">{{ t('c_setup_components.current_jurisdiction_card.area_km2', 'Area (km²)') }}</div>
                         <div class="text-gray-100 font-mono">{{ fmtPop(Math.round(current.area_km2)) }}</div>
                     </div>
                 </div>

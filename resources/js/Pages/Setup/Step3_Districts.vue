@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import { csrfFetch } from '@/lib/csrf'
-import { router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 
 const { t } = useI18n()
 
@@ -92,7 +92,7 @@ function qpop(n) {
     return String(n)
 }
 function qnum(n) { return localeFmt.number(Number(n || 0)) }
-const Q_DOT = { good: 'text-emerald-400', warn: 'text-amber-400', bad: 'text-red-400', muted: 'text-gray-500' }
+const Q_DOT = { good: 'text-emerald-400', warn: 'text-amber-400', bad: 'text-red-400', muted: 'text-gray-400' }
 const Q_LADDER = ['shortest', 'box', 'community_cells', 'vertical_strips', 'horizontal_strips', 'components', 'mask', 'unrecorded']
 const Q_METHOD_LABELS = { shortest: t('c_setup.step3_districts.method_shortest', 'Shortest split-line'), box: t('c_setup.step3_districts.method_box', 'Box'), community_cells: t('c_setup.step3_districts.method_community_cells', 'Community cells'), vertical_strips: t('c_setup.step3_districts.method_vertical_strips', 'Vertical strips'), horizontal_strips: t('c_setup.step3_districts.method_horizontal_strips', 'Horizontal strips'), components: t('c_setup.step3_districts.method_components', 'Whole components'), mask: t('c_setup.step3_districts.method_mask', 'Mask'), unrecorded: t('c_setup.step3_districts.method_unrecorded', 'Unrecorded') }
 // The card's two columns as data — one statistic per line, every section
@@ -357,7 +357,7 @@ function laneLevel(w) {
     return 'normal'
 }
 const laneTone = {
-    normal: { label: 'text-gray-200',  clock: 'text-gray-500',  dot: 'bg-blue-400',  bar: 'bg-blue-500',  pulse: 'bg-blue-800' },
+    normal: { label: 'text-gray-200',  clock: 'text-gray-400',  dot: 'bg-blue-400',  bar: 'bg-blue-500',  pulse: 'bg-blue-800' },
     amber:  { label: 'text-amber-300', clock: 'text-amber-400', dot: 'bg-amber-400', bar: 'bg-amber-500', pulse: 'bg-amber-700' },
     red:    { label: 'text-red-300',   clock: 'text-red-400',   dot: 'bg-red-400',   bar: 'bg-red-500',   pulse: 'bg-red-700' },
 }
@@ -916,6 +916,7 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="max-w-4xl mx-auto px-6 py-8 w-full">
+            <Head :title="t('c_setup.step3_districts.heading', 'Build Your Districts')" />
             <SetupStepper :current="3" :completed="settings.setup_step_completed" :steps="settings.ladder" />
 
             <header class="mt-8 mb-6">
@@ -1051,7 +1052,7 @@ onBeforeUnmount(() => {
                     <div class="space-y-2">
                         <div v-for="l in layers" :key="l.key">
                             <div class="flex justify-between text-xs mb-0.5"
-                                 :class="l.status === 'done' ? 'text-gray-500' : 'text-gray-400'">
+                                 :class="l.status === 'done' ? 'text-gray-400' : 'text-gray-400'">
                                 <span>
                                     <span v-if="l.status === 'done'" class="text-emerald-500 mr-1">✓</span>
                                     <span v-else-if="l.status === 'running'" class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse mr-1"></span>
@@ -1126,15 +1127,15 @@ onBeforeUnmount(() => {
                                    :disabled="!autoKillOn || autoKillBusy"
                                    @change="saveAutoKill" />
                             <span>{{ t('c_setup.step3_districts.autokill_min_on_claim', 'min on one claim') }}</span>
-                            <span v-if="autoKillBusy" class="text-gray-500">{{ t('c_setup.step3_districts.autokill_saving', 'saving') }}</span>
+                            <span v-if="autoKillBusy" class="text-gray-400">{{ t('c_setup.step3_districts.autokill_saving', 'saving') }}</span>
                             <span v-else-if="run.auto_kill_minutes != null" class="text-emerald-400">{{ t('c_setup.step3_districts.autokill_on', { n: run.auto_kill_minutes }) }}</span>
-                            <span v-else class="text-gray-500">{{ t('c_setup.step3_districts.autokill_off', 'off') }}</span>
+                            <span v-else class="text-gray-400">{{ t('c_setup.step3_districts.autokill_off', 'off') }}</span>
                         </div>
                         <!-- Workers count (moved here 2026-09-04): beside the
                              auto-kill control, not a headline stat. -->
                         <div v-if="run.workers_target" class="flex items-center gap-1.5 text-gray-300">
                             <span class="text-gray-400 uppercase tracking-wide">{{ t('c_setup.step3_districts.workers', 'Workers') }}</span>
-                            <span class="tabular-nums font-semibold text-gray-100">{{ run.workers }}<span class="text-gray-500 font-normal">/{{ run.workers_target }}</span></span>
+                            <span class="tabular-nums font-semibold text-gray-100">{{ run.workers }}<span class="text-gray-400 font-normal">/{{ run.workers_target }}</span></span>
                             <span v-if="run.paused_until" class="text-amber-300">{{ t('c_setup.step3_districts.paused_pg', 'paused (pg recovering)') }}</span>
                         </div>
                         <!-- Run controls (moved here 2026-09-04): Halt / Resume /
@@ -1170,7 +1171,7 @@ onBeforeUnmount(() => {
                             </button>
                         </div>
                     </div>
-                    <p v-if="laneWarn" class="text-gray-500 mt-1.5">
+                    <p v-if="laneWarn" class="text-gray-400 mt-1.5">
                         {{ t('c_setup.step3_districts.lane_warn_note', { amber: fmtEta(laneWarn[0]), red: fmtEta(laneWarn[1]) }) }}
                     </p>
                     <p v-if="autoKillError" class="text-red-300 text-xs mt-1">{{ autoKillError }}</p>
@@ -1211,11 +1212,11 @@ onBeforeUnmount(() => {
                                             <a :href="`/legislatures/${w.map_slug}`" target="_blank" class="text-gray-400 hover:text-gray-200 underline-offset-2 hover:underline">{{ w.map_name }}</a><span class="text-gray-600"> › </span>
                                         </template>
                                         <a :href="`/legislatures/${w.scope_slug}`" target="_blank" class="font-medium underline-offset-2 hover:underline">{{ w.scope_name }}</a>
-                                        <span v-if="w.adm_level != null" class="text-gray-500 ml-1">{{ admLabel(w.adm_level) }}</span>
+                                        <span v-if="w.adm_level != null" class="text-gray-400 ml-1">{{ admLabel(w.adm_level) }}</span>
                                         <span v-if="lanePhase(w)" class="text-gray-400"> · {{ lanePhase(w) }}</span>
                                     </span>
                                     <span v-else-if="w.claim_label" class="font-medium truncate" :class="laneTone[laneLevel(w)].label">{{ w.claim_label }}</span>
-                                    <span v-else class="text-gray-500 italic">{{ idleCause }}</span>
+                                    <span v-else class="text-gray-400 italic">{{ idleCause }}</span>
                                 </span>
                                 <span class="flex items-center gap-2 tabular-nums shrink-0 ml-3" :class="laneTone[laneLevel(w)].clock">
                                     <template v-if="w.claim_label">
@@ -1236,7 +1237,7 @@ onBeforeUnmount(() => {
                                         </button>
                                         <span>·</span>
                                     </template>
-                                    <span class="font-mono text-gray-500">{{ w.id }}</span>
+                                    <span class="font-mono text-gray-400">{{ w.id }}</span>
                                 </span>
                             </div>
                             <div class="h-1.5 bg-gray-900 rounded overflow-hidden">
@@ -1289,7 +1290,7 @@ onBeforeUnmount(() => {
                     </div>
                     <div class="max-h-64 overflow-y-auto">
                         <table class="w-full text-xs text-left">
-                            <thead class="text-gray-500 uppercase">
+                            <thead class="text-gray-400 uppercase">
                                 <tr>
                                     <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_legislature', 'Legislature') }}</th>
                                     <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_kind', 'Kind') }}</th>
@@ -1305,7 +1306,7 @@ onBeforeUnmount(() => {
                                            class="text-amber-300 hover:text-amber-100 underline-offset-2 hover:underline">
                                             {{ it.jurisdiction_name }}
                                         </a>
-                                        <span class="text-gray-500"> {{ admLabel(it.adm_level) }}</span>
+                                        <span class="text-gray-400"> {{ admLabel(it.adm_level) }}</span>
                                     </td>
                                     <td class="py-1.5 pr-2">{{ it.kind === 'sweep' ? t('c_setup.step3_districts.kind_sweep', 'sweep') : t('c_setup.step3_districts.kind_single', 'single') }}</td>
                                     <td class="py-1.5 pr-2">{{ it.status }}</td>
@@ -1348,7 +1349,7 @@ onBeforeUnmount(() => {
                     </div>
                     <div class="max-h-64 overflow-y-auto">
                         <table class="w-full text-xs text-left">
-                            <thead class="text-gray-500 uppercase">
+                            <thead class="text-gray-400 uppercase">
                                 <tr>
                                     <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_legislature', 'Legislature') }}</th>
                                     <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_expected', 'Expected') }}</th>
@@ -1365,7 +1366,7 @@ onBeforeUnmount(() => {
                                            class="text-rose-300 hover:text-rose-100 underline-offset-2 hover:underline">
                                             {{ it.jurisdiction_name }}
                                         </a>
-                                        <span class="text-gray-500"> {{ admLabel(it.adm_level) }}</span>
+                                        <span class="text-gray-400"> {{ admLabel(it.adm_level) }}</span>
                                     </td>
                                     <td class="py-1.5 pr-2">{{ it.seats_expected }}</td>
                                     <td class="py-1.5 pr-2">{{ it.seats_seated }}</td>
@@ -1448,7 +1449,7 @@ onBeforeUnmount(() => {
                 <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 pt-4 pb-2">
                     <div class="flex items-baseline gap-3">
                         <h2 class="text-cyan-400 text-xs font-bold uppercase tracking-wide">{{ t('c_setup.step3_districts.map_quality', 'Map Quality') }}</h2>
-                        <span v-if="quality" class="text-gray-500 text-[10px]">{{ t('c_setup.step3_districts.quality_computed', { date: localeFmt.dateTime(new Date(qualityAt)), sec: quality.seconds }) }}</span>
+                        <span v-if="quality" class="text-gray-400 text-[10px]">{{ t('c_setup.step3_districts.quality_computed', { date: localeFmt.dateTime(new Date(qualityAt)), sec: quality.seconds }) }}</span>
                     </div>
                     <!-- Layer tabs: all layers, then one tab per layer. -->
                     <div v-if="quality" class="flex flex-wrap items-center gap-1">
@@ -1462,7 +1463,7 @@ onBeforeUnmount(() => {
                         </button>
                     </div>
                 </div>
-                <div v-if="!quality" class="px-5 pb-4 text-gray-500 text-xs">
+                <div v-if="!quality" class="px-5 pb-4 text-gray-400 text-xs">
                     {{ t('c_setup.step3_districts.quality_computing', 'Computing the planet-wide statistics — they appear here when the job finishes.') }}
                 </div>
                 <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 px-5 pb-5 text-xs">
@@ -1471,7 +1472,7 @@ onBeforeUnmount(() => {
                         <div class="flex items-start justify-between gap-3 border-b border-gray-800 pb-1">
                             <div class="text-gray-200 font-semibold">{{ col.title }}</div>
                             <div class="text-right shrink-0">
-                                <div v-for="m in col.meta" :key="m" class="text-gray-500 tabular-nums">{{ m }}</div>
+                                <div v-for="m in col.meta" :key="m" class="text-gray-400 tabular-nums">{{ m }}</div>
                             </div>
                         </div>
                         <!-- Sections: label with hover tooltip (the map view's pattern), an
@@ -1479,7 +1480,7 @@ onBeforeUnmount(() => {
                         <div v-for="sec in col.sections" :key="sec.title">
                             <div class="flex items-baseline justify-between gap-2 mb-0.5">
                                 <div class="relative group inline-flex items-center gap-1">
-                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ sec.title }}</span>
+                                    <span class="text-gray-400 text-[10px] uppercase font-semibold">{{ sec.title }}</span>
                                     <span v-if="sec.sub" class="text-gray-600 normal-case font-normal text-[10px]">{{ sec.sub }}</span>
                                     <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
                                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-64 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
@@ -1487,7 +1488,7 @@ onBeforeUnmount(() => {
                                     </div>
                                 </div>
                                 <span v-if="sec.rightLabel" class="text-[10px] whitespace-nowrap">
-                                    <span class="text-gray-500">{{ sec.rightLabel }}</span>
+                                    <span class="text-gray-400">{{ sec.rightLabel }}</span>
                                     <span :class="sec.rightClass" class="font-semibold">{{ sec.rightValue }}</span>
                                 </span>
                             </div>
@@ -1496,7 +1497,7 @@ onBeforeUnmount(() => {
                                     <span :class="Q_DOT[row.dot]">&#9632;</span>
                                     <span class="text-gray-400 whitespace-nowrap">{{ row.label }}</span>
                                     <span class="text-gray-200">{{ row.value }}</span>
-                                    <span v-if="row.right" class="text-gray-500 ml-auto whitespace-nowrap">{{ row.right }}</span>
+                                    <span v-if="row.right" class="text-gray-400 ml-auto whitespace-nowrap">{{ row.right }}</span>
                                 </div>
                             </div>
                         </div>
@@ -1528,7 +1529,7 @@ onBeforeUnmount(() => {
                                 type="button"
                                 :disabled="!canContinue || continuing"
                                 @click="continueToNext"
-                                class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 disabled:text-gray-400 text-white px-5 py-2 rounded-md font-semibold transition-colors"
+                                class="bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-700 disabled:text-gray-400 text-white px-5 py-2 rounded-md font-semibold transition-colors"
                                 :title="canContinue ? t('c_setup.step3_districts.continue_title_ready', 'Districts are built. Continue to the next step.') : t('c_setup.step3_districts.continue_title_wait', 'Continue opens when the map run is done')"
                             >
                                 {{ continuing ? t('c_setup.step3_districts.continuing', 'Continuing…') : t('c_setup.step3_districts.continue', 'Continue →') }}
