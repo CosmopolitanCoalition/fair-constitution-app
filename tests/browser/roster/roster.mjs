@@ -213,6 +213,8 @@ export function machineReason(u) {
     // JSON polls that live outside /api (verified 2026-09-15: application/json).
     if (u === '/system/translations/progress') return 'translations progress poll (JSON)';
     if (u === '/dev/playtest/state' || u === '/dev/scenario/state') return 'dev state poll (JSON)';
+    if (u === '/civic/jurisdictions/search') return 'jurisdiction search endpoint (JSON)';
+    if (u === '/dev/users') return 'dev impersonation list (JSON)';
     const m = u.match(/\.(csv|geojson|png|json)$/);
     if (m) return `${m[1]} file download`;
     return null;
@@ -280,7 +282,6 @@ export const PIN_SIGNED_IN = [
     '/civic',
     '/civic/halls',
     '/civic/identity',
-    '/civic/jurisdictions/search',
     '/civic/petitions',
     '/civic/record',
     '/civic/relocation',
@@ -293,7 +294,6 @@ export const PIN_SIGNED_IN = [
     '/dev/executive-kit',
     '/dev/judiciary-kit',
     '/dev/legislature-kit',
-    '/dev/users',
     '/elections',
     '/elections/board',
     '/elections/candidacy',
@@ -387,7 +387,7 @@ export const PIN_PARAM = [
 
 // Machine-endpoint count (api/, _matrix/, horizon/, oauth/, storage/,
 // .well-known/, up, file suffixes, sync-progress) across param and param-free.
-export const PIN_MACHINE = 90;
+export const PIN_MACHINE = 92;
 
 // Print the derived counts when run directly: node tests/browser/roster/roster.mjs
 if (import.meta.url === `file://${process.argv[1]}` || import.meta.url === pathToFileUrlSafe(process.argv[1])) {

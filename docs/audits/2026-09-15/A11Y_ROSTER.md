@@ -247,3 +247,7 @@ Excluded from the page sweep by rule. Reason per entry.
 ## Correction 2026-09-15 (pass 2)
 
 Three JSON polls outside `/api` were classified as pages by the prefix rule and failed `document-title`: `/system/translations/progress`, `/dev/playtest/state`, `/dev/scenario/state` (all `application/json`, verified with curl). They are now machine endpoints by name. Classes: 56 guest, 42 signed-in, 62 parameterised, 90 machine, 1 viewer-bound; sum 251.
+
+## Correction 2026-09-15 (pass 4)
+
+`/civic/jurisdictions/search` and `/dev/users` answer `application/json` (verified with curl, signed in); they never established as pages and are machine endpoints by name now. Classes: 56 guest, 40 signed-in, 62 parameterised, 92 machine, 1 viewer-bound; sum 251.
