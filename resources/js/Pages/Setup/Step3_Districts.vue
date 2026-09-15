@@ -1,9 +1,12 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import { csrfFetch } from '@/lib/csrf'
 import { router } from '@inertiajs/vue3'
+
+const { t } = useI18n()
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
 defineOptions({
@@ -66,10 +69,10 @@ const quality = computed(() => autoscale.value?.quality ?? null)
 const qualityTab = ref('all')
 const qualityTabs = computed(() => {
     const q = quality.value
-    if (!q?.levels) return [{ key: 'all', label: 'All layers' }]
-    const tabs = [{ key: 'all', label: 'All layers' }]
+    if (!q?.levels) return [{ key: 'all', label: t('c_setup.step3_districts.all_layers', 'All layers') }]
+    const tabs = [{ key: 'all', label: t('c_setup.step3_districts.all_layers', 'All layers') }]
     for (const k of Object.keys(q.levels).filter(k => k !== 'all').sort((x, y) => Number(x) - Number(y))) {
-        tabs.push({ key: k, label: q.level_labels?.[k] ?? `Level ${k}` })
+        tabs.push({ key: k, label: q.level_labels?.[k] ?? t('c_setup.step3_districts.level_n', { n: k }) })
     }
     return tabs
 })
@@ -90,7 +93,7 @@ function qpop(n) {
 function qnum(n) { return Number(n || 0).toLocaleString() }
 const Q_DOT = { good: 'text-emerald-400', warn: 'text-amber-400', bad: 'text-red-400', muted: 'text-gray-500' }
 const Q_LADDER = ['shortest', 'box', 'community_cells', 'vertical_strips', 'horizontal_strips', 'components', 'mask', 'unrecorded']
-const Q_METHOD_LABELS = { shortest: 'Shortest split-line', box: 'Box', community_cells: 'Community cells', vertical_strips: 'Vertical strips', horizontal_strips: 'Horizontal strips', components: 'Whole components', mask: 'Mask', unrecorded: 'Unrecorded' }
+const Q_METHOD_LABELS = { shortest: t('c_setup.step3_districts.method_shortest', 'Shortest split-line'), box: t('c_setup.step3_districts.method_box', 'Box'), community_cells: t('c_setup.step3_districts.method_community_cells', 'Community cells'), vertical_strips: t('c_setup.step3_districts.method_vertical_strips', 'Vertical strips'), horizontal_strips: t('c_setup.step3_districts.method_horizontal_strips', 'Horizontal strips'), components: t('c_setup.step3_districts.method_components', 'Whole components'), mask: t('c_setup.step3_districts.method_mask', 'Mask'), unrecorded: t('c_setup.step3_districts.method_unrecorded', 'Unrecorded') }
 // The card's two columns as data — one statistic per line, every section
 // with the tooltip the map views carry (operator order 2026-09-05).
 const qualityColumns = computed(() => {
@@ -98,7 +101,9 @@ const qualityColumns = computed(() => {
     if (!q?.type_a || !q?.type_b) return []
     const a = q.type_a, b = q.type_b
     const zeroGood = n => (Number(n) === 0 ? 'good' : 'bad')
-    const shapePop = k => (b.shapes_pop ? `${qpop(b.shapes_pop[k])} pop (${qpct(b.shapes_pop[k], b.shapes_pop.all)})` : undefined)
+    const popShare = (pop, popTotal) => t('c_setup.step3_districts.pop_share', { pop: qpop(pop), pct: qpct(pop, popTotal) })
+    const shapePop = k => (b.shapes_pop ? popShare(b.shapes_pop[k], b.shapes_pop.all) : undefined)
+    const share = (count, total) => `${qnum(count)} (${qpct(count, total)})`
     // Rung rows nested under a parent row: ordered by the ladder's priority
     // (jsonb storage reorders object keys), each with its share of the
     // parent's count and population.
@@ -109,133 +114,133 @@ const qualityColumns = computed(() => {
             const pop = typeof v === 'object' ? (v.pop ?? 0) : null
             return {
                 dot: 'muted', indent: true,
-                label: `${Q_METHOD_LABELS[m] ?? m}:`,
-                value: `${qnum(n)} (${qpct(n, total)})`,
-                right: pop != null ? `${qpop(pop)} pop (${qpct(pop, popTotal)})` : undefined,
+                label: t('c_setup.step3_districts.method_row', { label: Q_METHOD_LABELS[m] ?? m }),
+                value: share(n, total),
+                right: pop != null ? popShare(pop, popTotal) : undefined,
             }
         })
     const popRow = (dot, label, count, total, pop, popTotal) => ({
-        dot, label, value: `${qnum(count)} (${qpct(count, total)})`,
-        right: `${qpop(pop)} pop (${qpct(pop, popTotal)})`,
+        dot, label, value: share(count, total),
+        right: popShare(pop, popTotal),
     })
     return [
         {
-            title: 'Proportional Population District Maps',
-            meta: [`${qnum(a.maps)} maps`, `${qnum(a.districts)} districts`, `${qnum(a.seats)} seats`],
+            title: t('c_setup.step3_districts.col_a_title', 'Proportional Population District Maps'),
+            meta: [t('c_setup.step3_districts.meta_maps', { n: qnum(a.maps) }), t('c_setup.step3_districts.meta_districts', { n: qnum(a.districts) }), t('c_setup.step3_districts.meta_seats', { n: qnum(a.seats) })],
             sections: [
                 {
-                    title: 'Constitutional Legality',
-                    tip: 'Every district map must seat exactly its apportioned total (no drift), keep every district inside the 5–9 seat band, and record any floor exception (Art. II §2) or ceiling exception (a forced 1- or 0-seat landing lifted to 2 with bonus seats) where the geography forces one.',
+                    title: t('c_setup.step3_districts.sec_legality', 'Constitutional Legality'),
+                    tip: t('c_setup.step3_districts.tip_a_legality', 'Every district map must seat exactly its apportioned total (no drift), keep every district inside the 5–9 seat band, and record any floor exception (Art. II §2) or ceiling exception (a forced 1- or 0-seat landing lifted to 2 with bonus seats) where the geography forces one.'),
                     rows: [
-                        { dot: a.legality.sweeps_exact === a.legality.sweeps_done ? 'good' : 'bad', label: 'Exact seat totals:', value: `${qnum(a.legality.sweeps_exact)} (${qpct(a.legality.sweeps_exact, a.legality.sweeps_done)})`, right: `${qnum(a.legality.sweeps_done - a.legality.sweeps_exact)} drift` },
-                        { dot: 'warn', label: 'Floor exceptions, recorded:', value: `${qnum(a.legality.floor_overrides)} (${qpct(a.legality.floor_overrides, a.districts)})` },
-                        { dot: 'warn', label: 'Ceiling exceptions:', value: `${qnum(a.legality.bonus_maps)} maps`, right: `${qnum(a.legality.bonus_seats)} bonus seats` },
-                        { dot: zeroGood(a.legality.maps_review), label: 'Awaiting review:', value: qnum(a.legality.maps_review) },
+                        { dot: a.legality.sweeps_exact === a.legality.sweeps_done ? 'good' : 'bad', label: t('c_setup.step3_districts.row_exact_totals', 'Exact seat totals:'), value: share(a.legality.sweeps_exact, a.legality.sweeps_done), right: t('c_setup.step3_districts.right_drift', { n: qnum(a.legality.sweeps_done - a.legality.sweeps_exact) }) },
+                        { dot: 'warn', label: t('c_setup.step3_districts.row_floor_exceptions', 'Floor exceptions, recorded:'), value: share(a.legality.floor_overrides, a.districts) },
+                        { dot: 'warn', label: t('c_setup.step3_districts.row_ceiling_exceptions', 'Ceiling exceptions:'), value: t('c_setup.step3_districts.value_maps', { n: qnum(a.legality.bonus_maps) }), right: t('c_setup.step3_districts.right_bonus_seats', { n: qnum(a.legality.bonus_seats) }) },
+                        { dot: zeroGood(a.legality.maps_review), label: t('c_setup.step3_districts.row_awaiting_review', 'Awaiting review:'), value: qnum(a.legality.maps_review) },
                     ],
                 },
                 {
-                    title: 'Community Integrity',
-                    sub: a.integrity.maps != null ? `(${qnum(a.integrity.maps)} composite maps)` : '',
-                    tip: 'Judged on the composite maps only (jurisdictions with constituents). Districts drawn along pre-existing administrative boundaries keep communities intact; a line-split piece appears inside a composite map only where a constituent holds more seats than the ceiling allows and has no subdivisions of its own. Leaf maps have their own section below.',
+                    title: t('c_setup.step3_districts.sec_integrity', 'Community Integrity'),
+                    sub: a.integrity.maps != null ? t('c_setup.step3_districts.sub_composite_maps', { n: qnum(a.integrity.maps) }) : '',
+                    tip: t('c_setup.step3_districts.tip_a_integrity', 'Judged on the composite maps only (jurisdictions with constituents). Districts drawn along pre-existing administrative boundaries keep communities intact; a line-split piece appears inside a composite map only where a constituent holds more seats than the ceiling allows and has no subdivisions of its own. Leaf maps have their own section below.'),
                     rows: [
-                        popRow('good', 'Intact:', a.integrity.intact_count, a.integrity.intact_count + a.integrity.segmented_count, a.integrity.intact_pop, a.integrity.intact_pop + a.integrity.segmented_pop),
-                        popRow('warn', 'Segmented:', a.integrity.segmented_count, a.integrity.intact_count + a.integrity.segmented_count, a.integrity.segmented_pop, a.integrity.intact_pop + a.integrity.segmented_pop),
+                        popRow('good', t('c_setup.step3_districts.row_intact', 'Intact:'), a.integrity.intact_count, a.integrity.intact_count + a.integrity.segmented_count, a.integrity.intact_pop, a.integrity.intact_pop + a.integrity.segmented_pop),
+                        popRow('warn', t('c_setup.step3_districts.row_segmented', 'Segmented:'), a.integrity.segmented_count, a.integrity.intact_count + a.integrity.segmented_count, a.integrity.segmented_pop, a.integrity.intact_pop + a.integrity.segmented_pop),
                         // The segmented pieces by the rung that filed them, nested under
                         // Segmented in the ladder's priority (jsonb reorders keys).
                         ...methodRows(a.integrity.methods, a.integrity.segmented_count, a.integrity.segmented_pop),
                     ],
                 },
                 {
-                    title: 'Constituentless Jurisdictions',
-                    sub: a.leaves ? `(${qnum(a.leaves.at_large_maps + a.leaves.line_split_maps)} maps)` : '',
-                    tip: 'Jurisdictions with no constituents. Within the seat band such a jurisdiction is one at-large district; above the ceiling it is line-split by the leaf ladder, whose rungs are tried in order (shortest split-line, box, community cells, vertical strips, horizontal strips, whole components) until one files. The rows name the rung that filed each map; "unrecorded" maps were drawn before the ladder timings were kept.',
+                    title: t('c_setup.step3_districts.sec_constituentless', 'Constituentless Jurisdictions'),
+                    sub: a.leaves ? t('c_setup.step3_districts.sub_maps', { n: qnum(a.leaves.at_large_maps + a.leaves.line_split_maps) }) : '',
+                    tip: t('c_setup.step3_districts.tip_a_constituentless', 'Jurisdictions with no constituents. Within the seat band such a jurisdiction is one at-large district; above the ceiling it is line-split by the leaf ladder, whose rungs are tried in order (shortest split-line, box, community cells, vertical strips, horizontal strips, whole components) until one files. The rows name the rung that filed each map; "unrecorded" maps were drawn before the ladder timings were kept.'),
                     rows: a.leaves ? [
-                        popRow('good', 'At large:', a.leaves.at_large_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.at_large_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
-                        popRow('warn', 'Line-split:', a.leaves.line_split_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.line_split_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
+                        popRow('good', t('c_setup.step3_districts.row_at_large', 'At large:'), a.leaves.at_large_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.at_large_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
+                        popRow('warn', t('c_setup.step3_districts.row_line_split', 'Line-split:'), a.leaves.line_split_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.line_split_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
                         // The filing rungs, indented under Line-split, in the ladder's
                         // priority (the mapper's picker and the auto ladder share it).
                         ...methodRows(a.leaves.methods, a.leaves.line_split_maps, a.leaves.line_split_pop),
-                    ] : [{ dot: 'muted', label: 'Not yet computed', value: '' }],
+                    ] : [{ dot: 'muted', label: t('c_setup.step3_districts.not_computed', 'Not yet computed'), value: '' }],
                 },
                 {
-                    title: 'Constitutional Contiguity',
-                    tip: 'Contiguity is considered broken only when it was achievable in the first place. Geographic impossibilities are exempt. These include island jurisdictions with no land border to any sibling, members completely surrounded by jurisdictions too large to combine without breaching the constitutional ceiling, and single-member districts, which are never constitutionally incongruous.',
+                    title: t('c_setup.step3_districts.sec_contiguity', 'Constitutional Contiguity'),
+                    tip: t('c_setup.step3_districts.tip_a_contiguity', 'Contiguity is considered broken only when it was achievable in the first place. Geographic impossibilities are exempt. These include island jurisdictions with no land border to any sibling, members completely surrounded by jurisdictions too large to combine without breaching the constitutional ceiling, and single-member districts, which are never constitutionally incongruous.'),
                     rows: [
-                        popRow('good', 'Contiguous:', a.contiguity.contiguous_count, a.districts, a.contiguity.contiguous_pop, a.population),
-                        popRow('bad', 'Non-contiguous:', a.contiguity.non_contiguous_count, a.districts, a.contiguity.non_contiguous_pop, a.population),
+                        popRow('good', t('c_setup.step3_districts.row_contiguous', 'Contiguous:'), a.contiguity.contiguous_count, a.districts, a.contiguity.contiguous_pop, a.population),
+                        popRow('bad', t('c_setup.step3_districts.row_non_contiguous', 'Non-contiguous:'), a.contiguity.non_contiguous_count, a.districts, a.contiguity.non_contiguous_pop, a.population),
                     ],
                 },
                 {
-                    title: 'Population Equality',
-                    sub: `(${qnum(a.equality.district_count)} districts)`,
-                    tip: 'Measures how evenly each district\'s population-per-seat matches the ideal "one person, one vote" standard. Lower deviation means each vote carries more equal weight. Includes every composite district on the planet; at-large single districts have no deviation by construction.',
-                    rightLabel: 'Avg', rightValue: `${a.equality.avg_pct}%`, rightClass: 'text-emerald-400',
+                    title: t('c_setup.step3_districts.sec_equality', 'Population Equality'),
+                    sub: t('c_setup.step3_districts.sub_districts', { n: qnum(a.equality.district_count) }),
+                    tip: t('c_setup.step3_districts.tip_a_equality', 'Measures how evenly each district\'s population-per-seat matches the ideal "one person, one vote" standard. Lower deviation means each vote carries more equal weight. Includes every composite district on the planet; at-large single districts have no deviation by construction.'),
+                    rightLabel: t('c_setup.step3_districts.right_avg', 'Avg'), rightValue: `${a.equality.avg_pct}%`, rightClass: 'text-emerald-400',
                     rows: [
-                        popRow('good', 'Good (≤5%):', a.equality.good_count, a.equality.district_count, a.equality.good_pop, a.equality.pop),
-                        popRow('warn', 'OK (5–10%):', a.equality.ok_count, a.equality.district_count, a.equality.ok_pop, a.equality.pop),
-                        popRow('bad', 'Bad (>10%):', a.equality.bad_count, a.equality.district_count, a.equality.bad_pop, a.equality.pop),
+                        popRow('good', t('c_setup.step3_districts.row_eq_good', 'Good (≤5%):'), a.equality.good_count, a.equality.district_count, a.equality.good_pop, a.equality.pop),
+                        popRow('warn', t('c_setup.step3_districts.row_eq_ok', 'OK (5–10%):'), a.equality.ok_count, a.equality.district_count, a.equality.ok_pop, a.equality.pop),
+                        popRow('bad', t('c_setup.step3_districts.row_eq_bad', 'Bad (>10%):'), a.equality.bad_count, a.equality.district_count, a.equality.bad_pop, a.equality.pop),
                     ],
                 },
                 {
-                    title: 'Uniform Political Diversity',
-                    sub: a.diversity ? `(${qnum(a.diversity.scopes)} scopes)` : '',
-                    tip: 'For every composite scope, the drawn district seat counts are compared with the Optimal the map view shows: the balanced partition of the scope\'s composed seats with the lowest average Droop threshold (the most uniform political diversity), a lawful one-jurisdiction single counted beside it. Optimal means the two match; Not optimal means the drawing differs, which includes every recorded floor exception.',
+                    title: t('c_setup.step3_districts.sec_diversity', 'Uniform Political Diversity'),
+                    sub: a.diversity ? t('c_setup.step3_districts.sub_scopes', { n: qnum(a.diversity.scopes) }) : '',
+                    tip: t('c_setup.step3_districts.tip_a_diversity', 'For every composite scope, the drawn district seat counts are compared with the Optimal the map view shows: the balanced partition of the scope\'s composed seats with the lowest average Droop threshold (the most uniform political diversity), a lawful one-jurisdiction single counted beside it. Optimal means the two match; Not optimal means the drawing differs, which includes every recorded floor exception.'),
                     rows: a.diversity ? [
-                        { dot: 'good', label: 'Optimal:', value: `${qnum(a.diversity.optimal)} (${qpct(a.diversity.optimal, a.diversity.scopes)})`, right: `${qpop(a.diversity.optimal_pop)} pop (${qpct(a.diversity.optimal_pop, a.diversity.pop)})` },
-                        { dot: 'warn', label: 'Not optimal:', value: `${qnum(a.diversity.suboptimal)} (${qpct(a.diversity.suboptimal, a.diversity.scopes)})`, right: `${qpop(a.diversity.suboptimal_pop)} pop (${qpct(a.diversity.suboptimal_pop, a.diversity.pop)})` },
-                    ] : [{ dot: 'muted', label: 'Not yet computed', value: '' }],
+                        { dot: 'good', label: t('c_setup.step3_districts.row_optimal', 'Optimal:'), value: share(a.diversity.optimal, a.diversity.scopes), right: popShare(a.diversity.optimal_pop, a.diversity.pop) },
+                        { dot: 'warn', label: t('c_setup.step3_districts.row_not_optimal', 'Not optimal:'), value: share(a.diversity.suboptimal, a.diversity.scopes), right: popShare(a.diversity.suboptimal_pop, a.diversity.pop) },
+                    ] : [{ dot: 'muted', label: t('c_setup.step3_districts.not_computed', 'Not yet computed'), value: '' }],
                 },
                 {
-                    title: 'Shape Compactness',
-                    tip: 'Measures whether the district\'s outer boundary is compact or irregular using the Convex Hull Ratio: district area divided by the area of its convex hull (1.0 = perfectly convex).',
-                    rightLabel: 'Mean', rightValue: a.compactness.mean.toFixed(3), rightClass: 'text-gray-200',
+                    title: t('c_setup.step3_districts.sec_compactness', 'Shape Compactness'),
+                    tip: t('c_setup.step3_districts.tip_a_compactness', 'Measures whether the district\'s outer boundary is compact or irregular using the Convex Hull Ratio: district area divided by the area of its convex hull (1.0 = perfectly convex).'),
+                    rightLabel: t('c_setup.step3_districts.right_mean', 'Mean'), rightValue: a.compactness.mean.toFixed(3), rightClass: 'text-gray-200',
                     rows: [
-                        popRow('good', 'Compact (≥0.70):', a.compactness.compact_count, a.compactness.count, a.compactness.compact_pop, a.compactness.pop),
-                        popRow('warn', 'Moderate (0.50–0.70):', a.compactness.moderate_count, a.compactness.count, a.compactness.moderate_pop, a.compactness.pop),
-                        popRow('bad', 'Irregular (<0.50):', a.compactness.irregular_count, a.compactness.count, a.compactness.irregular_pop, a.compactness.pop),
+                        popRow('good', t('c_setup.step3_districts.row_compact', 'Compact (≥0.70):'), a.compactness.compact_count, a.compactness.count, a.compactness.compact_pop, a.compactness.pop),
+                        popRow('warn', t('c_setup.step3_districts.row_moderate', 'Moderate (0.50–0.70):'), a.compactness.moderate_count, a.compactness.count, a.compactness.moderate_pop, a.compactness.pop),
+                        popRow('bad', t('c_setup.step3_districts.row_irregular', 'Irregular (<0.50):'), a.compactness.irregular_count, a.compactness.count, a.compactness.irregular_pop, a.compactness.pop),
                     ],
                 },
             ],
         },
         {
-            title: 'Equal-Constituent Jurisdiction Maps',
-            meta: [`${qnum(b.groupings)} maps`, `${qnum(b.panels)} panels`, `${qnum(b.seats)} seats`],
+            title: t('c_setup.step3_districts.col_b_title', 'Equal-Constituent Jurisdiction Maps'),
+            meta: [t('c_setup.step3_districts.meta_maps', { n: qnum(b.groupings) }), t('c_setup.step3_districts.meta_panels', { n: qnum(b.panels) }), t('c_setup.step3_districts.meta_seats', { n: qnum(b.seats) })],
             sections: [
                 {
-                    title: 'Constitutional Legality',
-                    tip: 'A panel map may never seat more than the Type B ceiling (the Type A total, capped so seats never exceed people), must place every constituent jurisdiction in exactly one panel, must hold no empty panel, and its panel seats must add up to the chamber\'s Type B seats. A chamber whose ladder already fits keeps one panel per constituent; a chamber whose ceiling holds less than one panel lawfully seats none.',
+                    title: t('c_setup.step3_districts.sec_legality', 'Constitutional Legality'),
+                    tip: t('c_setup.step3_districts.tip_b_legality', 'A panel map may never seat more than the Type B ceiling (the Type A total, capped so seats never exceed people), must place every constituent jurisdiction in exactly one panel, must hold no empty panel, and its panel seats must add up to the chamber\'s Type B seats. A chamber whose ladder already fits keeps one panel per constituent; a chamber whose ceiling holds less than one panel lawfully seats none.'),
                     rows: [
                         // Chamber shapes first, in the operator's order (2026-09-05): one
                         // panel per constituent at the floor; the claim ladder below the
                         // floor (2 = the hard floor, 4 = the floor minus one); a part too
                         // small to fill its panel; clumped. The four legality checks close
                         // the section.
-                        { dot: 'good', label: `Meet floor (${b.floor ?? 5} seats each):`, value: `${qnum(b.ungrouped_meet_floor ?? b.ungrouped)} (${qpct(b.ungrouped_meet_floor ?? b.ungrouped, b.groupings)})`, right: shapePop('meet_floor') },
-                        { dot: 'warn', label: `Sub floor (2–${(b.floor ?? 5) - 1} seats each):`, value: `${qnum((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0))} (${qpct((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0), b.groupings)})`, right: shapePop('sub_floor') },
-                        { dot: 'warn', label: 'Sub floor, tiny constituent:', value: `${qnum(b.ungrouped_tiny ?? 0)} (${qpct(b.ungrouped_tiny ?? 0, b.groupings)})`, right: shapePop('tiny') },
-                        { dot: 'warn', label: 'Clumped:', value: `${qnum(b.clumped)} (${qpct(b.clumped, b.groupings)})`, right: shapePop('clumped') },
-                        { dot: zeroGood(b.legality.breach), label: 'Seat breaches:', value: qnum(b.legality.breach) },
-                        { dot: zeroGood(b.legality.unassigned_parts), label: 'Unassigned constituents:', value: qnum(b.legality.unassigned_parts) },
-                        { dot: zeroGood(b.legality.empty_panels), label: 'Empty panels:', value: qnum(b.legality.empty_panels) },
-                        { dot: zeroGood(b.legality.identity_mismatch), label: 'Seat mismatches:', value: qnum(b.legality.identity_mismatch) },
+                        { dot: 'good', label: t('c_setup.step3_districts.row_meet_floor', { seats: b.floor ?? 5 }), value: share(b.ungrouped_meet_floor ?? b.ungrouped, b.groupings), right: shapePop('meet_floor') },
+                        { dot: 'warn', label: t('c_setup.step3_districts.row_sub_floor', { max: (b.floor ?? 5) - 1 }), value: share((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0), b.groupings), right: shapePop('sub_floor') },
+                        { dot: 'warn', label: t('c_setup.step3_districts.row_sub_floor_tiny', 'Sub floor, tiny constituent:'), value: share(b.ungrouped_tiny ?? 0, b.groupings), right: shapePop('tiny') },
+                        { dot: 'warn', label: t('c_setup.step3_districts.row_clumped', 'Clumped:'), value: share(b.clumped, b.groupings), right: shapePop('clumped') },
+                        { dot: zeroGood(b.legality.breach), label: t('c_setup.step3_districts.row_seat_breaches', 'Seat breaches:'), value: qnum(b.legality.breach) },
+                        { dot: zeroGood(b.legality.unassigned_parts), label: t('c_setup.step3_districts.row_unassigned', 'Unassigned constituents:'), value: qnum(b.legality.unassigned_parts) },
+                        { dot: zeroGood(b.legality.empty_panels), label: t('c_setup.step3_districts.row_empty_panels', 'Empty panels:'), value: qnum(b.legality.empty_panels) },
+                        { dot: zeroGood(b.legality.identity_mismatch), label: t('c_setup.step3_districts.row_seat_mismatches', 'Seat mismatches:'), value: qnum(b.legality.identity_mismatch) },
                     ],
                 },
                 {
-                    title: 'Constitutional Contiguity',
-                    tip: 'A panel is contiguous when its constituent jurisdictions form one connected piece of the chamber\'s border graph. A break is forced when the panel spans islands or separate landmasses that touch no sibling. The remaining breaks are the price of the even split: Clumping Spread comes before Contiguity, so where no contiguous even split exists a constituent joins the nearest panel by centroid.',
+                    title: t('c_setup.step3_districts.sec_contiguity', 'Constitutional Contiguity'),
+                    tip: t('c_setup.step3_districts.tip_b_contiguity', 'A panel is contiguous when its constituent jurisdictions form one connected piece of the chamber\'s border graph. A break is forced when the panel spans islands or separate landmasses that touch no sibling. The remaining breaks are the price of the even split: Clumping Spread comes before Contiguity, so where no contiguous even split exists a constituent joins the nearest panel by centroid.'),
                     rows: [
-                        { dot: 'good', label: 'Contiguous:', value: `${qnum(b.contiguity.contiguous_count)} (${qpct(b.contiguity.contiguous_count, b.panels)})`, right: `${qpop(b.contiguity.contiguous_pop)} pop` },
-                        { dot: 'warn', label: 'Non-contiguous, islands:', value: `${qnum(b.contiguity.forced_count)} (${qpct(b.contiguity.forced_count, b.panels)})`, right: `${qpop(b.contiguity.forced_pop)} pop` },
-                        { dot: 'bad', label: 'Non-contiguous, for the even split:', value: `${qnum(b.contiguity.spread_count)} (${qpct(b.contiguity.spread_count, b.panels)})`, right: `${qpop(b.contiguity.spread_pop)} pop` },
+                        { dot: 'good', label: t('c_setup.step3_districts.row_contiguous', 'Contiguous:'), value: share(b.contiguity.contiguous_count, b.panels), right: t('c_setup.step3_districts.right_pop', { pop: qpop(b.contiguity.contiguous_pop) }) },
+                        { dot: 'warn', label: t('c_setup.step3_districts.row_noncontig_islands', 'Non-contiguous, islands:'), value: share(b.contiguity.forced_count, b.panels), right: t('c_setup.step3_districts.right_pop', { pop: qpop(b.contiguity.forced_pop) }) },
+                        { dot: 'bad', label: t('c_setup.step3_districts.row_noncontig_split', 'Non-contiguous, for the even split:'), value: share(b.contiguity.spread_count, b.panels), right: t('c_setup.step3_districts.right_pop', { pop: qpop(b.contiguity.spread_pop) }) },
                     ],
                 },
                 {
-                    title: 'Uniform Political Diversity',
-                    tip: 'Tracks whether the clumps hold an even number of constituent parts. With equal seats per panel, equal member counts give equal representation. Spread is the difference between the largest and smallest panel of a map: 0 means every panel holds the same count, 1 means "equal except one", anything over 1 is uneven.',
+                    title: t('c_setup.step3_districts.sec_diversity', 'Uniform Political Diversity'),
+                    tip: t('c_setup.step3_districts.tip_b_diversity', 'Tracks whether the clumps hold an even number of constituent parts. With equal seats per panel, equal member counts give equal representation. Spread is the difference between the largest and smallest panel of a map: 0 means every panel holds the same count, 1 means "equal except one", anything over 1 is uneven.'),
                     rows: [
-                        { dot: 'good', label: 'Even, equal clumps:', value: `${qnum(b.diversity.spread0)} (${qpct(b.diversity.spread0, b.groupings)})`, right: 'spread 0' },
-                        { dot: 'good', label: 'Even, equal except one:', value: `${qnum(b.diversity.spread1)} (${qpct(b.diversity.spread1, b.groupings)})`, right: 'spread 1' },
-                        { dot: zeroGood(b.diversity.spread_over), label: 'Uneven:', value: `${qnum(b.diversity.spread_over)} (${qpct(b.diversity.spread_over, b.groupings)})`, right: 'spread over 1' },
+                        { dot: 'good', label: t('c_setup.step3_districts.row_even_equal', 'Even, equal clumps:'), value: share(b.diversity.spread0, b.groupings), right: t('c_setup.step3_districts.right_spread0', 'spread 0') },
+                        { dot: 'good', label: t('c_setup.step3_districts.row_even_except_one', 'Even, equal except one:'), value: share(b.diversity.spread1, b.groupings), right: t('c_setup.step3_districts.right_spread1', 'spread 1') },
+                        { dot: zeroGood(b.diversity.spread_over), label: t('c_setup.step3_districts.row_uneven', 'Uneven:'), value: share(b.diversity.spread_over, b.groupings), right: t('c_setup.step3_districts.right_spread_over', 'spread over 1') },
                     ],
                 },
             ],
@@ -356,12 +361,12 @@ const laneTone = {
     red:    { label: 'text-red-300',   clock: 'text-red-400',   dot: 'bg-red-400',   bar: 'bg-red-500',   pulse: 'bg-red-700' },
 }
 function laneTitle(w) {
-    const t = laneWarn.value
-    if (!t || w.claim_secs == null) return ''
-    const base = `Claim open for ${workerElapsed(w)}. Amber after ${fmtEta(t[0])}, red after ${fmtEta(t[1])}.`
+    const warn = laneWarn.value
+    if (!warn || w.claim_secs == null) return ''
+    const base = t('c_setup.step3_districts.lane_title_base', { elapsed: workerElapsed(w), amber: fmtEta(warn[0]), red: fmtEta(warn[1]) })
     const lvl = laneLevel(w)
-    if (lvl === 'red') return `${base} Past the second warning. Kill parks the scope in review.`
-    if (lvl === 'amber') return `${base} Past the first warning.`
+    if (lvl === 'red') return base + t('c_setup.step3_districts.lane_title_red', ' Past the second warning. Kill parks the scope in review.')
+    if (lvl === 'amber') return base + t('c_setup.step3_districts.lane_title_amber', ' Past the first warning.')
     return base
 }
 // STABLE SLOTS (operator, 2026-08-29: "everything seems bouncing around"):
@@ -400,13 +405,13 @@ function batchFill(w) {
 // honest long-idle state.
 const idleCause = computed(() => {
     const r = run.value
-    if (!r) return 'idle — next claim within seconds'
+    if (!r) return t('c_setup.step3_districts.idle_next', 'idle — next claim within seconds')
     const left = Math.max(0, (r.sweeps_total ?? 0) - (r.sweeps_done ?? 0))
-    if (left === 0) return 'idle — pile drained, closing out'
+    if (left === 0) return t('c_setup.step3_districts.idle_drained', 'idle — pile drained, closing out')
     if (r.light_pending === false) {
-        return `idle — only giants remain (heavy slots ${r.heavy_running ?? '?'}/${r.heavy_cap ?? '?'} busy)`
+        return t('c_setup.step3_districts.idle_giants', { running: r.heavy_running ?? '?', cap: r.heavy_cap ?? '?' })
     }
-    return 'idle — next claim within seconds'
+    return t('c_setup.step3_districts.idle_next', 'idle — next claim within seconds')
 })
 // PHASE BREADCRUMB (operator approval 2026-08-29): the run's own stamps,
 // each phase with its measured elapsed; the live phase ticks.
@@ -454,7 +459,7 @@ async function continueToNext() {
             body: JSON.stringify({}),
         })
         const json = await res.json().catch(() => ({}))
-        if (!res.ok) { continueError.value = json.error || `Refused (HTTP ${res.status}).`; return }
+        if (!res.ok) { continueError.value = json.error || t('c_setup.step3_districts.err_refused', { status: res.status }); return }
         router.visit(json.next || '/setup')
     } catch (e) {
         continueError.value = String(e)
@@ -495,7 +500,7 @@ async function fetchAutoscale() {
             signal: ctl?.signal,
         })
         if (!res.ok) {
-            autoscaleError.value = `Could not load autoscale progress (HTTP ${res.status}).`
+            autoscaleError.value = t('c_setup.step3_districts.err_load_progress', { status: res.status })
             return
         }
         autoscaleError.value = ''
@@ -526,7 +531,7 @@ async function fetchAutoscale() {
         }
     } catch (e) {
         autoscaleError.value = e?.name === 'AbortError'
-            ? `Progress request aborted after ${POLL_ABORT_MS / 1000} s. The next poll retries.`
+            ? t('c_setup.step3_districts.err_aborted', { s: POLL_ABORT_MS / 1000 })
             : String(e)
     } finally {
         if (abortTimer) clearTimeout(abortTimer)
@@ -558,7 +563,7 @@ function onVisibilityChange() {
 }
 
 async function haltRun() {
-    if (!confirm('Halt the full-scale run? Workers stop at their next claim boundary; everything already committed stays. You can resume any time.')) return
+    if (!confirm(t('c_setup.step3_districts.halt_confirm', 'Halt the full-scale run? Workers stop at their next claim boundary; everything already committed stays. You can resume any time.'))) return
     actionBusy.value = true
     try {
         await csrfFetch('/api/setup/wizard/step3/autoscale-halt', { method: 'POST' })
@@ -579,7 +584,7 @@ async function resumeRun(requeueReview = false) {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {
-            autoscaleError.value = data.error || `resume failed (HTTP ${res.status})`
+            autoscaleError.value = data.error || t('c_setup.step3_districts.err_resume', { status: res.status })
             return
         }
         await fetchAutoscale()
@@ -631,7 +636,7 @@ async function postRowAction(url, ids) {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || data.ok === false) {
-            autoscaleError.value = data.error || `request failed (HTTP ${res.status})`
+            autoscaleError.value = data.error || t('c_setup.step3_districts.err_request', { status: res.status })
         }
         await fetchAutoscale()
         return data
@@ -659,13 +664,13 @@ async function recheckDrift(ids = null) {
 // maps, keeps sizing + precompute + boards + the audit chain, re-mints fresh
 // founding drafts. The run stays halted; Resume carries it forward.
 async function rewindRun() {
-    if (!confirm('Rewind mapping to the start?\n\nThis DELETES every autoscale-generated district map and re-mints fresh founding drafts. Sizing, the founding boards, and the precomputed adjacency are kept; adopted/operator maps are never touched. The run stays halted — press Resume when ready.')) return
+    if (!confirm(t('c_setup.step3_districts.rewind_confirm', 'Rewind mapping to the start?\n\nThis DELETES every autoscale-generated district map and re-mints fresh founding drafts. Sizing, the founding boards, and the precomputed adjacency are kept; adopted/operator maps are never touched. The run stays halted — press Resume when ready.'))) return
     actionBusy.value = true
     try {
         const res = await csrfFetch('/api/setup/wizard/step3/autoscale-revert', { method: 'POST' })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {
-            autoscaleError.value = data.error || `rewind failed (HTTP ${res.status})`
+            autoscaleError.value = data.error || t('c_setup.step3_districts.err_rewind', { status: res.status })
             return
         }
         await fetchAutoscale()
@@ -716,7 +721,7 @@ async function killLane(w) {
         const res = await csrfFetch(`/api/setup/wizard/step3/lanes/${encodeURIComponent(k)}/kill`, { method: 'POST' })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {
-            autoscaleError.value = data.error || data.message || `Kill request failed (HTTP ${res.status}).`
+            autoscaleError.value = data.error || data.message || t('c_setup.step3_districts.err_kill', { status: res.status })
             return
         }
         killSent.value = { ...killSent.value, [k]: w.claim_label ?? '' }
@@ -771,7 +776,7 @@ async function saveAutoKill() {
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {
             // A 422 carries Laravel's `message`, other failures carry `error`.
-            autoKillError.value = data.error || data.message || `Auto-kill setting failed (HTTP ${res.status}).`
+            autoKillError.value = data.error || data.message || t('c_setup.step3_districts.err_autokill', { status: res.status })
             const m = run.value?.auto_kill_minutes ?? null   // back to what the run holds
             autoKillOn.value = m != null
             if (m != null) autoKillMinutes.value = m
@@ -853,9 +858,14 @@ function pct(done, total) {
 // Natural level names (operator order 2026-09-04): ADM numbers are developer
 // vocabulary and never display. The lane strip and the lists show the same
 // human labels the layer bars use. Mirrors SetupController::layerBars levelLabels.
-const ADM_LABELS = ['Planet', 'Countries', 'States / Provinces', 'Counties', 'Municipalities', 'Townships', 'Neighborhoods']
+const ADM_LABELS = [
+    t('c_setup.step3_districts.adm_0', 'Planet'), t('c_setup.step3_districts.adm_1', 'Countries'),
+    t('c_setup.step3_districts.adm_2', 'States / Provinces'), t('c_setup.step3_districts.adm_3', 'Counties'),
+    t('c_setup.step3_districts.adm_4', 'Municipalities'), t('c_setup.step3_districts.adm_5', 'Townships'),
+    t('c_setup.step3_districts.adm_6', 'Neighborhoods'),
+]
 function admLabel(level) {
-    return ADM_LABELS[level] ?? `Level ${level}`
+    return ADM_LABELS[level] ?? t('c_setup.step3_districts.level_n', { n: level })
 }
 
 function layerLabel(l) {
@@ -863,22 +873,22 @@ function layerLabel(l) {
     // (Planet, Countries, States / Provinces, ...). Legacy split rows keep
     // the old form until the payload refreshes.
     if (l.label) return l.label
-    const kind = l.kind === 'single' ? 'leaf councils' : 'sweeps'
-    return `${admLabel(l.adm_level)} ${kind}`
+    const kind = l.kind === 'single' ? t('c_setup.step3_districts.leaf_councils', 'leaf councils') : t('c_setup.step3_districts.sweeps', 'sweeps')
+    return t('c_setup.step3_districts.layer_label', { level: admLabel(l.adm_level), kind })
 }
 
 const phaseLabel = computed(() => {
     if (!run.value) return ''
     switch (run.value.status) {
-        case 'queued': return 'Queued — the pump starts it within a minute'
-        case 'sizing': return 'Phase A — sizing every legislature (cube-root law, True All Scale)'
+        case 'queued': return t('c_setup.step3_districts.phase_queued', 'Queued — the pump starts it within a minute')
+        case 'sizing': return t('c_setup.step3_districts.phase_sizing', 'Phase A — sizing every legislature (cube-root law, True All Scale)')
         case 'mapping':
             return precomputeOpen.value
-                ? 'Phase B — leaf councils + geometry precompute (borders paid once, not 48k times)'
-                : 'Phase B — drawing every founding district map (trivials first, then biggest scopes first)'
-        case 'done': return 'Complete — every jurisdiction has a legislature and a founding map'
-        case 'halted': return 'Halted by operator — resume any time'
-        case 'failed': return 'Failed — see the error below'
+                ? t('c_setup.step3_districts.phase_mapping_precompute', 'Phase B — leaf councils + geometry precompute (borders paid once, not 48k times)')
+                : t('c_setup.step3_districts.phase_mapping_drawing', 'Phase B — drawing every founding district map (trivials first, then biggest scopes first)')
+        case 'done': return t('c_setup.step3_districts.phase_done', 'Complete — every jurisdiction has a legislature and a founding map')
+        case 'halted': return t('c_setup.step3_districts.phase_halted', 'Halted by operator — resume any time')
+        case 'failed': return t('c_setup.step3_districts.phase_failed', 'Failed — see the error below')
         default: return run.value.status
     }
 })
@@ -909,15 +919,9 @@ onBeforeUnmount(() => {
 
             <header class="mt-8 mb-6">
                 <h1 class="text-3xl font-bold text-white mb-2">
-                    Build Your Districts
+                    {{ t('c_setup.step3_districts.heading', 'Build Your Districts') }}
                 </h1>
-                <p class="text-gray-300 leading-relaxed">
-                    Accepting the map data kicked off the <strong>full-scale build</strong>: every
-                    jurisdiction gets a legislature sized by the cube-root law, and every legislature
-                    gets a founding district map — real mixed-autoseed sweeps for jurisdictions with
-                    constituents, single at-large councils for the leaves. You can walk away; the run
-                    self-heals from any crash within minutes and this page tracks it live.
-                </p>
+                <p class="text-gray-300 leading-relaxed" v-html="t('c_setup.step3_districts.intro', 'Accepting the map data kicked off the <strong>full-scale build</strong>: every jurisdiction gets a legislature sized by the cube-root law, and every legislature gets a founding district map — real mixed-autoseed sweeps for jurisdictions with constituents, single at-large councils for the leaves. You can walk away; the run self-heals from any crash within minutes and this page tracks it live.')"></p>
             </header>
 
             <!-- Autoscale run dashboard -->
@@ -940,17 +944,17 @@ onBeforeUnmount(() => {
                 <!-- Headline counters -->
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4">
                     <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">Legislatures sized</div>
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step3_districts.legislatures_sized', 'Legislatures sized') }}</div>
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ (run.sized_parents + run.sized_leaves).toLocaleString() }}</div>
                     </div>
                     <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">Sweep rate</div>
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step3_districts.sweep_rate', 'Sweep rate') }}</div>
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">
                             {{ run.sweeps_per_hour != null && run.sweeps_per_hour > 0 ? `${run.sweeps_per_hour.toLocaleString()}/h` : '—' }}
                         </div>
                     </div>
                     <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">ETA</div>
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step3_districts.eta', 'ETA') }}</div>
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ fmtEta(run.eta_seconds) }}</div>
                     </div>
                 </div>
@@ -969,7 +973,7 @@ onBeforeUnmount(() => {
                          misinformation. -->
                     <div v-if="parentsPassActive">
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
-                            <span>Sizing pass — parent legislatures (re-verifies every parent)</span>
+                            <span>{{ t('c_setup.step3_districts.sizing_pass', 'Sizing pass — parent legislatures (re-verifies every parent)') }}</span>
                             <span class="tabular-nums">
                                 {{ run.sized_parents.toLocaleString() }} / {{ run.parents_total.toLocaleString() }}
                                 <span v-if="sizingRatePerMin"> · {{ Math.round(sizingRatePerMin).toLocaleString() }}/min</span>
@@ -985,7 +989,7 @@ onBeforeUnmount(() => {
                          mapping flip. Bar appears the moment maps exist. -->
                     <div v-if="run.status === 'sizing' && run.maps_minted > 0 && run.maps_total">
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
-                            <span>Founding maps minted (one per legislature)</span>
+                            <span>{{ t('c_setup.step3_districts.founding_maps_minted', 'Founding maps minted (one per legislature)') }}</span>
                             <span class="tabular-nums">{{ run.maps_minted.toLocaleString() }} / {{ run.maps_total.toLocaleString() }}{{ barTiming('mint', run.maps_minted, run.maps_total) }}</span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">
@@ -994,7 +998,7 @@ onBeforeUnmount(() => {
                     </div>
                     <div v-if="run.sized_live != null && run.sizing_total && !parentsPassActive">
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
-                            <span>Legislature rows in database</span>
+                            <span>{{ t('c_setup.step3_districts.legislature_rows', 'Legislature rows in database') }}</span>
                             <span class="tabular-nums">{{ shown('sized_live', run.sized_live) }} / {{ run.sizing_total.toLocaleString() }}</span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">
@@ -1008,7 +1012,7 @@ onBeforeUnmount(() => {
                          and moves at the true machine rate. -->
                     <div>
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
-                            <span>Scopes</span>
+                            <span>{{ t('c_setup.step3_districts.scopes', 'Scopes') }}</span>
                             <!-- Total counts every future scope too: an
                                  unmaterialized sweep map holds at least its
                                  own root scope, so each layer contributes
@@ -1035,12 +1039,12 @@ onBeforeUnmount(() => {
                      right. -->
                 <div v-if="layers.length" class="mt-4 border-t border-gray-700/50 pt-3">
                     <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-2">
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">By layer</div>
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step3_districts.by_layer', 'By layer') }}</div>
                         <div class="flex flex-wrap items-center gap-3 text-[11px] text-gray-400">
-                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-teal-500"></span>At-Large District Maps</span>
-                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-violet-500"></span>Constituent-Split Maps</span>
-                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-pink-500"></span>Constituent Panel Maps</span>
-                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>Line-Split Maps</span>
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-teal-500"></span>{{ t('c_setup.step3_districts.legend_at_large', 'At-Large District Maps') }}</span>
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-violet-500"></span>{{ t('c_setup.step3_districts.legend_constituent_split', 'Constituent-Split Maps') }}</span>
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-pink-500"></span>{{ t('c_setup.step3_districts.legend_constituent_panel', 'Constituent Panel Maps') }}</span>
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>{{ t('c_setup.step3_districts.legend_line_split', 'Line-Split Maps') }}</span>
                         </div>
                     </div>
                     <div class="space-y-2">
@@ -1051,16 +1055,16 @@ onBeforeUnmount(() => {
                                     <span v-if="l.status === 'done'" class="text-emerald-500 mr-1">✓</span>
                                     <span v-else-if="l.status === 'running'" class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse mr-1"></span>
                                     {{ layerLabel(l) }}
-                                    <span v-if="l.review" class="text-amber-400 ml-1">· {{ l.review }} review</span>
+                                    <span v-if="l.review" class="text-amber-400 ml-1">· {{ t('c_setup.step3_districts.n_review', { n: l.review }) }}</span>
                                 </span>
                                 <span class="tabular-nums">
                                     <template v-if="l.units_total != null">{{ shown(`layer:${l.key}`, l.units_done) }} / {{ l.units_total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.units_done, l.units_total) : '' }}</template>
-                                    <template v-else-if="l.scopes_total">{{ shown(`layer:${l.key}`, l.scopes_done) }} / {{ l.scopes_total.toLocaleString() }} scopes · {{ l.done.toLocaleString() }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.scopes_done, l.scopes_total) : '' }}</template>
+                                    <template v-else-if="l.scopes_total">{{ shown(`layer:${l.key}`, l.scopes_done) }} / {{ l.scopes_total.toLocaleString() }} {{ t('c_setup.step3_districts.scopes_lower', 'scopes') }} · {{ l.done.toLocaleString() }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.scopes_done, l.scopes_total) : '' }}</template>
                                     <template v-else>{{ shown(`layer:${l.key}`, l.done) }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.done, l.total) : '' }}</template>
                                 </span>
                             </div>
                             <div v-if="l.units_total != null" class="h-1.5 bg-gray-800 rounded overflow-hidden flex"
-                                 :title="`${l.trivial_done.toLocaleString()} / ${l.trivial_total.toLocaleString()} at-large district maps · ${l.comp_done.toLocaleString()} / ${l.comp_total.toLocaleString()} constituent-split maps · ${(l.panel_done ?? 0).toLocaleString()} / ${(l.panel_total ?? 0).toLocaleString()} constituent panel maps · ${l.line_done.toLocaleString()} / ${l.line_total.toLocaleString()} line-split maps`">
+                                 :title="t('c_setup.step3_districts.layer_bar_title', { trivialDone: l.trivial_done.toLocaleString(), trivialTotal: l.trivial_total.toLocaleString(), compDone: l.comp_done.toLocaleString(), compTotal: l.comp_total.toLocaleString(), panelDone: (l.panel_done ?? 0).toLocaleString(), panelTotal: (l.panel_total ?? 0).toLocaleString(), lineDone: l.line_done.toLocaleString(), lineTotal: l.line_total.toLocaleString() })">
                                 <div class="h-full bg-teal-500 transition-all"   :style="{ width: pct(l.trivial_done, l.units_total) + '%' }"></div>
                                 <div class="h-full bg-violet-500 transition-all" :style="{ width: pct(l.comp_done, l.units_total) + '%' }"></div>
                                 <div class="h-full bg-pink-500 transition-all"   :style="{ width: pct(l.panel_done ?? 0, l.units_total) + '%' }"></div>
@@ -1077,14 +1081,11 @@ onBeforeUnmount(() => {
 
                 <!-- Drift is always wrong (operator ruling 2026-07-26, 0e9eda0). -->
                 <p v-if="run.drifted_done > 0" class="text-amber-300 text-xs mt-3">
-                    {{ run.drifted_done.toLocaleString() }} completed maps seat a total that differs from their
-                    legislature's apportioned seats (net {{ run.net_drift > 0 ? '+' : '' }}{{ run.net_drift.toLocaleString() }}).
-                    Drift is a defect. The head distributes to the children, so a map's seats must sum to its
-                    apportioned total. These maps need a redraw.
+                    {{ t('c_setup.step3_districts.drift_note', { n: run.drifted_done.toLocaleString(), net: (run.net_drift > 0 ? '+' : '') + run.net_drift.toLocaleString() }) }}
                 </p>
 
                 <p v-if="run.last_error" class="text-red-300 text-xs mt-3 font-mono break-all">
-                    Last error: {{ run.last_error }}
+                    {{ t('c_setup.step3_districts.last_error', { error: run.last_error }) }}
                 </p>
 
                 <!-- THE WORKER STRIP: one honest line per live worker — what
@@ -1114,26 +1115,26 @@ onBeforeUnmount(() => {
                                        :checked="autoKillOn"
                                        :disabled="autoKillBusy"
                                        @change="toggleAutoKill($event.target.checked)" />
-                                <span>Auto-kill a lane after</span>
+                                <span>{{ t('c_setup.step3_districts.autokill_after', 'Auto-kill a lane after') }}</span>
                             </label>
                             <input type="number" min="1" max="1440" step="1"
-                                   aria-label="Auto-kill minutes on one claim"
+                                   :aria-label="t('c_setup.step3_districts.autokill_minutes_aria', 'Auto-kill minutes on one claim')"
                                    class="w-16 rounded bg-gray-800 border border-gray-700 px-1.5 py-0.5 text-gray-100 tabular-nums disabled:opacity-50"
                                    v-model.number="autoKillMinutes"
                                    :placeholder="autoKillDefaultMinutes"
                                    :disabled="!autoKillOn || autoKillBusy"
                                    @change="saveAutoKill" />
-                            <span>min on one claim</span>
-                            <span v-if="autoKillBusy" class="text-gray-500">saving</span>
-                            <span v-else-if="run.auto_kill_minutes != null" class="text-emerald-400">on, {{ run.auto_kill_minutes }} min</span>
-                            <span v-else class="text-gray-500">off</span>
+                            <span>{{ t('c_setup.step3_districts.autokill_min_on_claim', 'min on one claim') }}</span>
+                            <span v-if="autoKillBusy" class="text-gray-500">{{ t('c_setup.step3_districts.autokill_saving', 'saving') }}</span>
+                            <span v-else-if="run.auto_kill_minutes != null" class="text-emerald-400">{{ t('c_setup.step3_districts.autokill_on', { n: run.auto_kill_minutes }) }}</span>
+                            <span v-else class="text-gray-500">{{ t('c_setup.step3_districts.autokill_off', 'off') }}</span>
                         </div>
                         <!-- Workers count (moved here 2026-09-04): beside the
                              auto-kill control, not a headline stat. -->
                         <div v-if="run.workers_target" class="flex items-center gap-1.5 text-gray-300">
-                            <span class="text-gray-400 uppercase tracking-wide">Workers</span>
+                            <span class="text-gray-400 uppercase tracking-wide">{{ t('c_setup.step3_districts.workers', 'Workers') }}</span>
                             <span class="tabular-nums font-semibold text-gray-100">{{ run.workers }}<span class="text-gray-500 font-normal">/{{ run.workers_target }}</span></span>
-                            <span v-if="run.paused_until" class="text-amber-300">paused (pg recovering)</span>
+                            <span v-if="run.paused_until" class="text-amber-300">{{ t('c_setup.step3_districts.paused_pg', 'paused (pg recovering)') }}</span>
                         </div>
                         <!-- Run controls (moved here 2026-09-04): Halt / Resume /
                              Rewind share the row with workers + auto-kill. -->
@@ -1144,10 +1145,10 @@ onBeforeUnmount(() => {
                                 :disabled="actionBusy"
                                 class="px-3 py-1 rounded border border-amber-700 text-amber-300 hover:bg-amber-900/40 transition-colors"
                             >
-                                Halt
+                                {{ t('c_setup.step3_districts.btn_halt', 'Halt') }}
                             </button>
                             <span v-else-if="runActive && run.halt_requested" class="text-amber-300 italic">
-                                halting at the next boundary…
+                                {{ t('c_setup.step3_districts.halting_boundary', 'halting at the next boundary…') }}
                             </span>
                             <button
                                 v-if="run.status === 'halted'"
@@ -1155,21 +1156,21 @@ onBeforeUnmount(() => {
                                 :disabled="actionBusy"
                                 class="px-3 py-1 rounded border border-emerald-700 text-emerald-300 hover:bg-emerald-900/40 transition-colors"
                             >
-                                Resume
+                                {{ t('c_setup.step3_districts.btn_resume', 'Resume') }}
                             </button>
                             <button
                                 v-if="run.status === 'halted'"
                                 @click="rewindRun"
                                 :disabled="actionBusy"
                                 class="px-3 py-1 rounded border border-rose-700 text-rose-300 hover:bg-rose-900/40 transition-colors"
-                                title="Delete generated maps and re-mint fresh founding drafts (sizing + precompute kept)"
+                                :title="t('c_setup.step3_districts.rewind_title', 'Delete generated maps and re-mint fresh founding drafts (sizing + precompute kept)')"
                             >
-                                Rewind mapping
+                                {{ t('c_setup.step3_districts.btn_rewind', 'Rewind mapping') }}
                             </button>
                         </div>
                     </div>
                     <p v-if="laneWarn" class="text-gray-500 mt-1.5">
-                        Lane warning: amber after {{ fmtEta(laneWarn[0]) }}, red after {{ fmtEta(laneWarn[1]) }}. A killed scope parks in review.
+                        {{ t('c_setup.step3_districts.lane_warn_note', { amber: fmtEta(laneWarn[0]), red: fmtEta(laneWarn[1]) }) }}
                     </p>
                     <p v-if="autoKillError" class="text-red-300 text-xs mt-1">{{ autoKillError }}</p>
                 </div>
@@ -1217,8 +1218,8 @@ onBeforeUnmount(() => {
                                 </span>
                                 <span class="flex items-center gap-2 tabular-nums shrink-0 ml-3" :class="laneTone[laneLevel(w)].clock">
                                     <template v-if="w.claim_label">
-                                        <span>{{ workerElapsed(w) }} on claim<span v-if="laneLevel(w) !== 'normal'"> ({{ laneLevel(w) }} warning)</span></span>
-                                        <span v-if="killState(w) === 'requested'" class="text-red-300 italic">kill requested</span>
+                                        <span>{{ workerElapsed(w) }} {{ t('c_setup.step3_districts.on_claim', 'on claim') }}<span v-if="laneLevel(w) !== 'normal'"> {{ t('c_setup.step3_districts.lane_warning_paren', { level: laneLevel(w) }) }}</span></span>
+                                        <span v-if="killState(w) === 'requested'" class="text-red-300 italic">{{ t('c_setup.step3_districts.kill_requested', 'kill requested') }}</span>
                                         <button v-else
                                                 type="button"
                                                 @click="killLane(w)"
@@ -1228,9 +1229,9 @@ onBeforeUnmount(() => {
                                                     ? 'border-red-500 bg-red-900/50 text-red-100'
                                                     : 'border-gray-600 text-gray-300 hover:border-red-600 hover:text-red-200'"
                                                 :title="killState(w) === 'armed'
-                                                    ? 'Click again to kill this lane. The scope parks in review.'
-                                                    : 'Kill this lane at its next boundary. Two clicks.'">
-                                            {{ killState(w) === 'pending' ? 'Killing' : (killState(w) === 'armed' ? 'Confirm kill' : 'Kill') }}
+                                                    ? t('c_setup.step3_districts.kill_title_armed', 'Click again to kill this lane. The scope parks in review.')
+                                                    : t('c_setup.step3_districts.kill_title_idle', 'Kill this lane at its next boundary. Two clicks.')">
+                                            {{ killState(w) === 'pending' ? t('c_setup.step3_districts.kill_killing', 'Killing') : (killState(w) === 'armed' ? t('c_setup.step3_districts.kill_confirm', 'Confirm kill') : t('c_setup.step3_districts.kill', 'Kill')) }}
                                         </button>
                                         <span>·</span>
                                     </template>
@@ -1260,7 +1261,7 @@ onBeforeUnmount(() => {
                 <div v-if="reviewItems.length" class="mt-4 border-t border-gray-700/50 pt-3">
                     <div class="flex items-center justify-between mb-2">
                         <div class="text-amber-300 text-xs uppercase tracking-wide">
-                            Needs attention ({{ reviewCount.toLocaleString() }})
+                            {{ t('c_setup.step3_districts.needs_attention', { n: reviewCount.toLocaleString() }) }}
                         </div>
                         <div class="flex items-center gap-2">
                             <!-- Queue all back is visible MID-RUN (operator order
@@ -1273,7 +1274,7 @@ onBeforeUnmount(() => {
                                 :disabled="actionBusy"
                                 class="text-xs px-2 py-1 rounded border border-amber-700 text-amber-200 hover:bg-amber-900/40 transition-colors disabled:opacity-50"
                             >
-                                Requeue all
+                                {{ t('c_setup.step3_districts.requeue_all', 'Requeue all') }}
                             </button>
                             <button
                                 v-else
@@ -1281,7 +1282,7 @@ onBeforeUnmount(() => {
                                 :disabled="actionBusy"
                                 class="text-xs px-2 py-1 rounded border border-gray-600 text-gray-300 hover:bg-gray-800 transition-colors"
                             >
-                                Retry all review items
+                                {{ t('c_setup.step3_districts.retry_all_review', 'Retry all review items') }}
                             </button>
                         </div>
                     </div>
@@ -1289,11 +1290,11 @@ onBeforeUnmount(() => {
                         <table class="w-full text-xs text-left">
                             <thead class="text-gray-500 uppercase">
                                 <tr>
-                                    <th class="py-1 pr-2">Legislature</th>
-                                    <th class="py-1 pr-2">Kind</th>
-                                    <th class="py-1 pr-2">Status</th>
-                                    <th class="py-1 pr-2">Reason</th>
-                                    <th class="py-1 text-right">Action</th>
+                                    <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_legislature', 'Legislature') }}</th>
+                                    <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_kind', 'Kind') }}</th>
+                                    <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_status', 'Status') }}</th>
+                                    <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_reason', 'Reason') }}</th>
+                                    <th class="py-1 text-right">{{ t('c_setup.step3_districts.th_action', 'Action') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="text-gray-300">
@@ -1305,7 +1306,7 @@ onBeforeUnmount(() => {
                                         </a>
                                         <span class="text-gray-500"> {{ admLabel(it.adm_level) }}</span>
                                     </td>
-                                    <td class="py-1.5 pr-2">{{ it.kind === 'sweep' ? 'sweep' : 'single' }}</td>
+                                    <td class="py-1.5 pr-2">{{ it.kind === 'sweep' ? t('c_setup.step3_districts.kind_sweep', 'sweep') : t('c_setup.step3_districts.kind_single', 'single') }}</td>
                                     <td class="py-1.5 pr-2">{{ it.status }}</td>
                                     <td class="py-1.5 pr-2 text-gray-400">{{ it.reason || '—' }}</td>
                                     <td class="py-1.5 pl-2 text-right whitespace-nowrap">
@@ -1314,7 +1315,7 @@ onBeforeUnmount(() => {
                                             :disabled="actionBusy || rowBusy === it.legislature_id"
                                             class="text-[11px] px-2 py-0.5 rounded border border-amber-700 text-amber-200 hover:bg-amber-900/40 transition-colors disabled:opacity-50"
                                         >
-                                            {{ rowBusy === it.legislature_id ? 'Requeuing…' : 'Requeue' }}
+                                            {{ rowBusy === it.legislature_id ? t('c_setup.step3_districts.requeuing', 'Requeuing…') : t('c_setup.step3_districts.requeue', 'Requeue') }}
                                         </button>
                                     </td>
                                 </tr>
@@ -1330,7 +1331,7 @@ onBeforeUnmount(() => {
                 <div v-if="driftItems.length" class="mt-4 border-t border-gray-700/50 pt-3">
                     <div class="flex items-center justify-between mb-2">
                         <div class="text-rose-300 text-xs uppercase tracking-wide">
-                            Completed with drift ({{ driftCount.toLocaleString() }})
+                            {{ t('c_setup.step3_districts.completed_drift', { n: driftCount.toLocaleString() }) }}
                         </div>
                         <!-- Recheck all recomputes every drifted map's seated total
                              from its current districts (operator order 2026-09-03):
@@ -1341,18 +1342,18 @@ onBeforeUnmount(() => {
                             :disabled="actionBusy"
                             class="text-xs px-2 py-1 rounded border border-rose-700 text-rose-200 hover:bg-rose-900/40 transition-colors disabled:opacity-50"
                         >
-                            Recheck all
+                            {{ t('c_setup.step3_districts.recheck_all', 'Recheck all') }}
                         </button>
                     </div>
                     <div class="max-h-64 overflow-y-auto">
                         <table class="w-full text-xs text-left">
                             <thead class="text-gray-500 uppercase">
                                 <tr>
-                                    <th class="py-1 pr-2">Legislature</th>
-                                    <th class="py-1 pr-2">Expected</th>
-                                    <th class="py-1 pr-2">Seated</th>
-                                    <th class="py-1 pr-2">Net drift</th>
-                                    <th class="py-1 text-right">Action</th>
+                                    <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_legislature', 'Legislature') }}</th>
+                                    <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_expected', 'Expected') }}</th>
+                                    <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_seated', 'Seated') }}</th>
+                                    <th class="py-1 pr-2">{{ t('c_setup.step3_districts.th_net_drift', 'Net drift') }}</th>
+                                    <th class="py-1 text-right">{{ t('c_setup.step3_districts.th_action', 'Action') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="text-gray-300">
@@ -1376,7 +1377,7 @@ onBeforeUnmount(() => {
                                             :disabled="actionBusy || rowBusy === it.legislature_id"
                                             class="text-[11px] px-2 py-0.5 rounded border border-rose-700 text-rose-200 hover:bg-rose-900/40 transition-colors disabled:opacity-50"
                                         >
-                                            {{ rowBusy === it.legislature_id ? 'Rechecking…' : 'Recheck' }}
+                                            {{ rowBusy === it.legislature_id ? t('c_setup.step3_districts.rechecking', 'Rechecking…') : t('c_setup.step3_districts.recheck', 'Recheck') }}
                                         </button>
                                     </td>
                                 </tr>
@@ -1397,7 +1398,7 @@ onBeforeUnmount(() => {
                 class="rounded-lg p-5 mb-6 border bg-gray-900/60 border-gray-800"
             >
                 <div class="flex items-center justify-between gap-3 mb-3">
-                    <h2 class="font-semibold text-white">World build</h2>
+                    <h2 class="font-semibold text-white">{{ t('c_setup.step3_districts.world_build', 'World build') }}</h2>
                     <span
                         :class="worldBuild.status === 'complete' ? 'text-emerald-400' : 'text-blue-300'"
                         class="text-xs uppercase tracking-wide"
@@ -1405,33 +1406,33 @@ onBeforeUnmount(() => {
                 </div>
                 <div v-if="worldBuild.report" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                     <div class="bg-gray-800/60 rounded p-3">
-                        <div class="text-gray-400 text-xs uppercase mb-1">Apportionment</div>
+                        <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_apportionment', 'Apportionment') }}</div>
                         <div class="text-white">{{ worldBuild.report.apportionment.done.toLocaleString() }} / {{ worldBuild.report.apportionment.total.toLocaleString() }}</div>
-                        <div v-if="worldBuild.report.apportionment.refusals > 0" class="text-amber-300 text-xs mt-1">{{ worldBuild.report.apportionment.refusals }} gate refusals</div>
+                        <div v-if="worldBuild.report.apportionment.refusals > 0" class="text-amber-300 text-xs mt-1">{{ t('c_setup.step3_districts.wb_gate_refusals', { n: worldBuild.report.apportionment.refusals }) }}</div>
                     </div>
                     <div class="bg-gray-800/60 rounded p-3">
-                        <div class="text-gray-400 text-xs uppercase mb-1">Borders precomputed</div>
+                        <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_borders', 'Borders precomputed') }}</div>
                         <div class="text-white">{{ (worldBuild.report.adjacency.total - worldBuild.report.adjacency.open).toLocaleString() }} / {{ worldBuild.report.adjacency.total.toLocaleString() }}</div>
                     </div>
                     <div class="bg-gray-800/60 rounded p-3">
-                        <div class="text-gray-400 text-xs uppercase mb-1">Founding maps</div>
-                        <div class="text-white">{{ worldBuild.report.maps.unstamped === 0 ? 'all stamped' : worldBuild.report.maps.unstamped.toLocaleString() + ' unstamped' }}</div>
+                        <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_founding_maps', 'Founding maps') }}</div>
+                        <div class="text-white">{{ worldBuild.report.maps.unstamped === 0 ? t('c_setup.step3_districts.wb_all_stamped', 'all stamped') : t('c_setup.step3_districts.wb_n_unstamped', { n: worldBuild.report.maps.unstamped.toLocaleString() }) }}</div>
                     </div>
                     <div class="bg-gray-800/60 rounded p-3">
-                        <div class="text-gray-400 text-xs uppercase mb-1">Legislatures</div>
-                        <div class="text-white">{{ worldBuild.report.legislatures.missing_headers === 0 ? 'all covered' : worldBuild.report.legislatures.missing_headers.toLocaleString() + ' uncovered' }}</div>
+                        <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_legislatures', 'Legislatures') }}</div>
+                        <div class="text-white">{{ worldBuild.report.legislatures.missing_headers === 0 ? t('c_setup.step3_districts.wb_all_covered', 'all covered') : t('c_setup.step3_districts.wb_n_uncovered', { n: worldBuild.report.legislatures.missing_headers.toLocaleString() }) }}</div>
                     </div>
                     <div class="bg-gray-800/60 rounded p-3">
-                        <div class="text-gray-400 text-xs uppercase mb-1">Block keys</div>
-                        <div class="text-white">{{ worldBuild.report.block_keys_missing === 0 ? 'stamped' : worldBuild.report.block_keys_missing.toLocaleString() + ' missing' }}</div>
+                        <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_block_keys', 'Block keys') }}</div>
+                        <div class="text-white">{{ worldBuild.report.block_keys_missing === 0 ? t('c_setup.step3_districts.wb_stamped', 'stamped') : t('c_setup.step3_districts.wb_n_missing', { n: worldBuild.report.block_keys_missing.toLocaleString() }) }}</div>
                     </div>
                     <div class="bg-gray-800/60 rounded p-3">
-                        <div class="text-gray-400 text-xs uppercase mb-1">Bootstrap board</div>
-                        <div class="text-white">{{ worldBuild.report.board ? 'seated' : 'missing' }}</div>
+                        <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_board', 'Bootstrap board') }}</div>
+                        <div class="text-white">{{ worldBuild.report.board ? t('c_setup.step3_districts.wb_seated', 'seated') : t('c_setup.step3_districts.wb_missing', 'missing') }}</div>
                     </div>
                 </div>
                 <p v-if="worldBuild.status === 'complete'" class="text-emerald-300 text-sm mt-3">
-                    Phase 2 is complete. Accepting the map data starts the drawing immediately.
+                    {{ t('c_setup.step3_districts.wb_complete', 'Phase 2 is complete. Accepting the map data starts the drawing immediately.') }}
                 </p>
             </section>
 
@@ -1445,8 +1446,8 @@ onBeforeUnmount(() => {
                      class="rounded-lg mb-6 border bg-gray-900 border-gray-800">
                 <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 pt-4 pb-2">
                     <div class="flex items-baseline gap-3">
-                        <h2 class="text-cyan-400 text-xs font-bold uppercase tracking-wide">Map Quality</h2>
-                        <span v-if="quality" class="text-gray-500 text-[10px]">computed {{ new Date(qualityAt).toLocaleString() }} · {{ quality.seconds }}s</span>
+                        <h2 class="text-cyan-400 text-xs font-bold uppercase tracking-wide">{{ t('c_setup.step3_districts.map_quality', 'Map Quality') }}</h2>
+                        <span v-if="quality" class="text-gray-500 text-[10px]">{{ t('c_setup.step3_districts.quality_computed', { date: new Date(qualityAt).toLocaleString(), sec: quality.seconds }) }}</span>
                     </div>
                     <!-- Layer tabs: all layers, then one tab per layer. -->
                     <div v-if="quality" class="flex flex-wrap items-center gap-1">
@@ -1461,7 +1462,7 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
                 <div v-if="!quality" class="px-5 pb-4 text-gray-500 text-xs">
-                    Computing the planet-wide statistics — they appear here when the job finishes.
+                    {{ t('c_setup.step3_districts.quality_computing', 'Computing the planet-wide statistics — they appear here when the job finishes.') }}
                 </div>
                 <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 px-5 pb-5 text-xs">
                     <div v-for="col in qualityColumns" :key="col.title" class="space-y-3">
@@ -1504,8 +1505,8 @@ onBeforeUnmount(() => {
 
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 space-y-4">
                 <div v-if="!mapperHref" class="bg-amber-900/30 border border-amber-800 rounded p-4 text-sm text-amber-200">
-                    <div class="font-semibold mb-1">No root legislature found.</div>
-                    <p>Step 1 must finish loading at least ADM0 data before districts can be drawn. Go back to the map-data step to verify.</p>
+                    <div class="font-semibold mb-1">{{ t('c_setup.step3_districts.no_root_title', 'No root legislature found.') }}</div>
+                    <p>{{ t('c_setup.step3_districts.no_root_body', 'Step 1 must finish loading at least ADM0 data before districts can be drawn. Go back to the map-data step to verify.') }}</p>
                 </div>
 
                 <div v-else>
@@ -1513,23 +1514,23 @@ onBeforeUnmount(() => {
                          2026-09-04): extraneous; the controls below remain. -->
                     <div class="flex items-center justify-between gap-4 pt-3 border-t border-gray-800">
                         <a href="/setup/step/2" class="text-gray-400 hover:text-gray-200 text-sm px-2 py-2">
-                            ← Back
+                            {{ t('c_setup.step3_districts.back', '← Back') }}
                         </a>
                         <div class="flex items-center gap-3">
                             <a
                                 :href="mapperHref"
                                 class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-md font-semibold transition-colors inline-flex items-center gap-2"
                             >
-                                Go to District Mapper →
+                                {{ t('c_setup.step3_districts.go_to_mapper', 'Go to District Mapper →') }}
                             </a>
                             <button
                                 type="button"
                                 :disabled="!canContinue || continuing"
                                 @click="continueToNext"
                                 class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 disabled:text-gray-400 text-white px-5 py-2 rounded-md font-semibold transition-colors"
-                                :title="canContinue ? 'Districts are built. Continue to the next step.' : 'Continue opens when the map run is done'"
+                                :title="canContinue ? t('c_setup.step3_districts.continue_title_ready', 'Districts are built. Continue to the next step.') : t('c_setup.step3_districts.continue_title_wait', 'Continue opens when the map run is done')"
                             >
-                                {{ continuing ? 'Continuing…' : 'Continue →' }}
+                                {{ continuing ? t('c_setup.step3_districts.continuing', 'Continuing…') : t('c_setup.step3_districts.continue', 'Continue →') }}
                             </button>
                         </div>
                     </div>

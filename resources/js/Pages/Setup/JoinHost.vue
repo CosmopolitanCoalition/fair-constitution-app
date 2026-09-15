@@ -1,9 +1,12 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SyncProgress from '@/Components/Federation/SyncProgress.vue'
 import { csrfHeaders } from '@/lib/csrf'
+
+const { t } = useI18n()
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
 defineOptions({
@@ -69,7 +72,7 @@ async function discover() {
         })
         const data = await res.json()
         if (!res.ok) {
-            discoverError.value = data.error || data.message || 'Discovery failed.'
+            discoverError.value = data.error || data.message || t('c_setup.join_host.err_discovery', 'Discovery failed.')
             return
         }
         federations.value = data.federations || []
@@ -78,7 +81,7 @@ async function discover() {
         discoverError.value = data.lan_error || null
         discovered.value = true
     } catch (e) {
-        discoverError.value = e.message || 'Network error'
+        discoverError.value = e.message || t('c_setup.join_host.err_network', 'Network error')
     } finally {
         discovering.value = false
     }
@@ -106,7 +109,7 @@ async function submit() {
         })
         const data = await res.json()
         if (!res.ok) {
-            error.value = data.error || data.message || 'Join failed.'
+            error.value = data.error || data.message || t('c_setup.join_host.err_join', 'Join failed.')
             return
         }
         state.value = data.state
@@ -118,7 +121,7 @@ async function submit() {
             sync.value?.start()
         }
     } catch (e) {
-        error.value = e.message || 'Network error'
+        error.value = e.message || t('c_setup.join_host.err_network', 'Network error')
     } finally {
         submitting.value = false
     }
@@ -147,36 +150,44 @@ async function finalize() {
         finalizing.value = false
     }
 }
+
+// The host-approval instruction carries a live link to the host's /federation
+// page. Build the HTML once so the sentence stays one translatable string.
+const approvalHtml = computed(() => {
+    const base = hostUrl.value.trim().replace(/\/+$/, '')
+    const link = base
+        ? `<a href="${base}/federation" target="_blank" rel="noopener" class="underline text-amber-100 hover:text-white">${base}/federation</a>`
+        : t('c_setup.join_host.approval_its_federation_page', 'its <code>/federation</code> page')
+    return t('c_setup.join_host.approval_body', { link })
+})
 </script>
 
 <template>
     <div class="max-w-2xl mx-auto px-6 py-12 w-full">
-        <h1 class="text-2xl font-semibold text-white mb-2">Join an existing mesh</h1>
+        <h1 class="text-2xl font-semibold text-white mb-2">{{ t('c_setup.join_host.heading', 'Join an existing mesh') }}</h1>
         <p class="text-gray-400 mb-8">
-            Connect this node to a federation already in play. It syncs the whole game — map foundation,
-            constitution, and institutions — and becomes a read-only mirror. There's no institution-building:
-            you're playing the same game as the rest of the mesh.
+            {{ t('c_setup.join_host.intro', 'Connect this node to a federation already in play. It syncs the whole game — map foundation, constitution, and institutions — and becomes a read-only mirror. There\'s no institution-building: you\'re playing the same game as the rest of the mesh.') }}
         </p>
 
         <!-- Discover: find a federation with no address up front. -->
         <div class="mb-8 bg-gray-900 border border-gray-800 rounded-lg p-5">
             <div class="flex items-center justify-between mb-1">
-                <h2 class="text-base font-semibold text-white">Find a federation</h2>
+                <h2 class="text-base font-semibold text-white">{{ t('c_setup.join_host.find_federation', 'Find a federation') }}</h2>
                 <button type="button" :disabled="discovering" @click="discover"
                     class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 text-white px-4 py-1.5 rounded text-sm font-semibold">
-                    {{ discovering ? 'Searching…' : 'Discover' }}
+                    {{ discovering ? t('c_setup.join_host.btn_searching', 'Searching…') : t('c_setup.join_host.btn_discover', 'Discover') }}
                 </button>
             </div>
             <p class="text-xs text-gray-500 mb-3">
-                Checks the public front door, and — if you opt in — scans your own local network. No address needed.
+                {{ t('c_setup.join_host.discover_help', 'Checks the public front door, and — if you opt in — scans your own local network. No address needed.') }}
             </p>
 
             <label class="flex items-center gap-2 text-sm text-gray-300 mb-2">
                 <input type="checkbox" v-model="scanLan" class="rounded border-gray-700 bg-gray-950" />
-                Also scan my local network
+                {{ t('c_setup.join_host.scan_lan', 'Also scan my local network') }}
             </label>
             <label v-if="scanLan" class="block mb-3">
-                <span class="block text-xs text-gray-500 mb-1">Your LAN range (CIDR)</span>
+                <span class="block text-xs text-gray-500 mb-1">{{ t('c_setup.join_host.lan_range', 'Your LAN range (CIDR)') }}</span>
                 <input v-model="lanCidr" type="text" placeholder="192.168.1.0/24"
                     class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
             </label>
@@ -193,36 +204,36 @@ async function finalize() {
                     <div class="flex items-center gap-2 shrink-0">
                         <span class="text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5"
                             :class="fed.source === 'lan' ? 'bg-sky-900 text-sky-300' : 'bg-gray-800 text-gray-400'">
-                            {{ fed.source === 'lan' ? 'LAN' : 'front door' }}
+                            {{ fed.source === 'lan' ? t('c_setup.join_host.source_lan', 'LAN') : t('c_setup.join_host.source_front_door', 'front door') }}
                         </span>
-                        <span v-if="!fed.accepting_joins" class="text-[10px] text-amber-400">not open</span>
+                        <span v-if="!fed.accepting_joins" class="text-[10px] text-amber-400">{{ t('c_setup.join_host.not_open', 'not open') }}</span>
                         <button type="button" @click="choose(fed)"
                             class="bg-sky-700 hover:bg-sky-600 text-white px-3 py-1 rounded text-xs font-semibold">
-                            Use
+                            {{ t('c_setup.join_host.use', 'Use') }}
                         </button>
                     </div>
                 </li>
             </ul>
             <p v-else-if="discovered && !discovering" class="text-sm text-gray-500">
-                No federations found. Enter a host URL manually below, or check your network range and try again.
+                {{ t('c_setup.join_host.none_found', 'No federations found. Enter a host URL manually below, or check your network range and try again.') }}
             </p>
         </div>
 
         <div v-if="server_id" class="mb-6 bg-gray-900 border border-gray-800 rounded-lg p-4">
-            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">This node's mesh id (give it to the host)</div>
+            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">{{ t('c_setup.join_host.mesh_id_label', 'This node\'s mesh id (give it to the host)') }}</div>
             <code class="text-sky-300 text-sm break-all">{{ server_id }}</code>
         </div>
 
         <label class="block mb-4">
-            <span class="block text-sm text-gray-300 mb-1">Host URL</span>
+            <span class="block text-sm text-gray-300 mb-1">{{ t('c_setup.join_host.host_url', 'Host URL') }}</span>
             <input v-model="hostUrl" type="url" placeholder="http://192.168.1.202:8081"
                 class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
         </label>
 
         <label class="block mb-6">
             <span class="block text-sm text-gray-300 mb-1">
-                Join key
-                <span class="text-gray-600">(optional — leave blank to request the host operator's approval)</span>
+                {{ t('c_setup.join_host.join_key', 'Join key') }}
+                <span class="text-gray-600">{{ t('c_setup.join_host.join_key_optional', '(optional — leave blank to request the host operator\'s approval)') }}</span>
             </span>
             <input v-model="joinKey" type="text" placeholder="handle.secret"
                 class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
@@ -231,19 +242,11 @@ async function finalize() {
         <div v-if="error" class="mb-4 text-sm text-red-400">{{ error }}</div>
 
         <div v-if="state === 'pending_host_approval'" class="mb-4 rounded border border-amber-700/40 bg-amber-950/40 p-3 text-sm text-amber-300">
-            <p class="font-medium">Request sent — the host operator must approve it.</p>
-            <p class="mt-1 text-amber-200/90">
-                On the <strong>host</strong> box: sign in to its operator plane, open
-                <a v-if="hostUrl.trim()" :href="hostUrl.trim().replace(/\/+$/, '') + '/federation'" target="_blank" rel="noopener"
-                   class="underline text-amber-100 hover:text-white">{{ hostUrl.trim().replace(/\/+$/, '') }}/federation</a>
-                <template v-else>its <code>/federation</code> page</template>
-                → <em>Host adoption console → Pending adoption requests</em> → <strong>Approve</strong>.
-                Then come back here and re-submit — the sync begins.
-            </p>
+            <p class="font-medium">{{ t('c_setup.join_host.approval_title', 'Request sent — the host operator must approve it.') }}</p>
+            <p class="mt-1 text-amber-200/90" v-html="approvalHtml"></p>
         </div>
         <div v-else-if="state === 'syncing'" class="mb-4 text-sm text-sky-300">
-            Connected — pulling the corpus in the background. Live progress is shown below; this finishes on
-            its own (and resumes if interrupted). You can leave this page.
+            {{ t('c_setup.join_host.syncing_body', 'Connected — pulling the corpus in the background. Live progress is shown below; this finishes on its own (and resumes if interrupted). You can leave this page.') }}
         </div>
 
         <!-- Live seed + drain progress (per-table bars, %/ETA) — the same panel the federation console
@@ -256,11 +259,11 @@ async function finalize() {
              designed to run to completion and resume itself if interrupted. -->
         <button v-if="syncLifecycle === 'running'" type="button" disabled
             class="bg-gray-700 text-gray-300 px-5 py-2 rounded text-sm font-semibold cursor-default">
-            Syncing…
+            {{ t('c_setup.join_host.btn_syncing', 'Syncing…') }}
         </button>
         <button v-else type="button" :disabled="submitting || (!isMirror && !hostUrl.trim())" @click="submit"
             class="bg-sky-600 hover:bg-sky-500 disabled:bg-gray-700 text-white px-5 py-2 rounded text-sm font-semibold">
-            {{ submitting ? 'Joining…' : (isMirror ? 'Resume the sync' : 'Join the mesh') }}
+            {{ submitting ? t('c_setup.join_host.btn_joining', 'Joining…') : (isMirror ? t('c_setup.join_host.btn_resume', 'Resume the sync') : t('c_setup.join_host.btn_join', 'Join the mesh')) }}
         </button>
 
         <!-- Escape hatch: if the drain claims to be running but looks stuck (e.g. the worker died), let the
@@ -268,10 +271,10 @@ async function finalize() {
              and resumes from the cursor if it isn't. -->
         <button v-if="syncLifecycle === 'running' && isMirror" type="button" @click="submit"
             class="mt-2 block text-xs text-sky-400 hover:text-sky-300 underline">
-            Not moving? Resume the sync
+            {{ t('c_setup.join_host.resume_nudge', 'Not moving? Resume the sync') }}
         </button>
         <p v-else-if="isMirror && state !== 'ready'" class="mt-2 text-xs text-gray-500">
-            Already connected to a host — this resumes the sync where it left off (no host URL needed).
+            {{ t('c_setup.join_host.already_connected', 'Already connected to a host — this resumes the sync where it left off (no host URL needed).') }}
         </p>
     </div>
 </template>
