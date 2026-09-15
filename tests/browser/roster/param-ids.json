@@ -157,6 +157,11 @@
       "param": "vacancy",
       "value": null,
       "source": "none"
+    },
+    {
+      "param": "organization_cgc",
+      "value": "01a079ff-9f93-727b-9716-211b846b22c2",
+      "source": "organizations.id (is_cgc)"
     }
   ],
   "resolved": [
@@ -372,8 +377,8 @@
     },
     {
       "uri": "/organizations/{organization}/cgc",
-      "url": "/organizations/d6ca66d5-0543-4ba3-b717-14a6f72d8503/cgc",
-      "code": "500"
+      "url": "/organizations/01a079ff-9f93-727b-9716-211b846b22c2/cgc",
+      "code": "200"
     },
     {
       "uri": "/organizations/{organization}/delegations",

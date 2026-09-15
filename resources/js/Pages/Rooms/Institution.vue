@@ -17,6 +17,7 @@ const props = defineProps({
     floorControls: { type: Object, default: () => ({}) }, rosterUrl: String,
     messages: { type: Array, default: () => [] }, timelineAvailable: Boolean,
     voice: { type: Object, default: () => ({}) }, recordHref: String, roomHref: String, messagesHref: String,
+    callAvailable: { type: Boolean, default: true },
 });
 const { t } = useI18n();
 const text = (key, fallback) => t('c_rooms.' + key, fallback);
@@ -64,7 +65,8 @@ useLiveRoom({ keys: ['roster', 'rosterTruncated', 'displayNames', 'floorHolder',
         </nav>
         <p v-if="!voice.myUserId" class="room-note">{{ text('sign_in_to_join', 'You can explore this public room. Sign in to join its voice and video conversation.') }} <Link href="/login">{{ text('sign_in', 'Sign in') }}</Link></p>
         <p v-if="voice.myUserId" class="room-note"><Link href="/people">{{ text('edit_public_profile', 'Edit public profile') }}</Link> · {{ text('public_name_hint', 'Choose the public name other people see in rooms.') }}</p>
-        <p v-if="!voice.roomId" class="room-note" role="status">{{ text('room_unavailable_retry', 'The call room is not available yet. Its seats and official workspace remain available.') }} <a :href="roomHref">{{ text('retry_room', 'Retry room') }}</a></p>
+        <p v-if="private && !callAvailable" class="room-note" role="status">{{ text('institution.no_live_call', 'No call is live in this room right now.') }}</p>
+        <p v-if="!private && !voice.roomId" class="room-note" role="status">{{ text('room_unavailable_retry', 'The call room is not available yet. Its seats and official workspace remain available.') }} <a :href="roomHref">{{ text('retry_room', 'Retry room') }}</a></p>
         <LiveRoom v-if="canJoin" :key="voice.roomId" :jurisdiction-id="voice.jurisdictionId || ''"
             :room="voice.roomId" :pseudonym="voice.myMxid" :subject-user-id="voice.myUserId"
             :token-requester="tokenRequester" :variant="variant" :roster="seating" :roster-url="rosterUrl"

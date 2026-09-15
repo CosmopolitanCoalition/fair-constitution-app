@@ -33,11 +33,11 @@ class OrgDelegationController extends Controller
      */
     public function index(Request $request, Organization $organization): mixed
     {
-        abort_unless(
-            $request->user() && (string) $organization->agent_user_id === (string) $request->user()->getKey(),
-            403,
-        );
-
+        // Read-everywhere (access ruling 253847f0 — a page never 403s on a
+        // role). Any signed-in viewer reads the org detail surface; the route
+        // stays auth-gated by middleware. The `delegations` prop is agent-gated
+        // inside show(), and the POST store stays agent-gated by the F-ORG-011
+        // handler, so no private grantee identity leaks to a non-agent viewer.
         return app(OrganizationController::class)->show($request, $organization);
     }
 

@@ -48,6 +48,7 @@
   "hearing_call_hint": "Join the hearing’s call above. Your camera or avatar appears in your assigned position. Use the halls for the jurisdiction’s wider conversation.",
   "hearing_intro": "Follow the hearing, see who has the floor, and read the public record.",
   "in_call": "In call",
+  "institution.no_live_call": "No call is live in this room right now.",
   "institution_intro": "Watch the room, join the conversation, and follow its official record.",
   "invite_witness_aria": "Invite {name} to witness stand",
   "live_call": "Live call",
