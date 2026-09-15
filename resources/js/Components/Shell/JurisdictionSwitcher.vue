@@ -8,13 +8,10 @@
  * Emits `switch(jurisdictionId)` when a chain entry is chosen.
  */
 import { useI18n } from 'vue-i18n';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
 import Icon from '@/Components/Ui/Icon.vue';
-
-/* Natural level labels — numeric adm levels never display in product UI. */
-const ADM_LABELS = ['Planet', 'Country', 'State / Province', 'County', 'Municipality', 'Township', 'Neighborhood'];
 
 defineProps({
     /** { id, name, admLevel, slug } */
@@ -32,7 +29,17 @@ const choose = id => { close(); emit('switch', id); };
 
 const { t } = useI18n({ useScope: 'global' });
 
-const admLabel = (level) => ADM_LABELS[Math.min(level, 6)];
+/* Natural level labels — numeric adm levels never display in product UI. */
+const admLabels = computed(() => [
+    t('c_gap_shell_operator.jurisdiction_switcher.adm_planet', 'Planet'),
+    t('c_gap_shell_operator.jurisdiction_switcher.adm_country', 'Country'),
+    t('c_gap_shell_operator.jurisdiction_switcher.adm_state', 'State / Province'),
+    t('c_gap_shell_operator.jurisdiction_switcher.adm_county', 'County'),
+    t('c_gap_shell_operator.jurisdiction_switcher.adm_municipality', 'Municipality'),
+    t('c_gap_shell_operator.jurisdiction_switcher.adm_township', 'Township'),
+    t('c_gap_shell_operator.jurisdiction_switcher.adm_neighborhood', 'Neighborhood'),
+]);
+const admLabel = (level) => admLabels.value[Math.min(level, 6)];
 </script>
 
 <template>

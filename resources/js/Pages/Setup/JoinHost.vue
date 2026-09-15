@@ -226,7 +226,7 @@ const approvalHtml = computed(() => {
 
         <label class="block mb-4">
             <span class="block text-sm text-gray-300 mb-1">{{ t('c_setup.join_host.host_url', 'Host URL') }}</span>
-            <input v-model="hostUrl" type="url" placeholder="http://192.168.1.202:8081"
+            <input v-model="hostUrl" type="url" :placeholder="t('c_setup.join_host.host_url_ph', 'http://192.168.1.202:8081')"
                 class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
         </label>
 
@@ -235,7 +235,7 @@ const approvalHtml = computed(() => {
                 {{ t('c_setup.join_host.join_key', 'Join key') }}
                 <span class="text-gray-600">{{ t('c_setup.join_host.join_key_optional', '(optional — leave blank to request the host operator\'s approval)') }}</span>
             </span>
-            <input v-model="joinKey" type="text" placeholder="handle.secret"
+            <input v-model="joinKey" type="text" :placeholder="t('c_setup.join_host.join_key_ph', 'handle.secret')"
                 class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
         </label>
 

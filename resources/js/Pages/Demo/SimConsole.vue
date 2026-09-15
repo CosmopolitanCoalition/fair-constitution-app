@@ -102,12 +102,12 @@ async function drive(verb, body = {}) {
         const payload = await res.json().catch(() => ({}))
         if (!res.ok || payload.ok === false) {
             // The server's refusal SENTENCE, verbatim — never second-guessed.
-            actionError.value = payload.reason || `Could not ${verb} the run (${res.status}).`
+            actionError.value = payload.reason || t('c_operator_pages.sim_console.err_verb_status', { verb, status: res.status })
         } else {
             await poll() // reflect the new state without waiting for the 2 s tick
         }
     } catch (e) {
-        actionError.value = e?.message || `Could not ${verb} the run.`
+        actionError.value = e?.message || t('c_operator_pages.sim_console.err_verb', { verb })
     } finally {
         busy.value = ''
     }
@@ -199,8 +199,8 @@ const statusTone = computed(() => {
             <!-- A production instance can never run this engine. Say so plainly
                  rather than showing an empty page that looks broken. -->
             <div v-if="!isScaleDemo" class="rounded-lg border border-amber-700/40 bg-amber-950/30 p-4 text-sm text-amber-200">
-                {{ t('c_operator_pages.sim_console.prod_warn_before', 'This instance is') }} <span class="font-mono">production</span>{{ t('c_operator_pages.sim_console.prod_warn_mid', ', so it carries no synthetic data and the populate engine will refuse to run here. The engine runs only on an instance classed') }}
-                <span class="font-mono">scale_demo</span>.
+                {{ t('c_operator_pages.sim_console.prod_warn_before', 'This instance is') }} <span class="font-mono" data-no-i18n>production</span>{{ t('c_operator_pages.sim_console.prod_warn_mid', ', so it carries no synthetic data and the populate engine will refuse to run here. The engine runs only on an instance classed') }}
+                <span class="font-mono" data-no-i18n>scale_demo</span>.
             </div>
 
             <!-- DRIVE CONTROLS — operator only. The console is public-read (Art. II
@@ -278,7 +278,7 @@ const statusTone = computed(() => {
 
             <div v-if="!run" class="rounded-lg border border-gray-700/60 bg-gray-900/40 p-6 text-sm text-gray-400">
                 {{ t('c_operator_pages.sim_console.no_run_before', 'No populate run yet. Start one with') }}
-                <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-gray-200">php artisan sim:start</code>
+                <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-gray-200" data-no-i18n>php artisan sim:start</code>
                 {{ t('c_operator_pages.sim_console.no_run_after', '— this page comes alive within the minute, when the pump seeds its first workers.') }}
             </div>
 

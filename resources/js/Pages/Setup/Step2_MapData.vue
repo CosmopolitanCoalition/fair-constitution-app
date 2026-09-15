@@ -807,6 +807,7 @@ onBeforeUnmount(() => {
                             <div class="mt-2 flex items-center gap-3 flex-wrap">
                                 <code
                                     class="select-all inline-block px-2.5 py-1.5 rounded bg-gray-950 border border-amber-700/60 text-emerald-300 font-mono text-xs"
+                                    data-no-i18n
                                 >docker compose up -d</code>
                                 <button
                                     type="button"
@@ -914,7 +915,7 @@ onBeforeUnmount(() => {
                             <input
                                 type="text"
                                 v-model="archivePathInput"
-                                placeholder="D:\fair-constitution-map-files"
+                                :placeholder="t('c_setup.step2_map_data.archive_path_ph', 'D:\\fair-constitution-map-files')"
                                 class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
                                        text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none"
                             />
@@ -924,7 +925,7 @@ onBeforeUnmount(() => {
                             <input
                                 type="text"
                                 v-model="protomapsPathInput"
-                                placeholder="D:\fair-constitution-map-files\protomaps"
+                                :placeholder="t('c_setup.step2_map_data.protomaps_path_ph', 'D:\\fair-constitution-map-files\\protomaps')"
                                 class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
                                        text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none"
                             />
@@ -996,7 +997,7 @@ onBeforeUnmount(() => {
                             <input v-if="source === 'folder'"
                                    type="text"
                                    v-model="customDataRoot"
-                                   placeholder="/archive/snapshots/2026-05"
+                                   :placeholder="t('c_setup.step2_map_data.custom_root_ph', '/archive/snapshots/2026-05')"
                                    :disabled="runOptionsDisabled"
                                    class="mt-2 w-full px-2 py-1 rounded bg-gray-950 border border-gray-700
                                           text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none" />

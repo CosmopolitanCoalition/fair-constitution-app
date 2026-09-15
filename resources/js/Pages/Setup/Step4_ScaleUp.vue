@@ -402,15 +402,15 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             </h2>
             <p class="text-gray-500 text-xs mb-3" v-html="t('c_setup.step4_scale_up.timing_note', 'The bar is each part\'s share of total lane-seconds. Watch <span class=&quot;text-amber-300&quot;>Between claims</span>: a lane that sits idle is a lane not working.')"></p>
             <div class="space-y-1 text-xs">
-                <div v-for="t in timings" :key="t.part" class="flex items-center gap-3">
-                    <span class="w-52 shrink-0 truncate" :class="timingTone(t.part)">{{ timingLabel(t.part) }}</span>
-                    <span class="w-20 text-right tabular-nums text-gray-300">{{ t.avg_ms }} ms</span>
-                    <span class="w-24 text-right tabular-nums text-gray-500 hidden md:inline">max {{ t.max_ms }} ms</span>
-                    <span class="w-20 text-right tabular-nums text-gray-500 hidden md:inline">{{ n(t.count) }}×</span>
+                <div v-for="tm in timings" :key="tm.part" class="flex items-center gap-3">
+                    <span class="w-52 shrink-0 truncate" :class="timingTone(tm.part)">{{ timingLabel(tm.part) }}</span>
+                    <span class="w-20 text-right tabular-nums text-gray-300">{{ tm.avg_ms }} ms</span>
+                    <span class="w-24 text-right tabular-nums text-gray-500 hidden md:inline">{{ t('c_setup.step4_scale_up.max', 'max') }} {{ tm.max_ms }} ms</span>
+                    <span class="w-20 text-right tabular-nums text-gray-500 hidden md:inline">{{ n(tm.count) }}×</span>
                     <div class="flex-1 h-2 bg-gray-800 rounded overflow-hidden">
-                        <div class="h-full transition-all duration-700" :class="timingBar(t.part)" :style="{ width: pct(t.total_s, timingMax) + '%' }"></div>
+                        <div class="h-full transition-all duration-700" :class="timingBar(tm.part)" :style="{ width: pct(tm.total_s, timingMax) + '%' }"></div>
                     </div>
-                    <span class="w-16 text-right tabular-nums text-gray-400">{{ n(t.total_s) }}s</span>
+                    <span class="w-16 text-right tabular-nums text-gray-400">{{ n(tm.total_s) }}s</span>
                 </div>
             </div>
         </section>

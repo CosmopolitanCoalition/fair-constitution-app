@@ -73,9 +73,11 @@ const rollup = computed(() => {
 const rollupNote = computed(
     () =>
         ({
-            green: 'All readiness checks pass.',
-            amber: gates.value.length ? 'Some readiness checks need attention.' : 'Readiness has not been reported.',
-            red: 'A readiness check failed. Review the details below.',
+            green: text('rollup.green', 'All readiness checks pass.'),
+            amber: gates.value.length
+                ? text('rollup.amber_some', 'Some readiness checks need attention.')
+                : text('rollup.amber_none', 'Readiness has not been reported.'),
+            red: text('rollup.red', 'A readiness check failed. Review the details below.'),
         })[rollup.value],
 );
 
@@ -87,15 +89,15 @@ const roles = computed(() => data.value?.roles ?? []);
 const channels = computed(() => data.value?.channels ?? []);
 
 /* state → plain pill (the mockup's STATE_PILL, + the roles() `partial` rollup). */
-const STATE_PILL = {
-    established: { pill: 'live', label: 'Active' },
-    partial: { pill: 'vote', label: 'Partly active' },
-    qualifiable: { pill: 'wait', label: 'Ready to turn on' },
-    'needs-config': { pill: 'info', label: 'Needs setup' },
-    requested: { pill: 'wait', label: 'Waiting for approval' },
-    lapsed: { pill: 'closed', label: 'Stopped' },
-};
-const pillOf = (state) => STATE_PILL[state] ?? STATE_PILL['needs-config'];
+const statePill = computed(() => ({
+    established: { pill: 'live', label: text('state.established', 'Active') },
+    partial: { pill: 'vote', label: text('state.partial', 'Partly active') },
+    qualifiable: { pill: 'wait', label: text('state.qualifiable', 'Ready to turn on') },
+    'needs-config': { pill: 'info', label: text('state.needs_config', 'Needs setup') },
+    requested: { pill: 'wait', label: text('state.requested', 'Waiting for approval') },
+    lapsed: { pill: 'closed', label: text('state.lapsed', 'Stopped') },
+}));
+const pillOf = (state) => statePill.value[state] ?? statePill.value['needs-config'];
 
 /** The first non-pass gate detail for a channel — the plain "why not yet" line. */
 const channelHint = (ch) => {
@@ -104,12 +106,12 @@ const channelHint = (ch) => {
     return gate?.detail ?? null;
 };
 
-const channelColumns = [
-    { key: 'capability', label: 'Channel', mono: true },
-    { key: 'kind', label: 'Consent' },
-    { key: 'what', label: 'What it does' },
-    { key: 'state', label: 'State' },
-];
+const channelColumns = computed(() => [
+    { key: 'capability', label: text('col.channel', 'Channel'), mono: true },
+    { key: 'kind', label: text('col.consent', 'Consent') },
+    { key: 'what', label: text('col.what', 'What it does') },
+    { key: 'state', label: text('col.state', 'State') },
+]);
 
 /* ------------------------------------------------------------- the meters */
 const meters = computed(() => data.value?.meters ?? null);
@@ -127,25 +129,25 @@ const meterCards = computed(() => {
 const consentLegNote = computed(() => {
     const leg = meters.value?.consent_leg ?? null;
     if (leg === 'seated')
-        return 'A government is seated for this scope — Meter B holds consent, and the operator board can no longer attest on its behalf.';
+        return text('consent_leg.seated', 'A government is seated for this scope — Meter B holds consent, and the operator board can no longer attest on its behalf.');
     if (leg === 'operator')
-        return 'No government is seated for this scope yet — consent runs through Meter A, the operator board.';
+        return text('consent_leg.operator', 'No government is seated for this scope yet — consent runs through Meter A, the operator board.');
     return null;
 });
 
 /* open proposals — live counts, straight off peer_upgrade_proposals. */
-const KIND_LABEL = {
-    constitutional_bump: 'constitution bump',
-    schema_bump: 'schema bump',
-    app_release: 'app release',
-    role_grant: 'role grant',
-};
+const kindLabels = computed(() => ({
+    constitutional_bump: text('kind.constitutional_bump', 'constitution bump'),
+    schema_bump: text('kind.schema_bump', 'schema bump'),
+    app_release: text('kind.app_release', 'app release'),
+    role_grant: text('kind.role_grant', 'role grant'),
+}));
 const openTotal = computed(() => meters.value?.open_proposals?.total ?? 0);
 const openKinds = computed(() =>
     Object.entries(meters.value?.open_proposals?.by_kind ?? {}).map(([kind, n]) => ({
         kind,
         n,
-        label: `${KIND_LABEL[kind] ?? kind.replaceAll('_', ' ')}${n === 1 ? '' : 's'}`,
+        label: `${kindLabels.value[kind] ?? kind.replaceAll('_', ' ')}${n === 1 ? '' : 's'}`,
     })),
 );
 
@@ -163,14 +165,12 @@ const scope = computed(() => data.value?.scope ?? null);
 
         <!-- ============================== citizen → sign-in gate ========= -->
         <Card v-if="!authed" as="section">
-            <template #title><h2>Operator sign-in required</h2></template>
+            <template #title><h2>{{ text('signin_title', 'Operator sign-in required') }}</h2></template>
             <p class="cc-small">
-                The mesh console is shown only to a signed-in operator. Operator accounts
-                live on their own plane — they are not citizen users, and signing in here
-                grants no citizen power.
+                {{ text('signin_body', 'The mesh console is shown only to a signed-in operator. Operator accounts live on their own plane — they are not citizen users, and signing in here grants no citizen power.') }}
             </p>
             <Btn as="a" href="/operator/login" variant="primary" icon="arrow-right">
-                Sign in as an operator
+                {{ text('signin_cta', 'Sign in as an operator') }}
             </Btn>
         </Card>
 
@@ -188,8 +188,8 @@ const scope = computed(() => data.value?.scope ?? null);
                 <template #title><h2>{{ text('readiness', 'Host readiness') }}</h2></template>
                 <div class="health-line">
                     <span class="health-dot" :class="`health-dot--${rollup}`" aria-hidden="true"></span>
-                    <strong style="color: var(--gov-fg)">Node readiness</strong>
-                    <span class="citation">{{ gates.length }} readiness checks</span>
+                    <strong style="color: var(--gov-fg)">{{ text('node_readiness', 'Node readiness') }}</strong>
+                    <span class="citation">{{ text('readiness_checks', { count: gates.length }) }}</span>
                     <span style="flex-basis: 100%"></span>
                     <span
                         v-for="g in gates"
@@ -208,7 +208,7 @@ const scope = computed(() => data.value?.scope ?? null);
                 <ul v-if="attention.length" style="margin: 0">
                     <li v-for="g in attention" :key="g.key" class="cc-small">
                         <StatusBadge :tone="g.status === 'fail' ? 'danger' : 'warning'" icon="alert-triangle">
-                            {{ g.status === 'fail' ? 'Blocked' : 'To do' }}
+                            {{ g.status === 'fail' ? text('gate.blocked', 'Blocked') : text('gate.todo', 'To do') }}
                         </StatusBadge>
                         {{ g.label }} — <span data-no-i18n>{{ g.detail }}</span>
                     </li>
@@ -227,23 +227,21 @@ const scope = computed(() => data.value?.scope ?? null);
 
             <!-- ========================== tier 2 — Advanced =============== -->
             <Card as="section">
-                <template #title><h2>Advanced</h2></template>
+                <template #title><h2>{{ text('advanced', 'Advanced') }}</h2></template>
 
                 <AboutSurface :summary-label="text('technical_details', 'Technical details and approval rules')">
                     <div class="stack" style="margin-block-start: var(--space-4)">
                         <!-- the full channel grid -->
                         <section aria-labelledby="op-console-channels-h">
-                            <h3 id="op-console-channels-h">The nine capability channels</h3>
+                            <h3 id="op-console-channels-h">{{ text('channels_heading', 'The nine capability channels') }}</h3>
                             <p class="gloss">
-                                A box's "role" is just the set of channels it runs. Self-asserted
-                                channels turn on with one click; governed channels are requested,
-                                then approved by the dual-meter.
+                                {{ text('channels_gloss', 'A box\'s "role" is just the set of channels it runs. Self-asserted channels turn on with one click; governed channels are requested, then approved by the dual-meter.') }}
                             </p>
                             <DataTable
                                 :columns="channelColumns"
                                 :rows="channels"
                                 row-key="capability"
-                                caption="The capability channels"
+                                :caption="text('channels_caption', 'The capability channels')"
                             >
                                 <template #cell-capability="{ row }">
                                     <span
@@ -254,11 +252,11 @@ const scope = computed(() => data.value?.scope ?? null);
                                 </template>
                                 <template #cell-kind="{ row }">
                                     <StatusBadge v-if="row.kind === 'self-asserted'" tone="success" icon="check">
-                                        self-asserted
+                                        {{ text('kind_self_asserted', 'self-asserted') }}
                                     </StatusBadge>
-                                    <StatusBadge v-else tone="warning" icon="shield">governed</StatusBadge>
-                                    <span v-if="row.affects_peer_subtree" class="relation-chip" title="Acts under a peer's own zone — every co-affected peer must consent">
-                                        Meter C
+                                    <StatusBadge v-else tone="warning" icon="shield">{{ text('kind_governed', 'governed') }}</StatusBadge>
+                                    <span v-if="row.affects_peer_subtree" class="relation-chip" :title="text('meter_c_title', 'Acts under a peer\'s own zone — every co-affected peer must consent')">
+                                        {{ text('meter_c', 'Meter C') }}
                                     </span>
                                 </template>
                                 <template #cell-what="{ row }">
@@ -283,20 +281,16 @@ const scope = computed(() => data.value?.scope ?? null);
 
                         <!-- the dual-meter consent -->
                         <section aria-labelledby="op-console-meters-h">
-                            <h3 id="op-console-meters-h">The dual-meter consent</h3>
+                            <h3 id="op-console-meters-h">{{ text('meters_heading', 'The dual-meter consent') }}</h3>
                             <p class="gloss">
-                                Governed channels need approval. Meter A runs the bootstrap path;
-                                the moment a legislature seats itself, Meter B supersedes it
-                                automatically. Meter C only attaches to channels that act under a
-                                peer's own zone.
+                                {{ text('meters_gloss', 'Governed channels need approval. Meter A runs the bootstrap path; the moment a legislature seats itself, Meter B supersedes it automatically. Meter C only attaches to channels that act under a peer\'s own zone.') }}
                             </p>
                             <p v-if="consentLegNote" class="cc-small">{{ consentLegNote }}</p>
-                            <p v-if="scope" class="citation" data-no-i18n>
-                                Scope: the root jurisdiction · {{ scope }}
+                            <p v-if="scope" class="citation">
+                                {{ text('scope_line', 'Scope: the root jurisdiction') }} <span data-no-i18n>· {{ scope }}</span>
                             </p>
                             <p v-else class="citation">
-                                No root jurisdiction yet — the meters attach to a scope once the
-                                world is seeded.
+                                {{ text('scope_none', 'No root jurisdiction yet — the meters attach to a scope once the world is seeded.') }}
                             </p>
                             <div class="meter-abc">
                                 <div
@@ -308,27 +302,26 @@ const scope = computed(() => data.value?.scope ?? null);
                                     <div class="cluster" style="align-items: center; gap: var(--space-2)">
                                         <span class="mc-id" data-no-i18n>{{ m.id }}</span>
                                         <strong style="color: var(--gov-fg)">{{ m.label }}</strong>
-                                        <span v-if="m.id === 'B'" class="pill pill--live">Supersedes A</span>
+                                        <span v-if="m.id === 'B'" class="pill pill--live">{{ text('supersedes_a', 'Supersedes A') }}</span>
                                     </div>
                                     <p style="font-size: var(--text-sm)">{{ m.explain }}</p>
                                     <p class="cc-small">
                                         <StatusBadge v-if="m.applies" tone="success" icon="check">
-                                            Applies now
+                                            {{ text('applies_now', 'Applies now') }}
                                         </StatusBadge>
-                                        <StatusBadge v-else tone="neutral">Not in play</StatusBadge>
+                                        <StatusBadge v-else tone="neutral">{{ text('not_in_play', 'Not in play') }}</StatusBadge>
                                     </p>
                                     <p v-if="m.id === 'A' && m.count !== null" class="cc-small">
                                         <strong data-no-i18n>{{ m.count }}</strong>
-                                        active operator{{ m.count === 1 ? '' : 's' }} on the board.
+                                        {{ m.count === 1 ? text('active_operator_one', 'active operator on the board.') : text('active_operator_many', 'active operators on the board.') }}
                                     </p>
                                     <p v-if="m.id === 'C'" class="cc-small">
                                         <template v-if="(m.count ?? 0) > 0">
                                             <strong data-no-i18n>{{ m.count }}</strong>
-                                            co-affected peer{{ m.count === 1 ? '' : 's' }} must consent
-                                            (unanimity).
+                                            {{ m.count === 1 ? text('coaffected_peer_one', 'co-affected peer must consent (unanimity).') : text('coaffected_peer_many', 'co-affected peers must consent (unanimity).') }}
                                         </template>
                                         <template v-else>
-                                            No co-affected peers — Meter C auto-passes.
+                                            {{ text('coaffected_peer_none', 'No co-affected peers — Meter C auto-passes.') }}
                                         </template>
                                     </p>
                                 </div>
@@ -337,39 +330,36 @@ const scope = computed(() => data.value?.scope ?? null);
 
                         <!-- open proposals — live counts -->
                         <section aria-labelledby="op-console-proposals-h">
-                            <h3 id="op-console-proposals-h">Open proposals</h3>
+                            <h3 id="op-console-proposals-h">{{ text('proposals_heading', 'Open proposals') }}</h3>
                             <div class="cluster" style="gap: var(--space-6)">
-                                <Stat :value="openTotal" label="open proposals" accent />
+                                <Stat :value="openTotal" :label="text('open_proposals', 'open proposals')" accent />
                                 <Stat v-for="k in openKinds" :key="k.kind" :value="k.n" :label="k.label" />
                             </div>
                             <p class="gloss">
                                 <template v-if="openTotal === 0">
-                                    Nothing is waiting on a meter right now.
+                                    {{ text('proposals_none', 'Nothing is waiting on a meter right now.') }}
                                 </template>
                                 <template v-else>
-                                    Each open proposal shows its meters, kind by kind, on
-                                    <Link href="/operator/versioning">Versioning</Link>; role-grant
-                                    approvals live on <Link href="/operator/roles">Roles</Link>.
+                                    {{ text('proposals_before', 'Each open proposal shows its meters, kind by kind, on') }}
+                                    <Link href="/operator/versioning">{{ text('versioning', 'Versioning') }}</Link>{{ text('proposals_mid', '; role-grant approvals live on') }} <Link href="/operator/roles">{{ text('roles', 'Roles') }}</Link>.
                                 </template>
                             </p>
                         </section>
 
                         <!-- peers, sync & transports — one pointer, tables live on Mesh -->
                         <section aria-labelledby="op-console-mesh-h">
-                            <h3 id="op-console-mesh-h">Peers, sync &amp; transports</h3>
+                            <h3 id="op-console-mesh-h">{{ text('mesh_heading', 'Peers, sync & transports') }}</h3>
                             <p class="gloss">
-                                The full tables — every peer, the sync ledger, and the transport
-                                ladder — live in one place:
-                                <Link href="/operator/mesh">Mesh &amp; federation</Link>.
+                                {{ text('mesh_gloss', 'The full tables — every peer, the sync ledger, and the transport ladder — live in one place:') }}
+                                <Link href="/operator/mesh">{{ text('mesh_link', 'Mesh & federation') }}</Link>.
                             </p>
                         </section>
 
                         <!-- CLI hints -->
                         <section aria-labelledby="op-console-cli-h">
-                            <h3 id="op-console-cli-h">CLI hints</h3>
+                            <h3 id="op-console-cli-h">{{ text('cli_heading', 'CLI hints') }}</h3>
                             <p class="gloss">
-                                Everything on this console is also a command. These are the
-                                operator-plane verbs the console wraps.
+                                {{ text('cli_gloss', 'Everything on this console is also a command. These are the operator-plane verbs the console wraps.') }}
                             </p>
                             <div class="cluster" style="flex-wrap: wrap; gap: var(--space-2)">
                                 <code class="channel-chip" data-no-i18n>mesh:gates</code>
@@ -385,12 +375,9 @@ const scope = computed(() => data.value?.scope ?? null);
 
         <template #about>
             <p>
-                This console is the read surface over the node's mesh services — the same
-                gates the <span data-no-i18n>mesh:gates</span> command prints, the same
-                role and channel states the roles board acts on, and the same three
-                consent meters that govern every capability grant and upgrade. Authority
-                here always means a fact about a place — which node holds a
-                jurisdiction's home copy — never a rank of node.
+                {{ text('about_before', 'This console is the read surface over the node\'s mesh services — the same gates the') }}
+                <span data-no-i18n>mesh:gates</span>
+                {{ text('about_after', 'command prints, the same role and channel states the roles board acts on, and the same three consent meters that govern every capability grant and upgrade. Authority here always means a fact about a place — which node holds a jurisdiction\'s home copy — never a rank of node.') }}
             </p>
         </template>
     </PageScaffold>

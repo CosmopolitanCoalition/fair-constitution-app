@@ -32,11 +32,17 @@ const labelKey = { map: 'boundary_map', places: 'places_inside', world: 'browse_
 const toolLabel = tool => tool.key === 'terms' ? t('c_term_sync.title') : labelKey[tool.key] ? t(`places.${labelKey[tool.key]}`) : tool.label;
 const path = computed(() => String(page.url ?? '/').split('?')[0]);
 
+const groupLabels = computed(() => ({
+    'This place': t('c_term_sync.jurisdiction_rail.group_this_place', 'This place'),
+    'Its government': t('c_term_sync.jurisdiction_rail.group_its_government', 'Its government'),
+    'Take part': t('c_term_sync.jurisdiction_rail.group_take_part', 'Take part'),
+}));
+
 const groups = computed(() => {
     const order = ['This place', 'Its government', 'Take part'];
     const by = {};
-    for (const t of props.tools) (by[t.group] ??= []).push(t);
-    return order.filter((g) => by[g]).map((g) => ({ name: g, items: by[g] }));
+    for (const tool of props.tools) (by[tool.group] ??= []).push(tool);
+    return order.filter((g) => by[g]).map((g) => ({ name: g, label: groupLabels.value[g] ?? g, items: by[g] }));
 });
 
 const isCurrent = (t) => t.href && path.value === t.href;
@@ -44,16 +50,16 @@ const people = computed(() => (Number(props.place.population ?? 0) > 0 ? Number(
 </script>
 
 <template>
-    <nav class="jur-rail" aria-label="Jurisdiction tools">
+    <nav class="jur-rail" :aria-label="t('c_term_sync.jurisdiction_rail.nav_label', 'Jurisdiction tools')">
         <header class="jur-rail__head">
             <span class="eyebrow">{{ place.kind }}</span>
             <h2 class="jur-rail__name">{{ place.name }}</h2>
-            <p v-if="people" class="gloss">About {{ people }} people</p>
+            <p v-if="people" class="gloss">{{ t('c_term_sync.jurisdiction_rail.about_people', { count: people }) }}</p>
             <StatusBadge v-if="place.activation" :tone="place.activation.tone">{{ place.activation.label }}</StatusBadge>
         </header>
 
         <section v-for="g in groups" :key="g.name" class="jur-rail__group">
-            <h3 class="eyebrow">{{ g.name }}</h3>
+            <h3 class="eyebrow">{{ g.label }}</h3>
             <ul>
                 <li v-for="t in g.items" :key="t.key">
                     <Link

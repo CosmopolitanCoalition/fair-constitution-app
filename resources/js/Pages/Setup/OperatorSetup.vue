@@ -348,7 +348,7 @@ function continueNext() {
                                 {{ t('c_setup.operator_setup.reach_open_body', 'Set the address peers dial to reach this box.') }}
                             </span>
                             <template v-if="reach === 'open'">
-                                <input v-model="selfUrl" type="url" placeholder="http://192.168.1.20:8080"
+                                <input v-model="selfUrl" type="url" :placeholder="t('c_setup.operator_setup.self_url_ph', 'http://192.168.1.20:8080')"
                                     class="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-gray-100 text-sm" />
                                 <div class="flex items-center gap-2 mt-2">
                                     <button type="button" @click="useDetected"
@@ -484,15 +484,15 @@ function continueNext() {
                     <div class="bg-gray-950 border border-gray-800 rounded p-4">
                         <div class="text-emerald-400 text-xs font-semibold uppercase mb-2">{{ t('c_setup.operator_setup.share_solo', 'Solo') }}</div>
                         <div class="flex flex-wrap gap-2">
-                            <button @click="downloadPackage('windows','solo')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded">Windows</button>
-                            <button @click="downloadPackage('unix','solo')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded">macOS / Linux</button>
+                            <button @click="downloadPackage('windows','solo')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded" data-no-i18n>Windows</button>
+                            <button @click="downloadPackage('unix','solo')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded" data-no-i18n>macOS / Linux</button>
                         </div>
                     </div>
                     <div class="bg-gray-950 border border-gray-800 rounded p-4">
                         <div class="text-sky-400 text-xs font-semibold uppercase mb-2">{{ t('c_setup.operator_setup.share_join', 'Join') }}</div>
                         <div class="flex flex-wrap gap-2">
-                            <button @click="downloadPackage('windows','join')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded">Windows</button>
-                            <button @click="downloadPackage('unix','join')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded">macOS / Linux</button>
+                            <button @click="downloadPackage('windows','join')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded" data-no-i18n>Windows</button>
+                            <button @click="downloadPackage('unix','join')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-100 text-xs rounded" data-no-i18n>macOS / Linux</button>
                         </div>
                         <p v-if="reach !== 'open' || !selfUrl.trim()" class="text-xs text-amber-400 mt-2">
                             {{ t('c_setup.operator_setup.share_join_warning', 'Set a reachable node address above first, or the join script won\'t know where to dial.') }}

@@ -26,8 +26,11 @@ const props = defineProps({
 
 const { t } = useI18n({ useScope: 'global' });
 
-const instanceLine = computed(
-    () => `Instance: ${props.instance.host} · authoritative for ${props.instance.authoritativeFor}`,
+const instanceLine = computed(() =>
+    t('c_gap_shell_operator.app_footer.instance_line', {
+        host: props.instance.host,
+        authoritativeFor: props.instance.authoritativeFor,
+    }),
 );
 
 /* Which screen a report arrives from. Surface id when the page ships one;
@@ -47,12 +50,12 @@ const reportHref = computed(() => {
         <span class="header-spacer"></span>
         <slot />
         <!-- Accessibility statement — the page landed in Wave 2 (/system/accessibility). -->
-        <a href="/system/accessibility">Accessibility</a>
-        <a :href="reportHref"><Icon name="flag" size="sm" /> Report an issue</a>
+        <a href="/system/accessibility">{{ t('c_gap_shell_operator.app_footer.accessibility', 'Accessibility') }}</a>
+        <a :href="reportHref"><Icon name="flag" size="sm" /> {{ t('c_gap_shell_operator.app_footer.report_issue', 'Report an issue') }}</a>
         <span class="footer-instance">{{ instanceLine }}</span>
         <span v-if="auditSeq !== null" class="audit-chip">
             {{ t('footer.audit', { n: auditSeq.toLocaleString() }) }}
-            <Icon name="check" size="sm" label="verified" />
+            <Icon name="check" size="sm" :label="t('c_gap_shell_operator.app_footer.verified', 'verified')" />
         </span>
     </footer>
 </template>

@@ -129,9 +129,9 @@ const fmtEpoch = (n) => (n ? new Date(n * 1000).toLocaleDateString() : '—');
                     {{ t('c_operator_pages.dns.drop_cred_body', 'The token is encrypted at rest and never read back to any screen. Setting it makes this box able to broker the domain.') }}
                 </p>
                 <div class="cluster">
-                    <input v-model="credDomain" type="text" aria-label="Broker domain" placeholder="domain (example.org)" data-no-i18n />
-                    <input v-model="credZone" type="text" aria-label="Cloudflare zone id" placeholder="zone id" data-no-i18n />
-                    <input v-model="credToken" type="password" aria-label="API token" placeholder="API token (write-only)" data-no-i18n />
+                    <input v-model="credDomain" type="text" :aria-label="t('c_operator_pages.dns.cred_domain_label', 'Broker domain')" :placeholder="t('c_operator_pages.dns.cred_domain_ph', 'domain (example.org)')" />
+                    <input v-model="credZone" type="text" :aria-label="t('c_operator_pages.dns.cred_zone_label', 'Cloudflare zone id')" :placeholder="t('c_operator_pages.dns.cred_zone_ph', 'zone id')" />
+                    <input v-model="credToken" type="password" :aria-label="t('c_operator_pages.dns.cred_token_label', 'API token')" :placeholder="t('c_operator_pages.dns.cred_token_ph', 'API token (write-only)')" />
                     <Btn :disabled="busy || !credDomain || !credZone || !credToken" @click="setCredential">{{ t('c_operator_pages.dns.set', 'Set') }}</Btn>
                 </div>
             </Card>

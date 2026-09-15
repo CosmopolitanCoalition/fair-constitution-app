@@ -977,8 +977,8 @@ onBeforeUnmount(() => {
                             <span class="tabular-nums">
                                 {{ run.sized_parents.toLocaleString() }} / {{ run.parents_total.toLocaleString() }}
                                 <span v-if="sizingRatePerMin"> · {{ Math.round(sizingRatePerMin).toLocaleString() }}/min</span>
-                                <span> · ETA {{ fmtEta(sizingEtaSeconds) }}</span>
-                                <span v-if="sizingElapsed != null"> · {{ fmtEta(sizingElapsed) }} elapsed</span>
+                                <span> · {{ t('c_setup.step3_districts.eta', 'ETA') }} {{ fmtEta(sizingEtaSeconds) }}</span>
+                                <span v-if="sizingElapsed != null"> · {{ fmtEta(sizingElapsed) }} {{ t('c_setup.step3_districts.elapsed', 'elapsed') }}</span>
                             </span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">
