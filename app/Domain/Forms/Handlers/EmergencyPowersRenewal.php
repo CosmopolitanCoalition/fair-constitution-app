@@ -54,7 +54,7 @@ class EmergencyPowersRenewal implements FormHandler
         $power = EmergencyPower::query()->find($payload['emergency_power_id'] ?? null);
 
         if ($power === null) {
-            throw new ConstitutionalViolation('Unknown emergency power.', 'Art. II §7 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown emergency power.'), 'Art. II §7 · as implemented');
         }
 
         $proposer = $this->currentMemberOf($actor, (string) $power->legislature_id);

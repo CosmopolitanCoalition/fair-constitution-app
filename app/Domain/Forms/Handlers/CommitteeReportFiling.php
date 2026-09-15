@@ -52,7 +52,7 @@ class CommitteeReportFiling implements FormHandler
         $committee = $this->committeeFrom($payload, 'F-CHR-004');
 
         if ($committee->status !== Committee::STATUS_SEATED) {
-            throw new ConstitutionalViolation('Reports are filed by SEATED committees.', 'CGA Forms Catalog (F-CHR-004)');
+            throw new ConstitutionalViolation(__('Reports are filed by SEATED committees.'), 'CGA Forms Catalog (F-CHR-004)');
         }
 
         $chair = $this->chairActor($actor, $committee, $payload, 'F-CHR-004');
@@ -62,7 +62,7 @@ class CommitteeReportFiling implements FormHandler
 
         if ($title === '' || $body === '') {
             throw new ConstitutionalViolation(
-                'A committee report carries a title and a body.',
+                __('A committee report carries a title and a body.'),
                 'CGA Forms Catalog (F-CHR-004)'
             );
         }
@@ -81,7 +81,7 @@ class CommitteeReportFiling implements FormHandler
                 : null;
             if ($bill === null) {
                 throw new ConstitutionalViolation(
-                    'A bill report must name a current bill assigned to this committee and legislature.',
+                    __('A bill report must name a current bill assigned to this committee and legislature.'),
                     'CGA Forms Catalog (F-CHR-004)'
                 );
             }

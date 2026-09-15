@@ -65,7 +65,7 @@ class ExecutiveOfficeCreationAct implements FormHandler
             'open_constituent_consent' => $this->openConstituentConsent($actor, $payload),
             'alter'                    => $this->alter($actor, $payload),
             default => throw new ConstitutionalViolation(
-                "Unknown F-LEG-015 action [{$action}].",
+                __('Unknown F-LEG-015 action [:action].', ['action' => $action]),
                 'CGA Forms Catalog (F-LEG-015)'
             ),
         };
@@ -98,7 +98,7 @@ class ExecutiveOfficeCreationAct implements FormHandler
 
         if ($process === null) {
             throw new ConstitutionalViolation(
-                'F-LEG-015 consent opening names a live constituent process (process_id).',
+                __('F-LEG-015 consent opening names a live constituent process (process_id).'),
                 'Art. VII · as implemented'
             );
         }
@@ -126,7 +126,7 @@ class ExecutiveOfficeCreationAct implements FormHandler
             ->first();
 
         if ($executive === null) {
-            throw new ConstitutionalViolation('No executive exists to alter.', 'Art. III §2');
+            throw new ConstitutionalViolation(__('No executive exists to alter.'), 'Art. III §2');
         }
 
         $process = $this->formation->openAlteration(

@@ -48,7 +48,7 @@ class CommitteeMeetingAdjourn implements FormHandler
         $meeting = CommitteeMeeting::query()->find($payload['meeting_id'] ?? null);
 
         if ($meeting === null) {
-            throw new ConstitutionalViolation('F-CHR-006 requires a valid meeting_id.', 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('F-CHR-006 requires a valid meeting_id.'), 'CGA Forms Catalog');
         }
 
         $committee = $meeting->committee()->firstOrFail();

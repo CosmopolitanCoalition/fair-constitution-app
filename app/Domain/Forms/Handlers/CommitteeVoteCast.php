@@ -49,12 +49,12 @@ class CommitteeVoteCast implements FormHandler
         $vote = ChamberVote::query()->find($payload['vote_id'] ?? null);
 
         if ($vote === null) {
-            throw new ConstitutionalViolation('Unknown chamber vote.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown chamber vote.'), 'Art. II §2 · as implemented');
         }
 
         if ($vote->body_type !== ChamberVote::BODY_COMMITTEE) {
             throw new ConstitutionalViolation(
-                'F-LEG-005 casts on committee votes; floor votes take F-LEG-004.',
+                __('F-LEG-005 casts on committee votes; floor votes take F-LEG-004.'),
                 'Art. II §2'
             );
         }
@@ -66,7 +66,7 @@ class CommitteeVoteCast implements FormHandler
             ->first();
 
         if ($member === null) {
-            throw new ConstitutionalViolation('The filer holds no current seat in this legislature.', 'Art. II §2');
+            throw new ConstitutionalViolation(__('The filer holds no current seat in this legislature.'), 'Art. II §2');
         }
 
         // Committee membership itself is enforced inside cast() via the

@@ -54,7 +54,7 @@ class JudiciaryOverrideVote implements FormHandler
         $challenge = ConstitutionalChallenge::query()->find((string) ($payload['challenge_id'] ?? ''));
 
         if ($challenge === null) {
-            throw new ConstitutionalViolation('F-LEG-035 names the challenge it overrides (challenge_id).', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('F-LEG-035 names the challenge it overrides (challenge_id).'), 'Art. IV §5');
         }
 
         // The override is cast in the offending law's legislature.
@@ -63,7 +63,7 @@ class JudiciaryOverrideVote implements FormHandler
 
         if ($legislature === null) {
             throw new ConstitutionalViolation(
-                'The offending law has no legislature to override the finding — Art. IV §5.4.',
+                __('The offending law has no legislature to override the finding — Art. IV §5.4.'),
                 'Art. IV §5'
             );
         }

@@ -58,7 +58,7 @@ class ExecutiveOrder implements FormHandler
 
         if ($action !== 'issue') {
             throw new ConstitutionalViolation(
-                "Unknown F-EXE-005 action [{$action}].",
+                __('Unknown F-EXE-005 action [:action].', ['action' => $action]),
                 'CGA Forms Catalog (F-EXE-005)'
             );
         }
@@ -92,7 +92,7 @@ class ExecutiveOrder implements FormHandler
         $order = \App\Models\ExecutiveOrder::query()->find((string) ($payload['order_id'] ?? ''));
 
         if ($order === null) {
-            throw new ConstitutionalViolation('F-EXE-005 revocation names an issued order.', 'Art. III §2');
+            throw new ConstitutionalViolation(__('F-EXE-005 revocation names an issued order.'), 'Art. III §2');
         }
 
         $member = ExecutiveActor::member($actor, (string) $order->executive_id, 'F-EXE-005');

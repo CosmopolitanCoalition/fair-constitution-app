@@ -53,12 +53,12 @@ class FloorVoteCast implements FormHandler
         $vote = ChamberVote::query()->find($payload['vote_id'] ?? null);
 
         if ($vote === null) {
-            throw new ConstitutionalViolation('Unknown chamber vote.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown chamber vote.'), 'Art. II §2 · as implemented');
         }
 
         if ($vote->body_type !== ChamberVote::BODY_LEGISLATURE || $vote->stage === ChamberVote::STAGE_COMMITTEE) {
             throw new ConstitutionalViolation(
-                'F-LEG-004 casts on whole-chamber votes; committee-stage votes take F-LEG-005.',
+                __('F-LEG-004 casts on whole-chamber votes; committee-stage votes take F-LEG-005.'),
                 'Art. II §2'
             );
         }

@@ -56,7 +56,7 @@ class InternalRestructuring implements FormHandler
     {
         if ($actor === null) {
             throw new ConstitutionalViolation(
-                'Restructuring is the owners\' act — system filing is not defined.',
+                __('Restructuring is the owners\' act — system filing is not defined.'),
                 'CGA Forms Catalog (F-ORG-009)'
             );
         }
@@ -71,7 +71,7 @@ class InternalRestructuring implements FormHandler
                     $actor,
                 ),
                 default => throw new ConstitutionalViolation(
-                    "Unknown F-ORG-009 action [{$action}] — propose or consent.",
+                    __('Unknown F-ORG-009 action [:action] — propose or consent.', ['action' => $action]),
                     'CGA Forms Catalog (F-ORG-009)'
                 ),
             };
@@ -88,7 +88,7 @@ class InternalRestructuring implements FormHandler
         $org = Organization::query()->find($payload['organization_id'] ?? null);
 
         if ($org === null) {
-            throw new ConstitutionalViolation('F-ORG-009 targets an unknown organization.', 'CGA Forms Catalog (F-ORG-009)');
+            throw new ConstitutionalViolation(__('F-ORG-009 targets an unknown organization.'), 'CGA Forms Catalog (F-ORG-009)');
         }
 
         return ['action' => 'proposed', 'organization_id' => (string) $org->id]

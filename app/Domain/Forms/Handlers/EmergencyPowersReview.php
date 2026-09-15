@@ -63,13 +63,13 @@ class EmergencyPowersReview implements FormHandler
         $power = EmergencyPower::query()->find((string) ($payload['reviewed_power_id'] ?? ''));
 
         if ($power === null) {
-            throw new ConstitutionalViolation('F-JDG-007 names the power it reviews (reviewed_power_id).', 'Art. II §7');
+            throw new ConstitutionalViolation(__('F-JDG-007 names the power it reviews (reviewed_power_id).'), 'Art. II §7');
         }
 
         $judiciaryId = (string) ($payload['judiciary_id'] ?? '');
 
         if ($judiciaryId === '') {
-            throw new ConstitutionalViolation('F-JDG-007 names the reviewing court (judiciary_id).', 'Art. II §7');
+            throw new ConstitutionalViolation(__('F-JDG-007 names the reviewing court (judiciary_id).'), 'Art. II §7');
         }
 
         $seat = JudicialActor::seat($actor, $judiciaryId, 'F-JDG-007');

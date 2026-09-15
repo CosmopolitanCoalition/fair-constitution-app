@@ -59,7 +59,7 @@ class DepartmentInvestigationOrder implements FormHandler
             'open'             => $this->open($actor, $payload),
             'publish_findings' => $this->publishFindings($actor, $payload),
             default => throw new ConstitutionalViolation(
-                "Unknown F-EXE-004 action [{$action}].",
+                __('Unknown F-EXE-004 action [:action].', ['action' => $action]),
                 'CGA Forms Catalog (F-EXE-004)'
             ),
         };
@@ -77,7 +77,7 @@ class DepartmentInvestigationOrder implements FormHandler
 
             if ($department === null || (string) $department->executive_id !== (string) $executive->id) {
                 throw new ConstitutionalViolation(
-                    'Investigations run against departments THIS executive oversees.',
+                    __('Investigations run against departments THIS executive oversees.'),
                     'Art. III §4'
                 );
             }
@@ -86,7 +86,7 @@ class DepartmentInvestigationOrder implements FormHandler
         $scope = trim((string) ($payload['scope'] ?? ''));
 
         if ($scope === '') {
-            throw new ConstitutionalViolation('An investigation order states its scope.', 'Art. III §4');
+            throw new ConstitutionalViolation(__('An investigation order states its scope.'), 'Art. III §4');
         }
 
         $investigation = ExecutiveInvestigation::create([
@@ -113,7 +113,7 @@ class DepartmentInvestigationOrder implements FormHandler
         $investigation = ExecutiveInvestigation::query()->find((string) ($payload['investigation_id'] ?? ''));
 
         if ($investigation === null || $investigation->outcome !== ExecutiveInvestigation::OUTCOME_OPEN) {
-            throw new ConstitutionalViolation('F-EXE-004 findings publish on an OPEN investigation.', 'Art. III §4');
+            throw new ConstitutionalViolation(__('F-EXE-004 findings publish on an OPEN investigation.'), 'Art. III §4');
         }
 
         $member = ExecutiveActor::member($actor, (string) $investigation->executive_id, 'F-EXE-004');
@@ -122,7 +122,7 @@ class DepartmentInvestigationOrder implements FormHandler
 
         if ($findings === '') {
             throw new ConstitutionalViolation(
-                'Findings publication is the operative constitutional duty — findings text is required.',
+                __('Findings publication is the operative constitutional duty — findings text is required.'),
                 'Art. III §4'
             );
         }
@@ -135,7 +135,7 @@ class DepartmentInvestigationOrder implements FormHandler
             ExecutiveInvestigation::OUTCOME_LEGISLATIVE_REFERRAL,
             ExecutiveInvestigation::OUTCOME_CLOSED_NO_FINDING,
         ], true)) {
-            throw new ConstitutionalViolation("Unknown investigation outcome [{$outcome}].", 'Art. III §4');
+            throw new ConstitutionalViolation(__('Unknown investigation outcome [:outcome].', ['outcome' => $outcome]), 'Art. III §4');
         }
 
         $executive = $investigation->executive()->firstOrFail();

@@ -54,12 +54,12 @@ class BillReferralToFloor implements FormHandler
         $bill = Bill::query()->find($payload['bill_id'] ?? null);
 
         if ($bill === null) {
-            throw new ConstitutionalViolation('F-CHR-003 requires a valid bill_id.', 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('F-CHR-003 requires a valid bill_id.'), 'CGA Forms Catalog');
         }
 
         if ($bill->status !== Bill::STATUS_REPORTED) {
             throw new ConstitutionalViolation(
-                "Referral to floor follows a passed committee vote — the bill stands [{$bill->status}], not reported.",
+                __('Referral to floor follows a passed committee vote — the bill stands [:status], not reported.', ['status' => $bill->status]),
                 'Art. II §2 · as implemented'
             );
         }
@@ -68,7 +68,7 @@ class BillReferralToFloor implements FormHandler
 
         if ($committee === null) {
             throw new ConstitutionalViolation(
-                'The bill has no committee — direct-to-floor bills move by motion, not F-CHR-003.',
+                __('The bill has no committee — direct-to-floor bills move by motion, not F-CHR-003.'),
                 'CGA Forms Catalog (F-CHR-003)'
             );
         }

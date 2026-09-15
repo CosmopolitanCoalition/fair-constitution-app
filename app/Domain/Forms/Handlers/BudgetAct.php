@@ -64,7 +64,7 @@ class BudgetAct implements FormHandler
             'draft' => $this->draft($legislature, $payload),
             'enact' => $this->enact($legislature, $member, $payload),
             default => throw new ConstitutionalViolation(
-                "Unknown action [{$action}] — draft or enact.",
+                __('Unknown action [:action] — draft or enact.', ['action' => $action]),
                 'CGA Forms Catalog (F-LEG-039)'
             ),
         };
@@ -76,7 +76,7 @@ class BudgetAct implements FormHandler
         $fiscalLabel = trim((string) ($payload['fiscal_label'] ?? ''));
 
         if ($fiscalLabel === '') {
-            throw new ConstitutionalViolation('A budget names its fiscal period.', 'CGA Forms Catalog (F-LEG-039)');
+            throw new ConstitutionalViolation(__('A budget names its fiscal period.'), 'CGA Forms Catalog (F-LEG-039)');
         }
 
         $lines    = $this->normalizeLines($payload['lines'] ?? []);
@@ -105,7 +105,7 @@ class BudgetAct implements FormHandler
         $budgetId = (string) ($payload['budget_id'] ?? '');
 
         if ($budgetId === '') {
-            throw new ConstitutionalViolation('Enactment names the budget.', 'CGA Forms Catalog (F-LEG-039)');
+            throw new ConstitutionalViolation(__('Enactment names the budget.'), 'CGA Forms Catalog (F-LEG-039)');
         }
 
         $result = $this->acts->proposeBudgetEnactment($legislature, $member, $budgetId);
@@ -124,7 +124,7 @@ class BudgetAct implements FormHandler
     private function normalizeLines(mixed $lines): array
     {
         if (! is_array($lines) || $lines === []) {
-            throw new ConstitutionalViolation('A budget carries at least one line.', 'CGA Forms Catalog (F-LEG-039)');
+            throw new ConstitutionalViolation(__('A budget carries at least one line.'), 'CGA Forms Catalog (F-LEG-039)');
         }
 
         $out = [];
@@ -134,11 +134,11 @@ class BudgetAct implements FormHandler
             $amount = (string) ($line['amount'] ?? '');
 
             if ($label === '') {
-                throw new ConstitutionalViolation('A budget line names its purpose.', 'CGA Forms Catalog (F-LEG-039)');
+                throw new ConstitutionalViolation(__('A budget line names its purpose.'), 'CGA Forms Catalog (F-LEG-039)');
             }
 
             if ($amount === '' || bccomp($amount, '0', 6) !== 1) {
-                throw new ConstitutionalViolation('A budget line carries a positive amount.', 'CGA Forms Catalog (F-LEG-039)');
+                throw new ConstitutionalViolation(__('A budget line carries a positive amount.'), 'CGA Forms Catalog (F-LEG-039)');
             }
 
             $out[] = [
@@ -171,7 +171,7 @@ class BudgetAct implements FormHandler
 
         if ($currency === null) {
             throw new ConstitutionalViolation(
-                'This world has no currency yet — the root jurisdiction defines one (Art. V §5).',
+                __('This world has no currency yet — the root jurisdiction defines one (Art. V §5).'),
                 'Art. V §5'
             );
         }

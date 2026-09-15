@@ -74,8 +74,7 @@ class ConstitutionalFinding implements FormHandler
 
         if (! DB::table('laws')->where('id', $offendingLawId)->whereNull('deleted_at')->exists()) {
             throw new ConstitutionalViolation(
-                'A constitutional finding names a law in error (Art. IV §5.2) — it never re-opens a closed '
-                .'criminal judgement (Art. II §8).',
+                __('A constitutional finding names a law in error (Art. IV §5.2) — it never re-opens a closed criminal judgement (Art. II §8).'),
                 'Art. II §8'
             );
         }
@@ -117,7 +116,7 @@ class ConstitutionalFinding implements FormHandler
         }
 
         if ($challenge === null) {
-            throw new ConstitutionalViolation('F-JDG-004 names the challenge it finds on (challenge_id).', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('F-JDG-004 names the challenge it finds on (challenge_id).'), 'Art. IV §5');
         }
 
         return $challenge;
@@ -127,7 +126,7 @@ class ConstitutionalFinding implements FormHandler
     {
         if ($challenge->status !== ConstitutionalChallenge::STATUS_UNDER_REVIEW) {
             throw new ConstitutionalViolation(
-                "A finding issues on a challenge under review (status: {$challenge->status}).",
+                __('A finding issues on a challenge under review (status: :status).', ['status' => $challenge->status]),
                 'Art. IV §5'
             );
         }
@@ -140,8 +139,7 @@ class ConstitutionalFinding implements FormHandler
 
         if (! in_array($caseStatus, [CourtCase::STATUS_HEARD, CourtCase::STATUS_DELIBERATION, CourtCase::STATUS_DECIDED], true)) {
             throw new ConstitutionalViolation(
-                'A constitutional finding issues after the case is heard (the court must hear the challenge '
-                .'before resolving the question of law) — Art. IV §5.',
+                __('A constitutional finding issues after the case is heard (the court must hear the challenge before resolving the question of law) — Art. IV §5.'),
                 'Art. IV §5'
             );
         }

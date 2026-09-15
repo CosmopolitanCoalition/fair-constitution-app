@@ -50,7 +50,7 @@ class DepartmentPolicyProposal implements FormHandler
         $department = Department::query()->find((string) ($payload['department_id'] ?? ''));
 
         if ($department === null) {
-            throw new ConstitutionalViolation('F-EXE-002 names a chartered department.', 'Art. III §4');
+            throw new ConstitutionalViolation(__('F-EXE-002 names a chartered department.'), 'Art. III §4');
         }
 
         $member = ExecutiveActor::member($actor, (string) $department->executive_id, 'F-EXE-002');
@@ -60,7 +60,7 @@ class DepartmentPolicyProposal implements FormHandler
 
         if ($title === '' || $text === '') {
             throw new ConstitutionalViolation(
-                'A policy proposal carries a title and text for the board to decide.',
+                __('A policy proposal carries a title and text for the board to decide.'),
                 'Art. III §4'
             );
         }
