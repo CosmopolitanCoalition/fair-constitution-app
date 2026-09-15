@@ -396,6 +396,14 @@ async function mountPickerMap() {
     if (!pickerEl.value || pickerMap) return; // the form closed while Leaflet loaded
 
     pickerMap = L.map(pickerEl.value, {
+        // keyboard: false — Leaflet's keyboard handler sets tabIndex=0 on the
+        // container (Map.Keyboard.addHooks), making the map itself focusable
+        // while it also holds focusable descendants (zoom links, attribution).
+        // axe flags that as a focusable element with focusable descendants.
+        // Arrow-key panning is not a needed path here: the picker is reached by
+        // "Use my current location" and search-by-name, and clicking drops the
+        // pin. Disabling the handler leaves the container non-focusable.
+        keyboard: false,
         zoomControl: true,
         attributionControl: true,
         worldCopyJump: true,
@@ -432,6 +440,10 @@ async function mountMap() {
     if (!mapEl.value || map) return;
 
     map = L.map(mapEl.value, {
+        // keyboard: false — see the picker map. This is a display-only boundary
+        // view; arrow-key panning is not needed, so the container stays a
+        // non-focusable region and does not hold focus with focusable children.
+        keyboard: false,
         zoomControl: true,
         attributionControl: true,
         worldCopyJump: true,
@@ -596,7 +608,7 @@ onBeforeUnmount(() => {
             <div
                 ref="mapEl"
                 class="boundary-map"
-                role="img"
+                role="region"
                 :aria-label="t('c_civic.residency.map_of', { home: homeName })"
             ></div>
             <p style="margin-block-start: var(--space-3)">
@@ -644,7 +656,7 @@ onBeforeUnmount(() => {
                     </div>
 
                     <div class="map-wrap" style="margin-block-end: var(--space-3)">
-                        <div ref="pickerEl" class="boundary-map" :aria-label="t('c_civic.residency.map_click', 'Map — click where you live')"></div>
+                        <div ref="pickerEl" class="boundary-map" role="region" :aria-label="t('c_civic.residency.map_click', 'Map — click where you live')"></div>
                         <p v-if="basemapMissing" class="map-note">
                             {{ t('c_civic.residency.no_tiles', 'No map tiles are loaded on this box. Use your current location or search by name below.') }}
                         </p>

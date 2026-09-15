@@ -106,7 +106,7 @@ useLiveRoom({
 
     <div v-if="locked" class="mx-auto max-w-lg space-y-3 py-16 text-center">
         <h1 class="text-xl font-semibold">{{ t('c_civic.private_room.locked_title', 'This is a private room') }}</h1>
-        <p class="opacity-70">{{ t('c_civic.private_room.locked_body', 'You need an invite to join. Ask whoever shared it to send you a fresh link.') }}</p>
+        <p style="color: var(--gov-fg-muted)">{{ t('c_civic.private_room.locked_body', 'You need an invite to join. Ask whoever shared it to send you a fresh link.') }}</p>
         <Link href="/civic/rooms" class="inline-block underline">{{ t('c_civic.private_room.back_to_messages', 'Back to your messages') }}</Link>
     </div>
 

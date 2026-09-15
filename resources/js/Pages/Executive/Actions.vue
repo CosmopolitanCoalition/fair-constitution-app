@@ -440,7 +440,7 @@ function money(n) {
             </DataTable>
             <Banner v-else tone="info" role="status">
                 {{ t('c_institutions.actions.no_appropriations', 'The legislature has appropriated no funds — appropriation is an act.') }}
-                <Link href="/legislature/bills?intro=1">{{ t('c_institutions.actions.open_bill', 'Open a bill →') }}</Link>
+                <Link href="/legislature/bills?intro=1" class="prose-link">{{ t('c_institutions.actions.open_bill', 'Open a bill →') }}</Link>
             </Banner>
 
             <template v-if="appropriations.length">
