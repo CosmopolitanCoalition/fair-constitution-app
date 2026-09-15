@@ -50,7 +50,7 @@
                     <template v-else>
                         <!-- On Earth itself: "World" is the implicit root,
                              no clickable parent above. Render as plain text. -->
-                        <span class="text-gray-500">World</span>
+                        <span class="text-gray-500">{{ t('c_jurisdictions.show.breadcrumb_world', 'World') }}</span>
                     </template>
                     <span class="text-gray-600">›</span>
                     <span class="text-gray-200">{{ jurisdiction.name }}</span>
@@ -76,21 +76,21 @@
                         <div class="flex items-baseline gap-4 mt-3">
                             <div>
                                 <span class="text-lg font-semibold tabular-nums" style="color: #E69F00">{{ formatPop(jurisdiction.population) }}</span>
-                                <span class="text-xs text-gray-500 ml-1">population</span>
+                                <span class="text-xs text-gray-500 ml-1">{{ t('c_jurisdictions.show.stat_population', 'population') }}</span>
                                 <span v-if="jurisdiction.population_year" class="text-[10px] text-gray-600 ml-1">
                                     ({{ jurisdiction.population_year }})
                                 </span>
                             </div>
                             <div>
                                 <span class="text-lg font-semibold tabular-nums" style="color: #56B4E9">{{ childCount.toLocaleString() }}</span>
-                                <span class="text-xs text-gray-500 ml-1">places within</span>
+                                <span class="text-xs text-gray-500 ml-1">{{ t('c_jurisdictions.show.stat_places_within', 'places within') }}</span>
                             </div>
                         </div>
                     </div>
 
                     <Link :href="`/jurisdictions/${jurisdiction.slug}`"
                           class="block w-full text-center text-sm font-medium px-3 py-2 rounded bg-blue-700 hover:bg-blue-600 text-white transition-colors">
-                        Jurisdiction overview →
+                        {{ t('c_jurisdictions.show.overview_link', 'Jurisdiction overview →') }}
                     </Link>
 
                     <!-- Primary legislature entry (operator 2026-09-05): "View
@@ -102,7 +102,7 @@
                        :href="`/legislatures/${jurisdiction.slug}/districts`"
                        class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                               bg-emerald-800 hover:bg-emerald-700 text-emerald-100 transition-colors">
-                        Legislative maps →
+                        {{ t('c_jurisdictions.show.legislative_maps_link', 'Legislative maps →') }}
                     </a>
 
                     <!-- P.6 — Review-issue badges. Lights up when this row
@@ -110,38 +110,37 @@
                          operator can audit specific jurisdictions during
                          the acceptance pass. -->
                     <div v-if="setupToolsVisible && hasAnyReviewBadge" class="bg-gray-800 rounded-lg p-3 space-y-1.5">
-                        <div class="text-xs text-gray-400 mb-1">Review issues</div>
+                        <div class="text-xs text-gray-400 mb-1">{{ t('c_jurisdictions.show.review_issues', 'Review issues') }}</div>
                         <div class="flex flex-wrap gap-1.5">
                             <span v-if="review.is_orphan"
                                   class="px-2 py-0.5 rounded text-xs bg-red-900 text-red-200 border border-red-700">
-                                orphan
+                                {{ t('c_jurisdictions.show.badge_orphan', 'orphan') }}
                             </span>
                             <span v-if="review.is_population_gap"
                                   class="px-2 py-0.5 rounded text-xs bg-amber-900 text-amber-200 border border-amber-700">
-                                no population
+                                {{ t('c_jurisdictions.show.badge_no_pop', 'no population') }}
                             </span>
                             <span v-if="review.is_aggregation_discrepancy"
                                   class="px-2 py-0.5 rounded text-xs bg-amber-900 text-amber-200 border border-amber-700"
-                                  :title="`Children sum diverges by ${review.rollup_delta_pct}% from this row's population`">
-                                pop discrepancy
+                                  :title="t('c_jurisdictions.show.discrepancy_title', { pct: review.rollup_delta_pct })">
+                                {{ t('c_jurisdictions.show.badge_pop_discrepancy', 'pop discrepancy') }}
                             </span>
                             <span v-if="review.is_sovereign_territory"
                                   class="px-2 py-0.5 rounded text-xs bg-blue-900 text-blue-200 border border-blue-700">
-                                territory
+                                {{ t('c_jurisdictions.show.badge_territory', 'territory') }}
                             </span>
                             <span v-if="review.parent_iso_differs"
                                   class="px-2 py-0.5 rounded text-xs bg-emerald-900 text-emerald-200 border border-emerald-700"
-                                  :title="`Parent assigned via ${review.parent_assigned_via}`">
-                                cross-iso parent
+                                  :title="t('c_jurisdictions.show.cross_iso_title', { via: review.parent_assigned_via })">
+                                {{ t('c_jurisdictions.show.badge_cross_iso', 'cross-iso parent') }}
                             </span>
                         </div>
                         <div v-if="review.parent_assigned_via && !review.parent_iso_differs" class="text-[11px] text-gray-500 mt-1">
-                            parent assigned via
+                            {{ t('c_jurisdictions.show.parent_via_label', 'parent assigned via') }}
                             <span class="font-mono text-gray-400">{{ review.parent_assigned_via }}</span>
                         </div>
                         <div v-if="directChildOrphans > 0" class="text-[11px] text-amber-400 mt-1">
-                            {{ directChildOrphans }} direct child{{ directChildOrphans === 1 ? '' : 'ren' }}
-                            with zero population
+                            {{ directChildOrphans === 1 ? t('c_jurisdictions.show.orphans_one', { count: directChildOrphans }) : t('c_jurisdictions.show.orphans_many', { count: directChildOrphans }) }}
                         </div>
                     </div>
 
@@ -151,11 +150,11 @@
                          the chip links there. Setup-window only. -->
                     <div v-if="setupToolsVisible && !map_acceptance.is_planet_scope && relatedOpenFlagCount > 0"
                          class="bg-gray-800 rounded-lg p-3">
-                        <div class="text-xs text-gray-400 mb-1.5">Data flags</div>
+                        <div class="text-xs text-gray-400 mb-1.5">{{ t('c_jurisdictions.show.data_flags', 'Data flags') }}</div>
                         <a :href="planetSlug ? `/jurisdictions/${planetSlug}/map` : '/jurisdictions'"
                            class="inline-block px-2 py-0.5 rounded text-xs bg-amber-900 text-amber-200 border border-amber-700
                                   hover:bg-amber-800 transition-colors">
-                            ⚑ {{ relatedOpenFlagCount }} open data flag{{ relatedOpenFlagCount === 1 ? '' : 's' }} — review at planet scope →
+                            {{ relatedOpenFlagCount === 1 ? t('c_jurisdictions.show.flags_one', { count: relatedOpenFlagCount }) : t('c_jurisdictions.show.flags_many', { count: relatedOpenFlagCount }) }}
                         </a>
                     </div>
 
@@ -168,32 +167,32 @@
                          shows the data-source line. -->
                     <details v-if="meta || jurisdiction.adm_level > 0 || jurisdiction.source"
                          class="bg-gray-800 rounded-lg p-3 space-y-1.5">
-                        <summary class="text-xs text-gray-300 cursor-pointer py-1">Geographic details</summary>
+                        <summary class="text-xs text-gray-300 cursor-pointer py-1">{{ t('c_jurisdictions.show.geo_details', 'Geographic details') }}</summary>
                         <div v-if="meta?.boundary_canonical && meta.boundary_canonical !== jurisdiction.name"
                              class="text-xs text-gray-300 italic">
                             {{ meta.boundary_canonical }}
                         </div>
                         <div v-if="meta?.continent" class="text-xs">
-                            <span class="text-gray-500">Continent:</span>
+                            <span class="text-gray-500">{{ t('c_jurisdictions.show.geo_continent', 'Continent:') }}</span>
                             <span class="text-gray-200 ml-1">{{ meta.continent }}</span>
                         </div>
                         <div v-if="meta?.unsdg_region" class="text-xs">
-                            <span class="text-gray-500">UNSDG region:</span>
+                            <span class="text-gray-500">{{ t('c_jurisdictions.show.geo_unsdg_region', 'UNSDG region:') }}</span>
                             <span class="text-gray-200 ml-1">{{ meta.unsdg_region }}</span>
                         </div>
                         <div v-if="meta?.unsdg_subregion" class="text-xs">
-                            <span class="text-gray-500">Subregion:</span>
+                            <span class="text-gray-500">{{ t('c_jurisdictions.show.geo_subregion', 'Subregion:') }}</span>
                             <span class="text-gray-200 ml-1">{{ meta.unsdg_subregion }}</span>
                         </div>
                         <div v-if="meta?.world_bank_income_group" class="text-xs">
-                            <span class="text-gray-500">Income group:</span>
+                            <span class="text-gray-500">{{ t('c_jurisdictions.show.geo_income', 'Income group:') }}</span>
                             <span class="text-gray-200 ml-1">{{ meta.world_bank_income_group }}</span>
                         </div>
                         <!-- Official languages (only meaningful for non-planet rows;
                              Earth's seeded ['en'] gets hidden by the adm_level gate). -->
                         <div v-if="jurisdiction.adm_level > 0 && jurisdiction.official_languages?.length"
                              class="text-xs flex items-baseline flex-wrap gap-1.5">
-                            <span class="text-gray-500">Languages:</span>
+                            <span class="text-gray-500">{{ t('c_jurisdictions.show.geo_languages', 'Languages:') }}</span>
                             <span
                                 v-for="lang in jurisdiction.official_languages"
                                 :key="lang"
@@ -202,8 +201,8 @@
                         </div>
                         <!-- Data source — implied detail; small caption-style. -->
                         <div v-if="jurisdiction.source" class="text-[10px] text-gray-500 mt-1">
-                            Source: <span class="text-gray-400 capitalize">{{ jurisdiction.source.replace(/_/g, ' ') }}</span>
-                            <span v-if="meta?.year_represented"> · geoBoundaries year {{ meta.year_represented }}</span>
+                            {{ t('c_jurisdictions.show.source_label', 'Source:') }} <span class="text-gray-400 capitalize">{{ jurisdiction.source.replace(/_/g, ' ') }}</span>
+                            <span v-if="meta?.year_represented">{{ t('c_jurisdictions.show.geoboundaries_year', { year: meta.year_represented }) }}</span>
                         </div>
                     </details>
 
@@ -241,7 +240,7 @@
                            :href="`/legislatures/${legislature_id}/chamber`"
                            class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                                   bg-amber-800 hover:bg-amber-700 text-amber-100 transition-colors">
-                            Chamber →
+                            {{ t('c_jurisdictions.show.chamber_link', 'Chamber →') }}
                         </a>
                         <!-- The Districts link moved UP to "View Legislature" under
                              the jurisdiction name (operator 2026-09-05). Only the
@@ -250,7 +249,7 @@
                            :href="`/legislatures/${jurisdiction.slug}/districts`"
                            class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                                   bg-violet-800 hover:bg-violet-700 text-violet-100 transition-colors">
-                            Create first district map →
+                            {{ t('c_jurisdictions.show.create_first_map', 'Create first district map →') }}
                         </a>
                         <!-- Current election for this chamber (latest
                              non-cancelled; live phases outrank certified). -->
@@ -258,7 +257,7 @@
                            :href="`/elections/${current_election.id}`"
                            class="block w-full text-center text-xs font-medium px-3 py-2 rounded mt-1.5
                                   bg-sky-800 hover:bg-sky-700 text-sky-100 transition-colors">
-                            Election — {{ electionPhaseLabel }} →
+                            {{ t('c_jurisdictions.show.election_link', { phase: electionPhaseLabel }) }}
                         </a>
                     </template>
                     <!-- State 1 filled (manual-first arc, operator 2026-08-06):
@@ -273,7 +272,7 @@
                             class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                                    bg-violet-800 hover:bg-violet-700 disabled:opacity-50
                                    text-violet-100 transition-colors">
-                        {{ activatingLeg ? 'Sizing legislature…' : 'Activate legislature →' }}
+                        {{ activatingLeg ? t('c_jurisdictions.show.sizing_leg', 'Sizing legislature…') : t('c_jurisdictions.show.activate_leg', 'Activate legislature →') }}
                     </button>
                     <div v-if="activateLegError" class="text-xs text-red-400 mt-1">
                         {{ activateLegError }}
@@ -286,7 +285,7 @@
                        :href="`/executives/${executive_id}`"
                        class="block w-full text-center text-xs font-medium px-3 py-2 rounded mt-1.5
                               bg-indigo-800 hover:bg-indigo-700 text-indigo-100 transition-colors">
-                        Executive →
+                        {{ t('c_jurisdictions.show.executive_link', 'Executive →') }}
                     </a>
 
                     <!-- FE-E0 — public entry to the court surfaces (dockets +
@@ -295,7 +294,7 @@
                        :href="`/judiciaries/${judiciary_id}`"
                        class="block w-full text-center text-xs font-medium px-3 py-2 rounded mt-1.5
                               bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors">
-                        Judiciary →
+                        {{ t('c_jurisdictions.show.judiciary_link', 'Judiciary →') }}
                     </a>
 
                     <!-- Data Review & Repair — the flag queue over the imported
@@ -318,19 +317,19 @@
                     <div v-if="setupToolsVisible && map_acceptance.is_planet_scope" class="border-t border-gray-700 pt-3 mt-2">
                         <div v-if="map_acceptance.map_accepted_at"
                              class="bg-emerald-900/40 border border-emerald-700 rounded-lg p-3 text-emerald-200">
-                            <div class="text-xs uppercase tracking-wider mb-1">Maps accepted</div>
+                            <div class="text-xs uppercase tracking-wider mb-1">{{ t('c_jurisdictions.show.maps_accepted', 'Maps accepted') }}</div>
                             <div class="text-sm">{{ formatTime(map_acceptance.map_accepted_at) }}</div>
                             <div v-if="map_acceptance.apportionment_completed_at" class="text-xs text-emerald-300 mt-1">
-                                Apportionment completed {{ formatTime(map_acceptance.apportionment_completed_at) }}
+                                {{ t('c_jurisdictions.show.apportionment_completed', { when: formatTime(map_acceptance.apportionment_completed_at) }) }}
                             </div>
                             <div v-else class="text-xs text-emerald-300 mt-1 italic">
-                                Sizing every legislature…
+                                {{ t('c_jurisdictions.show.sizing_every', 'Sizing every legislature…') }}
                             </div>
                             <a href="/setup/step/3"
                                class="mt-2 block w-full text-center text-xs font-medium px-3 py-1.5 rounded
                                       bg-emerald-800 hover:bg-emerald-700 text-emerald-100
                                       border border-emerald-600 transition-colors">
-                                Watch the full-scale build →
+                                {{ t('c_jurisdictions.show.watch_build', 'Watch the full-scale build →') }}
                             </a>
                             <!-- Reopen — clears map_accepted_at so the repair
                                  window comes back. Only while setup is still
@@ -342,7 +341,7 @@
                                     class="mt-2 block w-full text-center text-xs font-medium px-3 py-1.5 rounded
                                            bg-gray-800 hover:bg-gray-700 disabled:opacity-50
                                            text-gray-300 border border-gray-600 transition-colors">
-                                {{ reopening ? 'Reopening…' : 'Reopen map data' }}
+                                {{ reopening ? t('c_jurisdictions.show.reopening', 'Reopening…') : t('c_jurisdictions.show.reopen_map', 'Reopen map data') }}
                             </button>
                             <div v-if="reopenError" class="mt-1 text-xs text-red-400">
                                 {{ reopenError }}
@@ -356,14 +355,14 @@
                                     class="mt-2 block w-full text-center text-xs font-medium px-3 py-1.5 rounded
                                            bg-violet-900/40 hover:bg-violet-900/70 disabled:opacity-50
                                            text-violet-200 border border-violet-600 transition-colors">
-                                {{ rehooking ? 'Starting…' : 'Start planet-wide generation →' }}
+                                {{ rehooking ? t('c_jurisdictions.show.starting', 'Starting…') : t('c_jurisdictions.show.start_generation', 'Start planet-wide generation →') }}
                             </button>
                             <div v-if="rehookMsg" class="mt-1 text-xs text-gray-400">{{ rehookMsg }}</div>
                         </div>
                         <template v-else>
                         <!-- THE THREE ACTIVATION MODES (2026-08-08): chooses
                              what acceptance STARTS, not whether it accepts. -->
-                        <select v-model="scaleMode" aria-label="Activation mode"
+                        <select v-model="scaleMode" :aria-label="t('c_jurisdictions.show.activation_mode_aria', 'Activation mode')"
                                 class="mb-2 w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
                             <option v-for="o in MODE_OPTS" :key="o.v" :value="o.v">{{ o.t }}</option>
                         </select>
@@ -373,7 +372,7 @@
                                 class="block w-full text-center text-sm font-semibold px-3 py-2.5 rounded
                                        bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:cursor-not-allowed
                                        text-white transition-colors">
-                            {{ acceptingMaps ? 'Accepting…' : 'Accept Map Data &amp; Continue →' }}
+                            {{ acceptingMaps ? t('c_jurisdictions.show.accepting', 'Accepting…') : t('c_jurisdictions.show.accept_continue_amp', 'Accept Map Data &amp; Continue →') }}
                         </button>
                         </template>
                         <div v-if="acceptError" class="mt-2 text-xs text-red-400">
@@ -385,41 +384,41 @@
                 <!-- Hovered context feature -->
                 <div v-if="hoveredFeature" class="mx-4 mb-4 p-3 bg-blue-900/40 border border-blue-700 rounded-lg">
                     <div class="text-xs text-blue-300 mb-1">
-                        {{ hoveredFeature.depth === 0 ? 'Adjacent' : hoveredFeature.depth === 1 ? 'Parent region' : 'Wider region' }}
+                        {{ hoveredFeature.depth === 0 ? t('c_jurisdictions.show.hover_adjacent', 'Adjacent') : hoveredFeature.depth === 1 ? t('c_jurisdictions.show.hover_parent', 'Parent region') : t('c_jurisdictions.show.hover_wider', 'Wider region') }}
                     </div>
                     <div class="text-sm font-semibold text-white">{{ hoveredFeature.name }}</div>
                     <div class="text-xs text-gray-300 mt-1">
-                        Population: {{ hoveredFeature.population.toLocaleString() }}
+                        {{ t('c_jurisdictions.show.population_n', { n: hoveredFeature.population.toLocaleString() }) }}
                     </div>
                     <div v-if="hoveredFeature.child_count > 0" class="text-xs text-gray-400">
-                        {{ hoveredFeature.child_count }} members
+                        {{ t('c_jurisdictions.show.members_n', { n: hoveredFeature.child_count }) }}
                     </div>
-                    <div v-else class="text-xs text-gray-500 italic">No further sub-divisions</div>
+                    <div v-else class="text-xs text-gray-500 italic">{{ t('c_jurisdictions.show.no_subdivisions', 'No further sub-divisions') }}</div>
                 </div>
 
                 <!-- Hovered child -->
                 <div v-if="hoveredChild" class="mx-4 mb-4 p-3 bg-green-900/40 border border-green-700 rounded-lg">
-                    <div class="text-xs text-green-300 mb-1">Hovering</div>
+                    <div class="text-xs text-green-300 mb-1">{{ t('c_jurisdictions.show.hovering', 'Hovering') }}</div>
                     <div class="text-sm font-semibold text-white">{{ hoveredChild.name }}</div>
                     <div class="text-xs text-gray-300 mt-1">
-                        Population: {{ hoveredChild.population.toLocaleString() }}
+                        {{ t('c_jurisdictions.show.population_n', { n: hoveredChild.population.toLocaleString() }) }}
                     </div>
                     <div v-if="hoveredChild.child_count > 0" class="text-xs text-gray-400">
-                        {{ hoveredChild.child_count }} members
+                        {{ t('c_jurisdictions.show.members_n', { n: hoveredChild.child_count }) }}
                     </div>
-                    <div v-else class="text-xs text-gray-500 italic">No further sub-divisions</div>
+                    <div v-else class="text-xs text-gray-500 italic">{{ t('c_jurisdictions.show.no_subdivisions', 'No further sub-divisions') }}</div>
                 </div>
 
                 <!-- No children notice -->
                 <div v-if="!hasChildren" class="mx-4 mb-4 p-3 bg-gray-800 rounded-lg text-sm text-gray-400 italic">
-                    This is the most local jurisdiction level available.
+                    {{ t('c_jurisdictions.show.most_local', 'This is the most local jurisdiction level available.') }}
                 </div>
             </aside>
 
             <!-- Right panel: map -->
             <div class="flex-1 relative">
                 <div v-if="loading" class="absolute inset-0 z-[1000] flex items-center justify-center bg-gray-950/70">
-                    <div class="text-white text-lg font-medium">Loading map…</div>
+                    <div class="text-white text-lg font-medium">{{ t('c_jurisdictions.show.loading_map', 'Loading map…') }}</div>
                 </div>
                 <div id="jurisdiction-map" class="w-full h-full"></div>
 
@@ -434,7 +433,7 @@
                             text-xs font-medium shadow-lg
                             flex items-center gap-2">
                     <span class="inline-block w-2 h-2 rounded-full bg-indigo-300 animate-pulse"></span>
-                    Loading population raster…
+                    {{ t('c_jurisdictions.show.loading_raster', 'Loading population raster…') }}
                 </div>
 
                 <!-- P.6.x.2 — Map controls stack. Mirrors the District Mapper's
@@ -445,41 +444,41 @@
                     <button
                         type="button"
                         @click="showNames = !showNames"
-                        :title="'Toggle jurisdiction name labels'"
+                        :title="t('c_jurisdictions.show.toggle_names', 'Toggle jurisdiction name labels')"
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showNames
                             ? 'bg-violet-700 border-violet-500 text-white'
                             : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
-                    >Names</button>
+                    >{{ t('c_jurisdictions.show.btn_names', 'Names') }}</button>
                     <button
                         type="button"
                         @click="showPop = !showPop"
-                        :title="'Toggle population number under each name'"
+                        :title="t('c_jurisdictions.show.toggle_pop', 'Toggle population number under each name')"
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showPop
                             ? 'border-transparent text-white'
                             : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
                         :style="showPop ? { backgroundColor: '#E69F00', borderColor: '#E69F00' } : null"
-                    >Population</button>
+                    >{{ t('c_jurisdictions.show.btn_population', 'Population') }}</button>
                     <button
                         type="button"
                         @click="showMembers = !showMembers"
-                        :title="'Toggle direct-child count (“members”) under each name'"
+                        :title="t('c_jurisdictions.show.toggle_members', 'Toggle direct-child count (“members”) under each name')"
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showMembers
                             ? 'border-transparent text-white'
                             : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
                         :style="showMembers ? { backgroundColor: '#56B4E9', borderColor: '#56B4E9' } : null"
-                    >Members</button>
+                    >{{ t('c_jurisdictions.show.btn_members', 'Members') }}</button>
                     <button
                         type="button"
                         @click="showRaster = !showRaster"
-                        :title="'Toggle WorldPop population density raster overlay'"
+                        :title="t('c_jurisdictions.show.toggle_raster', 'Toggle WorldPop population density raster overlay')"
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showRaster
                             ? 'bg-indigo-700 border-indigo-500 text-white'
                             : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
-                    >Raster</button>
+                    >{{ t('c_jurisdictions.show.btn_raster', 'Raster') }}</button>
                 </div>
             </div>
     </div>
@@ -492,33 +491,30 @@
          @click.self="showAckModal = false">
         <div class="w-full max-w-md bg-gray-900 border border-gray-700 rounded-lg shadow-2xl">
             <div class="px-4 py-3 border-b border-gray-800">
-                <div class="text-sm font-semibold text-white">Open data flags remain</div>
+                <div class="text-sm font-semibold text-white">{{ t('c_jurisdictions.show.ack_title', 'Open data flags remain') }}</div>
             </div>
             <div class="px-4 py-3 space-y-3 text-sm">
                 <p class="text-gray-400 text-xs">
-                    The data review scan still has unresolved flags. You can repair
-                    or accept them individually in the panel on the left, or accept
-                    the map data anyway — the flags stay on record.
+                    {{ t('c_jurisdictions.show.ack_body', 'The data review scan still has unresolved flags. You can repair or accept them individually in the panel on the left, or accept the map data anyway — the flags stay on record.') }}
                 </p>
                 <div class="flex flex-wrap gap-1.5">
                     <span v-if="ackOpenFlags.critical > 0"
                           class="px-2 py-0.5 rounded text-xs bg-red-900 text-red-200 border border-red-700">
-                        {{ ackOpenFlags.critical }} critical
+                        {{ t('c_jurisdictions.show.ack_critical', { n: ackOpenFlags.critical }) }}
                     </span>
                     <span v-if="ackOpenFlags.warning > 0"
                           class="px-2 py-0.5 rounded text-xs bg-amber-900 text-amber-200 border border-amber-700">
-                        {{ ackOpenFlags.warning }} warning
+                        {{ t('c_jurisdictions.show.ack_warning', { n: ackOpenFlags.warning }) }}
                     </span>
                     <span v-if="ackOpenFlags.info > 0"
                           class="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-300 border border-gray-600">
-                        {{ ackOpenFlags.info }} info
+                        {{ t('c_jurisdictions.show.ack_info', { n: ackOpenFlags.info }) }}
                     </span>
                 </div>
                 <label class="flex items-start gap-2 text-gray-200 text-xs">
                     <input type="checkbox" v-model="ackChecked" class="mt-0.5" />
                     <span>
-                        Accept anyway — I acknowledge {{ ackOpenTotal }} open
-                        flag{{ ackOpenTotal === 1 ? '' : 's' }}
+                        {{ ackOpenTotal === 1 ? t('c_jurisdictions.show.ack_one', { count: ackOpenTotal }) : t('c_jurisdictions.show.ack_many', { count: ackOpenTotal }) }}
                     </span>
                 </label>
                 <div v-if="acceptError" class="text-xs text-red-400">{{ acceptError }}</div>
@@ -526,7 +522,7 @@
             <div class="flex items-center justify-end gap-2 px-4 py-3 border-t border-gray-800">
                 <button type="button" @click="showAckModal = false"
                         class="px-3 py-1.5 rounded text-xs font-medium text-gray-300 hover:text-white transition-colors">
-                    Cancel
+                    {{ t('c_jurisdictions.show.btn_cancel', 'Cancel') }}
                 </button>
                 <button type="button"
                         @click="acceptMaps(true)"
@@ -534,7 +530,7 @@
                         class="px-4 py-1.5 rounded text-xs font-semibold text-white
                                bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:cursor-not-allowed
                                transition-colors">
-                    {{ acceptingMaps ? 'Accepting…' : 'Accept Map Data & Continue →' }}
+                    {{ acceptingMaps ? t('c_jurisdictions.show.accepting', 'Accepting…') : t('c_jurisdictions.show.accept_continue', 'Accept Map Data & Continue →') }}
                 </button>
             </div>
         </div>
@@ -544,6 +540,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import GeodataFlagQueue from '@/Components/Geodata/GeodataFlagQueue.vue'
 import { csrfFetch } from '@/lib/csrf'
@@ -561,6 +558,8 @@ defineOptions({
     // document. See the note at the top of <template> for what 'wide' cost.
     layout: (h, page) => h(AppShellV2, { variant: 'flush' }, () => page),
 })
+
+const { t } = useI18n()
 
 const props = defineProps({
     surface:             { type: Object, default: null },
@@ -619,7 +618,7 @@ async function activateLegislature() {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {
-            activateLegError.value = data.error || `activation failed (HTTP ${res.status})`
+            activateLegError.value = data.error || t('c_jurisdictions.show.activation_failed', { status: res.status })
             return
         }
         router.reload()
@@ -634,9 +633,9 @@ async function activateLegislature() {
 // Step 2's dropdown. eager = full build on accept; population = CLK-06
 // boots places as residents arrive; manual = Activate controls only.
 const MODE_OPTS = [
-    { v: 'eager',      t: 'Activate & Scale Institutions Now' },
-    { v: 'population', t: 'Activate & Scale Institutions As Players Join' },
-    { v: 'manual',     t: 'Activate & Scale Institutions Manually' },
+    { v: 'eager',      t: t('c_jurisdictions.show.mode_eager', 'Activate & Scale Institutions Now') },
+    { v: 'population', t: t('c_jurisdictions.show.mode_population', 'Activate & Scale Institutions As Players Join') },
+    { v: 'manual',     t: t('c_jurisdictions.show.mode_manual', 'Activate & Scale Institutions Manually') },
 ]
 const scaleMode = ref('eager')
 const rehooking = ref(false)
@@ -654,12 +653,12 @@ async function startPlanetGeneration() {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {
-            rehookMsg.value = data.error || `start failed (HTTP ${res.status})`
+            rehookMsg.value = data.error || t('c_jurisdictions.show.start_failed', { status: res.status })
             return
         }
         rehookMsg.value = data.autoscale_run_id
-            ? `Planet-wide generation running (run ${String(data.autoscale_run_id).slice(0, 8)}…)`
-            : 'Planet-wide generation started.'
+            ? t('c_jurisdictions.show.generation_running', { run: String(data.autoscale_run_id).slice(0, 8) })
+            : t('c_jurisdictions.show.generation_started', 'Planet-wide generation started.')
     } catch (e) {
         rehookMsg.value = String(e?.message || e)
     } finally {
@@ -759,15 +758,15 @@ function formatTime(iso) {
 // (the activation engine never files a row for it).
 // Election phase label for the "Election" CTA (elections.status vocabulary).
 const ELECTION_PHASE_LABELS = {
-    scheduled:       'Scheduled',
-    approval_open:   'Approval open',
-    finalist_cutoff: 'Finalist cutoff',
-    ranked_open:     'Ranked open',
-    voting_closed:   'Voting closed',
-    tabulating:      'Tabulating',
-    certified:       'Certified',
-    audit_rerun:     'Audit rerun',
-    final:           'Final',
+    scheduled:       t('c_jurisdictions.show.phase_scheduled', 'Scheduled'),
+    approval_open:   t('c_jurisdictions.show.phase_approval_open', 'Approval open'),
+    finalist_cutoff: t('c_jurisdictions.show.phase_finalist_cutoff', 'Finalist cutoff'),
+    ranked_open:     t('c_jurisdictions.show.phase_ranked_open', 'Ranked open'),
+    voting_closed:   t('c_jurisdictions.show.phase_voting_closed', 'Voting closed'),
+    tabulating:      t('c_jurisdictions.show.phase_tabulating', 'Tabulating'),
+    certified:       t('c_jurisdictions.show.phase_certified', 'Certified'),
+    audit_rerun:     t('c_jurisdictions.show.phase_audit_rerun', 'Audit rerun'),
+    final:           t('c_jurisdictions.show.phase_final', 'Final'),
 }
 const electionPhaseLabel = computed(() =>
     ELECTION_PHASE_LABELS[props.current_election?.status] ?? props.current_election?.status ?? '')
@@ -804,7 +803,7 @@ async function acceptMaps(acknowledge = false) {
             return
         }
         if (!res.ok || !data.ok) {
-            acceptError.value = data.error || `accept failed (HTTP ${res.status})`
+            acceptError.value = data.error || t('c_jurisdictions.show.accept_failed', { status: res.status })
             return
         }
         showAckModal.value = false
@@ -850,7 +849,7 @@ async function reopenMaps() {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {
-            reopenError.value = data.error || `reopen failed (HTTP ${res.status})`
+            reopenError.value = data.error || t('c_jurisdictions.show.reopen_failed', { status: res.status })
             return
         }
         router.reload({ only: ['map_acceptance'] })
@@ -1221,7 +1220,7 @@ onMounted(async () => {
         }
         if (showMembers.value && p.child_count != null && p.child_count > 0) {
             const sep = (showPop.value && p.population != null) ? ' · ' : '<br>'
-            html += `<span class="jurisdiction-members-label">${sep}${p.child_count.toLocaleString()} members</span>`
+            html += `<span class="jurisdiction-members-label">${sep}${t('c_jurisdictions.show.label_members', { n: p.child_count.toLocaleString() })}</span>`
         }
         html += `</div>`
         return html

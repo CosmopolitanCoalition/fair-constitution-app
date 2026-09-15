@@ -17,6 +17,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import StageBars from '@/Components/Progress/StageBars.vue';
@@ -26,6 +27,8 @@ import Card from '@/Components/Ui/Card.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 
 defineOptions({ layout: AppShellV2 });
+
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -84,12 +87,10 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
 </script>
 
 <template>
-    <PageScaffold :surface="surface" title="Building the world">
+    <PageScaffold :surface="surface" :title="t('c_jurisdictions.progress.title', 'Building the world')">
         <template #intro>
             <p class="text-sm text-gray-400">
-                Every place gets the same institutions before anyone arrives: a chamber, an
-                executive, a court, an election board, and somewhere to talk. This is how far
-                along that is.
+                {{ t('c_jurisdictions.progress.intro', 'Every place gets the same institutions before anyone arrives: a chamber, an executive, a court, an election board, and somewhere to talk. This is how far along that is.') }}
             </p>
         </template>
 
@@ -97,19 +98,16 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
 
         <!-- Operator door — the UI twin of institutions:provision. -->
         <Card v-if="canProvision" class="mb-4">
-            <h2 class="text-sm font-semibold mb-1">Provision missing institutions</h2>
+            <h2 class="text-sm font-semibold mb-1">{{ t('c_jurisdictions.progress.provision_title', 'Provision missing institutions') }}</h2>
             <p class="text-sm text-gray-400 mb-3">
-                Fill every jurisdiction's executive, court, election board and civic spaces
-                (the <code>institutions:provision</code> twin). It is set-based and chunked, so a
-                real run is queued and the bars above fill as it goes — preview first to see
-                what is missing.
+                {{ t('c_jurisdictions.progress.provision_body_before', 'Fill every jurisdiction\'s executive, court, election board and civic spaces (the ') }}<code>institutions:provision</code>{{ t('c_jurisdictions.progress.provision_body_after', ' twin). It is set-based and chunked, so a real run is queued and the bars above fill as it goes — preview first to see what is missing.') }}
             </p>
             <div class="flex gap-2">
                 <Btn variant="secondary" size="sm" :disabled="provisionForm.processing" @click="preview">
-                    Preview missing
+                    {{ t('c_jurisdictions.progress.preview_missing', 'Preview missing') }}
                 </Btn>
                 <Btn variant="primary" size="sm" :disabled="provisionForm.processing" @click="provision">
-                    {{ provisionForm.processing ? 'Working…' : 'Provision (queue)' }}
+                    {{ provisionForm.processing ? t('c_jurisdictions.progress.working', 'Working…') : t('c_jurisdictions.progress.provision_queue', 'Provision (queue)') }}
                 </Btn>
             </div>
         </Card>
@@ -119,28 +117,25 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
              elections — so the banner never says "ready" without saying how
              many chambers are actually seated. -->
         <Banner v-if="world?.complete && world?.awaiting_election" tone="info" class="mb-4">
-            Every stage is built. {{ fmt(world.seated) }} of
-            {{ fmt(world.legislatures) }} chambers have members —
-            the rest are waiting for their first election, which is how a new
-            world should look until people arrive.
+            {{ t('c_jurisdictions.progress.awaiting_banner', { seated: fmt(world.seated), total: fmt(world.legislatures) }) }}
         </Banner>
 
         <Banner v-else-if="world?.complete" tone="success" class="mb-4">
-            Every stage is built and every chamber has members.
+            {{ t('c_jurisdictions.progress.complete_banner', 'Every stage is built and every chamber has members.') }}
         </Banner>
 
         <Card v-if="world" class="mb-4">
             <div class="flex flex-wrap gap-6">
-                <Stat label="Places with a chamber" :value="fmt(world.legislatures)" />
-                <Stat label="Chambers with members" :value="fmt(world.seated)" />
+                <Stat :label="t('c_jurisdictions.progress.stat_chamber', 'Places with a chamber')" :value="fmt(world.legislatures)" />
+                <Stat :label="t('c_jurisdictions.progress.stat_members', 'Chambers with members')" :value="fmt(world.seated)" />
                 <Stat
                     v-if="world.awaiting_election"
-                    label="Awaiting a first election"
+                    :label="t('c_jurisdictions.progress.stat_awaiting', 'Awaiting a first election')"
                     :value="fmt(world.awaiting_election)"
                 />
                 <Stat
                     v-if="world.skipped"
-                    label="Nobody lives there"
+                    :label="t('c_jurisdictions.progress.stat_empty', 'Nobody lives there')"
                     :value="fmt(world.skipped)"
                 />
             </div>
@@ -148,8 +143,7 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
             <p class="mt-3 text-xs" style="color: var(--gov-fg-subtle)">
                 {{ world.binding_label }}.
                 <template v-if="world.skipped">
-                    Places with no people and no smaller places inside them get nothing at all —
-                    that is deliberate, not missing work.
+                    {{ t('c_jurisdictions.progress.skipped_note', 'Places with no people and no smaller places inside them get nothing at all — that is deliberate, not missing work.') }}
                 </template>
             </p>
         </Card>

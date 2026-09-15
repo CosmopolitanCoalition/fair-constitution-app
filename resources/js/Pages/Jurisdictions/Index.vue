@@ -11,42 +11,42 @@
                 </span>
                 <span class="text-gray-400">
                     {{ scale.mode === 'eager'
-                        ? 'The full-scale build runs on its own; these controls are for reruns and spot work.'
+                        ? t('c_jurisdictions.index.mode_help_eager', 'The full-scale build runs on its own; these controls are for reruns and spot work.')
                         : scale.mode === 'population'
-                            ? 'Places boot automatically as verified residents cross their threshold — or activate them here ahead of demand.'
+                            ? t('c_jurisdictions.index.mode_help_population', 'Places boot automatically as verified residents cross their threshold — or activate them here ahead of demand.')
                             : scale?.is_sandbox
-                            ? 'Nothing is automatic: Activate rows here (or + children), draw maps — and Simulate populates an activated jurisdiction with simulated residents, orgs, and bills.'
-                            : 'Nothing is automatic: Activate rows here (or + children), draw maps, build institutions through their forms.' }}
+                            ? t('c_jurisdictions.index.mode_help_sandbox', 'Nothing is automatic: Activate rows here (or + children), draw maps — and Simulate populates an activated jurisdiction with simulated residents, orgs, and bills.')
+                            : t('c_jurisdictions.index.mode_help_manual', 'Nothing is automatic: Activate rows here (or + children), draw maps, build institutions through their forms.') }}
                 </span>
                 <span class="ml-auto flex items-center gap-2">
                     <a href="/setup/step/2"
                        class="px-2.5 py-1 rounded border border-gray-600 text-gray-300 hover:bg-gray-800 transition-colors">
-                        ← Setup
+                        {{ t('c_jurisdictions.index.back_setup', '← Setup') }}
                     </a>
                     <button type="button" :disabled="advancingSetup" @click="continueSetup"
-                            title="Mark this step done and continue to review & confirm"
+                            :title="t('c_jurisdictions.index.continue_title', 'Mark this step done and continue to review & confirm')"
                             class="px-2.5 py-1 rounded border border-blue-600 text-blue-200 hover:bg-blue-900/40 disabled:opacity-50 transition-colors">
-                        {{ advancingSetup ? 'Advancing…' : 'Continue setup →' }}
+                        {{ advancingSetup ? t('c_jurisdictions.index.advancing', 'Advancing…') : t('c_jurisdictions.index.continue_setup', 'Continue setup →') }}
                     </button>
                     <span v-if="setupMsg" class="text-gray-400">{{ setupMsg }}</span>
                     <button type="button" :disabled="bulkBusy || selectedCount === 0" @click="activateSelected"
                             class="px-2.5 py-1 rounded-l border border-emerald-600 text-emerald-200 hover:bg-emerald-900/40 disabled:opacity-40 transition-colors">
-                        {{ bulkBusy ? 'Activating…' : `Activate selected (${selectedCount})` }}
+                        {{ bulkBusy ? t('c_jurisdictions.index.activating', 'Activating…') : t('c_jurisdictions.index.activate_selected', { count: selectedCount }) }}
                     </button>
                     <button type="button" :disabled="bulkBusy || selectedCount === 0" @click="activateSelectedChildren"
-                            title="Each selected jurisdiction AND its whole subtree (queued)"
+                            :title="t('c_jurisdictions.index.activate_children_title', 'Each selected jurisdiction AND its whole subtree (queued)')"
                             class="px-2 py-1 rounded-r border border-l-0 border-emerald-600 text-emerald-300 hover:bg-emerald-900/40 disabled:opacity-40 transition-colors">
-                        + children
+                        {{ t('c_jurisdictions.index.plus_children', '+ children') }}
                     </button>
                     <button v-if="halfCount" type="button" :disabled="healBusy" @click="finishActivations"
-                            title="These places have seats but no election board, so district plans cannot be accepted"
+                            :title="t('c_jurisdictions.index.finish_all_title', 'These places have seats but no election board, so district plans cannot be accepted')"
                             class="px-2.5 py-1 rounded border border-amber-500 bg-amber-900/30 text-amber-100 hover:bg-amber-900/60 disabled:opacity-50 transition-colors">
                         <span v-if="healBusy" class="inline-block animate-spin">◠</span>
-                        {{ healBusy ? `Booting… ${halfCount.toLocaleString()} left` : `Finish activation (${halfCount.toLocaleString()})` }}
+                        {{ healBusy ? t('c_jurisdictions.index.booting_left', { n: halfCount.toLocaleString() }) : t('c_jurisdictions.index.finish_activation_n', { n: halfCount.toLocaleString() }) }}
                     </button>
                     <button type="button" :disabled="allBusy" @click="activateAll"
                             class="px-2.5 py-1 rounded border border-violet-600 text-violet-200 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
-                        {{ allBusy ? 'Starting…' : 'Activate All — planet-wide build' }}
+                        {{ allBusy ? t('c_jurisdictions.index.starting', 'Starting…') : t('c_jurisdictions.index.activate_all', 'Activate All — planet-wide build') }}
                     </button>
                     <span v-if="healMsg" class="text-gray-400">{{ healMsg }}</span>
                     <span v-if="bulkMsg" class="text-gray-400">{{ bulkMsg }}</span>
@@ -56,15 +56,15 @@
 
             <!-- Toolbar -->
             <div class="flex items-center gap-3 px-6 py-3 bg-gray-900 border-b border-gray-800 shrink-0">
-                <h1 class="text-sm font-semibold text-gray-200 mr-2">Jurisdictions</h1>
+                <h1 class="text-sm font-semibold text-gray-200 mr-2">{{ t('c_jurisdictions.index.toolbar_title', 'Jurisdictions') }}</h1>
 
                 <!-- Search -->
                 <input
                     v-model="search"
                     @input="onSearch"
                     type="text"
-                    aria-label="Search jurisdictions by name"
-                    placeholder="Search by name…"
+                    :aria-label="t('c_jurisdictions.index.search_aria', 'Search jurisdictions by name')"
+                    :placeholder="t('c_jurisdictions.index.search_ph', 'Search by name…')"
                     class="w-64 bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                 />
 
@@ -72,33 +72,33 @@
                 <select
                     v-model="activeFilter"
                     @change="onFilter"
-                    aria-label="Filter by activation"
+                    :aria-label="t('c_jurisdictions.index.filter_activation_aria', 'Filter by activation')"
                     class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-blue-500"
                 >
-                    <option value="">Active &amp; inactive</option>
-                    <option value="1">Activated only</option>
-                    <option value="0">Not activated</option>
+                    <option value="">{{ t('c_jurisdictions.index.f_active_inactive', 'Active & inactive') }}</option>
+                    <option value="1">{{ t('c_jurisdictions.index.f_activated', 'Activated only') }}</option>
+                    <option value="0">{{ t('c_jurisdictions.index.f_not_activated', 'Not activated') }}</option>
                 </select>
 
                 <!-- ADM level filter -->
                 <select
                     v-model="admLevel"
                     @change="onFilter"
-                    aria-label="Filter by administrative level"
+                    :aria-label="t('c_jurisdictions.index.filter_adm_aria', 'Filter by administrative level')"
                     class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-blue-500"
                 >
-                    <option value="">All levels</option>
-                    <option value="0">ADM 0 — World</option>
-                    <option value="1">ADM 1 — Country</option>
-                    <option value="2">ADM 2 — State / Province</option>
-                    <option value="3">ADM 3 — County / District</option>
-                    <option value="4">ADM 4</option>
-                    <option value="5">ADM 5</option>
-                    <option value="6">ADM 6</option>
+                    <option value="">{{ t('c_jurisdictions.index.l_all', 'All levels') }}</option>
+                    <option value="0">{{ t('c_jurisdictions.index.l_adm0', 'ADM 0 — World') }}</option>
+                    <option value="1">{{ t('c_jurisdictions.index.l_adm1', 'ADM 1 — Country') }}</option>
+                    <option value="2">{{ t('c_jurisdictions.index.l_adm2', 'ADM 2 — State / Province') }}</option>
+                    <option value="3">{{ t('c_jurisdictions.index.l_adm3', 'ADM 3 — County / District') }}</option>
+                    <option value="4">{{ t('c_jurisdictions.index.l_adm4', 'ADM 4') }}</option>
+                    <option value="5">{{ t('c_jurisdictions.index.l_adm5', 'ADM 5') }}</option>
+                    <option value="6">{{ t('c_jurisdictions.index.l_adm6', 'ADM 6') }}</option>
                 </select>
 
                 <span class="ml-auto text-xs text-gray-500">
-                    {{ jurisdictions.total.toLocaleString() }} jurisdictions
+                    {{ t('c_jurisdictions.index.total_count', { count: jurisdictions.total.toLocaleString() }) }}
                 </span>
             </div>
 
@@ -108,13 +108,13 @@
                     <thead class="sticky top-0 bg-gray-900 z-10">
                         <tr class="text-left text-xs text-gray-400 uppercase tracking-wide">
                             <th v-if="isOperator" class="px-2 py-2 font-medium border-b border-gray-800 w-8" @click.stop>
-                                <input type="checkbox" v-model="allSelected" title="Select all on this page" class="accent-emerald-600" />
+                                <input type="checkbox" v-model="allSelected" :title="t('c_jurisdictions.index.select_all_title', 'Select all on this page')" class="accent-emerald-600" />
                             </th>
-                            <th class="px-4 py-2 font-medium border-b border-gray-800 w-48">Level</th>
-                            <th class="px-4 py-2 font-medium border-b border-gray-800">Name</th>
-                            <th class="px-4 py-2 font-medium border-b border-gray-800 w-44">Legislature</th>
-                            <th class="px-4 py-2 font-medium border-b border-gray-800 font-mono text-xs">Slug</th>
-                            <th class="px-4 py-2 font-medium border-b border-gray-800 text-right">Population</th>
+                            <th class="px-4 py-2 font-medium border-b border-gray-800 w-48">{{ t('c_jurisdictions.index.th_level', 'Level') }}</th>
+                            <th class="px-4 py-2 font-medium border-b border-gray-800">{{ t('c_jurisdictions.index.th_name', 'Name') }}</th>
+                            <th class="px-4 py-2 font-medium border-b border-gray-800 w-44">{{ t('c_jurisdictions.index.th_legislature', 'Legislature') }}</th>
+                            <th class="px-4 py-2 font-medium border-b border-gray-800 font-mono text-xs">{{ t('c_jurisdictions.index.th_slug', 'Slug') }}</th>
+                            <th class="px-4 py-2 font-medium border-b border-gray-800 text-right">{{ t('c_jurisdictions.index.th_population', 'Population') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -125,7 +125,7 @@
                             class="border-b border-gray-800/60 hover:bg-gray-800/50 cursor-pointer transition-colors"
                         >
                             <td v-if="isOperator" class="px-2 py-2" @click.stop>
-                                <input type="checkbox" v-model="selected[j.id]" aria-label="Select this jurisdiction" class="accent-emerald-600" />
+                                <input type="checkbox" v-model="selected[j.id]" :aria-label="t('c_jurisdictions.index.select_row_aria', 'Select this jurisdiction')" class="accent-emerald-600" />
                             </td>
                             <td class="px-4 py-2">
                                 <span class="inline-block text-xs px-2 py-0.5 rounded-full bg-blue-900/60 text-blue-300">
@@ -153,15 +153,15 @@
                                     <button v-if="isOperator && !j.has_board"
                                             type="button" :disabled="!!busy[j.id]"
                                             @click="activateRow(j)"
-                                            title="Seats exist but this place never finished activation — no election board, so district plans cannot be accepted"
+                                            :title="t('c_jurisdictions.index.finish_row_title', 'Seats exist but this place never finished activation — no election board, so district plans cannot be accepted')"
                                             class="mr-1 inline-block text-xs px-2.5 py-1 rounded border border-amber-500
                                                    bg-amber-900/30 text-amber-100 hover:bg-amber-900/60 disabled:opacity-50 transition-colors">
-                                        {{ busy[j.id] ? 'Booting…' : 'Finish activation' }}
+                                        {{ busy[j.id] ? t('c_jurisdictions.index.booting', 'Booting…') : t('c_jurisdictions.index.finish_activation', 'Finish activation') }}
                                     </button>
                                     <a :href="`/legislatures/${j.slug}/districts`"
                                        class="inline-block text-xs px-2.5 py-1 rounded border border-emerald-600
                                               text-emerald-200 hover:bg-emerald-900/40 transition-colors">
-                                        Districts →
+                                        {{ t('c_jurisdictions.index.districts_link', 'Districts →') }}
                                     </a>
                                     <!-- Simulate = the fake people/orgs/bills build,
                                          a SEPARATE act from activation (operator
@@ -169,10 +169,10 @@
                                     <button v-if="isOperator && scale?.is_sandbox"
                                             type="button" :disabled="!!busy[j.id]"
                                             @click="simulateRow(j)"
-                                            title="Populate this jurisdiction's subtree with simulated residents, elections, orgs, and bills"
+                                            :title="t('c_jurisdictions.index.simulate_title', 'Populate this jurisdiction\'s subtree with simulated residents, elections, orgs, and bills')"
                                             class="ml-1 inline-block text-xs px-2.5 py-1 rounded border border-amber-600
                                                    text-amber-200 hover:bg-amber-900/40 disabled:opacity-50 transition-colors">
-                                        Simulate
+                                        {{ t('c_jurisdictions.index.simulate', 'Simulate') }}
                                     </button>
                                 </template>
                                 <template v-else-if="isOperator">
@@ -181,7 +181,7 @@
                                             @click="activateRow(j)"
                                             class="inline-block text-xs px-2.5 py-1 rounded border border-violet-600
                                                    text-violet-200 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
-                                        {{ busy[j.id] ? 'Sizing…' : 'Activate' }}
+                                        {{ busy[j.id] ? t('c_jurisdictions.index.sizing', 'Sizing…') : t('c_jurisdictions.index.activate', 'Activate') }}
                                     </button>
                                 </template>
                                 <!-- "+ children" is driven by the SUBTREE's
@@ -195,7 +195,7 @@
                                      are not what gets queued). -->
                                 <span v-if="subtreeProgress[j.id]"
                                       class="ml-1 inline-flex items-center gap-1.5 align-middle"
-                                      :title="`${subtreeProgress[j.id].processed} of ${subtreeProgress[j.id].total} jurisdictions`">
+                                      :title="t('c_jurisdictions.index.subtree_title', { processed: subtreeProgress[j.id].processed, total: subtreeProgress[j.id].total })">
                                     <span class="inline-block w-24 h-1.5 rounded bg-gray-700 overflow-hidden align-middle">
                                         <span class="block h-full rounded transition-all duration-500"
                                               :class="subtreeProgress[j.id].finished ? 'bg-emerald-500' : 'bg-violet-500'"
@@ -204,7 +204,7 @@
                                     <span class="text-[10px] tabular-nums"
                                           :class="subtreeProgress[j.id].finished ? 'text-emerald-300' : 'text-violet-300'">
                                         {{ subtreeProgress[j.id].finished
-                                            ? `${subtreeProgress[j.id].total.toLocaleString()} done`
+                                            ? t('c_jurisdictions.index.subtree_done', { n: subtreeProgress[j.id].total.toLocaleString() })
                                             : `${subtreeProgress[j.id].processed.toLocaleString()}/${subtreeProgress[j.id].total.toLocaleString()}` }}
                                     </span>
                                 </span>
@@ -212,10 +212,10 @@
                                         type="button"
                                         :disabled="!!busy[j.id]"
                                         @click="activateChildren(j)"
-                                        title="Activate this jurisdiction and its whole subtree (queued)"
+                                        :title="t('c_jurisdictions.index.row_children_title', 'Activate this jurisdiction and its whole subtree (queued)')"
                                         class="ml-1 inline-block text-xs px-2 py-1 rounded border border-violet-600
                                                text-violet-300 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
-                                    + children
+                                    {{ t('c_jurisdictions.index.plus_children', '+ children') }}
                                 </button>
                                 <span v-else class="text-xs text-gray-600">—</span>
                                 <span v-if="rowErr[j.id]" class="ml-2 text-xs text-red-400">{{ rowErr[j.id] }}</span>
@@ -234,15 +234,14 @@
             <div class="flex items-center justify-between px-6 py-3 bg-gray-900 border-t border-gray-800 shrink-0 text-xs text-gray-400">
                 <span class="flex items-center gap-2">
                     <label class="flex items-center gap-1.5">
-                        <span class="text-gray-500">Rows</span>
+                        <span class="text-gray-500">{{ t('c_jurisdictions.index.rows', 'Rows') }}</span>
                         <select v-model="perPage" @change="onFilter"
                                 class="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
                             <option v-for="n in (per_page_options || [25,50,100,200])" :key="n" :value="String(n)">{{ n }}</option>
                         </select>
                     </label>
                     <span>
-                        Showing {{ jurisdictions.from?.toLocaleString() ?? 0 }}–{{ jurisdictions.to?.toLocaleString() ?? 0 }}
-                        of {{ jurisdictions.total.toLocaleString() }}
+                        {{ t('c_jurisdictions.index.showing', { from: jurisdictions.from?.toLocaleString() ?? 0, to: jurisdictions.to?.toLocaleString() ?? 0, total: jurisdictions.total.toLocaleString() }) }}
                     </span>
                 </span>
                 <div class="flex gap-1">
@@ -267,6 +266,7 @@
 <script setup>
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import { csrfFetch } from '@/lib/csrf'
 
@@ -277,18 +277,20 @@ defineOptions({
     layout: (h, page) => h(AppShellV2, { variant: 'flush' }, () => page),
 })
 
+const { t } = useI18n()
+
 const admLabels = {
-    0: 'World',
-    1: 'Country',
-    2: 'State / Province',
-    3: 'County / District',
-    4: 'ADM 4',
-    5: 'ADM 5',
-    6: 'ADM 6',
+    0: t('c_jurisdictions.index.adm_world', 'World'),
+    1: t('c_jurisdictions.index.adm_country', 'Country'),
+    2: t('c_jurisdictions.index.adm_state', 'State / Province'),
+    3: t('c_jurisdictions.index.adm_county', 'County / District'),
+    4: t('c_jurisdictions.index.adm_4', 'ADM 4'),
+    5: t('c_jurisdictions.index.adm_5', 'ADM 5'),
+    6: t('c_jurisdictions.index.adm_6', 'ADM 6'),
 }
 
 function admLabel(level) {
-    return admLabels[level] ?? `ADM ${level}`
+    return admLabels[level] ?? t('c_jurisdictions.index.adm_n', { level })
 }
 
 const props = defineProps({
@@ -329,7 +331,7 @@ async function activateRow(j) {
         j.legislature_id = data.legislature_id   // in-place swap → Districts link
         j.has_board = !!data.has_board           // clears "Finish activation"
         if (!data.has_board) {
-            rowErr.value = { ...rowErr.value, [j.id]: 'activated, but the election board did not constitute — check the logs' }
+            rowErr.value = { ...rowErr.value, [j.id]: t('c_jurisdictions.index.board_not_constitute', 'activated, but the election board did not constitute — check the logs') }
         }
     } catch (e) {
         rowErr.value = { ...rowErr.value, [j.id]: String(e?.message || e) }
@@ -343,9 +345,9 @@ async function activateRow(j) {
 // "+ children recursively" (queued subtree job; big trees are refused toward
 // Activate All), and Activate All = the planet-wide build (re-hook).
 const MODE_LABEL = {
-    eager:      'Activate & Scale Institutions Now',
-    population: 'Activate & Scale Institutions As Players Join',
-    manual:     'Activate & Scale Institutions Manually',
+    eager:      t('c_jurisdictions.index.mode_eager', 'Activate & Scale Institutions Now'),
+    population: t('c_jurisdictions.index.mode_population', 'Activate & Scale Institutions As Players Join'),
+    manual:     t('c_jurisdictions.index.mode_manual', 'Activate & Scale Institutions Manually'),
 }
 const selected = ref({})
 const selectedCount = computed(() => Object.values(selected.value).filter(Boolean).length)
@@ -379,7 +381,7 @@ async function continueSetup() {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok) {
-            setupMsg.value = data.error || `advance failed (HTTP ${res.status})`
+            setupMsg.value = data.error || t('c_jurisdictions.index.advance_failed', { status: res.status })
             return
         }
         router.visit('/setup/step/3')
@@ -407,7 +409,7 @@ async function activateSelected() {
             await activateRow(j)
             if (j.legislature_id && j.has_board) done++
         }
-        bulkMsg.value = `Activated ${done} of ${selectedCount.value} selected.`
+        bulkMsg.value = t('c_jurisdictions.index.activated_n', { done, total: selectedCount.value })
         selected.value = {}
     } finally {
         bulkBusy.value = false
@@ -428,7 +430,7 @@ async function activateSelectedChildren() {
             await activateChildren(j)
             if ((rowErr.value[j.id] || '').startsWith('queued')) queued++
         }
-        bulkMsg.value = `Queued ${queued} subtree(s) of ${selectedCount.value} selected.`
+        bulkMsg.value = t('c_jurisdictions.index.queued_n', { queued, total: selectedCount.value })
         selected.value = {}
     } finally {
         bulkBusy.value = false
@@ -449,7 +451,7 @@ async function simulateRow(j) {
         })
         const data = await res.json().catch(() => ({}))
         rowErr.value = { ...rowErr.value,
-            [j.id]: (!res.ok || !data.ok) ? (data.error || `HTTP ${res.status}`) : 'simulation queued' }
+            [j.id]: (!res.ok || !data.ok) ? (data.error || `HTTP ${res.status}`) : t('c_jurisdictions.index.simulation_queued', 'simulation queued') }
     } catch (e) {
         rowErr.value = { ...rowErr.value, [j.id]: String(e?.message || e) }
     } finally {
@@ -544,10 +546,10 @@ async function pollHalfCount() {
         halfCount.value = Number(data.half_activated ?? 0)
         if (halfCount.value === 0) {
             stopHealPoll()
-            healMsg.value = 'All activated places have their election board.'
+            healMsg.value = t('c_jurisdictions.index.all_have_board', 'All activated places have their election board.')
             healBusy.value = false
         } else if (halfCount.value !== prev) {
-            healMsg.value = `Booting… ${halfCount.value.toLocaleString()} remaining`
+            healMsg.value = t('c_jurisdictions.index.booting_remaining', { n: halfCount.value.toLocaleString() })
         }
     } catch { /* transient — the next tick retries */ }
 }
@@ -573,12 +575,12 @@ async function finishActivations() {
             return
         }
         if (!data.queued) {
-            healMsg.value = 'Nothing to finish — every activated place has its board.'
+            healMsg.value = t('c_jurisdictions.index.nothing_to_finish', 'Nothing to finish — every activated place has its board.')
             healBusy.value = false
             return
         }
         // Stay "busy" while the queued job drains; the poll ends it.
-        healMsg.value = `Booting… ${Number(data.count).toLocaleString()} remaining`
+        healMsg.value = t('c_jurisdictions.index.booting_remaining', { n: Number(data.count).toLocaleString() })
         stopHealPoll()
         healPoll = setInterval(pollHalfCount, 2500)
     } catch (e) {
@@ -612,7 +614,7 @@ const allMsg  = ref('')
 
 async function activateAll() {
     if (allBusy.value) return
-    if (!confirm('Activate ALL: start the planet-wide build (every legislature sized, every founding map drawn)?')) return
+    if (!confirm(t('c_jurisdictions.index.confirm_activate_all', 'Activate ALL: start the planet-wide build (every legislature sized, every founding map drawn)?'))) return
     allBusy.value = true
     allMsg.value = ''
     try {
@@ -623,12 +625,12 @@ async function activateAll() {
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {
-            allMsg.value = data.error || `start failed (HTTP ${res.status})`
+            allMsg.value = data.error || t('c_jurisdictions.index.start_failed', { status: res.status })
             return
         }
         allMsg.value = data.autoscale_run_id
-            ? `Planet-wide build running (run ${String(data.autoscale_run_id).slice(0, 8)}…)`
-            : 'Planet-wide build started.'
+            ? t('c_jurisdictions.index.build_running', { run: String(data.autoscale_run_id).slice(0, 8) })
+            : t('c_jurisdictions.index.build_started', 'Planet-wide build started.')
     } catch (e) {
         allMsg.value = String(e?.message || e)
     } finally {
