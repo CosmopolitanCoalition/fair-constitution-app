@@ -920,6 +920,7 @@
   "step5_simulate.timing_sub": "where the time goes · avg per part, total across all lanes",
   "step5_simulate.timing_training": "Training (pre-train the fleet)",
   "step5_simulate.timing_verify": "Verify (the acceptance scan)",
+  "step5_simulate.timings_region": "Timings (scrollable)",
   "step5_simulate.verify_passed": "Passed",
   "step5_simulate.verify_pending_note": "The run finished but the acceptance scan never ran. It is bounded and resumable — run the verify phase, then lock. This state cannot be forced past.",
   "step5_simulate.verify_scopes": "Verify scopes",

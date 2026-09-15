@@ -1137,7 +1137,7 @@ onBeforeUnmount(() => {
                     <p class="text-gray-400 text-xs flex-1 min-w-0 sm:min-w-[16rem]">
                         {{ t('c_setup.step2_map_data.pull_engine_blurb', 'Multithreaded pull engine — a pool of workers ingests countries in parallel with live per-worker view, halt/resume, and incremental commits. Failures flag for review; they never sink the run.') }}
                     </p>
-                    <div class="flex items-center gap-3 shrink-0 flex-wrap min-w-0">
+                    <div class="flex items-center gap-3 flex-wrap min-w-0 max-w-full">
                         <span v-if="submitError" class="text-red-400 text-sm">{{ submitError }}</span>
                         <select
                             v-if="enginePull"

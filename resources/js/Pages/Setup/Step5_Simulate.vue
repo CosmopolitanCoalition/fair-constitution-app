@@ -499,7 +499,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                 <span class="text-gray-400 font-normal text-sm">{{ t('c_setup.step5_simulate.timing_sub', 'where the time goes · avg per part, total across all lanes') }}</span>
             </h2>
             <p class="text-gray-400 text-xs mb-3" v-html="t('c_setup.step5_simulate.timing_note', 'The bar is each part\'s share of total lane-seconds. Watch <span class=&quot;text-amber-300&quot;>Between claims</span>: a lane that sits idle is a lane not working. Compare a stage\'s avg before and after a change to prove it faster or slower.')"></p>
-            <div class="space-y-1 text-xs overflow-x-auto">
+            <div class="space-y-1 text-xs overflow-x-auto" tabindex="0" role="region" :aria-label="t('c_setup.step5_simulate.timings_region', 'Timings (scrollable)')">
                 <div v-for="tm in timings" :key="tm.part" class="flex items-center gap-3 min-w-[20rem]">
                     <span class="w-56 shrink-0 truncate" :class="timingTone(tm.part)">{{ timingLabel(tm.part) }}</span>
                     <span class="w-20 text-right tabular-nums text-gray-300">{{ t('c_setup.step5_simulate.ms_value', '{n} ms', { n: tm.avg_ms }) }}</span>
