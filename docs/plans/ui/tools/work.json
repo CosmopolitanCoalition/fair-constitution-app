@@ -17015,8 +17015,9 @@
       "detail": "Integrated into the existing status board /system/translations (no new page): an operator-only card with Export (pick a language, download a zip of its pending chunk files, the export_master.py output with English text, surface context and glossary) and Import (upload a zip or file, see the dry-run report from import_translated.py with accepted and rejected strings and reasons, confirm, then the importer writes the catalogs and the review queue). Both run through a queued job with progress on the board's live deck, never inside the web request. Gated to the operator; every import is audited. The Add-a-language card gains the real request action.",
       "evidence": [
         "app/Http/Controllers/System/TranslationPackageController.php, app/Jobs/I18n/ExportLanguagePackageJob.php, app/Jobs/I18n/ImportLanguagePackageJob.php, app/Services/I18n/LanguagePackageService.php",
-        "tests/Unit/LanguagePackageServiceTest.php 6/6, tests/Feature/LanguagePackageRoutesTest.php 2/2, tests/js/i18nWiring2_w0446_language_packages.test.mjs",
-        "merged d3f08d42; needs docker restart fc_horizon (operator) before the jobs run; card not yet verified in the operator browser"
+        "tests/Unit/LanguagePackageServiceTest.php 9, tests/Feature/LanguagePackageRoutesTest.php 5, tests/Unit/Wiring_w0446_language_packagesTest.php 4 (18 tests, 108 assertions), tests/js/i18nWiring2_w0446_language_packages.test.mjs 7/7",
+        "merged d3f08d42; needs docker restart fc_horizon (operator) before the jobs run; card not yet verified in the operator browser",
+        "faa36817: truthful picker (present vs no strings yet), English master export, import refuses the source"
       ],
       "sources": [
         {
@@ -17050,6 +17051,10 @@
         {
           "date": "2026-09-15",
           "note": "Card lives on http://localhost:8080/system/translations (operator-only Language packages card, below the coverage matrix). Export and import run as queued jobs: fc_horizon must be restarted once so the two new job classes load (docker restart fc_horizon, operator action). Request-a-language works without the restart."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Operator observation (8:05 PM Eastern): only one language is actually in the system, so a picker of 75 exportable languages was confusing. Fixed faa36817: the status endpoint returns one row per target with its measured coverage (present, pct, missing from coverage.json) and the English source counts; the picker offers English master (en) first, then Machine drafts in the app (6 rows: ar es fr hi pt zh-Hans at 27 to 29 percent), then Registered, no strings yet (69 rows); the import picker never offers English; English master export stages the 73 English namespace files and lang/en.json with a README and zips them (no script); import refuses English and any non-target with 422 before a run is recorded. Pins: LanguagePackageServiceTest 9, LanguagePackageRoutesTest 5, Wiring_w0446 4 (18 tests, 108 assertions; the commit message says 111, the run says 108); JS pin 7 of 7."
         }
       ]
     },
