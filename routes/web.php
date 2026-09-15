@@ -801,6 +801,8 @@ Route::middleware('auth')->group(function () {
         ->name('simworld.console')->withoutMiddleware('auth'); // public read (Art. II §2) (drive endpoints stay operator-gated)
     Route::get('/api/simworld/progress', [\App\Http\Controllers\Demo\SimConsoleController::class, 'progress'])
         ->name('api.simworld.progress')->withoutMiddleware('auth'); // read poll; counts and place names only
+    Route::get('/api/simworld/rails', [\App\Http\Controllers\Demo\SimConsoleController::class, 'rails'])
+        ->name('api.simworld.rails')->withoutMiddleware('auth'); // W-0443: the honesty rails, fetched once after mount, index reads only
 
     // Operator Operations console (Phase 1, read-only): the infra & identity inventory.
     // Public shell; the inventory is operator-gated inside the controller (like the

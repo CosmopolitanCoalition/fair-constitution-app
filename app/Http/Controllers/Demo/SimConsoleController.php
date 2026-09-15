@@ -172,140 +172,110 @@ class SimConsoleController extends Controller
 
     /**
      * What the run has PRODUCED — the shared counts from SimSnapshot (single
-     * owner, cached) PLUS the console's own honesty rails: the active-map count
-     * and the over-bound / seat-gap lists that render by name on this surface.
+     * owner, cached). The console's honesty rails (active-map count, over-bound
+     * and seat-gap lists) are NOT here: they walked every chamber on the box on
+     * every 2 s poll (94 s a page on 2026-09-14, W-0443). The page asks
+     * rails() for them once after it mounts.
+     */
+    private function world(): array
+    {
+        return $this->snap->world();
+    }
+
+    /**
+     * GET /api/simworld/rails — the honesty rails, lazy and bounded (W-0443).
      *
      * BUILT IS NOT GOVERNED. The shared counts already separate chambers from
      * chambers_governed; these rails add the two ways a built world can still be
      * wrong — a Type B half over its bound, and drawn seats that cannot be
      * filled — so the console never lets a defect render as completeness.
+     *
+     * Every read here is an index read. The drawn-seat total and the gap sit on
+     * the map row (kept by the database, migration 2026_09_14_223000); drifted
+     * active maps and over-bound chambers each have a partial index, so the two
+     * lists cost their own size, never the planet's. DRIFT IS ALWAYS WRONG
+     * (operator ruling 2026-07-26): a plan that misses the cube-root total
+     * leaves seats unfillable or unallotted, so it renders by name. Type B is
+     * excluded from the gap on purpose: an at-large chamber is its own district.
+     * Art. V §3 (settled 2026-07-26): Type B may not exceed the Type A total; a
+     * chamber still over the bound at 2-per-constituent renders by name, seated
+     * or not, because a seated one has produced members under a seat count no
+     * rule authorises.
      */
-    private function world(): array
+    public function rails(): JsonResponse
     {
-        return $this->snap->world() + [
-            // A DRAFT map is a proposal, not a boundary — count active() only.
-            'active_district_maps' => (int) DB::table('legislature_district_maps')
-                ->where('status', 'active')
-                ->whereNull('deleted_at')
-                ->count(),
-            'over_bound' => $this->overBoundChambers(),
-            'seat_gap' => $this->unfillableSeats(),
-        ];
-    }
+        $activeMaps = (int) DB::table('legislature_district_maps')
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->count();
 
-    /**
-     * Chambers whose drawn districts do not sum to their Type A total.
-     *
-     * DRIFT IS ALWAYS WRONG (operator ruling 2026-07-26). The chamber size is
-     * FIXED by the cube-root law, so a district plan that misses it leaves seats
-     * either unfillable or unallotted — there is no race for them and no lawful
-     * way to seat them. It is never "noise" and never "close enough".
-     *
-     * San Marino's national chamber is the live instance: population 33,312 →
-     * Type A 32 by the law, but its active map draws 8 + 7 + 7 + 9 = 31. The
-     * election filled every seat it had a race for and still landed 58/59, and
-     * it will land 58/59 at every future election, because the missing seat has
-     * no district. Nothing downstream can repair that — only redrawing the map
-     * can, which is why this reports the gap rather than trying to absorb it.
-     *
-     * Type B is excluded on purpose: an at-large chamber IS its own district, so
-     * it cannot drift. This measures the drawn plan only.
-     *
-     * @return array<string,mixed>
-     */
-    private function unfillableSeats(): array
-    {
-        $rows = DB::table('legislatures as l')
+        $gapRows = DB::table('legislature_district_maps as m')
+            ->join('legislatures as l', 'l.id', '=', 'm.legislature_id')
             ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
-            ->whereNull('l.deleted_at')
-            ->whereNull('j.deleted_at')
+            ->where('m.status', 'active')
+            ->whereNull('m.deleted_at')
+            ->whereNotNull('m.seat_gap')
+            ->where('m.seat_gap', '<>', 0)
             ->where('l.type_a_seats', '>', 9) // below the ceiling a chamber is at-large — no plan to miss
-            ->whereExists(function ($q) {
-                $q->select(DB::raw(1))
-                    ->from('legislature_district_maps as m')
-                    ->whereColumn('m.legislature_id', 'l.id')
-                    ->where('m.status', 'active')
-                    ->whereNull('m.deleted_at');
-            })
-            ->selectRaw("
-                j.name,
-                l.type_a_seats,
-                COALESCE((
-                    SELECT SUM(d.seats) FROM legislature_districts d
-                      JOIN legislature_district_maps m ON m.id = d.map_id
-                     WHERE d.legislature_id = l.id AND m.status = 'active'
-                       AND d.deleted_at IS NULL AND m.deleted_at IS NULL
-                ), 0) AS drawn
-            ")
-            ->get()
-            ->filter(fn ($r) => (int) $r->drawn !== (int) $r->type_a_seats)
-            ->sortByDesc(fn ($r) => abs((int) $r->type_a_seats - (int) $r->drawn))
-            ->take(25);
+            ->whereNull('l.deleted_at')
+            ->orderByRaw('abs(m.seat_gap) DESC')
+            ->limit(25)
+            ->get(['j.name', 'l.type_a_seats', 'm.drawn_seats', 'm.seat_gap']);
 
-        return [
-            'count' => $rows->count(),
-            'places' => $rows->map(fn ($r) => [
-                'name' => $r->name,
-                'type_a' => (int) $r->type_a_seats,
-                'drawn' => (int) $r->drawn,
-                'gap' => (int) $r->type_a_seats - (int) $r->drawn,
-            ])->values()->all(),
-        ];
-    }
+        $gapCount = (int) DB::table('legislature_district_maps as m')
+            ->join('legislatures as l', 'l.id', '=', 'm.legislature_id')
+            ->where('m.status', 'active')
+            ->whereNull('m.deleted_at')
+            ->whereNotNull('m.seat_gap')
+            ->where('m.seat_gap', '<>', 0)
+            ->where('l.type_a_seats', '>', 9)
+            ->count();
 
-    /**
-     * THE HONESTY RAIL — chambers whose Type B half exceeds the Type A total.
-     *
-     * Art. V §3 as settled 2026-07-26: Type B may not exceed the Type A total.
-     * `TypeBSeatLadder` steps 5 → 4 → 3 → 2 and FLOORS there; a chamber still
-     * over the bound at 2-per-constituent is flagged and stops, because stage
-     * two — grouping constituent jurisdictions into shared panels — is not
-     * built yet. Planet-wide that is 9,708 chambers, flagged 1:1.
-     *
-     * WHY THIS IS ON SCREEN RATHER THAN IN A LOG. Niue's national chamber reads
-     * `type_a 11 / type_b 14` and this engine seated all 25 of its seats before
-     * the flag reached me. A visitor looking at "25 / 25 filled" sees a complete
-     * government; what is actually there is a lower house of 11 and an upper
-     * house of 14 that no settled rule authorises. Whether a flagged chamber may
-     * lawfully hold an election is the operator's question, not mine — but
-     * letting it render as ordinary while he decides would be dressing a known
-     * defect up as attained consent, which is the one thing this page exists to
-     * refuse. So it renders, by name, seated or not.
-     *
-     * @return array<string,mixed>
-     */
-    private function overBoundChambers(): array
-    {
-        $rows = DB::table('legislatures as l')
+        $overRows = DB::table('legislatures as l')
             ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
             ->whereNull('l.deleted_at')
             ->whereNull('j.deleted_at')
-            ->where('l.type_b_seats', '>', 0)
             ->whereColumn('l.type_b_seats', '>', 'l.type_a_seats')
             ->orderByDesc('l.type_b_seats')
             ->limit(25)
             ->get(['j.name', 'l.id', 'l.type_a_seats', 'l.type_b_seats']);
 
-        $seatedIds = $rows->isEmpty() ? [] : DB::table('legislature_members')
-            ->whereIn('legislature_id', $rows->pluck('id'))
+        $overCount = (int) DB::table('legislatures as l')
+            ->whereNull('l.deleted_at')
+            ->whereColumn('l.type_b_seats', '>', 'l.type_a_seats')
+            ->count();
+
+        $seatedIds = $overRows->isEmpty() ? [] : DB::table('legislature_members')
+            ->whereIn('legislature_id', $overRows->pluck('id'))
             ->whereIn('status', ['elected', 'seated'])
             ->whereNull('deleted_at')
             ->distinct()
             ->pluck('legislature_id')
             ->all();
 
-        return [
-            'count' => $rows->count(),
-            'places' => $rows->map(fn ($r) => [
-                'name' => $r->name,
-                'type_a' => (int) $r->type_a_seats,
-                'type_b' => (int) $r->type_b_seats,
-                // A flagged chamber that is EMPTY is merely waiting. A flagged
-                // chamber that is SEATED has already produced members under a
-                // seat count no rule authorises — a materially worse state, and
-                // the page must not level the two.
-                'seated' => in_array($r->id, $seatedIds, true),
-            ])->values()->all(),
-        ];
+        return response()->json([
+            'active_district_maps' => $activeMaps,
+            'seat_gap' => [
+                'count' => $gapCount,
+                'places' => $gapRows->map(fn ($r) => [
+                    'name' => $r->name,
+                    'type_a' => (int) $r->type_a_seats,
+                    'drawn' => (int) $r->drawn_seats,
+                    'gap' => (int) $r->seat_gap,
+                ])->values()->all(),
+            ],
+            'over_bound' => [
+                'count' => $overCount,
+                'places' => $overRows->map(fn ($r) => [
+                    'name' => $r->name,
+                    'type_a' => (int) $r->type_a_seats,
+                    'type_b' => (int) $r->type_b_seats,
+                    // A flagged chamber that is EMPTY is merely waiting. A flagged
+                    // chamber that is SEATED has already produced members under a
+                    // seat count no rule authorises — a materially worse state.
+                    'seated' => in_array($r->id, $seatedIds, true),
+                ])->values()->all(),
+            ],
+        ]);
     }
 }

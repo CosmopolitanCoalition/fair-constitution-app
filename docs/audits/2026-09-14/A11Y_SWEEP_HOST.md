@@ -90,3 +90,8 @@ The roster was refreshed after the reads lane opened the economy, sim console an
 | Open | 2 | `/legislatures` (server fixed, sweep 98 s over 500 rows, pagination next, W-0441); `/simworld` (server 94 s from three planet-wide rails on every poll, lazy-load and bound them, W-0443; a cache patch was reverted on operator order) |
 
 Per-route timing on the host: median 8 s; 33 of 45 under 15 s; the slow ones were `/login` 78 s (first host run, host at 300 MB free), `/building` 42 to 55 s.
+
+## Close-out (10:35 PM Eastern): 55 of 55 guest pages pass
+
+- `/legislatures` (W-0441): server 30.9 s to 1.8 s; zero nodes at both widths on its own run after the Chamber and Results row links took the underline. The scanner's own 98 s on 500 rows is not a concern once the page passes (operator ruling).
+- `/simworld` (W-0443): server 94 s to 0.8 s. The three honesty rails (active-map count, over-bound chambers, seat-gap chambers) left the page and the 2 s poll; the page fetches them once after mount from `/api/simworld/rails` (0.8 s). The drawn-seat total and the gap now live on the map row, kept by statement-level database triggers (migration `2026_09_14_223000`), with partial indexes for drifted active maps and over-bound chambers; the 940,417 existing maps were filled once by `maps:drawn-seats-backfill` in chunks of about 24,000 (host-derived), resumable, about 10 minutes. Triggers proven end to end on a disposable database (`tests/concurrency/map_drawn_seats_trigger_check.php`: insert across maps, bonus seats netted, soft delete, move, hard delete, chamber resize, backfill function, drift index). Sweep alone: PASS in 19.1 s. A cache-and-scheduler patch built earlier the same evening was reverted on operator order before this fix.

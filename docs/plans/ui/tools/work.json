@@ -16836,10 +16836,10 @@
     {
       "id": "W-0443",
       "title": "Sim console: lazy-load the honesty rails and bound them (no planet walk in a request)",
-      "phase": "P1",
-      "order": 79,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "Measured 2026-09-14 on box E: GET /simworld answers a guest in 94 s and the page polls every 2 s. SimConsoleController::world() runs three planet-wide rails on every request: a count of active district maps, the over-bound chambers (Type B above Type A) and the seat-gap chambers (a correlated SUM of drawn district seats for every chamber with an active map). Operator ruling 2026-09-14: fix the load with pagination or lazy loading, no cache, no scheduler.",
       "done_when": "The page renders its live bars without the rails; the rails come from their own endpoint requested once after mount, each bounded: over-bound is an indexed predicate with a 25-row page, the active-map figure is an indexed count, and the seat gap compares Type A seats with a drawn-seat total stored on the map row by the districting engine (additive migration, written at draw time), so no request sums districts across the planet. GET /simworld answers a guest in under 2 s on box E; the sweep establishes the route and reports zero nodes; a pin asserts the query shapes.",
@@ -16852,6 +16852,10 @@
         {
           "date": "2026-09-14",
           "note": "Opened by the desk after the single-route pass. A cache-and-scheduler patch was built and reverted on operator order the same evening."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. The page and its 2 s poll carry no rails; the page fetches /api/simworld/rails once after mount (0.8 s). drawn_seats and seat_gap live on the map row, kept by statement-level database triggers (migration 2026_09_14_223000, applied on box E) with partial indexes for drifted active maps and over-bound chambers; 940,417 existing maps filled by maps:drawn-seats-backfill in host-derived chunks, resumable, 13.5 minutes, 0 null, stored totals match live sums. Guest GET /simworld 94 s to 0.8 s. Triggers proven on a disposable database (map_drawn_seats_trigger_check: 9 checks). Sweep alone in Edge: PASS 19.1 s. Pinned by SimConsoleRailsTest (3). Rails on box E: 940,313 active maps, 0 drifted, 0 over the bound."
         }
       ]
     }

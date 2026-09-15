@@ -66,6 +66,17 @@ const liveItems = computed(() => data.value.live_items || [])
 const reviewItems = computed(() => data.value.review_items || [])
 const world = computed(() => data.value.world || {})
 
+/* W-0443: the honesty rails (active maps, over-bound, seat gap) are fetched ONCE
+   after mount from their own endpoint, never on the 2 s poll. Each read there
+   is an index read; the page renders its live bars before they arrive. */
+const rails = ref({})
+async function loadRails() {
+    try {
+        const res = await fetch('/api/simworld/rails', { headers: { Accept: 'application/json' } })
+        if (res.ok) rails.value = await res.json()
+    } catch { /* the bars stand on their own; the rails stay empty */ }
+}
+
 // The last DRIVE action's echo (start "enumerating…", a halt request), so the
 // operator sees an effect the instant the queued command has yet to mint a run.
 const controlMarker = computed(() => data.value.control || null)
@@ -141,6 +152,7 @@ async function poll() {
 }
 
 onMounted(() => {
+    loadRails()
     poll()
     timer = setInterval(poll, 2000)
 })
@@ -375,8 +387,8 @@ const statusTone = computed(() => {
                         A chamber exists as soon as a place is activated, but only an election puts people in it —
                         seating anyone without one would manufacture members nobody voted for. An empty chamber is
                         the correct state, not a failure.
-                        <span v-if="world.active_district_maps !== undefined">
-                            Active district maps: <span class="font-mono text-gray-400">{{ fmt(world.active_district_maps) }}</span>
+                        <span v-if="rails.active_district_maps !== undefined">
+                            Active district maps: <span class="font-mono text-gray-400">{{ fmt(rails.active_district_maps) }}</span>
                             — a drawn map is a <em>draft</em> until adopted, and a chamber above nine seats cannot
                             elect without an adopted one.
                         </span>
@@ -396,12 +408,12 @@ const statusTone = computed(() => {
                         look ordinary while he decides.
                     -->
                     <section
-                        v-if="world.over_bound && world.over_bound.count > 0"
+                        v-if="rails.over_bound && rails.over_bound.count > 0"
                         class="mt-4 rounded border border-amber-500/40 bg-amber-500/5 p-3"
                     >
                         <h3 class="text-xs font-semibold uppercase tracking-wide text-amber-300">
-                            Over the Type B bound — {{ fmt(world.over_bound.count) }}
-                            {{ world.over_bound.count === 1 ? 'chamber' : 'chambers' }}
+                            Over the Type B bound — {{ fmt(rails.over_bound.count) }}
+                            {{ rails.over_bound.count === 1 ? 'chamber' : 'chambers' }}
                         </h3>
                         <p class="mt-1 text-xs text-gray-400">
                             Art. V §3 binds the Type B chamber to the Type A total. These exceed it: the seat
@@ -412,7 +424,7 @@ const statusTone = computed(() => {
                         </p>
                         <ul class="mt-2 space-y-1">
                             <li
-                                v-for="p in world.over_bound.places"
+                                v-for="p in rails.over_bound.places"
                                 :key="p.name"
                                 class="flex flex-wrap items-baseline gap-x-2 text-xs"
                             >
@@ -437,12 +449,12 @@ const statusTone = computed(() => {
                         why this names the gap instead of quietly absorbing it.
                     -->
                     <section
-                        v-if="world.seat_gap && world.seat_gap.count > 0"
+                        v-if="rails.seat_gap && rails.seat_gap.count > 0"
                         class="mt-4 rounded border border-rose-500/40 bg-rose-500/5 p-3"
                     >
                         <h3 class="text-xs font-semibold uppercase tracking-wide text-rose-300">
-                            Seats that cannot be filled — {{ fmt(world.seat_gap.count) }}
-                            {{ world.seat_gap.count === 1 ? 'chamber' : 'chambers' }}
+                            Seats that cannot be filled — {{ fmt(rails.seat_gap.count) }}
+                            {{ rails.seat_gap.count === 1 ? 'chamber' : 'chambers' }}
                         </h3>
                         <p class="mt-1 text-xs text-gray-400">
                             The cube-root law fixes how many seats a chamber has; its districts must sum to
@@ -452,7 +464,7 @@ const statusTone = computed(() => {
                         </p>
                         <ul class="mt-2 space-y-1">
                             <li
-                                v-for="p in world.seat_gap.places"
+                                v-for="p in rails.seat_gap.places"
                                 :key="p.name"
                                 class="flex flex-wrap items-baseline gap-x-2 text-xs"
                             >
