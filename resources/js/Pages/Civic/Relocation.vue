@@ -15,6 +15,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -27,6 +28,7 @@ import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -44,12 +46,12 @@ const flashStatus = computed(() => page.props.flash?.status ?? null);
 /* Plain labels for the residency lifecycle strip — the raw tokens are machine
    grammar ("ping_monitoring"); the player chrome speaks plainly (S8). */
 const CLAIM_LABELS = {
-    declared: 'Declared',
-    ping_monitoring: 'Confirming by presence',
-    threshold_met: 'Threshold met',
-    verified: 'Verified',
-    active: 'Active — home',
-    superseded: 'Superseded',
+    declared: t('c_civic.relocation.label_declared', 'Declared'),
+    ping_monitoring: t('c_civic.relocation.label_ping_monitoring', 'Confirming by presence'),
+    threshold_met: t('c_civic.relocation.label_threshold_met', 'Threshold met'),
+    verified: t('c_civic.relocation.label_verified', 'Verified'),
+    active: t('c_civic.relocation.label_active', 'Active — home'),
+    superseded: t('c_civic.relocation.label_superseded', 'Superseded'),
 };
 
 const travellingForm = useForm({});
@@ -61,164 +63,146 @@ const currentMachineState = computed(() => props.newClaim?.status ?? props.homeC
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="detection ? 'It looks like you may have moved' : 'Relocation'">
+    <PageScaffold :surface="surface" :title="detection ? t('c_civic.relocation.title_moved', 'It looks like you may have moved') : t('c_civic.relocation.title_default', 'Relocation')">
         <template #intro>
-            Your residency follows where you actually live. When a sustained presence pattern
-            forms outside your home jurisdiction, the system asks — it never reassigns you
-            silently, and it never penalizes travel.
+            {{ t('c_civic.relocation.intro', 'Your residency follows where you actually live. When a sustained presence pattern forms outside your home jurisdiction, the system asks — it never reassigns you silently, and it never penalizes travel.') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
 
         <!-- The zero-rights-gap promise — hardened, renders always. -->
-        <Banner tone="info" icon="lock" title="Your old claim stays Active until the new one Verifies — no rights gap, ever.">
-            Voting, candidacy, and every association hold through the whole move
+        <Banner tone="info" icon="lock" :title="t('c_civic.relocation.zero_gap_title', 'Your old claim stays Active until the new one Verifies — no rights gap, ever.')">
+            {{ t('c_civic.relocation.zero_gap_body', 'Voting, candidacy, and every association hold through the whole move') }}
             <span class="citation" data-no-i18n> · Art. I · Art. V §1–2 · hardened</span>
         </Banner>
 
         <!-- ==================================== detection ================ -->
-        <Card as="section" title="Away-pattern detection">
+        <Card as="section" :title="t('c_civic.relocation.detection_title', 'Away-pattern detection')">
             <template v-if="detection">
-                <Banner tone="warning" icon="map-pin" :title="`${detection.away_days} qualifying days near ${detection.detected_near?.label ?? 'another jurisdiction'} — outside ${homeClaim?.jurisdiction?.name ?? 'your home jurisdiction'}.`">
-                    Detection uses the same encrypted ping log as verification; only day-counts are
-                    visible. <span class="citation">CLK-05 · residency_confirmation_days · Art. V §1</span>
+                <Banner tone="warning" icon="map-pin" :title="t('c_civic.relocation.away_banner_title', { days: detection.away_days, near: detection.detected_near?.label ?? t('c_civic.relocation.another_jurisdiction', 'another jurisdiction'), home: homeClaim?.jurisdiction?.name ?? t('c_civic.relocation.your_home', 'your home jurisdiction') })">
+                    {{ t('c_civic.relocation.away_banner_body', 'Detection uses the same encrypted ping log as verification; only day-counts are visible.') }} <span class="citation">CLK-05 · residency_confirmation_days · Art. V §1</span>
                 </Banner>
                 <ThresholdMeter
                     :value="detection.away_days"
                     :max="detection.threshold_days"
                     :threshold="detection.threshold_days"
-                    label="Qualifying days away — CLK-05 threshold"
+                    :label="t('c_civic.relocation.away_meter_label', 'Qualifying days away — CLK-05 threshold')"
                     style="margin-block-start: var(--space-3)"
                 >
-                    {{ detection.away_days }} of {{ detection.threshold_days }} qualifying days near {{ detection.detected_near?.label ?? '—' }}
+                    {{ t('c_civic.relocation.away_meter', { days: detection.away_days, threshold: detection.threshold_days, near: detection.detected_near?.label ?? '—' }) }}
                     <template #note>threshold · CLK-05</template>
                 </ThresholdMeter>
                 <p class="gloss" style="margin-block-start: var(--space-2)">
-                    A move only completes when the away-pattern reaches the full residency
-                    threshold — the same standard your home verification used.
+                    {{ t('c_civic.relocation.away_note', 'A move only completes when the away-pattern reaches the full residency threshold — the same standard your home verification used.') }}
                 </p>
             </template>
             <template v-else>
                 <div class="cluster">
-                    <StatusBadge tone="neutral" icon="map-pin">Away-pattern detection isn’t built yet</StatusBadge>
+                    <StatusBadge tone="neutral" icon="map-pin">{{ t('c_civic.relocation.detect_not_built', 'Away-pattern detection isn’t built yet') }}</StatusBadge>
                 </div>
                 <p class="gloss" style="margin-block-start: var(--space-2)">
-                    This card will light up when sustained pings appear outside your declared
-                    jurisdiction — but nothing is watching for that yet: automatic away-detection
-                    needs the mobile geofenced pinging that arrives in <strong>Phase 6</strong>.
-                    Until then, if you move, you tell us yourself below. When it does exist it will
-                    read the same encrypted ping log verification uses — only day-counts ever
-                    visible, pings always pausable.
+                    {{ t('c_civic.relocation.detect_empty_a', 'This card will light up when sustained pings appear outside your declared jurisdiction — but nothing is watching for that yet: automatic away-detection needs the mobile geofenced pinging that arrives in') }}
+                    <strong>{{ t('c_civic.relocation.phase_6', 'Phase 6') }}</strong>{{ t('c_civic.relocation.detect_empty_b', '. Until then, if you move, you tell us yourself below. When it does exist it will read the same encrypted ping log verification uses — only day-counts ever visible, pings always pausable.') }}
                 </p>
                 <p v-if="homeClaim" class="cc-small" style="margin-block-start: var(--space-2)">
-                    Home residency: <strong>{{ homeClaim.jurisdiction.name }}</strong>
+                    {{ t('c_civic.relocation.home_residency', 'Home residency:') }} <strong>{{ homeClaim.jurisdiction.name }}</strong>
                     <StatusBadge tone="success" style="margin-inline-start: var(--space-1)">{{ homeClaim.status }}</StatusBadge>
-                    <span class="citation"> · declared {{ homeClaim.declared_at }}</span>
+                    <span class="citation"> {{ t('c_civic.relocation.declared_at', { when: homeClaim.declared_at }) }}</span>
                 </p>
             </template>
         </Card>
 
         <!-- ==================================== travel or move =========== -->
-        <Card as="section" title="Travel, or a move?">
+        <Card as="section" :title="t('c_civic.relocation.travel_or_move', 'Travel, or a move?')">
             <p class="cc-small">
-                Tell the system which this is. Either answer is final only when you say so — and a
-                move still requires the full threshold pattern before anything transfers.
+                {{ t('c_civic.relocation.travel_or_move_body', 'Tell the system which this is. Either answer is final only when you say so — and a move still requires the full threshold pattern before anything transfers.') }}
             </p>
-            <div class="cluster" role="group" aria-label="Travel or move">
+            <div class="cluster" role="group" :aria-label="t('c_civic.relocation.travel_or_move_aria', 'Travel or move')">
                 <Btn
                     variant="secondary"
                     :disabled="travellingForm.processing"
                     @click="declareTravelling"
-                >I'm travelling — keep my residency</Btn>
-                <Btn as="a" :href="urls.residency" variant="secondary">I'm moving — start re-association</Btn>
+                >{{ t('c_civic.relocation.im_travelling', "I'm travelling — keep my residency") }}</Btn>
+                <Btn as="a" :href="urls.residency" variant="secondary">{{ t('c_civic.relocation.im_moving', "I'm moving — start re-association") }}</Btn>
             </div>
             <p class="gloss" style="margin-block-start: var(--space-2)">
                 <template v-if="detection">
-                    Travelling: detection resets, nothing changes — pings pausable in personal
-                    settings; the declaration is audit-chained (WF-CIV-03).
+                    {{ t('c_civic.relocation.travelling_detection', 'Travelling: detection resets, nothing changes — pings pausable in personal settings; the declaration is audit-chained (WF-CIV-03).') }}
                 </template>
                 <template v-else>
-                    Travelling: no away-pattern has been detected — nothing needs resetting — so
-                    this is a standing declaration that a future trip is travel, not a move. It is
-                    recorded on the audit chain (WF-CIV-03) and changes nothing about your
-                    residency or your rights.
+                    {{ t('c_civic.relocation.travelling_none', 'Travelling: no away-pattern has been detected — nothing needs resetting — so this is a standing declaration that a future trip is travel, not a move. It is recorded on the audit chain (WF-CIV-03) and changes nothing about your residency or your rights.') }}
                 </template>
-                Moving: a new residency declaration (F-IND-003 on the residency screen) alongside
-                your active claim IS the move — no new form exists here, by design.
+                {{ t('c_civic.relocation.moving_note', 'Moving: a new residency declaration (F-IND-003 on the residency screen) alongside your active claim IS the move — no new form exists here, by design.') }}
             </p>
 
             <ol class="flow-steps" style="margin-block-start: var(--space-3)">
                 <li class="flow-step" :class="{ 'flow-step--current': newClaim !== null }">
                     <div class="flow-step-head">
-                        <span class="flow-step-n">1</span><span class="flow-actor">You</span>
-                        <span class="flow-action">Declare residency in the new jurisdiction</span>
+                        <span class="flow-step-n">1</span><span class="flow-actor">{{ t('c_civic.relocation.actor_you', 'You') }}</span>
+                        <span class="flow-action">{{ t('c_civic.relocation.step1_action', 'Declare residency in the new jurisdiction') }}</span>
                     </div>
                     <p class="flow-outcome">
-                        Residency declaration · F-IND-003 on <Link :href="urls.residency">the residency screen</Link>;
-                        ping monitoring restarts there.
+                        {{ t('c_civic.relocation.step1_outcome_a', 'Residency declaration · F-IND-003 on') }} <Link :href="urls.residency">{{ t('c_civic.relocation.residency_screen', 'the residency screen') }}</Link>{{ t('c_civic.relocation.step1_outcome_b', '; ping monitoring restarts there.') }}
                     </p>
                 </li>
                 <li class="flow-step">
                     <div class="flow-step-head">
-                        <span class="flow-step-n">2</span><span class="flow-actor">System</span>
-                        <span class="flow-action">Away-pattern accumulates to the threshold (CLK-05)</span>
+                        <span class="flow-step-n">2</span><span class="flow-actor">{{ t('c_civic.relocation.actor_system', 'System') }}</span>
+                        <span class="flow-action">{{ t('c_civic.relocation.step2_action', 'Away-pattern accumulates to the threshold (CLK-05)') }}</span>
                     </div>
-                    <p class="flow-outcome">Old associations remain fully active until then — no gap in voting or candidacy.</p>
+                    <p class="flow-outcome">{{ t('c_civic.relocation.step2_outcome', 'Old associations remain fully active until then — no gap in voting or candidacy.') }}</p>
                 </li>
                 <li class="flow-step">
                     <div class="flow-step-head">
-                        <span class="flow-step-n">3</span><span class="flow-actor">System</span>
-                        <span class="flow-action">Associations transfer; held offices resolve via the grace period</span>
+                        <span class="flow-step-n">3</span><span class="flow-actor">{{ t('c_civic.relocation.actor_system', 'System') }}</span>
+                        <span class="flow-action">{{ t('c_civic.relocation.step3_action', 'Associations transfer; held offices resolve via the grace period') }}</span>
                     </div>
                     <p class="flow-outcome">
-                        Old roles gracefully expire; a held seat vacates into countback (F-LEG-036 → WF-ELE-03);
-                        federation peers are notified.
+                        {{ t('c_civic.relocation.step3_outcome', 'Old roles gracefully expire; a held seat vacates into countback (F-LEG-036 → WF-ELE-03); federation peers are notified.') }}
                     </p>
                 </li>
             </ol>
         </Card>
 
         <!-- ==================================== in-flight move =========== -->
-        <Card v-if="newClaim" as="section" title="Move in progress">
+        <Card v-if="newClaim" as="section" :title="t('c_civic.relocation.move_in_progress', 'Move in progress')">
             <p class="cc-small">
-                New claim: <strong>{{ newClaim.jurisdiction }}</strong>
+                {{ t('c_civic.relocation.new_claim', 'New claim:') }} <strong>{{ newClaim.jurisdiction }}</strong>
                 <StatusBadge tone="info" style="margin-inline-start: var(--space-1)">{{ newClaim.status }}</StatusBadge>
             </p>
             <ThresholdMeter
                 :value="newClaim.qualifying_days"
                 :max="newClaim.threshold_days"
                 :threshold="newClaim.threshold_days"
-                label="New claim qualifying days — CLK-05"
+                :label="t('c_civic.relocation.new_claim_meter_label', 'New claim qualifying days — CLK-05')"
                 style="margin-block-start: var(--space-2)"
             >
-                {{ newClaim.qualifying_days }} of {{ newClaim.threshold_days }} qualifying days in {{ newClaim.jurisdiction }}
-                <template #note>the constitutional grace IS this threshold · CLK-05</template>
+                {{ t('c_civic.relocation.new_claim_meter', { days: newClaim.qualifying_days, threshold: newClaim.threshold_days, place: newClaim.jurisdiction }) }}
+                <template #note>{{ t('c_civic.relocation.new_claim_note', 'the constitutional grace IS this threshold · CLK-05') }}</template>
             </ThresholdMeter>
             <p v-if="homeClaim" class="gloss" style="margin-block-start: var(--space-2)">
-                {{ homeClaim.jurisdiction.name }} stays <strong>Active</strong> (Superseded-pending)
-                until this claim verifies — the hand-over is atomic at verification.
+                {{ t('c_civic.relocation.stays_active_a', { name: homeClaim.jurisdiction.name }) }} <strong>{{ t('c_civic.relocation.active', 'Active') }}</strong> {{ t('c_civic.relocation.stays_active_b', '(Superseded-pending) until this claim verifies — the hand-over is atomic at verification.') }}
             </p>
         </Card>
 
         <!-- ==================================== held offices ============= -->
-        <Card as="section" title="Held offices and the grace period">
+        <Card as="section" :title="t('c_civic.relocation.held_offices_title', 'Held offices and the grace period')">
             <p class="cc-small">
-                An office tied to a jurisdiction is not dropped the instant you move — the grace
-                period lets the institution prepare while you remain accountable.
+                {{ t('c_civic.relocation.held_offices_body', 'An office tied to a jurisdiction is not dropped the instant you move — the grace period lets the institution prepare while you remain accountable.') }}
             </p>
             <div v-if="!heldOffices.length" class="cluster" style="margin-block-start: var(--space-3)">
                 <StatusBadge tone="neutral" icon="check">
-                    You hold no office tied to your home jurisdiction — nothing to hand over
+                    {{ t('c_civic.relocation.no_office', 'You hold no office tied to your home jurisdiction — nothing to hand over') }}
                 </StatusBadge>
             </div>
             <Card v-for="(office, oi) in heldOffices" :key="oi" inset>
                 <div class="cluster" style="justify-content: space-between">
                     <div>
                         <strong>{{ office.label }}</strong>
-                        <span class="citation" style="display: block">R-09 seated representative</span>
+                        <span class="citation" style="display: block">{{ t('c_civic.relocation.r09_rep', 'R-09 seated representative') }}</span>
                     </div>
                     <StatusBadge :tone="office.grace ? 'warning' : 'neutral'" icon="clock">
-                        {{ office.grace ? 'Grace period running' : 'No move in flight — nothing changes' }}
+                        {{ office.grace ? t('c_civic.relocation.grace_running', 'Grace period running') : t('c_civic.relocation.no_move', 'No move in flight — nothing changes') }}
                     </StatusBadge>
                 </div>
                 <template v-if="office.grace">
@@ -226,37 +210,33 @@ const currentMachineState = computed(() => props.newClaim?.status ?? props.homeC
                         :value="office.grace.day"
                         :max="office.grace.of"
                         :threshold="office.grace.of"
-                        label="Grace period — the new claim's CLK-05 threshold"
+                        :label="t('c_civic.relocation.grace_meter_label', 'Grace period — the new claim\'s CLK-05 threshold')"
                         style="margin-block-start: var(--space-3)"
                     >
-                        day {{ office.grace.day }} of {{ office.grace.of }} — grace ends if the move completes
-                        <template #note>seat vacates → {{ office.vacates_into }} · Art. II §5</template>
+                        {{ t('c_civic.relocation.grace_meter', { day: office.grace.day, of: office.grace.of }) }}
+                        <template #note>{{ t('c_civic.relocation.seat_vacates', { into: office.vacates_into }) }}</template>
                     </ThresholdMeter>
                 </template>
                 <p class="cc-small" style="margin-block-start: var(--space-3)">
-                    If re-association completes, the seat is declared vacant (F-LEG-036, system-filed)
-                    and fills by countback (WF-ELE-03) — prior ballots re-run with the vacated member
-                    removed. If you stay, nothing changes.
+                    {{ t('c_civic.relocation.reassoc_note', 'If re-association completes, the seat is declared vacant (F-LEG-036, system-filed) and fills by countback (WF-ELE-03) — prior ballots re-run with the vacated member removed. If you stay, nothing changes.') }}
                 </p>
-                <p class="citation">Vacancy → countback → special election fallback (90–180 d · CLK-04) · Art. II §5 · Art. V §1–2</p>
+                <p class="citation">{{ t('c_civic.relocation.vacancy_cite', 'Vacancy → countback → special election fallback (90–180 d · CLK-04) · Art. II §5 · Art. V §1–2') }}</p>
             </Card>
         </Card>
 
         <!-- ==================================== lifecycle ================ -->
-        <Card as="section" title="Where you are in the residency lifecycle">
-            <StateStrip :states="machine" :current="currentMachineState" :labels="CLAIM_LABELS" aria-label="Residency claim state machine" />
+        <Card as="section" :title="t('c_civic.relocation.lifecycle_title', 'Where you are in the residency lifecycle')">
+            <StateStrip :states="machine" :current="currentMachineState" :labels="CLAIM_LABELS" :aria-label="t('c_civic.relocation.lifecycle_aria', 'Residency claim state machine')" />
             <p class="gloss" style="margin-block-start: var(--space-2)">
-                Your old residency claim becomes Superseded only when the new one verifies —
-                <HardenedChip>there is never a gap in your rights</HardenedChip>
+                {{ t('c_civic.relocation.lifecycle_body', 'Your old residency claim becomes Superseded only when the new one verifies —') }}
+                <HardenedChip>{{ t('c_civic.relocation.never_gap', 'there is never a gap in your rights') }}</HardenedChip>
             </p>
             <p class="citation">Art. V §1–2 · CLK-05</p>
         </Card>
 
         <template #about>
             <p>
-                No forms on this surface: the move path reuses Residency declaration (F-IND-003) on
-                <Link :href="urls.residency">the residency screen</Link>; "I'm travelling" is an
-                audited engine action, not a catalog form.
+                {{ t('c_civic.relocation.about_a', 'No forms on this surface: the move path reuses Residency declaration (F-IND-003) on') }} <Link :href="urls.residency">{{ t('c_civic.relocation.residency_screen', 'the residency screen') }}</Link>{{ t('c_civic.relocation.about_b', '; "I\'m travelling" is an audited engine action, not a catalog form.') }}
             </p>
         </template>
     </PageScaffold>

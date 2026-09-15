@@ -14,6 +14,7 @@
  */
 import { computed } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -26,6 +27,7 @@ import { useAnnounce } from '@/composables/useAnnounce';
 import { JOURNEYS_BY_ID, yourPartFor } from '@/registry/journeys.js';
 
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -45,7 +47,7 @@ const signedIn = computed(() => !!page.props.auth?.user);
 
 const learnLabel = computed(() => {
     const track = props.learn?.track;
-    if (!track) return 'the Learn library';
+    if (!track) return t('c_civic.journey.learn_library', 'the Learn library');
     const words = track.replace(/_/g, ' ');
     return words.charAt(0).toUpperCase() + words.slice(1);
 });
@@ -55,7 +57,7 @@ const display = computed(() => JOURNEYS_BY_ID[props.journey.id] ?? null);
 const clsLabel = computed(() => display.value?.clsLabel ?? props.journey.cls);
 const yourPart = computed(() => yourPartFor(display.value));
 const earnLine = computed(
-    () => display.value?.earn ?? 'the places this journey touches will greet you as someone who knows the ropes',
+    () => display.value?.earn ?? t('c_civic.journey.earn_default', 'the places this journey touches will greet you as someone who knows the ropes'),
 );
 
 /* Steps arrive as objects; a legacy string step still renders as a label. */
@@ -79,7 +81,7 @@ function toggleStep(index) {
     const marking = !isDone(index);
     const options = {
         preserveScroll: true,
-        onSuccess: () => announce(marking ? 'Step marked done — saved to your progress.' : 'Step marked not done.'),
+        onSuccess: () => announce(marking ? t('c_civic.journey.marked_done', 'Step marked done — saved to your progress.') : t('c_civic.journey.marked_not_done', 'Step marked not done.')),
     };
     if (marking) {
         router.post(`/journeys/${props.journey.id}/steps`, { step: index }, options);
@@ -92,40 +94,39 @@ function toggleStep(index) {
 <template>
     <PageScaffold :surface="surface" :title="journey.title">
         <template #intro>
-            Follow the real thing as it moves through the world. Each step tells you what
-            happens, what your part is, and where to go. Mark a step when you have done it.
+            {{ t('c_civic.journey.intro', 'Follow the real thing as it moves through the world. Each step tells you what happens, what your part is, and where to go. Mark a step when you have done it.') }}
         </template>
 
         <div class="cluster" style="justify-content: space-between">
             <div class="cluster">
-                <StatusBadge v-if="display?.flagship" tone="info" icon="award">Flagship</StatusBadge>
+                <StatusBadge v-if="display?.flagship" tone="info" icon="award">{{ t('c_civic.journey.flagship', 'Flagship') }}</StatusBadge>
                 <span class="eyebrow">{{ clsLabel }}</span>
             </div>
-            <StatusBadge v-if="complete" tone="success" icon="award">Journey complete</StatusBadge>
-            <StatusBadge v-else-if="live" tone="info">{{ doneCount }} of {{ total }} steps done</StatusBadge>
-            <StatusBadge v-else tone="neutral" icon="clock">Coming soon</StatusBadge>
+            <StatusBadge v-if="complete" tone="success" icon="award">{{ t('c_civic.journey.complete', 'Journey complete') }}</StatusBadge>
+            <StatusBadge v-else-if="live" tone="info">{{ t('c_civic.journey.steps_done', { done: doneCount, total }) }}</StatusBadge>
+            <StatusBadge v-else tone="neutral" icon="clock">{{ t('c_civic.journey.coming_soon', 'Coming soon') }}</StatusBadge>
         </div>
 
         <Banner v-if="!live" tone="info">
-            This journey is not live in this world yet. Its steps are shown for reading and cannot be marked.
+            {{ t('c_civic.journey.not_live', 'This journey is not live in this world yet. Its steps are shown for reading and cannot be marked.') }}
         </Banner>
         <p v-if="!signedIn" class="gloss">
-            You can read every step without an account.
-            <Link :href="`/continue?to=${encodeURIComponent('/journeys/' + journey.id)}`">Sign in to save your progress.</Link>
+            {{ t('c_civic.journey.read_without_account', 'You can read every step without an account.') }}
+            <Link :href="`/continue?to=${encodeURIComponent('/journeys/' + journey.id)}`">{{ t('c_civic.journey.sign_in_save', 'Sign in to save your progress.') }}</Link>
         </p>
 
         <p style="margin: 0">
-            <strong>Your part:</strong> {{ yourPart }}.
+            <strong>{{ t('c_civic.journey.your_part_label', 'Your part:') }}</strong> {{ yourPart }}.
             <span class="gloss">
-                New to this?
-                <Link :href="learn.href">Read the short lesson<template v-if="learn.track">: {{ learnLabel }}</template></Link>
-                first. Reading never gates anything.
+                {{ t('c_civic.journey.new_to_this', 'New to this?') }}
+                <Link :href="learn.href">{{ t('c_civic.journey.read_lesson', 'Read the short lesson') }}<template v-if="learn.track">{{ t('c_civic.journey.lesson_colon', { label: learnLabel }) }}</template></Link>
+                {{ t('c_civic.journey.reading_never_gates', 'first. Reading never gates anything.') }}
             </span>
         </p>
 
         <!-- ───────────────────────────────────────────────── the arc -->
         <Card as="section">
-            <div class="meter" role="meter" aria-valuemin="0" :aria-valuemax="total" :aria-valuenow="doneCount" :aria-label="`Your progress: ${doneCount} of ${total} steps done`">
+            <div class="meter" role="meter" aria-valuemin="0" :aria-valuemax="total" :aria-valuenow="doneCount" :aria-label="t('c_civic.journey.progress_aria', { done: doneCount, total })">
                 <span class="meter-fill" :class="{ 'meter-fill--met': complete }" :style="{ 'inline-size': `${pct}%` }"></span>
             </div>
 
@@ -143,14 +144,14 @@ function toggleStep(index) {
                     <div class="journey-body">
                         <h3 class="journey-title">{{ step.label }}</h3>
                         <p v-if="step.what" class="journey-what">{{ step.what }}</p>
-                        <p v-if="step.you" class="journey-you"><strong>Your part:</strong> {{ step.you }}</p>
+                        <p v-if="step.you" class="journey-you"><strong>{{ t('c_civic.journey.your_part_label', 'Your part:') }}</strong> {{ step.you }}</p>
                         <div class="cluster journey-actions">
-                            <Btn v-if="step.href" :as="Link" :href="step.href" variant="secondary" size="sm" icon="arrow-right">Go there</Btn>
+                            <Btn v-if="step.href" :as="Link" :href="step.href" variant="secondary" size="sm" icon="arrow-right">{{ t('c_civic.journey.go_there', 'Go there') }}</Btn>
                             <FormChip v-if="step.form" :form-id="step.form" />
                             <template v-if="live && signedIn">
-                                <Btn v-if="!isDone(index)" variant="ghost" size="sm" @click="toggleStep(index)">Mark done</Btn>
-                                <Btn v-else-if="!complete" variant="ghost" size="sm" icon="check" @click="toggleStep(index)">Done · undo</Btn>
-                                <span v-else class="citation"><Icon name="check" size="sm" /> Done</span>
+                                <Btn v-if="!isDone(index)" variant="ghost" size="sm" @click="toggleStep(index)">{{ t('c_civic.journey.mark_done', 'Mark done') }}</Btn>
+                                <Btn v-else-if="!complete" variant="ghost" size="sm" icon="check" @click="toggleStep(index)">{{ t('c_civic.journey.done_undo', 'Done · undo') }}</Btn>
+                                <span v-else class="citation"><Icon name="check" size="sm" /> {{ t('c_civic.journey.done', 'Done') }}</span>
                             </template>
                         </div>
                     </div>
@@ -159,28 +160,28 @@ function toggleStep(index) {
 
             <p class="gloss" style="margin-block-start: var(--space-3)">
                 <template v-if="complete">
-                    This journey is on your profile:
-                    <Link href="/civic/record?tab=achievements">see your achievements</Link>. Its steps are frozen.
+                    {{ t('c_civic.journey.on_profile', 'This journey is on your profile:') }}
+                    <Link href="/civic/record?tab=achievements">{{ t('c_civic.journey.see_achievements', 'see your achievements') }}</Link>{{ t('c_civic.journey.steps_frozen', '. Its steps are frozen.') }}
                 </template>
                 <template v-else>
-                    Your progress is yours alone. It is saved for you and does not change what the world does.
+                    {{ t('c_civic.journey.progress_yours', 'Your progress is yours alone. It is saved for you and does not change what the world does.') }}
                 </template>
             </p>
         </Card>
 
         <!-- ───────────────────────────────── what completing this earns -->
-        <Card as="section" title="What finishing this earns">
+        <Card as="section" :title="t('c_civic.journey.earns_title', 'What finishing this earns')">
             <ul class="earn">
-                <li><strong>A medal on your profile.</strong> "{{ journey.title }}" joins <Link href="/civic/record?tab=achievements">your achievements</Link>.</li>
-                <li><strong>A head start.</strong> {{ earnLine }}.</li>
-                <li><strong>A stipend bonus</strong> when the economy pays it. <StatusBadge tone="neutral" icon="clock">Coming</StatusBadge></li>
+                <li><strong>{{ t('c_civic.journey.medal_label', 'A medal on your profile.') }}</strong> {{ t('c_civic.journey.medal_joins', { title: journey.title }) }} <Link href="/civic/record?tab=achievements">{{ t('c_civic.journey.your_achievements', 'your achievements') }}</Link>.</li>
+                <li><strong>{{ t('c_civic.journey.head_start', 'A head start.') }}</strong> {{ earnLine }}.</li>
+                <li><strong>{{ t('c_civic.journey.stipend_bonus', 'A stipend bonus') }}</strong> {{ t('c_civic.journey.when_economy', 'when the economy pays it.') }} <StatusBadge tone="neutral" icon="clock">{{ t('c_civic.journey.coming', 'Coming') }}</StatusBadge></li>
             </ul>
-            <p class="citation">A medal never changes a vote, a seat, or what you are allowed to do.</p>
+            <p class="citation">{{ t('c_civic.journey.medal_never', 'A medal never changes a vote, a seat, or what you are allowed to do.') }}</p>
         </Card>
 
         <div class="cluster" style="justify-content: space-between">
-            <Link href="/journeys"><Icon name="arrow-right" size="sm" /> All journeys</Link>
-            <span v-if="achievement" class="cc-small"><Icon name="award" size="sm" /> Earned {{ achievement.earned_at?.slice(0, 10) }}</span>
+            <Link href="/journeys"><Icon name="arrow-right" size="sm" /> {{ t('c_civic.journey.all_journeys', 'All journeys') }}</Link>
+            <span v-if="achievement" class="cc-small"><Icon name="award" size="sm" /> {{ t('c_civic.journey.earned', { date: achievement.earned_at?.slice(0, 10) }) }}</span>
         </div>
     </PageScaffold>
 </template>

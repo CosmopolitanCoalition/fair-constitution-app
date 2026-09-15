@@ -12,6 +12,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -25,6 +26,7 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -48,10 +50,10 @@ const ONBOARDING_LABELS = {
 /* The onboarding stepper context — this is step 2 of the 3-step arrival arc,
    and it is the OPTIONAL one. Steps 1 and 3 are always reachable regardless. */
 const onboardingSteps = computed(() => [
-    { label: '1 · Account', icon: 'check', state: 'done' },
-    { label: '2 · Link an ID (optional)', state: 'active' },
+    { label: t('c_civic.identity_verification.step_account', '1 · Account'), icon: 'check', state: 'done' },
+    { label: t('c_civic.identity_verification.step_link_id', '2 · Link an ID (optional)'), state: 'active' },
     {
-        label: '3 · Say where you live',
+        label: t('c_civic.identity_verification.step_live', '3 · Say where you live'),
         state: props.journeyStatus === 'jurisdictionally_associated' ? 'done' : 'pending',
     },
 ]);
@@ -84,56 +86,50 @@ const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
 </script>
 
 <template>
-    <PageScaffold :surface="surface" title="Link a government ID (optional)">
+    <PageScaffold :surface="surface" :title="t('c_civic.identity_verification.page_title', 'Link a government ID (optional)')">
         <Stepper :steps="onboardingSteps" />
 
         <template #intro>
-            Where your jurisdiction supports it, you can link a government ID (formally: identity
-            verification) to your account. It helps keep elections honest — it is
-            <strong>never</strong> required. Voting and candidacy come from living somewhere,
-            nothing else. You can
-            <Link href="/civic/residency">skip straight to saying where you live</Link>.
+            {{ t('c_civic.identity_verification.intro_before', 'Where your jurisdiction supports it, you can link a government ID (formally: identity verification) to your account. It helps keep elections honest — it is') }}
+            <strong>{{ t('c_civic.identity_verification.intro_never', 'never') }}</strong>
+            {{ t('c_civic.identity_verification.intro_after', 'required. Voting and candidacy come from living somewhere, nothing else. You can') }}
+            <Link href="/civic/residency">{{ t('c_civic.identity_verification.intro_link', 'skip straight to saying where you live') }}</Link>.
         </template>
         <template #about>
             <p>
-                WF-CIV-01 identity step, Phase A scope: the manual attestation-request stub only.
-                Per-jurisdiction external ID bridges (encrypted yes/no document match, nothing
-                stored) arrive with federation in Phase F; an officer recording the verified flag
-                is later-phase machinery.
+                {{ t('c_civic.identity_verification.about', 'WF-CIV-01 identity step, Phase A scope: the manual attestation-request stub only. Per-jurisdiction external ID bridges (encrypted yes/no document match, nothing stored) arrive with federation in Phase F; an officer recording the verified flag is later-phase machinery.') }}
             </p>
         </template>
 
         <!-- THE banner — the page's most important element. -->
-        <Banner tone="info" title="Verification is never a rights requirement.">
-            Voting and candidacy depend on jurisdictional residency alone — no identity check,
-            document, course, or fee can ever be added between you and your rights. Skipping this
-            page is always allowed and changes nothing.
+        <Banner tone="info" :title="t('c_civic.identity_verification.banner_title', 'Verification is never a rights requirement.')">
+            {{ t('c_civic.identity_verification.banner_body', 'Voting and candidacy depend on jurisdictional residency alone — no identity check, document, course, or fee can ever be added between you and your rights. Skipping this page is always allowed and changes nothing.') }}
             <span class="citation" style="display: block; margin-block-start: var(--space-1)">
-                Art. I · hardened <HardenedChip><span class="visually-hidden">hardened</span></HardenedChip>
+                Art. I · hardened <HardenedChip><span class="visually-hidden">{{ t('c_civic.identity_verification.hardened', 'hardened') }}</span></HardenedChip>
             </span>
         </Banner>
 
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
-        <Banner v-if="errors.constitution" tone="warning" title="Filing rejected by the constitutional engine">
-            {{ errors.constitution }} — the rejection itself is on the audit chain (append-only).
+        <Banner v-if="errors.constitution" tone="warning" :title="t('c_civic.identity_verification.rejected_title', 'Filing rejected by the constitutional engine')">
+            {{ errors.constitution }} {{ t('c_civic.identity_verification.rejected_after', '— the rejection itself is on the audit chain (append-only).') }}
         </Banner>
 
         <!-- ──────────────────────────────────────────── Current status -->
-        <Card as="section" title="Where you are">
+        <Card as="section" :title="t('c_civic.identity_verification.where_you_are', 'Where you are')">
             <StateStrip :states="machine" :current="journeyStatus" :labels="ONBOARDING_LABELS" />
             <div class="cluster" style="margin-block-start: var(--space-3); gap: var(--space-3)">
                 <StatusBadge v-if="isVerified" tone="success" icon="check">
-                    Identity verified
-                    <template v-if="identity.verified_via"> · via {{ identity.verified_via }}</template>
+                    {{ t('c_civic.identity_verification.identity_verified', 'Identity verified') }}
+                    <template v-if="identity.verified_via"> {{ t('c_civic.identity_verification.via', { via: identity.verified_via }) }}</template>
                     <template v-if="identity.verified_at"> · {{ formatDate(identity.verified_at) }}</template>
                 </StatusBadge>
                 <StatusBadge v-else-if="isPending" tone="warning" icon="clock">
-                    Attestation requested {{ formatDate(identity.attestation_requested_at) }} — pending
+                    {{ t('c_civic.identity_verification.attestation_pending', { when: formatDate(identity.attestation_requested_at) }) }}
                 </StatusBadge>
-                <StatusBadge v-else tone="neutral" icon="user">Not verified — and that is fine</StatusBadge>
+                <StatusBadge v-else tone="neutral" icon="user">{{ t('c_civic.identity_verification.not_verified', 'Not verified — and that is fine') }}</StatusBadge>
             </div>
             <p class="citation" style="margin-block-start: var(--space-3)">
-                Identity verification strengthens election integrity — never a voting requirement · Art. I; Art. II §2
+                {{ t('c_civic.identity_verification.status_cite', 'Identity verification strengthens election integrity — never a voting requirement · Art. I; Art. II §2') }}
             </p>
         </Card>
 
@@ -142,39 +138,33 @@ const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
             v-if="!isVerified"
             :form="formMeta('F-IND-004')"
             :inertia-form="requestForm"
-            :submit-label="isPending ? 'Request again' : 'Request attestation appointment'"
-            processing-label="Filing F-IND-004…"
+            :submit-label="isPending ? t('c_civic.identity_verification.request_again', 'Request again') : t('c_civic.identity_verification.request_appointment', 'Request attestation appointment')"
+            :processing-label="t('c_civic.identity_verification.filing', 'Filing F-IND-004…')"
             @submit="submitRequest"
         >
             <p style="margin-block-end: var(--space-3)">
-                The manual path: request an attestation appointment with
+                {{ t('c_civic.identity_verification.manual_path', 'The manual path: request an attestation appointment with') }}
                 <template v-if="declaredJurisdiction">
-                    the administrative office of
+                    {{ t('c_civic.identity_verification.office_of', 'the administrative office of') }}
                     <AdmChip :level="declaredJurisdiction.adm_level" :label="declaredJurisdiction.name" />.
                 </template>
                 <template v-else>
-                    your jurisdiction's administrative office — you have not declared residency
-                    yet, so the request is recorded unscoped;
-                    <Link href="/civic/residency">declare residency</Link> to direct it.
+                    {{ t('c_civic.identity_verification.office_unscoped', "your jurisdiction's administrative office — you have not declared residency yet, so the request is recorded unscoped;") }}
+                    <Link href="/civic/residency">{{ t('c_civic.identity_verification.declare_link', 'declare residency') }}</Link> {{ t('c_civic.identity_verification.to_direct', 'to direct it.') }}
                 </template>
-                An officer records only the verified flag — no document data is ever accepted,
-                transmitted, or stored by this filing.
+                {{ t('c_civic.identity_verification.officer_records', 'An officer records only the verified flag — no document data is ever accepted, transmitted, or stored by this filing.') }}
             </p>
             <p v-if="isPending" class="gloss" style="margin-block-end: var(--space-3)">
-                A request from {{ formatDate(identity.attestation_requested_at) }} is already on
-                your record — requesting again simply appends a fresh entry.
+                {{ t('c_civic.identity_verification.pending_note', { when: formatDate(identity.attestation_requested_at) }) }}
             </p>
         </FormCard>
 
         <!-- ───────────────────────────────── External bridge — honest -->
-        <Card as="section" title="Automatic ID check">
+        <Card as="section" :title="t('c_civic.identity_verification.auto_check_title', 'Automatic ID check')">
             <p class="gloss">
-                One day, where a jurisdiction supports it, you'll be able to link an existing
-                government ID by an encrypted yes/no match — the document number never stored, never
-                transmitted by us. <strong>No jurisdiction on this world can do that yet</strong>:
-                the bridge is built with federation in <strong>Phase F</strong>. Until then the
-                in-person attestation request above is the only path, and it too is entirely
-                optional.
+                {{ t('c_civic.identity_verification.auto_before', "One day, where a jurisdiction supports it, you'll be able to link an existing government ID by an encrypted yes/no match — the document number never stored, never transmitted by us.") }}
+                <strong>{{ t('c_civic.identity_verification.auto_none_yet', 'No jurisdiction on this world can do that yet') }}</strong>{{ t('c_civic.identity_verification.auto_bridge', ': the bridge is built with federation in') }}
+                <strong>{{ t('c_civic.identity_verification.auto_phase_f', 'Phase F') }}</strong>{{ t('c_civic.identity_verification.auto_until', '. Until then the in-person attestation request above is the only path, and it too is entirely optional.') }}
             </p>
         </Card>
     </PageScaffold>

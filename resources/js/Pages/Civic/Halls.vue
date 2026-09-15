@@ -8,6 +8,7 @@
  */
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -21,6 +22,7 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -63,10 +65,9 @@ function fileTestimony(thread, post) {
     <PageScaffold :surface="surface" :title="selectedPlace ? $t('places.halls_in', { name: selectedPlace.name }) : undefined">
         <CommunityNav :jurisdiction-id="selectedPlace?.id || create.jurisdiction_id || ''" />
         <template #intro>
-            The halls are where residents deliberate on bills, referendums, petitions, and
-            committees. Filing your own post as <em>testimony</em> seals it into the append-only
-            public record (Art. II §2) — the post stays in the conversation; the civic act lands
-            immutably on the chain.
+            {{ t('c_civic.halls.intro_before', 'The halls are where residents deliberate on bills, referendums, petitions, and committees. Filing your own post as') }}
+            <em>{{ t('c_civic.halls.intro_testimony', 'testimony') }}</em>
+            {{ t('c_civic.halls.intro_after', 'seals it into the append-only public record (Art. II §2) — the post stays in the conversation; the civic act lands immutably on the chain.') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -74,18 +75,18 @@ function fileTestimony(thread, post) {
 
         <div class="cluster" style="gap: var(--space-6)">
             <Stat :value="threads.length" :label="$t('places.threads_in_view')" />
-            <Stat value="Art. II §2" label="append-only record" accent />
+            <Stat value="Art. II §2" :label="t('c_civic.halls.append_only_record', 'append-only record')" accent />
         </div>
 
-        <Card as="section" title="Deliberation">
+        <Card as="section" :title="t('c_civic.halls.deliberation', 'Deliberation')">
             <div v-if="threads.length" class="stack" style="gap: var(--space-3)">
                 <Card v-for="thread in threads" :key="thread.id" inset>
                     <span>
                         <strong>{{ thread.title }}</strong>
                         {{ ' ' }}
-                        <StatusBadge v-if="thread.sealed" tone="success">sealed as testimony</StatusBadge>
+                        <StatusBadge v-if="thread.sealed" tone="success">{{ t('c_civic.halls.sealed_as_testimony', 'sealed as testimony') }}</StatusBadge>
                     </span>
-                    <p class="cc-small gloss" style="margin-block-start: var(--space-1)">opened by {{ thread.author_display }}</p>
+                    <p class="cc-small gloss" style="margin-block-start: var(--space-1)">{{ t('c_civic.halls.opened_by', { name: thread.author_display }) }}</p>
                     <div class="stack" style="gap: var(--space-2); margin-block-start: var(--space-2)">
                         <div v-for="post in thread.posts" :key="post.id">
                             <p>{{ post.body }}</p>
@@ -93,7 +94,7 @@ function fileTestimony(thread, post) {
                                 {{ post.author_display }} · {{ post.at }}
                                 <Btn v-if="post.mine" variant="secondary" size="sm" :disabled="filing === post.id"
                                     style="margin-inline-start: var(--space-2)" @click="fileTestimony(thread, post)">
-                                    File as testimony
+                                    {{ t('c_civic.halls.file_as_testimony', 'File as testimony') }}
                                 </Btn>
                             </p>
                         </div>
@@ -102,9 +103,9 @@ function fileTestimony(thread, post) {
             </div>
             <p v-else class="cc-small gloss">{{ $t('places.no_discussions') }}</p>
             <p class="cc-small" style="margin-block-start: var(--space-3)">
-                Filing testimony uses
+                {{ t('c_civic.halls.filing_uses', 'Filing testimony uses') }}
                 <span class="form-chip"><span class="form-id" data-no-i18n>F-SOC-002</span></span>
-                — it seals YOUR post into the append-only register; you can only file your own.
+                {{ t('c_civic.halls.filing_uses_after', '— it seals YOUR post into the append-only register; you can only file your own.') }}
             </p>
         </Card>
 
@@ -113,39 +114,37 @@ function fileTestimony(thread, post) {
             v-if="isAssociated && formMeta('F-SOC-001')"
             :form="formMeta('F-SOC-001')"
             :inertia-form="create"
-            submit-label="Post to the halls"
+            :submit-label="t('c_civic.halls.post_to_halls', 'Post to the halls')"
             @submit="submitCreate"
         >
-            <Field label="Jurisdiction" :error="create.errors.jurisdiction_id">
+            <Field :label="t('c_civic.halls.jurisdiction', 'Jurisdiction')" :error="create.errors.jurisdiction_id">
                 <template #control="{ id }">
                     <select :id="id" v-model="create.jurisdiction_id" class="select">
                         <option v-for="j in jurisdictions" :key="j.id" :value="j.id">{{ j.name }}</option>
                     </select>
                 </template>
             </Field>
-            <Field label="Title" :error="create.errors.title" required>
+            <Field :label="t('c_civic.halls.title_label', 'Title')" :error="create.errors.title" required>
                 <template #control="{ id, invalid, describedBy }">
                     <input :id="id" v-model="create.title" class="field-input" type="text"
                         :aria-invalid="invalid ? 'true' : undefined" :aria-describedby="describedBy" />
                 </template>
             </Field>
-            <Field label="Your statement" :error="create.errors.body" required>
+            <Field :label="t('c_civic.halls.statement_label', 'Your statement')" :error="create.errors.body" required>
                 <template #control="{ id, invalid, describedBy }">
                     <textarea :id="id" v-model="create.body" class="field-input" rows="4"
                         :aria-invalid="invalid ? 'true' : undefined" :aria-describedby="describedBy"></textarea>
                 </template>
             </Field>
         </FormCard>
-        <Card v-else as="section" title="Posting (F-SOC-001)">
-            <p class="gloss">Deliberating in the halls requires an active jurisdictional association (R-03) — Art. I.</p>
-            <Btn as="a" href="/civic/residency" variant="primary" size="sm">Declare residency →</Btn>
+        <Card v-else as="section" :title="t('c_civic.halls.posting_title', 'Posting (F-SOC-001)')">
+            <p class="gloss">{{ t('c_civic.halls.posting_body', 'Deliberating in the halls requires an active jurisdictional association (R-03) — Art. I.') }}</p>
+            <Btn as="a" href="/civic/residency" variant="primary" size="sm">{{ t('c_civic.halls.declare_residency', 'Declare residency →') }}</Btn>
         </Card>
 
         <template #about>
             <p>
-                Testimony is your own statement entered into the record — you can seal only your own
-                posts, only in the halls. A sealed record is immutable and appealable; corrections
-                append a new record rather than rewriting the old one.
+                {{ t('c_civic.halls.about', 'Testimony is your own statement entered into the record — you can seal only your own posts, only in the halls. A sealed record is immutable and appealable; corrections append a new record rather than rewriting the old one.') }}
             </p>
         </template>
     </PageScaffold>

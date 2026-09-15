@@ -1,37 +1,44 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 const props = defineProps({ surface: Object, selectedPlace: Object, section: String, rooms: Array, commons: Array, pagination: Object });
-const tabs = [['chambers', 'Chambers'], ['committees', 'Committees'], ['courts', 'Court hearings'], ['boards', 'My board rooms']];
+const tabs = [
+    ['chambers', t('c_civic.directory.tab_chambers', 'Chambers')],
+    ['committees', t('c_civic.directory.tab_committees', 'Committees')],
+    ['courts', t('c_civic.directory.tab_courts', 'Court hearings')],
+    ['boards', t('c_civic.directory.tab_boards', 'My board rooms')],
+];
 const scope = () => props.selectedPlace ? '&jurisdiction=' + encodeURIComponent(props.selectedPlace.slug) : '';
 </script>
 
 <template>
-    <Head title="Live rooms" />
+    <Head :title="t('c_civic.directory.head_title', 'Live rooms')" />
     <div class="rooms-directory">
-        <header><h1>Live rooms</h1><p>Find a place to talk, attend a hearing or join your institution. Rooms support text, voice and video.</p></header>
-        <nav class="room-nav" aria-label="Room location">
+        <header><h1>{{ t('c_civic.directory.title', 'Live rooms') }}</h1><p>{{ t('c_civic.directory.lede', 'Find a place to talk, attend a hearing or join your institution. Rooms support text, voice and video.') }}</p></header>
+        <nav class="room-nav" :aria-label="t('c_civic.directory.nav_location', 'Room location')">
             <strong v-if="selectedPlace">{{ selectedPlace.name }}</strong>
-            <Link v-if="selectedPlace" :href="'/jurisdictions/' + selectedPlace.slug">Place overview</Link>
-            <Link href="/jurisdictions">Choose another place</Link>
-            <Link href="/civic/rooms">Private messages &amp; groups</Link>
+            <Link v-if="selectedPlace" :href="'/jurisdictions/' + selectedPlace.slug">{{ t('c_civic.directory.place_overview', 'Place overview') }}</Link>
+            <Link href="/jurisdictions">{{ t('c_civic.directory.choose_another', 'Choose another place') }}</Link>
+            <Link href="/civic/rooms">{{ t('c_civic.directory.private_messages', 'Private messages & groups') }}</Link>
         </nav>
-        <p v-if="!selectedPlace">Choose a place from the world browser, then open <strong>Live rooms</strong> in its place tools. Your residence does not restrict the public rooms you can visit.</p>
+        <p v-if="!selectedPlace">{{ t('c_civic.directory.pick_place_a', 'Choose a place from the world browser, then open') }} <strong>{{ t('c_civic.directory.live_rooms_term', 'Live rooms') }}</strong> {{ t('c_civic.directory.pick_place_b', 'in its place tools. Your residence does not restrict the public rooms you can visit.') }}</p>
         <div v-if="commons.length" class="room-grid">
-            <article v-for="room in commons" :key="room.href"><h2>{{ room.title }}</h2><p>{{ room.detail }}</p><Link :href="room.href">Open room →</Link></article>
+            <article v-for="room in commons" :key="room.href"><h2>{{ room.title }}</h2><p>{{ room.detail }}</p><Link :href="room.href">{{ t('c_civic.directory.open_room_arrow', 'Open room →') }}</Link></article>
         </div>
-        <nav class="room-nav room-tabs" aria-label="Kinds of room">
+        <nav class="room-nav room-tabs" :aria-label="t('c_civic.directory.nav_kinds', 'Kinds of room')">
             <Link v-for="[key, label] in tabs" :key="key" :href="'/rooms?section=' + key + scope()" :aria-current="section === key ? 'page' : undefined">{{ label }}</Link>
         </nav>
-        <p v-if="section === 'boards'">Only boards where you currently hold a seat appear here. Their rooms remain private.</p>
+        <p v-if="section === 'boards'">{{ t('c_civic.directory.boards_note', 'Only boards where you currently hold a seat appear here. Their rooms remain private.') }}</p>
         <div class="room-grid">
-            <article v-for="room in rooms" :key="room.id"><h2>{{ room.title }}</h2><p>{{ room.detail }}</p><Link :href="room.href">{{ room.action ?? 'Open room' }} →</Link></article>
+            <article v-for="room in rooms" :key="room.id"><h2>{{ room.title }}</h2><p>{{ room.detail }}</p><Link :href="room.href">{{ room.action ?? t('c_civic.directory.open_room', 'Open room') }} →</Link></article>
         </div>
-        <p v-if="!rooms.length && (selectedPlace || section === 'boards')">No rooms in this section. Try another kind of room or another place.</p>
-        <nav class="room-nav" aria-label="Room pages">
-            <Link v-if="pagination.previous" :href="pagination.previous">Previous rooms</Link>
-            <Link v-if="pagination.next" :href="pagination.next">More rooms</Link>
+        <p v-if="!rooms.length && (selectedPlace || section === 'boards')">{{ t('c_civic.directory.no_rooms', 'No rooms in this section. Try another kind of room or another place.') }}</p>
+        <nav class="room-nav" :aria-label="t('c_civic.directory.nav_pages', 'Room pages')">
+            <Link v-if="pagination.previous" :href="pagination.previous">{{ t('c_civic.directory.previous_rooms', 'Previous rooms') }}</Link>
+            <Link v-if="pagination.next" :href="pagination.next">{{ t('c_civic.directory.more_rooms', 'More rooms') }}</Link>
         </nav>
     </div>
 </template>

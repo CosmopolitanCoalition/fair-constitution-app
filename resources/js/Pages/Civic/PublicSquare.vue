@@ -9,6 +9,7 @@
  */
 import { computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -21,6 +22,7 @@ import CommunityNav from '@/Components/Civic/CommunityNav.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -54,9 +56,7 @@ function submitCreate() {
     <PageScaffold :surface="surface" :title="selectedPlace ? $t('places.square_in', { name: selectedPlace.name }) : undefined">
         <CommunityNav :jurisdiction-id="selectedPlace?.id || create.jurisdiction_id || ''" />
         <template #intro>
-            The public square is open to every resident of the jurisdiction. Anyone associated may
-            post; no one — operator, legislator, or judge — may remove a post on viewpoint. The only
-            removals are four narrow, logged carve-outs (Art. I).
+            {{ t('c_civic.public_square.intro', 'The public square is open to every resident of the jurisdiction. Anyone associated may post; no one — operator, legislator, or judge — may remove a post on viewpoint. The only removals are four narrow, logged carve-outs (Art. I).') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -64,15 +64,15 @@ function submitCreate() {
 
         <div class="cluster" style="gap: var(--space-6)">
             <Stat :value="threads.length" :label="$t('places.threads_in_view')" />
-            <Stat value="Art. I" label="uncensorable" accent />
+            <Stat value="Art. I" :label="t('c_civic.public_square.uncensorable', 'uncensorable')" accent />
         </div>
 
-        <Card as="section" title="Recent threads">
+        <Card as="section" :title="t('c_civic.public_square.recent_threads', 'Recent threads')">
             <p class="citation" style="margin-block-end: var(--space-3)">{{ selectedPlace ? $t('places.viewing', { name: selectedPlace.name }) : $t('places.association_view') }}</p>
             <div v-if="threads.length" class="stack" style="gap: var(--space-3)">
                 <Card v-for="thread in threads" :key="thread.id" inset>
                     <strong>{{ thread.title }}</strong>
-                    <p class="cc-small gloss" style="margin-block-start: var(--space-1)">opened by {{ thread.author_display }}</p>
+                    <p class="cc-small gloss" style="margin-block-start: var(--space-1)">{{ t('c_civic.public_square.opened_by', { name: thread.author_display }) }}</p>
                     <div class="stack" style="gap: var(--space-2); margin-block-start: var(--space-2)">
                         <div v-for="post in thread.posts" :key="post.id">
                             <p>{{ post.body }}</p>
@@ -81,7 +81,7 @@ function submitCreate() {
                     </div>
                 </Card>
             </div>
-            <p v-else class="cc-small gloss">No threads yet — any associated resident can open one.</p>
+            <p v-else class="cc-small gloss">{{ t('c_civic.public_square.no_threads', 'No threads yet — any associated resident can open one.') }}</p>
         </Card>
 
         <p v-if="selectedPlace && isAssociated" class="gloss">{{ $t('places.filing_choices') }}</p>
@@ -89,39 +89,38 @@ function submitCreate() {
             v-if="isAssociated && formMeta('F-SOC-001')"
             :form="formMeta('F-SOC-001')"
             :inertia-form="create"
-            submit-label="Post to the square"
+            :submit-label="t('c_civic.public_square.post_to_square', 'Post to the square')"
             @submit="submitCreate"
         >
-            <Field label="Jurisdiction" :error="create.errors.jurisdiction_id">
+            <Field :label="t('c_civic.public_square.jurisdiction', 'Jurisdiction')" :error="create.errors.jurisdiction_id">
                 <template #control="{ id }">
                     <select :id="id" v-model="create.jurisdiction_id" class="select">
                         <option v-for="j in jurisdictions" :key="j.id" :value="j.id">{{ j.name }}</option>
                     </select>
                 </template>
             </Field>
-            <Field label="Title" :error="create.errors.title" required>
+            <Field :label="t('c_civic.public_square.title_label', 'Title')" :error="create.errors.title" required>
                 <template #control="{ id, invalid, describedBy }">
                     <input :id="id" v-model="create.title" class="field-input" type="text"
-                        placeholder="What is this about?" :aria-invalid="invalid ? 'true' : undefined" :aria-describedby="describedBy" />
+                        :placeholder="t('c_civic.public_square.title_placeholder', 'What is this about?')" :aria-invalid="invalid ? 'true' : undefined" :aria-describedby="describedBy" />
                 </template>
             </Field>
-            <Field label="Your post" :error="create.errors.body" required>
+            <Field :label="t('c_civic.public_square.post_label', 'Your post')" :error="create.errors.body" required>
                 <template #control="{ id, invalid, describedBy }">
                     <textarea :id="id" v-model="create.body" class="field-input" rows="4"
                         :aria-invalid="invalid ? 'true' : undefined" :aria-describedby="describedBy"></textarea>
                 </template>
             </Field>
         </FormCard>
-        <Card v-else as="section" title="Posting (F-SOC-001)">
+        <Card v-else as="section" :title="t('c_civic.public_square.posting_title', 'Posting (F-SOC-001)')">
             <p class="gloss">
-                Posting in the square requires an active jurisdictional association (R-03) — the same
-                gate as voting, and the only one (Art. I).
+                {{ t('c_civic.public_square.posting_body', 'Posting in the square requires an active jurisdictional association (R-03) — the same gate as voting, and the only one (Art. I).') }}
             </p>
-            <Btn as="a" href="/civic/residency" variant="primary" size="sm">Declare residency →</Btn>
+            <Btn as="a" href="/civic/residency" variant="primary" size="sm">{{ t('c_civic.public_square.declare_residency', 'Declare residency →') }}</Btn>
         </Card>
 
         <!-- ─────────────── community standards (§③ lane 15 educational slice) -->
-        <Card v-if="standards" as="section" title="Community standards">
+        <Card v-if="standards" as="section" :title="t('c_civic.public_square.standards_title', 'Community standards')">
             <p style="margin-block-start: 0"><strong>{{ standards.headline }}</strong></p>
             <p class="gloss">{{ standards.lede }}</p>
             <div class="stack" style="gap: var(--space-2); margin-block-start: var(--space-3)">
@@ -129,23 +128,21 @@ function submitCreate() {
                     <strong>{{ c.label }}</strong>
                     <p class="cc-small" style="margin-block-start: var(--space-1)">{{ c.what }}</p>
                     <details style="margin-block-start: var(--space-1)">
-                        <summary class="citation" style="cursor: pointer">Why this is the line</summary>
+                        <summary class="citation" style="cursor: pointer">{{ t('c_civic.public_square.why_the_line', 'Why this is the line') }}</summary>
                         <p class="gloss" style="margin-block-start: var(--space-1)">{{ c.why }}</p>
                         <p class="citation">{{ c.basis }}</p>
                     </details>
                 </Card>
             </div>
             <Banner tone="info" style="margin-block-start: var(--space-3)">
-                <strong>No viewpoint removal exists.</strong> {{ standards.no_viewpoint_path }}
+                <strong>{{ t('c_civic.public_square.no_viewpoint_removal', 'No viewpoint removal exists.') }}</strong> {{ standards.no_viewpoint_path }}
             </Banner>
             <p class="citation" style="margin-block-start: var(--space-2)">{{ standards.logged }}</p>
         </Card>
 
         <template #about>
             <p>
-                Reactions, follows, and per-user blocks stay local to your device and never federate.
-                A post can be removed only under a logged carve-out (a judicial order, or protecting
-                another's rights) — every such removal is itself a public, appealable record.
+                {{ t('c_civic.public_square.about', "Reactions, follows, and per-user blocks stay local to your device and never federate. A post can be removed only under a logged carve-out (a judicial order, or protecting another's rights) — every such removal is itself a public, appealable record.") }}
             </p>
         </template>
     </PageScaffold>
