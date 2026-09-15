@@ -15,10 +15,10 @@ Sample values: `php artisan a11y:roster-ids` on box E; resolved URLs:
 | Class | Count | Scanned as a page |
 |---|---:|---|
 | guest param-free pages | 56 | yes |
-| signed-in param-free pages | 45 | yes (signed-in mode) |
+| signed-in param-free pages | 42 | yes (signed-in mode) |
 | parameterised pages | 62 | yes (signed-in mode, sample URL) |
 | viewer-bound pages | 1 | yes (signed-in mode) |
-| machine endpoints | 87 | no (not a page) |
+| machine endpoints | 90 | no (not a page) |
 | total GET routes | 251 | |
 
 Parameterised pages resolved to a live sample URL: 50 of 62. NO SAMPLE (no live row): 12.
@@ -242,3 +242,8 @@ Excluded from the page sweep by rule. Reason per entry.
 | `/storage/{path}` | storage/ file |
 | `/up` | health probe |
 
+
+
+## Correction 2026-09-15 (pass 2)
+
+Three JSON polls outside `/api` were classified as pages by the prefix rule and failed `document-title`: `/system/translations/progress`, `/dev/playtest/state`, `/dev/scenario/state` (all `application/json`, verified with curl). They are now machine endpoints by name. Classes: 56 guest, 42 signed-in, 62 parameterised, 90 machine, 1 viewer-bound; sum 251.
