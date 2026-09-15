@@ -16866,10 +16866,10 @@
     {
       "id": "W-0444",
       "title": "Open the organization page to guests (organizations.show is auth-walled)",
-      "phase": "P1",
-      "order": 69,
+      "phase": "done",
+      "order": null,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "",
       "detail": "Found 2026-09-14 while seeding Phase J: GET /organizations/{id} redirects a guest to /login, and the route binds by id only (a slug answers 404). Operator ruling 2026-09-10: every page is readable by anyone; a role gates actions, never the page. The reads lane (W-0283) opened the surfaces named in its item; the organization page was not among them.",
       "done_when": "GET /organizations/{id} renders for a guest with member-only actions hidden; the route also resolves the organization slug; PublicReadSurfaceGateTest lists organizations.show; the page passes the accessibility sweep alone in Edge.",
@@ -16882,6 +16882,10 @@
         {
           "date": "2026-09-14",
           "note": "Opened by the desk after the Phase J seed: the seeded Foundation page is not guest-readable."
+        },
+        {
+          "date": "2026-09-14",
+          "note": "Operator set done. organizations.index, organizations.show and organizations.cgc.show read for a guest (withoutMiddleware auth; the controllers already treat a null viewer as holding no capability), 'organizations' joined the setup ALLOW list, PublicReadSurfaceGateTest pins the three routes and both paths, the roster gained /organizations (56 guest pages). Guest probes on box E: registry 200, Foundation profile 200, Coalition profile 200. Registry swept alone in Edge: PASS 19.9 s; Foundation profile scanned alone: 0 nodes at both widths. Slug resolution dropped from scope: slugs are unique per jurisdiction, not globally, so a bare slug route would be ambiguous; pages link by id."
         }
       ]
     }

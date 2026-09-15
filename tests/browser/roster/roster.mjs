@@ -73,7 +73,7 @@ export function deriveGuestPages() {
     return { pages: dedupe(pages), nonPageEndpoints: dedupe(nonPageEndpoints), viewerBound: dedupe(viewerBound) };
 }
 
-// ── THE PIN. 55 guest pages, 38 non-page endpoints and 1 viewer-bound page as
+// ── THE PIN. 56 guest pages, 39 non-page endpoints and 1 viewer-bound page as
 // resolved from the route table captured 2026-09-14 (refreshed after the reads lane
 // opened the economy, sim console and operator read pages to guests). If route-list.json is
 // refreshed and the derivation changes, these arrays must be updated
@@ -117,6 +117,7 @@ export const PIN_PAGES = [
     '/operator/federation',
     '/operator/login',
     '/operator/operations',
+    '/organizations',
     '/reach',
     '/register',
     '/rooms',
@@ -171,6 +172,7 @@ export const PIN_NONPAGE = [
     '/api/setup/wizard/step4/progress',
     '/api/setup/wizard/step5/progress',
     '/api/simworld/progress',
+    '/api/simworld/rails',
     '/federation/cluster/sync-progress',
     '/oauth/jwks',
     '/oauth/userinfo',

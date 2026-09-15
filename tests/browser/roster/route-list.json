@@ -455,6 +455,13 @@
    ]
   },
   {
+   "uri": "/api/simworld/rails",
+   "name": "api.simworld.rails",
+   "middleware": [
+    "web"
+   ]
+  },
+  {
    "uri": "/atlas",
    "name": "atlas.index",
    "middleware": [
@@ -1560,7 +1567,6 @@
    "uri": "/organizations",
    "name": "organizations.index",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -1584,7 +1590,6 @@
    "uri": "/organizations/{organization}",
    "name": "organizations.show",
    "middleware": [
-    "auth",
     "web"
    ]
   },
@@ -1600,7 +1605,6 @@
    "uri": "/organizations/{organization}/cgc",
    "name": "organizations.cgc.show",
    "middleware": [
-    "auth",
     "web"
    ]
   },

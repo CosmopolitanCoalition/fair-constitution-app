@@ -54,6 +54,9 @@ class PublicReadSurfaceGateTest extends TestCase
             // SystemClocksAmendmentsTest); this item does not change those.
             'system.public-records', 'system.term-sync', 'system.clocks',
             'system.accessibility', 'system.constitutional-questions',
+            // Organizations (W-0444): the registry, the profile and the CGC profile
+            // read for a guest; every action stays behind its form and its role.
+            'organizations.index', 'organizations.show', 'organizations.cgc.show',
         ];
     }
 
@@ -93,6 +96,7 @@ class PublicReadSurfaceGateTest extends TestCase
             '/videos', '/launchpad', '/tour', '/atlas', '/coverage', '/coverage-ops',
             '/system/public-records', '/system/clocks',
             '/operator/federation', '/operator/operations',
+            '/organizations', "/organizations/{$u}",
         ];
     }
 

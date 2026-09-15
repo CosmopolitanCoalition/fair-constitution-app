@@ -1165,7 +1165,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-D6/D7/D9 — Organizations: STATIC paths BEFORE the {organization} wildcard ─
     Route::get('/organizations', [\App\Http\Controllers\Organizations\OrganizationController::class, 'index'])
-        ->name('organizations.index');
+        ->name('organizations.index')->withoutMiddleware('auth');            // public read (operator ruling 2026-09-10, W-0444)
     Route::post('/organizations', [\App\Http\Controllers\Organizations\OrganizationController::class, 'store'])
         ->name('organizations.store');                                             // F-IND-012
     Route::get('/organizations/co-determination', [\App\Http\Controllers\Organizations\CoDeterminationController::class, 'show'])
@@ -1174,7 +1174,7 @@ Route::middleware('auth')->group(function () {
         ->name('organizations.transfers-conversions');                             // FE-D9
 
     Route::get('/organizations/{organization}', [\App\Http\Controllers\Organizations\OrganizationController::class, 'show'])
-        ->whereUuid('organization')->name('organizations.show');                   // 302s is_cgc → /cgc
+        ->whereUuid('organization')->name('organizations.show')->withoutMiddleware('auth'); // 302s is_cgc → /cgc; public read (W-0444)
     // Design Round 2 ② — the org's economic control panel (dues policy + cap table).
     Route::get('/organizations/{organization}/economy', [\App\Http\Controllers\Organizations\OrgEconomyController::class, 'show'])
         ->whereUuid('organization')->name('organizations.economy');
@@ -1186,7 +1186,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/organizations/{organization}', [\App\Http\Controllers\Organizations\OrganizationController::class, 'update'])
         ->whereUuid('organization')->name('organizations.update');                 // F-ORG-001
     Route::get('/organizations/{organization}/cgc', [\App\Http\Controllers\Organizations\CgcController::class, 'show'])
-        ->whereUuid('organization')->name('organizations.cgc.show');               // FE-D9
+        ->whereUuid('organization')->name('organizations.cgc.show')->withoutMiddleware('auth'); // FE-D9; public read (W-0444)
     Route::post('/organizations/{organization}/ip-register', [\App\Http\Controllers\Organizations\CgcController::class, 'registerIp'])
         ->whereUuid('organization')->name('organizations.ip-register');            // CGC public-domain dedication (additive only)
     Route::post('/organizations/{organization}/memberships', [\App\Http\Controllers\Organizations\OrganizationController::class, 'storeMembership'])

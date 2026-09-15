@@ -50,6 +50,7 @@ class RedirectIfSetupIncomplete
         // Public read surfaces (operator ruling 2026-09-10).
         'simworld', 'building', 'economy', 'executives', 'departments', 'committees',
         'learn', 'support', 'videos', 'launchpad', 'tour', 'atlas', 'coverage', 'coverage-ops', 'system',
+        'organizations', // W-0444: the registry and the profiles read for a guest
     ];
 
     public function handle(Request $request, Closure $next): Response

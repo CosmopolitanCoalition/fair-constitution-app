@@ -503,6 +503,12 @@
    "note": "Operator GO 2026-09-14: seed into the sim world load at New York County, New York. Built: migration 2026_09_14_231500 (public_domain_charter, dedication_basis, is_public; applied on box E), Organization::publicDomainBasis with the one-way charter guard, CoalitionSeedService (F-IND-012 registration of the Cosmopolitan Party Foundation and its Coalition programme at usa-3-new-york, parent link as a second step, voluntary charter on the Coalition, 24 members each from the county's residents, a 5-seat member-elected board on the Foundation as a system act), sim:start calls it on every run, institutions:demo-coalition for walkthrough and --fresh teardown. Seeded on box E: 2 organisations, 48 memberships, 5 seats, records published; second run writes nothing. Pins: PhaseJFirewallTest (Action Fund reserves nothing, a parent grants no power, R-23 is the eleven F-ORG forms, one public-domain authority, settled identities) and CgcIpPublicDomainTest still green. Not built, per plan: the register's voluntary dedication branch (corpus) and the live-instance linking command.",
    "date": "2026-09-14",
    "title": "Build Coalition Organization Phase J; never build the Action Fund"
+  },
+  "W-0444": {
+   "status": "done",
+   "note": "organizations.index, organizations.show and organizations.cgc.show read for a guest (withoutMiddleware auth; the controllers already treat a null viewer as holding no capability), 'organizations' joined the setup ALLOW list, PublicReadSurfaceGateTest pins the three routes and both paths, the roster gained /organizations (56 guest pages). Guest probes on box E: registry 200, Foundation profile 200, Coalition profile 200. Registry swept alone in Edge: PASS 19.9 s; Foundation profile scanned alone: 0 nodes at both widths. Slug resolution dropped from scope: slugs are unique per jurisdiction, not globally, so a bare slug route would be ambiguous; pages link by id.",
+   "date": "2026-09-14",
+   "title": "Open the organization page to guests (organizations.show is auth-walled)"
   }
  }
 }
