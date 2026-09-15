@@ -1,0 +1,12 @@
+{
+  "law_diff.added": "added: ",
+  "law_diff.removed": "removed: ",
+  "planned_banner.default_body": "This part of the world is designed ahead of the build. Nothing here is live yet, and no real money is anywhere.",
+  "planned_banner.title": "Planned — a preview.",
+  "selection_identity.aria_org": "Organization record for {name}, reference {id}",
+  "selection_identity.aria_profile": "Public profile for {name}, reference {id}",
+  "selection_identity.org_reference": "Organization reference:",
+  "selection_identity.organization_record": "Organization record",
+  "selection_identity.profile_reference": "Profile reference:",
+  "selection_identity.public_profile": "Public profile"
+}

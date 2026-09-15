@@ -14,18 +14,22 @@
  * underline-register backgrounds); the visually-hidden "removed:"/"added:"
  * prefixes make the ops explicit for screen readers.
  */
+import { useI18n } from 'vue-i18n';
+
 defineProps({
     /** [{ op: 'eq'|'del'|'ins', text }] — SERVER-computed, rendered verbatim. */
     segments: { type: Array, required: true },
     label: { type: String, default: 'Law text changes' },
 });
+
+const { t } = useI18n();
 </script>
 
 <template>
     <div class="law-diff" role="group" :aria-label="label" data-no-i18n>
         <template v-for="(segment, i) in segments" :key="i">
-            <del v-if="segment.op === 'del'"><span class="visually-hidden">removed: </span>{{ segment.text }}</del>
-            <ins v-else-if="segment.op === 'ins'"><span class="visually-hidden">added: </span>{{ segment.text }}</ins>
+            <del v-if="segment.op === 'del'"><span class="visually-hidden">{{ t('c_ui_b.law_diff.removed', 'removed: ') }}</span>{{ segment.text }}</del>
+            <ins v-else-if="segment.op === 'ins'"><span class="visually-hidden">{{ t('c_ui_b.law_diff.added', 'added: ') }}</span>{{ segment.text }}</ins>
             <template v-else>{{ segment.text }}</template>
         </template>
     </div>
