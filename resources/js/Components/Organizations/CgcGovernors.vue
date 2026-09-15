@@ -82,14 +82,14 @@ const statusLabel = status => ({ nominated: t('c_institution_components.cgc_gove
                 <form class="governor-search" @submit.prevent="search()">
                     <label for="governor-search-by">{{ t('c_institution_components.cgc_governors.find_by', 'Find by') }}</label>
                     <select id="governor-search-by" v-model="by"><option value="name">{{ t('c_institution_components.cgc_governors.find_by_name', 'Public name starts with') }}</option><option value="reference">{{ t('c_institution_components.cgc_governors.find_by_reference', 'Profile reference') }}</option></select>
-                    <label for="governor-search-query">{{ by === 'reference' ? t('c_institution_components.cgc_governors.query_reference', 'Complete profile reference') : t('c_institution_components.cgc_governors.query_name', 'Public name or @handle') }}</label>
+                    <label for="governor-search-query">{{ by === 'reference' ? t('c_institution_components.cgc_governors.query_reference', 'Complete profile reference') : t('c_institution_components.cgc_governors.query_name', 'Public name or {\'@\'}handle') }}</label>
                     <input id="governor-search-query" v-model="query" maxlength="120" autocomplete="off" />
                     <button type="submit" :disabled="searching">{{ t('c_institution_components.cgc_governors.search', 'Search') }}</button>
                 </form>
                 <div v-if="context.canNominate" :aria-busy="searching">
                     <p v-if="searching" role="status">{{ t('c_institution_components.cgc_governors.searching', 'Searching for nominees…') }}</p>
                     <p v-if="error" role="alert">{{ error }}</p>
-                    <p v-if="!directory.searched">{{ t('c_institution_components.cgc_governors.search_prompt', 'Search by public name, @handle or profile reference to choose a person.') }}</p>
+                    <p v-if="!directory.searched">{{ t('c_institution_components.cgc_governors.search_prompt', 'Search by public name, {\'@\'}handle or profile reference to choose a person.') }}</p>
                     <p v-else-if="!directory.candidates.length" role="status">{{ t('c_institution_components.cgc_governors.no_nominees', 'No matching nominees on this page. Try another search.') }}</p>
                     <ul class="governor-results">
                         <li v-for="person in directory.candidates" :key="person.id">

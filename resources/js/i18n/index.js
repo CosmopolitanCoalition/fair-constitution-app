@@ -14,11 +14,23 @@
    ============================================================================ */
 
 import { createI18n } from 'vue-i18n';
-import en from './en.json';
-import es from './es.json';
-import ar from './ar.json';
-import zhHans from './zh-Hans.json';
-import hi from './hi.json';
+
+/* Chrome dicts: the monolithic <code>.json per locale at the i18n root. Loaded
+   for EVERY locale that ships a root dict, not the five once statically
+   imported (en, es, ar, zh-Hans, hi) — a locale with a root dict but no import
+   rendered its chrome keys in English (fr and pt today; the target locales
+   tomorrow). The eager glob is inlined by Vite at build. `coverage.json` is the
+   one non-locale file at the root and is excluded by name; any other future
+   non-locale file is harmless because mergeNamespaces seeds only registered
+   codes and ignores the rest. A locale with no root dict is simply absent from
+   `base`, and mergeNamespaces seeds it empty exactly as the static form did. */
+const CHROME_MODULES = import.meta.glob('./*.json', { eager: true });
+const base = {};
+for (const path in CHROME_MODULES) {
+    const m = path.match(/^\.\/([^/]+)\.json$/);
+    if (!m || m[1] === 'coverage') continue;
+    base[m[1]] = CHROME_MODULES[path].default ?? CHROME_MODULES[path];
+}
 
 /* Phase F — per-namespace, per-locale message files (locales/<code>/<ns>.json)
    merged ON TOP of the monolithic chrome dicts above. Page/body translations
@@ -122,7 +134,7 @@ export const i18n = createI18n({
        the postTranslation hook pseudo-localizes the resolved string. */
     fallbackLocale: { 'en-XA': ['en'], default: ['en'] },
     messages: {
-        ...mergeNamespaces({ en, es, ar, 'zh-Hans': zhHans, hi }),
+        ...mergeNamespaces(base),
         'en-XA': {},
     },
     /* CLDR plural selectors, generated per locale. vue-i18n's built-in selector
@@ -137,5 +149,33 @@ export const i18n = createI18n({
             ? pseudo(translated)
             : translated,
 });
+
+/* Persist a locale choice the way the F-IND-002 settings panel does. An
+   authenticated viewer files it through POST /civic/record/profile (the SAME
+   endpoint MyRecord.vue posts to), so the user row updates and SetLocale
+   resolves that locale on the next request. Server-rendered PHP strings then
+   follow the choice, which a runtime-only i18n.locale change never did. A guest
+   keeps the choice in localStorage. NOTE: no boot-time reader restores the
+   guest key yet. app.js boots the locale from the server-resolved `locale`
+   prop, and SetLocale resolves a guest from session then Accept-Language, so
+   neither reads LOCALE_STORAGE_KEY. Guest reload-survival needs that reader
+   wired (app.js or a guest session endpoint SetLocale already expects); both
+   files are outside this lane. The `router` and `storage` are injected so this
+   is unit-testable without a live Inertia router or a browser. Returns the
+   branch taken. */
+export const LOCALE_STORAGE_KEY = 'cga.locale';
+export function persistLocale(code, { authenticated = false, router = null, storage } = {}) {
+    if (authenticated && router && typeof router.post === 'function') {
+        router.post('/civic/record/profile', { locale: code }, { preserveScroll: true });
+        return 'endpoint';
+    }
+    const store = storage !== undefined ? storage : (typeof localStorage !== 'undefined' ? localStorage : null);
+    try {
+        store?.setItem(LOCALE_STORAGE_KEY, code);
+        return 'storage';
+    } catch {
+        return 'noop';
+    }
+}
 
 export default i18n;

@@ -44,7 +44,7 @@ import Btn from '@/Components/Ui/Btn.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import CmdBar from '@/Components/ShellV2/CmdBar.vue';
 import { NAV } from '@/Navigation/nav.js';
-import { LOCALES } from '@/i18n/index.js';
+import { LOCALES, persistLocale } from '@/i18n/index.js';
 
 const props = defineProps({
     /** Main width contract: 'default' (56rem) | 'wide' (96rem) | 'flush'. */
@@ -196,7 +196,14 @@ function applyDir(code) {
     document.documentElement.dir = meta?.dir ?? 'ltr';
 }
 function onLocaleChange(event) {
-    locale.value = event.target.value;
+    const code = event.target.value;
+    locale.value = code;
+    /* Persist the choice. Signed in: through the SAME F-IND-002 endpoint the
+       settings panel uses, so the user row updates and server-rendered PHP
+       follows on the next request. Guest: to localStorage. The guest boot
+       restore (app.js reading the key, or SetLocale) is not wired yet, so a
+       guest choice does not yet survive a full reload. */
+    persistLocale(code, { authenticated: user.value !== null, router });
 }
 watch(locale, (code) => applyDir(code));
 

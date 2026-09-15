@@ -11,6 +11,7 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, provide, ref, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { ALL_LOCALES } from '@/i18n/index.js';
 import Banner from '@/Components/Ui/Banner.vue';
 
 // Standalone (pre-shell) page — opt out of the AppShell default layout.
@@ -39,15 +40,11 @@ const { t } = useI18n();
 const continuationLabel = computed(() => props.invitePreview?.label || (props.intendedUrl ? t('c_front.register.headed', 'where you were headed') : null));
 const inviterName = computed(() => props.invitePreview?.inviter || null);
 
-// Mockup onboarding contract: the languages multiselect offers these five;
-// the production list covers every supported locale (chrome i18n WI).
-const LANGUAGES = [
-    { value: 'en', label: 'English (en)' },
-    { value: 'es', label: 'Español (es)' },
-    { value: 'ar', label: 'العربية (ar)' },
-    { value: 'zh-Hans', label: '中文 — 简体 (zh-Hans)' },
-    { value: 'hi', label: 'हिन्दी (hi)' },
-];
+// The languages multiselect offers every locale in THE registry
+// (locales.generated.js, via i18n/index.js), no longer a hand-copied five that
+// had drifted from it. Each option is the endonym plus its code, so a language
+// reads in its own script.
+const LANGUAGES = ALL_LOCALES.map((l) => ({ value: l.code, label: `${l.endonym} (${l.code})` }));
 
 // ESM-01 Individual lifecycle (account surface covers "Registered").
 const INDIVIDUAL_STATES = [
