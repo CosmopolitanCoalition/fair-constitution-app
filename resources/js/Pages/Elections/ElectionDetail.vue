@@ -134,7 +134,7 @@ async function mountMap() {
         '<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>',
     );
     map.attributionControl.addAttribution(
-        'Boundaries &copy; <a href="https://www.geoboundaries.org/" target="_blank" rel="noopener">geoBoundaries</a>',
+        `${t('c_institutions.election_detail.attr_boundaries', 'Boundaries')} &copy; <a href="https://www.geoboundaries.org/" target="_blank" rel="noopener">geoBoundaries</a>`,
     );
     map.setView([20, 0], 2);
     const target = map;
@@ -179,7 +179,7 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
 <template>
     <PageScaffold
         :surface="surface"
-        :title="election ? `${titleCase(election.kind_label ?? electionKindLabel(election.kind))} — ${election.jurisdiction.name}` : t('c_institutions.election_detail.page_title_fallback', 'Elections')"
+        :title="election ? t('c_institutions.election_detail.page_title', '{kind} — {name}', { kind: titleCase(election.kind_label ?? electionKindLabel(election.kind)), name: election.jurisdiction.name }) : t('c_institutions.election_detail.page_title_fallback', 'Elections')"
     >
         <template #intro>
             <template v-if="election">

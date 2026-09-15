@@ -68,11 +68,11 @@ const bars = computed(() =>
     (props.rerun.bars ?? []).map((bar) => ({
         ...bar,
         chips: bar.removed
-            ? ['removed from the count']
+            ? [t('c_elections.countback.chip_removed', 'removed from the count')]
             : bar.elected
-              ? ['reaches quota']
+              ? [t('c_elections.countback.chip_reaches', 'reaches quota')]
               : bar.exhausted
-                ? ['no remaining preference']
+                ? [t('c_elections.countback.chip_no_pref', 'no remaining preference')]
                 : [],
     })),
 );
@@ -112,7 +112,9 @@ const dateError = computed(
 <template>
     <PageScaffold
         :surface="surface"
-        :title="`Vacancy countback — ${vacancy.office_label}${vacancy.seat_no != null ? `, seat ${vacancy.seat_no}` : ''}`"
+        :title="vacancy.seat_no != null
+            ? t('c_elections.countback.title_seat', 'Vacancy countback — {office}, seat {no}', { office: vacancy.office_label, no: vacancy.seat_no })
+            : t('c_elections.countback.title', 'Vacancy countback — {office}', { office: vacancy.office_label })"
     >
         <template #intro>
             {{ vacancy.member_name ?? t('c_elections.countback.the_member', 'The member') }}
@@ -137,10 +139,9 @@ const dateError = computed(
                     {{ t('c_elections.countback.declare_body', 'Declare a seat vacant due to death, resignation, removal, or incapacity.') }}
                 </p>
                 <p class="citation">
-                    available to R-09 Legislative Representative / R-10 Speaker · creates a vacancy
-                    record → triggers countback · Art. II §5
+                    {{ t('c_elections.countback.declare_cite', 'available to R-09 Legislative Representative / R-10 Speaker · creates a vacancy record → triggers countback · Art. II §5') }}
                 </p>
-                <p class="citation">catalog alias: F-LEG-030 · workflows catalog (renumbering drift)</p>
+                <p class="citation">{{ t('c_elections.countback.catalog_alias', 'catalog alias: F-LEG-030 · workflows catalog (renumbering drift)') }}</p>
             </Card>
             <p class="cc-small" style="margin-block-start: var(--space-3)">
                 {{ t('c_elections.countback.declared_by', 'Declared by {who} on {when} — shown in your timezone, stored as UTC.', { who: vacancy.declared_by, when: fmt(vacancy.declared_at) }) }}
@@ -154,7 +155,7 @@ const dateError = computed(
                 <h2>
                     {{ t('c_elections.countback.rerun_title', 'The re-run') }}
                     <StatusBadge v-if="winnerFound" tone="success" icon="check">
-                        {{ t('c_elections.countback.winner_found', 'Winner found') }}{{ rerun.winner ? ` — ${rerun.winner.name}` : '' }}
+                        {{ rerun.winner ? t('c_elections.countback.winner_found_named', 'Winner found — {name}', { name: rerun.winner.name }) : t('c_elections.countback.winner_found', 'Winner found') }}
                     </StatusBadge>
                     <StatusBadge v-else-if="exhausted" tone="danger" icon="alert-triangle">
                         {{ t('c_elections.countback.failed_exhausted', 'Countback failed — ballots exhausted') }}
@@ -164,17 +165,13 @@ const dateError = computed(
             </template>
 
             <p v-if="rerun.source" class="cc-small">
-                Re-run source: the prior {{ rerun.source.election_label }} —
-                {{ rerun.source.total_valid.toLocaleString() }} valid ballots,
-                {{ rerun.source.seats }} {{ rerun.source.seats === 1 ? 'seat' : 'seats' }}, Droop quota
+                {{ t('c_elections.countback.rerun_source_lead', 'Re-run source: the prior {label} — {total} valid ballots, {seats} {seatWord}, Droop quota', { label: rerun.source.election_label, total: rerun.source.total_valid.toLocaleString(), seats: rerun.source.seats, seatWord: rerun.source.seats === 1 ? t('c_elections.countback.seat_one', 'seat') : t('c_elections.countback.seat_other', 'seats') }) }}
                 <span class="citation" data-no-i18n>{{ rerun.source.quota_formula }}</span>.
-                The engine strikes the vacated member and continues the count from the voters'
-                next preferences. The re-run is universal — every prior ballot counts, with no
-                faction filtering anywhere in the procedure.
+                {{ t('c_elections.countback.rerun_source_body', 'The engine strikes the vacated member and continues the count from the voters\' next preferences. The re-run is universal — every prior ballot counts, with no faction filtering anywhere in the procedure.') }}
             </p>
 
             <template v-if="bars.length && rerun.quota">
-                <span class="visually-hidden">Droop quota {{ rerun.quota.toLocaleString() }}</span>
+                <span class="visually-hidden">{{ t('c_elections.countback.droop_quota_sr', 'Droop quota {n}', { n: rerun.quota.toLocaleString() }) }}</span>
                 <StvBar
                     v-for="bar in bars"
                     :key="bar.candidacy_id ?? bar.name"
@@ -187,7 +184,7 @@ const dateError = computed(
                     :transfer-fill="bar.exhausted"
                     :write-in="bar.write_in"
                     :chips="bar.chips"
-                    :quota-title="`Droop quota ${rerun.quota.toLocaleString()}`"
+                    :quota-title="t('c_elections.countback.droop_quota_sr', 'Droop quota {n}', { n: rerun.quota.toLocaleString() })"
                 />
             </template>
             <p v-else-if="running" class="gloss">
@@ -270,8 +267,7 @@ const dateError = computed(
                     {{ t('c_elections.countback.exhausted_body', 'No continuing candidate can reach the quota. The countback fails and a special election must be held no sooner than {min} and no later than {max} days after the vacancy.', { min: vacancy.window?.min_days ?? 90, max: vacancy.window?.max_days ?? 180 }) }}
                 </p>
                 <p class="citation">
-                    Special election window · {{ vacancy.window?.min_days ?? 90 }}–{{ vacancy.window?.max_days ?? 180 }}
-                    days · CLK-04 · Art. II §5
+                    {{ t('c_elections.countback.special_window', 'Special election window · {min}–{max} days · CLK-04 · Art. II §5', { min: vacancy.window?.min_days ?? 90, max: vacancy.window?.max_days ?? 180 }) }}
                 </p>
 
                 <Banner v-if="specialElection" tone="info" role="status">
@@ -310,7 +306,7 @@ const dateError = computed(
                 </p>
 
                 <p class="citation" style="margin-block-start: var(--space-3)">
-                    Opens WF-ELE-04 · forms F-ELB-001, F-IND-011, F-IND-007, F-ELB-004
+                    {{ t('c_elections.countback.opens_forms', 'Opens WF-ELE-04 · forms F-ELB-001, F-IND-011, F-IND-007, F-ELB-004') }}
                 </p>
             </section>
         </div>

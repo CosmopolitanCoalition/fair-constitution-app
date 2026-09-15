@@ -189,7 +189,7 @@ const lifecycleLabel = computed(
                         <span v-else-if="bar.status === 'running'">{{ t('c_civic_components.sync_progress.importing', 'Importing the foundation into the database…') }}</span>
                         <span v-else-if="bar.status === 'done'">{{ t('c_civic_components.sync_progress.imported', 'Imported') }}</span>
                         <span v-else>{{ t('c_civic_components.sync_progress.status_waiting', 'waiting…') }}</span>
-                        <span v-if="bar.status === 'running' && bar.unit === 'records' && ratePerSec(bar)">{{ fmtNum(Math.round(ratePerSec(bar))) }}/s</span>
+                        <span v-if="bar.status === 'running' && bar.unit === 'records' && ratePerSec(bar)">{{ t('c_civic_components.sync_progress.rate_per_sec', '{n}/s', { n: fmtNum(Math.round(ratePerSec(bar))) }) }}</span>
                     </div>
                 </div>
             </li>

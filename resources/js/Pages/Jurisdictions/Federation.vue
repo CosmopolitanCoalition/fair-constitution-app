@@ -269,8 +269,8 @@ const forgetBrokerCred = (domain) => {
         <section v-if="host.authed" class="rounded-lg border border-slate-200 bg-white p-5">
             <h2 class="text-sm font-semibold text-slate-900">{{ t('c_jurisdictions.federation.broker_title', 'Broker credentials') }}</h2>
             <p class="mt-1 max-w-2xl text-xs text-slate-600">
-                {{ t('c_jurisdictions.federation.broker_body_1', 'To run the DNS/TLS broker role, drop a Cloudflare DNS-edit token for each domain you\'ll broker. The token is stored ') }}<strong>{{ t('c_jurisdictions.federation.broker_body_strong', 'encrypted on this box only') }}</strong>{{ t('c_jurisdictions.federation.broker_body_2', ' — it never federates, never appears in any response, and can\'t be read back here. After this (plus ') }}<code class="font-mono">lego</code>{{ t('c_jurisdictions.federation.broker_body_3', ' on PATH), this box qualifies for ') }}<span class="font-mono">broker.dns</span> /
-                <span class="font-mono">broker.tls</span>.
+                {{ t('c_jurisdictions.federation.broker_body_1', 'To run the DNS/TLS broker role, drop a Cloudflare DNS-edit token for each domain you\'ll broker. The token is stored ') }}<strong>{{ t('c_jurisdictions.federation.broker_body_strong', 'encrypted on this box only') }}</strong>{{ t('c_jurisdictions.federation.broker_body_2', ' — it never federates, never appears in any response, and can\'t be read back here. After this (plus ') }}<code class="font-mono" data-no-i18n>lego</code>{{ t('c_jurisdictions.federation.broker_body_3', ' on PATH), this box qualifies for ') }}<span class="font-mono" data-no-i18n>broker.dns</span> /
+                <span class="font-mono" data-no-i18n>broker.tls</span>.
             </p>
 
             <div v-if="roles.broker_credentials && roles.broker_credentials.length" class="mt-3 space-y-1">
@@ -343,7 +343,7 @@ const forgetBrokerCred = (domain) => {
                     <form @submit.prevent="discover" class="space-y-1">
                         <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('c_jurisdictions.federation.lbl_discover', 'Discover a peer (URL)') }}</label>
                         <div class="flex gap-2">
-                            <input v-model="discoverForm.url" type="text" :aria-label="t('c_jurisdictions.federation.aria_discover', 'Peer URL to discover')" placeholder="http://[200:…]:8080"
+                            <input v-model="discoverForm.url" type="text" :aria-label="t('c_jurisdictions.federation.aria_discover', 'Peer URL to discover')" :placeholder="t('c_jurisdictions.federation.discover_url_ph', 'http://[200:…]:8080')"
                                    class="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
                             <button type="submit" :disabled="discoverForm.processing"
                                     class="rounded bg-slate-800 px-3 py-1 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">
@@ -354,7 +354,7 @@ const forgetBrokerCred = (domain) => {
                     <form @submit.prevent="handshake" class="space-y-1">
                         <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('c_jurisdictions.federation.lbl_handshake', 'Handshake (server_id or URL)') }}</label>
                         <div class="flex gap-2">
-                            <input v-model="handshakeForm.peer" type="text" :aria-label="t('c_jurisdictions.federation.aria_handshake', 'Peer server id or URL to handshake')" placeholder="server_id or url"
+                            <input v-model="handshakeForm.peer" type="text" :aria-label="t('c_jurisdictions.federation.aria_handshake', 'Peer server id or URL to handshake')" :placeholder="t('c_jurisdictions.federation.peer_id_or_url_ph', 'server_id or url')"
                                    class="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
                             <button type="submit" :disabled="handshakeForm.processing"
                                     class="rounded bg-slate-800 px-3 py-1 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">
@@ -367,7 +367,7 @@ const forgetBrokerCred = (domain) => {
                 <form @submit.prevent="probe" class="space-y-1">
                     <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('c_jurisdictions.federation.lbl_probe', 'Probe a peer over every transport (mesh:doctor)') }}</label>
                     <div class="flex gap-2">
-                        <input v-model="probeForm.target" type="text" :aria-label="t('c_jurisdictions.federation.aria_probe', 'Peer server id or URL to probe')" placeholder="server_id or url"
+                        <input v-model="probeForm.target" type="text" :aria-label="t('c_jurisdictions.federation.aria_probe', 'Peer server id or URL to probe')" :placeholder="t('c_jurisdictions.federation.peer_id_or_url_ph', 'server_id or url')"
                                class="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
                         <button type="submit" :disabled="probeForm.processing"
                                 class="rounded bg-sky-700 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50">
@@ -387,8 +387,8 @@ const forgetBrokerCred = (domain) => {
                             <span class="text-slate-700">[{{ r.transport }}] {{ r.url }}</span>
                             <span class="text-slate-500">—
                                 <template v-if="r.error">{{ r.error }}</template>
-                                <template v-else-if="r.reachable">{{ (r.latency_ms ?? '?') }}ms · {{ r.version === '' ? t('c_jurisdictions.federation.probe_no_version', 'no version') : (r.version_match ? t('c_jurisdictions.federation.probe_version_match', 'version match') : t('c_jurisdictions.federation.probe_version_mismatch', 'version MISMATCH')) }}</template>
-                                <template v-else>HTTP {{ r.http_status ?? '?' }}</template>
+                                <template v-else-if="r.reachable">{{ t('c_jurisdictions.federation.probe_latency', '{n}ms', { n: r.latency_ms ?? '?' }) }} · {{ r.version === '' ? t('c_jurisdictions.federation.probe_no_version', 'no version') : (r.version_match ? t('c_jurisdictions.federation.probe_version_match', 'version match') : t('c_jurisdictions.federation.probe_version_mismatch', 'version MISMATCH')) }}</template>
+                                <template v-else>{{ t('c_jurisdictions.federation.probe_http', 'HTTP {status}', { status: r.http_status ?? '?' }) }}</template>
                             </span>
                         </li>
                     </ul>
@@ -406,13 +406,13 @@ const forgetBrokerCred = (domain) => {
                     </div>
                     <form @submit.prevent="registerTransport" class="mt-2 flex flex-wrap items-end gap-2">
                         <select v-model="transportForm.transport" :aria-label="t('c_jurisdictions.federation.aria_transport_type', 'Transport type')" class="rounded border border-slate-300 px-2 py-1 text-sm">
-                            <option value="https">https</option>
-                            <option value="tailnet">tailnet</option>
-                            <option value="onion">onion</option>
-                            <option value="yggdrasil">yggdrasil</option>
-                            <option value="sneakernet">sneakernet</option>
+                            <option value="https" data-no-i18n>https</option>
+                            <option value="tailnet" data-no-i18n>tailnet</option>
+                            <option value="onion" data-no-i18n>onion</option>
+                            <option value="yggdrasil" data-no-i18n>yggdrasil</option>
+                            <option value="sneakernet" data-no-i18n>sneakernet</option>
                         </select>
-                        <input v-model="transportForm.address" type="text" :aria-label="t('c_jurisdictions.federation.aria_transport_addr', 'Transport address')" placeholder="address / url"
+                        <input v-model="transportForm.address" type="text" :aria-label="t('c_jurisdictions.federation.aria_transport_addr', 'Transport address')" :placeholder="t('c_jurisdictions.federation.transport_addr_ph', 'address / url')"
                                class="w-56 rounded border border-slate-300 px-2 py-1 text-sm" />
                         <button type="submit" :disabled="transportForm.processing"
                                 class="rounded bg-slate-800 px-3 py-1 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">{{ t('c_jurisdictions.federation.btn_advertise', 'Advertise') }}</button>
@@ -420,7 +420,7 @@ const forgetBrokerCred = (domain) => {
                 </div>
             </div>
             <p v-else class="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                <a href="/operator/login" class="text-sky-700 underline">{{ t('c_jurisdictions.federation.signin_operator', 'Sign in as operator') }}</a>{{ t('c_jurisdictions.federation.mesh_terminal_1', ' to discover, handshake, and probe peers — or use the terminal: ') }}<code class="font-mono">php artisan mesh:gates</code>{{ t('c_jurisdictions.federation.mesh_terminal_2', ', ') }}<code class="font-mono">mesh:doctor &lt;peer&gt;</code>.
+                <a href="/operator/login" class="text-sky-700 underline">{{ t('c_jurisdictions.federation.signin_operator', 'Sign in as operator') }}</a>{{ t('c_jurisdictions.federation.mesh_terminal_1', ' to discover, handshake, and probe peers — or use the terminal: ') }}<code class="font-mono" data-no-i18n>php artisan mesh:gates</code>{{ t('c_jurisdictions.federation.mesh_terminal_2', ', ') }}<code class="font-mono" data-no-i18n>mesh:doctor &lt;peer&gt;</code>.
             </p>
         </section>
 
@@ -498,13 +498,13 @@ const forgetBrokerCred = (domain) => {
                     </p>
                     <label class="block text-sm">
                         <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('c_jurisdictions.federation.lbl_host_url', 'Host URL') }}</span>
-                        <input v-model="joinForm.host_url" type="url" required placeholder="https://host.example"
+                        <input v-model="joinForm.host_url" type="url" required :placeholder="t('c_jurisdictions.federation.join_host_ph', 'https://host.example')"
                                class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 text-sm focus:border-sky-400 focus:outline-none" />
                         <span v-if="joinForm.errors.host_url" class="mt-1 block text-xs text-rose-600">{{ joinForm.errors.host_url }}</span>
                     </label>
                     <label class="block text-sm">
                         <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('c_jurisdictions.federation.lbl_join_key', 'Join key') }} <span class="font-normal normal-case text-slate-600">{{ t('c_jurisdictions.federation.join_key_opt', '(optional — leave blank to request a vouch)') }}</span></span>
-                        <input v-model="joinForm.join_key" type="text" placeholder="handle.secret"
+                        <input v-model="joinForm.join_key" type="text" :placeholder="t('c_jurisdictions.federation.join_key_ph', 'handle.secret')"
                                class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 font-mono text-sm focus:border-sky-400 focus:outline-none" />
                     </label>
                 </div>
@@ -712,7 +712,7 @@ const forgetBrokerCred = (domain) => {
         <section class="rounded-lg border border-slate-200 bg-white p-5">
             <h2 class="text-sm font-semibold text-slate-900">{{ t('c_jurisdictions.federation.peers_title', 'Peers') }} <span class="text-slate-600">({{ peers.length }})</span></h2>
             <p v-if="peers.length === 0" class="mt-2 text-sm text-slate-500">
-                {{ t('c_jurisdictions.federation.no_peers', 'No peers yet — discover one with ') }}<code class="rounded bg-slate-100 px-1 text-slate-700">federation:peer:discover &lt;url&gt;</code>.
+                {{ t('c_jurisdictions.federation.no_peers', 'No peers yet — discover one with ') }}<code class="rounded bg-slate-100 px-1 text-slate-700" data-no-i18n>federation:peer:discover &lt;url&gt;</code>.
             </p>
             <table v-else class="mt-3 w-full text-left text-sm">
                 <thead class="text-xs uppercase tracking-wide text-slate-500">
