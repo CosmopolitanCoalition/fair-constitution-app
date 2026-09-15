@@ -323,7 +323,7 @@ class SubdivisionAutoseedService
     public function plan(string $scopeId, array $ctx, int $year = 2023, string $template = self::TEMPLATE_SHORTEST): array
     {
         if (! in_array($template, self::TEMPLATES, true) && $template !== self::TEMPLATE_MASK) {
-            throw new RuntimeException("Unknown districting template '{$template}'.");
+            throw new RuntimeException(__("Unknown districting template ':template'.", ['template' => $template]));
         }
         if ($template === self::TEMPLATE_BOX) {
             return $this->box->plan($scopeId, $ctx, $year);
@@ -368,7 +368,7 @@ class SubdivisionAutoseedService
         // a scope with no geometry or no population still refuses.
         $pixels = $this->raster->gridWithFallback($scopeId, $year);
         if (count($pixels) < 2) {
-            throw new RuntimeException('No population raster pixels for this scope — load the WorldPop raster first.');
+            throw new RuntimeException(__('No population raster pixels for this scope — load the WorldPop raster first.'));
         }
 
         $S = (int) $ctx['budget'];
@@ -379,7 +379,7 @@ class SubdivisionAutoseedService
             [$scopeId]
         );
         if ($region === null || $region->gj === null) {
-            throw new RuntimeException('The scope has no geometry.');
+            throw new RuntimeException(__('The scope has no geometry.'));
         }
 
         // NON-CONTIGUOUS GIANTS (2026-07-17 — the LA-County islands fix): a
@@ -589,7 +589,7 @@ class SubdivisionAutoseedService
             }
         }
         if (! $drawn) {
-            throw $lastRefusal ?? new NoContiguousCut('No lawful composition could be drawn for this scope — cut it by hand.');
+            throw $lastRefusal ?? new NoContiguousCut(__('No lawful composition could be drawn for this scope — cut it by hand.'));
         }
 
         usort($districts, fn (array $a, array $b) => strcmp($a['path'], $b['path']));
@@ -650,17 +650,17 @@ class SubdivisionAutoseedService
             [$scopeId]
         );
         if (count($comps) < 2) {
-            throw new RuntimeException('This scope is a single landmass — the components template needs detached parts.');
+            throw new RuntimeException(__('This scope is a single landmass — the components template needs detached parts.'));
         }
         if (count($comps) < $k) {
             throw new RuntimeException(
-                count($comps)." detached parts cannot fill {$k} whole-component districts — a cut is required."
+                __(':count detached parts cannot fill :k whole-component districts — a cut is required.', ['count' => count($comps), 'k' => $k])
             );
         }
 
         $pixels = $this->raster->gridWithFallback($scopeId, $year);
         if (count($pixels) < 2) {
-            throw new RuntimeException('No population raster pixels for this scope — load the WorldPop raster first.');
+            throw new RuntimeException(__('No population raster pixels for this scope — load the WorldPop raster first.'));
         }
 
         // Population per part: pull each smaller part's pixels out of the
@@ -682,7 +682,7 @@ class SubdivisionAutoseedService
         }
         $total = array_sum($partPops);
         if ($total <= 0.0) {
-            throw new RuntimeException('No population found across the detached parts.');
+            throw new RuntimeException(__('No population found across the detached parts.'));
         }
 
         // MEASUREMENT PARITY (run-6 watch fix 2026-07-19, the Maniari
@@ -769,19 +769,19 @@ class SubdivisionAutoseedService
                 ['scope' => $scopeId, 'idxs' => '{'.implode(',', $idxs).'}']
             );
             if ($row?->gj === null) {
-                throw new RuntimeException("Component district c{$n} collapsed to an empty geometry — cut it by hand.");
+                throw new RuntimeException(__('Component district c:n collapsed to an empty geometry — cut it by hand.', ['n' => $n]));
             }
 
             $pop = (float) $this->raster->measureWithFallback($scopeId, (string) $row->gj, $year)['pop'];
             $seats = (int) round($pop / max($quota, 1e-9));
             if ($seats < 1) {
                 throw new RuntimeException(
-                    'A group of detached parts holds too little population for a seat — cut this scope by hand.'
+                    __('A group of detached parts holds too little population for a seat — cut this scope by hand.')
                 );
             }
             if ($seats > $ceiling) {
                 throw new RuntimeException(
-                    "A detached part holds {$seats} seats of population — above the ceiling {$ceiling}; cut it by hand."
+                    __('A detached part holds :seats seats of population — above the ceiling :ceiling; cut it by hand.', ['seats' => $seats, 'ceiling' => $ceiling])
                 );
             }
 
@@ -830,9 +830,7 @@ class SubdivisionAutoseedService
         $aMax = min($ceiling, $S - $floor);
         if ($aMin > $aMax) {
             throw new RuntimeException(
-                "No single straight cut can serve {$S} seats — one cut makes exactly two districts, "
-                ."which together hold ".(2 * $floor)."–".(2 * $ceiling)." seats (band [{$floor}, {$ceiling}] each). "
-                .'Use the autoseed for a full multi-cut plan.'
+                __('No single straight cut can serve :s seats — one cut makes exactly two districts, which together hold :lo–:hi seats (band [:floor, :ceiling] each). Use the autoseed for a full multi-cut plan.', ['s' => $S, 'lo' => 2 * $floor, 'hi' => 2 * $ceiling, 'floor' => $floor, 'ceiling' => $ceiling])
             );
         }
 
@@ -842,7 +840,7 @@ class SubdivisionAutoseedService
         // a scope with no geometry or no population still refuses.
         $pixels = $this->raster->gridWithFallback($scopeId, $year);
         if (count($pixels) < 2) {
-            throw new RuntimeException('No population raster pixels for this scope — load the WorldPop raster first.');
+            throw new RuntimeException(__('No population raster pixels for this scope — load the WorldPop raster first.'));
         }
         [$total, $lon0, $lat0, $cosLat] = self::gridFrame($pixels);
 
@@ -880,7 +878,7 @@ class SubdivisionAutoseedService
 
         $found = self::bladeOffsetSearch($pixels, $nx, $ny, $lon0, $lat0, $cosLat, $a / $S * $total);
         if ($found === null) {
-            throw new RuntimeException('This line cannot be slid to a balanced cut — too little population lies across it.');
+            throw new RuntimeException(__('This line cannot be slid to a balanced cut — too little population lies across it.'));
         }
         [$c, $popA, $popB] = $found;
 
@@ -902,7 +900,7 @@ class SubdivisionAutoseedService
             ? $this->clippedLine($region->gj, self::bladeThrough($c, $theta, $lon0, $lat0, $cosLat, $extensionDeg), $cosLat)
             : null;
         if ($line === null) {
-            throw new RuntimeException('The balanced line no longer crosses the jurisdiction — place it nearer the middle.');
+            throw new RuntimeException(__('The balanced line no longer crosses the jurisdiction — place it nearer the middle.'));
         }
 
         return [
@@ -932,7 +930,7 @@ class SubdivisionAutoseedService
         // floor can fail — a band too tight for this budget.
         if ($q < $floor) {
             throw new RuntimeException(
-                "A {$S}-seat budget cannot be grouped into districts of {$floor}–{$ceiling} seats."
+                __('A :s-seat budget cannot be grouped into districts of :floor–:ceiling seats.', ['s' => $S, 'floor' => $floor, 'ceiling' => $ceiling])
             );
         }
 
@@ -1348,7 +1346,7 @@ class SubdivisionAutoseedService
                 )
             );
             if ($row?->gj === null) {
-                throw new RuntimeException("District {$path} collapsed to an empty geometry — cut it by hand.");
+                throw new RuntimeException(__('District :path collapsed to an empty geometry — cut it by hand.', ['path' => $path]));
             }
 
             $districts[] = [
@@ -1437,7 +1435,7 @@ class SubdivisionAutoseedService
         // grinding; the refusal unwinds to the plan's hand-draw verdict.
         if ($this->bladeExhausted()) {
             throw new NoContiguousCut(
-                "The blade search budget was exhausted for this scope at {$path} — cut it by hand."
+                __('The blade search budget was exhausted for this scope at :path — cut it by hand.', ['path' => $path])
             );
         }
         $this->bladeBudget--;
@@ -1515,7 +1513,7 @@ class SubdivisionAutoseedService
 
         [$total, $lon0, $lat0, $cosLat] = self::gridFrame($searchPixels);
         if (count($searchPixels) < 2 || $total <= 0.0) {
-            throw new RuntimeException('Too few populated pixels remain to cut this region.');
+            throw new RuntimeException(__('Too few populated pixels remain to cut this region.'));
         }
         $target = $seatsA / ($seatsA + $seatsB) * $total;
 
@@ -1559,7 +1557,7 @@ class SubdivisionAutoseedService
                 // until it returns. BladeBudgetExhausted unwinds PAST the
                 // recursion's NoContiguousCut catches to the box.
                 if ($this->bladeExhausted()) {
-                    throw new BladeBudgetExhausted('Leaf blade search hit its wall-clock cap mid-angle-sweep.');
+                    throw new BladeBudgetExhausted(__('Leaf blade search hit its wall-clock cap mid-angle-sweep.'));
                 }
                 $candidates = [];
                 foreach ($pass as $i => $angleDeg) {
@@ -1567,7 +1565,7 @@ class SubdivisionAutoseedService
                     // work with no DB query, so neither statement_timeout nor a
                     // pass-level check can bound a heavy angle sweep (Tumaco).
                     if ($this->bladeExhausted()) {
-                        throw new BladeBudgetExhausted('Leaf blade search hit its wall-clock cap mid-angle.');
+                        throw new BladeBudgetExhausted(__('Leaf blade search hit its wall-clock cap mid-angle.'));
                     }
                     $theta = deg2rad($angleDeg);
                     $nx = -sin($theta);
@@ -1609,7 +1607,7 @@ class SubdivisionAutoseedService
                     // that grinds; check the cap before each (operator ruling
                     // 2026-09-03).
                     if ($this->bladeExhausted()) {
-                        throw new BladeBudgetExhausted('Leaf blade search hit its wall-clock cap mid-scoring.');
+                        throw new BladeBudgetExhausted(__('Leaf blade search hit its wall-clock cap mid-scoring.'));
                     }
                     $seqs = $this->bladeCrossedSeqs($regionKey, $cand, $lon0, $lat0, $cosLat);
                     if ($seqs === []) {
@@ -1736,14 +1734,11 @@ class SubdivisionAutoseedService
         // sweep ran to completion and no angle yields a contiguous in-band cut
         // for THIS seat ratio. The Tier-1 fallback catches exactly this (and
         // not a transient DB QueryException) to retry other lawful ratios.
-        throw new NoContiguousCut(
-            "No contiguous in-band straight cut found for a {$seatsA}:{$seatsB} split of this region "
-            .match ($template) {
-                self::TEMPLATE_VERTICAL_STRIPS   => "(the vertical_strips template's single 90° blade tried) — try the 'shortest' template or cut it by hand.",
-                self::TEMPLATE_HORIZONTAL_STRIPS => "(the horizontal_strips template's single 0° blade tried) — try the 'shortest' template or cut it by hand.",
-                default                          => '(48 candidate angles tried) — cut it by hand.',
-            }
-        );
+        throw new NoContiguousCut(match ($template) {
+            self::TEMPLATE_VERTICAL_STRIPS   => __("No contiguous in-band straight cut found for a :ratio split of this region (the vertical_strips template's single 90° blade tried) — try the 'shortest' template or cut it by hand.", ['ratio' => "{$seatsA}:{$seatsB}"]),
+            self::TEMPLATE_HORIZONTAL_STRIPS => __("No contiguous in-band straight cut found for a :ratio split of this region (the horizontal_strips template's single 0° blade tried) — try the 'shortest' template or cut it by hand.", ['ratio' => "{$seatsA}:{$seatsB}"]),
+            default                          => __('No contiguous in-band straight cut found for a :ratio split of this region (48 candidate angles tried) — cut it by hand.', ['ratio' => "{$seatsA}:{$seatsB}"]),
+        });
     }
 
     /**

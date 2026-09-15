@@ -14,7 +14,7 @@ final class CivicHistoryDirectory
 {
     public function page(Request $request, string $kind, ?string $scopeId, string $path): array
     {
-        if (! in_array($kind, ['changes', 'filings'], true)) throw new \InvalidArgumentException('Unknown history');
+        if (! in_array($kind, ['changes', 'filings'], true)) throw new \InvalidArgumentException(__('Unknown history'));
         $key = $kind === 'changes' ? 'id' : 'seq';
         $name = $kind.'_cursor'; $scope = hash('sha256', $kind.':'.$scopeId);
         $encoded = $request->validate([$name => ['nullable', 'string', 'max:1024']])[$name] ?? null;
@@ -27,7 +27,7 @@ final class CivicHistoryDirectory
                 if ($key === 'seq' ? ! is_int($value) || $value < 1 : ! is_string($value) || ! Str::isUuid($value)) throw new \InvalidArgumentException;
                 $cursor = new Cursor([$key => $value], $data['_pointsToNextItems']);
             } catch (\Throwable) {
-                throw ValidationException::withMessages([$name => 'This history page link is invalid. Open the first page again.']);
+                throw ValidationException::withMessages([$name => __('This history page link is invalid. Open the first page again.')]);
             }
         }
         $context = $request->validate(['jurisdiction' => ['nullable', 'string', 'max:255']]);

@@ -24,7 +24,7 @@ class SystemOnlyForwardedActor implements ResolvesForwardedActor
     {
         if (($envelope['actor'] ?? null) !== null) {
             throw new ForwardedWriteRefused(
-                'citizen write-forwarding requires a verifiable G-ID attestation (not yet enabled)',
+                __('citizen write-forwarding requires a verifiable G-ID attestation (not yet enabled)'),
                 403,
             );
         }

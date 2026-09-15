@@ -217,25 +217,25 @@ class BrokerFailoverService
     {
         // (1) The authenticated sender must be a trust-established peer with a pinned key.
         if ($from->status !== FederationPeer::STATUS_TRUST_ESTABLISHED || $from->public_key === null) {
-            throw new BrokerShareRefused('Sender is not a trust-established peer.', 403);
+            throw new BrokerShareRefused(__('Sender is not a trust-established peer.'), 403);
         }
 
         // (2) Open the seal — only THIS box can. A blob sealed to anyone else (or corrupt) throws here.
         $sealed = (string) ($body['sealed'] ?? '');
         if ($sealed === '') {
-            throw new BrokerShareRefused('Missing sealed payload.', 422);
+            throw new BrokerShareRefused(__('Missing sealed payload.'), 422);
         }
         try {
             $plain = $this->identity->openSealed($sealed);
         } catch (Throwable) {
-            throw new BrokerShareRefused('Sealed payload is not addressed to this box, or is corrupt.', 422);
+            throw new BrokerShareRefused(__('Sealed payload is not addressed to this box, or is corrupt.'), 422);
         }
 
         // (3) Validate the inner payload shape.
         $inner = json_decode($plain, true);
         unset($plain);
         if (! is_array($inner) || ($inner['schema'] ?? null) !== self::SCHEMA) {
-            throw new BrokerShareRefused('Sealed payload is not a broker-credential share.', 422);
+            throw new BrokerShareRefused(__('Sealed payload is not a broker-credential share.'), 422);
         }
 
         $domain = strtolower(trim((string) ($inner['domain'] ?? '')));
@@ -247,29 +247,29 @@ class BrokerFailoverService
 
         // (4) The seal names THIS box as recipient (anti-misdirection — defence in depth over openSealed).
         if ($innerTo !== $this->identity->serverId()) {
-            throw new BrokerShareRefused('Sealed payload is addressed to a different box.', 422);
+            throw new BrokerShareRefused(__('Sealed payload is addressed to a different box.'), 422);
         }
 
         // (5) THE ANTI-RELAY GATE: the seal must name the SAME peer that signed the request. Because sealTo
         // is anonymous, a pinned peer could otherwise relay a blob a third party authored — binding
         // authorship to the request-signed sender closes that confused-deputy path.
         if ($innerFrom !== (string) $from->server_id) {
-            throw new BrokerShareRefused('Sealed payload does not name the authenticated sender.', 403);
+            throw new BrokerShareRefused(__('Sealed payload does not name the authenticated sender.'), 403);
         }
 
         if ($domain === '' || $zone === '' || $token === '') {
-            throw new BrokerShareRefused('Sealed payload is missing the domain, zone, or token.', 422);
+            throw new BrokerShareRefused(__('Sealed payload is missing the domain, zone, or token.'), 422);
         }
 
         // (6) THE RECEIVER OPT-IN GATE (authoritative domain = the sealed inner one).
         if (! $this->acceptsFrom($domain, (string) $from->server_id)) {
-            throw new BrokerShareRefused('No failover accept opt-in for this domain from this sender.', 403);
+            throw new BrokerShareRefused(__('No failover accept opt-in for this domain from this sender.'), 403);
         }
 
         // (7) Never let a peer clobber OUR OWN origin credential — if we hold a local one, we don't need a
         // failover and must not overwrite the real token.
         if ($this->credentials->sourceOf($domain) === 'local') {
-            throw new BrokerShareRefused('This box holds its own credential for the domain — refusing to overwrite it.', 409);
+            throw new BrokerShareRefused(__('This box holds its own credential for the domain — refusing to overwrite it.'), 409);
         }
 
         $this->credentials->storeReceived($domain, $zone, $token, $innerFrom);

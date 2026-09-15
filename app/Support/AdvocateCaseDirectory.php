@@ -17,7 +17,7 @@ final class AdvocateCaseDirectory
 
     public function page(Request $request, ?string $advocateId, string $kind): array
     {
-        if (! in_array($kind, ['roster', 'composer'], true)) throw new \InvalidArgumentException('Unknown case directory.');
+        if (! in_array($kind, ['roster', 'composer'], true)) throw new \InvalidArgumentException(__('Unknown case directory.'));
         $prefix = $kind === 'roster' ? 'case_' : 'compose_case_';
         $input = $request->validate([
             $prefix.'q' => ['nullable', 'string', 'max:160'],
@@ -69,7 +69,7 @@ final class AdvocateCaseDirectory
                 || ! is_bool($data['_pointsToNextItems'] ?? null)) throw new \InvalidArgumentException;
             return new Cursor(['directory_name' => $data['directory_name'], 'id' => $data['id']], $data['_pointsToNextItems']);
         } catch (\Throwable) {
-            throw ValidationException::withMessages([$key => 'This case page link is invalid. Search again or open the first page.']);
+            throw ValidationException::withMessages([$key => __('This case page link is invalid. Search again or open the first page.')]);
         }
     }
 }

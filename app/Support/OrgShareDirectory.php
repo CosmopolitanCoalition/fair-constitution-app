@@ -43,7 +43,7 @@ final class OrgShareDirectory
             'holders' => $rows->map(fn ($row) => [
                 'id' => (string) $row->id,
                 'holder' => (string) ($names[$row->holder_type][$row->holder_id] ?? match ($row->holder_type) {
-                    'organizations' => 'An organization', 'jurisdictions' => 'A jurisdiction', default => 'A holder',
+                    'organizations' => __('An organization'), 'jurisdictions' => __('A jurisdiction'), default => __('A holder'),
                 }),
                 'units' => (string) $row->units,
                 'pct' => $row->pct === null ? null : (string) $row->pct,
@@ -53,10 +53,10 @@ final class OrgShareDirectory
             'next' => $this->url($page->nextCursor(), (string) $org->id),
             'pageSize' => self::PAGE_SIZE,
             'note' => $issuable
-                ? 'Each row is one current share lot. A holder can have several lots. Ownership is public; payments remain private.'
+                ? __('Each row is one current share lot. A holder can have several lots. Ownership is public; payments remain private.')
                 : ($org->structure === null
-                    ? 'No ownership structure is recorded. Only a stock organization can issue shares.'
-                    : 'Ownership here is by membership. Only a stock organization can issue shares.'),
+                    ? __('No ownership structure is recorded. Only a stock organization can issue shares.')
+                    : __('Ownership here is by membership. Only a stock organization can issue shares.')),
         ];
     }
 
@@ -76,7 +76,7 @@ final class OrgShareDirectory
 
             return new Cursor(['id' => $data['id']], $data['_pointsToNextItems']);
         } catch (\Throwable) {
-            throw ValidationException::withMessages(['share_cursor' => 'This page link is invalid. Open the organization again.']);
+            throw ValidationException::withMessages(['share_cursor' => __('This page link is invalid. Open the organization again.')]);
         }
     }
 

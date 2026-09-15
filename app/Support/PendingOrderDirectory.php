@@ -44,7 +44,7 @@ final class PendingOrderDirectory
         $data = json_decode(base64_decode(strtr($encoded, '-_', '+/'), true) ?: '', true);
         if (! is_array($data) || count($data) !== 2 || ! is_bool($data['_pointsToNextItems'] ?? null)
             || ! is_string($data['id'] ?? null) || ! Str::isUuid($data['id'])) {
-            throw ValidationException::withMessages(['orders_cursor' => 'This order page link is invalid. Open the listing again.']);
+            throw ValidationException::withMessages(['orders_cursor' => __('This order page link is invalid. Open the listing again.')]);
         }
         return new Cursor(['id' => $data['id']], $data['_pointsToNextItems']);
     }

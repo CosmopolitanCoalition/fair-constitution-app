@@ -30,7 +30,7 @@ final class FinancialHistoryCursor
             }
             return new Cursor(array_intersect_key($data, array_flip($keys)), $data['_pointsToNextItems']);
         } catch (\Throwable) {
-            throw ValidationException::withMessages([$name => 'This history page link is invalid. Open the first page again.']);
+            throw ValidationException::withMessages([$name => __('This history page link is invalid. Open the first page again.')]);
         }
     }
 

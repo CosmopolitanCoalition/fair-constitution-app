@@ -32,7 +32,7 @@ final class TermSyncCursor
                 }
                 $out[$name] = new Cursor([$key => $value], $data['_pointsToNextItems']);
             } catch (\Throwable) {
-                throw ValidationException::withMessages([$name => 'This page link is invalid. Open term records again.']);
+                throw ValidationException::withMessages([$name => __('This page link is invalid. Open term records again.')]);
             }
         }
 

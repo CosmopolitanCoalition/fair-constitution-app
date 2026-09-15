@@ -94,7 +94,7 @@ final class MarketDirectory
 
             return new Cursor(['directory_created_at' => $date, 'id' => $data['id']], $data['_pointsToNextItems']);
         } catch (\Throwable) {
-            throw ValidationException::withMessages(['cursor' => 'This page link is invalid. Open the market section again.']);
+            throw ValidationException::withMessages(['cursor' => __('This page link is invalid. Open the market section again.')]);
         }
     }
 }

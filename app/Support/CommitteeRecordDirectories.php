@@ -53,7 +53,7 @@ final class CommitteeRecordDirectories
                 }
                 $result[$name] = new Cursor(['directory_created_at' => $date, 'id' => $data['id']], $data['_pointsToNextItems']);
             } catch (\Throwable) {
-                throw ValidationException::withMessages([$name => 'This committee page link is invalid. Open the committee or hearing again.']);
+                throw ValidationException::withMessages([$name => __('This committee page link is invalid. Open the committee or hearing again.')]);
             }
         }
 
@@ -128,7 +128,7 @@ final class CommitteeRecordDirectories
             $bill = $bills->get($report->bill_id);
 
             return ['id' => (string) $report->id, 'bill_id' => $bill?->id,
-                'title' => $record?->title ?? 'Committee report — publication unavailable',
+                'title' => $record?->title ?? __('Committee report — publication unavailable'),
                 'body' => $full ? $record?->body : null,
                 'excerpt' => $record?->body === null ? null : Str::limit($record->body, 350),
                 'filed_at' => $report->created_at?->toIso8601String(),

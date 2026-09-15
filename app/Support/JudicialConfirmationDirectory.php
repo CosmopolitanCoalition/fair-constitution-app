@@ -39,7 +39,7 @@ final class JudicialConfirmationDirectory
                 }
                 $cursor = new Cursor(['id' => $data['id']], $data['_pointsToNextItems']);
             } catch (\Throwable) {
-                throw ValidationException::withMessages([$key => 'This confirmation page link is invalid. Return to the first page.']);
+                throw ValidationException::withMessages([$key => __('This confirmation page link is invalid. Return to the first page.')]);
             }
         }
         $source = $court->source_legislature_id ? Legislature::query()->find($court->source_legislature_id) : null;
@@ -97,22 +97,22 @@ final class JudicialConfirmationDirectory
             return [
                 'id' => (string) $n->id, 'status' => $n->status, 'seat_number' => $seat?->seat_number, 'current' => (bool) $current,
                 'nominee' => ['id' => (string) $n->nominee_user_id, 'name' => $names[$n->nominee_user_id]] + $people[$n->nominee_user_id],
-                'nominated_by' => $n->mode === JudicialNomination::MODE_COMMITTEE ? 'Judicial committee' : ($n->nominatingJurisdiction?->name ?? 'Constituent jurisdiction'),
+                'nominated_by' => $n->mode === JudicialNomination::MODE_COMMITTEE ? __('Judicial committee') : ($n->nominatingJurisdiction?->name ?? __('Constituent jurisdiction')),
                 'dossier' => $dossier,
                 'term' => $validAppointment && $a->term ? ['starts' => $a->term->starts_on?->toDateString(), 'ends' => $a->term->ends_on?->toDateString()] : null,
-                'consent_notice' => $a?->consent_vote_id && ! $validVote ? 'The linked consent record is unavailable or does not match this nomination.' : null,
+                'consent_notice' => $a?->consent_vote_id && ! $validVote ? __('The linked consent record is unavailable or does not match this nomination.') : null,
                 'consent' => $validVote ? [
                     'tally' => $this->presenter->tallyProps($vote), 'cast_url' => '/votes/'.$vote->id.'/cast',
                     'can_cast' => (bool) ($eligible && $member && ! $speaker && ! $myCast && $vote->status === ChamberVote::STATUS_OPEN),
                     'can_tiebreak' => (bool) $canTie, 'tiebreak_url' => '/votes/'.$vote->id.'/tiebreak', 'my_cast' => $myCast,
-                    'read_only_reason' => $slate ? 'The recorded bench slate was confirmed together.' : (! $current ? 'This is an earlier nomination.' : ($speaker ? 'The Speaker does not cast an ordinary confirmation vote.' : null)),
+                    'read_only_reason' => $slate ? __('The recorded bench slate was confirmed together.') : (! $current ? __('This is an earlier nomination.') : ($speaker ? __('The Speaker does not cast an ordinary confirmation vote.') : null)),
                 ] : null,
             ];
         })->all(), 'pages' => ['previous' => $link($page->previousCursor()), 'next' => $link($page->nextCursor()), 'first' => $path],
             'context' => ['is_member' => $member !== null, 'is_speaker' => (bool) $speaker, 'preview' => $member === null,
                 'actor_name' => $member ? CandidacyPanel::displayName($viewer) : null,
                 'legislature_href' => $source ? '/legislatures/'.$source->id.'/chamber' : null,
-                'reason' => ! $sourceValid ? 'The court’s source legislature is unavailable for confirmation.' : null],
+                'reason' => ! $sourceValid ? __('The court’s source legislature is unavailable for confirmation.') : null],
         ];
     }
 }

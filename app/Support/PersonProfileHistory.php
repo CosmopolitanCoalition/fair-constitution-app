@@ -59,14 +59,14 @@ class PersonProfileHistory
                 $institutions[$type.':'.$seat->id] = '/'.$route.'/'.$seat->{$column}.($type === 'legislature_members' ? '/chamber' : '');
             }
         }
-        $titles = ['legislature_seat' => 'Legislative representative', 'executive_seat' => 'Executive', 'judicial_seat' => 'Judge',
-            'election_board_member' => 'Election board member', 'board_governor' => 'Board governor', 'board_seat' => 'Board member',
-            'admin_staff' => 'Administrative staff', 'civil_officer' => 'Civil officer'];
+        $titles = ['legislature_seat' => __('Legislative representative'), 'executive_seat' => 'Executive', 'judicial_seat' => 'Judge',
+            'election_board_member' => __('Election board member'), 'board_governor' => __('Board governor'), 'board_seat' => __('Board member'),
+            'admin_staff' => __('Administrative staff'), 'civil_officer' => __('Civil officer')];
         $result['rows'] = $rows->map(function ($row) use ($places, $institutions, $titles) {
             $place = $places->get($row['jurisdiction_id']);
 
             return $row + [
-                'title' => $titles[$row['office_kind']] ?? 'Public office', 'jurisdiction' => $place?->name,
+                'title' => $titles[$row['office_kind']] ?? __('Public office'), 'jurisdiction' => $place?->name,
                 'href' => $institutions[$row['office_type'].':'.$row['office_id']] ?? ($place ? '/jurisdictions/'.$place->slug : null),
             ];
         })->all();
@@ -137,7 +137,7 @@ class PersonProfileHistory
             }
         } catch (\Throwable) {
             // A bad public bookmark must not enter a validation redirect loop.
-            $notice = 'This history link is invalid or belongs to a different person. Showing the first page.';
+            $notice = __('This history link is invalid or belongs to a different person. Showing the first page.');
         }
         foreach ($order as $field) {
             $query->orderByDesc($field);

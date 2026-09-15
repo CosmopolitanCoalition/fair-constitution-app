@@ -302,7 +302,7 @@ class SetupController extends Controller
             ->whereNull('deleted_at')
             ->update(['setup_mode' => $data['setup_mode']]);
         if (! $won) {
-            return response()->json(['error' => 'Setup mode is already chosen.'], 409);
+            return response()->json(['error' => __('Setup mode is already chosen.')], 409);
         }
 
         if ($data['setup_mode'] === 'join') {
@@ -362,7 +362,7 @@ class SetupController extends Controller
         abort_unless((bool) $request->user()?->is_operator, 403);
         $settings = InstanceSettings::current();
         if ($settings->setup_mode !== 'join') {
-            return response()->json(['error' => 'This instance is not in join mode.'], 409);
+            return response()->json(['error' => __('This instance is not in join mode.')], 409);
         }
 
         // Already joined — a re-POST after completion is a no-op, not another adoption.
@@ -413,8 +413,8 @@ class SetupController extends Controller
             // failure. Say so distinctly so the operator re-submits (which now resumes) rather than reading
             // a dead end.
             $msg = $mirror->isMirror()
-                ? 'Connected, but the sync did not finish — re-submit to resume: '.$e->getMessage()
-                : 'Join failed: '.$e->getMessage();
+                ? __('Connected, but the sync did not finish — re-submit to resume: :error', ['error' => $e->getMessage()])
+                : __('Join failed: :error', ['error' => $e->getMessage()]);
 
             return response()->json(['error' => $msg], 422);
         }
@@ -450,10 +450,10 @@ class SetupController extends Controller
     {
         $settings = InstanceSettings::current();
         if ($this->needsBootstrap() || User::query()->doesntExist()) {
-            return response()->json(['error' => 'Finish bootstrap first.'], 409);
+            return response()->json(['error' => __('Finish bootstrap first.')], 409);
         }
         if ($settings->setup_mode !== 'join') {
-            return response()->json(['error' => 'This instance is not in join mode.'], 409);
+            return response()->json(['error' => __('This instance is not in join mode.')], 409);
         }
 
         $data = $request->validate([
@@ -534,7 +534,7 @@ class SetupController extends Controller
         // break in-flight queries against tables the ETL is writing to.
         if (is_file($this->etlControlDir().'/running.json')) {
             return response()->json([
-                'error' => 'An ETL run is in progress. Wait for it to finish before applying schema updates.',
+                'error' => __('An ETL run is in progress. Wait for it to finish before applying schema updates.'),
             ], 409);
         }
 
@@ -542,7 +542,7 @@ class SetupController extends Controller
         $lock = Cache::lock('setup:run-migrations', 300);
         if (! $lock->get()) {
             return response()->json([
-                'error' => 'A migration run is already in progress.',
+                'error' => __('A migration run is already in progress.'),
             ], 409);
         }
 
@@ -580,7 +580,7 @@ class SetupController extends Controller
     {
         if (User::query()->exists()) {
             return response()->json([
-                'error' => 'A founder account already exists.',
+                'error' => __('A founder account already exists.'),
             ], 409);
         }
 
@@ -791,19 +791,19 @@ class SetupController extends Controller
         // unlocks go through a real code change, not a rogue payload.
         if ($mapMode !== 'physical_earth') {
             return response()->json([
-                'error' => 'Only physical_earth instances are supported in this version.',
+                'error' => __('Only physical_earth instances are supported in this version.'),
             ], 422);
         }
 
         if ($addr->type !== 'world') {
             return response()->json([
-                'error' => 'cosmic_address_id must reference a world-level node.',
+                'error' => __('cosmic_address_id must reference a world-level node.'),
             ], 422);
         }
 
         if ($data['time_mode'] === 'accelerated' && empty($data['time_scale_seconds_per_year'])) {
             return response()->json([
-                'error' => 'time_scale_seconds_per_year is required in accelerated mode.',
+                'error' => __('time_scale_seconds_per_year is required in accelerated mode.'),
             ], 422);
         }
 
@@ -883,7 +883,7 @@ class SetupController extends Controller
         // dual door entirely. Mirrors saveGameMode's founding lock.
         if (InstanceSettings::current()->isSetupComplete()) {
             return response()->json([
-                'error' => 'The constitution is authored at founding. Once setup is complete, settings change only through an act of a legislature (F-LEG-031).',
+                'error' => __('The constitution is authored at founding. Once setup is complete, settings change only through an act of a legislature (F-LEG-031).'),
             ], 409);
         }
 
@@ -926,16 +926,16 @@ class SetupController extends Controller
 
         // Logical invariants that aren't amendable by any legislative act.
         if (($data['supermajority_numerator'] / $data['supermajority_denominator']) <= 0.5) {
-            return response()->json(['error' => 'supermajority must exceed 1/2.'], 422);
+            return response()->json(['error' => __('supermajority must exceed 1/2.')], 422);
         }
         if ($data['legislature_max_seats'] < $data['legislature_min_seats']) {
-            return response()->json(['error' => 'legislature_max_seats must be ≥ legislature_min_seats.'], 422);
+            return response()->json(['error' => __('legislature_max_seats must be ≥ legislature_min_seats.')], 422);
         }
         if ($data['special_election_max_days'] < $data['special_election_min_days']) {
-            return response()->json(['error' => 'special_election_max_days must be ≥ special_election_min_days.'], 422);
+            return response()->json(['error' => __('special_election_max_days must be ≥ special_election_min_days.')], 422);
         }
         if ($data['worker_rep_parity_employees'] < $data['worker_rep_min_employees']) {
-            return response()->json(['error' => 'worker_rep_parity_employees must be ≥ worker_rep_min_employees.'], 422);
+            return response()->json(['error' => __('worker_rep_parity_employees must be ≥ worker_rep_min_employees.')], 422);
         }
 
         $settings = InstanceSettings::current();
@@ -1170,7 +1170,7 @@ class SetupController extends Controller
         // single-thread seeder with no run row — no completion, no phase 2.
         if (in_array($data['source'], ['archive', 'folder'], true)) {
             return response()->json([
-                'error' => 'Archive and folder ingestion run on the pull engine — use the pull-start endpoint.',
+                'error' => __('Archive and folder ingestion run on the pull engine — use the pull-start endpoint.'),
             ], 422);
         }
 
@@ -1190,7 +1190,7 @@ class SetupController extends Controller
             $downloadDatasets = array_values(array_unique($data['download_datasets'] ?? []));
             if (empty($downloadDatasets)) {
                 return response()->json([
-                    'error' => 'Choose at least one dataset to download (jurisdiction boundaries and/or population).',
+                    'error' => __('Choose at least one dataset to download (jurisdiction boundaries and/or population).'),
                 ], 422);
             }
             // WorldPop population requires the boundaries to attribute to — if
@@ -1201,7 +1201,7 @@ class SetupController extends Controller
         }
         if ($data['source'] === 'upload') {
             return response()->json([
-                'error' => 'Browser upload is not yet wired. Use the local archive, a custom folder, or a fresh download for now.',
+                'error' => __('Browser upload is not yet wired. Use the local archive, a custom folder, or a fresh download for now.'),
             ], 422);
         }
 
@@ -1213,7 +1213,7 @@ class SetupController extends Controller
             $dataRoot = trim((string) ($data['data_root'] ?? ''));
             if ($dataRoot === '' || $dataRoot[0] !== '/') {
                 return response()->json([
-                    'error' => 'Custom data root must be an absolute container path (e.g. /archive/snapshots/2026-05).',
+                    'error' => __('Custom data root must be an absolute container path (e.g. /archive/snapshots/2026-05).'),
                 ], 422);
             }
         } elseif ($data['source'] === 'archive') {
@@ -1228,11 +1228,11 @@ class SetupController extends Controller
 
         $controlDir = $this->etlControlDir();
         if (! is_dir($controlDir) && ! @mkdir($controlDir, 0777, true)) {
-            return response()->json(['error' => 'Could not create ETL control directory.'], 500);
+            return response()->json(['error' => __('Could not create ETL control directory.')], 500);
         }
 
         if (is_file($controlDir.'/running.json')) {
-            return response()->json(['error' => 'An ETL run is already in progress.'], 409);
+            return response()->json(['error' => __('An ETL run is already in progress.')], 409);
         }
 
         // Phase M: refuse to start an ETL while schema updates are pending.
@@ -1242,7 +1242,7 @@ class SetupController extends Controller
         $bootstrap = $this->bootstrapStatus();
         if (! empty($bootstrap['pending_migrations'])) {
             return response()->json([
-                'error' => 'Schema updates are pending. Apply them at /setup/bootstrap before starting an ETL run.',
+                'error' => __('Schema updates are pending. Apply them at /setup/bootstrap before starting an ETL run.'),
                 'pending_count' => $bootstrap['pending_count'],
             ], 409);
         }
@@ -1383,7 +1383,7 @@ class SetupController extends Controller
 
         $controlDir = $this->etlControlDir();
         if (! is_dir($controlDir) && ! @mkdir($controlDir, 0777, true)) {
-            return response()->json(['error' => 'Could not create ETL control directory.'], 500);
+            return response()->json(['error' => __('Could not create ETL control directory.')], 500);
         }
         // FRESH TAKES OVER, FROM ANY STATE (operator, 2026-08-05, verbatim:
         // "IF A RUN IS FUCKED UP THEN WE NEED TO USE THE BUTTON" — the Fresh
@@ -1404,16 +1404,16 @@ class SetupController extends Controller
         }
 
         if (is_file($controlDir.'/running.json')) {
-            return response()->json(['error' => 'An ETL run is already in progress.'], 409);
+            return response()->json(['error' => __('An ETL run is already in progress.')], 409);
         }
         if (\App\Models\GeodataRun::unfinished() !== null) {
-            return response()->json(['error' => 'A geodata run is already active. Halt it before starting a new one.'], 409);
+            return response()->json(['error' => __('A geodata run is already active. Halt it before starting a new one.')], 409);
         }
 
         $bootstrap = $this->bootstrapStatus();
         if (! empty($bootstrap['pending_migrations'])) {
             return response()->json([
-                'error' => 'Schema updates are pending. Apply them at /setup/bootstrap before starting an ETL run.',
+                'error' => __('Schema updates are pending. Apply them at /setup/bootstrap before starting an ETL run.'),
                 'pending_count' => $bootstrap['pending_count'],
             ], 409);
         }
@@ -1424,7 +1424,7 @@ class SetupController extends Controller
             $dataRoot = trim((string) ($data['data_root'] ?? ''));
             if ($dataRoot === '' || $dataRoot[0] !== '/') {
                 return response()->json([
-                    'error' => 'Custom data root must be an absolute container path (e.g. /archive/snapshots/2026-05).',
+                    'error' => __('Custom data root must be an absolute container path (e.g. /archive/snapshots/2026-05).'),
                 ], 422);
             }
         } elseif ($source === 'archive') {
@@ -1449,7 +1449,7 @@ class SetupController extends Controller
                 ->whereNull('deleted_at')->value('map_accepted_at');
             if ($accepted !== null) {
                 return response()->json([
-                    'error' => 'Fresh run refused: the map is accepted and load-bearing. Rewind phases instead, or rebuild the box.',
+                    'error' => __('Fresh run refused: the map is accepted and load-bearing. Rewind phases instead, or rebuild the box.'),
                 ], 409);
             }
             // CLEAR THE FIELD FIRST (2026-08-05, the 500: a straggler's raster
@@ -1659,7 +1659,7 @@ class SetupController extends Controller
 
         $run = \App\Models\GeodataRun::unfinished();
         if ($run === null) {
-            return response()->json(['error' => 'No active geodata run.'], 409);
+            return response()->json(['error' => __('No active geodata run.')], 409);
         }
 
         $options = (array) ($run->options ?? []);
@@ -1974,7 +1974,7 @@ class SetupController extends Controller
         if (in_array($data['action'], ['rescan', 'rewind'], true)) {
             $target = $data['action'] === 'rescan' ? 'scan' : ($data['target'] ?? null);
             if ($target === null) {
-                return response()->json(['error' => 'rewind requires a target.'], 422);
+                return response()->json(['error' => __('rewind requires a target.')], 422);
             }
             // ANY STATE (operator, 2026-08-05 — the same escape-hatch law as
             // Fresh: rewind is a recovery control, so it seizes a mid-flight
@@ -1984,7 +1984,7 @@ class SetupController extends Controller
             // panel's worker view restarts honest.
             $run = \App\Models\GeodataRun::query()->orderByDesc('created_at')->first();
             if ($run === null) {
-                return response()->json(['error' => 'No run to rewind.'], 409);
+                return response()->json(['error' => __('No run to rewind.')], 409);
             }
             DB::table('geodata_worker_leases')->where('run_id', $run->id)->delete();
             // [reset parent kinds, delete child kinds, rewind phase pointer]
@@ -2039,7 +2039,7 @@ class SetupController extends Controller
 
         $run  = \App\Models\GeodataRun::unfinished();
         if ($run === null) {
-            return response()->json(['error' => 'No active geodata run.'], 409);
+            return response()->json(['error' => __('No active geodata run.')], 409);
         }
 
         if ($data['action'] === 'halt') {
@@ -2156,7 +2156,7 @@ class SetupController extends Controller
 
         $controlDir = $this->etlControlDir();
         if (! is_file($controlDir.'/running.json')) {
-            return response()->json(['error' => 'No ETL run is in progress.'], 409);
+            return response()->json(['error' => __('No ETL run is in progress.')], 409);
         }
 
         // Error-resolution actions: write error_resolution.json with the
@@ -2176,7 +2176,7 @@ class SetupController extends Controller
                 json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
             );
             if ($written === false) {
-                return response()->json(['error' => 'Could not write error_resolution.json.'], 500);
+                return response()->json(['error' => __('Could not write error_resolution.json.')], 500);
             }
             return response()->json(['accepted' => true, 'action' => $data['action']]);
         }
@@ -2194,7 +2194,7 @@ class SetupController extends Controller
             json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         );
         if ($written === false) {
-            return response()->json(['error' => 'Could not write control file.'], 500);
+            return response()->json(['error' => __('Could not write control file.')], 500);
         }
 
         return response()->json(['accepted' => true, 'action' => $data['action']]);
@@ -2858,7 +2858,7 @@ class SetupController extends Controller
         if (! $mapsDone && (int) $settings->setup_step_completed < 4) {
             return response()->json([
                 'ok'    => false,
-                'error' => 'The districts are not built yet. Wait for the map run to finish, or activate the root map in the mapper.',
+                'error' => __('The districts are not built yet. Wait for the map run to finish, or activate the root map in the mapper.'),
             ], 409);
         }
 
@@ -3710,7 +3710,7 @@ class SetupController extends Controller
         if ($exit !== 0) {
             return response()->json([
                 'ok'    => false,
-                'error' => trim(\Illuminate\Support\Facades\Artisan::output()) ?: 'Rewind refused — halt the run first and wait for workers to park.',
+                'error' => trim(\Illuminate\Support\Facades\Artisan::output()) ?: __('Rewind refused — halt the run first and wait for workers to park.'),
             ], 409);
         }
 
@@ -3797,7 +3797,7 @@ class SetupController extends Controller
             && (int) $settings->setup_step_completed < 5) {
             return response()->json([
                 'ok'    => false,
-                'error' => 'The Step 4 run is not done. Wait for it, or roll it back and start again.',
+                'error' => __('The Step 4 run is not done. Wait for it, or roll it back and start again.'),
             ], 409);
         }
 
@@ -3840,7 +3840,7 @@ class SetupController extends Controller
             || $provRun->status !== \App\Models\ProvisionRun::STATUS_DONE) {
             return response()->json([
                 'ok'    => false,
-                'error' => 'Lock Step 4 first — the simulation needs the scaled institutions in place before it can populate them.',
+                'error' => __('Lock Step 4 first — the simulation needs the scaled institutions in place before it can populate them.'),
             ], 409);
         }
 
@@ -3930,7 +3930,7 @@ class SetupController extends Controller
         if (! $report['run_done']) {
             return response()->json([
                 'ok'        => false,
-                'error'     => 'The simulation run is not done yet. Let it finish before locking Step 5.',
+                'error'     => __('The simulation run is not done yet. Let it finish before locking Step 5.'),
                 'readiness' => $report,
             ], 422);
         }
@@ -3938,7 +3938,7 @@ class SetupController extends Controller
         if ($report['pending']) {
             return response()->json([
                 'ok'        => false,
-                'error'     => 'Verification pending — the run finished but the acceptance scan (the verifying phase) never ran. Run the verify phase before locking. This cannot be forced past: nothing has been verified.',
+                'error'     => __('Verification pending — the run finished but the acceptance scan (the verifying phase) never ran. Run the verify phase before locking. This cannot be forced past: nothing has been verified.'),
                 'readiness' => $report,
             ], 422);
         }
@@ -4001,7 +4001,7 @@ class SetupController extends Controller
         if (SetupLadder::applies(5, $settings) && empty($existingNotes['step5_verification'])) {
             return response()->json([
                 'ok'    => false,
-                'error' => 'Complete Step 5 verification first — the world-readiness scan must pass (or finish with documented exclusions) before setup can close.',
+                'error' => __('Complete Step 5 verification first — the world-readiness scan must pass (or finish with documented exclusions) before setup can close.'),
             ], 422);
         }
 
@@ -4098,19 +4098,19 @@ class SetupController extends Controller
         $layers = $rv['layers'];
 
         $stages = [
-            ['kind' => 'seeding', 'label' => 'Building the work-list', 'phase' => 'seed',
+            ['kind' => 'seeding', 'label' => __('Building the work-list'), 'phase' => 'seed',
              'total' => $totalLegislatures, 'done' => $ledger['total'],
              'is_current' => $run !== null && $run->ledger_seeded_at === null,
-             'note' => 'One ledger row per legislature (its seats, layer and cost). Resumable, chunked, top-down by layer.'],
-            ['kind' => 'shells', 'label' => 'Institution shells', 'phase' => 'shells',
+             'note' => __('One ledger row per legislature (its seats, layer and cost). Resumable, chunked, top-down by layer.')],
+            ['kind' => 'shells', 'label' => __('Institution shells'), 'phase' => 'shells',
              'total' => $work, 'done' => $ledger['shells_done'], 'running' => $ledger['shells_running'],
              'is_current' => $ledger['shells_pending'] + $ledger['shells_running'] > 0,
-             'note' => 'Executive, court (the bench law), election board and its system member, public square and halls, public treasury. Set-based batches.'],
-            ['kind' => 'units', 'label' => 'Seats, committees, departments', 'phase' => 'units',
+             'note' => __('Executive, court (the bench law), election board and its system member, public square and halls, public treasury. Set-based batches.')],
+            ['kind' => 'units', 'label' => __('Seats, committees, departments'), 'phase' => 'units',
              'total' => $work, 'done' => $ledger['units_done'], 'running' => $ledger['units_running'],
              'review' => $ledger['review'],
              'is_current' => $ledger['shells_pending'] + $ledger['shells_running'] === 0 && $ledger['units_pending'] + $ledger['units_running'] > 0,
-             'note' => 'One election and its races per legislature; committees to K(S) and departments to D(P) as system acts.'],
+             'note' => __('One election and its races per legislature; committees to K(S) and departments to D(P) as system acts.')],
         ];
 
         // THE LANE STRIP (Step-3 parity 2026-09-06): each unit lane breadcrumbs
@@ -4397,7 +4397,7 @@ class SetupController extends Controller
         $limit    = max(1, min(200, (int) $request->query('limit', 50)));
         $offset   = max(0, (int) $request->query('offset', 0));
         if ($strategy === '') {
-            return response()->json(['error' => 'strategy query param required'], 422);
+            return response()->json(['error' => __('strategy query param required')], 422);
         }
 
         return response()->json(
@@ -4416,7 +4416,7 @@ class SetupController extends Controller
         $limit  = max(1, min(200, (int) $request->query('limit', 50)));
         $offset = max(0, (int) $request->query('offset', 0));
         if ($source === '') {
-            return response()->json(['error' => 'source query param required'], 422);
+            return response()->json(['error' => __('source query param required')], 422);
         }
 
         return response()->json(
@@ -4439,7 +4439,7 @@ class SetupController extends Controller
             default                     => null,
         };
         if ($detail === null) {
-            return response()->json(['error' => 'Not found'], 404);
+            return response()->json(['error' => __('Not found')], 404);
         }
         return response()->json($detail);
     }
@@ -4461,7 +4461,7 @@ class SetupController extends Controller
             'sovereign_territories',
         ];
         if (! in_array($category, $allowedCategories, true)) {
-            return response()->json(['error' => 'Unknown review category'], 422);
+            return response()->json(['error' => __('Unknown review category')], 422);
         }
 
         $data = $request->validate([
@@ -4519,7 +4519,7 @@ class SetupController extends Controller
                 // keys its guidance rendering on (the message text is copy,
                 // not contract).
                 'map_acceptance_required' => true,
-                'error' => 'Accept the map data first — review and repair the data flags in the Jurisdiction Viewer, then Accept Map Data & Continue.',
+                'error' => __('Accept the map data first — review and repair the data flags in the Jurisdiction Viewer, then Accept Map Data & Continue.'),
             ], 422);
         }
 
@@ -4571,7 +4571,7 @@ class SetupController extends Controller
         // must never be flippable to sandbox afterwards — that would re-open the
         // dev toolbox (impersonation, board-seat) on a hardened world.
         if ($settings->isSetupComplete()) {
-            return response()->json(['error' => 'Game mode is set at founding and locked once setup is complete.'], 409);
+            return response()->json(['error' => __('Game mode is set at founding and locked once setup is complete.')], 409);
         }
 
         $data = $request->validate([
@@ -4701,19 +4701,19 @@ class SetupController extends Controller
                     'present'   => $gbCount > 0,
                     'countries' => $gbCount,
                     'path'      => $gbDir,
-                    'label'     => 'Jurisdiction boundaries (geoBoundaries)',
+                    'label'     => __('Jurisdiction boundaries (geoBoundaries)'),
                 ],
                 'worldpop' => [
                     'present'   => $wpCount > 0,
                     'countries' => $wpCount,
                     'path'      => $wpDir,
-                    'label'     => 'Population (WorldPop)',
+                    'label'     => __('Population (WorldPop)'),
                 ],
                 'protomaps' => [
                     'present' => count($pmFiles) > 0,
                     'files'   => $pmFiles,
                     'path'    => $pmDir,
-                    'label'   => 'Basemap tiles (Protomaps)',
+                    'label'   => __('Basemap tiles (Protomaps)'),
                 ],
             ],
         ]);
@@ -4745,13 +4745,13 @@ class SetupController extends Controller
             $kv['PROTOMAPS_DIR'] = $this->normalizePath($data['protomaps_path']);
         }
         if (empty($kv)) {
-            return response()->json(['error' => 'Provide at least one folder path.'], 422);
+            return response()->json(['error' => __('Provide at least one folder path.')], 422);
         }
 
         try {
             $this->writeEnvValues($kv);
         } catch (\Throwable $e) {
-            return response()->json(['error' => 'Could not write .env: '.$e->getMessage()], 500);
+            return response()->json(['error' => __('Could not write .env: :error', ['error' => $e->getMessage()])], 500);
         }
 
         return response()->json([
@@ -4762,7 +4762,7 @@ class SetupController extends Controller
             // Desktop's stop then start) reuses the old mount and the folder never
             // shows up. Say that explicitly; it's the #1 "the archive won't take" trap.
             'command'          => 'docker compose up -d',
-            'message'          => 'Saved. To apply it, re-run the start script from the app folder ("./get-started.sh --reconfigure" or ".\\get-started.ps1 -Reconfigure"), or run "docker compose up -d" directly — both RECREATE the containers so they pick up your folder. A plain stop/start or restart is NOT enough. Then click "Re-check". Tip: next time, the start script asks for your map folder up front so no recreate is needed.',
+            'message'          => __('Saved. To apply it, re-run the start script from the app folder ("./get-started.sh --reconfigure" or ".\\get-started.ps1 -Reconfigure"), or run "docker compose up -d" directly — both RECREATE the containers so they pick up your folder. A plain stop/start or restart is NOT enough. Then click "Re-check". Tip: next time, the start script asks for your map folder up front so no recreate is needed.'),
         ]);
     }
 
@@ -4782,7 +4782,7 @@ class SetupController extends Controller
     ): JsonResponse {
         abort_unless((bool) $request->user()?->is_operator, 403);
         if (! \App\Support\FoundingContext::isFounding()) {
-            return response()->json(['error' => 'Roles self-assert only during founding; use the operator console afterwards.'], 409);
+            return response()->json(['error' => __('Roles self-assert only during founding; use the operator console afterwards.')], 409);
         }
 
         $data = $request->validate([
@@ -4882,7 +4882,7 @@ class SetupController extends Controller
                     $this->writeEnvValues(['FEDERATION_SELF_URL' => $data['self_url']]);
                     $restart = true;
                 } catch (\Throwable $e) {
-                    return response()->json(['error' => 'Could not write .env: '.$e->getMessage()], 500);
+                    return response()->json(['error' => __('Could not write .env: :error', ['error' => $e->getMessage()])], 500);
                 }
             }
         }

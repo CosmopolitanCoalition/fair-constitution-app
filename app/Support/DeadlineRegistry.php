@@ -45,7 +45,7 @@ final class DeadlineRegistry
                 'table'  => 'clock_timers',
                 'column' => 'fires_at',
                 'guard'  => "state = 'armed' AND deleted_at IS NULL",
-                'why'    => 'The spine. Every constitutional clock that is waiting to fire.',
+                'why'    => __('The spine. Every constitutional clock that is waiting to fire.'),
             ],
 
             // The election phase ladder. All four move together or an election
@@ -54,32 +54,32 @@ final class DeadlineRegistry
                 'table'  => 'elections',
                 'column' => 'approval_opens_at',
                 'guard'  => "deleted_at IS NULL AND status NOT IN ('certified','final','cancelled')",
-                'why'    => 'When candidates may start being approved.',
+                'why'    => __('When candidates may start being approved.'),
             ],
             [
                 'table'  => 'elections',
                 'column' => 'finalist_cutoff_at',
                 'guard'  => "deleted_at IS NULL AND status NOT IN ('certified','final','cancelled')",
-                'why'    => 'When the finalist field freezes (CLK-18).',
+                'why'    => __('When the finalist field freezes (CLK-18).'),
             ],
             [
                 'table'  => 'elections',
                 'column' => 'ranked_opens_at',
                 'guard'  => "deleted_at IS NULL AND status NOT IN ('certified','final','cancelled')",
-                'why'    => 'When ranked voting opens (CLK-01).',
+                'why'    => __('When ranked voting opens (CLK-01).'),
             ],
             [
                 'table'  => 'elections',
                 'column' => 'ranked_closes_at',
                 'guard'  => "deleted_at IS NULL AND status NOT IN ('certified','final','cancelled')",
-                'why'    => 'When ranked voting closes (CLK-01).',
+                'why'    => __('When ranked voting closes (CLK-01).'),
             ],
 
             [
                 'table'  => 'emergency_powers',
                 'column' => 'expires_at',
                 'guard'  => "deleted_at IS NULL AND status = 'active'",
-                'why'    => 'Art. II §7 caps emergency powers at 90 days; reaching that expiry is a journey.',
+                'why'    => __('Art. II §7 caps emergency powers at 90 days; reaching that expiry is a journey.'),
             ],
             [
                 'table'  => 'emergency_power_renewals',
@@ -90,7 +90,7 @@ final class DeadlineRegistry
                 // forward. (CLAUDE.md's "all tables use deleted_at" is doc
                 // drift; this is one of several that do not.)
                 'guard'  => 'new_expires_at > now()',
-                'why'    => 'The renewed window, so a renewal can also be walked to its end.',
+                'why'    => __('The renewed window, so a renewal can also be walked to its end.'),
             ],
 
             [
@@ -99,14 +99,14 @@ final class DeadlineRegistry
                 // No status column either — the veto window is open precisely
                 // while it has not closed, so the deadline is its own guard.
                 'guard'  => 'deleted_at IS NULL AND veto_closes_at > now()',
-                'why'    => 'The legislature\'s window to veto a judicial remedy (Art. IV §5).',
+                'why'    => __('The legislature\'s window to veto a judicial remedy (Art. IV §5).'),
             ],
 
             [
                 'table'  => 'legislatures',
                 'column' => 'next_meeting_due_by',
                 'guard'  => "deleted_at IS NULL AND status = 'active'",
-                'why'    => 'Art. II §2 caps the gap between meetings at 90 days.',
+                'why'    => __('Art. II §2 caps the gap between meetings at 90 days.'),
             ],
         ];
     }
@@ -124,14 +124,14 @@ final class DeadlineRegistry
         return [
             // ── History. Moving these would forge the record. ──────────────
             'emergency_power_renewals.previous_expires_at' =>
-                'Records the window that was ALREADY running when the renewal was filed. History, not a deadline.',
+                __('Records the window that was ALREADY running when the renewal was filed. History, not a deadline.'),
 
             // ── Federation. Dev time is refused outright on any federated or
             //    peered node, so these can never legitimately be in play. ────
             'instance_capabilities.grant_expires_at' =>
-                'A capability another instance granted us. Only that instance may move it, and dev time is refused on federated nodes.',
+                __('A capability another instance granted us. Only that instance may move it, and dev time is refused on federated nodes.'),
             'directory_entries.expires_at' =>
-                'Federation directory advertisement. Peer-facing, not a constitutional deadline of this world.',
+                __('Federation directory advertisement. Peer-facing, not a constitutional deadline of this world.'),
             'cluster_join_keys.expires_at' =>
                 'An operator credential with a deliberate short life. Extending it by time-travel would be a security change, not a playtest.',
 

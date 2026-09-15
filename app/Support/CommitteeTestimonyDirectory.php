@@ -22,7 +22,7 @@ final class CommitteeTestimonyDirectory
             || ($data['committee'] ?? null) !== $committeeId || ! array_key_exists('meeting', $data)
             || $data['meeting'] !== $meetingId || ! is_int($data['seq'] ?? null) || $data['seq'] < 1
             || ! is_bool($data['_pointsToNextItems'] ?? null)) {
-            throw ValidationException::withMessages(['testimony_cursor' => 'This testimony page link is invalid. Open the committee or hearing again.']);
+            throw ValidationException::withMessages(['testimony_cursor' => __('This testimony page link is invalid. Open the committee or hearing again.')]);
         }
 
         return new Cursor(['seq' => $data['seq']], $data['_pointsToNextItems']);
