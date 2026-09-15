@@ -57,15 +57,14 @@ class WarrantIssuance implements FormHandler
         $kind = (string) ($payload['kind'] ?? '');
 
         if (! in_array($kind, [Warrant::KIND_ARREST, Warrant::KIND_SEARCH, Warrant::KIND_SEIZURE], true)) {
-            throw new ConstitutionalViolation('F-JDG-010 names the warrant kind (arrest/search/seizure).', 'Art. II §8');
+            throw new ConstitutionalViolation(__('F-JDG-010 names the warrant kind (arrest/search/seizure).'), 'Art. II §8');
         }
 
         // Art. II §8 — the reason is constitutionally mandatory for EVERY warrant.
         $statedReason = trim((string) ($payload['stated_reason'] ?? ''));
 
         if ($statedReason === '') {
-            throw new ConstitutionalViolation(
-                'A warrant must establish the reason — no warrant issues without a stated reason (Art. II §8).',
+            throw new ConstitutionalViolation(__('A warrant must establish the reason — no warrant issues without a stated reason (Art. II §8).'),
                 'Art. II §8'
             );
         }
@@ -78,8 +77,7 @@ class WarrantIssuance implements FormHandler
             $maxHold = isset($payload['max_hold_duration_hours']) ? (int) $payload['max_hold_duration_hours'] : 0;
 
             if ($maxHold <= 0) {
-                throw new ConstitutionalViolation(
-                    'An arrest warrant must establish the maximum duration an Individual can be held (Art. II §8).',
+                throw new ConstitutionalViolation(__('An arrest warrant must establish the maximum duration an Individual can be held (Art. II §8).'),
                     'Art. II §8'
                 );
             }

@@ -54,12 +54,11 @@ class RemovalVote implements FormHandler
         $proceeding = RemovalProceeding::query()->find($payload['proceeding_id'] ?? null);
 
         if ($proceeding === null) {
-            throw new ConstitutionalViolation('F-LEG-022 requires a valid proceeding_id.', 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('F-LEG-022 requires a valid proceeding_id.'), 'CGA Forms Catalog');
         }
 
         if ($proceeding->vote_id === null) {
-            throw new ConstitutionalViolation(
-                'This proceeding has no open vote — the presider opens it (F-SPK-007).',
+            throw new ConstitutionalViolation(__('This proceeding has no open vote — the presider opens it (F-SPK-007).'),
                 'Art. II §3'
             );
         }

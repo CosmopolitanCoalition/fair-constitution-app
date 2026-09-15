@@ -58,8 +58,7 @@ class SentencingOrder implements FormHandler
         $verdict = Verdict::query()->where('case_id', (string) $case->id)->whereNull('deleted_at')->first();
 
         if ($verdict === null || $verdict->outcome !== Verdict::OUTCOME_GUILTY) {
-            throw new ConstitutionalViolation(
-                'Sentencing requires a GUILTY verdict on the record — a sentence without a guilty verdict is rejected (Art. IV §4).',
+            throw new ConstitutionalViolation(__('Sentencing requires a GUILTY verdict on the record — a sentence without a guilty verdict is rejected (Art. IV §4).'),
                 'Art. IV §4'
             );
         }
@@ -67,7 +66,7 @@ class SentencingOrder implements FormHandler
         $terms = trim((string) ($payload['terms'] ?? ''));
 
         if ($terms === '') {
-            throw new ConstitutionalViolation('F-JDG-009 names the sentence terms.', 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('F-JDG-009 names the sentence terms.'), 'CGA Forms Catalog');
         }
 
         return DB::transaction(function () use ($case, $seat, $verdict, $terms, $payload, $actor) {

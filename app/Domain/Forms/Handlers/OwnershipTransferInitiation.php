@@ -56,12 +56,11 @@ class OwnershipTransferInitiation implements FormHandler
             $org = Organization::query()->find($payload['organization_id'] ?? null);
 
             if ($org === null) {
-                throw new ConstitutionalViolation('F-ORG-005 targets an unknown organization.', 'CGA Forms Catalog (F-ORG-005)');
+                throw new ConstitutionalViolation(__('F-ORG-005 targets an unknown organization.'), 'CGA Forms Catalog (F-ORG-005)');
             }
 
             if ($actor === null || (string) $org->agent_user_id !== (string) $actor->getKey()) {
-                throw new ConstitutionalViolation(
-                    'Only this organization\'s agent may initiate a transfer (R-23).',
+                throw new ConstitutionalViolation(__('Only this organization\'s agent may initiate a transfer (R-23).'),
                     'CGA Forms Catalog (R-23)'
                 );
             }
@@ -85,7 +84,7 @@ class OwnershipTransferInitiation implements FormHandler
         $transfer = OrgTransfer::query()->find($payload['transfer_id'] ?? null);
 
         if ($transfer === null) {
-            throw new ConstitutionalViolation('F-ORG-005 targets an unknown transfer.', 'CGA Forms Catalog (F-ORG-005)');
+            throw new ConstitutionalViolation(__('F-ORG-005 targets an unknown transfer.'), 'CGA Forms Catalog (F-ORG-005)');
         }
 
         if ($actor !== null) {
@@ -95,7 +94,7 @@ class OwnershipTransferInitiation implements FormHandler
         return match ($action) {
             'consent' => (function () use ($transfer, $actor) {
                 if ($actor === null) {
-                    throw new ConstitutionalViolation('Consent belongs to the named transferee.', 'CGA Forms Catalog (F-ORG-005)');
+                    throw new ConstitutionalViolation(__('Consent belongs to the named transferee.'), 'CGA Forms Catalog (F-ORG-005)');
                 }
 
                 $transfer = $this->transfers->consent($transfer, $actor);
@@ -117,8 +116,7 @@ class OwnershipTransferInitiation implements FormHandler
                 ];
             })(),
 
-            default => throw new ConstitutionalViolation(
-                "Unknown F-ORG-005 action [{$action}].",
+            default => throw new ConstitutionalViolation(__('Unknown F-ORG-005 action [:action].', ['action' => $action]),
                 'CGA Forms Catalog (F-ORG-005)'
             ),
         };

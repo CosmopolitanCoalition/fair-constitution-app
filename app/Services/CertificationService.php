@@ -146,8 +146,7 @@ class CertificationService implements CertificationPipeline
         $legislature = $election->legislature;
 
         if ($legislature === null) {
-            throw new ConstitutionalViolation(
-                'Certification cannot seat winners — the election has no legislature.',
+            throw new ConstitutionalViolation(__('Certification cannot seat winners — the election has no legislature.'),
                 'Art. II §2'
             );
         }
@@ -333,15 +332,13 @@ class CertificationService implements CertificationPipeline
         $executive   = $election->executive()->lockForUpdate()->first();
 
         if ($legislature === null || $executive === null) {
-            throw new ConstitutionalViolation(
-                'An executive election certifies against its legislature (lockstep anchor) and office.',
+            throw new ConstitutionalViolation(__('An executive election certifies against its legislature (lockstep anchor) and office.'),
                 'Art. III §2'
             );
         }
 
         if ($legislature->term_ends_on === null) {
-            throw new ConstitutionalViolation(
-                'No lockstep expiry exists to inherit — the chamber has no term schedule.',
+            throw new ConstitutionalViolation(__('No lockstep expiry exists to inherit — the chamber has no term schedule.'),
                 'Art. III §3'
             );
         }
@@ -590,15 +587,13 @@ class CertificationService implements CertificationPipeline
             : null;
 
         if ($legislature === null || $judiciary === null) {
-            throw new ConstitutionalViolation(
-                'A judicial election certifies against its legislature (lockstep anchor) and judiciary.',
+            throw new ConstitutionalViolation(__('A judicial election certifies against its legislature (lockstep anchor) and judiciary.'),
                 'Art. IV §3'
             );
         }
 
         if ($legislature->term_ends_on === null) {
-            throw new ConstitutionalViolation(
-                'No lockstep expiry exists to inherit — the chamber has no term schedule.',
+            throw new ConstitutionalViolation(__('No lockstep expiry exists to inherit — the chamber has no term schedule.'),
                 'Art. IV §3'
             );
         }
@@ -801,7 +796,7 @@ class CertificationService implements CertificationPipeline
             || (string) $legislature->jurisdiction_id !== (string) $election->jurisdiction_id
             || (string) $office->source_legislature_id !== (string) $legislature->id
             || ! in_array($office->status, ['elected', 'conversion_voted'], true)) {
-            throw new ConstitutionalViolation('The election does not match the current elected office and its creating legislature.', 'CLK-10');
+            throw new ConstitutionalViolation(__('The election does not match the current elected office and its creating legislature.'), 'CLK-10');
         }
         if ($election->general_cycle_election_id === null) {
             return self::inheritedWindow($certifiedAt, CarbonImmutable::parse($legislature->term_ends_on));
@@ -812,7 +807,7 @@ class CertificationService implements CertificationPipeline
             || (string) $general->jurisdiction_id !== (string) $election->jurisdiction_id
             || ! in_array($general->status, [Election::STATUS_CERTIFIED, Election::STATUS_FINAL], true)
             || $general->certified_at === null) {
-            throw new ConstitutionalViolation('Certify the linked general election before its elected office contest.', 'CLK-10');
+            throw new ConstitutionalViolation(__('Certify the linked general election before its elected office contest.'), 'CLK-10');
         }
         // Immutable term rows are the historical source. Current settings must
         // never recalculate the expiry of a cycle already certified.
@@ -829,7 +824,7 @@ class CertificationService implements CertificationPipeline
             || ! $original->ends_on->equalTo($legislature->term_ends_on)
             || $certifiedAt->startOfDay()->lt($original->starts_on)
             || $certifiedAt->startOfDay()->gte($original->ends_on)) {
-            throw new ConstitutionalViolation('The linked general election is not the legislature\'s current certified term. An older result cannot displace a later cycle.', 'CLK-10');
+            throw new ConstitutionalViolation(__('The linked general election is not the legislature\'s current certified term. An older result cannot displace a later cycle.'), 'CLK-10');
         }
 
         return ['starts_on' => CarbonImmutable::instance($original->starts_on), 'ends_on' => CarbonImmutable::instance($original->ends_on)];
@@ -980,8 +975,7 @@ class CertificationService implements CertificationPipeline
             ->first();
 
         if ($tabulation === null) {
-            throw new ConstitutionalViolation(
-                "Race [{$race->id}] has no complete tabulation — certification requires every race counted.",
+            throw new ConstitutionalViolation(__('Race [:id] has no complete tabulation — certification requires every race counted.', ['id' => $race->id]),
                 'CGA Forms Catalog (F-ELB-004)'
             );
         }
@@ -1349,8 +1343,7 @@ class CertificationService implements CertificationPipeline
         $endsOn = $fromTerm ?? $vacatedSeat?->term_ends_on ?? $legislature->term_ends_on;
 
         if ($endsOn === null) {
-            throw new ConstitutionalViolation(
-                'No lockstep expiry exists to inherit — the chamber has no term schedule.',
+            throw new ConstitutionalViolation(__('No lockstep expiry exists to inherit — the chamber has no term schedule.'),
                 'Art. II §5'
             );
         }

@@ -56,14 +56,13 @@ class VacancyDeclaration implements FormHandler
         $member = LegislatureMember::query()->find($payload['member_id'] ?? null);
 
         if ($member === null) {
-            throw new ConstitutionalViolation('F-LEG-036 requires a valid member_id.', 'Art. II §5');
+            throw new ConstitutionalViolation(__('F-LEG-036 requires a valid member_id.'), 'Art. II §5');
         }
 
         $reason = (string) ($payload['reason'] ?? 'resigned');
 
         if (! in_array($reason, self::REASONS, true)) {
-            throw new ConstitutionalViolation(
-                'Vacancy reason must be one of: ' . implode(', ', self::REASONS) . '.',
+            throw new ConstitutionalViolation(__('Vacancy reason must be one of: :reasons.', ['reasons' => implode(', ', self::REASONS)]),
                 'Art. II §5 · as implemented'
             );
         }

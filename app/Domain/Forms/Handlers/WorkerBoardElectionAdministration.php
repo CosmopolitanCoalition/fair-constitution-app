@@ -52,7 +52,7 @@ class WorkerBoardElectionAdministration implements FormHandler
         $board = Board::query()->find($payload['board_id'] ?? null);
 
         if ($board === null) {
-            throw new ConstitutionalViolation('F-ORG-004 targets an unknown board.', 'CGA Forms Catalog (F-ORG-004)');
+            throw new ConstitutionalViolation(__('F-ORG-004 targets an unknown board.'), 'CGA Forms Catalog (F-ORG-004)');
         }
 
         // R-23 filings must come from the governed org's agent; system
@@ -61,8 +61,7 @@ class WorkerBoardElectionAdministration implements FormHandler
             $org = $board->organization();
 
             if ($org === null || (string) $org->agent_user_id !== (string) $actor->getKey()) {
-                throw new ConstitutionalViolation(
-                    'Only the governed organization\'s agent (or the system) administers worker-track elections.',
+                throw new ConstitutionalViolation(__('Only the governed organization\'s agent (or the system) administers worker-track elections.'),
                     'CGA Forms Catalog (R-23)'
                 );
             }
@@ -95,8 +94,7 @@ class WorkerBoardElectionAdministration implements FormHandler
                     ->find($payload['election_id'] ?? null);
 
                 if ($election === null) {
-                    throw new ConstitutionalViolation(
-                        'Select a worker-seat election for this board.',
+                    throw new ConstitutionalViolation(__('Select a worker-seat election for this board.'),
                         'CGA Forms Catalog (F-ORG-004)'
                     );
                 }
@@ -104,8 +102,7 @@ class WorkerBoardElectionAdministration implements FormHandler
                 return $this->seating->certify($election);
             })(),
 
-            default => throw new ConstitutionalViolation(
-                "Unknown F-ORG-004 action [{$action}].",
+            default => throw new ConstitutionalViolation(__('Unknown F-ORG-004 action [:action].', ['action' => $action]),
                 'CGA Forms Catalog (F-ORG-004)'
             ),
         };

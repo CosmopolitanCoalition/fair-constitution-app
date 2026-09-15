@@ -60,7 +60,7 @@ class OpinionRulingFiling implements FormHandler
         $panel = $case->panel;
 
         if ($panel === null) {
-            throw new ConstitutionalViolation('An opinion issues from the panel that heard the case (Art. IV §4).', 'Art. IV §4');
+            throw new ConstitutionalViolation(__('An opinion issues from the panel that heard the case (Art. IV §4).'), 'Art. IV §4');
         }
 
         $kind = (string) ($payload['kind'] ?? Opinion::KIND_MAJORITY);
@@ -68,7 +68,7 @@ class OpinionRulingFiling implements FormHandler
         $body = trim((string) ($payload['body'] ?? ''));
 
         if ($title === '' || $body === '') {
-            throw new ConstitutionalViolation('F-JDG-003 names a title and the opinion body.', 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('F-JDG-003 names a title and the opinion body.'), 'CGA Forms Catalog');
         }
 
         // IO-2 — the appellate outcome (operator ruling 2026-09-13,
@@ -82,8 +82,7 @@ class OpinionRulingFiling implements FormHandler
 
         if (! $isAppeal) {
             if ($appealOutcome !== '') {
-                throw new ConstitutionalViolation(
-                    'An appeal outcome is recorded only on an appeal case (one that appeals another).',
+                throw new ConstitutionalViolation(__('An appeal outcome is recorded only on an appeal case (one that appeals another).'),
                     'Art. II §8'
                 );
             }
@@ -91,12 +90,7 @@ class OpinionRulingFiling implements FormHandler
             $allowed = Opinion::APPEAL_OUTCOMES[$case->kind] ?? Opinion::APPEAL_OUTCOMES['civil'];
 
             if (! in_array($appealOutcome, $allowed, true)) {
-                throw new ConstitutionalViolation(
-                    sprintf(
-                        'A %s appeal is recorded as %s — a criminal appeal may only affirm or vacate, never order a re-trial.',
-                        $case->kind,
-                        implode(' / ', $allowed)
-                    ),
+                throw new ConstitutionalViolation(__('A :kind appeal is recorded as :allowed — a criminal appeal may only affirm or vacate, never order a re-trial.', ['kind' => $case->kind, 'allowed' => implode(' / ', $allowed)]),
                     'Art. II §8'
                 );
             }

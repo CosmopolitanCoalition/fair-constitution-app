@@ -65,7 +65,7 @@ class OrganizationMarketParticipation implements FormHandler
     {
         $organizationId = $payload['organization_id'] ?? null;
         if (! is_string($organizationId) || ! Str::isUuid($organizationId)) {
-            throw new ConstitutionalViolation('Choose an existing organization.', 'CGA Forms Catalog (F-ORG-008)');
+            throw new ConstitutionalViolation(__('Choose an existing organization.'), 'CGA Forms Catalog (F-ORG-008)');
         }
 
         // Keep the authority/structure checks and the ownership write under
@@ -73,7 +73,7 @@ class OrganizationMarketParticipation implements FormHandler
         $org = Organization::query()->lockForUpdate()->find($organizationId);
 
         if ($org === null) {
-            throw new ConstitutionalViolation('F-ORG-008 targets an unknown organization.', 'CGA Forms Catalog (F-ORG-008)');
+            throw new ConstitutionalViolation(__('F-ORG-008 targets an unknown organization.'), 'CGA Forms Catalog (F-ORG-008)');
         }
 
         $action = is_string($payload['action'] ?? null) ? $payload['action'] : '';
@@ -84,16 +84,14 @@ class OrganizationMarketParticipation implements FormHandler
         $bucket = \App\Domain\Organizations\StaffTask::bucketForAction($action) ?? \App\Domain\Organizations\StaffTask::SHARES;
 
         if (! app(\App\Services\Organizations\OrgDelegationService::class)->mayPerform($org, $actor, $bucket)) {
-            throw new ConstitutionalViolation(
-                'Only this organization\'s agent or a shares delegate may act in the market for it (R-23 / R-31).',
+            throw new ConstitutionalViolation(__('Only this organization\'s agent or a shares delegate may act in the market for it (R-23 / R-31).'),
                 'CGA Forms Catalog (R-23)'
             );
         }
 
         $result = match ($action) {
             'issue_shares' => $this->issueShares($org, $payload),
-            default        => throw new ConstitutionalViolation(
-                "Unknown F-ORG-008 action [{$action}].",
+            default        => throw new ConstitutionalViolation(__('Unknown F-ORG-008 action [:action].', ['action' => $action]),
                 'CGA Forms Catalog (F-ORG-008)'
             ),
         };
@@ -105,34 +103,32 @@ class OrganizationMarketParticipation implements FormHandler
     private function issueShares(Organization $org, array $payload): array
     {
         if ($org->status === Organization::STATUS_DISSOLVED) {
-            throw new ConstitutionalViolation('A dissolved organization cannot issue new shares.', 'CGA Forms Catalog (F-ORG-008)');
+            throw new ConstitutionalViolation(__('A dissolved organization cannot issue new shares.'), 'CGA Forms Catalog (F-ORG-008)');
         }
 
         // Shares are equity in a stock enterprise (Art. III §5). An org owned
         // by its members, partners or no one (nonprofit) has no shares.
         if ((string) $org->structure !== Organization::STRUCTURE_STOCK) {
-            throw new ConstitutionalViolation(
-                'Only a stock organization issues shares — ownership elsewhere is by membership, not equity.',
+            throw new ConstitutionalViolation(__('Only a stock organization issues shares — ownership elsewhere is by membership, not equity.'),
                 'Art. III §5'
             );
         }
 
         $holderType = $payload['holder_type'] ?? null;
         if (! in_array($holderType, [OrgOwnershipStake::HOLDER_USERS, OrgOwnershipStake::HOLDER_ORGANIZATIONS], true)) {
-            throw new ConstitutionalViolation(
-                'A share is issued to a person or an organization.',
+            throw new ConstitutionalViolation(__('A share is issued to a person or an organization.'),
                 'CGA Forms Catalog (F-ORG-008)'
             );
         }
 
         $holderId = $payload['holder_id'] ?? null;
         if (! is_string($holderId) || ! Str::isUuid($holderId)) {
-            throw new ConstitutionalViolation('Choose an existing person or organization to receive the shares.', 'CGA Forms Catalog (F-ORG-008)');
+            throw new ConstitutionalViolation(__('Choose an existing person or organization to receive the shares.'), 'CGA Forms Catalog (F-ORG-008)');
         }
 
         $holder = $holderType === OrgOwnershipStake::HOLDER_USERS ? User::query() : Organization::query();
         if (! $holder->whereKey($holderId)->exists()) {
-            throw new ConstitutionalViolation('The selected share recipient no longer exists.', 'CGA Forms Catalog (F-ORG-008)');
+            throw new ConstitutionalViolation(__('The selected share recipient no longer exists.'), 'CGA Forms Catalog (F-ORG-008)');
         }
 
         try {

@@ -48,12 +48,11 @@ class OrganizationDissolution implements FormHandler
         $org = Organization::query()->find($payload['organization_id'] ?? null);
 
         if ($org === null) {
-            throw new ConstitutionalViolation('F-ORG-007 targets an unknown organization.', 'CGA Forms Catalog (F-ORG-007)');
+            throw new ConstitutionalViolation(__('F-ORG-007 targets an unknown organization.'), 'CGA Forms Catalog (F-ORG-007)');
         }
 
         if ($actor !== null && (string) $org->agent_user_id !== (string) $actor->getKey()) {
-            throw new ConstitutionalViolation(
-                'Only this organization\'s agent may dissolve it voluntarily (R-23).',
+            throw new ConstitutionalViolation(__('Only this organization\'s agent may dissolve it voluntarily (R-23).'),
                 'CGA Forms Catalog (R-23)'
             );
         }

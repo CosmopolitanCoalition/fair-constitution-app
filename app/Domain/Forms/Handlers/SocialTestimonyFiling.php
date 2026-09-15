@@ -50,7 +50,7 @@ class SocialTestimonyFiling implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation('Testimony is filed by a resident.', 'Art. I');
+            throw new ConstitutionalViolation(__('Testimony is filed by a resident.'), 'Art. I');
         }
 
         // Phase K-3 — a testimony filed from a live Matrix message (Plane B → Plane A). The own-post +
@@ -62,12 +62,11 @@ class SocialTestimonyFiling implements FormHandler
 
         $post = SocialPost::query()->find($payload['post_id'] ?? null);
         if ($post === null) {
-            throw new ConstitutionalViolation('Unknown post.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown post.'), 'Art. II §2 · as implemented');
         }
 
         if ((string) $post->author_user_id !== (string) $actor->getKey()) {
-            throw new ConstitutionalViolation(
-                'Testimony enters YOUR own statement into the record — a resident cannot file another resident\'s post as testimony.',
+            throw new ConstitutionalViolation(__('Testimony enters YOUR own statement into the record — a resident cannot file another resident\'s post as testimony.'),
                 'Art. I'
             );
         }
@@ -77,8 +76,7 @@ class SocialTestimonyFiling implements FormHandler
         $space = SocialSpace::query()->findOrFail($subforum->space_id);
 
         if ($space->space_type !== SocialSpace::TYPE_HALLS) {
-            throw new ConstitutionalViolation(
-                'Testimony is filed in the halls of governance (the Art. II §2 deliberation record), not the open square.',
+            throw new ConstitutionalViolation(__('Testimony is filed in the halls of governance (the Art. II §2 deliberation record), not the open square.'),
                 'Art. II §2'
             );
         }
@@ -88,9 +86,7 @@ class SocialTestimonyFiling implements FormHandler
         // R-03 gate only proves residency SOMEWHERE; since the commons opened (Phase 5), a resident of A
         // can post in B's halls, so the seal must verify association with B specifically (Art. II §2).
         if (! $this->isAssociatedWith($actor, (string) $space->jurisdiction_id)) {
-            throw new ConstitutionalViolation(
-                "Filing testimony seals your statement into this jurisdiction's deliberative record — reserved to "
-                .'those associated with the jurisdiction. You may speak in its open commons, but not seal its record.',
+            throw new ConstitutionalViolation(__('Filing testimony seals your statement into this jurisdiction\'s deliberative record — reserved to those associated with the jurisdiction. You may speak in its open commons, but not seal its record.'),
                 'Art. II §2'
             );
         }

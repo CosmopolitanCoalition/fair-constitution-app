@@ -49,7 +49,7 @@ class MemberPriorityFacilitation implements FormHandler
         $session = LegislatureSession::query()->find($payload['session_id'] ?? null);
 
         if ($session === null) {
-            throw new ConstitutionalViolation('F-SPK-006 requires a valid session_id.', 'CGA Forms Catalog');
+            throw new ConstitutionalViolation(__('F-SPK-006 requires a valid session_id.'), 'CGA Forms Catalog');
         }
 
         $member = LegislatureMember::query()
@@ -59,8 +59,7 @@ class MemberPriorityFacilitation implements FormHandler
             ->first();
 
         if ($member === null) {
-            throw new ConstitutionalViolation(
-                'Member priorities are facilitated for currently serving members of this chamber.',
+            throw new ConstitutionalViolation(__('Member priorities are facilitated for currently serving members of this chamber.'),
                 'Art. II §3'
             );
         }
@@ -68,7 +67,7 @@ class MemberPriorityFacilitation implements FormHandler
         $text = trim((string) ($payload['text'] ?? ''));
 
         if ($text === '') {
-            throw new ConstitutionalViolation('A member priority carries text.', 'CGA Forms Catalog (F-SPK-006)');
+            throw new ConstitutionalViolation(__('A member priority carries text.'), 'CGA Forms Catalog (F-SPK-006)');
         }
 
         if ($actor !== null) {

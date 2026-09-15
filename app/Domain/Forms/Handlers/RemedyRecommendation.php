@@ -80,7 +80,7 @@ class RemedyRecommendation implements FormHandler
         $challenge = is_string($id) ? ConstitutionalChallenge::query()->find($id) : null;
 
         if ($challenge === null) {
-            throw new ConstitutionalViolation('F-JDG-005 names the challenge it recommends a remedy for (challenge_id).', 'Art. IV §5');
+            throw new ConstitutionalViolation(__('F-JDG-005 names the challenge it recommends a remedy for (challenge_id).'), 'Art. IV §5');
         }
 
         return $challenge;

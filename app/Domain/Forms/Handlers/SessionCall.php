@@ -52,7 +52,7 @@ class SessionCall implements FormHandler
         $legislature = Legislature::query()->find($payload['legislature_id'] ?? null);
 
         if ($legislature === null) {
-            throw new ConstitutionalViolation('Unknown legislature.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown legislature.'), 'Art. II §2 · as implemented');
         }
 
         $calledBy = null;
@@ -61,8 +61,7 @@ class SessionCall implements FormHandler
             $calledBy = $this->currentMemberOf($actor, (string) $legislature->id);
 
             if ((string) $legislature->speaker_id !== (string) $calledBy->id) {
-                throw new ConstitutionalViolation(
-                    'Sessions are called by the chamber\'s Speaker (or the system).',
+                throw new ConstitutionalViolation(__('Sessions are called by the chamber\'s Speaker (or the system).'),
                     'Art. II §3'
                 );
             }

@@ -468,15 +468,13 @@ class ConstitutionalValidator
         $value = $payload['value'] ?? null;
 
         if (! is_string($key) || $key === '') {
-            throw new ConstitutionalViolation(
-                'Amendable setting change requires a setting_key.',
+            throw new ConstitutionalViolation(__('Amendable setting change requires a setting_key.'),
                 'Art. VII'
             );
         }
 
         if (! array_key_exists($key, self::SETTING_BOUNDS)) {
-            throw new ConstitutionalViolation(
-                "[{$key}] is not an amendable constitutional setting.",
+            throw new ConstitutionalViolation(__('[:key] is not an amendable constitutional setting.', ['key' => $key]),
                 'Art. VII'
             );
         }
@@ -489,12 +487,7 @@ class ConstitutionalValidator
         // cannot be bypassed).
         if (in_array($key, self::DUAL_DOOR_KEYS, true)
             && ($payload['requires_constituent_consent'] ?? false) !== true) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    'Amending [%s] requires a Supermajority of Constituent Jurisdictions to ALSO consent — '
-                    .'it cannot be changed by a single legislature\'s supermajority alone (Art. IV §3).',
-                    $key
-                ),
+            throw new ConstitutionalViolation(__('Amending [:key] requires a Supermajority of Constituent Jurisdictions to ALSO consent — it cannot be changed by a single legislature\'s supermajority alone (Art. IV §3).', ['key' => $key]),
                 'Art. IV §3'
             );
         }
@@ -504,13 +497,7 @@ class ConstitutionalValidator
 
         if (isset($bounds['allowed'])) {
             if (! in_array($value, $bounds['allowed'], true)) {
-                throw new ConstitutionalViolation(
-                    sprintf(
-                        '%s value %s is not permitted; allowed: %s.',
-                        $key,
-                        json_encode($value),
-                        json_encode($bounds['allowed'])
-                    ),
+                throw new ConstitutionalViolation(__(':key value :value is not permitted; allowed: :allowed.', ['key' => $key, 'value' => json_encode($value), 'allowed' => json_encode($bounds['allowed'])]),
                     $citation
                 );
             }
@@ -519,21 +506,13 @@ class ConstitutionalValidator
         }
 
         if (! is_int($value) && ! is_float($value)) {
-            throw new ConstitutionalViolation(
-                "{$key} requires a numeric value, got ".gettype($value).'.',
+            throw new ConstitutionalViolation(__(':key requires a numeric value, got :value.', ['key' => $key, 'value' => gettype($value)]),
                 $citation
             );
         }
 
         if ($value < $bounds['min'] || $value > $bounds['max']) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    '%s = %s is outside the hardened range [%s, %s].',
-                    $key,
-                    $value,
-                    $bounds['min'],
-                    $bounds['max']
-                ),
+            throw new ConstitutionalViolation(__(':key = :value is outside the hardened range [:min, :max].', ['key' => $key, 'value' => $value, 'min' => $bounds['min'], 'max' => $bounds['max']]),
                 $citation
             );
         }
@@ -569,13 +548,7 @@ class ConstitutionalValidator
                 $pay = $key === $payKey ? (int) $value : (int) ($payload[$payKey] ?? $defaults[$payKey]);
 
                 if ($pay > $cap) {
-                    throw new ConstitutionalViolation(
-                        sprintf(
-                            'A role differential (%s = %d) may not exceed the stipend bump cap (%d) — the cap bounds the SUM a person can stack.',
-                            $payKey,
-                            $pay,
-                            $cap
-                        ),
+                    throw new ConstitutionalViolation(__('A role differential (:paykey = :pay) may not exceed the stipend bump cap (:cap) — the cap bounds the SUM a person can stack.', ['paykey' => $payKey, 'pay' => (int) ($pay), 'cap' => (int) ($cap)]),
                         'Art. II §9 · [POLICY]'
                     );
                 }
@@ -602,12 +575,7 @@ class ConstitutionalValidator
             $denominator = $key === 'supermajority_denominator' ? (int) $value : (int) ($payload['supermajority_denominator'] ?? 3);
 
             if ($denominator < 1 || $numerator * 2 <= $denominator || $numerator > $denominator) {
-                throw new ConstitutionalViolation(
-                    sprintf(
-                        'Supermajority fraction %d/%d must lie in (1/2, 1] — it can never produce a threshold below majority + 1.',
-                        $numerator,
-                        $denominator
-                    ),
+                throw new ConstitutionalViolation(__('Supermajority fraction :numerator/:denominator must lie in (1/2, 1] — it can never produce a threshold below majority + 1.', ['numerator' => (int) ($numerator), 'denominator' => (int) ($denominator)]),
                     'Art. VII'
                 );
             }
@@ -625,14 +593,7 @@ class ConstitutionalValidator
     public function assertSeatsInRange(int $seats): void
     {
         if ($seats < ConstitutionalDefaults::HARD_FLOOR || $seats > ConstitutionalDefaults::HARD_CEILING) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    '%d seats is outside the constitutional band [%d, %d] — above %d the body must be subdivided.',
-                    $seats,
-                    ConstitutionalDefaults::HARD_FLOOR,
-                    ConstitutionalDefaults::HARD_CEILING,
-                    ConstitutionalDefaults::HARD_CEILING
-                ),
+            throw new ConstitutionalViolation(__(':seats seats is outside the constitutional band [:hard_floor, :hard_ceiling] — above :hard_ceiling the body must be subdivided.', ['seats' => (int) ($seats), 'hard_floor' => (int) (ConstitutionalDefaults::HARD_FLOOR), 'hard_ceiling' => (int) (ConstitutionalDefaults::HARD_CEILING)]),
                 'Art. II §2'
             );
         }
@@ -677,8 +638,7 @@ class ConstitutionalValidator
 
         if ($seatKind === 'single') {
             if ($seats !== 1) {
-                throw new ConstitutionalViolation(
-                    "A 'single' race elects exactly one seat (got {$seats}) — the individual-executive exception.",
+                throw new ConstitutionalViolation(__('A \'single\' race elects exactly one seat (got :seats) — the individual-executive exception.', ['seats' => $seats]),
                     'Art. III §2'
                 );
             }
@@ -691,8 +651,7 @@ class ConstitutionalValidator
         // is a chamber (Art. II §2) rule and must not cap it.
         if ($seatKind === 'exec_committee') {
             if ($seats < ConstitutionalDefaults::HARD_FLOOR) {
-                throw new ConstitutionalViolation(
-                    "An executive-committee race elects at least 5 seats (got {$seats}).",
+                throw new ConstitutionalViolation(__('An executive-committee race elects at least 5 seats (got :seats).', ['seats' => $seats]),
                     'Art. III §2'
                 );
             }
@@ -714,13 +673,7 @@ class ConstitutionalValidator
             $tbMax = min($typeBMax ?? ConstitutionalDefaults::HARD_CEILING, ConstitutionalDefaults::HARD_CEILING);
 
             if ($seats < 1 || $seats > $tbMax) {
-                throw new ConstitutionalViolation(
-                    sprintf(
-                        'A Type B race elects 1 to %d seats (got %d). The equal-representation '
-                        .'ladder does not bind it to the 5 to 9 district band.',
-                        $tbMax,
-                        $seats
-                    ),
+                throw new ConstitutionalViolation(__('A Type B race elects 1 to :tbmax seats (got :seats). The equal-representation ladder does not bind it to the 5 to 9 district band.', ['tbmax' => (int) ($tbMax), 'seats' => (int) ($seats)]),
                     'Art. V §3'
                 );
             }
@@ -729,8 +682,7 @@ class ConstitutionalValidator
         }
 
         if ($seatKind !== 'type_a') {
-            throw new ConstitutionalViolation(
-                "Unknown race seat_kind [{$seatKind}].",
+            throw new ConstitutionalViolation(__('Unknown race seat_kind [:seatkind].', ['seatkind' => $seatKind]),
                 'Art. II §2'
             );
         }
@@ -738,13 +690,7 @@ class ConstitutionalValidator
         $this->assertSeatsInRange($seats);
 
         if ($districtId === null && $seats > $max) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    'An at-large race may not carry %d seats (max %d) — above the maximum, subdivision '
-                    .'into separate voter pools is mandatory.',
-                    $seats,
-                    $max
-                ),
+            throw new ConstitutionalViolation(__('An at-large race may not carry :seats seats (max :max) — above the maximum, subdivision into separate voter pools is mandatory.', ['seats' => (int) ($seats), 'max' => (int) ($max)]),
                 'Art. II §8'
             );
         }
@@ -788,12 +734,7 @@ class ConstitutionalValidator
         if (($payload['decision'] ?? null) === 'reject'
             && $ground !== null
             && $ground !== 'no_residency_association') {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    'Candidacy rejection knows a single permissible ground — no_residency_association. '
-                    .'Ground %s is unconstitutional (candidacy is an absolute right of residency).',
-                    json_encode($ground)
-                ),
+            throw new ConstitutionalViolation(__('Candidacy rejection knows a single permissible ground — no_residency_association. Ground :ground is unconstitutional (candidacy is an absolute right of residency).', ['ground' => json_encode($ground)]),
                 'Art. I'
             );
         }
@@ -843,19 +784,13 @@ class ConstitutionalValidator
     public static function assertSpeakerTieState(int $yes, int $no, bool $allOtherCastsResolved): void
     {
         if (! $allOtherCastsResolved) {
-            throw new ConstitutionalViolation(
-                'The Speaker votes only on ties — other serving members have not yet resolved their casts.',
+            throw new ConstitutionalViolation(__('The Speaker votes only on ties — other serving members have not yet resolved their casts.'),
                 'Art. II §3'
             );
         }
 
         if ($yes !== $no) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    'The Speaker votes only on ties — the vote stands %d yes / %d no, which is not a tie.',
-                    $yes,
-                    $no
-                ),
+            throw new ConstitutionalViolation(__('The Speaker votes only on ties — the vote stands :yes yes / :no no, which is not a tie.', ['yes' => (int) ($yes), 'no' => (int) ($no)]),
                 'Art. II §3'
             );
         }
@@ -869,8 +804,7 @@ class ConstitutionalValidator
     public static function assertRemovalPresider(string $presiderMemberId, string $subjectType, string $subjectId): void
     {
         if ($subjectType === 'legislature_members' && $presiderMemberId === $subjectId) {
-            throw new ConstitutionalViolation(
-                'No one presides over their own removal proceeding — the chamber must designate a substitute presider.',
+            throw new ConstitutionalViolation(__('No one presides over their own removal proceeding — the chamber must designate a substitute presider.'),
                 'Art. II §3'
             );
         }
@@ -887,8 +821,7 @@ class ConstitutionalValidator
     {
         if (! $bicameral) {
             if ($typeASeats !== null || $typeBSeats !== null) {
-                throw new ConstitutionalViolation(
-                    'A unicameral chamber\'s committees carry no kind split.',
+                throw new ConstitutionalViolation(__('A unicameral chamber\'s committees carry no kind split.'),
                     'Art. V §3'
                 );
             }
@@ -897,22 +830,19 @@ class ConstitutionalValidator
         }
 
         if ($typeASeats === null || $typeBSeats === null) {
-            throw new ConstitutionalViolation(
-                'A bicameral chamber\'s committees must carry a type_a/type_b seat split (Art. V §3 mirror).',
+            throw new ConstitutionalViolation(__('A bicameral chamber\'s committees must carry a type_a/type_b seat split (Art. V §3 mirror).'),
                 'Art. V §3'
             );
         }
 
         if ($typeASeats + $typeBSeats !== $seats) {
-            throw new ConstitutionalViolation(
-                sprintf('Committee kind split %d + %d must total the %d seats.', $typeASeats, $typeBSeats, $seats),
+            throw new ConstitutionalViolation(__('Committee kind split :typeaseats + :typebseats must total the :seats seats.', ['typeaseats' => (int) ($typeASeats), 'typebseats' => (int) ($typeBSeats), 'seats' => (int) ($seats)]),
                 'Art. V §3'
             );
         }
 
         if ($seats >= 2 && ($typeASeats < 1 || $typeBSeats < 1)) {
-            throw new ConstitutionalViolation(
-                'Every committee of 2+ seats must seat both chamber kinds — per-kind dual agreement may never be vacuous.',
+            throw new ConstitutionalViolation(__('Every committee of 2+ seats must seat both chamber kinds — per-kind dual agreement may never be vacuous.'),
                 'Art. V §3'
             );
         }
@@ -930,9 +860,7 @@ class ConstitutionalValidator
             return;
         }
 
-        throw new ConstitutionalViolation(
-            'A legislator may declare only their own seat vacant (resignation); declaring another '
-            .'member\'s seat requires the Speaker or the system.',
+        throw new ConstitutionalViolation(__('A legislator may declare only their own seat vacant (resignation); declaring another member\'s seat requires the Speaker or the system.'),
             'Art. II §5 · as implemented'
         );
     }
@@ -963,9 +891,7 @@ class ConstitutionalValidator
             if ($candidate === null
                 || ! (bool) (((array) $candidate)['locked'] ?? false)
                 || $identity((array) $candidate) !== $identity((array) $item)) {
-                throw new ConstitutionalViolation(
-                    'The locked agenda head (emergency review, constitutional matters) is immutable and '
-                    .'precedes all general business — agenda filings may only reorder or insert after it.',
+                throw new ConstitutionalViolation(__('The locked agenda head (emergency review, constitutional matters) is immutable and precedes all general business — agenda filings may only reorder or insert after it.'),
                     'Art. II §2'
                 );
             }
@@ -975,8 +901,7 @@ class ConstitutionalValidator
         $proposedLocked = array_filter($proposed, fn ($item) => (bool) (((array) $item)['locked'] ?? false));
 
         if (count($proposedLocked) !== count($lockedHead)) {
-            throw new ConstitutionalViolation(
-                'Agenda filings may not add or remove locked items — the locked head is engine-composed.',
+            throw new ConstitutionalViolation(__('Agenda filings may not add or remove locked items — the locked head is engine-composed.'),
                 'Art. II §2'
             );
         }
@@ -1004,14 +929,7 @@ class ConstitutionalValidator
         if (in_array($canonicalFormId, self::EMERGENCY_PROTECTED_FORMS, true)) {
             foreach ($payloadKeys as $key) {
                 if ($key === 'emergency_power_id' || str_starts_with($key, 'enabling_')) {
-                    throw new ConstitutionalViolation(
-                        sprintf(
-                            '%s is a protected civic process — emergency powers cannot touch it '
-                            .'(offending key: %s). Elections, sessions, courts, residency, petitions, '
-                            .'and records run identically under any emergency.',
-                            $canonicalFormId,
-                            $key
-                        ),
+                    throw new ConstitutionalViolation(__(':canonicalformid is a protected civic process — emergency powers cannot touch it (offending key: :key). Elections, sessions, courts, residency, petitions, and records run identically under any emergency.', ['canonicalformid' => $canonicalFormId, 'key' => $key]),
                         'Art. II §7'
                     );
                 }
@@ -1020,12 +938,7 @@ class ConstitutionalValidator
 
         if ($enablingType === 'emergency_power'
             && ! in_array($canonicalFormId, self::EMERGENCY_ENABLED_FORMS, true)) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    '%s is not declared as an emergency-enabled form — no undeclared handler may cite '
-                    .'an emergency power as enabling authority.',
-                    $canonicalFormId
-                ),
+            throw new ConstitutionalViolation(__(':canonicalformid is not declared as an emergency-enabled form — no undeclared handler may cite an emergency power as enabling authority.', ['canonicalformid' => $canonicalFormId]),
                 'Art. II §7'
             );
         }
@@ -1057,10 +970,7 @@ class ConstitutionalValidator
         bool $shieldElectionPending,
     ): void {
         if ($passedByPopulationSupermajority && $shieldElectionPending) {
-            throw new ConstitutionalViolation(
-                'This act was passed by population supermajority — the legislature cannot modify or '
-                .'repeal it until the next general election certifies; the protection lapses there '
-                .'(CLK-19).',
+            throw new ConstitutionalViolation(__('This act was passed by population supermajority — the legislature cannot modify or repeal it until the next general election certifies; the protection lapses there (CLK-19).'),
                 'Art. II §6'
             );
         }
@@ -1084,19 +994,14 @@ class ConstitutionalValidator
         $carveOut = is_string($payload['carve_out'] ?? null) ? $payload['carve_out'] : null;
 
         if ($carveOut === null || ! in_array($carveOut, $allowed, true)) {
-            throw new ConstitutionalViolation(
-                'The public square cannot be censored — a post may be removed ONLY under a logged '
-                .'carve-out (a judicial order, or protecting another\'s rights), never on viewpoint '
-                .'or discretion.',
+            throw new ConstitutionalViolation(__('The public square cannot be censored — a post may be removed ONLY under a logged carve-out (a judicial order, or protecting another\'s rights), never on viewpoint or discretion.'),
                 'Art. I'
             );
         }
 
         $reference = trim((string) ($payload['reference'] ?? ''));
         if ($reference === '') {
-            throw new ConstitutionalViolation(
-                'A carve-out removal must cite its justifying order/case reference — a removal with '
-                .'no logged order is structurally impossible.',
+            throw new ConstitutionalViolation(__('A carve-out removal must cite its justifying order/case reference — a removal with no logged order is structurally impossible.'),
                 'Art. I'
             );
         }
@@ -1121,10 +1026,7 @@ class ConstitutionalValidator
         $allowed = ['csam_hashmatch', 'court_order_specific', 'true_threat'];
         $basis = is_string($payload['legal_basis'] ?? null) ? $payload['legal_basis'] : null;
         if ($basis === null || ! in_array($basis, $allowed, true)) {
-            throw new ConstitutionalViolation(
-                'A legal-compliance removal must cite a physical-law basis (a CSAM hash-match, a specific '
-                .'court order, or a true threat) — a viewpoint or discretionary basis is structurally '
-                .'impossible. Disagreement with a physical law belongs in the real-world legal system.',
+            throw new ConstitutionalViolation(__('A legal-compliance removal must cite a physical-law basis (a CSAM hash-match, a specific court order, or a true threat) — a viewpoint or discretionary basis is structurally impossible. Disagreement with a physical law belongs in the real-world legal system.'),
                 $citation
             );
         }
@@ -1132,12 +1034,10 @@ class ConstitutionalValidator
         // (2) ACTION_PURGE (irreversible local byte-DELETE) is reserved to a CSAM hash-match.
         $action = is_string($payload['action'] ?? null) ? $payload['action'] : null;
         if ($action === null || ! in_array($action, ['purge', 'soft_fail', 'hard_redact'], true)) {
-            throw new ConstitutionalViolation('A legal-compliance removal must name a valid action.', $citation);
+            throw new ConstitutionalViolation(__('A legal-compliance removal must name a valid action.'), $citation);
         }
         if ($action === 'purge' && $basis !== 'csam_hashmatch') {
-            throw new ConstitutionalViolation(
-                'The byte-destroying purge is reserved to a CSAM hash-match — a court order or true threat '
-                .'uses reversible content redaction, never an irreversible local DELETE.',
+            throw new ConstitutionalViolation(__('The byte-destroying purge is reserved to a CSAM hash-match — a court order or true threat uses reversible content redaction, never an irreversible local DELETE.'),
                 $citation
             );
         }
@@ -1145,9 +1045,7 @@ class ConstitutionalValidator
         // (3) per-item targeting only.
         $eventId = trim((string) ($payload['matrix_event_id'] ?? ''));
         if ($eventId === '') {
-            throw new ConstitutionalViolation(
-                'A legal-compliance removal targets a SPECIFIC item (a single event) — never a class, a '
-                .'viewpoint, or a whole server. The floor is content-neutral and per-item.',
+            throw new ConstitutionalViolation(__('A legal-compliance removal targets a SPECIFIC item (a single event) — never a class, a viewpoint, or a whole server. The floor is content-neutral and per-item.'),
                 $citation
             );
         }
@@ -1160,10 +1058,7 @@ class ConstitutionalValidator
             ->whereNull('deleted_at')
             ->exists();
         if (! $active) {
-            throw new ConstitutionalViolation(
-                'The physical-law compliance floor is exercised on the OPERATOR plane (an active operator '
-                .'account authenticated by key-possession) — it is not a constitutional office and carries '
-                .'no role code; a forged or absent operator is refused.',
+            throw new ConstitutionalViolation(__('The physical-law compliance floor is exercised on the OPERATOR plane (an active operator account authenticated by key-possession) — it is not a constitutional office and carries no role code; a forged or absent operator is refused.'),
                 $citation
             );
         }
@@ -1174,9 +1069,7 @@ class ConstitutionalValidator
         //     (the engine's SENSITIVE_KEYS additionally guarantees a rejection can't seal it into the chain).
         $forbiddenKeys = ['hash', 'media_hash', 'locator', 'url', 'sha1', 'sha256', 'md5', 'pdq', 'photodna'];
         if ($this->payloadCarriesForbiddenKey($payload, $forbiddenKeys)) {
-            throw new ConstitutionalViolation(
-                'A CSAM hash or locator may NEVER be carried in a filing or published log (republishable '
-                .'harm) — record the list SOURCE only.',
+            throw new ConstitutionalViolation(__('A CSAM hash or locator may NEVER be carried in a filing or published log (republishable harm) — record the list SOURCE only.'),
                 $citation
             );
         }
@@ -1191,17 +1084,14 @@ class ConstitutionalValidator
                 continue;
             }
             if (! is_string($value) || mb_strlen($value) > $max) {
-                throw new ConstitutionalViolation(
-                    "The {$field} is a short list label / statute citation, not a payload.",
+                throw new ConstitutionalViolation(__('The :field is a short list label / statute citation, not a payload.', ['field' => $field]),
                     $citation
                 );
             }
             if (preg_match('#://#', $value)                          // a URL / locator
                 || preg_match('/[0-9a-f]{24,}/i', $value)            // a long hex hash (md5/sha1/sha256/pdq)
                 || preg_match('#[A-Za-z0-9+/]{40,}={0,2}#', $value)) { // a base64 hash blob (e.g. PhotoDNA)
-                throw new ConstitutionalViolation(
-                    "A {$field} must be a list SOURCE / statute citation only — never a hash, locator, or URL "
-                    .'(republishable harm).',
+                throw new ConstitutionalViolation(__('A :field must be a list SOURCE / statute citation only — never a hash, locator, or URL (republishable harm).', ['field' => $field]),
                     $citation
                 );
             }
@@ -1233,8 +1123,7 @@ class ConstitutionalValidator
         $lawId = $payload['law_id'] ?? null;
 
         if (! is_string($lawId) || $lawId === '') {
-            throw new ConstitutionalViolation(
-                'F-LEG-034 names the referendum act it modifies (law_id).',
+            throw new ConstitutionalViolation(__('F-LEG-034 names the referendum act it modifies (law_id).'),
                 'Art. II §6'
             );
         }
@@ -1245,12 +1134,11 @@ class ConstitutionalValidator
             ->first(['origin', 'referendum_passed_by_supermajority', 'shield_expires_with_election_id']);
 
         if ($law === null) {
-            throw new ConstitutionalViolation('F-LEG-034 targets an unknown law.', 'Art. II §6');
+            throw new ConstitutionalViolation(__('F-LEG-034 targets an unknown law.'), 'Art. II §6');
         }
 
         if ($law->origin !== 'referendum') {
-            throw new ConstitutionalViolation(
-                'F-LEG-034 modifies referendum-passed acts only — other laws amend through the bill path.',
+            throw new ConstitutionalViolation(__('F-LEG-034 modifies referendum-passed acts only — other laws amend through the bill path.'),
                 'Art. II §6'
             );
         }
@@ -1287,12 +1175,7 @@ class ConstitutionalValidator
     public static function assertOrderCivicProcessProtection(string $targetDomain): void
     {
         if (in_array($targetDomain, self::ORDER_PROTECTED_DOMAINS, true)) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    'Executive orders cannot touch the %s — elections, courts, and legislatures run '
-                    .'identically under any executive instrument, emergency powers included.',
-                    str_replace('_', ' ', $targetDomain)
-                ),
+            throw new ConstitutionalViolation(__('Executive orders cannot touch the :targetdomain — elections, courts, and legislatures run identically under any executive instrument, emergency powers included.', ['targetdomain' => str_replace('_', ' ', $targetDomain)]),
                 'Art. II §7'
             );
         }
@@ -1306,13 +1189,7 @@ class ConstitutionalValidator
     public static function assertCodeterminationOrdering(int $minEmployees, int $parityEmployees): void
     {
         if ($minEmployees >= $parityEmployees) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    'worker_rep_min_employees (%d) must stay strictly below worker_rep_parity_employees '
-                    .'(%d) — Art. III §6 scales worker representation linearly between the two.',
-                    $minEmployees,
-                    $parityEmployees
-                ),
+            throw new ConstitutionalViolation(__('worker_rep_min_employees (:minemployees) must stay strictly below worker_rep_parity_employees (:parityemployees) — Art. III §6 scales worker representation linearly between the two.', ['minemployees' => (int) ($minEmployees), 'parityemployees' => (int) ($parityEmployees)]),
                 'Art. III §6'
             );
         }
@@ -1335,9 +1212,7 @@ class ConstitutionalValidator
     public static function assertEqualConstituentNomination(array $countsByConstituent): void
     {
         if ($countsByConstituent === []) {
-            throw new ConstitutionalViolation(
-                'A constituent-nominated court allocates seats to its constituents — none were found '
-                .'(Art. IV §2: an equal number of Judges are nominated by each Constituent Jurisdiction).',
+            throw new ConstitutionalViolation(__('A constituent-nominated court allocates seats to its constituents — none were found (Art. IV §2: an equal number of Judges are nominated by each Constituent Jurisdiction).'),
                 'Art. IV §2'
             );
         }
@@ -1345,12 +1220,7 @@ class ConstitutionalValidator
         $counts = array_values($countsByConstituent);
 
         if (max($counts) !== min($counts)) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    'Constituent nomination must be EQUAL across all constituents (Art. IV §2) — the '
-                    .'allocation is uneven: %s.',
-                    json_encode($countsByConstituent)
-                ),
+            throw new ConstitutionalViolation(__('Constituent nomination must be EQUAL across all constituents (Art. IV §2) — the allocation is uneven: :countsbyconstituent.', ['countsbyconstituent' => json_encode($countsByConstituent)]),
                 'Art. IV §2'
             );
         }
@@ -1367,13 +1237,7 @@ class ConstitutionalValidator
     public static function assertJudicialCivilLockstep(int $judicialYears, int $civilYears): void
     {
         if ($judicialYears !== $civilYears) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    'judicial_appointment_years (%d) must equal civil_appointment_years (%d) — judicial and '
-                    .'civil appointments move in lockstep (Art. IV §1 · Art. II §9).',
-                    $judicialYears,
-                    $civilYears
-                ),
+            throw new ConstitutionalViolation(__('judicial_appointment_years (:judicialyears) must equal civil_appointment_years (:civilyears) — judicial and civil appointments move in lockstep (Art. IV §1 · Art. II §9).', ['judicialyears' => (int) ($judicialYears), 'civilyears' => (int) ($civilYears)]),
                 'Art. IV §1 · Art. II §9'
             );
         }
@@ -1399,9 +1263,7 @@ class ConstitutionalValidator
         bool $priorTerminalCriminalVerdictExists,
     ): void {
         if ($isCriminal && $priorTerminalCriminalVerdictExists) {
-            throw new ConstitutionalViolation(
-                'This accused has already been prosecuted to a final verdict for this act — '
-                .'a criminal act cannot be prosecuted again.',
+            throw new ConstitutionalViolation(__('This accused has already been prosecuted to a final verdict for this act — a criminal act cannot be prosecuted again.'),
                 'Art. II §8'
             );
         }
@@ -1419,22 +1281,19 @@ class ConstitutionalValidator
     public static function assertPanelSize(int $size, bool $enBanc, string $severity, int $seatedJudges): void
     {
         if ($size < 3) {
-            throw new ConstitutionalViolation(
-                sprintf('A panel sits at least three (3) judges (got %d).', $size),
+            throw new ConstitutionalViolation(__('A panel sits at least three (3) judges (got :size).', ['size' => (int) ($size)]),
                 'Art. IV §4'
             );
         }
 
         if ($size % 2 !== 1) {
-            throw new ConstitutionalViolation(
-                sprintf('A panel sits an ODD number of judges (got %d).', $size),
+            throw new ConstitutionalViolation(__('A panel sits an ODD number of judges (got :size).', ['size' => (int) ($size)]),
                 'Art. IV §4'
             );
         }
 
         if ($size > $seatedJudges) {
-            throw new ConstitutionalViolation(
-                sprintf('A panel of %d cannot exceed the %d seated judges of the court.', $size, $seatedJudges),
+            throw new ConstitutionalViolation(__('A panel of :size cannot exceed the :seatedjudges seated judges of the court.', ['size' => (int) ($size), 'seatedjudges' => (int) ($seatedJudges)]),
                 'Art. IV §4'
             );
         }
@@ -1442,8 +1301,7 @@ class ConstitutionalValidator
         // A constitutional-major question is heard by the ENTIRE court (en
         // banc); any lesser severity is a sub-panel of it.
         if ($severity === 'constitutional_major' && ! $enBanc) {
-            throw new ConstitutionalViolation(
-                'A Constitutional Question of significant importance is heard by the entire court (en banc).',
+            throw new ConstitutionalViolation(__('A Constitutional Question of significant importance is heard by the entire court (en banc).'),
                 'Art. IV §4'
             );
         }
@@ -1529,21 +1387,13 @@ class ConstitutionalValidator
     public static function assertFairMarketCompensation(?float $floor, ?float $compensation): void
     {
         if ($floor === null || $compensation === null) {
-            throw new ConstitutionalViolation(
-                'A monopoly acquisition records the fair-market floor before compensation, and the '
-                .'compensation itself — both are constitutional facts.',
+            throw new ConstitutionalViolation(__('A monopoly acquisition records the fair-market floor before compensation, and the compensation itself — both are constitutional facts.'),
                 'Art. III §5'
             );
         }
 
         if ($compensation < $floor) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    'Compensation %s is below the recorded fair-market floor %s — monopoly acquisition '
-                    .'requires fair-market compensation to the prior owners.',
-                    number_format($compensation, 2),
-                    number_format($floor, 2)
-                ),
+            throw new ConstitutionalViolation(__('Compensation :compensation is below the recorded fair-market floor :floor — monopoly acquisition requires fair-market compensation to the prior owners.', ['compensation' => number_format($compensation, 2), 'floor' => number_format($floor, 2)]),
                 'Art. III §5'
             );
         }
@@ -1558,8 +1408,7 @@ class ConstitutionalValidator
     public static function assertTransferConsents(bool $fromConsented, bool $toConsented): void
     {
         if (! $fromConsented || ! $toConsented) {
-            throw new ConstitutionalViolation(
-                'An ownership transfer requires the consent of BOTH parties — nothing moves on one signature.',
+            throw new ConstitutionalViolation(__('An ownership transfer requires the consent of BOTH parties — nothing moves on one signature.'),
                 'Art. I · WF-ORG-06 · as implemented'
             );
         }
@@ -1573,9 +1422,7 @@ class ConstitutionalValidator
     private function checkOrganizationRegistration(array $payload): void
     {
         if (($payload['type'] ?? null) === 'common_good_corp') {
-            throw new ConstitutionalViolation(
-                'A Common Good Corporation is created by a legislative act (F-LEG-019) — it can never be '
-                .'self-registered.',
+            throw new ConstitutionalViolation(__('A Common Good Corporation is created by a legislative act (F-LEG-019) — it can never be self-registered.'),
                 'Art. III §5'
             );
         }
@@ -1596,12 +1443,7 @@ class ConstitutionalValidator
         $key = strtoupper(trim((string) ($payload['key'] ?? '')));
 
         if ($key !== '' && \App\Domain\Forms\FormRegistry::exists($key)) {
-            throw new ConstitutionalViolation(
-                sprintf(
-                    'Document package key [%s] collides with a constitutional form ID — self-managed '
-                    .'internal forms live above the constitutional floor and can never override it.',
-                    $key
-                ),
+            throw new ConstitutionalViolation(__('Document package key [:key] collides with a constitutional form ID — self-managed internal forms live above the constitutional floor and can never override it.', ['key' => $key]),
                 'CGA Forms Catalog · as implemented'
             );
         }
@@ -1622,9 +1464,7 @@ class ConstitutionalValidator
 
             if (! is_numeric($floor) || (float) $floor <= 0
                 || trim((string) ($payload['fair_market_basis'] ?? '')) === '') {
-                throw new ConstitutionalViolation(
-                    'A monopoly acquisition records the fair-market floor and its published valuation basis '
-                    .'BEFORE any vote — fair-market compensation is the constitutional condition.',
+                throw new ConstitutionalViolation(__('A monopoly acquisition records the fair-market floor and its published valuation basis BEFORE any vote — fair-market compensation is the constitutional condition.'),
                     'Art. III §5'
                 );
             }
@@ -1659,9 +1499,7 @@ class ConstitutionalValidator
             $lower = strtolower((string) $key);
 
             if (str_starts_with($lower, 'ip_') || str_contains($lower, 'reclaim')) {
-                throw new ConstitutionalViolation(
-                    'CGC public-domain dedications are irreversible — no reorganization or sale may reclaim '
-                    .'or privatize dedicated intellectual property (offending key: '.$key.').',
+                throw new ConstitutionalViolation(__('CGC public-domain dedications are irreversible — no reorganization or sale may reclaim or privatize dedicated intellectual property (offending key: :key).', ['key' => $key]),
                     'Art. III §5'
                 );
             }
@@ -1699,12 +1537,7 @@ class ConstitutionalValidator
             return;
         }
 
-        throw new ConstitutionalViolation(
-            sprintf(
-                '%s may not carry a charge for filing (offending key: %s). Individuals cannot be compelled to pay taxes, fees, liens, or costs to exercise their Civic Rights and Obligations.',
-                $canonicalFormId,
-                $offender
-            ),
+        throw new ConstitutionalViolation(__(':canonicalformid may not carry a charge for filing (offending key: :offender). Individuals cannot be compelled to pay taxes, fees, liens, or costs to exercise their Civic Rights and Obligations.', ['canonicalformid' => $canonicalFormId, 'offender' => $offender]),
             'Art. II §8'
         );
     }
@@ -1739,12 +1572,7 @@ class ConstitutionalValidator
 
         foreach (array_keys($payload) as $key) {
             if (in_array(strtolower((string) $key), self::FORBIDDEN_ELIGIBILITY_KEYS, true)) {
-                throw new ConstitutionalViolation(
-                    sprintf(
-                        '%s may never carry eligibility conditions beyond jurisdictional association (offending key: %s).',
-                        $canonicalFormId,
-                        $key
-                    ),
+                throw new ConstitutionalViolation(__(':canonicalformid may never carry eligibility conditions beyond jurisdictional association (offending key: :key).', ['canonicalformid' => $canonicalFormId, 'key' => $key]),
                     'Art. I'
                 );
             }

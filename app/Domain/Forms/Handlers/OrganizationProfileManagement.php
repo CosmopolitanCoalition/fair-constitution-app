@@ -65,7 +65,7 @@ class OrganizationProfileManagement implements FormHandler
         $org = Organization::query()->find($payload['organization_id'] ?? null);
 
         if ($org === null) {
-            throw new ConstitutionalViolation('F-ORG-001 targets an unknown organization.', 'CGA Forms Catalog (F-ORG-001)');
+            throw new ConstitutionalViolation(__('F-ORG-001 targets an unknown organization.'), 'CGA Forms Catalog (F-ORG-001)');
         }
 
         $action = (string) ($payload['action'] ?? '');
@@ -79,14 +79,12 @@ class OrganizationProfileManagement implements FormHandler
 
         if ($bucket === null) {
             if ($actor !== null && (string) $org->agent_user_id !== (string) $actor->getKey()) {
-                throw new ConstitutionalViolation(
-                    'Only this organization\'s agent may perform this act (R-23) — it is never delegable.',
+                throw new ConstitutionalViolation(__('Only this organization\'s agent may perform this act (R-23) — it is never delegable.'),
                     'CGA Forms Catalog (R-23)'
                 );
             }
         } elseif (! app(\App\Services\Organizations\OrgDelegationService::class)->mayPerform($org, $actor, $bucket)) {
-            throw new ConstitutionalViolation(
-                'Only this organization\'s agent or a delegate holding this task may manage it (R-23 / R-31).',
+            throw new ConstitutionalViolation(__('Only this organization\'s agent or a delegate holding this task may manage it (R-23 / R-31).'),
                 'CGA Forms Catalog (R-23)'
             );
         }
@@ -101,8 +99,7 @@ class OrganizationProfileManagement implements FormHandler
             'manage_document_package' => $this->manageDocumentPackage($org, $payload, $actor),
             'dedicate_ip'             => $this->dedicateIp($org, $payload, $actor),
             'update_settings'         => $this->updateSettings($org, $payload, $actor),
-            default                   => throw new ConstitutionalViolation(
-                "Unknown F-ORG-001 action [{$action}].",
+            default                   => throw new ConstitutionalViolation(__('Unknown F-ORG-001 action [:action].', ['action' => $action]),
                 'CGA Forms Catalog (F-ORG-001)'
             ),
         };
@@ -123,8 +120,7 @@ class OrganizationProfileManagement implements FormHandler
     private function updateSettings(Organization $org, array $payload, ?User $actor): array
     {
         if ($actor === null) {
-            throw new ConstitutionalViolation(
-                'An organization\'s settings are changed by a person — system filing is not defined.',
+            throw new ConstitutionalViolation(__('An organization\'s settings are changed by a person — system filing is not defined.'),
                 'CGA Forms Catalog (F-ORG-001)'
             );
         }
@@ -164,7 +160,7 @@ class OrganizationProfileManagement implements FormHandler
         $newAgent = User::query()->find($payload['agent_user_id'] ?? null);
 
         if ($newAgent === null) {
-            throw new ConstitutionalViolation('reassign_agent names an unknown user.', 'CGA Forms Catalog (F-ORG-001)');
+            throw new ConstitutionalViolation(__('reassign_agent names an unknown user.'), 'CGA Forms Catalog (F-ORG-001)');
         }
 
         $previous = $org->agent_user_id !== null ? (string) $org->agent_user_id : null;
@@ -187,7 +183,7 @@ class OrganizationProfileManagement implements FormHandler
             ->find($payload['membership_id'] ?? null);
 
         if ($membership === null) {
-            throw new ConstitutionalViolation('Unknown membership application for this organization.', 'CGA Forms Catalog (F-ORG-001)');
+            throw new ConstitutionalViolation(__('Unknown membership application for this organization.'), 'CGA Forms Catalog (F-ORG-001)');
         }
 
         $agent = $actor ?? User::query()->find($org->agent_user_id);
@@ -211,7 +207,7 @@ class OrganizationProfileManagement implements FormHandler
             ->find($payload['contract_id'] ?? null);
 
         if ($contract === null) {
-            throw new ConstitutionalViolation('Unknown contract for this organization.', 'CGA Forms Catalog (F-ORG-001)');
+            throw new ConstitutionalViolation(__('Unknown contract for this organization.'), 'CGA Forms Catalog (F-ORG-001)');
         }
 
         $agent  = $actor ?? User::query()->find($org->agent_user_id);
@@ -232,7 +228,7 @@ class OrganizationProfileManagement implements FormHandler
             ->find($payload['contract_id'] ?? null);
 
         if ($contract === null) {
-            throw new ConstitutionalViolation('Unknown contract for this organization.', 'CGA Forms Catalog (F-ORG-001)');
+            throw new ConstitutionalViolation(__('Unknown contract for this organization.'), 'CGA Forms Catalog (F-ORG-001)');
         }
 
         $result = $this->memberships->voidContract($contract);
@@ -249,8 +245,7 @@ class OrganizationProfileManagement implements FormHandler
         $key = trim((string) ($payload['key'] ?? ''));
 
         if ($key === '' || trim((string) ($payload['content'] ?? '')) === '') {
-            throw new ConstitutionalViolation(
-                'manage_document_package requires a key and the version content.',
+            throw new ConstitutionalViolation(__('manage_document_package requires a key and the version content.'),
                 'CGA Forms Catalog (F-ORG-001)'
             );
         }
@@ -258,8 +253,7 @@ class OrganizationProfileManagement implements FormHandler
         // The FormRegistry-collision rule runs in the validator pre-commit
         // (constitutional floor); this is the engine backstop.
         if (\App\Domain\Forms\FormRegistry::exists($key)) {
-            throw new ConstitutionalViolation(
-                "Document package key [{$key}] collides with a constitutional form ID.",
+            throw new ConstitutionalViolation(__('Document package key [:key] collides with a constitutional form ID.', ['key' => $key]),
                 'CGA Forms Catalog · as implemented'
             );
         }

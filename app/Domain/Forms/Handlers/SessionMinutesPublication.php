@@ -56,21 +56,20 @@ class SessionMinutesPublication implements FormHandler
         $session = LegislatureSession::query()->find($payload['session_id'] ?? null);
 
         if ($session === null) {
-            throw new ConstitutionalViolation('Unknown session.', 'Art. II §2 · as implemented');
+            throw new ConstitutionalViolation(__('Unknown session.'), 'Art. II §2 · as implemented');
         }
 
         $minutes = trim((string) ($payload['minutes_body'] ?? ''));
 
         if ($minutes === '') {
-            throw new ConstitutionalViolation('Minutes carry text (WF-SYS-03).', 'Art. II §2');
+            throw new ConstitutionalViolation(__('Minutes carry text (WF-SYS-03).'), 'Art. II §2');
         }
 
         if ($actor !== null) {
             $member = $this->currentMemberOf($actor, (string) $session->legislature_id);
 
             if ((string) $session->legislature->speaker_id !== (string) $member->id) {
-                throw new ConstitutionalViolation(
-                    'Minutes are published by the Speaker (or admin office staff / the system).',
+                throw new ConstitutionalViolation(__('Minutes are published by the Speaker (or admin office staff / the system).'),
                     'Art. II §3 · as implemented'
                 );
             }
