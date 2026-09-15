@@ -71,7 +71,7 @@ const deviceLabel = (d, resolved) => d.label || resolved;
             </template>
         </div>
 
-        <p class="text-xs text-neutral-500" role="status">
+        <p class="text-xs text-gray-300" role="status">
             <template v-if="connectionState === 'connecting'">{{ t('c_civic_components.voice_controls.status_connecting', 'Connecting to room audio. Your microphone and camera are off.') }}</template>
             <template v-else-if="connectionState === 'reconnecting'">{{ t('c_civic_components.voice_controls.status_reconnecting', 'Connection interrupted. Reconnecting…') }}</template>
             <template v-else-if="connectionState === 'connected' && audioBlocked">{{ t('c_civic_components.voice_controls.status_audio_blocked', 'Connected. Your browser paused audio; select Enable room audio to listen.') }}</template>
@@ -81,7 +81,7 @@ const deviceLabel = (d, resolved) => d.label || resolved;
         </p>
 
         <!-- Device pickers — appear once connected (labels need a granted permission). -->
-        <div v-if="connected(connectionState)" class="flex flex-wrap items-center gap-3 text-xs text-neutral-500">
+        <div v-if="connected(connectionState)" class="flex flex-wrap items-center gap-3 text-xs text-gray-300">
             <label v-if="devices.camera.length" class="inline-flex items-center gap-1" :title="t('c_civic_components.voice_controls.camera', 'Camera')">
                 <Video :size="13" class="shrink-0 opacity-70" aria-hidden="true" />
                 <span class="sr-only">{{ t('c_civic_components.voice_controls.camera_device', 'Camera device') }}</span>
