@@ -1,61 +1,61 @@
 {
-  "generated_at": "2026-09-15T16:46:37.503Z",
-  "source_keys": 14263,
-  "namespaces": 64,
+  "generated_at": "2026-09-15T19:02:30.898Z",
+  "source_keys": 15072,
+  "namespaces": 66,
   "locales": [
     {
       "locale": "ar",
-      "total": 14263,
+      "total": 15072,
       "present": 4312,
-      "missing": 9951,
+      "missing": 10760,
       "orphan": 8,
       "identical": 15,
-      "pct": 30.2
+      "pct": 28.6
     },
     {
       "locale": "es",
-      "total": 14263,
+      "total": 15072,
       "present": 4350,
-      "missing": 9913,
+      "missing": 10722,
       "orphan": 8,
       "identical": 26,
-      "pct": 30.5
+      "pct": 28.9
     },
     {
       "locale": "fr",
-      "total": 14263,
+      "total": 15072,
       "present": 4136,
-      "missing": 10127,
+      "missing": 10936,
       "orphan": 8,
       "identical": 32,
-      "pct": 29
+      "pct": 27.4
     },
     {
       "locale": "hi",
-      "total": 14263,
+      "total": 15072,
       "present": 4357,
-      "missing": 9906,
+      "missing": 10715,
       "orphan": 8,
       "identical": 19,
-      "pct": 30.5
+      "pct": 28.9
     },
     {
       "locale": "pt",
-      "total": 14263,
+      "total": 15072,
       "present": 4139,
-      "missing": 10124,
+      "missing": 10933,
       "orphan": 8,
       "identical": 31,
-      "pct": 29
+      "pct": 27.5
     },
     {
       "locale": "zh-Hans",
-      "total": 14263,
+      "total": 15072,
       "present": 4119,
-      "missing": 10144,
+      "missing": 10953,
       "orphan": 8,
       "identical": 12,
-      "pct": 28.9
+      "pct": 27.3
     }
   ],
   "by_namespace": [
@@ -85,7 +85,7 @@
     },
     {
       "namespace": "c_bill",
-      "total": 49,
+      "total": 86,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -109,7 +109,7 @@
     },
     {
       "namespace": "c_civic_components",
-      "total": 116,
+      "total": 117,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -133,7 +133,7 @@
     },
     {
       "namespace": "c_economy",
-      "total": 837,
+      "total": 840,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -157,7 +157,7 @@
     },
     {
       "namespace": "c_elections",
-      "total": 311,
+      "total": 405,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -228,6 +228,30 @@
       }
     },
     {
+      "namespace": "c_gap_elections_jurisdictions",
+      "total": 63,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_gap_legislature",
+      "total": 8,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "c_geodata",
       "total": 39,
       "locales": {
@@ -253,7 +277,7 @@
     },
     {
       "namespace": "c_institution_components",
-      "total": 447,
+      "total": 448,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -265,7 +289,7 @@
     },
     {
       "namespace": "c_institutions",
-      "total": 1032,
+      "total": 1188,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -301,7 +325,7 @@
     },
     {
       "namespace": "c_jurisdictions",
-      "total": 627,
+      "total": 636,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -337,7 +361,7 @@
     },
     {
       "namespace": "c_legislature_pages",
-      "total": 591,
+      "total": 592,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -349,7 +373,7 @@
     },
     {
       "namespace": "c_legislature_pages_b",
-      "total": 510,
+      "total": 534,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -361,7 +385,7 @@
     },
     {
       "namespace": "c_legislature_workspace",
-      "total": 94,
+      "total": 334,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -445,7 +469,7 @@
     },
     {
       "namespace": "c_references",
-      "total": 320,
+      "total": 482,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -457,7 +481,7 @@
     },
     {
       "namespace": "c_rooms",
-      "total": 83,
+      "total": 93,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -828,11 +852,11 @@
       }
     }
   ],
-  "failures": 60225,
+  "failures": 65079,
   "warnings": 4294,
   "failure_codes": {
     "C5-compile": 6,
-    "C1-missing": 60165,
+    "C1-missing": 65019,
     "C2-orphan": 48,
     "C4-idtoken": 6
   }

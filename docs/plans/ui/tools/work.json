@@ -16947,6 +16947,10 @@
         {
           "date": "2026-09-15",
           "note": "Created by the desk on the operator order of 2026-09-15 (12:45 PM Eastern)."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Gap lanes merged (3:05 PM Eastern): gap-elections-jurisdictions (eff4c684), gap-judiciary-exec-org (137d27df), gap-legislature (e56e2280; c_rooms.json union 93 keys). Pins green (9/8/7) and all 16 earlier wiring pins green (107). Running: civic-social (repair), shell-operator, system, js-registries (build); queued: content-data; PHP lanes a/b/support building."
         }
       ]
     },
@@ -17007,6 +17011,10 @@
         {
           "date": "2026-09-15",
           "note": "Created 2:20 PM Eastern. Roster and sign-in fixture build launched (wf_dde84f77-e24). Previous sweep denominator: 56 guest routes of 59 signed-in + about 90 parameterised page routes still unswept."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Roster merged (64e057fe): 251 routes classified by rule: 56 guest, 45 signed-in, 62 parameterised templates (50 resolved on box E, 12 with no row), 87 machine endpoints, 1 viewer-bound. Throwaway sweep account created; harness session state saved on box E (gitignored). Finding from id resolution: /organizations/{organization}/cgc returns 500 (CgcController::show declares Inertia\\Response but returns a RedirectResponse at line 59); fix queued after the php-b lane merges to avoid a conflict."
         }
       ]
     }
