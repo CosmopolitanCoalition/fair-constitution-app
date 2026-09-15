@@ -209,7 +209,7 @@ function etaSeconds(b) {
 
 function statusColor(b) {
     if (!b) return 'bg-gray-700'
-    if (b.status === 'done')    return 'bg-emerald-600'
+    if (b.status === 'done')    return 'bg-emerald-700'
     if (b.status === 'running') return 'bg-blue-500'
     return 'bg-gray-700'   // pending / unknown
 }
@@ -224,7 +224,7 @@ function trackColor(b) {
 // P.1.1: pending bars get dimmer text so the operator can scan and tell at a
 // glance which steps haven't started yet without reading the status word.
 function labelColor(b) {
-    if (!b || b.status === 'pending') return 'text-gray-500'
+    if (!b || b.status === 'pending') return 'text-gray-400'
     return 'text-gray-200'
 }
 
@@ -397,10 +397,10 @@ const hasAny = computed(() =>
             <header class="flex items-baseline justify-between text-xs text-gray-400 uppercase tracking-wider gap-3">
                 <span>{{ t('c_setup_components.stacked_progress_bars.sec_boundaries', 'Boundaries') }}</span>
                 <div class="flex items-baseline gap-3 normal-case tracking-normal">
-                    <span v-if="gbElapsed !== null" class="text-gray-500 text-[11px] tabular-nums">
+                    <span v-if="gbElapsed !== null" class="text-gray-400 text-[11px] tabular-nums">
                         {{ t('c_setup_components.stacked_progress_bars.total', 'total') }} {{ fmtDuration(gbElapsed) }}
                     </span>
-                    <span v-if="gbDoneCount" class="text-gray-500 text-[11px] tabular-nums">{{ gbDoneCount }} {{ t('c_setup_components.stacked_progress_bars.files_done', 'files done') }}</span>
+                    <span v-if="gbDoneCount" class="text-gray-400 text-[11px] tabular-nums">{{ gbDoneCount }} {{ t('c_setup_components.stacked_progress_bars.files_done', 'files done') }}</span>
                     <span v-if="phase === 'geoboundaries' && isRunning" class="text-blue-400">
                         {{ t('c_setup_components.stacked_progress_bars.in_progress', 'in progress') }}
                     </span>
@@ -409,7 +409,7 @@ const hasAny = computed(() =>
             <div class="space-y-1.5">
                 <div v-for="b in visibleGbBars" :key="b.key"
                      class="rounded border px-3 py-2"
-                     :class="[trackColor(b), b.status === 'pending' ? 'border-gray-800/60 opacity-70' : 'border-gray-800']">
+                     :class="[trackColor(b), b.status === 'pending' ? 'border-gray-800/60' : 'border-gray-800']">
                     <div class="flex items-baseline justify-between mb-1 gap-2">
                         <div class="text-sm truncate" :class="labelColor(b)">{{ b.label }}</div>
                         <div class="text-xs tabular-nums shrink-0"
@@ -425,7 +425,7 @@ const hasAny = computed(() =>
                                      the generic word "features" so the count reads as the
                                      plural of the unit actually being counted. -->
                                 {{ fmtNum(tweened(b)) }} / {{ fmtNum(b.total) }} {{ b.unit || t('c_setup_components.stacked_progress_bars.features', 'features') }}
-                                <span class="text-gray-500">({{ tweenedPct(b) }}%)</span>
+                                <span class="text-gray-400">({{ tweenedPct(b) }}%)</span>
                             </template>
                         </div>
                     </div>
@@ -444,22 +444,22 @@ const hasAny = computed(() =>
                          otherwise fall back to the raw sub_phase string. -->
                     <div v-if="b.status === 'running' && activeSubPhase"
                          class="mt-1 text-[10px] text-gray-400 tabular-nums">
-                        <span class="text-gray-500">{{ t('c_setup_components.stacked_progress_bars.currently', 'currently') }}</span>
+                        <span class="text-gray-400">{{ t('c_setup_components.stacked_progress_bars.currently', 'currently') }}</span>
                         <span class="text-gray-300 ml-1">{{ activeIso }}</span>
-                        <span class="text-gray-500 ml-1">·</span>
+                        <span class="text-gray-400 ml-1">·</span>
                         <template v-if="activeProgressCurrent != null && activeProgressTotal != null">
                             <span class="ml-1 capitalize">{{ activeProgressUnit || t('c_setup_components.stacked_progress_bars.features', 'features') }}</span>
                             <span class="ml-1">{{ fmtNum(_tweened['current:progress'] ?? activeProgressCurrent) }}</span>
-                            <span class="text-gray-500 ml-1">{{ t('c_setup_components.stacked_progress_bars.of', 'of') }}</span>
+                            <span class="text-gray-400 ml-1">{{ t('c_setup_components.stacked_progress_bars.of', 'of') }}</span>
                             <span class="ml-1">{{ fmtNum(activeProgressTotal) }}</span>
-                            <span class="text-gray-500 ml-1">({{ activeProgressPct }}%)</span>
+                            <span class="text-gray-400 ml-1">({{ activeProgressPct }}%)</span>
                         </template>
                         <template v-else>
                             <span class="ml-1">{{ activeSubPhase }}</span>
                         </template>
                     </div>
                     <div class="flex items-baseline justify-between mt-1 text-[10px] tabular-nums"
-                         :class="b.status === 'pending' ? 'text-gray-600' : 'text-gray-500'">
+                         :class="b.status === 'pending' ? 'text-gray-600' : 'text-gray-400'">
                         <span v-if="b.status === 'pending'">{{ t('c_setup_components.stacked_progress_bars.queued', 'queued') }}</span>
                         <span v-else>{{ t('c_setup_components.stacked_progress_bars.elapsed', 'elapsed') }} {{ fmtDuration(elapsedSeconds(b)) }}</span>
                         <span v-if="b.status === 'running' && etaSeconds(b)">
@@ -478,7 +478,7 @@ const hasAny = computed(() =>
             <header class="flex items-baseline justify-between text-xs text-gray-400 uppercase tracking-wider gap-3">
                 <span>{{ t('c_setup_components.stacked_progress_bars.sec_population', 'Population') }}</span>
                 <div class="flex items-baseline gap-3 normal-case tracking-normal">
-                    <span v-if="wpElapsed !== null" class="text-gray-500 text-[11px] tabular-nums">
+                    <span v-if="wpElapsed !== null" class="text-gray-400 text-[11px] tabular-nums">
                         {{ t('c_setup_components.stacked_progress_bars.total', 'total') }} {{ fmtDuration(wpElapsed) }}
                     </span>
                     <span v-if="phase === 'worldpop' && isRunning" class="text-blue-400">
@@ -503,7 +503,7 @@ const hasAny = computed(() =>
                              with ease-out, matching the per-bar smoothing. -->
                         {{ fmtNum(_tweened['wp:summary'] ?? wpSummary.done) }}
                         / {{ fmtNum(wpSummary.total) }}
-                        <span class="text-gray-500">({{ wpSummaryPctTweened }}%)</span>
+                        <span class="text-gray-400">({{ wpSummaryPctTweened }}%)</span>
                     </div>
                 </div>
                 <div class="h-2 rounded-full bg-gray-900/80 overflow-hidden">
@@ -522,10 +522,10 @@ const hasAny = computed(() =>
                         <div class="text-xs text-gray-400 tabular-nums shrink-0">
                             <template v-if="b.total">
                                 {{ fmtNum(b.current) }} / {{ fmtNum(b.total) }}
-                                <span class="text-gray-500">({{ pct(b) }}%)</span>
+                                <span class="text-gray-400">({{ pct(b) }}%)</span>
                             </template>
                             <template v-else>
-                                <span class="text-gray-500">—</span>
+                                <span class="text-gray-400">—</span>
                             </template>
                         </div>
                     </div>
@@ -534,7 +534,7 @@ const hasAny = computed(() =>
                              :class="statusColor(b)"
                              :style="{ width: (b.total ? pct(b) : (b.status === 'running' ? 60 : 100)) + '%' }"></div>
                     </div>
-                    <div class="flex items-baseline justify-between mt-1 text-[10px] text-gray-500 tabular-nums">
+                    <div class="flex items-baseline justify-between mt-1 text-[10px] text-gray-400 tabular-nums">
                         <span>{{ t('c_setup_components.stacked_progress_bars.elapsed', 'elapsed') }} {{ fmtDuration(elapsedSeconds(b)) }}</span>
                         <span v-if="b.status === 'running' && etaSeconds(b)">
                             {{ t('c_setup_components.stacked_progress_bars.eta', 'eta') }} {{ fmtDuration(etaSeconds(b)) }}
@@ -557,7 +557,7 @@ const hasAny = computed(() =>
             <header class="flex items-baseline justify-between text-xs text-gray-400 uppercase tracking-wider gap-3">
                 <span>{{ t('c_setup_components.stacked_progress_bars.sec_cleanup', 'Cleanup') }}</span>
                 <div class="flex items-baseline gap-3 normal-case tracking-normal">
-                    <span v-if="cleanupElapsed !== null" class="text-gray-500 text-[11px] tabular-nums">
+                    <span v-if="cleanupElapsed !== null" class="text-gray-400 text-[11px] tabular-nums">
                         {{ t('c_setup_components.stacked_progress_bars.total', 'total') }} {{ fmtDuration(cleanupElapsed) }}
                     </span>
                     <span v-if="phase === 'cleanup' && isRunning" class="text-blue-400">
@@ -568,7 +568,7 @@ const hasAny = computed(() =>
             <div class="space-y-1.5">
                 <div v-for="b in visibleCleanupBars" :key="b.key"
                      class="rounded border px-3 py-2"
-                     :class="[trackColor(b), b.status === 'pending' ? 'border-gray-800/60 opacity-70' : 'border-gray-800']">
+                     :class="[trackColor(b), b.status === 'pending' ? 'border-gray-800/60' : 'border-gray-800']">
                     <div class="flex items-baseline justify-between mb-1 gap-2">
                         <div class="text-sm truncate" :class="labelColor(b)">{{ b.label }}</div>
                         <div class="text-xs tabular-nums shrink-0"
@@ -578,13 +578,13 @@ const hasAny = computed(() =>
                             </template>
                             <template v-else-if="b.total">
                                 {{ fmtNum(tweened(b)) }} / {{ fmtNum(b.total) }} {{ b.unit || t('c_setup_components.stacked_progress_bars.features', 'features') }}
-                                <span class="text-gray-500">({{ tweenedPct(b) }}%)</span>
+                                <span class="text-gray-400">({{ tweenedPct(b) }}%)</span>
                             </template>
                             <template v-else>
                                 <!-- topological fallback's "passes" bar reads as 1 / 1 once
                                      the SQL UPDATE returns; before then we show a generic
                                      working-spinner indicator. -->
-                                <span class="text-gray-500">{{ b.status === 'running' ? t('c_setup_components.stacked_progress_bars.running', 'running…') : '—' }}</span>
+                                <span class="text-gray-400">{{ b.status === 'running' ? t('c_setup_components.stacked_progress_bars.running', 'running…') : '—' }}</span>
                             </template>
                         </div>
                     </div>
@@ -598,13 +598,13 @@ const hasAny = computed(() =>
                          for the headline counter to tick. -->
                     <div v-if="b.status === 'running' && b.key === 'cleanup:t3_correction' && activeIso"
                          class="mt-1 text-[10px] text-gray-400 tabular-nums">
-                        <span class="text-gray-500">{{ t('c_setup_components.stacked_progress_bars.currently', 'currently') }}</span>
+                        <span class="text-gray-400">{{ t('c_setup_components.stacked_progress_bars.currently', 'currently') }}</span>
                         <span class="text-gray-300 ml-1">{{ activeIso }}</span>
-                        <span v-if="activeSubPhase" class="text-gray-500 ml-1">·</span>
+                        <span v-if="activeSubPhase" class="text-gray-400 ml-1">·</span>
                         <span v-if="activeSubPhase" class="ml-1">{{ activeSubPhase }}</span>
                     </div>
                     <div class="flex items-baseline justify-between mt-1 text-[10px] tabular-nums"
-                         :class="b.status === 'pending' ? 'text-gray-600' : 'text-gray-500'">
+                         :class="b.status === 'pending' ? 'text-gray-600' : 'text-gray-400'">
                         <span v-if="b.status === 'pending'">{{ t('c_setup_components.stacked_progress_bars.queued', 'queued') }}</span>
                         <span v-else>{{ t('c_setup_components.stacked_progress_bars.elapsed', 'elapsed') }} {{ fmtDuration(elapsedSeconds(b)) }}</span>
                         <span v-if="b.status === 'running' && etaSeconds(b)">
@@ -619,7 +619,7 @@ const hasAny = computed(() =>
         </section>
     </div>
 
-    <div v-else class="text-xs text-gray-500 italic">
+    <div v-else class="text-xs text-gray-400 italic">
         {{ t('c_setup_components.stacked_progress_bars.waiting_etl', 'Waiting for the ETL to start…') }}
     </div>
 </template>

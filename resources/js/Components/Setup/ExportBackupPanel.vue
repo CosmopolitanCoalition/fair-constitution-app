@@ -176,7 +176,7 @@ onBeforeUnmount(() => {
             <button type="button"
                     @click="startExport"
                     :disabled="exportStarting"
-                    class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700
+                    class="bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-700
                            text-white px-4 py-1.5 rounded text-sm font-semibold">
                 {{ exportStarting ? t('c_setup_components.export_backup_panel.starting', 'Starting…') : t('c_setup_components.export_backup_panel.start_full_export', 'Start full export') }}
             </button>
@@ -194,7 +194,7 @@ onBeforeUnmount(() => {
                     <div class="flex items-center justify-between gap-2">
                         <div class="min-w-0 flex-1">
                             <div class="font-mono text-gray-300 truncate">{{ e.export_id }}</div>
-                            <div class="text-[10px] text-gray-500">
+                            <div class="text-[10px] text-gray-400">
                                 {{ t('c_setup_components.export_backup_panel.started', 'started') }} {{ formatRelative(e.started_at) }}
                                 <template v-if="e.completed_at">
                                     · {{ t('c_setup_components.export_backup_panel.finished', 'finished') }} {{ formatRelative(e.completed_at) }}
@@ -240,7 +240,7 @@ onBeforeUnmount(() => {
                             <button v-if="e.status !== 'running'"
                                     type="button"
                                     @click="deleteExport(e.export_id)"
-                                    class="text-[11px] text-gray-500 hover:text-red-400">
+                                    class="text-[11px] text-gray-400 hover:text-red-400">
                                 {{ t('c_setup_components.export_backup_panel.delete', 'delete') }}
                             </button>
                         </div>

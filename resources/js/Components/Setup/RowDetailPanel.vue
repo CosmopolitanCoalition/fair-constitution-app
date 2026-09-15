@@ -152,30 +152,30 @@ watch(
 
 <template>
     <div class="bg-gray-900 border-l-2 border-blue-500/60 rounded p-3 space-y-3">
-        <div v-if="loading" class="text-gray-500 text-xs italic">{{ t('c_setup_components.row_detail_panel.loading_detail', 'Loading detail…') }}</div>
+        <div v-if="loading" class="text-gray-400 text-xs italic">{{ t('c_setup_components.row_detail_panel.loading_detail', 'Loading detail…') }}</div>
         <div v-if="error && !loading" class="text-red-400 text-xs">{{ error }}</div>
 
         <template v-if="detail && !loading">
             <!-- ── Population gaps ─────────────────────────────────────────── -->
             <template v-if="category === 'population_gaps'">
                 <div class="grid grid-cols-2 gap-2 text-xs font-mono">
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_name', 'Name') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_name', 'Name') }}</div>
                     <div class="text-gray-200">{{ detail.row.name }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_iso_level', 'ISO / Level') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_iso_level', 'ISO / Level') }}</div>
                     <div class="text-gray-200">{{ detail.row.iso_code }} · {{ admLabel(detail.row.adm_level) }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_parent', 'Parent') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_parent', 'Parent') }}</div>
                     <div class="text-gray-200">
                         {{ detail.row.parent_name || '—' }}
-                        <span v-if="detail.row.parent_iso" class="text-gray-500">({{ detail.row.parent_iso }} · {{ admLabel(detail.row.parent_adm_level) }})</span>
+                        <span v-if="detail.row.parent_iso" class="text-gray-400">({{ detail.row.parent_iso }} · {{ admLabel(detail.row.parent_adm_level) }})</span>
                     </div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_area_km2', 'Area km²') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_area_km2', 'Area km²') }}</div>
                     <div class="text-gray-200">{{ fmtInt(detail.row.area_km2) }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_source', 'Source') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_source', 'Source') }}</div>
                     <div class="text-gray-200">{{ detail.row.source }}</div>
                 </div>
 
                 <div v-if="detail.siblings?.length">
-                    <div class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.siblings_at_level', 'Siblings at this level') }}</div>
+                    <div class="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.siblings_at_level', 'Siblings at this level') }}</div>
                     <table class="w-full text-xs font-mono">
                         <thead class="text-gray-600 text-[10px] uppercase">
                             <tr>
@@ -187,8 +187,8 @@ watch(
                         <tbody>
                             <tr v-for="s in detail.siblings" :key="s.id" class="border-t border-gray-800">
                                 <td class="py-1 text-gray-300 truncate max-w-[220px]">{{ s.name }}</td>
-                                <td class="py-1 text-right" :class="s.population > 0 ? 'text-emerald-300' : 'text-gray-500'">{{ fmtInt(s.population) }}</td>
-                                <td class="py-1 text-right text-gray-500">{{ fmtInt(s.area_km2) }}</td>
+                                <td class="py-1 text-right" :class="s.population > 0 ? 'text-emerald-300' : 'text-gray-400'">{{ fmtInt(s.population) }}</td>
+                                <td class="py-1 text-right text-gray-400">{{ fmtInt(s.area_km2) }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -198,24 +198,24 @@ watch(
             <!-- ── Aggregation discrepancies ─────────────────────────────── -->
             <template v-else-if="category === 'aggregation_discrepancies'">
                 <div class="grid grid-cols-2 gap-2 text-xs font-mono">
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_country', 'Country') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_country', 'Country') }}</div>
                     <div class="text-gray-200">{{ detail.parent.name }} ({{ detail.parent.iso_code }})</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.national_population', 'National population') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.national_population', 'National population') }}</div>
                     <div class="text-gray-200">{{ fmtInt(detail.rollup.parent_pop) }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.children_sum', 'Children sum') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.children_sum', 'Children sum') }}</div>
                     <div class="text-gray-200">{{ fmtInt(detail.rollup.children_sum) }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.delta', 'Delta') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.delta', 'Delta') }}</div>
                     <div :class="(detail.rollup.delta_pct ?? 0) < 0 ? 'text-red-400' : 'text-amber-300'">
                         {{ fmtInt(detail.rollup.delta) }}
                         <span class="text-gray-600">·</span>
                         {{ detail.rollup.delta_pct }}%
                     </div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.children', 'Children') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.children', 'Children') }}</div>
                     <div class="text-gray-200">{{ t('c_setup_components.row_detail_panel.children_have_pop', { withPop: detail.rollup.children_with_pop, total: detail.rollup.child_count }) }}</div>
                 </div>
 
                 <div>
-                    <div class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.children_largest_first', 'Children (largest first)') }}</div>
+                    <div class="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.children_largest_first', 'Children (largest first)') }}</div>
                     <div class="bg-black/40 rounded max-h-60 overflow-y-auto">
                         <table class="w-full text-xs font-mono">
                             <thead class="text-gray-600 text-[10px] uppercase sticky top-0 bg-black/80">
@@ -229,7 +229,7 @@ watch(
                                 <tr v-for="c in detail.children" :key="c.id" class="border-t border-gray-800">
                                     <td class="py-1 px-2 text-gray-300 truncate max-w-[220px]">{{ c.name }}</td>
                                     <td class="py-1 px-2 text-right" :class="c.population > 0 ? 'text-emerald-300' : 'text-red-400'">{{ fmtInt(c.population) }}</td>
-                                    <td class="py-1 px-2 text-right text-gray-500">{{ fmtInt(c.area_km2) }}</td>
+                                    <td class="py-1 px-2 text-right text-gray-400">{{ fmtInt(c.area_km2) }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -240,20 +240,20 @@ watch(
             <!-- ── Orphans ─────────────────────────────────────────────────── -->
             <template v-else-if="category === 'orphans'">
                 <div class="grid grid-cols-2 gap-2 text-xs font-mono">
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_name', 'Name') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_name', 'Name') }}</div>
                     <div class="text-gray-200">{{ detail.row.name }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_iso_level', 'ISO / Level') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_iso_level', 'ISO / Level') }}</div>
                     <div class="text-gray-200">{{ detail.row.iso_code }} · {{ admLabel(detail.row.adm_level) }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_population', 'Population') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_population', 'Population') }}</div>
                     <div class="text-gray-200">{{ fmtInt(detail.row.population) }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_area_km2', 'Area km²') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_area_km2', 'Area km²') }}</div>
                     <div class="text-gray-200">{{ fmtInt(detail.row.area_km2) }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_source', 'Source') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_source', 'Source') }}</div>
                     <div class="text-gray-200">{{ detail.row.source }}</div>
                 </div>
 
                 <div v-if="detail.spatial_candidates?.length">
-                    <div class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.spatial_candidates', 'Spatial overlap candidates (largest overlap first)') }}</div>
+                    <div class="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.spatial_candidates', 'Spatial overlap candidates (largest overlap first)') }}</div>
                     <div class="space-y-1">
                         <div
                             v-for="c in detail.spatial_candidates"
@@ -262,7 +262,7 @@ watch(
                         >
                             <div class="text-gray-200 truncate">
                                 {{ c.name }}
-                                <span class="text-gray-500">· {{ c.iso_code }} · {{ admLabel(c.adm_level) }}</span>
+                                <span class="text-gray-400">· {{ c.iso_code }} · {{ admLabel(c.adm_level) }}</span>
                             </div>
                             <div class="text-emerald-300/80 whitespace-nowrap">
                                 {{ fmtInt(c.overlap_km2) }} {{ t('c_setup_components.row_detail_panel.km2_overlap', 'km² overlap') }}
@@ -275,7 +275,7 @@ watch(
                 </div>
 
                 <div v-if="detail.centroid_candidates?.length">
-                    <div class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.centroid_candidates', 'Nearest-centroid candidates') }}</div>
+                    <div class="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.centroid_candidates', 'Nearest-centroid candidates') }}</div>
                     <div class="space-y-1">
                         <div
                             v-for="c in detail.centroid_candidates"
@@ -284,7 +284,7 @@ watch(
                         >
                             <div class="text-gray-200 truncate">
                                 {{ c.name }}
-                                <span class="text-gray-500">· {{ c.iso_code }} · {{ admLabel(c.adm_level) }}</span>
+                                <span class="text-gray-400">· {{ c.iso_code }} · {{ admLabel(c.adm_level) }}</span>
                             </div>
                             <div class="text-blue-300/80 whitespace-nowrap">
                                 {{ fmtInt(c.distance_km) }} {{ t('c_setup_components.row_detail_panel.km', 'km') }}
@@ -297,38 +297,38 @@ watch(
             <!-- ── Sovereign-territory candidates ──────────────────────── -->
             <template v-else-if="category === 'sovereign_territories'">
                 <div class="grid grid-cols-2 gap-2 text-xs font-mono">
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.territory_name', 'Territory name') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.territory_name', 'Territory name') }}</div>
                     <div class="text-gray-200">{{ detail.row.name }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.tagged_under_sovereign', 'Tagged under sovereign') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.tagged_under_sovereign', 'Tagged under sovereign') }}</div>
                     <div class="text-gray-200">{{ detail.sovereign }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.inferred_territory_iso', 'Inferred territory ISO') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.inferred_territory_iso', 'Inferred territory ISO') }}</div>
                     <div class="text-gray-200">{{ detail.territory_iso }}</div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.children_at_row', 'Children at this row') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.children_at_row', 'Children at this row') }}</div>
                     <div class="text-gray-200">
                         {{ fmtInt(detail.row.child_count) }}
-                        <span class="text-gray-500" v-if="detail.row.children_at_zero != null">
+                        <span class="text-gray-400" v-if="detail.row.children_at_zero != null">
                             {{ t('c_setup_components.row_detail_panel.incl_at_zero', { n: fmtInt(detail.row.children_at_zero) }) }}
                         </span>
                     </div>
-                    <div class="text-gray-500">{{ t('c_setup_components.row_detail_panel.label_area_km2', 'Area km²') }}</div>
+                    <div class="text-gray-400">{{ t('c_setup_components.row_detail_panel.label_area_km2', 'Area km²') }}</div>
                     <div class="text-gray-200">{{ fmtInt(detail.row.area_km2) }}</div>
                 </div>
 
                 <div class="bg-black/40 border border-gray-800 rounded p-2 text-xs font-mono">
-                    <div class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.worldpop_availability', 'WorldPop raster availability') }}</div>
+                    <div class="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.worldpop_availability', 'WorldPop raster availability') }}</div>
                     <div v-if="detail.raster_available === true" class="text-emerald-300">
                         ✓ {{ t('c_setup_components.row_detail_panel.found_at', 'Found at') }} <span class="text-gray-300">{{ detail.raster_path_hint }}</span>
                     </div>
                     <div v-else-if="detail.raster_available === false" class="text-red-400">
                         ✗ {{ t('c_setup_components.row_detail_panel.not_found_at', 'Not found at') }} <span class="text-gray-300">{{ detail.raster_path_hint }}</span>
                     </div>
-                    <div v-else class="text-gray-500 italic">
+                    <div v-else class="text-gray-400 italic">
                         {{ t('c_setup_components.row_detail_panel.archive_not_visible', 'Archive not visible from PHP — check manually inside the etl container.') }}
                     </div>
                 </div>
 
                 <div v-if="detail.siblings?.length">
-                    <div class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.siblings_under_sovereign', { sovereign: detail.sovereign }) }}</div>
+                    <div class="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{{ t('c_setup_components.row_detail_panel.siblings_under_sovereign', { sovereign: detail.sovereign }) }}</div>
                     <table class="w-full text-xs font-mono">
                         <thead class="text-gray-600 text-[10px] uppercase">
                             <tr>
@@ -341,7 +341,7 @@ watch(
                             <tr v-for="s in detail.siblings" :key="s.id" class="border-t border-gray-800">
                                 <td class="py-1 text-gray-300 truncate max-w-[220px]">{{ s.name }}</td>
                                 <td class="py-1 text-right text-emerald-300">{{ fmtInt(s.population) }}</td>
-                                <td class="py-1 text-right text-gray-500">{{ fmtInt(s.area_km2) }}</td>
+                                <td class="py-1 text-right text-gray-400">{{ fmtInt(s.area_km2) }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -354,7 +354,7 @@ watch(
                     <span>{{ t('c_setup_components.row_detail_panel.your_decision', 'Your decision') }}</span>
                     <span
                         v-if="detail.decision"
-                        class="text-[10px] font-mono text-gray-500"
+                        class="text-[10px] font-mono text-gray-400"
                     >
                         {{ t('c_setup_components.row_detail_panel.last_saved', 'Last saved:') }} {{ localeFmt.dateTime(new Date(detail.decision.updated_at)) }}
                     </span>
@@ -385,7 +385,7 @@ watch(
                 />
 
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-[10px] font-mono text-gray-500">
+                    <span class="text-[10px] font-mono text-gray-400">
                         {{ t('c_setup_components.row_detail_panel.no_autofix', 'No autofix — saving records your decision for later review or remediation.') }}
                     </span>
                     <button

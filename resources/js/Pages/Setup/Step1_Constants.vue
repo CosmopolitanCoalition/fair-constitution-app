@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
@@ -260,6 +260,7 @@ async function onSubmit() {
 
 <template>
     <div class="max-w-4xl mx-auto px-6 py-8 w-full">
+            <Head :title="t('c_setup.step1_constants.heading', 'Constitution & Economy Defaults')" />
             <SetupStepper :current="1" :completed="settings.setup_step_completed" :steps="settings.ladder" />
 
             <header class="mt-8 mb-6">
@@ -310,7 +311,7 @@ async function onSubmit() {
                     </button>
                 </div>
                 <p v-if="gameModeError" class="text-xs text-red-400 mt-3">{{ gameModeError }}</p>
-                <p v-else-if="gameModeSaving" class="text-xs text-gray-500 mt-3">{{ t('c_setup.step1_constants.saving', 'Saving…') }}</p>
+                <p v-else-if="gameModeSaving" class="text-xs text-gray-400 mt-3">{{ t('c_setup.step1_constants.saving', 'Saving…') }}</p>
             </section>
 
             <!-- ─────────── Legislature ─────────── -->
@@ -328,7 +329,7 @@ async function onSubmit() {
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.min_seats_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>5</span> · Art. II §2')"></p>
+                            <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.min_seats_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>5</span> · Art. II §2')"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
@@ -340,7 +341,7 @@ async function onSubmit() {
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.max_seats_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>9</span> (before mandatory subdivision) · Art. II §2')"></p>
+                            <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.max_seats_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>9</span> (before mandatory subdivision) · Art. II §2')"></p>
                         </div>
                     </div>
 
@@ -356,7 +357,7 @@ async function onSubmit() {
                                 {{ law.label }}
                             </option>
                         </select>
-                        <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.sizing_law_hint', 'Total legislature size is computed from population, then clamped to <code class=&quot;text-gray-400&quot;>[min, max]</code>, then partitioned into districts of size <code class=&quot;text-gray-400&quot;>[min_seats, max_seats]</code>.')"></p>
+                        <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.sizing_law_hint', 'Total legislature size is computed from population, then clamped to <code class=&quot;text-gray-400&quot;>[min, max]</code>, then partitioned into districts of size <code class=&quot;text-gray-400&quot;>[min_seats, max_seats]</code>.')"></p>
                     </div>
 
                     <div>
@@ -371,7 +372,7 @@ async function onSubmit() {
                                 {{ t.label }}
                             </option>
                         </select>
-                        <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.autoseed_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>Shortest split-line</span> · When an area earns more seats than the maximum but has no smaller subdivisions to group, the autoseeder cuts its territory directly using this method. The district mapper can still override per run.')"></p>
+                        <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.autoseed_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>Shortest split-line</span> · When an area earns more seats than the maximum but has no smaller subdivisions to group, the autoseeder cuts its territory directly using this method. The district mapper can still override per run.')"></p>
                     </div>
 
                     <div>
@@ -384,7 +385,7 @@ async function onSubmit() {
                             min="1"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                         />
-                        <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.max_days_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>90</span> days · Art. II §2')"></p>
+                        <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.max_days_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>90</span> days · Art. II §2')"></p>
                     </div>
                 </div>
             </section>
@@ -405,7 +406,7 @@ async function onSubmit() {
                                 max="1200"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">
+                            <p class="text-xs text-gray-400 mt-1">
                                 <span v-html="t('c_setup.step1_constants.election_interval_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>60</span> months (5 years) · Art. II §2')"></span>
                                 <span v-if="acceleratedHint" class="block">{{ acceleratedHint }}</span>
                             </p>
@@ -422,7 +423,7 @@ async function onSubmit() {
                                     {{ m.label }}
                                 </option>
                             </select>
-                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.voting_method_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>STV Droop</span> · Art. II §2 · currently the only implemented algorithm.')"></p>
+                            <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.voting_method_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>STV Droop</span> · Art. II §2 · currently the only implemented algorithm.')"></p>
                         </div>
                     </div>
 
@@ -437,7 +438,7 @@ async function onSubmit() {
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.special_min_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>90</span> days · Art. II §5')"></p>
+                            <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.special_min_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>90</span> days · Art. II §5')"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
@@ -452,7 +453,7 @@ async function onSubmit() {
                             <p
                                 :class="[
                                     'text-xs mt-1',
-                                    specialElectionValid ? 'text-gray-500' : 'text-red-400',
+                                    specialElectionValid ? 'text-gray-400' : 'text-red-400',
                                 ]"
                                 v-html="t('c_setup.step1_constants.special_max_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>180</span> days · Art. II §5 · must be ≥ min.')"
                             ></p>
@@ -477,7 +478,7 @@ async function onSubmit() {
                                     min="1"
                                     class="w-16 bg-gray-950 border border-gray-700 rounded-md px-2 py-2 text-gray-100 text-center"
                                 />
-                                <span class="text-gray-500">/</span>
+                                <span class="text-gray-400">/</span>
                                 <input
                                     v-model.number="supermajorityD" :aria-label="t('c_setup.step1_constants.supermajority_denominator', 'Supermajority denominator')"
                                     type="number"
@@ -489,7 +490,7 @@ async function onSubmit() {
                             <p
                                 :class="[
                                     'text-xs mt-1',
-                                    supermajorityValid ? 'text-gray-500' : 'text-red-400',
+                                    supermajorityValid ? 'text-gray-400' : 'text-red-400',
                                 ]"
                                 v-html="t('c_setup.step1_constants.supermajority_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>2/3</span> · Art. VII · must exceed 1/2 (simple majority).')"
                             ></p>
@@ -504,7 +505,7 @@ async function onSubmit() {
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.emergency_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>90</span> days · Art. II §7')"></p>
+                            <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.emergency_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>90</span> days · Art. II §7')"></p>
                         </div>
                     </div>
 
@@ -520,7 +521,7 @@ async function onSubmit() {
                             step="0.01"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                         />
-                        <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.initiative_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>5.00%</span> · Art. II §6')"></p>
+                        <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.initiative_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>5.00%</span> · Art. II §6')"></p>
                     </div>
                 </div>
             </section>
@@ -540,7 +541,7 @@ async function onSubmit() {
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.civil_term_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>10</span> years · Art. II §9')"></p>
+                            <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.civil_term_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>10</span> years · Art. II §9')"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
@@ -552,7 +553,7 @@ async function onSubmit() {
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.judicial_term_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>10</span> years · Art. IV §4')"></p>
+                            <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.judicial_term_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>10</span> years · Art. IV §4')"></p>
                         </div>
                     </div>
 
@@ -567,7 +568,7 @@ async function onSubmit() {
                                 min="1"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.min_judges_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>5</span> · Art. IV §4')"></p>
+                            <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.min_judges_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>5</span> · Art. IV §4')"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
@@ -593,7 +594,7 @@ async function onSubmit() {
                                     {{ t('c_setup.step1_constants.judiciary_elected', 'Elected') }}
                                 </label>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.judiciary_method_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>Appointed</span> · Art. IV §1')"></p>
+                            <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.judiciary_method_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>Appointed</span> · Art. IV §1')"></p>
                         </div>
                     </div>
                 </div>
@@ -613,7 +614,7 @@ async function onSubmit() {
                             min="1"
                             class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                         />
-                        <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.worker_min_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>100</span> · Art. III §6')"></p>
+                        <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.worker_min_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>100</span> · Art. III §6')"></p>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-200 mb-1">
@@ -628,7 +629,7 @@ async function onSubmit() {
                         <p
                             :class="[
                                 'text-xs mt-1',
-                                workerThresholdsValid ? 'text-gray-500' : 'text-red-400',
+                                workerThresholdsValid ? 'text-gray-400' : 'text-red-400',
                             ]"
                             v-html="t('c_setup.step1_constants.worker_parity_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>2000</span> · Art. III §6 · must be ≥ first-seat threshold.')"
                         ></p>
@@ -649,7 +650,7 @@ async function onSubmit() {
                         min="1"
                         class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                     />
-                    <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.residency_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>30</span> days of qualifying GPS pings before residency is confirmed and voting/candidacy rights unlock.')"></p>
+                    <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.residency_hint', 'Default of defaults: <span class=&quot;text-gray-300&quot;>30</span> days of qualifying GPS pings before residency is confirmed and voting/candidacy rights unlock.')"></p>
                 </div>
             </section>
 
@@ -670,7 +671,7 @@ async function onSubmit() {
                                 type="text"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">{{ t('c_setup.step1_constants.currency_name_hint', 'The abstract unit of account.') }}</p>
+                            <p class="text-xs text-gray-400 mt-1">{{ t('c_setup.step1_constants.currency_name_hint', 'The abstract unit of account.') }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
@@ -681,7 +682,7 @@ async function onSubmit() {
                                 type="text"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">{{ t('c_setup.step1_constants.currency_symbol_hint', 'Shown on wallets and the exchange.') }}</p>
+                            <p class="text-xs text-gray-400 mt-1">{{ t('c_setup.step1_constants.currency_symbol_hint', 'Shown on wallets and the exchange.') }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
@@ -692,7 +693,7 @@ async function onSubmit() {
                                 type="text"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1">{{ t('c_setup.step1_constants.currency_code_hint', 'Short ticker, e.g. CVU.') }}</p>
+                            <p class="text-xs text-gray-400 mt-1">{{ t('c_setup.step1_constants.currency_code_hint', 'Short ticker, e.g. CVU.') }}</p>
                         </div>
                     </div>
 
@@ -707,7 +708,7 @@ async function onSubmit() {
                                 min="0"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.stipend_floor_hint', 'Everyone with active residency receives this. Default: <span class=&quot;text-gray-300&quot;>50</span>')"></p>
+                            <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.stipend_floor_hint', 'Everyone with active residency receives this. Default: <span class=&quot;text-gray-300&quot;>50</span>')"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-200 mb-1">
@@ -719,7 +720,7 @@ async function onSubmit() {
                                 min="0"
                                 class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                             />
-                            <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.bump_cap_hint', 'The most the role differentials can add. Default: <span class=&quot;text-gray-300&quot;>20</span>')"></p>
+                            <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.bump_cap_hint', 'The most the role differentials can add. Default: <span class=&quot;text-gray-300&quot;>20</span>')"></p>
                         </div>
                     </div>
 
@@ -736,7 +737,7 @@ async function onSubmit() {
                                     min="0"
                                     class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                                 />
-                                <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.pay_node_hint', 'Civic-duty pay for the people running nodes. Default: <span class=&quot;text-gray-300&quot;>8</span>')"></p>
+                                <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.pay_node_hint', 'Civic-duty pay for the people running nodes. Default: <span class=&quot;text-gray-300&quot;>8</span>')"></p>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-200 mb-1">
@@ -748,7 +749,7 @@ async function onSubmit() {
                                     min="0"
                                     class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                                 />
-                                <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.pay_moderator_hint', 'Civic-duty pay for moderators. Default: <span class=&quot;text-gray-300&quot;>5</span>')"></p>
+                                <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.pay_moderator_hint', 'Civic-duty pay for moderators. Default: <span class=&quot;text-gray-300&quot;>5</span>')"></p>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-200 mb-1">
@@ -760,7 +761,7 @@ async function onSubmit() {
                                     min="0"
                                     class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                                 />
-                                <p class="text-xs text-gray-500 mt-1" v-html="t('c_setup.step1_constants.pay_officer_hint', 'Civic-duty pay for elected &amp; appointed officers. Default: <span class=&quot;text-gray-300&quot;>12</span>')"></p>
+                                <p class="text-xs text-gray-400 mt-1" v-html="t('c_setup.step1_constants.pay_officer_hint', 'Civic-duty pay for elected &amp; appointed officers. Default: <span class=&quot;text-gray-300&quot;>12</span>')"></p>
                             </div>
                         </div>
                     </div>
@@ -777,7 +778,7 @@ async function onSubmit() {
                                 {{ i.label }}
                             </option>
                         </select>
-                        <p class="text-xs text-gray-500 mt-1">
+                        <p class="text-xs text-gray-400 mt-1">
                             {{ t('c_setup.step1_constants.stipend_interval_hint', 'How often the economic clock pays out.') }}
                         </p>
                     </div>

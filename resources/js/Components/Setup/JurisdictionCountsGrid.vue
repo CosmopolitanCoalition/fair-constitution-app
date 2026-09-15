@@ -71,7 +71,7 @@ function pct(withPop, count) {
                 :style="{ width: pct(e.with_pop, e.count) + '%' }"
             />
             <div class="relative">
-                <div class="text-gray-500 text-xs">
+                <div class="text-gray-400 text-xs">
                     {{ e.label }}
                 </div>
                 <div class="text-gray-100 font-mono text-lg leading-tight">

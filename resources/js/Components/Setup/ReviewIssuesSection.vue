@@ -281,7 +281,7 @@ function admLabel(lvl) {
         <!-- Coverage line -->
         <div
             v-if="review?.totals"
-            class="text-xs font-mono text-gray-500 mb-4"
+            class="text-xs font-mono text-gray-400 mb-4"
         >
             {{ t('c_setup_components.review_issues_section.coverage_line', { withPop: fmtInt(review.totals.with_population), total: fmtInt(review.totals.jurisdictions) }) }}
             (<span class="text-emerald-400">{{ review.totals.pct_with_population }}%</span>)
@@ -300,8 +300,8 @@ function admLabel(lvl) {
             <div
                 v-for="cat in visibleCategories"
                 :key="cat.key"
-                class="border border-gray-800 rounded-md overflow-hidden bg-gray-950"
-                :class="{ 'opacity-60': acknowledged[cat.key] }"
+                class="border rounded-md overflow-hidden bg-gray-950"
+                :class="acknowledged[cat.key] ? 'border-emerald-900/60' : 'border-gray-800'"
             >
                 <!-- Header row (clickable to expand) -->
                 <button
@@ -320,13 +320,13 @@ function admLabel(lvl) {
                                     class="text-emerald-400 font-mono text-[10px]"
                                 >✓ {{ t('c_setup_components.review_issues_section.acknowledged', 'acknowledged') }}</span>
                             </div>
-                            <div class="text-gray-500 text-xs">
+                            <div class="text-gray-400 text-xs">
                                 {{ fmtInt(cat.count) }} {{ cat.count === 1 ? t('c_setup_components.review_issues_section.row', 'row') : t('c_setup_components.review_issues_section.rows', 'rows') }}
                             </div>
                         </div>
                     </div>
                     <span
-                        class="text-gray-500 text-lg font-mono leading-none"
+                        class="text-gray-400 text-lg font-mono leading-none"
                         :class="{ 'rotate-90': expanded[cat.key] }"
                         style="transition: transform 200ms"
                     >▸</span>
@@ -360,7 +360,7 @@ function admLabel(lvl) {
 
                     <!-- Top-ISO chips for orphans -->
                     <div v-if="cat.topIso?.length" class="flex flex-wrap gap-1.5">
-                        <span class="text-[10px] font-mono text-gray-500 self-center">{{ t('c_setup_components.review_issues_section.top_countries', 'Top countries:') }}</span>
+                        <span class="text-[10px] font-mono text-gray-400 self-center">{{ t('c_setup_components.review_issues_section.top_countries', 'Top countries:') }}</span>
                         <span
                             v-for="iso in cat.topIso"
                             :key="iso.iso_code"
@@ -400,7 +400,7 @@ function admLabel(lvl) {
                         v-if="cat.key === 'parent_assignment_audit' && Object.keys(cat.byStrategy).length"
                         class="flex flex-wrap gap-1.5"
                     >
-                        <span class="text-[10px] font-mono text-gray-500 self-center">
+                        <span class="text-[10px] font-mono text-gray-400 self-center">
                             {{ t('c_setup_components.review_issues_section.click_strategy', 'Click a strategy to drill into rows resolved that way:') }}
                         </span>
                         <button
@@ -420,7 +420,7 @@ function admLabel(lvl) {
                         v-if="cat.key === 'population_assignment_audit' && Object.keys(cat.bySource).length"
                         class="flex flex-wrap gap-1.5"
                     >
-                        <span class="text-[10px] font-mono text-gray-500 self-center">
+                        <span class="text-[10px] font-mono text-gray-400 self-center">
                             {{ t('c_setup_components.review_issues_section.click_source', 'Click a source to drill into rows whose population came from it:') }}
                         </span>
                         <button
@@ -436,7 +436,7 @@ function admLabel(lvl) {
                     </div>
 
                     <!-- Loading / error -->
-                    <div v-if="loading[cat.key]" class="text-gray-500 text-xs italic">{{ t('c_setup_components.review_issues_section.loading_rows', 'Loading rows…') }}</div>
+                    <div v-if="loading[cat.key]" class="text-gray-400 text-xs italic">{{ t('c_setup_components.review_issues_section.loading_rows', 'Loading rows…') }}</div>
                     <div v-if="fetchError[cat.key]" class="text-red-400 text-xs">{{ fetchError[cat.key] }}</div>
 
                     <!-- Row table — click any row to expand for full detail + decision form -->
@@ -445,7 +445,7 @@ function admLabel(lvl) {
                         class="bg-black/40 border border-gray-800 rounded overflow-x-auto"
                     >
                         <table class="w-full text-xs font-mono text-gray-300">
-                            <thead class="text-gray-500 text-[10px] uppercase">
+                            <thead class="text-gray-400 text-[10px] uppercase">
                                 <tr>
                                     <th class="w-6 px-1 py-1.5"></th>
                                     <th class="text-left px-2 py-1.5">{{ t('c_setup_components.review_issues_section.col_name', 'Name') }}</th>
@@ -466,7 +466,7 @@ function admLabel(lvl) {
                                     >
                                         <td class="px-1 py-1 text-center">
                                             <span
-                                                class="text-gray-500 inline-block leading-none"
+                                                class="text-gray-400 inline-block leading-none"
                                                 :class="{ 'rotate-90 text-gray-200': expandedRow[cat.key] === row.id }"
                                                 style="transition: transform 150ms"
                                             >▸</span>
@@ -479,8 +479,8 @@ function admLabel(lvl) {
                                                 :title="t('c_setup_components.review_issues_section.decision_saved_title', 'Decision saved this session')"
                                             >✓</span>
                                         </td>
-                                        <td class="px-2 py-1 text-gray-500">{{ row.iso_code }}</td>
-                                        <td class="px-2 py-1 text-gray-500">{{ admLabel(row.adm_level) }}</td>
+                                        <td class="px-2 py-1 text-gray-400">{{ row.iso_code }}</td>
+                                        <td class="px-2 py-1 text-gray-400">{{ admLabel(row.adm_level) }}</td>
                                         <td class="px-2 py-1 text-right" v-if="cat.key === 'aggregation_discrepancies'">
                                             {{ fmtInt(row.delta) }}
                                         </td>
@@ -494,7 +494,7 @@ function admLabel(lvl) {
                                         <td class="px-2 py-1 text-right text-gray-400" v-if="cat.key !== 'aggregation_discrepancies'">
                                             {{ row.population != null ? fmtInt(row.population) : '—' }}
                                         </td>
-                                        <td class="px-2 py-1 text-right text-gray-500" v-if="cat.key !== 'aggregation_discrepancies'">
+                                        <td class="px-2 py-1 text-right text-gray-400" v-if="cat.key !== 'aggregation_discrepancies'">
                                             {{ row.area_km2 != null ? fmtInt(row.area_km2) : '—' }}
                                         </td>
                                     </tr>
@@ -520,7 +520,7 @@ function admLabel(lvl) {
 
                     <!-- Pagination + actions -->
                     <div class="flex items-center justify-between gap-3 pt-1">
-                        <div class="text-[10px] font-mono text-gray-500">
+                        <div class="text-[10px] font-mono text-gray-400">
                             <template v-if="fetchedRows[cat.key]?.length">
                                 {{ t('c_setup_components.review_issues_section.showing', { shown: fetchedRows[cat.key].length, total: fmtInt(totals[cat.key]) }) }}
                             </template>

@@ -1,7 +1,7 @@
 <script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
 const localeFmt = useLocaleFormat();
 import { ref } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
@@ -56,6 +56,7 @@ function goHome() {
 
 <template>
     <div class="max-w-4xl mx-auto px-6 py-8 w-full">
+        <Head :title="t('c_setup.step6_confirm.heading', 'Confirm & Close')" />
         <SetupStepper :current="6" :completed="settings.setup_step_completed" :steps="settings.ladder" />
 
         <header class="mt-8 mb-6">
@@ -69,22 +70,22 @@ function goHome() {
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step6_confirm.legislatures', 'Legislatures') }}</div>
                 <div class="text-white text-3xl font-semibold mt-2">{{ localeFmt.number(summary.legislatures) }}</div>
-                <div class="text-gray-500 text-xs mt-2">{{ t('c_setup.step6_confirm.legislatures_note', 'One per jurisdiction, sized by the cube-root law.') }}</div>
+                <div class="text-gray-400 text-xs mt-2">{{ t('c_setup.step6_confirm.legislatures_note', 'One per jurisdiction, sized by the cube-root law.') }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step6_confirm.districts', 'Districts') }}</div>
                 <div class="text-white text-3xl font-semibold mt-2">{{ localeFmt.number(summary.districts) }}</div>
-                <div class="text-gray-500 text-xs mt-2">{{ t('c_setup.step6_confirm.districts_note', 'Drawn in Step 3.') }}</div>
+                <div class="text-gray-400 text-xs mt-2">{{ t('c_setup.step6_confirm.districts_note', 'Drawn in Step 3.') }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step6_confirm.executives', 'Executives') }}</div>
                 <div class="text-white text-3xl font-semibold mt-2">{{ localeFmt.number(summary.existing_executives) }}</div>
-                <div class="text-gray-500 text-xs mt-2">{{ t('c_setup.step6_confirm.executives_note', 'Provisioned in Step 4, or by activation.') }}</div>
+                <div class="text-gray-400 text-xs mt-2">{{ t('c_setup.step6_confirm.executives_note', 'Provisioned in Step 4, or by activation.') }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step6_confirm.courts', 'Courts') }}</div>
                 <div class="text-white text-3xl font-semibold mt-2">{{ localeFmt.number(summary.existing_judiciaries) }}</div>
-                <div class="text-gray-500 text-xs mt-2">{{ t('c_setup.step6_confirm.courts_note', 'Benches sized by the bench law.') }}</div>
+                <div class="text-gray-400 text-xs mt-2">{{ t('c_setup.step6_confirm.courts_note', 'Benches sized by the bench law.') }}</div>
             </div>
         </section>
 
@@ -118,7 +119,7 @@ function goHome() {
                 type="button"
                 :disabled="finishing"
                 @click="finishSetup"
-                class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
+                class="bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
             >
                 {{ finishing ? t('c_setup.step6_confirm.btn_closing', 'Closing…') : t('c_setup.step6_confirm.btn_finish', 'Finish Setup →') }}
             </button>

@@ -170,7 +170,7 @@ function startImport() {
                             class="text-[10px] px-2 py-0.5 rounded border bg-gray-800 border-gray-700 text-gray-300 hover:text-white disabled:opacity-50">
                         {{ t('c_setup_components.import_backup_panel.none', 'None') }}
                     </button>
-                    <span class="text-[10px] text-gray-500 italic ml-2">
+                    <span class="text-[10px] text-gray-400 italic ml-2">
                         {{ t('c_setup_components.import_backup_panel.picker_note', 'Only tables actually present in the uploaded bundle get restored — un-selected tables on this instance are left alone.') }}
                     </span>
                 </div>
@@ -201,11 +201,11 @@ function startImport() {
             <button type="button"
                     @click="startImport"
                     :disabled="!importFile || disabled || importing || noneSelected"
-                    class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700
+                    class="bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-700
                            text-white px-4 py-1.5 rounded text-sm font-semibold">
                 {{ importing ? (importPhase === 'uploading' ? t('c_setup_components.import_backup_panel.uploading', 'Uploading…') : t('c_setup_components.import_backup_panel.restoring', 'Restoring…')) : t('c_setup_components.import_backup_panel.upload_restore', 'Upload & restore') }}
             </button>
-            <span v-if="importFile && !importing" class="text-xs text-gray-500">
+            <span v-if="importFile && !importing" class="text-xs text-gray-400">
                 {{ formatFile(importFile) }}
             </span>
         </div>
@@ -213,7 +213,7 @@ function startImport() {
         <!-- Upload progress bar — only during upload phase. -->
         <div v-if="importing" class="mt-3">
             <div class="h-2 bg-gray-800 rounded overflow-hidden">
-                <div class="h-2 bg-emerald-600 transition-all duration-200"
+                <div class="h-2 bg-emerald-700 transition-all duration-200"
                      :style="{ width: importPhase === 'uploading' ? (importProgress + '%') : '100%' }"></div>
             </div>
             <div class="text-[11px] text-gray-400 mt-1">

@@ -178,7 +178,7 @@ const stoppedOnException = computed(() => Boolean(props.failed?.stopped_on_excep
                     type="button"
                     @click="sendErrorResolution('retry')"
                     :disabled="!!errorActionPending"
-                    class="text-sm px-3 py-1.5 rounded bg-emerald-700 hover:bg-emerald-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold"
+                    class="text-sm px-3 py-1.5 rounded bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold"
                     :title="t('c_setup_components.live_progress.retry_title', 'Re-run this country. Useful if you fixed the underlying issue (e.g. restored a corrupted file).')"
                 >
                     {{ errorActionPending === 'retry' ? t('c_setup_components.live_progress.retrying', 'Retrying…') : t('c_setup_components.live_progress.retry', 'Retry') }}

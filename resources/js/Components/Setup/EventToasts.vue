@@ -168,7 +168,7 @@ const noEvents = computed(() => (props.events || []).length === 0)
                     {{ t('c_setup_components.event_toasts.events', 'Events') }}
                     <span class="text-red-400 ml-2" v-if="errorCount" data-no-i18n>{{ errorCount }}E</span>
                     <span class="text-amber-400 ml-1" v-if="warnCount" data-no-i18n>{{ warnCount }}W</span>
-                    <span class="text-gray-500 ml-1" v-if="infoCount" data-no-i18n>{{ infoCount }}i</span>
+                    <span class="text-gray-400 ml-1" v-if="infoCount" data-no-i18n>{{ infoCount }}i</span>
                 </span>
                 <span>{{ feedExpanded ? '▾' : '▸' }}</span>
             </button>
@@ -183,7 +183,7 @@ const noEvents = computed(() => (props.events || []).length === 0)
                     <span class="text-gray-600 tabular-nums shrink-0">{{ fmtTime(e.ts) || '—' }}</span>
                     <span class="uppercase text-[10px] tracking-wider shrink-0 w-12">{{ e.level }}</span>
                     <span class="shrink-0">{{ eventLabel(e) }}</span>
-                    <span class="text-gray-500 truncate">{{ e.msg }}</span>
+                    <span class="text-gray-400 truncate">{{ e.msg }}</span>
                 </div>
                 <div v-if="!allFeed.length" class="text-gray-600 italic">
                     {{ t('c_setup_components.event_toasts.no_events_yet', 'No events yet.') }}
