@@ -12875,6 +12875,10 @@
         {
           "date": "2026-09-15",
           "note": "Now depends on W-0445 (gap fill) per the operator order of 2026-09-15; W-0446 (export/import page) follows the gap fill."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "OPERATOR RULING (7:00 PM Eastern): once a11y closes, l10n starts and runs language after language through the night (six conference locales, then pl, it, tr, then the rest of the 75). Translated catalogues are CODE: every imported language is committed and pushed to GitHub (unlike ingested geodata). Ollama with llama3.1:8b is started on box E for the pass."
         }
       ]
     },
@@ -17083,6 +17087,10 @@
         {
           "date": "2026-09-15",
           "note": "GUEST ROSTER COMPLETE 6:50 PM Eastern: 55 of 55 guest pages pass as a guest after the 09-15 fixes (three heavy pages passed at the 150 s budget: building 55 s, legislatures 96 s, coverage-ops 25 s). Signed-in standing: 145 of 155 pages pass; remaining: wizard steps 1 to 6 (lane building), the jurisdiction map re-run, the boardroom page (ruling pending)."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "OPERATOR RULING (7:00 PM Eastern): no manual screen-reader review for this campaign; the machine checks (axe WCAG 2.1 AA at two widths, overflow, keyboard walk) on every roster route are the standard. Done-when stands as written."
         }
       ]
     }
