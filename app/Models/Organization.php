@@ -103,12 +103,15 @@ class Organization extends Model
         'created_by_law_id',
         'board_id',
         'registration_record_id',
+        // Phase J (W-0300): the voluntary public-domain charter.
+        'public_domain_charter',
     ];
 
     protected $casts = [
         'is_cgc' => 'boolean',
         'worker_count' => 'integer',
         'ip_is_public_domain' => 'boolean',
+        'public_domain_charter' => 'boolean',
         'is_active' => 'boolean',
         'is_registered' => 'boolean',
         'registered_at' => 'datetime',
@@ -132,7 +135,32 @@ class Organization extends Model
                     .'ip_is_public_domain cannot flip false on a CGC (Art. III §5).'
                 );
             }
+
+            // Phase J (W-0300): the voluntary charter is one-way. An organisation
+            // that dedicated its work to the public domain cannot take it back;
+            // the dedications already stand and the charter says so.
+            if ($org->exists && $org->getOriginal('public_domain_charter') === true && $org->public_domain_charter === false) {
+                throw new \RuntimeException(
+                    'The public-domain charter is irreversible: public_domain_charter cannot flip false once adopted.'
+                );
+            }
         });
+    }
+
+    /**
+     * Phase J (W-0300): the ONE authority on why this organisation's work is
+     * public domain. 'mandate' is Art. III §5 (a Common Good Corporation, which
+     * the Template requires); 'voluntary' is the charter an organisation chose
+     * (the Template is silent); null is neither. The register's per-row
+     * dedication_basis must agree with this, never with a literal.
+     */
+    public function publicDomainBasis(): ?string
+    {
+        if ($this->is_cgc && $this->ip_is_public_domain) {
+            return 'mandate';
+        }
+
+        return $this->public_domain_charter ? 'voluntary' : null;
     }
 
     public function jurisdiction(): BelongsTo

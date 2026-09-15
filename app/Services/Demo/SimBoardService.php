@@ -185,6 +185,34 @@ class SimBoardService
         return $out;
     }
 
+    /**
+     * Provision (if absent) and seat one organisation's owner-side board with the
+     * given holders, as a system act (Phase J, W-0300: the Foundation's
+     * member-elected board on a synthetic world). Idempotent: an existing board
+     * is kept and only its vacant owner-elected seats are filled.
+     *
+     * @param list<string> $holderUserIds
+     * @return int seats newly seated
+     */
+    public function seatOrganizationBoard(Organization $org, int $seats, array $holderUserIds, string $jurisdictionId): int
+    {
+        if ($holderUserIds === []) {
+            return 0;
+        }
+
+        $board = $org->board_id !== null ? Board::query()->find($org->board_id) : null;
+        if ($board === null) {
+            $board = $this->boards->provision($org, $seats);
+        }
+
+        $seated = $this->seatVacant($board, BoardSeat::CLASS_OWNER_ELECTED, $holderUserIds, $jurisdictionId);
+        if ($seated > 0) {
+            $board->forceFill(['status' => Board::STATUS_ACTIVE, 'composition_valid' => true])->save();
+        }
+
+        return $seated;
+    }
+
     /** Seat every vacant seat of a class with holders (system act). */
     private function seatVacant(Board $board, string $seatClass, array $holders, string $jurisdictionId): int
     {

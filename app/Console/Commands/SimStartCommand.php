@@ -168,6 +168,15 @@ class SimStartCommand extends Command
             $scopeRootId = $run->options['scope_jurisdiction_id'] ?? null;
         }
 
+        // Phase J (W-0300, operator order 2026-09-14): the sim world load carries
+        // the two real nonprofits at New York County, New York. Idempotent, and a
+        // failure here never stops the run; it is reported and the run goes on.
+        try {
+            $seeded = app(\App\Services\Organizations\CoalitionSeedService::class)->ensure();
+            $this->line('coalition seed: '.$seeded['status'].(isset($seeded['written']) && $seeded['written'] !== [] ? ' ('.implode(', ', $seeded['written']).')' : '').(isset($seeded['reason']) ? ' — '.$seeded['reason'] : ''));
+        } catch (\Throwable $e) {
+            $this->warn('coalition seed failed: '.$e->getMessage());
+        }
         $minted = $this->enumerateCohorts($run, $admMax, $limit,
             $scopeRootId ?? ($run->options['scope_jurisdiction_id'] ?? null));
 
