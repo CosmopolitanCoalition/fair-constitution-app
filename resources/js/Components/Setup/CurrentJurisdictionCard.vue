@@ -1,7 +1,10 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import MiniMap from './MiniMap.vue'
 import QueueBadges from './QueueBadges.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
     current:   { type: Object, default: null },
@@ -72,15 +75,15 @@ const admLabel = computed(() => {
     // SetupController::jurisdictionsCounts() (which uses pluralized forms
     // for the grid). Keep both in sync.
     const map = {
-        0: 'Planet',
-        1: 'Country',
-        2: 'State / Province',
-        3: 'County',
-        4: 'Municipality',
-        5: 'Township',
-        6: 'Neighborhood',
+        0: t('c_setup_components.current_jurisdiction_card.adm_0', 'Planet'),
+        1: t('c_setup_components.current_jurisdiction_card.adm_1', 'Country'),
+        2: t('c_setup_components.current_jurisdiction_card.adm_2', 'State / Province'),
+        3: t('c_setup_components.current_jurisdiction_card.adm_3', 'County'),
+        4: t('c_setup_components.current_jurisdiction_card.adm_4', 'Municipality'),
+        5: t('c_setup_components.current_jurisdiction_card.adm_5', 'Township'),
+        6: t('c_setup_components.current_jurisdiction_card.adm_6', 'Neighborhood'),
     }
-    return map[lvl] ?? `Level ${lvl}`
+    return map[lvl] ?? t('c_setup_components.current_jurisdiction_card.adm_level_n', { lvl })
 })
 
 const phaseTone = computed(() => {
@@ -98,9 +101,9 @@ const phaseLabel = computed(() => {
     // User-facing labels — abstract away the data-source names. Backend phase
     // identifiers stay as 'geoboundaries' / 'worldpop' for DB compatibility.
     const names = {
-        geoboundaries: 'Boundaries',
-        worldpop:      'Population',
-        transition:    'Transition',
+        geoboundaries: t('c_setup_components.current_jurisdiction_card.phase_boundaries', 'Boundaries'),
+        worldpop:      t('c_setup_components.current_jurisdiction_card.phase_population', 'Population'),
+        transition:    t('c_setup_components.current_jurisdiction_card.phase_transition', 'Transition'),
     }
     return names[p] ?? p
 })
@@ -108,8 +111,8 @@ const phaseLabel = computed(() => {
 const title = computed(() => {
     const c = props.current
     if (!c) return ''
-    if (c.phase === 'transition') return 'Starting next phase…'
-    return c.name || c.iso_code || 'Processing'
+    if (c.phase === 'transition') return t('c_setup_components.current_jurisdiction_card.starting_next_phase', 'Starting next phase…')
+    return c.name || c.iso_code || t('c_setup_components.current_jurisdiction_card.processing', 'Processing')
 })
 
 function fmtPop(n) {
@@ -224,11 +227,11 @@ const eta = computed(() => {
     >
         <div v-if="!current && lifecycle === 'running'" class="flex items-center gap-3 text-gray-500 text-sm">
             <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-            Waiting for first heartbeat…
+            {{ t('c_setup_components.current_jurisdiction_card.waiting_heartbeat', 'Waiting for first heartbeat…') }}
         </div>
 
         <div v-else-if="!current" class="text-gray-500 text-sm italic">
-            No job running.
+            {{ t('c_setup_components.current_jurisdiction_card.no_job_running', 'No job running.') }}
         </div>
 
         <div v-else class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_320px] gap-4">
@@ -236,7 +239,7 @@ const eta = computed(() => {
             <div class="flex flex-col gap-3 min-w-0">
                 <div>
                     <div class="text-gray-500 text-xs uppercase tracking-wider">
-                        Currently processing
+                        {{ t('c_setup_components.current_jurisdiction_card.currently_processing', 'Currently processing') }}
                     </div>
                     <div
                         v-if="ancestors.length"
@@ -294,17 +297,17 @@ const eta = computed(() => {
                     </div>
                     <div class="flex justify-between text-[10px] font-mono text-gray-400">
                         <span>{{ progress.pct.toFixed(1) }}%</span>
-                        <span v-if="eta">{{ eta }} remaining</span>
+                        <span v-if="eta">{{ eta }} {{ t('c_setup_components.current_jurisdiction_card.remaining', 'remaining') }}</span>
                     </div>
                 </div>
 
                 <div v-if="current.population != null || current.area_km2 != null" class="grid grid-cols-2 gap-2 text-sm">
                     <div v-if="current.population != null" class="bg-gray-950 border border-gray-800 rounded p-2">
-                        <div class="text-gray-500 text-xs">Population</div>
+                        <div class="text-gray-500 text-xs">{{ t('c_setup_components.current_jurisdiction_card.population', 'Population') }}</div>
                         <div class="text-gray-100 font-mono">{{ fmtPop(current.population) }}</div>
                     </div>
                     <div v-if="current.area_km2 != null" class="bg-gray-950 border border-gray-800 rounded p-2">
-                        <div class="text-gray-500 text-xs">Area (km²)</div>
+                        <div class="text-gray-500 text-xs">{{ t('c_setup_components.current_jurisdiction_card.area_km2', 'Area (km²)') }}</div>
                         <div class="text-gray-100 font-mono">{{ fmtPop(Math.round(current.area_km2)) }}</div>
                     </div>
                 </div>

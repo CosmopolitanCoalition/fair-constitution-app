@@ -1,6 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import RowDetailPanel from './RowDetailPanel.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
     review: { type: Object, required: true },
@@ -16,25 +19,25 @@ const severityTone = computed(() => ({
 
 // ── Category metadata ────────────────────────────────────────────────────────
 
-const ADM_LABELS = {
-    0: 'Planet',
-    1: 'Country',
-    2: 'State / Province',
-    3: 'County',
-    4: 'Municipality',
-    5: 'Township',
-    6: 'Neighborhood',
-}
+const ADM_LABELS = computed(() => ({
+    0: t('c_setup_components.review_issues_section.adm_0', 'Planet'),
+    1: t('c_setup_components.review_issues_section.adm_1', 'Country'),
+    2: t('c_setup_components.review_issues_section.adm_2', 'State / Province'),
+    3: t('c_setup_components.review_issues_section.adm_3', 'County'),
+    4: t('c_setup_components.review_issues_section.adm_4', 'Municipality'),
+    5: t('c_setup_components.review_issues_section.adm_5', 'Township'),
+    6: t('c_setup_components.review_issues_section.adm_6', 'Neighborhood'),
+}))
 
 const categories = computed(() => {
     const issues = props.review?.issues ?? {}
     return [
         {
             key:   'population_gaps',
-            title: 'Population gaps',
+            title: t('c_setup_components.review_issues_section.population_gaps_title', 'Population gaps'),
             icon:  '🌫',
             count: issues.population_gaps?.count ?? 0,
-            why:   "Jurisdictions with population = 0 or NULL. Most are legitimately uninhabited rural cells at the deepest ADM levels; tighter levels (Country, State, County) deserve closer review — those are usually territory-related.",
+            why:   t('c_setup_components.review_issues_section.population_gaps_why', "Jurisdictions with population = 0 or NULL. Most are legitimately uninhabited rural cells at the deepest ADM levels; tighter levels (Country, State, County) deserve closer review — those are usually territory-related."),
             byLevel: issues.population_gaps?.by_level ?? [],
             endpoint: '/api/setup/wizard/step2/review/population_gaps',
             // population_gaps drills are scoped per adm_level — pick one
@@ -43,19 +46,19 @@ const categories = computed(() => {
         },
         {
             key:   'aggregation_discrepancies',
-            title: 'Aggregation discrepancies',
+            title: t('c_setup_components.review_issues_section.aggregation_discrepancies_title', 'Aggregation discrepancies'),
             icon:  '⚖',
             count: issues.aggregation_discrepancies?.count ?? 0,
-            why:   "Country-level rollup where the parent's national population disagrees with the sum of its children's populations by more than 5%. Usually polygon-precision drift between geoBoundaries' ADM levels — not a pipeline bug.",
+            why:   t('c_setup_components.review_issues_section.aggregation_discrepancies_why', "Country-level rollup where the parent's national population disagrees with the sum of its children's populations by more than 5%. Usually polygon-precision drift between geoBoundaries' ADM levels — not a pipeline bug."),
             endpoint: '/api/setup/wizard/step2/review/aggregation_discrepancies',
             requiresLevel: false,
         },
         {
             key:   'orphans',
-            title: 'Orphan jurisdictions',
+            title: t('c_setup_components.review_issues_section.orphans_title', 'Orphan jurisdictions'),
             icon:  '🪐',
             count: issues.orphans?.count ?? 0,
-            why:   "Rows with parent_id = NULL — find_parent_by_spatial failed at import time, usually for island enclaves or where an intermediate ADM level is missing from geoBoundaries (e.g. Puerto Rico has no ADM0/1 row in the source). Click any row below to see candidate parents (spatial-overlap and centroid-distance) and record your decision.",
+            why:   t('c_setup_components.review_issues_section.orphans_why', "Rows with parent_id = NULL — find_parent_by_spatial failed at import time, usually for island enclaves or where an intermediate ADM level is missing from geoBoundaries (e.g. Puerto Rico has no ADM0/1 row in the source). Click any row below to see candidate parents (spatial-overlap and centroid-distance) and record your decision."),
             byLevel: issues.orphans?.by_level ?? [],
             topIso:  issues.orphans?.top_iso ?? [],
             endpoint: '/api/setup/wizard/step2/review/orphans',
@@ -63,10 +66,10 @@ const categories = computed(() => {
         },
         {
             key:   'sovereign_territories',
-            title: 'Sovereign-territory candidates',
+            title: t('c_setup_components.review_issues_section.sovereign_territories_title', 'Sovereign-territory candidates'),
             icon:  '🏛',
             count: issues.sovereign_territories?.count ?? 0,
-            why:   "Territory rows tagged with a sovereign's iso_code (e.g. USA) that have population=0 because the territory's own WorldPop raster wasn't loaded. With Phase K's territory-raster fallback shipped, this count should drop to ~0 after the next fresh ETL — any residual entries surface here for inspection.",
+            why:   t('c_setup_components.review_issues_section.sovereign_territories_why', "Territory rows tagged with a sovereign's iso_code (e.g. USA) that have population=0 because the territory's own WorldPop raster wasn't loaded. With Phase K's territory-raster fallback shipped, this count should drop to ~0 after the next fresh ETL — any residual entries surface here for inspection."),
             bySovereign: issues.sovereign_territories?.territory_count_by_sovereign ?? {},
             endpoint: '/api/setup/wizard/step2/review/sovereign_territories',
             requiresLevel: false,
@@ -74,20 +77,20 @@ const categories = computed(() => {
         // ── Phase JK audit cards ────────────────────────────────────────
         {
             key:   'parent_assignment_audit',
-            title: 'Auto-resolved parents (Phase J audit)',
+            title: t('c_setup_components.review_issues_section.parent_assignment_audit_title', 'Auto-resolved parents (Phase J audit)'),
             icon:  '🧭',
             count: issues.parent_assignment_audit?.count ?? 0,
-            why:   "Rows by parent-resolution strategy. 'direct' is the normal case (parent is one level shallower, no skip needed). 'skip_ancestor' means a level was skipped (e.g. CAF level-6 → CAF level-4 because level-5 doesn't exist for CAF in geoBoundaries). 'buffered' means a 110m tolerance was needed for the polygons to overlap (digitization drift between adjacent ADM levels). Click a chip to drill in. The card's headline count tracks heuristic-resolved rows only ('skip_ancestor' + 'buffered'); 'direct' is informational.",
+            why:   t('c_setup_components.review_issues_section.parent_assignment_audit_why', "Rows by parent-resolution strategy. 'direct' is the normal case (parent is one level shallower, no skip needed). 'skip_ancestor' means a level was skipped (e.g. CAF level-6 → CAF level-4 because level-5 doesn't exist for CAF in geoBoundaries). 'buffered' means a 110m tolerance was needed for the polygons to overlap (digitization drift between adjacent ADM levels). Click a chip to drill in. The card's headline count tracks heuristic-resolved rows only ('skip_ancestor' + 'buffered'); 'direct' is informational."),
             byStrategy: issues.parent_assignment_audit?.by_strategy ?? {},
             endpoint:   '/api/setup/wizard/step2/review/parent_assignment_audit',
             requiresStrategy: true,
         },
         {
             key:   'population_assignment_audit',
-            title: 'Population resolution (Phase K audit)',
+            title: t('c_setup_components.review_issues_section.population_assignment_audit_title', 'Population resolution (Phase K audit)'),
             icon:  '📡',
             count: issues.population_assignment_audit?.count ?? 0,
-            why:   "Rows whose population came from the territory-raster fallback rather than their own iso's raster. Typically PR municipios under USA, where USA's raster doesn't cover PR but PRI's does. 'primary' means the row's own-iso raster matched directly. Click a source chip to drill in.",
+            why:   t('c_setup_components.review_issues_section.population_assignment_audit_why', "Rows whose population came from the territory-raster fallback rather than their own iso's raster. Typically PR municipios under USA, where USA's raster doesn't cover PR but PRI's does. 'primary' means the row's own-iso raster matched directly. Click a source chip to drill in."),
             bySource: issues.population_assignment_audit?.by_source ?? {},
             endpoint: '/api/setup/wizard/step2/review/population_assignment_audit',
             requiresSource: true,
@@ -203,17 +206,17 @@ function changeSource(cat, source) {
     loadRows(cat, false)
 }
 
-const STRATEGY_LABELS = {
-    direct:              'Direct (parent at level-1 shallower)',
-    skip_ancestor:       'Skip-to-ancestor (level gap)',
-    buffered:            'Buffered (110m tolerance)',
-    orphan_or_pre_jk:    'Orphan / pre-JK',
-}
-const SOURCE_LABELS = {
-    primary:               'Primary raster',
-    territory_fallback:    'Territory fallback',
-    no_data_or_pre_jk:     'No data / pre-JK',
-}
+const STRATEGY_LABELS = computed(() => ({
+    direct:              t('c_setup_components.review_issues_section.strategy_direct', 'Direct (parent at level-1 shallower)'),
+    skip_ancestor:       t('c_setup_components.review_issues_section.strategy_skip_ancestor', 'Skip-to-ancestor (level gap)'),
+    buffered:            t('c_setup_components.review_issues_section.strategy_buffered', 'Buffered (110m tolerance)'),
+    orphan_or_pre_jk:    t('c_setup_components.review_issues_section.strategy_orphan_or_pre_jk', 'Orphan / pre-JK'),
+}))
+const SOURCE_LABELS = computed(() => ({
+    primary:               t('c_setup_components.review_issues_section.source_primary', 'Primary raster'),
+    territory_fallback:    t('c_setup_components.review_issues_section.source_territory_fallback', 'Territory fallback'),
+    no_data_or_pre_jk:     t('c_setup_components.review_issues_section.source_no_data_or_pre_jk', 'No data / pre-JK'),
+}))
 
 function acknowledge(cat) {
     acknowledged.value[cat.key] = true
@@ -244,7 +247,7 @@ function fmtInt(n) {
 }
 
 function admLabel(lvl) {
-    return ADM_LABELS[lvl] ?? `Level ${lvl}`
+    return ADM_LABELS.value[lvl] ?? t('c_setup_components.review_issues_section.adm_level_n', { lvl })
 }
 </script>
 
@@ -252,17 +255,17 @@ function admLabel(lvl) {
     <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
         <div class="flex items-start justify-between gap-4 mb-4">
             <div>
-                <h2 class="text-white font-semibold mb-1">Data quality review</h2>
+                <h2 class="text-white font-semibold mb-1">{{ t('c_setup_components.review_issues_section.heading', 'Data quality review') }}</h2>
                 <p class="text-gray-400 text-sm">
-                    The ETL surfaced
+                    {{ t('c_setup_components.review_issues_section.etl_surfaced', 'The ETL surfaced') }}
                     <span
                         v-if="visibleCategories.length"
                         class="text-white font-mono"
                     >{{ fmtInt(totalIssues) }}</span>
-                    <span v-else class="text-emerald-300 font-mono">no</span>
-                    potential issue{{ totalIssues === 1 ? '' : 's' }}
-                    <span v-if="visibleCategories.length">across {{ visibleCategories.length }} {{ visibleCategories.length === 1 ? 'category' : 'categories' }}</span>.
-                    Review them below or accept and finish setup — issues are informational, not blocking.
+                    <span v-else class="text-emerald-300 font-mono">{{ t('c_setup_components.review_issues_section.no', 'no') }}</span>
+                    {{ t('c_setup_components.review_issues_section.potential_issue', 'potential issue') }}{{ totalIssues === 1 ? '' : 's' }}
+                    <span v-if="visibleCategories.length">{{ t('c_setup_components.review_issues_section.across', 'across') }} {{ visibleCategories.length }} {{ visibleCategories.length === 1 ? t('c_setup_components.review_issues_section.category', 'category') : t('c_setup_components.review_issues_section.categories', 'categories') }}</span>.
+                    {{ t('c_setup_components.review_issues_section.review_them', 'Review them below or accept and finish setup — issues are informational, not blocking.') }}
                 </p>
             </div>
             <span
@@ -279,7 +282,7 @@ function admLabel(lvl) {
             v-if="review?.totals"
             class="text-xs font-mono text-gray-500 mb-4"
         >
-            {{ fmtInt(review.totals.with_population) }} of {{ fmtInt(review.totals.jurisdictions) }} jurisdictions have population
+            {{ t('c_setup_components.review_issues_section.coverage_line', { withPop: fmtInt(review.totals.with_population), total: fmtInt(review.totals.jurisdictions) }) }}
             (<span class="text-emerald-400">{{ review.totals.pct_with_population }}%</span>)
         </div>
 
@@ -288,7 +291,7 @@ function admLabel(lvl) {
             v-if="!visibleCategories.length"
             class="text-emerald-300 text-sm py-6 text-center bg-emerald-900/20 border border-emerald-800 rounded"
         >
-            ✓ No data quality issues detected. Ready to finish setup.
+            ✓ {{ t('c_setup_components.review_issues_section.empty_state', 'No data quality issues detected. Ready to finish setup.') }}
         </div>
 
         <!-- Category cards -->
@@ -314,10 +317,10 @@ function admLabel(lvl) {
                                 <span
                                     v-if="acknowledged[cat.key]"
                                     class="text-emerald-400 font-mono text-[10px]"
-                                >✓ acknowledged</span>
+                                >✓ {{ t('c_setup_components.review_issues_section.acknowledged', 'acknowledged') }}</span>
                             </div>
                             <div class="text-gray-500 text-xs">
-                                {{ fmtInt(cat.count) }} {{ cat.count === 1 ? 'row' : 'rows' }}
+                                {{ fmtInt(cat.count) }} {{ cat.count === 1 ? t('c_setup_components.review_issues_section.row', 'row') : t('c_setup_components.review_issues_section.rows', 'rows') }}
                             </div>
                         </div>
                     </div>
@@ -356,7 +359,7 @@ function admLabel(lvl) {
 
                     <!-- Top-ISO chips for orphans -->
                     <div v-if="cat.topIso?.length" class="flex flex-wrap gap-1.5">
-                        <span class="text-[10px] font-mono text-gray-500 self-center">Top countries:</span>
+                        <span class="text-[10px] font-mono text-gray-500 self-center">{{ t('c_setup_components.review_issues_section.top_countries', 'Top countries:') }}</span>
                         <span
                             v-for="iso in cat.topIso"
                             :key="iso.iso_code"
@@ -378,7 +381,7 @@ function admLabel(lvl) {
                             :class="!filterSov[cat.key]
                                 ? 'bg-blue-900/40 border-blue-700 text-blue-200'
                                 : 'bg-gray-900 border-gray-800 text-gray-400 hover:border-gray-700'"
-                        >All ({{ fmtInt(cat.count) }})</button>
+                        >{{ t('c_setup_components.review_issues_section.all', 'All') }} ({{ fmtInt(cat.count) }})</button>
                         <button
                             v-for="(n, sov) in cat.bySovereign"
                             :key="sov"
@@ -397,7 +400,7 @@ function admLabel(lvl) {
                         class="flex flex-wrap gap-1.5"
                     >
                         <span class="text-[10px] font-mono text-gray-500 self-center">
-                            Click a strategy to drill into rows resolved that way:
+                            {{ t('c_setup_components.review_issues_section.click_strategy', 'Click a strategy to drill into rows resolved that way:') }}
                         </span>
                         <button
                             v-for="(n, strat) in cat.byStrategy"
@@ -417,7 +420,7 @@ function admLabel(lvl) {
                         class="flex flex-wrap gap-1.5"
                     >
                         <span class="text-[10px] font-mono text-gray-500 self-center">
-                            Click a source to drill into rows whose population came from it:
+                            {{ t('c_setup_components.review_issues_section.click_source', 'Click a source to drill into rows whose population came from it:') }}
                         </span>
                         <button
                             v-for="(n, src) in cat.bySource"
@@ -432,7 +435,7 @@ function admLabel(lvl) {
                     </div>
 
                     <!-- Loading / error -->
-                    <div v-if="loading[cat.key]" class="text-gray-500 text-xs italic">Loading rows…</div>
+                    <div v-if="loading[cat.key]" class="text-gray-500 text-xs italic">{{ t('c_setup_components.review_issues_section.loading_rows', 'Loading rows…') }}</div>
                     <div v-if="fetchError[cat.key]" class="text-red-400 text-xs">{{ fetchError[cat.key] }}</div>
 
                     <!-- Row table — click any row to expand for full detail + decision form -->
@@ -444,13 +447,13 @@ function admLabel(lvl) {
                             <thead class="text-gray-500 text-[10px] uppercase">
                                 <tr>
                                     <th class="w-6 px-1 py-1.5"></th>
-                                    <th class="text-left px-2 py-1.5">Name</th>
-                                    <th class="text-left px-2 py-1.5">ISO</th>
-                                    <th class="text-left px-2 py-1.5">Level</th>
+                                    <th class="text-left px-2 py-1.5">{{ t('c_setup_components.review_issues_section.col_name', 'Name') }}</th>
+                                    <th class="text-left px-2 py-1.5">{{ t('c_setup_components.review_issues_section.col_iso', 'ISO') }}</th>
+                                    <th class="text-left px-2 py-1.5">{{ t('c_setup_components.review_issues_section.col_level', 'Level') }}</th>
                                     <th class="text-right px-2 py-1.5" v-if="cat.key === 'aggregation_discrepancies'">Δ</th>
                                     <th class="text-right px-2 py-1.5" v-if="cat.key === 'aggregation_discrepancies'">Δ %</th>
-                                    <th class="text-right px-2 py-1.5" v-if="cat.key !== 'aggregation_discrepancies'">Population</th>
-                                    <th class="text-right px-2 py-1.5" v-if="cat.key !== 'aggregation_discrepancies'">Area km²</th>
+                                    <th class="text-right px-2 py-1.5" v-if="cat.key !== 'aggregation_discrepancies'">{{ t('c_setup_components.review_issues_section.col_population', 'Population') }}</th>
+                                    <th class="text-right px-2 py-1.5" v-if="cat.key !== 'aggregation_discrepancies'">{{ t('c_setup_components.review_issues_section.col_area_km2', 'Area km²') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -472,7 +475,7 @@ function admLabel(lvl) {
                                             <span
                                                 v-if="isRowDecided(cat.key, row.id)"
                                                 class="text-emerald-400 text-[10px] ml-1"
-                                                title="Decision saved this session"
+                                                :title="t('c_setup_components.review_issues_section.decision_saved_title', 'Decision saved this session')"
                                             >✓</span>
                                         </td>
                                         <td class="px-2 py-1 text-gray-500">{{ row.iso_code }}</td>
@@ -518,7 +521,7 @@ function admLabel(lvl) {
                     <div class="flex items-center justify-between gap-3 pt-1">
                         <div class="text-[10px] font-mono text-gray-500">
                             <template v-if="fetchedRows[cat.key]?.length">
-                                Showing {{ fetchedRows[cat.key].length }} of {{ fmtInt(totals[cat.key]) }}
+                                {{ t('c_setup_components.review_issues_section.showing', { shown: fetchedRows[cat.key].length, total: fmtInt(totals[cat.key]) }) }}
                             </template>
                         </div>
                         <div class="flex items-center gap-2">
@@ -529,15 +532,15 @@ function admLabel(lvl) {
                                 :disabled="loading[cat.key]"
                                 class="text-xs px-3 py-1 rounded border bg-gray-900 border-gray-700 text-gray-200 hover:bg-gray-800 disabled:opacity-50"
                             >
-                                Load 50 more
+                                {{ t('c_setup_components.review_issues_section.load_more', 'Load 50 more') }}
                             </button>
                             <button
                                 type="button"
                                 @click="acknowledge(cat)"
                                 class="text-xs px-3 py-1 rounded border bg-emerald-900/30 border-emerald-800 text-emerald-200 hover:bg-emerald-900/60"
-                                title="Collapse this card and mark it as reviewed for this session. Persistence lands in Phase J."
+                                :title="t('c_setup_components.review_issues_section.mark_reviewed_title', 'Collapse this card and mark it as reviewed for this session. Persistence lands in Phase J.')"
                             >
-                                Mark reviewed
+                                {{ t('c_setup_components.review_issues_section.mark_reviewed', 'Mark reviewed') }}
                             </button>
                         </div>
                     </div>

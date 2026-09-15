@@ -1,5 +1,8 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 /**
  * Export-to-backup panel — drop-in for Step 4 (Confirm) and future admin
@@ -165,12 +168,7 @@ onBeforeUnmount(() => {
     <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
         <h2 class="text-white font-semibold mb-2">{{ title }}</h2>
         <p class="text-gray-400 text-xs mb-4">
-            Build a portable <code class="text-gray-300">.tar.gz</code> snapshot of
-            this instance — every table that's part of the FK-downstream graph of
-            jurisdictions, plus settings and rasters. Restoring this bundle on
-            another instance via Step 0's <em>Restore from a backup</em> panel
-            reproduces the full state, including district maps. Runs async via
-            Horizon; large exports (full rasters) take 20–40 minutes.
+            {{ t('c_setup_components.export_backup_panel.about_1', 'Build a portable') }} <code class="text-gray-300">.tar.gz</code> {{ t('c_setup_components.export_backup_panel.about_2', 'snapshot of this instance — every table that\'s part of the FK-downstream graph of jurisdictions, plus settings and rasters. Restoring this bundle on another instance via Step 0\'s') }} <em>{{ t('c_setup_components.export_backup_panel.about_restore_link', 'Restore from a backup') }}</em> {{ t('c_setup_components.export_backup_panel.about_3', 'panel reproduces the full state, including district maps. Runs async via Horizon; large exports (full rasters) take 20–40 minutes.') }}
         </p>
 
         <div class="flex items-center gap-3 mb-3">
@@ -179,7 +177,7 @@ onBeforeUnmount(() => {
                     :disabled="exportStarting"
                     class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700
                            text-white px-4 py-1.5 rounded text-sm font-semibold">
-                {{ exportStarting ? 'Starting…' : 'Start full export' }}
+                {{ exportStarting ? t('c_setup_components.export_backup_panel.starting', 'Starting…') : t('c_setup_components.export_backup_panel.start_full_export', 'Start full export') }}
             </button>
             <span v-if="exportError" class="text-xs text-red-400">{{ exportError }}</span>
         </div>
@@ -187,7 +185,7 @@ onBeforeUnmount(() => {
         <!-- In-progress + completed list -->
         <div v-if="exportsList.length" class="rounded border border-gray-800 bg-gray-950/40">
             <div class="px-3 py-2 text-xs text-gray-400 border-b border-gray-800">
-                Recent exports
+                {{ t('c_setup_components.export_backup_panel.recent_exports', 'Recent exports') }}
             </div>
             <div class="divide-y divide-gray-800">
                 <div v-for="e in exportsList" :key="e.export_id"
@@ -196,9 +194,9 @@ onBeforeUnmount(() => {
                         <div class="min-w-0 flex-1">
                             <div class="font-mono text-gray-300 truncate">{{ e.export_id }}</div>
                             <div class="text-[10px] text-gray-500">
-                                started {{ formatRelative(e.started_at) }}
+                                {{ t('c_setup_components.export_backup_panel.started', 'started') }} {{ formatRelative(e.started_at) }}
                                 <template v-if="e.completed_at">
-                                    · finished {{ formatRelative(e.completed_at) }}
+                                    · {{ t('c_setup_components.export_backup_panel.finished', 'finished') }} {{ formatRelative(e.completed_at) }}
                                 </template>
                                 <template v-if="e.size_bytes">
                                     · {{ formatBytes(e.size_bytes) }}
@@ -209,19 +207,19 @@ onBeforeUnmount(() => {
                         <div class="flex items-center gap-2 shrink-0">
                             <span v-if="e.status === 'running'"
                                   class="text-[10px] px-2 py-0.5 rounded bg-blue-900 text-blue-200 border border-blue-700">
-                                running
+                                {{ t('c_setup_components.export_backup_panel.status_running', 'running') }}
                             </span>
                             <span v-else-if="e.status === 'done'"
                                   class="text-[10px] px-2 py-0.5 rounded bg-emerald-900 text-emerald-200 border border-emerald-700">
-                                done
+                                {{ t('c_setup_components.export_backup_panel.status_done', 'done') }}
                             </span>
                             <span v-else-if="e.status === 'failed'"
                                   class="text-[10px] px-2 py-0.5 rounded bg-red-900 text-red-200 border border-red-700">
-                                failed
+                                {{ t('c_setup_components.export_backup_panel.status_failed', 'failed') }}
                             </span>
                             <span v-else-if="e.status === 'halted'"
                                   class="text-[10px] px-2 py-0.5 rounded bg-amber-900 text-amber-200 border border-amber-700">
-                                halted
+                                {{ t('c_setup_components.export_backup_panel.status_halted', 'halted') }}
                             </span>
                             <span v-else
                                   class="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">
@@ -230,19 +228,19 @@ onBeforeUnmount(() => {
                             <a v-if="e.archive_filename"
                                :href="`/api/export/jurisdictions/download/${e.archive_filename}`"
                                class="text-[11px] text-blue-400 hover:text-blue-300">
-                                ⬇ download
+                                ⬇ {{ t('c_setup_components.export_backup_panel.download', 'download') }}
                             </a>
                             <button v-if="e.status === 'running'"
                                     type="button"
                                     @click="haltExport(e.export_id)"
                                     class="text-[11px] px-2 py-0.5 rounded bg-amber-900/50 border border-amber-700 text-amber-200 hover:bg-amber-900">
-                                ⏹ halt
+                                ⏹ {{ t('c_setup_components.export_backup_panel.halt', 'halt') }}
                             </button>
                             <button v-if="e.status !== 'running'"
                                     type="button"
                                     @click="deleteExport(e.export_id)"
                                     class="text-[11px] text-gray-500 hover:text-red-400">
-                                delete
+                                {{ t('c_setup_components.export_backup_panel.delete', 'delete') }}
                             </button>
                         </div>
                     </div>
@@ -264,10 +262,10 @@ onBeforeUnmount(() => {
                                 {{ formatThroughput(e.progress.throughput_bps) }}
                             </span>
                             <span v-if="e.progress.eta_seconds != null && e.progress.eta_seconds > 0">
-                                ETA: {{ formatEta(e.progress.eta_seconds) }}
+                                {{ t('c_setup_components.export_backup_panel.eta_label', 'ETA:') }} {{ formatEta(e.progress.eta_seconds) }}
                             </span>
                             <span v-if="e.progress.phase === 'compressing'" class="text-amber-300">
-                                compressing archive…
+                                {{ t('c_setup_components.export_backup_panel.compressing_archive', 'compressing archive…') }}
                             </span>
                         </div>
                     </div>

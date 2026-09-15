@@ -1,5 +1,8 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
     lifecycle: { type: String, required: true },
@@ -50,7 +53,7 @@ const classes = computed(() => {
 })
 
 const label = computed(() => {
-    if (props.lifecycle === 'running' && props.paused) return 'PAUSED'
+    if (props.lifecycle === 'running' && props.paused) return t('c_setup_components.progress_status_badge.paused', 'PAUSED')
     return props.lifecycle.toUpperCase()
 })
 </script>

@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ProgressStatusBadge from './ProgressStatusBadge.vue'
 import JurisdictionCountsGrid from './JurisdictionCountsGrid.vue'
 // P.1.2: PhaseSummary removed — redundant with the stacked bars.
@@ -29,6 +30,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:includeDebug', 'control'])
+
+const { t } = useI18n()
 
 function sendControl(action) {
     emit('control', action)
@@ -63,7 +66,7 @@ watch(
 const errorPhaseLabel = computed(() => {
     const p = props.errorPause?.phase
     if (!p) return ''
-    return ({ geoboundaries: 'Boundaries', worldpop: 'Population' }[p]) ?? p
+    return ({ geoboundaries: t('c_setup_components.live_progress.phase_boundaries', 'Boundaries'), worldpop: t('c_setup_components.live_progress.phase_population', 'Population') }[p]) ?? p
 })
 
 // Truncate the traceback for the inline display; full text is in the title attr.
@@ -93,7 +96,7 @@ const stoppedOnException = computed(() => Boolean(props.failed?.stopped_on_excep
 <template>
     <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
         <div class="flex items-center justify-between mb-4 gap-3">
-            <h2 class="text-white font-semibold">3. Live Progress</h2>
+            <h2 class="text-white font-semibold">{{ t('c_setup_components.live_progress.heading', '3. Live Progress') }}</h2>
             <div class="flex items-center gap-2">
                 <template v-if="isRunning">
                     <button
@@ -102,9 +105,9 @@ const stoppedOnException = computed(() => Boolean(props.failed?.stopped_on_excep
                         @click="sendControl('pause')"
                         :disabled="pausePending"
                         class="text-xs px-2 py-1 rounded border bg-amber-900/40 border-amber-700 text-amber-200 hover:bg-amber-900/70 disabled:opacity-50"
-                        title="Pause the ETL subprocess (SIGSTOP — DB connections stay open)"
+                        :title="t('c_setup_components.live_progress.pause_title', 'Pause the ETL subprocess (SIGSTOP — DB connections stay open)')"
                     >
-                        {{ pausePending ? 'Pausing…' : 'Pause' }}
+                        {{ pausePending ? t('c_setup_components.live_progress.pausing', 'Pausing…') : t('c_setup_components.live_progress.pause', 'Pause') }}
                     </button>
                     <button
                         v-else
@@ -112,18 +115,18 @@ const stoppedOnException = computed(() => Boolean(props.failed?.stopped_on_excep
                         @click="sendControl('resume')"
                         :disabled="resumePending"
                         class="text-xs px-2 py-1 rounded border bg-emerald-900/40 border-emerald-700 text-emerald-200 hover:bg-emerald-900/70 disabled:opacity-50"
-                        title="Resume the paused ETL subprocess (SIGCONT)"
+                        :title="t('c_setup_components.live_progress.resume_title', 'Resume the paused ETL subprocess (SIGCONT)')"
                     >
-                        {{ resumePending ? 'Resuming…' : 'Resume' }}
+                        {{ resumePending ? t('c_setup_components.live_progress.resuming', 'Resuming…') : t('c_setup_components.live_progress.resume', 'Resume') }}
                     </button>
                     <button
                         type="button"
                         @click="sendControl('halt')"
                         :disabled="haltPending"
                         class="text-xs px-2 py-1 rounded border bg-red-900/40 border-red-700 text-red-200 hover:bg-red-900/70 disabled:opacity-50"
-                        title="Stop the run (SIGTERM)"
+                        :title="t('c_setup_components.live_progress.halt_title', 'Stop the run (SIGTERM)')"
                     >
-                        {{ haltPending ? 'Halting…' : 'Halt' }}
+                        {{ haltPending ? t('c_setup_components.live_progress.halting', 'Halting…') : t('c_setup_components.live_progress.halt', 'Halt') }}
                     </button>
                 </template>
                 <ProgressStatusBadge :lifecycle="lifecycle" :started-at="startedAt" :paused="isPaused" :paused-at="pausedAt" />
@@ -140,12 +143,12 @@ const stoppedOnException = computed(() => Boolean(props.failed?.stopped_on_excep
             <div class="flex items-start justify-between gap-3 mb-2">
                 <div class="flex-1 min-w-0">
                     <div class="text-amber-300 text-xs uppercase tracking-wider">
-                        Paused on error
+                        {{ t('c_setup_components.live_progress.paused_on_error', 'Paused on error') }}
                     </div>
                     <div class="text-amber-100 text-lg font-semibold mt-0.5">
                         {{ errorPause.country }}
                         <span class="text-amber-300 text-sm font-normal">
-                            ({{ errorPhaseLabel }} · level {{ errorPause.adm_level }})
+                            ({{ errorPhaseLabel }} · {{ t('c_setup_components.live_progress.level', 'level') }} {{ errorPause.adm_level }})
                         </span>
                     </div>
                     <div class="text-amber-200/80 text-xs font-mono mt-1">
@@ -158,7 +161,7 @@ const stoppedOnException = computed(() => Boolean(props.failed?.stopped_on_excep
                 :title="errorPause.traceback || ''"
             >{{ errorMessageShort }}</div>
             <details v-if="errorPause.traceback" class="mt-2 text-[10px] text-amber-300/70">
-                <summary class="cursor-pointer select-none">Full traceback</summary>
+                <summary class="cursor-pointer select-none">{{ t('c_setup_components.live_progress.full_traceback', 'Full traceback') }}</summary>
                 <pre class="bg-black/40 rounded p-2 mt-1 overflow-x-auto whitespace-pre-wrap font-mono text-amber-100">{{ errorPause.traceback }}</pre>
             </details>
             <div class="mt-3 flex items-center gap-2 flex-wrap">
@@ -167,27 +170,27 @@ const stoppedOnException = computed(() => Boolean(props.failed?.stopped_on_excep
                     @click="sendErrorResolution('skip')"
                     :disabled="!!errorActionPending"
                     class="text-sm px-3 py-1.5 rounded bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold"
-                    title="Mark this country as skipped and continue to the next."
+                    :title="t('c_setup_components.live_progress.skip_title', 'Mark this country as skipped and continue to the next.')"
                 >
-                    {{ errorActionPending === 'skip' ? 'Skipping…' : 'Skip this ' + (errorPhaseLabel || 'country').toLowerCase() }}
+                    {{ errorActionPending === 'skip' ? t('c_setup_components.live_progress.skipping', 'Skipping…') : t('c_setup_components.live_progress.skip_this', { phase: (errorPhaseLabel || t('c_setup_components.live_progress.country', 'country')).toLowerCase() }) }}
                 </button>
                 <button
                     type="button"
                     @click="sendErrorResolution('retry')"
                     :disabled="!!errorActionPending"
                     class="text-sm px-3 py-1.5 rounded bg-emerald-700 hover:bg-emerald-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold"
-                    title="Re-run this country. Useful if you fixed the underlying issue (e.g. restored a corrupted file)."
+                    :title="t('c_setup_components.live_progress.retry_title', 'Re-run this country. Useful if you fixed the underlying issue (e.g. restored a corrupted file).')"
                 >
-                    {{ errorActionPending === 'retry' ? 'Retrying…' : 'Retry' }}
+                    {{ errorActionPending === 'retry' ? t('c_setup_components.live_progress.retrying', 'Retrying…') : t('c_setup_components.live_progress.retry', 'Retry') }}
                 </button>
                 <button
                     type="button"
                     @click="sendErrorResolution('abort')"
                     :disabled="!!errorActionPending"
                     class="text-sm px-3 py-1.5 rounded bg-red-700 hover:bg-red-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold"
-                    title="Abort the entire run. Equivalent to clicking Halt."
+                    :title="t('c_setup_components.live_progress.abort_title', 'Abort the entire run. Equivalent to clicking Halt.')"
                 >
-                    {{ errorActionPending === 'abort' ? 'Aborting…' : 'Abort run' }}
+                    {{ errorActionPending === 'abort' ? t('c_setup_components.live_progress.aborting', 'Aborting…') : t('c_setup_components.live_progress.abort_run', 'Abort run') }}
                 </button>
             </div>
         </div>
@@ -224,10 +227,10 @@ const stoppedOnException = computed(() => Boolean(props.failed?.stopped_on_excep
         >
             <div class="font-semibold">
                 <template v-if="stoppedOnException">
-                    Run halted on first exception (exit {{ failed.exit_code }}).
+                    {{ t('c_setup_components.live_progress.run_halted_exception', { code: failed.exit_code }) }}
                 </template>
                 <template v-else>
-                    Run failed (exit {{ failed.exit_code }}).
+                    {{ t('c_setup_components.live_progress.run_failed', { code: failed.exit_code }) }}
                 </template>
             </div>
             <div v-if="failed.error" class="font-mono text-xs mt-1">{{ failed.error }}</div>
@@ -237,8 +240,8 @@ const stoppedOnException = computed(() => Boolean(props.failed?.stopped_on_excep
             v-else-if="done && !isRunning"
             class="mb-4 bg-emerald-900/30 border border-emerald-800 text-emerald-200 text-sm rounded p-3"
         >
-            <span class="font-semibold">Run completed.</span>
-            Finished {{ done.finished_at }}.
+            <span class="font-semibold">{{ t('c_setup_components.live_progress.run_completed', 'Run completed.') }}</span>
+            {{ t('c_setup_components.live_progress.finished_at', { at: done.finished_at }) }}
         </div>
 
         <!-- Phase P.3: structured events surface (errors / warnings / info)

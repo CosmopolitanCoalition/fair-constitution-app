@@ -1,5 +1,8 @@
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
     byLevel:      { type: [Array, Object], default: () => [] },
@@ -26,7 +29,7 @@ const entries = computed(() => {
         .sort((a, b) => Number(a) - Number(b))
         .map(k => ({
             level:    Number(k),
-            label:    raw[k]?.label ?? `Level ${k}`,
+            label:    raw[k]?.label ?? t('c_setup_components.jurisdiction_counts_grid.level_n', { level: k }),
             count:    raw[k]?.count ?? 0,
             with_pop: raw[k]?.with_pop ?? 0,
             sum_pop:  raw[k]?.sum_pop ?? 0,
@@ -52,8 +55,7 @@ function pct(withPop, count) {
         v-if="showRasterLoadHint"
         class="text-[11px] font-mono text-emerald-300/70 mb-2"
     >
-        Populations compute after raster load completes — these counters stay
-        at 0% until the population tiles finish loading into the database.
+        {{ t('c_setup_components.jurisdiction_counts_grid.raster_load_hint', 'Populations compute after raster load completes — these counters stay at 0% until the population tiles finish loading into the database.') }}
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div
@@ -79,7 +81,7 @@ function pct(withPop, count) {
                     class="text-[10px] font-mono mt-0.5"
                     :class="pct(e.with_pop, e.count) === 100 ? 'text-emerald-400' : 'text-emerald-500/80'"
                 >
-                    {{ fmt(e.with_pop) }} w/ pop
+                    {{ fmt(e.with_pop) }} {{ t('c_setup_components.jurisdiction_counts_grid.with_pop', 'w/ pop') }}
                     <span v-if="pct(e.with_pop, e.count) != null" class="text-gray-600">
                         ({{ pct(e.with_pop, e.count) }}%)
                     </span>
@@ -87,7 +89,7 @@ function pct(withPop, count) {
                 <div
                     v-if="e.sum_pop > 0"
                     class="text-[10px] font-mono mt-0.5 text-emerald-200/80"
-                    :title="`Sum of populations at this level`"
+                    :title="t('c_setup_components.jurisdiction_counts_grid.sum_at_level_title', 'Sum of populations at this level')"
                 >
                     Σ {{ fmt(e.sum_pop) }}
                 </div>
@@ -100,14 +102,14 @@ function pct(withPop, count) {
                 :style="{ width: pct(totalWithPop, total) + '%' }"
             />
             <div class="relative">
-                <div class="text-blue-500 text-xs">Total rows</div>
+                <div class="text-blue-500 text-xs">{{ t('c_setup_components.jurisdiction_counts_grid.total_rows', 'Total rows') }}</div>
                 <div class="text-blue-200 font-mono text-lg leading-tight">{{ fmt(total) }}</div>
                 <div
                     v-if="total > 0"
                     class="text-[10px] font-mono mt-0.5"
                     :class="pct(totalWithPop, total) === 100 ? 'text-emerald-400' : 'text-emerald-500/80'"
                 >
-                    {{ fmt(totalWithPop) }} w/ pop
+                    {{ fmt(totalWithPop) }} {{ t('c_setup_components.jurisdiction_counts_grid.with_pop', 'w/ pop') }}
                     <span v-if="pct(totalWithPop, total) != null" class="text-gray-600">
                         ({{ pct(totalWithPop, total) }}%)
                     </span>
@@ -115,7 +117,7 @@ function pct(withPop, count) {
                 <div
                     v-if="totalSumPop > 0"
                     class="text-[10px] font-mono mt-0.5 text-blue-200/80"
-                    :title="`Grand total of populations across all levels`"
+                    :title="t('c_setup_components.jurisdiction_counts_grid.grand_total_title', 'Grand total of populations across all levels')"
                 >
                     Σ {{ fmt(totalSumPop) }}
                 </div>
