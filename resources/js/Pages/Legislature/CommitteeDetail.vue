@@ -11,6 +11,7 @@
  */
 import { computed, ref, watch } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -28,6 +29,7 @@ import VoteCastList from '@/Components/Legislature/VoteCastList.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -146,22 +148,19 @@ function submitReport() {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`${committee.name} committee`">
+    <PageScaffold :surface="surface" :title="t('c_legislature_pages.committee_detail.title', { name: committee.name })">
         <template #intro>
-            Committee hearings are public record: testimony, member votes with explanations, and
-            reports all publish (WF-SYS-03). The committee decides by majority of ALL its members
-            — never of those present<template v-if="bicameral">, and in this bicameral chamber each
-            seat kind must independently agree at committee stage (Art. V §3 · ledger #q7)</template>.
+            {{ t('c_legislature_pages.committee_detail.intro_base', 'Committee hearings are public record: testimony, member votes with explanations, and reports all publish (WF-SYS-03). The committee decides by majority of ALL its members — never of those present') }}<template v-if="bicameral">{{ t('c_legislature_pages.committee_detail.intro_bicameral', ', and in this bicameral chamber each seat kind must independently agree at committee stage (Art. V §3 · ledger #q7)') }}</template>.
         </template>
 
         <p class="cc-small">
-            <a :href="committee.legislature.href">← {{ committee.legislature.name }} committees</a>
+            <a :href="committee.legislature.href">{{ t('c_legislature_pages.committee_detail.back_link', { name: committee.legislature.name }) }}</a>
         </p>
-        <nav class="cluster" aria-label="Hearing navigation">
-            <Link v-if="urls.room" :href="urls.room" class="btn btn--secondary">Open this hearing’s room</Link>
-            <Link v-if="meetingContext.explicit" :href="urls.current" class="btn btn--ghost">Current committee work</Link>
+        <nav class="cluster" :aria-label="t('c_legislature_pages.committee_detail.nav_aria', 'Hearing navigation')">
+            <Link v-if="urls.room" :href="urls.room" class="btn btn--secondary">{{ t('c_legislature_pages.committee_detail.open_room', 'Open this hearing’s room') }}</Link>
+            <Link v-if="meetingContext.explicit" :href="urls.current" class="btn btn--ghost">{{ t('c_legislature_pages.committee_detail.current_work', 'Current committee work') }}</Link>
         </nav>
-        <Banner v-if="meetingContext.readOnly" tone="info">You are reading a closed hearing or committee. Filing controls are unavailable in this view.</Banner>
+        <Banner v-if="meetingContext.readOnly" tone="info">{{ t('c_legislature_pages.committee_detail.read_only', 'You are reading a closed hearing or committee. Filing controls are unavailable in this view.') }}</Banner>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
@@ -170,9 +169,9 @@ function submitReport() {
         <Card as="section">
             <template #title>
                 <h2>
-                    Roster — {{ committee.seats }} seats
+                    {{ t('c_legislature_pages.committee_detail.roster_seats', { n: committee.seats }) }}
                     <template v-if="committee.by_kind">
-                        ({{ committee.by_kind.type_a }} type A + {{ committee.by_kind.type_b }} type B)
+                        {{ t('c_legislature_pages.committee_detail.roster_by_kind', { a: committee.by_kind.type_a, b: committee.by_kind.type_b }) }}
                     </template>
                     <StatusBadge :tone="committee.status === 'seated' ? 'success' : 'info'">{{ committee.status }}</StatusBadge>
                 </h2>
@@ -192,30 +191,30 @@ function submitReport() {
                 <div class="stack" style="gap: var(--space-1)">
                     <div v-for="member in committee.members" :key="member.member_id" class="roster-row">
                         <span class="cluster" style="gap: var(--space-2)">
-                            <PersonaChip :name="member.name ?? 'Member'" />
-                            <TagChip v-if="member.seat_kind">{{ member.seat_kind === 'type_b' ? 'type B' : 'type A' }}</TagChip>
-                            <StatusBadge v-if="member.is_chair" tone="warning" icon="landmark">Chair · R-12</StatusBadge>
+                            <PersonaChip :name="member.name ?? t('c_legislature_pages.committee_detail.member_fallback', 'Member')" />
+                            <TagChip v-if="member.seat_kind">{{ member.seat_kind === 'type_b' ? t('c_legislature_pages.committee_detail.type_b', 'type B') : t('c_legislature_pages.committee_detail.type_a', 'type A') }}</TagChip>
+                            <StatusBadge v-if="member.is_chair" tone="warning" icon="landmark">{{ t('c_legislature_pages.committee_detail.chair_badge', 'Chair · R-12') }}</StatusBadge>
                             <StatusBadge
                                 v-else-if="committee.alternate && member.member_id === committee.alternate.member_id"
                                 tone="info"
-                            >Alternate · R-13</StatusBadge>
+                            >{{ t('c_legislature_pages.committee_detail.alternate_badge', 'Alternate · R-13') }}</StatusBadge>
                         </span>
                         <span class="citation" data-no-i18n>{{ member.assigned_via }}</span>
                     </div>
                 </div>
             </template>
             <p v-else class="gloss">
-                Not yet seated — placements arrive with the F-SPK-005 assignment run on the
-                <a :href="committee.legislature.href">committees page</a>.
+                {{ t('c_legislature_pages.committee_detail.roster_empty', 'Not yet seated — placements arrive with the F-SPK-005 assignment run on the') }}
+                <a :href="committee.legislature.href">{{ t('c_legislature_pages.committee_detail.committees_page', 'committees page') }}</a>.
             </p>
         </Card>
 
         <!-- ================================== meeting ================== -->
-        <Card as="section" title="Meeting">
+        <Card as="section" :title="t('c_legislature_pages.committee_detail.meeting_title', 'Meeting')">
             <template v-if="meeting">
                 <p class="cc-small">
-                    {{ meeting.status === 'open' ? 'In session' : meeting.status === 'adjourned' ? 'Adjourned' : 'Scheduled' }} —
-                    {{ fmt(meeting.scheduled_for) }} · hearings are public record.
+                    {{ meeting.status === 'open' ? t('c_legislature_pages.committee_detail.meeting_open', 'In session') : meeting.status === 'adjourned' ? t('c_legislature_pages.committee_detail.meeting_adjourned', 'Adjourned') : t('c_legislature_pages.committee_detail.meeting_scheduled', 'Scheduled') }} —
+                    {{ fmt(meeting.scheduled_for) }} · {{ t('c_legislature_pages.committee_detail.hearings_public', 'hearings are public record.') }}
                 </p>
                 <ol v-if="meeting.agenda.length" class="agenda-list">
                     <li v-for="(item, i) in meeting.agenda" :key="i" class="agenda-slot">
@@ -223,18 +222,18 @@ function submitReport() {
                         <span>{{ item }}</span>
                     </li>
                 </ol>
-                <p v-else class="gloss">No agenda yet — the chair sets it (F-CHR-002).</p>
+                <p v-else class="gloss">{{ t('c_legislature_pages.committee_detail.no_agenda', 'No agenda yet — the chair sets it (F-CHR-002).') }}</p>
 
                 <FormCard
                     v-if="can.setAgenda && formMeta('F-CHR-002')"
                     :form="formMeta('F-CHR-002')"
                     :inertia-form="agendaForm"
-                    submit-label="Set agenda"
+                    :submit-label="t('c_legislature_pages.committee_detail.set_agenda', 'Set agenda')"
                     @submit="submitAgenda"
                 >
                     <Field
-                        label="Agenda items (one per line)"
-                        hint="Committee agendas have no engine-locked head — emergency review is a floor-session duty (Art. II §2)."
+                        :label="t('c_legislature_pages.committee_detail.agenda_items', 'Agenda items (one per line)')"
+                        :hint="t('c_legislature_pages.committee_detail.agenda_hint', 'Committee agendas have no engine-locked head — emergency review is a floor-session duty (Art. II §2).')"
                         :error="agendaForm.errors.agenda ?? agendaForm.errors.constitution"
                     >
                         <template #control="{ id, invalid, describedBy }">
@@ -251,15 +250,15 @@ function submitReport() {
                 </FormCard>
             </template>
             <template v-else>
-                <p class="gloss">No meeting scheduled.</p>
+                <p class="gloss">{{ t('c_legislature_pages.committee_detail.no_meeting', 'No meeting scheduled.') }}</p>
                 <FormCard
                     v-if="can.call && formMeta('F-CHR-001')"
                     :form="formMeta('F-CHR-001')"
                     :inertia-form="meetingForm"
-                    submit-label="Call meeting"
+                    :submit-label="t('c_legislature_pages.committee_detail.call_meeting', 'Call meeting')"
                     @submit="submitMeeting"
                 >
-                    <Field label="Scheduled for" :error="meetingForm.errors.scheduled_for ?? meetingForm.errors.constitution">
+                    <Field :label="t('c_legislature_pages.committee_detail.scheduled_for', 'Scheduled for')" :error="meetingForm.errors.scheduled_for ?? meetingForm.errors.constitution">
                         <template #control="{ id, invalid, describedBy }">
                             <input
                                 :id="id"
@@ -271,24 +270,24 @@ function submitReport() {
                             />
                         </template>
                     </Field>
-                    <Field label="Agenda items (one per line)">
+                    <Field :label="t('c_legislature_pages.committee_detail.agenda_items', 'Agenda items (one per line)')">
                         <template #control="{ id }">
                             <textarea :id="id" v-model="meetingForm.agenda_text" class="field-input" rows="3"></textarea>
                         </template>
                     </Field>
                 </FormCard>
                 <p v-else-if="!can.call" class="citation">
-                    Meetings are called by the chair — or the alternate when the chair is absent (F-CHR-001 · R-12/R-13).
+                    {{ t('c_legislature_pages.committee_detail.meetings_called', 'Meetings are called by the chair — or the alternate when the chair is absent (F-CHR-001 · R-12/R-13).') }}
                 </p>
             </template>
         </Card>
 
         <!-- ================================== bills ==================== -->
-        <Card as="section" title="Bills before the committee">
-            <p v-if="meetingContext.explicit" class="gloss">These bills and reports belong to the committee as a whole. The hearing and testimony shown here belong to the selected meeting.</p>
-            <p v-if="!bills.length" class="gloss">No bills on this page.</p>
-            <p class="gloss">Showing {{ bills.length }} bills on this page. Page through the committee's full bill history.</p>
-            <HistoryPager cursor-key="bills_cursor" :pages="billPages" :only="recordPageProps" :first="billPages.first ?? urls.current" label="Committee bill pages" />
+        <Card as="section" :title="t('c_legislature_pages.committee_detail.bills_title', 'Bills before the committee')">
+            <p v-if="meetingContext.explicit" class="gloss">{{ t('c_legislature_pages.committee_detail.bills_scope', 'These bills and reports belong to the committee as a whole. The hearing and testimony shown here belong to the selected meeting.') }}</p>
+            <p v-if="!bills.length" class="gloss">{{ t('c_legislature_pages.committee_detail.bills_empty', 'No bills on this page.') }}</p>
+            <p class="gloss">{{ t('c_legislature_pages.committee_detail.bills_showing', { count: bills.length }) }}</p>
+            <HistoryPager cursor-key="bills_cursor" :pages="billPages" :only="recordPageProps" :first="billPages.first ?? urls.current" :label="t('c_legislature_pages.committee_detail.bill_pages', 'Committee bill pages')" />
 
             <div class="stack" style="gap: var(--space-3)">
                 <Card v-for="bill in bills" :key="bill.id" inset>
@@ -309,16 +308,15 @@ function submitReport() {
                             @cast="castBillVote(bill, $event)"
                         />
                         <p v-if="bill.vote.my_cast && bill.vote.open" class="citation">
-                            Your cast is recorded — casts are immutable.
+                            {{ t('c_legislature_pages.committee_detail.cast_recorded', 'Your cast is recorded — casts are immutable.') }}
                         </p>
                         <details v-if="bill.vote.casts.length" style="margin-block-start: var(--space-2)">
-                            <summary class="cc-small" style="cursor: pointer">Published casts ({{ bill.vote.casts.length }})</summary>
+                            <summary class="cc-small" style="cursor: pointer">{{ t('c_legislature_pages.committee_detail.published_casts', { count: bill.vote.casts.length }) }}</summary>
                             <VoteCastList :casts="bill.vote.casts" :group-by-kind="bicameral" />
                         </details>
                     </template>
                     <p v-else-if="bill.status === 'in_committee'" class="gloss">
-                        The committee vote opens with the referral motion's adoption (WF-LEG-06)
-                        — majority of ALL committee members, not those present · Art. II §4.
+                        {{ t('c_legislature_pages.committee_detail.vote_opens', 'The committee vote opens with the referral motion\'s adoption (WF-LEG-06) — majority of ALL committee members, not those present · Art. II §4.') }}
                     </p>
 
                     <!-- refer-to-floor gate (F-CHR-003) ------------------ -->
@@ -329,78 +327,76 @@ function submitReport() {
                             size="sm"
                             :disabled="!bill.referable || referring === bill.id"
                             :title="bill.referable
-                                ? 'Moves the bill to the floor and opens its floor vote'
-                                : 'Enabled only after the committee vote passes · F-CHR-003'"
+                                ? t('c_legislature_pages.committee_detail.refer_ready', 'Moves the bill to the floor and opens its floor vote')
+                                : t('c_legislature_pages.committee_detail.refer_gated', 'Enabled only after the committee vote passes · F-CHR-003')"
                             @click="referToFloor(bill)"
-                        >Refer to floor (F-CHR-003)</Btn>
+                        >{{ t('c_legislature_pages.committee_detail.refer_btn', 'Refer to floor (F-CHR-003)') }}</Btn>
                         <span v-if="!bill.referable" class="citation">
-                            enabled only after the committee vote passes · F-CHR-003 — the engine
-                            independently rejects premature referral
+                            {{ t('c_legislature_pages.committee_detail.refer_note', 'enabled only after the committee vote passes · F-CHR-003 — the engine independently rejects premature referral') }}
                         </span>
                         <StatusBadge v-if="bill.report" tone="success" icon="check">
-                            Latest report filed {{ fmt(bill.report.filed_at) }}
+                            {{ t('c_legislature_pages.committee_detail.latest_report', { when: fmt(bill.report.filed_at) }) }}
                         </StatusBadge>
-                        <Link v-if="bill.report?.href" class="citation" :href="bill.report.href" preserve-state preserve-scroll>Read report →</Link>
+                        <Link v-if="bill.report?.href" class="citation" :href="bill.report.href" preserve-state preserve-scroll>{{ t('c_legislature_pages.committee_detail.read_report', 'Read report →') }}</Link>
                     </div>
                 </Card>
             </div>
             <HistoryPager cursor-key="bills_cursor" :pages="billPages" :only="recordPageProps" :first="billPages.first ?? urls.current" label="Committee bill pages" />
         </Card>
 
-        <Card id="committee-reports" as="section" title="Published committee reports">
-            <p class="gloss">All reports appear here, including committee-wide reports and earlier reports about the same bill.</p>
+        <Card id="committee-reports" as="section" :title="t('c_legislature_pages.committee_detail.reports_title', 'Published committee reports')">
+            <p class="gloss">{{ t('c_legislature_pages.committee_detail.reports_gloss', 'All reports appear here, including committee-wide reports and earlier reports about the same bill.') }}</p>
             <div v-if="reports.length" class="stack">
                 <article v-for="report in reports" :key="report.id">
                     <h3><Link :href="report.href" preserve-state preserve-scroll>{{ report.title }}</Link></h3>
                     <p v-if="report.excerpt" class="cc-small">{{ report.excerpt }}</p>
                     <p class="citation">
-                        Filed {{ fmt(report.filed_at) }}
+                        {{ t('c_legislature_pages.committee_detail.filed', { when: fmt(report.filed_at) }) }}
                         <template v-if="report.bill"> · <Link :href="report.bill.href">{{ report.bill.title }}</Link></template>
-                        <template v-else> · Committee-wide report or associated bill unavailable</template>
+                        <template v-else> · {{ t('c_legislature_pages.committee_detail.report_bill_unavailable', 'Committee-wide report or associated bill unavailable') }}</template>
                     </p>
                 </article>
             </div>
-            <p v-else class="gloss">No reports on this page.</p>
-            <HistoryPager cursor-key="reports_cursor" :pages="reportPages" :only="recordPageProps" :first="reportPages.first ?? urls.current" label="Committee report pages" />
+            <p v-else class="gloss">{{ t('c_legislature_pages.committee_detail.reports_empty', 'No reports on this page.') }}</p>
+            <HistoryPager cursor-key="reports_cursor" :pages="reportPages" :only="recordPageProps" :first="reportPages.first ?? urls.current" :label="t('c_legislature_pages.committee_detail.report_pages', 'Committee report pages')" />
         </Card>
         <Card v-if="selectedReport" id="committee-report-detail" as="section" :title="selectedReport.title">
-            <p class="citation">Filed {{ fmt(selectedReport.filed_at) }}<template v-if="selectedReport.actor"> · {{ selectedReport.actor }}</template></p>
+            <p class="citation">{{ t('c_legislature_pages.committee_detail.filed', { when: fmt(selectedReport.filed_at) }) }}<template v-if="selectedReport.actor"> · {{ selectedReport.actor }}</template></p>
             <p v-if="selectedReport.body" style="white-space: pre-wrap; overflow-wrap: anywhere">{{ selectedReport.body }}</p>
-            <p v-else class="gloss">The report publication is unavailable.</p>
+            <p v-else class="gloss">{{ t('c_legislature_pages.committee_detail.report_unavailable', 'The report publication is unavailable.') }}</p>
             <div class="cluster">
-                <Link v-if="selectedReport.bill" :href="selectedReport.bill.href" class="btn btn--secondary">Read bill: {{ selectedReport.bill.title }}</Link>
-                <span v-if="selectedReport.seq" class="citation">Public record {{ selectedReport.seq }}<template v-if="selectedReport.audit_seq"> · Audit entry {{ selectedReport.audit_seq }}</template></span>
-                <Link :href="selectedReport.close_href" class="btn btn--ghost" preserve-state preserve-scroll>Close report</Link>
+                <Link v-if="selectedReport.bill" :href="selectedReport.bill.href" class="btn btn--secondary">{{ t('c_legislature_pages.committee_detail.read_bill', { title: selectedReport.bill.title }) }}</Link>
+                <span v-if="selectedReport.seq" class="citation">{{ t('c_legislature_pages.committee_detail.public_record', { seq: selectedReport.seq }) }}<template v-if="selectedReport.audit_seq"> · {{ t('c_legislature_pages.committee_detail.audit_entry', { seq: selectedReport.audit_seq }) }}</template></span>
+                <Link :href="selectedReport.close_href" class="btn btn--ghost" preserve-state preserve-scroll>{{ t('c_legislature_pages.committee_detail.close_report', 'Close report') }}</Link>
             </div>
         </Card>
 
         <div class="grid-2">
             <!-- ============================== testimony ================ -->
             <section class="card" aria-labelledby="testimony-h">
-                <h2 id="testimony-h">{{ meetingContext.explicit ? 'Testimony for this hearing' : 'Committee testimony' }}</h2>
+                <h2 id="testimony-h">{{ meetingContext.explicit ? t('c_legislature_pages.committee_detail.testimony_hearing', 'Testimony for this hearing') : t('c_legislature_pages.committee_detail.testimony_committee', 'Committee testimony') }}</h2>
                 <p class="gloss">
-                    Hearings take testimony from any resident; entries publish verbatim to the
-                    immutable public record · WF-LEG-08 · WF-SYS-03.
+                    {{ t('c_legislature_pages.committee_detail.testimony_gloss', 'Hearings take testimony from any resident; entries publish verbatim to the immutable public record · WF-LEG-08 · WF-SYS-03.') }}
                 </p>
                 <div v-if="testimony.length" class="stack" style="gap: var(--space-1)">
                     <LogRow v-for="row in testimony" :key="row.seq" :seq="row.seq">
                         <strong>{{ row.who }}</strong> — {{ row.text }}
                         <span class="citation" style="display: block">
                             {{ fmt(row.recorded_at) }} ·
-                            <a :href="row.record_href">sealed record →</a>
+                            <a :href="row.record_href">{{ t('c_legislature_pages.committee_detail.sealed_record', 'sealed record →') }}</a>
                         </span>
                     </LogRow>
                 </div>
-                <p v-else class="cc-small gloss">No testimony recorded yet.</p>
-                <nav v-if="testimonyPages.previous || testimonyPages.next" class="cluster" aria-label="Testimony pages">
-                    <Link v-if="testimonyPages.previous" :href="testimonyPages.previous" class="btn btn--ghost" preserve-scroll preserve-state>Newer testimony</Link>
-                    <Link v-if="testimonyPages.next" :href="testimonyPages.next" class="btn btn--ghost" preserve-scroll preserve-state>Older testimony</Link>
+                <p v-else class="cc-small gloss">{{ t('c_legislature_pages.committee_detail.no_testimony', 'No testimony recorded yet.') }}</p>
+                <nav v-if="testimonyPages.previous || testimonyPages.next" class="cluster" :aria-label="t('c_legislature_pages.committee_detail.testimony_pages', 'Testimony pages')">
+                    <Link v-if="testimonyPages.previous" :href="testimonyPages.previous" class="btn btn--ghost" preserve-scroll preserve-state>{{ t('c_legislature_pages.committee_detail.newer_testimony', 'Newer testimony') }}</Link>
+                    <Link v-if="testimonyPages.next" :href="testimonyPages.next" class="btn btn--ghost" preserve-scroll preserve-state>{{ t('c_legislature_pages.committee_detail.older_testimony', 'Older testimony') }}</Link>
                 </nav>
 
                 <template v-if="meeting && can.testify">
                     <Field
-                        label="Submit testimony"
-                        hint="Entered verbatim into the public record — testimony cannot be edited or withdrawn."
+                        :label="t('c_legislature_pages.committee_detail.submit_testimony', 'Submit testimony')"
+                        :hint="t('c_legislature_pages.committee_detail.testimony_hint', 'Entered verbatim into the public record — testimony cannot be edited or withdrawn.')"
                         :error="testimonyForm.errors.text ?? testimonyForm.errors.constitution"
                     >
                         <template #control="{ id, invalid, describedBy }">
@@ -419,22 +415,22 @@ function submitReport() {
                         size="sm"
                         :disabled="testimonyForm.processing || !testimonyForm.text.trim()"
                         @click="submitTestimony"
-                    >Enter into the record</Btn>
+                    >{{ t('c_legislature_pages.committee_detail.enter_record', 'Enter into the record') }}</Btn>
                 </template>
-                <p v-else-if="!meeting" class="citation">Testimony attaches to a meeting — none is scheduled.</p>
+                <p v-else-if="!meeting" class="citation">{{ t('c_legislature_pages.committee_detail.testimony_needs_meeting', 'Testimony attaches to a meeting — none is scheduled.') }}</p>
             </section>
 
             <!-- ============================== report (F-CHR-004) ======= -->
             <section class="card" aria-labelledby="report-h">
-                <h2 id="report-h">Committee report</h2>
+                <h2 id="report-h">{{ t('c_legislature_pages.committee_detail.report_h2', 'Committee report') }}</h2>
                 <FormCard
                     v-if="can.fileReport && formMeta('F-CHR-004')"
                     :form="formMeta('F-CHR-004')"
                     :inertia-form="reportForm"
-                    submit-label="File report"
+                    :submit-label="t('c_legislature_pages.committee_detail.file_report', 'File report')"
                     @submit="submitReport"
                 >
-                    <Field label="Title" :error="reportForm.errors.title" required>
+                    <Field :label="t('c_legislature_pages.committee_detail.field_title', 'Title')" :error="reportForm.errors.title" required>
                         <template #control="{ id, invalid, describedBy }">
                             <input
                                 :id="id"
@@ -445,7 +441,7 @@ function submitReport() {
                             />
                         </template>
                     </Field>
-                    <Field label="Report body" :error="reportForm.errors.body ?? reportForm.errors.constitution" required>
+                    <Field :label="t('c_legislature_pages.committee_detail.report_body', 'Report body')" :error="reportForm.errors.body ?? reportForm.errors.constitution" required>
                         <template #control="{ id, invalid, describedBy }">
                             <textarea
                                 :id="id"
@@ -457,29 +453,25 @@ function submitReport() {
                             ></textarea>
                         </template>
                     </Field>
-                    <Field label="About bill (optional)">
+                    <Field :label="t('c_legislature_pages.committee_detail.about_bill', 'About bill (optional)')">
                         <template #control="{ id }">
                             <select :id="id" v-model="reportForm.bill_id" class="select">
-                                <option value="">— none —</option>
+                                <option value="">{{ t('c_legislature_pages.committee_detail.bill_none', '— none —') }}</option>
                                 <option v-for="bill in reportBillOptions" :key="bill.id" :value="bill.id">{{ bill.title }}</option>
                             </select>
                         </template>
                     </Field>
-                    <p class="gloss">Choose a bill from the current bill page, or page through the bills above. Your chosen bill stays selected while you browse.</p>
+                    <p class="gloss">{{ t('c_legislature_pages.committee_detail.report_choose', 'Choose a bill from the current bill page, or page through the bills above. Your chosen bill stays selected while you browse.') }}</p>
                 </FormCard>
                 <p v-else class="citation">
-                    Reports are filed by the chair — or the alternate when the chair is absent (F-CHR-004 · R-12/R-13).
-                    The report body publishes to the public record.
+                    {{ t('c_legislature_pages.committee_detail.reports_filed_by', 'Reports are filed by the chair — or the alternate when the chair is absent (F-CHR-004 · R-12/R-13). The report body publishes to the public record.') }}
                 </p>
             </section>
         </div>
 
         <template #about>
             <p>
-                The committee decides by majority of all its members; a passed vote flips the
-                bill to <em>reported</em>, which is the only state from which the chair's
-                F-CHR-003 referral can move it to the floor. The engine enforces the gate
-                server-side — the disabled button is honesty, not the boundary.
+                {{ t('c_legislature_pages.committee_detail.about_1', 'The committee decides by majority of all its members; a passed vote flips the bill to') }} <em>{{ t('c_legislature_pages.committee_detail.about_reported', 'reported') }}</em>{{ t('c_legislature_pages.committee_detail.about_2', ', which is the only state from which the chair\'s F-CHR-003 referral can move it to the floor. The engine enforces the gate server-side — the disabled button is honesty, not the boundary.') }}
             </p>
         </template>
     </PageScaffold>
