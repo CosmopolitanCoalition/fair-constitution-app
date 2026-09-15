@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Legislature/Referendums — FE-C9 (PHASE_C_DESIGN_frontend.md §B.9).
  *
@@ -311,7 +312,7 @@ const ORIGIN_LABELS = {
                         :label="t('c_legislature_pages_b.referendums.yes_votes_label', { title: row.title })"
                         style="margin-block-start: var(--space-2)"
                     >
-                        {{ t('c_legislature_pages_b.referendums.yes_summary', { pct: row.yes_pct, yes: row.yes.toLocaleString(), eligible: row.eligible.toLocaleString() }) }}
+                        {{ t('c_legislature_pages_b.referendums.yes_summary', { pct: row.yes_pct, yes: localeFmt.number(row.yes), eligible: localeFmt.number(row.eligible) }) }}
                         <template #note>
                             {{ t('c_legislature_pages_b.referendums.threshold_note', { threshold: THRESHOLD_LABELS[row.threshold].toLowerCase() }) }}
                         </template>

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Organizations/CoDetermination — FE-D7 (PHASE_D_DESIGN_frontend.md §B.10;
  * surface organizations/co-determination) ← the CLK-13 exit surface.
@@ -96,7 +97,7 @@ function stateBadge(row) {
 <template>
     <PageScaffold :surface="surface" :title="focus ? t('c_institutions.co_determination.page_title', { name: focus.entity.name }) : t('c_institutions.co_determination.page_title_generic', 'Worker representation')">
         <template #intro>
-            {{ t('c_institutions.co_determination.intro_before', { min: clk13.value.toLocaleString(), parity: clk14.value.toLocaleString() }) }}
+            {{ t('c_institutions.co_determination.intro_before', { min: localeFmt.number(clk13.value), parity: localeFmt.number(clk14.value) }) }}
             <em>{{ t('c_institutions.co_determination.intro_em', 'co-determination') }}</em>{{ t('c_institutions.co_determination.intro_after', '. The same scale applies to private companies, Common Good Corporations, and government departments.') }}
         </template>
 
@@ -173,7 +174,7 @@ function stateBadge(row) {
                         >{{ t('c_institutions.co_determination.composition_invalid', 'composition invalid') }}</StatusBadge>
                     </template>
                     <template #cell-workers="{ row }">
-                        <span class="mono">{{ row.workers.toLocaleString() }}</span>
+                        <span class="mono">{{ localeFmt.number(row.workers) }}</span>
                     </template>
                     <template #cell-owner_side="{ row }">
                         <template v-if="row.owner_side">
@@ -219,10 +220,10 @@ function stateBadge(row) {
             <Card as="section" :title="t('c_institutions.co_determination.first_seat_title', 'First worker seat')">
                 <p style="margin-block-end: var(--space-2)">
                     <AmendableSetting
-                        :value="clk13.value.toLocaleString()"
+                        :value="localeFmt.number(clk13.value)"
                         setting-key="worker_rep_min_employees"
                         :label="t('c_institutions.co_determination.first_seat_amend_label', 'Workers needed for the first board seat')"
-                        :default-value="clk13.default.toLocaleString()"
+                        :default-value="localeFmt.number(clk13.default)"
                         :citation="clk13.basis"
                     />
                 </p>
@@ -241,10 +242,10 @@ function stateBadge(row) {
             <Card as="section" :title="t('c_institutions.co_determination.parity_title', 'Equal worker and owner representation')">
                 <p style="margin-block-end: var(--space-2)">
                     <AmendableSetting
-                        :value="clk14.value.toLocaleString()"
+                        :value="localeFmt.number(clk14.value)"
                         setting-key="worker_rep_parity_employees"
                         :label="t('c_institutions.co_determination.parity_amend_label', 'Workers needed for equal representation')"
-                        :default-value="clk14.default.toLocaleString()"
+                        :default-value="localeFmt.number(clk14.default)"
                         :citation="clk14.basis"
                     />
                 </p>

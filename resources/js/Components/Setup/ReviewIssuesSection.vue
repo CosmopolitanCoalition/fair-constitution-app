@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RowDetailPanel from './RowDetailPanel.vue'
@@ -243,7 +244,7 @@ function isRowDecided(catKey, rowId) {
 }
 
 function fmtInt(n) {
-    return Number(n ?? 0).toLocaleString()
+    return localeFmt.number(Number(n ?? 0))
 }
 
 function admLabel(lvl) {

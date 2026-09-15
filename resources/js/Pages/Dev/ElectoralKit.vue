@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Dev/ElectoralKit — FE-B1 fixture-first harness (/dev/electoral-kit,
  * dev-gated). Renders all 8 Electoral components in every state from
@@ -325,16 +326,16 @@ const countbackBars = computed(() =>
         <!-- ================================================== 6. StvBar -->
         <Card as="section" :title="t('c_operator_pages.electoral_kit.card_stvbar', 'StvBar — standalone states')">
             <p class="citation">{{ t('c_operator_pages.electoral_kit.cite_stvbar', 'Electoral/StvBar · .stv-cand family · gold tick = Droop quota') }}</p>
-            <span class="visually-hidden">{{ t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() }) }}</span>
-            <StvBar name="Rita Alvarez" :votes="28454" :quota="stv.quota" :scale="SCALE" href="/candidates/rita-alvarez" :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() })" />
-            <StvBar name="Aisha Diop" :votes="41943" :quota="stv.quota" :scale="SCALE" elected badge="r27" href="/candidates/aisha-diop" :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() })" />
-            <StvBar name="Tanya Brooks" :votes="5224" :quota="stv.quota" :scale="SCALE" eliminated :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() })" />
-            <StvBar name="Quinn Avery" :votes="16999" :quota="stv.quota" :scale="SCALE" write-in href="/candidates/quinn-avery" :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() })" />
+            <span class="visually-hidden">{{ t('c_operator_pages.electoral_kit.droop_quota', { quota: localeFmt.number(stv.quota) }) }}</span>
+            <StvBar name="Rita Alvarez" :votes="28454" :quota="stv.quota" :scale="SCALE" href="/candidates/rita-alvarez" :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: localeFmt.number(stv.quota) })" />
+            <StvBar name="Aisha Diop" :votes="41943" :quota="stv.quota" :scale="SCALE" elected badge="r27" href="/candidates/aisha-diop" :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: localeFmt.number(stv.quota) })" />
+            <StvBar name="Tanya Brooks" :votes="5224" :quota="stv.quota" :scale="SCALE" eliminated :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: localeFmt.number(stv.quota) })" />
+            <StvBar name="Quinn Avery" :votes="16999" :quota="stv.quota" :scale="SCALE" write-in href="/candidates/quinn-avery" :quota-title="t('c_operator_pages.electoral_kit.droop_quota', { quota: localeFmt.number(stv.quota) })" />
             <StvBar name="Felipe Ortiz" :votes="1650" :scale="5224" transfer-fill arrow />
             <StvBar name="Renata Silva" :votes="null" :quota="CB_QUOTA" :scale="CB_SCALE" eliminated :chips="[t('c_operator_pages.electoral_kit.chip_removed', 'removed from the count')]" :quota-title="t('c_operator_pages.electoral_kit.droop_quota_28755', 'Droop quota 28,755')" />
 
             <h3 style="margin-block-start: var(--space-4)">{{ t('c_operator_pages.electoral_kit.live_aggregate', 'Live aggregate (ranked window)') }}</h3>
-            <p class="citation">{{ t('c_operator_pages.electoral_kit.agg_cite', { ballots: agg.ballotsSoFar.toLocaleString(), quota: agg.quotaIfClosedNow.toLocaleString() }) }}</p>
+            <p class="citation">{{ t('c_operator_pages.electoral_kit.agg_cite', { ballots: localeFmt.number(agg.ballotsSoFar), quota: localeFmt.number(agg.quotaIfClosedNow) }) }}</p>
             <StvBar
                 v-for="[name, votes] in agg.top"
                 :key="name"
@@ -351,15 +352,15 @@ const countbackBars = computed(() =>
         <!-- ================================== 7. StvRound — full count === -->
         <Card as="section" :title="t('c_operator_pages.electoral_kit.card_stvround', 'StvRound — the Queens count, round by round (27 rounds)')">
             <div class="cluster" style="gap: var(--space-6); margin-block-end: var(--space-4)">
-                <Stat :value="stv.total.toLocaleString()" :label="t('c_operator_pages.electoral_kit.valid_ballots', 'valid ballots')" />
-                <Stat :value="stv.quota.toLocaleString()" :label="t('c_operator_pages.electoral_kit.droop_quota_formula', 'Droop quota = floor(votes ÷ (seats+1)) + 1')" accent />
+                <Stat :value="localeFmt.number(stv.total)" :label="t('c_operator_pages.electoral_kit.valid_ballots', 'valid ballots')" />
+                <Stat :value="localeFmt.number(stv.quota)" :label="t('c_operator_pages.electoral_kit.droop_quota_formula', 'Droop quota = floor(votes ÷ (seats+1)) + 1')" accent />
                 <Stat :value="stv.seats" :label="t('c_operator_pages.electoral_kit.seats_one_count', 'seats — all filled in one count')" />
                 <Stat :value="stv.rounds" :label="t('c_operator_pages.electoral_kit.counting_rounds', 'counting rounds')" />
             </div>
             <p class="gloss">
                 {{ t('c_operator_pages.electoral_kit.gloss_stvround', 'Gold tick = the Droop quota. Reaching it elects a candidate; their surplus transfers onward at fractional value so no vote is wasted.') }}
             </p>
-            <span class="visually-hidden">{{ t('c_operator_pages.electoral_kit.droop_quota', { quota: stv.quota.toLocaleString() }) }}</span>
+            <span class="visually-hidden">{{ t('c_operator_pages.electoral_kit.droop_quota', { quota: localeFmt.number(stv.quota) }) }}</span>
 
             <StvRound
                 v-for="round in openingRounds"
@@ -406,7 +407,7 @@ const countbackBars = computed(() =>
                 <StatusBadge v-if="countbackVariant === 'found'" tone="success" icon="check">{{ t('c_operator_pages.electoral_kit.winner_found_named', 'Winner found — Camille Verhoeven') }}</StatusBadge>
                 <StatusBadge v-else tone="danger" icon="alert-triangle">{{ t('c_operator_pages.electoral_kit.countback_failed', 'Countback failed — ballots exhausted') }}</StatusBadge>
             </div>
-            <span class="visually-hidden">{{ t('c_operator_pages.electoral_kit.droop_quota', { quota: CB_QUOTA.toLocaleString() }) }}</span>
+            <span class="visually-hidden">{{ t('c_operator_pages.electoral_kit.droop_quota', { quota: localeFmt.number(CB_QUOTA) }) }}</span>
             <StvBar
                 v-for="bar in countbackBars"
                 :key="bar.name"

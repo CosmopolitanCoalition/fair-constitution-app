@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import MiniMap from './MiniMap.vue'
@@ -117,7 +118,7 @@ const title = computed(() => {
 
 function fmtPop(n) {
     if (n == null) return null
-    return Number(n).toLocaleString()
+    return localeFmt.number(Number(n))
 }
 
 // ── Progress bar + ETA ───────────────────────────────────────────────────────

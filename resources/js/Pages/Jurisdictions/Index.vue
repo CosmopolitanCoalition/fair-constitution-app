@@ -42,7 +42,7 @@
                             :title="t('c_jurisdictions.index.finish_all_title', 'These places have seats but no election board, so district plans cannot be accepted')"
                             class="px-2.5 py-1 rounded border border-amber-500 bg-amber-900/30 text-amber-100 hover:bg-amber-900/60 disabled:opacity-50 transition-colors">
                         <span v-if="healBusy" class="inline-block animate-spin">◠</span>
-                        {{ healBusy ? t('c_jurisdictions.index.booting_left', { n: halfCount.toLocaleString() }) : t('c_jurisdictions.index.finish_activation_n', { n: halfCount.toLocaleString() }) }}
+                        {{ healBusy ? t('c_jurisdictions.index.booting_left', { n: localeFmt.number(halfCount) }) : t('c_jurisdictions.index.finish_activation_n', { n: localeFmt.number(halfCount) }) }}
                     </button>
                     <button type="button" :disabled="allBusy" @click="activateAll"
                             class="px-2.5 py-1 rounded border border-violet-600 text-violet-200 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
@@ -98,7 +98,7 @@
                 </select>
 
                 <span class="ml-auto text-xs text-gray-500">
-                    {{ t('c_jurisdictions.index.total_count', { count: jurisdictions.total.toLocaleString() }) }}
+                    {{ t('c_jurisdictions.index.total_count', { count: localeFmt.number(jurisdictions.total) }) }}
                 </span>
             </div>
 
@@ -204,8 +204,8 @@
                                     <span class="text-[10px] tabular-nums"
                                           :class="subtreeProgress[j.id].finished ? 'text-emerald-300' : 'text-violet-300'">
                                         {{ subtreeProgress[j.id].finished
-                                            ? t('c_jurisdictions.index.subtree_done', { n: subtreeProgress[j.id].total.toLocaleString() })
-                                            : `${subtreeProgress[j.id].processed.toLocaleString()}/${subtreeProgress[j.id].total.toLocaleString()}` }}
+                                            ? t('c_jurisdictions.index.subtree_done', { n: localeFmt.number(subtreeProgress[j.id].total) })
+                                            : `${localeFmt.number(subtreeProgress[j.id].processed)}/${localeFmt.number(subtreeProgress[j.id].total)}` }}
                                     </span>
                                 </span>
                                 <button v-else-if="isOperator && j.inactive_children"
@@ -222,7 +222,7 @@
                             </td>
                             <td class="px-4 py-2 font-mono text-xs text-gray-400">{{ j.slug }}</td>
                             <td class="px-4 py-2 text-right text-gray-300 tabular-nums">
-                                {{ j.population ? Number(j.population).toLocaleString() : '—' }}
+                                {{ j.population ? localeFmt.number(Number(j.population)) : '—' }}
                                 <span v-if="j.population_year" class="text-gray-600 text-xs ml-1">'{{ String(j.population_year).slice(-2) }}</span>
                             </td>
                         </tr>
@@ -241,7 +241,7 @@
                         </select>
                     </label>
                     <span>
-                        {{ t('c_jurisdictions.index.showing', { from: jurisdictions.from?.toLocaleString() ?? 0, to: jurisdictions.to?.toLocaleString() ?? 0, total: jurisdictions.total.toLocaleString() }) }}
+                        {{ t('c_jurisdictions.index.showing', { from: jurisdictions.from == null ? 0 : localeFmt.number(jurisdictions.from), to: jurisdictions.to == null ? 0 : localeFmt.number(jurisdictions.to), total: localeFmt.number(jurisdictions.total) }) }}
                     </span>
                 </span>
                 <div class="flex gap-1">
@@ -263,7 +263,8 @@
     </div>
 </template>
 
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
@@ -549,7 +550,7 @@ async function pollHalfCount() {
             healMsg.value = t('c_jurisdictions.index.all_have_board', 'All activated places have their election board.')
             healBusy.value = false
         } else if (halfCount.value !== prev) {
-            healMsg.value = t('c_jurisdictions.index.booting_remaining', { n: halfCount.value.toLocaleString() })
+            healMsg.value = t('c_jurisdictions.index.booting_remaining', { n: localeFmt.number(halfCount.value) })
         }
     } catch { /* transient — the next tick retries */ }
 }
@@ -580,7 +581,7 @@ async function finishActivations() {
             return
         }
         // Stay "busy" while the queued job drains; the poll ends it.
-        healMsg.value = t('c_jurisdictions.index.booting_remaining', { n: Number(data.count).toLocaleString() })
+        healMsg.value = t('c_jurisdictions.index.booting_remaining', { n: localeFmt.number(Number(data.count)) })
         stopHealPoll()
         healPoll = setInterval(pollHalfCount, 2500)
     } catch (e) {

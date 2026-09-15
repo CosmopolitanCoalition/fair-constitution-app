@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Legislature/EmergencyPowers — FE-C9 (PHASE_C_DESIGN_frontend.md §B.10).
  *
@@ -119,7 +120,7 @@ function cast(row, { value, explanation }) {
 }
 
 function expiresDate(iso) {
-    return iso ? new Date(iso).toLocaleDateString() : '—';
+    return iso ? localeFmt.date(new Date(iso)) : '—';
 }
 </script>
 

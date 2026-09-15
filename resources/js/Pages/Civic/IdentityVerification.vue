@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Civic/IdentityVerification — minimal Phase A surface
  * (civic/identity-verification contract, EXPLORE_civic_electoral.md §2;
@@ -70,7 +71,7 @@ const isPending = computed(
 function formatDate(iso) {
     if (!iso) return '—';
     try {
-        return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(iso));
+        return localeFmt.date(new Date(iso), { dateStyle: 'medium' });
     } catch {
         return iso;
     }

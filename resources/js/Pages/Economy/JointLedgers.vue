@@ -28,10 +28,11 @@ import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Field from '@/Components/Ui/Field.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
-import { formatMoney, formatWhen, shortId } from '@/lib/money.js';
+import { formatMoney, formatWhen as formatWhenRaw, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const formatWhen = (iso) => formatWhenRaw(iso, locale.value);
 
 const props = defineProps({
     currency: { type: Object, default: null },

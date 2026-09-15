@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -50,11 +51,11 @@ function formatRelative(iso) {
     const d = new Date(iso)
     if (Number.isNaN(d.getTime())) return iso
     const sec = Math.round((Date.now() - d.getTime()) / 1000)
-    if (sec < 0)        return d.toLocaleTimeString()
+    if (sec < 0)        return localeFmt.time(d)
     if (sec < 60)       return `${sec}s ago`
     if (sec < 3600)     return `${Math.floor(sec / 60)}m ago`
     if (sec < 86400)    return `${Math.floor(sec / 3600)}h ago`
-    return d.toLocaleString()
+    return localeFmt.dateTime(d)
 }
 
 function formatEta(seconds) {

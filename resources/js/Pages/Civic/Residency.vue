@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Civic/Residency — the resident-facing claim lifecycle, written for the
  * common user (operator order 2026-09-10: "Redesign this page so that it
@@ -742,7 +743,7 @@ onBeforeUnmount(() => {
                 <p v-if="hasClaim" class="gloss" style="margin-block-start: var(--space-2)">
                     {{ t('c_civic.residency.declared_label', 'Declared:') }}
                     <AdmChip :level="claim.jurisdiction?.adm_level ?? 0" :label="claim.jurisdiction?.name ?? '—'" />
-                    · {{ claim.declared_at ? new Date(claim.declared_at).toLocaleDateString() : '—' }}
+                    · {{ claim.declared_at ? localeFmt.date(new Date(claim.declared_at)) : '—' }}
                 </p>
                 <p style="margin-block-start: var(--space-3)">
                     <AmendableSetting

@@ -9,10 +9,11 @@ import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Field from '@/Components/Ui/Field.vue';
 import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
-import { formatMoney, formatCount, formatWhen } from '@/lib/money.js';
+import { formatMoney, formatCount, formatWhen as formatWhenRaw } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const formatWhen = (iso) => formatWhenRaw(iso, locale.value);
 const props = defineProps({
     currency: { type: Object, default: null },
     posting: { type: Object, required: true },

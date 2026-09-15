@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Jurisdictions/UnionFormation — "check differences, agree one rulebook,
  * then vote" (design contract: mockups/v3/jurisdictions/union-formation.html).
@@ -100,7 +101,7 @@ const diffRows = (diff) =>
 
             <p>
                 <StatusBadge :tone="statusTone(p.status)">{{ plainState(p.status) }}</StatusBadge>
-                <span class="citation" data-no-i18n>opened {{ new Date(p.opened_at).toLocaleDateString() }}</span>
+                <span class="citation" data-no-i18n>opened {{ localeFmt.date(new Date(p.opened_at)) }}</span>
             </p>
 
             <DataTable

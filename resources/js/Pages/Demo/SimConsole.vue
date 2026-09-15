@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * The simulated-world populate console.
  *
@@ -131,7 +132,7 @@ const totalReview = computed(() => stages.value.reduce((a, s) => a + s.review, 0
  *  page must keep showing the moment it resumes. */
 const isTerminal = computed(() => ['done', 'failed'].includes(run.value?.status))
 
-const fmt = (n) => (n === null || n === undefined ? '—' : Number(n).toLocaleString())
+const fmt = (n) => (n === null || n === undefined ? '—' : localeFmt.number(Number(n)))
 
 async function poll() {
     if (polling.value) return
@@ -192,7 +193,7 @@ const statusTone = computed(() => {
                             {{ instanceClass }}
                         </span>
                     </div>
-                    <div v-if="lastPoll">{{ t('c_operator_pages.sim_console.updated', { time: lastPoll.toLocaleTimeString() }) }}</div>
+                    <div v-if="lastPoll">{{ t('c_operator_pages.sim_console.updated', { time: localeFmt.time(lastPoll) }) }}</div>
                 </div>
             </header>
 

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Judiciary/AdvocateConsole — FE-E4 (PHASE_E_DESIGN_frontend.md §B.5;
  * surface judiciary/advocate-console).
@@ -79,7 +80,7 @@ const instrumentIds = ['F-ADV-001', 'F-ADV-002', 'F-ADV-003', 'F-ADV-004'];
 function fmtDate(iso) {
     if (!iso) return '—';
     try {
-        return new Date(iso).toLocaleDateString();
+        return localeFmt.date(new Date(iso));
     } catch {
         return iso;
     }

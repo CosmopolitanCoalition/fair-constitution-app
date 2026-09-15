@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * StageBars — ONE progress idiom for every build stage in the app.
  *
@@ -75,7 +76,7 @@ watch(
     { immediate: true, deep: true },
 );
 
-const fmt = (n) => Number(n ?? 0).toLocaleString();
+const fmt = (n) => localeFmt.number(Number(n ?? 0));
 
 function pct(done, total) {
     if (!total) return 0;

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Operator/Roles — mockups-v3-wiring Phase 4 (PHASE_4_DESIGN_peerage.md §3.1).
  * Design contract: mockups/v3/operator/roles.html.
@@ -108,7 +109,7 @@ const qualifyDetail = (channel) =>
     (channel.gates ?? []).find((g) => g.key === `${channel.capability}.qualify`)?.detail ?? null;
 
 const shortId = (id) => (id ? `${String(id).slice(0, 8)}…` : '—');
-const fmtWhen = (iso) => (iso ? new Date(iso).toLocaleString() : '—');
+const fmtWhen = (iso) => (iso ? localeFmt.dateTime(new Date(iso)) : '—');
 
 /* --------------------------------------- the lifecycle form (useForm) ---- */
 const act = useForm({

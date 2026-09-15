@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Civic/PrivateRoom — a user-owned PRIVATE room (group / DM): text + voice/video, member-gated, in
  * the v3 conversation chrome (.msg-thread / .msg-bubble). A non-member only ever sees a "you need an
@@ -69,7 +70,7 @@ function msgWhen(m) {
     if (!m || m.at == null) return '';
     const d = new Date(Number(m.at));
     if (Number.isNaN(d.getTime())) return '';
-    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    return localeFmt.time(d, { hour: '2-digit', minute: '2-digit' });
 }
 function initials(title) {
     const t = (title || '?').trim();

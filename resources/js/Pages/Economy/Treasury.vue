@@ -8,10 +8,11 @@ import Stat from '@/Components/Ui/Stat.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import HistoryPager from '@/Components/Ui/HistoryPager.vue';
-import { formatMoney, formatWhen, shortId } from '@/lib/money.js';
+import { formatMoney, formatWhen as formatWhenRaw, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const formatWhen = (iso) => formatWhenRaw(iso, locale.value);
 const props = defineProps({
     currency: { type: Object, default: null },
     jurisdictionContext: { type: Object, default: null },

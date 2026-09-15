@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Civic/SignatureMeter — petition signature meter (FE-C1;
  * PHASE_C_DESIGN_frontend.md §A.6). Thin ThresholdMeter wrapper so the
@@ -37,12 +38,12 @@ const met = computed(() => props.signatures >= props.threshold);
             :value="signatures"
             :max="max"
             :threshold="threshold"
-            :label="t('c_civic_components.signature_meter.label', { threshold: threshold.toLocaleString() })"
+            :label="t('c_civic_components.signature_meter.label', { threshold: localeFmt.number(threshold) })"
         >
-            {{ t('c_civic_components.signature_meter.signatures', { count: signatures.toLocaleString() }) }}
+            {{ t('c_civic_components.signature_meter.signatures', { count: localeFmt.number(signatures) }) }}
             <template #note>
-                <template v-if="compact">{{ t('c_civic_components.signature_meter.compact_note', { threshold: threshold.toLocaleString(), pct }) }}</template>
-                <template v-else>{{ t('c_civic_components.signature_meter.threshold_note', { threshold: threshold.toLocaleString(), pct }) }}</template>
+                <template v-if="compact">{{ t('c_civic_components.signature_meter.compact_note', { threshold: localeFmt.number(threshold), pct }) }}</template>
+                <template v-else>{{ t('c_civic_components.signature_meter.threshold_note', { threshold: localeFmt.number(threshold), pct }) }}</template>
             </template>
         </ThresholdMeter>
         <div v-if="met && !compact" class="cluster">

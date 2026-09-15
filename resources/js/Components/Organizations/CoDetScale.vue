@@ -39,7 +39,8 @@ export function nextStepFromThresholds(seats, ownerSeats, thresholds) {
 }
 </script>
 
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -63,7 +64,7 @@ const props = defineProps({
     entityLabel: { type: String, default: null },
 });
 
-const fmt = (n) => (n === null || n === undefined ? '—' : Number(n).toLocaleString());
+const fmt = (n) => (n === null || n === undefined ? '—' : localeFmt.number(Number(n)));
 const { t } = useI18n();
 const text = (key, fallback) => t('c_references.' + key, fallback);
 

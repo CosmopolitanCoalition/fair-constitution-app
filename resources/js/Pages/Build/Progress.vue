@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Build/Progress — how much of this world exists yet.
  *
@@ -83,7 +84,7 @@ onBeforeUnmount(() => {
     if (timer) clearInterval(timer);
 });
 
-const fmt = (n) => Number(n ?? 0).toLocaleString();
+const fmt = (n) => localeFmt.number(Number(n ?? 0));
 </script>
 
 <template>

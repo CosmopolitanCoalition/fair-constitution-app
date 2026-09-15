@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Legislature/BillDetail — FE-C4 (PHASE_C_DESIGN_frontend.md §B.4;
  * surface legislature/bill-detail).
@@ -69,7 +70,7 @@ const lifecycle = computed(() =>
 );
 
 function fmt(iso) {
-    return iso ? new Date(iso).toLocaleString() : '—';
+    return iso ? localeFmt.dateTime(new Date(iso)) : '—';
 }
 
 /* ----------------------------------------------------------- casting --- */

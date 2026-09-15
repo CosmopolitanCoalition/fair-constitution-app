@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Executive/Actions — FE-D4 (PHASE_D_DESIGN_frontend.md §B.5; surface
  * executive/executive-actions) — THE order-rejection exit surface.
@@ -170,7 +171,7 @@ function submitApplication() {
 }
 
 function money(n) {
-    return Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return localeFmt.number(Number(n ?? 0), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 </script>
 

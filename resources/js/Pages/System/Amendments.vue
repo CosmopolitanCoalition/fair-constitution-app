@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * System/Amendments — mockups-v3-wiring Phase 2 (design contract:
  * mockups/v3/system/amendments.html).
@@ -76,7 +77,7 @@ const ratificationColumns = computed(() => [
 ]);
 
 function dateOf(iso) {
-    return iso ? new Date(iso).toLocaleDateString() : '—';
+    return iso ? localeFmt.date(new Date(iso)) : '—';
 }
 
 function valueOf(value) {

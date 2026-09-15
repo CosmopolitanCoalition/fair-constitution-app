@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Social/Reach — Phase I, the enrolment gauge.
  *
@@ -59,7 +60,7 @@ const rawPct = computed(() =>
     props.gauge?.ratio_micro ? (props.gauge.ratio_micro / MICRO) * 100 : null,
 );
 
-const fmt = (n) => (n === null || n === undefined ? '—' : Number(n).toLocaleString());
+const fmt = (n) => (n === null || n === undefined ? '—' : localeFmt.number(Number(n)));
 
 /** Points only where a ratio was actually published — a gap is honest, a zero is not. */
 const points = computed(() => props.series.filter((s) => s.ratio_micro !== null));

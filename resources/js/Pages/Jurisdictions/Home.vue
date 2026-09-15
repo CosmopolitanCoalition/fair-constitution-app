@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Jurisdictions/Home — a PLACE's own page (operator 2026-09-10: the front
  * door, not the map). /jurisdictions/{slug} lands here; the full-bleed map
@@ -52,7 +53,7 @@ const parent = computed(() => (props.ancestors.length ? props.ancestors[props.an
 const kind = computed(() => (j.value.adm_label || (j.value.adm_level === 0 ? 'planet' : 'place')).toLowerCase());
 const people = computed(() => {
     const n = Number(j.value.population ?? 0);
-    return n > 0 ? n.toLocaleString() : null;
+    return n > 0 ? localeFmt.number(n) : null;
 });
 const electionLive = computed(() => {
     const s = props.current_election?.status;
@@ -86,7 +87,7 @@ const railPlace = computed(() => ({
     activation: activation.value,
 }));
 
-const fmt = (n) => Number(n ?? 0).toLocaleString();
+const fmt = (n) => localeFmt.number(Number(n ?? 0));
 </script>
 
 <template>

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Elections/Results — FE-B6 (PHASE_B_DESIGN_frontend.md §B.6 + §C).
  *
@@ -50,7 +51,7 @@ const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
 function fmt(iso) {
-    return iso ? new Date(iso).toLocaleString() : '—';
+    return iso ? localeFmt.dateTime(new Date(iso)) : '—';
 }
 
 /* -------------------------------------------------- tabulating poll ---- */
@@ -198,9 +199,9 @@ const phaseBadge = computed(() => ({
 
         <template v-if="stv">
             <div class="cluster" style="gap: var(--space-6)">
-                <Stat :value="stv.total.toLocaleString()" :label="t('c_elections.results.stat_valid_ballots', 'valid ballots')" />
+                <Stat :value="localeFmt.number(stv.total)" :label="t('c_elections.results.stat_valid_ballots', 'valid ballots')" />
                 <Stat
-                    :value="stv.quota.toLocaleString()"
+                    :value="localeFmt.number(stv.quota)"
                     :label="t('c_elections.results.stat_quota', 'Droop quota = floor(votes ÷ (seats+1)) + 1')"
                     accent
                 />
@@ -234,7 +235,7 @@ const phaseBadge = computed(() => ({
                 <p class="gloss">
                     {{ t('c_elections.results.count_gloss', 'Gold tick = the Droop quota. Reaching it elects a candidate; their surplus transfers onward at fractional value so no vote is wasted.') }}
                 </p>
-                <span class="visually-hidden">{{ t('c_elections.results.droop_quota_sr', 'Droop quota {n}', { n: stv.quota.toLocaleString() }) }}</span>
+                <span class="visually-hidden">{{ t('c_elections.results.droop_quota_sr', 'Droop quota {n}', { n: localeFmt.number(stv.quota) }) }}</span>
 
                 <StvRound
                     v-for="round in main.opening"
@@ -305,7 +306,7 @@ const phaseBadge = computed(() => ({
                 <details class="about-surface">
                     <summary>{{ t('c_elections.results.rerun_summary', 'Re-run record — {n} rounds', { n: auditStv.rounds }) }}</summary>
                     <div class="about-surface-body">
-                        <span class="visually-hidden">{{ t('c_elections.results.droop_quota_sr', 'Droop quota {n}', { n: auditStv.quota.toLocaleString() }) }}</span>
+                        <span class="visually-hidden">{{ t('c_elections.results.droop_quota_sr', 'Droop quota {n}', { n: localeFmt.number(auditStv.quota) }) }}</span>
                         <StvRound
                             v-for="round in [...rerun.opening, ...rerun.mid, ...(rerun.final ? [rerun.final] : [])]"
                             :key="round.n"

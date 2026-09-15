@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Executive/DepartmentReporting — FE-D5 (PHASE_D_DESIGN_frontend.md §B.4;
  * surface executive/department-reporting).
@@ -84,7 +85,7 @@ function reportBadge(status) {
 function fmtDate(value) {
     if (!value) return '—';
     try {
-        return new Date(value).toLocaleDateString();
+        return localeFmt.date(new Date(value));
     } catch {
         return value;
     }

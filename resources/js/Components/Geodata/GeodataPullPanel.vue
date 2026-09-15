@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 // GeodataPullPanel — the pull-engine run dashboard (GEODATA_PULL_ENGINE_PLAN.md §5).
 //
 // Self-contained: polls /api/setup/wizard/step2/pull-progress every 2 s while
@@ -554,24 +555,24 @@ onBeforeUnmount(() => {
             <div v-if="worldBuild.report" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                 <div class="bg-gray-800/60 rounded p-3">
                     <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_apportionment', 'Apportionment') }}</div>
-                    <div class="text-white">{{ worldBuild.report.apportionment.done.toLocaleString() }} / {{ worldBuild.report.apportionment.total.toLocaleString() }}</div>
+                    <div class="text-white">{{ localeFmt.number(worldBuild.report.apportionment.done) }} / {{ localeFmt.number(worldBuild.report.apportionment.total) }}</div>
                     <div v-if="worldBuild.report.apportionment.refusals > 0" class="text-amber-300 text-xs mt-1">{{ t('c_shell_components.geodata_pull_panel.wb_gate_refusals', { count: worldBuild.report.apportionment.refusals }) }}</div>
                 </div>
                 <div class="bg-gray-800/60 rounded p-3">
                     <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_borders', 'Borders precomputed') }}</div>
-                    <div class="text-white">{{ (worldBuild.report.adjacency.total - worldBuild.report.adjacency.open).toLocaleString() }} / {{ worldBuild.report.adjacency.total.toLocaleString() }}</div>
+                    <div class="text-white">{{ localeFmt.number((worldBuild.report.adjacency.total - worldBuild.report.adjacency.open)) }} / {{ localeFmt.number(worldBuild.report.adjacency.total) }}</div>
                 </div>
                 <div class="bg-gray-800/60 rounded p-3">
                     <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_founding_maps', 'Founding maps') }}</div>
-                    <div class="text-white">{{ worldBuild.report.maps.unstamped === 0 ? t('c_shell_components.geodata_pull_panel.wb_all_stamped', 'all stamped') : t('c_shell_components.geodata_pull_panel.wb_unstamped', { count: worldBuild.report.maps.unstamped.toLocaleString() }) }}</div>
+                    <div class="text-white">{{ worldBuild.report.maps.unstamped === 0 ? t('c_shell_components.geodata_pull_panel.wb_all_stamped', 'all stamped') : t('c_shell_components.geodata_pull_panel.wb_unstamped', { count: localeFmt.number(worldBuild.report.maps.unstamped) }) }}</div>
                 </div>
                 <div class="bg-gray-800/60 rounded p-3">
                     <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_legislatures', 'Legislatures') }}</div>
-                    <div class="text-white">{{ worldBuild.report.legislatures.missing_headers === 0 ? t('c_shell_components.geodata_pull_panel.wb_all_covered', 'all covered') : t('c_shell_components.geodata_pull_panel.wb_uncovered', { count: worldBuild.report.legislatures.missing_headers.toLocaleString() }) }}</div>
+                    <div class="text-white">{{ worldBuild.report.legislatures.missing_headers === 0 ? t('c_shell_components.geodata_pull_panel.wb_all_covered', 'all covered') : t('c_shell_components.geodata_pull_panel.wb_uncovered', { count: localeFmt.number(worldBuild.report.legislatures.missing_headers) }) }}</div>
                 </div>
                 <div class="bg-gray-800/60 rounded p-3">
                     <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_block_keys', 'Block keys') }}</div>
-                    <div class="text-white">{{ worldBuild.report.block_keys_missing === 0 ? t('c_shell_components.geodata_pull_panel.wb_stamped', 'stamped') : t('c_shell_components.geodata_pull_panel.wb_missing', { count: worldBuild.report.block_keys_missing.toLocaleString() }) }}</div>
+                    <div class="text-white">{{ worldBuild.report.block_keys_missing === 0 ? t('c_shell_components.geodata_pull_panel.wb_stamped', 'stamped') : t('c_shell_components.geodata_pull_panel.wb_missing', { count: localeFmt.number(worldBuild.report.block_keys_missing) }) }}</div>
                 </div>
                 <div class="bg-gray-800/60 rounded p-3">
                     <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_bootstrap_board', 'Bootstrap board') }}</div>
@@ -633,7 +634,7 @@ onBeforeUnmount(() => {
             <div class="flex justify-between text-xs mb-1">
                 <span class="text-gray-200 font-semibold">{{ t('c_shell_components.geodata_pull_panel.parent_chains', 'Parent chains (resolve)') }}</span>
                 <span class="text-gray-300 tabular-nums">
-                    {{ (resolve.total - resolve.unparented).toLocaleString() }} / {{ resolve.total.toLocaleString() }}
+                    {{ localeFmt.number((resolve.total - resolve.unparented)) }} / {{ localeFmt.number(resolve.total) }}
                     <span class="text-gray-500">· {{ resolvePct }}%</span>
                 </span>
             </div>
@@ -677,9 +678,9 @@ onBeforeUnmount(() => {
                 <tbody>
                     <tr v-for="l in levels" :key="l.adm_level" class="border-b border-gray-800/60">
                         <td class="py-1 text-gray-400">L{{ l.adm_level }} {{ levelName(l.adm_level) }}</td>
-                        <td class="py-1 text-right text-gray-300">{{ Number(l.with_pop).toLocaleString() }} / {{ Number(l.rows).toLocaleString() }}</td>
+                        <td class="py-1 text-right text-gray-300">{{ localeFmt.number(Number(l.with_pop)) }} / {{ localeFmt.number(Number(l.rows)) }}</td>
                         <td class="py-1 text-right" :class="Number(l.pop_sum) > 0 ? 'text-emerald-300' : 'text-gray-600'">
-                            {{ Number(l.pop_sum).toLocaleString() }}
+                            {{ localeFmt.number(Number(l.pop_sum)) }}
                         </td>
                     </tr>
                 </tbody>
@@ -699,7 +700,7 @@ onBeforeUnmount(() => {
                     <tr class="border-t-2 border-gray-700">
                         <td class="py-1.5 text-gray-200 font-semibold">{{ t('c_shell_components.geodata_pull_panel.total', 'Total') }}</td>
                         <td class="py-1.5 text-right text-gray-200 font-semibold">
-                            {{ levelTotals.with_pop.toLocaleString() }} / {{ levelTotals.rows.toLocaleString() }}
+                            {{ localeFmt.number(levelTotals.with_pop) }} / {{ localeFmt.number(levelTotals.rows) }}
                             <span v-if="world && world.expected" class="text-gray-500 font-normal">
                                 {{ t('c_shell_components.geodata_pull_panel.pct_loaded', { pct: Math.round(levelTotals.rows / world.expected * 100) }) }}
                             </span>
@@ -707,7 +708,7 @@ onBeforeUnmount(() => {
                         <td class="py-1.5 text-right font-semibold"
                             :class="earthPopulation > 0 ? 'text-emerald-300' : 'text-gray-600'">
                             <span class="relative group inline-flex items-center gap-1 cursor-help">
-                                {{ earthPopulation.toLocaleString() }}
+                                {{ localeFmt.number(earthPopulation) }}
                                 <span class="text-gray-600 text-[9px] font-normal">?</span>
                                 <div class="pointer-events-none absolute right-0 bottom-full mb-0.5 z-50 w-64 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 font-normal text-left leading-snug hidden group-hover:block shadow-lg">
                                     {{ t('c_shell_components.geodata_pull_panel.earth_rollup', { level: rollupLevel }) }}
@@ -726,8 +727,8 @@ onBeforeUnmount(() => {
                 <div v-if="row.layer" class="flex justify-between text-xs mb-1">
                     <span class="text-gray-300 font-medium">{{ phaseLabel(row.phase) }}</span>
                     <span class="text-gray-400 tabular-nums">
-                        {{ (row.layer.total - row.layer.open).toLocaleString() }}
-                        / {{ row.layer.total.toLocaleString() }}
+                        {{ localeFmt.number((row.layer.total - row.layer.open)) }}
+                        / {{ localeFmt.number(row.layer.total) }}
                         <span v-if="Number(row.layer.review)" class="text-amber-400"> {{ t('c_shell_components.geodata_pull_panel.n_review', { count: row.layer.review }) }}</span>
                         <span v-if="Number(row.layer.failed)" class="text-red-400"> {{ t('c_shell_components.geodata_pull_panel.n_failed', { count: row.layer.failed }) }}</span>
                     </span>
@@ -782,7 +783,7 @@ onBeforeUnmount(() => {
                         </span>
                         <span class="text-gray-500 tabular-nums shrink-0 ml-3">
                             <template v-if="it.live && it.live.total">
-                                {{ it.live.current.toLocaleString() }} / {{ it.live.total.toLocaleString() }} {{ it.live.unit }} ·
+                                {{ localeFmt.number(it.live.current) }} / {{ localeFmt.number(it.live.total) }} {{ it.live.unit }} ·
                             </template>
                             {{ elapsedSince(it.started_at) }} {{ itemEta(it) }}
                         </span>
@@ -824,7 +825,7 @@ onBeforeUnmount(() => {
         </div>
 
         <p v-if="run.status === 'done'" class="text-emerald-300 text-sm mt-2">
-            {{ t('c_shell_components.geodata_pull_panel.ingest_complete', { count: run.items_done.toLocaleString() }) }}<template v-if="run.items_review"> {{ t('c_shell_components.geodata_pull_panel.items_review', { count: run.items_review }) }}</template>{{ t('c_shell_components.geodata_pull_panel.review_then_continue', '. Review any flags below, then continue.') }}
+            {{ t('c_shell_components.geodata_pull_panel.ingest_complete', { count: localeFmt.number(run.items_done) }) }}<template v-if="run.items_review"> {{ t('c_shell_components.geodata_pull_panel.items_review', { count: run.items_review }) }}</template>{{ t('c_shell_components.geodata_pull_panel.review_then_continue', '. Review any flags below, then continue.') }}
         </p>
     </section>
 </template>

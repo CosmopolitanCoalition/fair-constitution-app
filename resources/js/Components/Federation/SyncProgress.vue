@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 // G3b — live seed/drain progress for a mirror join, the federation counterpart to
 // the setup wizard's data-import progress (StackedProgressBars). Polls the
 // public-read sync-progress endpoint and renders one bar per phase:
@@ -80,7 +81,7 @@ function fmtBytes(n) {
     return `${v.toFixed(v < 10 ? 1 : 0)} ${u[i]}`;
 }
 function fmtNum(n) {
-    return n == null ? '—' : Number(n).toLocaleString();
+    return n == null ? '—' : localeFmt.number(Number(n));
 }
 function fmtDuration(seconds) {
     if (seconds == null || seconds < 0 || !Number.isFinite(seconds)) return '—';

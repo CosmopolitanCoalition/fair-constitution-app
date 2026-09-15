@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Organizations/CgcDetail — FE-D9 (PHASE_D_DESIGN_frontend.md §B.8; surface
  * organizations/cgc-detail).
@@ -140,7 +141,7 @@ function submitRemoval() {
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
-            <Stat :value="organization.worker_count.toLocaleString()" :label="t('c_institutions.cgc_detail.stat_workers', 'Workers')" accent />
+            <Stat :value="localeFmt.number(organization.worker_count)" :label="t('c_institutions.cgc_detail.stat_workers', 'Workers')" accent />
             <Stat :value="organization.status.replaceAll('_', ' ')" :label="t('c_institutions.cgc_detail.stat_status', 'Status')" />
         </div>
 

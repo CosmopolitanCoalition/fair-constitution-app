@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Organizations/OrgDetail — FE-D6 (PHASE_D_DESIGN_frontend.md §B.7; surface
  * organizations/org-detail). The organization profile.
@@ -101,7 +102,7 @@ const titleize = (s) => (s ? String(s).replaceAll('_', ' ') : '—');
 function fmtDate(iso) {
     if (!iso) return '—';
     try {
-        return new Date(iso).toLocaleDateString();
+        return localeFmt.date(new Date(iso));
     } catch {
         return iso;
     }

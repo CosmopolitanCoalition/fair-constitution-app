@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Civic/MyRecord — the ONE person page (mockups-v3-wiring Phase 2; design
  * contract mockups/v3 assets/js/profile-v2.js, self view).
@@ -167,22 +168,21 @@ const browserTimezone = (() => {
 
 const displayTimezone = computed(() => props.profile.timezone || browserTimezone);
 
-const entryFormatter = computed(() => {
+const entryFormatOptions = computed(() => {
+    const base = { dateStyle: 'medium', timeStyle: 'short' };
     try {
-        return new Intl.DateTimeFormat(undefined, {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-            timeZone: displayTimezone.value,
-        });
+        // Validate the configured timezone; fall back to no timeZone if invalid.
+        localeFmt.dateTime(new Date(), { ...base, timeZone: displayTimezone.value });
+        return { ...base, timeZone: displayTimezone.value };
     } catch {
-        return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+        return base;
     }
 });
 
 function formatWhen(iso) {
     if (!iso) return '—';
     try {
-        return entryFormatter.value.format(new Date(iso));
+        return localeFmt.dateTime(new Date(iso), entryFormatOptions.value);
     } catch {
         return iso;
     }
@@ -191,10 +191,10 @@ function formatWhen(iso) {
 function formatDate(iso) {
     if (!iso) return '—';
     try {
-        return new Intl.DateTimeFormat(undefined, {
+        return localeFmt.date(new Date(iso), {
             dateStyle: 'medium',
             timeZone: displayTimezone.value,
-        }).format(new Date(iso));
+        });
     } catch {
         return iso;
     }

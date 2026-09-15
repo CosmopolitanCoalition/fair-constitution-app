@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, reactive, ref } from 'vue';
 import { Link, router, usePage, useRemember } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
@@ -74,7 +75,7 @@ function openConsent(process) { if (process.canOpen) send(process.open_url, {});
         <section aria-labelledby="institution-proposals"><h2 id="institution-proposals">{{ t('c_legislature_pages_b.institution_acts.proposals_heading', 'Proposals and decisions') }}</h2>
             <p v-if="!proposals?.records.length">{{ t('c_legislature_pages_b.institution_acts.no_proposals', 'No institution proposals on this page.') }}</p>
             <article v-for="proposal in proposals?.records" :key="proposal.id" class="act-record">
-                <h3>{{ proposal.name }}</h3><p>{{ proposal.action }} · {{ proposal.status }}<span v-if="proposal.filed_at"> · {{ new Date(proposal.filed_at).toLocaleDateString() }}</span></p>
+                <h3>{{ proposal.name }}</h3><p>{{ proposal.action }} · {{ proposal.status }}<span v-if="proposal.filed_at"> · {{ localeFmt.date(new Date(proposal.filed_at)) }}</span></p>
                 <details><summary>{{ t('c_legislature_pages_b.institution_acts.read_proposed', 'Read the proposed act') }}</summary><dl><template v-for="detail in proposal.details" :key="detail.label"><dt>{{ detail.label }}</dt><dd>{{ detail.value }}</dd></template></dl></details>
                 <ConsentVoteCard v-if="proposal.vote" :consent="proposal.vote" :can-cast="proposal.vote.can_cast" />
                 <Link v-if="proposal.result_href" :href="proposal.result_href">{{ t('c_legislature_pages_b.institution_acts.open_institution', 'Open resulting institution') }}</Link>

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Operator/Versioning — versions & upgrades on the operator plane
  * (mockups-v3-wiring Phase 4, PHASE_4_DESIGN_peerage.md §3.1; design contract
@@ -112,7 +113,7 @@ const legLabel = (leg) =>
 
 /* ------------------------------------------------------------ helpers */
 const shortId = (id) => (id ? String(id).slice(0, 8) : '—');
-const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
+const fmtDate = (iso) => (iso ? localeFmt.date(new Date(iso)) : '—');
 </script>
 
 <template>

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
@@ -21,7 +22,7 @@ const props = defineProps({
 });
 const { t, locale } = useI18n();
 const text = (key, values = {}) => t('c_term_sync.' + key, values);
-const dateOf = (value) => value ? new Date(value.length === 10 ? value + 'T00:00:00' : value).toLocaleDateString(locale.value === 'en-XA' ? 'en' : locale.value) : text('not_recorded');
+const dateOf = (value) => value ? localeFmt.date(new Date(value.length === 10 ? value + 'T00:00:00' : value)) : text('not_recorded');
 const columns = computed(() => [
     { key: 'kind', label: text('role') },
     { key: 'starts_on', label: text('started') },

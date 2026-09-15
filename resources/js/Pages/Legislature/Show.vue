@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Legislature/Show — the legislature overview (mockups-v3-wiring Phase 3e).
  *
@@ -53,14 +54,14 @@ const totalSeats = computed(
 function fmtDate(iso) {
     if (!iso) return '—';
     try {
-        return new Date(iso).toLocaleDateString();
+        return localeFmt.date(new Date(iso));
     } catch {
         return iso;
     }
 }
 
 function fmtNum(n) {
-    return typeof n === 'number' ? n.toLocaleString() : (n ?? '—');
+    return typeof n === 'number' ? localeFmt.number(n) : (n ?? '—');
 }
 </script>
 

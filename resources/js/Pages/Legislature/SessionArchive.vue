@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { Head, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
@@ -7,7 +8,7 @@ import ArchivePager from '@/Components/Legislature/ArchivePager.vue';
 defineOptions({ layout: AppShellV2 });
 defineProps({ legislature: Object, workspace: Object, sessions: Object });
 const { t } = useI18n();
-const date = value => value ? new Date(value).toLocaleString() : t('c_legislature_workspace.session_archive.not_scheduled', 'Not scheduled');
+const date = value => value ? localeFmt.dateTime(new Date(value)) : t('c_legislature_workspace.session_archive.not_scheduled', 'Not scheduled');
 </script>
 
 <template>

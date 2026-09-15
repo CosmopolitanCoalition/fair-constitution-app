@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Operator/Dns — "DNS & certificates" (design contract:
  * mockups/v3/operator/dns.html). READ surface over the mesh-cert-broker
@@ -64,7 +65,7 @@ function forgetCredential(domain) {
     });
 }
 
-const fmtEpoch = (n) => (n ? new Date(n * 1000).toLocaleDateString() : '—');
+const fmtEpoch = (n) => (n ? localeFmt.date(new Date(n * 1000)) : '—');
 </script>
 
 <template>
@@ -174,7 +175,7 @@ const fmtEpoch = (n) => (n ? new Date(n * 1000).toLocaleDateString() : '—');
                     row-key="fqdn"
                 >
                     <template #cell-fqdn="{ row }"><span data-no-i18n>{{ row.fqdn }}</span></template>
-                    <template #cell-not_after="{ row }"><span data-no-i18n>{{ new Date(row.not_after).toLocaleDateString() }} ({{ row.days_left }}d)</span></template>
+                    <template #cell-not_after="{ row }"><span data-no-i18n>{{ localeFmt.date(new Date(row.not_after)) }} ({{ row.days_left }}d)</span></template>
                     <template #cell-state="{ row }">
                         <StatusBadge v-if="row.expired" tone="danger">{{ t('c_operator_pages.dns.state_expired', 'Expired') }}</StatusBadge>
                         <StatusBadge v-else-if="row.expiring" tone="warning">{{ t('c_operator_pages.dns.state_expiring', 'Expiring soon') }}</StatusBadge>

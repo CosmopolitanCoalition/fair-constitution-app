@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Executive/DepartmentCard — department org-chart card (FE-D1;
  * PHASE_D_DESIGN_frontend.md §A.5). The Departments page grid cell and
@@ -96,7 +97,7 @@ const reportChip = computed(() => {
     return { tone: 'neutral', icon: 'clock', text: t('c_institution_components.department_card.report_next', 'next report {date}', { date: report.due_on }) };
 });
 
-const fmt = (n) => Number(n ?? 0).toLocaleString();
+const fmt = (n) => localeFmt.number(Number(n ?? 0));
 </script>
 
 <template>

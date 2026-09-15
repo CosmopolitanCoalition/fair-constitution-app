@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Legislature/Chamber — FE-C2 (PHASE_C_DESIGN_frontend.md §B.1; surface
  * legislature/legislature-home).
@@ -71,7 +72,7 @@ const serving = computed(() => props.members.filter((m) => !m.vacant));
 function fmtDate(iso) {
     if (!iso) return '—';
     try {
-        return new Date(iso).toLocaleDateString();
+        return localeFmt.date(new Date(iso));
     } catch {
         return iso;
     }

@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Executive/DepartmentDetail — FE-D3 (PHASE_D_DESIGN_frontend.md §B.3;
  * surface executive/department-detail) ← the BoG-consent EXIT surface.
@@ -158,7 +159,7 @@ const hasReportingInterval = computed(() => props.department.charter?.reporting_
 function fmtDate(value) {
     if (!value) return '—';
     try {
-        return new Date(value).toLocaleDateString();
+        return localeFmt.date(new Date(value));
     } catch {
         return value;
     }

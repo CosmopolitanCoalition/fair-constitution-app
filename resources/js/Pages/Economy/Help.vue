@@ -9,10 +9,11 @@ import Card from '@/Components/Ui/Card.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Field from '@/Components/Ui/Field.vue';
 import Btn from '@/Components/Ui/Btn.vue';
-import { formatWhen } from '@/lib/money.js';
+import { formatWhen as formatWhenRaw } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const formatWhen = (iso) => formatWhenRaw(iso, locale.value);
 const props = defineProps({
     surface: { type: Object, default: null },
     tab: { type: String, default: 'public' },

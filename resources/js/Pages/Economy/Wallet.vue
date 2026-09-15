@@ -32,10 +32,11 @@ import Field from '@/Components/Ui/Field.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import HistoryPager from '@/Components/Ui/HistoryPager.vue';
-import { formatMoney, formatQuantity, formatWhen, shortId } from '@/lib/money.js';
+import { formatMoney, formatQuantity, formatWhen as formatWhenRaw, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const formatWhen = (iso) => formatWhenRaw(iso, locale.value);
 
 const props = defineProps({
     currency: { type: Object, default: null },

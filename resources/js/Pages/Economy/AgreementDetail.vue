@@ -23,10 +23,11 @@ import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
-import { formatWhen } from '@/lib/money.js';
+import { formatWhen as formatWhenRaw } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const formatWhen = (iso) => formatWhenRaw(iso, locale.value);
 
 const props = defineProps({
     agreement: { type: Object, required: true },

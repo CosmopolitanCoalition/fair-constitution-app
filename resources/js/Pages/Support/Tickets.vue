@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Support/Tickets — the lifecycle queue (design contract:
  * mockups/v3/support/tickets.html; lifecycle ruling §10 item 7).
@@ -66,7 +67,7 @@ const columns = computed(() => [
 ]);
 
 function dateOf(iso) {
-    return iso ? new Date(iso).toLocaleDateString() : '—';
+    return iso ? localeFmt.date(new Date(iso)) : '—';
 }
 </script>
 

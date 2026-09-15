@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Org/OwnershipPanel — ownership structure display (FE-D1;
  * PHASE_D_DESIGN_frontend.md §A.4). Structure chip + the structure's own
@@ -62,7 +63,7 @@ const counts = computed(() =>
         .map(([key, value]) => ({ key, value, label: COUNT_LABELS()[key] ?? key })),
 );
 
-const fmt = (n) => Number(n).toLocaleString();
+const fmt = (n) => localeFmt.number(Number(n));
 </script>
 
 <template>

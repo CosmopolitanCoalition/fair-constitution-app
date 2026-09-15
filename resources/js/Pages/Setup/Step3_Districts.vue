@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
@@ -90,7 +91,7 @@ function qpop(n) {
     if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K'
     return String(n)
 }
-function qnum(n) { return Number(n || 0).toLocaleString() }
+function qnum(n) { return localeFmt.number(Number(n || 0)) }
 const Q_DOT = { good: 'text-emerald-400', warn: 'text-amber-400', bad: 'text-red-400', muted: 'text-gray-500' }
 const Q_LADDER = ['shortest', 'box', 'community_cells', 'vertical_strips', 'horizontal_strips', 'components', 'mask', 'unrecorded']
 const Q_METHOD_LABELS = { shortest: t('c_setup.step3_districts.method_shortest', 'Shortest split-line'), box: t('c_setup.step3_districts.method_box', 'Box'), community_cells: t('c_setup.step3_districts.method_community_cells', 'Community cells'), vertical_strips: t('c_setup.step3_districts.method_vertical_strips', 'Vertical strips'), horizontal_strips: t('c_setup.step3_districts.method_horizontal_strips', 'Horizontal strips'), components: t('c_setup.step3_districts.method_components', 'Whole components'), mask: t('c_setup.step3_districts.method_mask', 'Mask'), unrecorded: t('c_setup.step3_districts.method_unrecorded', 'Unrecorded') }
@@ -322,7 +323,7 @@ function barTiming(key, done, total) {
     const complete = total != null && done >= total
     const endT = complete ? b.t : Date.now()
     const elapsed = fmtEta(Math.round((endT - a.t) / 1000))
-    let out = ` · ${Math.round(perMin).toLocaleString()}/min · ${elapsed} elapsed`
+    let out = ` · ${localeFmt.number(Math.round(perMin))}/min · ${elapsed} elapsed`
     if (total && done < total && perMin > 0) {
         out += ` · ~${fmtEta(Math.round((total - done) / perMin * 60))} left`
     }
@@ -819,7 +820,7 @@ function tweenTo(key, target) {
     st.frame = requestAnimationFrame(stepFn)
 }
 function shown(key, fallback = 0) {
-    return (_tweened.value[key] ?? fallback).toLocaleString()
+    return localeFmt.number((_tweened.value[key] ?? fallback))
 }
 watch(autoscale, (data) => {
     const r = data?.run
@@ -945,12 +946,12 @@ onBeforeUnmount(() => {
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4">
                     <div>
                         <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step3_districts.legislatures_sized', 'Legislatures sized') }}</div>
-                        <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ (run.sized_parents + run.sized_leaves).toLocaleString() }}</div>
+                        <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ localeFmt.number((run.sized_parents + run.sized_leaves)) }}</div>
                     </div>
                     <div>
                         <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step3_districts.sweep_rate', 'Sweep rate') }}</div>
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">
-                            {{ run.sweeps_per_hour != null && run.sweeps_per_hour > 0 ? `${run.sweeps_per_hour.toLocaleString()}/h` : '—' }}
+                            {{ run.sweeps_per_hour != null && run.sweeps_per_hour > 0 ? `${localeFmt.number(run.sweeps_per_hour)}/h` : '—' }}
                         </div>
                     </div>
                     <div>
@@ -975,8 +976,13 @@ onBeforeUnmount(() => {
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
                             <span>{{ t('c_setup.step3_districts.sizing_pass', 'Sizing pass — parent legislatures (re-verifies every parent)') }}</span>
                             <span class="tabular-nums">
+<<<<<<< HEAD
                                 {{ run.sized_parents.toLocaleString() }} / {{ run.parents_total.toLocaleString() }}
                                 <span v-if="sizingRatePerMin"> · {{ t('c_setup.step3_districts.per_min', '{n}/min', { n: Math.round(sizingRatePerMin).toLocaleString() }) }}</span>
+=======
+                                {{ localeFmt.number(run.sized_parents) }} / {{ localeFmt.number(run.parents_total) }}
+                                <span v-if="sizingRatePerMin"> · {{ localeFmt.number(Math.round(sizingRatePerMin)) }}/min</span>
+>>>>>>> build/gap-format-locale
                                 <span> · {{ t('c_setup.step3_districts.eta', 'ETA') }} {{ fmtEta(sizingEtaSeconds) }}</span>
                                 <span v-if="sizingElapsed != null"> · {{ fmtEta(sizingElapsed) }} {{ t('c_setup.step3_districts.elapsed', 'elapsed') }}</span>
                             </span>
@@ -990,7 +996,7 @@ onBeforeUnmount(() => {
                     <div v-if="run.status === 'sizing' && run.maps_minted > 0 && run.maps_total">
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
                             <span>{{ t('c_setup.step3_districts.founding_maps_minted', 'Founding maps minted (one per legislature)') }}</span>
-                            <span class="tabular-nums">{{ run.maps_minted.toLocaleString() }} / {{ run.maps_total.toLocaleString() }}{{ barTiming('mint', run.maps_minted, run.maps_total) }}</span>
+                            <span class="tabular-nums">{{ localeFmt.number(run.maps_minted) }} / {{ localeFmt.number(run.maps_total) }}{{ barTiming('mint', run.maps_minted, run.maps_total) }}</span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">
                             <div class="h-full bg-sky-500 transition-all" :style="{ width: pct(run.maps_minted, run.maps_total) + '%' }"></div>
@@ -999,7 +1005,7 @@ onBeforeUnmount(() => {
                     <div v-if="run.sized_live != null && run.sizing_total && !parentsPassActive">
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
                             <span>{{ t('c_setup.step3_districts.legislature_rows', 'Legislature rows in database') }}</span>
-                            <span class="tabular-nums">{{ shown('sized_live', run.sized_live) }} / {{ run.sizing_total.toLocaleString() }}</span>
+                            <span class="tabular-nums">{{ shown('sized_live', run.sized_live) }} / {{ localeFmt.number(run.sizing_total) }}</span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">
                             <div class="h-full bg-emerald-500 transition-all" :style="{ width: pct(run.sized_live, run.sizing_total) + '%' }"></div>
@@ -1019,7 +1025,7 @@ onBeforeUnmount(() => {
                                  max(scopes seen, jurisdictions) and the
                                  planet reads ~940k, growing as giants
                                  materialize their sub-scopes. -->
-                            <span class="tabular-nums">{{ ((run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0)).toLocaleString() }} / {{ layers.reduce((s, l) => s + (l.units_total ?? Math.max(l.scopes_total ?? 0, l.total ?? 0)), 0).toLocaleString() }}{{ barTiming('all_scopes', (run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0), layers.reduce((s, l) => s + (l.units_total ?? Math.max(l.scopes_total ?? 0, l.total ?? 0)), 0)) }}</span>
+                            <span class="tabular-nums">{{ localeFmt.number(((run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0))) }} / {{ localeFmt.number(layers.reduce((s, l) => s + (l.units_total ?? Math.max(l.scopes_total ?? 0, l.total ?? 0)), 0)) }}{{ barTiming('all_scopes', (run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0), layers.reduce((s, l) => s + (l.units_total ?? Math.max(l.scopes_total ?? 0, l.total ?? 0)), 0)) }}</span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">
                             <div class="h-full bg-blue-500 transition-all" :style="{ width: pct((run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0), layers.reduce((s, l) => s + (l.units_total ?? Math.max(l.scopes_total ?? 0, l.total ?? 0)), 0)) + '%' }"></div>
@@ -1058,13 +1064,13 @@ onBeforeUnmount(() => {
                                     <span v-if="l.review" class="text-amber-400 ml-1">· {{ t('c_setup.step3_districts.n_review', { n: l.review }) }}</span>
                                 </span>
                                 <span class="tabular-nums">
-                                    <template v-if="l.units_total != null">{{ shown(`layer:${l.key}`, l.units_done) }} / {{ l.units_total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.units_done, l.units_total) : '' }}</template>
-                                    <template v-else-if="l.scopes_total">{{ shown(`layer:${l.key}`, l.scopes_done) }} / {{ l.scopes_total.toLocaleString() }} {{ t('c_setup.step3_districts.scopes_lower', 'scopes') }} · {{ l.done.toLocaleString() }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.scopes_done, l.scopes_total) : '' }}</template>
-                                    <template v-else>{{ shown(`layer:${l.key}`, l.done) }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.done, l.total) : '' }}</template>
+                                    <template v-if="l.units_total != null">{{ shown(`layer:${l.key}`, l.units_done) }} / {{ localeFmt.number(l.units_total) }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.units_done, l.units_total) : '' }}</template>
+                                    <template v-else-if="l.scopes_total">{{ shown(`layer:${l.key}`, l.scopes_done) }} / {{ localeFmt.number(l.scopes_total) }} {{ t('c_setup.step3_districts.scopes_lower', 'scopes') }} · {{ localeFmt.number(l.done) }} / {{ localeFmt.number(l.total) }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.scopes_done, l.scopes_total) : '' }}</template>
+                                    <template v-else>{{ shown(`layer:${l.key}`, l.done) }} / {{ localeFmt.number(l.total) }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.done, l.total) : '' }}</template>
                                 </span>
                             </div>
                             <div v-if="l.units_total != null" class="h-1.5 bg-gray-800 rounded overflow-hidden flex"
-                                 :title="t('c_setup.step3_districts.layer_bar_title', { trivialDone: l.trivial_done.toLocaleString(), trivialTotal: l.trivial_total.toLocaleString(), compDone: l.comp_done.toLocaleString(), compTotal: l.comp_total.toLocaleString(), panelDone: (l.panel_done ?? 0).toLocaleString(), panelTotal: (l.panel_total ?? 0).toLocaleString(), lineDone: l.line_done.toLocaleString(), lineTotal: l.line_total.toLocaleString() })">
+                                 :title="t('c_setup.step3_districts.layer_bar_title', { trivialDone: localeFmt.number(l.trivial_done), trivialTotal: localeFmt.number(l.trivial_total), compDone: localeFmt.number(l.comp_done), compTotal: localeFmt.number(l.comp_total), panelDone: localeFmt.number((l.panel_done ?? 0)), panelTotal: localeFmt.number((l.panel_total ?? 0)), lineDone: localeFmt.number(l.line_done), lineTotal: localeFmt.number(l.line_total) })">
                                 <div class="h-full bg-teal-500 transition-all"   :style="{ width: pct(l.trivial_done, l.units_total) + '%' }"></div>
                                 <div class="h-full bg-violet-500 transition-all" :style="{ width: pct(l.comp_done, l.units_total) + '%' }"></div>
                                 <div class="h-full bg-pink-500 transition-all"   :style="{ width: pct(l.panel_done ?? 0, l.units_total) + '%' }"></div>
@@ -1081,7 +1087,7 @@ onBeforeUnmount(() => {
 
                 <!-- Drift is always wrong (operator ruling 2026-07-26, 0e9eda0). -->
                 <p v-if="run.drifted_done > 0" class="text-amber-300 text-xs mt-3">
-                    {{ t('c_setup.step3_districts.drift_note', { n: run.drifted_done.toLocaleString(), net: (run.net_drift > 0 ? '+' : '') + run.net_drift.toLocaleString() }) }}
+                    {{ t('c_setup.step3_districts.drift_note', { n: localeFmt.number(run.drifted_done), net: (run.net_drift > 0 ? '+' : '') + localeFmt.number(run.net_drift) }) }}
                 </p>
 
                 <p v-if="run.last_error" class="text-red-300 text-xs mt-3 font-mono break-all">
@@ -1261,7 +1267,7 @@ onBeforeUnmount(() => {
                 <div v-if="reviewItems.length" class="mt-4 border-t border-gray-700/50 pt-3">
                     <div class="flex items-center justify-between mb-2">
                         <div class="text-amber-300 text-xs uppercase tracking-wide">
-                            {{ t('c_setup.step3_districts.needs_attention', { n: reviewCount.toLocaleString() }) }}
+                            {{ t('c_setup.step3_districts.needs_attention', { n: localeFmt.number(reviewCount) }) }}
                         </div>
                         <div class="flex items-center gap-2">
                             <!-- Queue all back is visible MID-RUN (operator order
@@ -1331,7 +1337,7 @@ onBeforeUnmount(() => {
                 <div v-if="driftItems.length" class="mt-4 border-t border-gray-700/50 pt-3">
                     <div class="flex items-center justify-between mb-2">
                         <div class="text-rose-300 text-xs uppercase tracking-wide">
-                            {{ t('c_setup.step3_districts.completed_drift', { n: driftCount.toLocaleString() }) }}
+                            {{ t('c_setup.step3_districts.completed_drift', { n: localeFmt.number(driftCount) }) }}
                         </div>
                         <!-- Recheck all recomputes every drifted map's seated total
                              from its current districts (operator order 2026-09-03):
@@ -1407,24 +1413,24 @@ onBeforeUnmount(() => {
                 <div v-if="worldBuild.report" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                     <div class="bg-gray-800/60 rounded p-3">
                         <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_apportionment', 'Apportionment') }}</div>
-                        <div class="text-white">{{ worldBuild.report.apportionment.done.toLocaleString() }} / {{ worldBuild.report.apportionment.total.toLocaleString() }}</div>
+                        <div class="text-white">{{ localeFmt.number(worldBuild.report.apportionment.done) }} / {{ localeFmt.number(worldBuild.report.apportionment.total) }}</div>
                         <div v-if="worldBuild.report.apportionment.refusals > 0" class="text-amber-300 text-xs mt-1">{{ t('c_setup.step3_districts.wb_gate_refusals', { n: worldBuild.report.apportionment.refusals }) }}</div>
                     </div>
                     <div class="bg-gray-800/60 rounded p-3">
                         <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_borders', 'Borders precomputed') }}</div>
-                        <div class="text-white">{{ (worldBuild.report.adjacency.total - worldBuild.report.adjacency.open).toLocaleString() }} / {{ worldBuild.report.adjacency.total.toLocaleString() }}</div>
+                        <div class="text-white">{{ localeFmt.number((worldBuild.report.adjacency.total - worldBuild.report.adjacency.open)) }} / {{ localeFmt.number(worldBuild.report.adjacency.total) }}</div>
                     </div>
                     <div class="bg-gray-800/60 rounded p-3">
                         <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_founding_maps', 'Founding maps') }}</div>
-                        <div class="text-white">{{ worldBuild.report.maps.unstamped === 0 ? t('c_setup.step3_districts.wb_all_stamped', 'all stamped') : t('c_setup.step3_districts.wb_n_unstamped', { n: worldBuild.report.maps.unstamped.toLocaleString() }) }}</div>
+                        <div class="text-white">{{ worldBuild.report.maps.unstamped === 0 ? t('c_setup.step3_districts.wb_all_stamped', 'all stamped') : t('c_setup.step3_districts.wb_n_unstamped', { n: localeFmt.number(worldBuild.report.maps.unstamped) }) }}</div>
                     </div>
                     <div class="bg-gray-800/60 rounded p-3">
                         <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_legislatures', 'Legislatures') }}</div>
-                        <div class="text-white">{{ worldBuild.report.legislatures.missing_headers === 0 ? t('c_setup.step3_districts.wb_all_covered', 'all covered') : t('c_setup.step3_districts.wb_n_uncovered', { n: worldBuild.report.legislatures.missing_headers.toLocaleString() }) }}</div>
+                        <div class="text-white">{{ worldBuild.report.legislatures.missing_headers === 0 ? t('c_setup.step3_districts.wb_all_covered', 'all covered') : t('c_setup.step3_districts.wb_n_uncovered', { n: localeFmt.number(worldBuild.report.legislatures.missing_headers) }) }}</div>
                     </div>
                     <div class="bg-gray-800/60 rounded p-3">
                         <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_block_keys', 'Block keys') }}</div>
-                        <div class="text-white">{{ worldBuild.report.block_keys_missing === 0 ? t('c_setup.step3_districts.wb_stamped', 'stamped') : t('c_setup.step3_districts.wb_n_missing', { n: worldBuild.report.block_keys_missing.toLocaleString() }) }}</div>
+                        <div class="text-white">{{ worldBuild.report.block_keys_missing === 0 ? t('c_setup.step3_districts.wb_stamped', 'stamped') : t('c_setup.step3_districts.wb_n_missing', { n: localeFmt.number(worldBuild.report.block_keys_missing) }) }}</div>
                     </div>
                     <div class="bg-gray-800/60 rounded p-3">
                         <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_setup.step3_districts.wb_board', 'Bootstrap board') }}</div>
@@ -1447,7 +1453,7 @@ onBeforeUnmount(() => {
                 <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 pt-4 pb-2">
                     <div class="flex items-baseline gap-3">
                         <h2 class="text-cyan-400 text-xs font-bold uppercase tracking-wide">{{ t('c_setup.step3_districts.map_quality', 'Map Quality') }}</h2>
-                        <span v-if="quality" class="text-gray-500 text-[10px]">{{ t('c_setup.step3_districts.quality_computed', { date: new Date(qualityAt).toLocaleString(), sec: quality.seconds }) }}</span>
+                        <span v-if="quality" class="text-gray-500 text-[10px]">{{ t('c_setup.step3_districts.quality_computed', { date: localeFmt.dateTime(new Date(qualityAt)), sec: quality.seconds }) }}</span>
                     </div>
                     <!-- Layer tabs: all layers, then one tab per layer. -->
                     <div v-if="quality" class="flex flex-wrap items-center gap-1">

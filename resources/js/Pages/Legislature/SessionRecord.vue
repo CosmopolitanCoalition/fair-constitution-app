@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 import { Head, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
@@ -8,7 +9,7 @@ import VoteTally from '@/Components/Legislature/VoteTally.vue';
 defineOptions({ layout: AppShellV2 });
 const { t } = useI18n();
 defineProps({ legislature: Object, workspace: Object, session: Object, attendance: Object, motions: Object, records: Object, selectedMotion: Object, casts: Object });
-const date = value => value ? new Date(value).toLocaleString() : '—';
+const date = value => value ? localeFmt.dateTime(new Date(value)) : '—';
 const label = value => String(value ?? '').replaceAll('_', ' ');
 </script>
 

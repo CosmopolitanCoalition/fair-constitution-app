@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Elections/ElectionDetail — FE-B2 (PHASE_B_DESIGN_frontend.md §B.1;
  * mockups/electoral/election-detail.html).
@@ -68,8 +69,8 @@ const blocked = computed(() => props.blockers.length > 0);
 const phase = computed(() => props.election?.phase ?? null);
 const scheduled = computed(() => props.election?.status === 'scheduled');
 
-const fmt = (iso) => (iso ? new Date(iso).toLocaleString() : '—');
-const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
+const fmt = (iso) => (iso ? localeFmt.dateTime(new Date(iso)) : '—');
+const fmtDate = (iso) => (iso ? localeFmt.date(new Date(iso)) : '—');
 
 /* ─────────────────────────────────────────────── schedule table rows */
 

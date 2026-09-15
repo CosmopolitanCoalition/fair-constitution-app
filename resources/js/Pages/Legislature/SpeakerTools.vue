@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Legislature/SpeakerTools — FE-C7 (PHASE_C_DESIGN_frontend.md §B.7).
  *
@@ -52,7 +53,7 @@ const constitutionError = computed(() => page.props.errors?.constitution ?? null
 const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
 
 function fmt(iso) {
-    return iso ? new Date(iso).toLocaleString() : '—';
+    return iso ? localeFmt.dateTime(new Date(iso)) : '—';
 }
 
 /* ----------------------------------------------- priorities (F-SPK-006) */

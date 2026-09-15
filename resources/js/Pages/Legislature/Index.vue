@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Legislature/Index — WI-9 multi-legislature switcher.
  *
@@ -90,12 +91,10 @@ function admNatural(level) {
     return t('c_legislature_workspace.index.adm_' + i, ADM_NATURAL[i]);
 }
 
-const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
-
 function formatDate(iso) {
     if (!iso) return null;
     try {
-        return dateFormatter.format(new Date(iso));
+        return localeFmt.date(new Date(iso), { dateStyle: 'medium' });
     } catch {
         return iso;
     }
@@ -119,7 +118,7 @@ function formatDate(iso) {
             </p>
 
             <p v-if="total_legislatures && total_legislatures > legislatures.length" class="gloss">
-                {{ t('c_legislature_workspace.index.showing_largest', { shown: legislatures.length.toLocaleString(), total: total_legislatures.toLocaleString() }) }}
+                {{ t('c_legislature_workspace.index.showing_largest', { shown: localeFmt.number(legislatures.length), total: localeFmt.number(total_legislatures) }) }}
             </p>
 
             <DataTable
@@ -140,9 +139,9 @@ function formatDate(iso) {
 
                 <template #cell-seats="{ row }">
                     <span class="mono">
-                        {{ (row.type_a_seats + row.type_b_seats).toLocaleString() }}
+                        {{ localeFmt.number((row.type_a_seats + row.type_b_seats)) }}
                         <template v-if="row.type_b_seats > 0">
-                            {{ t('c_legislature_workspace.index.seats_ab', { a: row.type_a_seats.toLocaleString(), b: row.type_b_seats.toLocaleString() }) }}
+                            {{ t('c_legislature_workspace.index.seats_ab', { a: localeFmt.number(row.type_a_seats), b: localeFmt.number(row.type_b_seats) }) }}
                         </template>
                     </span>
                 </template>
@@ -167,7 +166,7 @@ function formatDate(iso) {
                 </template>
 
                 <template #cell-district_count="{ row }">
-                    <span class="mono">{{ row.district_count.toLocaleString() }}</span>
+                    <span class="mono">{{ localeFmt.number(row.district_count) }}</span>
                 </template>
 
                 <!-- Per-chamber election affordances: current election link +

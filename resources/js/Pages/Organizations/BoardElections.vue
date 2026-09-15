@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Organizations/BoardElections — FE-D8 (PHASE_D_DESIGN_frontend.md §B.9;
  * surface organizations/board-elections).
@@ -163,7 +164,7 @@ const WINDOW_LABELS = computed(() => ({
    formats what it was handed. */
 function windowDates(nom) {
     if (!nom) return null;
-    const d = (iso) => (iso ? new Date(iso).toLocaleDateString() : null);
+    const d = (iso) => (iso ? localeFmt.date(new Date(iso)) : null);
     const parts = [];
     if (d(nom.nominations_open_at) && d(nom.nominations_close_at)) {
         parts.push(`${text('window_nominations', 'nominations')} ${d(nom.nominations_open_at)} → ${d(nom.nominations_close_at)}`);
@@ -291,7 +292,7 @@ const nominationStrips = computed(() => {
                     <Stat v-if="!isCgc || ownerTrack.election" :value="ownerTrack.electorate_count" :label="text('eligible_owners', 'Eligible owners or members')" />
                     <Stat
                         v-if="ownerTrack.result"
-                        :value="ownerTrack.result.quota.toLocaleString()"
+                        :value="localeFmt.number(ownerTrack.result.quota)"
                         :label="text('quota', 'Votes needed for election')"
                         accent
                     />
@@ -309,7 +310,7 @@ const nominationStrips = computed(() => {
                     <p class="gloss" style="margin-block-start: var(--space-2)">
                         {{ text('gold_tick_note', 'Gold tick = the Droop quota; reaching it elects a candidate. Final round of the certified count.') }}
                     </p>
-                    <span class="visually-hidden">{{ t('c_references.board_elections.droop_quota', { quota: ownerTrack.result.quota.toLocaleString() }) }}</span>
+                    <span class="visually-hidden">{{ t('c_references.board_elections.droop_quota', { quota: localeFmt.number(ownerTrack.result.quota) }) }}</span>
                     <StvRound
                         :round="ownerFinal"
                         :quota="ownerTrack.result.quota"
@@ -319,7 +320,7 @@ const nominationStrips = computed(() => {
                         default-open
                     />
                     <p v-if="ownerTrack.result.certified_at" class="citation" data-no-i18n style="margin-block-start: var(--space-2)">
-                        certified {{ new Date(ownerTrack.result.certified_at).toLocaleString() }}
+                        certified {{ localeFmt.dateTime(new Date(ownerTrack.result.certified_at)) }}
                     </p>
                 </template>
                 <p v-else-if="!ownerTrack.election" class="gloss" style="margin-block-start: var(--space-2)">
@@ -353,7 +354,7 @@ const nominationStrips = computed(() => {
                         <Stat :value="workerTrack.electorate_count" :label="text('eligible_workers', 'Eligible workers')" />
                         <Stat
                             v-if="workerTrack.result"
-                            :value="workerTrack.result.quota.toLocaleString()"
+                            :value="localeFmt.number(workerTrack.result.quota)"
                             :label="text('quota', 'Votes needed for election')"
                             accent
                         />
@@ -369,7 +370,7 @@ const nominationStrips = computed(() => {
                         <p class="gloss" style="margin-block-start: var(--space-2)">
                             {{ text('worker_final_round', 'Final round of the certified worker-track count.') }}
                         </p>
-                        <span class="visually-hidden">{{ t('c_references.board_elections.droop_quota', { quota: workerTrack.result.quota.toLocaleString() }) }}</span>
+                        <span class="visually-hidden">{{ t('c_references.board_elections.droop_quota', { quota: localeFmt.number(workerTrack.result.quota) }) }}</span>
                         <StvRound
                             :round="workerFinal"
                             :quota="workerTrack.result.quota"
@@ -379,7 +380,7 @@ const nominationStrips = computed(() => {
                             default-open
                         />
                         <p v-if="workerTrack.result.certified_at" class="citation" data-no-i18n style="margin-block-start: var(--space-2)">
-                            certified {{ new Date(workerTrack.result.certified_at).toLocaleString() }}
+                            certified {{ localeFmt.dateTime(new Date(workerTrack.result.certified_at)) }}
                         </p>
                     </template>
                     <p v-else-if="!workerTrack.election" class="gloss" style="margin-block-start: var(--space-2)">

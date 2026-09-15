@@ -1,4 +1,5 @@
-<script setup>
+<script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
+const localeFmt = useLocaleFormat();
 /**
  * Civic/Petitions — FE-C10 (PHASE_C_DESIGN_frontend.md §B.12).
  *
@@ -209,14 +210,14 @@ function submitCreate() {
             <Field
                 :label="t('c_civic.petitions.scale_label', 'Scale — which jurisdiction adopts it')"
                 :hint="selectedScale
-                    ? t('c_civic.petitions.scale_hint', { count: selectedScale.threshold_preview.toLocaleString(), name: selectedScale.name, population: selectedScale.population.toLocaleString(), pct: selectedScale.threshold_pct })
+                    ? t('c_civic.petitions.scale_hint', { count: localeFmt.number(selectedScale.threshold_preview), name: selectedScale.name, population: localeFmt.number(selectedScale.population), pct: selectedScale.threshold_pct })
                     : t('c_civic.petitions.scale_hint_default', 'Threshold preview updates with your selection.')"
                 :error="create.errors.jurisdiction_id"
             >
                 <template #control="{ id }">
                     <select :id="id" v-model="create.jurisdiction_id" class="select">
                         <option v-for="option in createForm.scaleOptions" :key="option.id" :value="option.id">
-                            {{ t('c_civic.petitions.option', { name: option.name, pop: option.population.toLocaleString() }) }}
+                            {{ t('c_civic.petitions.option', { name: option.name, pop: localeFmt.number(option.population) }) }}
                         </option>
                     </select>
                 </template>
