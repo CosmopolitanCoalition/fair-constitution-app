@@ -14,6 +14,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -23,6 +24,8 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
 
+const { t } = useI18n();
+
 const props = defineProps({
     surface: { type: Object, required: true },
     /** Current resolved amendable values at the instance root: {key, value, bounds, basis, enacted_by}. */
@@ -31,47 +34,46 @@ const props = defineProps({
     changes: { type: Array, default: () => [] },
 });
 
-const HARDENED_RULES = [
-    'Proportional voting with the Droop quota — never first-past-the-post or plurality',
-    'Quorum & supermajority counted against all serving members',
-    'Districts of 5–9 seats — a chamber above 9 subdivides into districts; the chamber total itself has no ceiling',
-    'Ballot secrecy — identity cryptographically separated',
-    'Voting & candidacy: residency only, no other requirements',
-    'Common-good-corporation intellectual property perpetually public domain',
-];
+const HARDENED_RULES = computed(() => [
+    t('c_system.amendments.rule_voting', 'Proportional voting with the Droop quota — never first-past-the-post or plurality'),
+    t('c_system.amendments.rule_quorum', 'Quorum & supermajority counted against all serving members'),
+    t('c_system.amendments.rule_districts', 'Districts of 5–9 seats — a chamber above 9 subdivides into districts; the chamber total itself has no ceiling'),
+    t('c_system.amendments.rule_secrecy', 'Ballot secrecy — identity cryptographically separated'),
+    t('c_system.amendments.rule_residency', 'Voting & candidacy: residency only, no other requirements'),
+    t('c_system.amendments.rule_cgc_ip', 'Common-good-corporation intellectual property perpetually public domain'),
+]);
 
-const ledgerColumns = [
-    { key: 'applied_at', label: 'When' },
-    { key: 'where', label: 'Where' },
-    { key: 'setting_key', label: 'Setting', mono: true },
-    { key: 'change', label: 'Old → new' },
-    { key: 'act_number', label: 'Act', mono: true },
-];
+const ledgerColumns = computed(() => [
+    { key: 'applied_at', label: t('c_system.amendments.col_when', 'When') },
+    { key: 'where', label: t('c_system.amendments.col_where', 'Where') },
+    { key: 'setting_key', label: t('c_system.amendments.col_setting', 'Setting'), mono: true },
+    { key: 'change', label: t('c_system.amendments.col_old_new', 'Old → new') },
+    { key: 'act_number', label: t('c_system.amendments.col_act', 'Act'), mono: true },
+]);
 
-const RATIFICATION_ROWS = [
+const RATIFICATION_ROWS = computed(() => [
     {
-        change: 'Amendable setting within bounds',
-        threshold: 'Valid legislative act (majority or supermajority per the setting)',
-        basis: 'Amendable setting change',
+        change: t('c_system.amendments.ratify_within_change', 'Amendable setting within bounds'),
+        threshold: t('c_system.amendments.ratify_within_threshold', 'Valid legislative act (majority or supermajority per the setting)'),
+        basis: t('c_system.amendments.ratify_within_basis', 'Amendable setting change'),
     },
     {
-        change: 'Amend additional constitutional articles',
-        threshold:
-            'Supermajority of constituent jurisdictions — or supermajority of the legislature where no constituents exist',
-        basis: 'Constitutional amendment',
+        change: t('c_system.amendments.ratify_article_change', 'Amend additional constitutional articles'),
+        threshold: t('c_system.amendments.ratify_article_threshold', 'Supermajority of constituent jurisdictions — or supermajority of the legislature where no constituents exist'),
+        basis: t('c_system.amendments.ratify_article_basis', 'Constitutional amendment'),
     },
     {
-        change: 'Hardened-layer change',
-        threshold: 'A public software release with every constitutional check passing',
-        basis: 'Hardened-layer release',
+        change: t('c_system.amendments.ratify_hardened_change', 'Hardened-layer change'),
+        threshold: t('c_system.amendments.ratify_hardened_threshold', 'A public software release with every constitutional check passing'),
+        basis: t('c_system.amendments.ratify_hardened_basis', 'Hardened-layer release'),
     },
-];
+]);
 
-const ratificationColumns = [
-    { key: 'change', label: 'Change' },
-    { key: 'threshold', label: 'Threshold' },
-    { key: 'basis', label: 'Basis', mono: true },
-];
+const ratificationColumns = computed(() => [
+    { key: 'change', label: t('c_system.amendments.col_change', 'Change') },
+    { key: 'threshold', label: t('c_system.amendments.col_threshold', 'Threshold') },
+    { key: 'basis', label: t('c_system.amendments.col_basis', 'Basis'), mono: true },
+]);
 
 function dateOf(iso) {
     return iso ? new Date(iso).toLocaleDateString() : '—';
@@ -85,9 +87,11 @@ function valueOf(value) {
 
 /** A human range label for a bounds object: an allowed set, or a min–max span. */
 function rangeLabel(bounds) {
-    if (!bounds) return 'no bounded range';
+    if (!bounds) return t('c_system.amendments.range_none', 'no bounded range');
     if (Array.isArray(bounds.allowed)) {
-        return 'one of ' + bounds.allowed.map((v) => valueOf(v)).join(', ');
+        return t('c_system.amendments.range_one_of', 'one of {list}', {
+            list: bounds.allowed.map((v) => valueOf(v)).join(', '),
+        });
     }
     if (bounds.min !== undefined && bounds.max !== undefined) {
         return `${bounds.min} – ${bounds.max}`;
@@ -117,21 +121,38 @@ const checkResult = computed(() => {
         return {
             ok,
             message: ok
-                ? `“${raw}” is an allowed value.`
-                : `“${raw}” is not in the allowed set (${b.allowed.map((v) => valueOf(v)).join(', ')}).`,
+                ? t('c_system.amendments.check_allowed', '“{value}” is an allowed value.', { value: raw })
+                : t('c_system.amendments.check_not_allowed', '“{value}” is not in the allowed set ({set}).', {
+                    value: raw,
+                    set: b.allowed.map((v) => valueOf(v)).join(', '),
+                }),
         };
     }
 
     const n = Number(raw);
     if (Number.isNaN(n)) {
-        return { ok: false, message: `“${raw}” is not a number — this setting takes ${rangeLabel(b)}.` };
+        return {
+            ok: false,
+            message: t('c_system.amendments.check_not_number', '“{value}” is not a number — this setting takes {range}.', {
+                value: raw,
+                range: rangeLabel(b),
+            }),
+        };
     }
     const ok = n >= b.min && n <= b.max;
     return {
         ok,
         message: ok
-            ? `${n} is within the hardened range (${b.min} – ${b.max}).`
-            : `${n} is out of range — the engine would refuse it pre-vote (allowed ${b.min} – ${b.max}).`,
+            ? t('c_system.amendments.check_in_range', '{value} is within the hardened range ({min} – {max}).', {
+                value: n,
+                min: b.min,
+                max: b.max,
+            })
+            : t('c_system.amendments.check_out_range', '{value} is out of range — the engine would refuse it pre-vote (allowed {min} – {max}).', {
+                value: n,
+                min: b.min,
+                max: b.max,
+            }),
     };
 });
 </script>
@@ -139,27 +160,20 @@ const checkResult = computed(() => {
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            The constitution changes through exactly two doors. The settings it leaves open move by
-            ordinary legislative acts, inside locked bounds. The locked core itself (the hardened
-            layer) moves only by a new release of the software, made in the open with every
-            constitutional check passing publicly. Nothing changes silently, and nothing changes
-            any other way.
+            {{ t('c_system.amendments.intro', 'The constitution changes through exactly two doors. The settings it leaves open move by ordinary legislative acts, inside locked bounds. The locked core itself (the hardened layer) moves only by a new release of the software, made in the open with every constitutional check passing publicly. Nothing changes silently, and nothing changes any other way.') }}
         </template>
 
         <p>
             <a href="https://cosmopolitancoalition.org/cosmopolitan-template/">
-                Read the Template — <em>A Fair Constitution</em> (Cosmopolitan Template) →
+                {{ t('c_system.amendments.template_link_a', 'Read the Template —') }} <em>{{ t('c_system.amendments.template_link_title', 'A Fair Constitution') }}</em> {{ t('c_system.amendments.template_link_b', '(Cosmopolitan Template) →') }}
             </a>
         </p>
 
         <!-- ============================ current values =================== -->
-        <Card as="section" title="Current amendable values">
+        <Card as="section" :title="t('c_system.amendments.current_title', 'Current amendable values')">
             <p class="cc-small">
-                What every amendable setting is set to right now at the instance root, with the
-                hardened range it must stay inside, and the act that last changed it. Values are
-                scoped per jurisdiction — this is the instance-wide snapshot; the full
-                inheritance-aware register is on the
-                <Link href="/legislature/settings">settings register</Link>.
+                {{ t('c_system.amendments.current_body_a', 'What every amendable setting is set to right now at the instance root, with the hardened range it must stay inside, and the act that last changed it. Values are scoped per jurisdiction — this is the instance-wide snapshot; the full inheritance-aware register is on the') }}
+                <Link href="/legislature/settings">{{ t('c_system.amendments.settings_register_link', 'settings register') }}</Link>.
             </p>
 
             <div v-if="settings.length" class="value-grid">
@@ -174,27 +188,26 @@ const checkResult = computed(() => {
                         </Link>
                         <span data-no-i18n> · {{ dateOf(s.enacted_by.effective_at) }}</span>
                     </div>
-                    <div v-else class="value-tile__act cc-small gloss">founding value — unamended</div>
+                    <div v-else class="value-tile__act cc-small gloss">{{ t('c_system.amendments.founding_value', 'founding value — unamended') }}</div>
                 </div>
             </div>
-            <p v-else class="cc-small gloss">No amendable settings resolved yet.</p>
+            <p v-else class="cc-small gloss">{{ t('c_system.amendments.no_settings', 'No amendable settings resolved yet.') }}</p>
 
             <!-- ==================== try a proposed value ================= -->
             <div v-if="checkable.length" class="checker">
-                <h4 class="checker__title">Try a proposed value</h4>
+                <h4 class="checker__title">{{ t('c_system.amendments.try_title', 'Try a proposed value') }}</h4>
                 <p class="cc-small gloss">
-                    A pre-vote hint only. The engine runs the same bounds check server-side when the
-                    amendment bill is filed — this screen enacts nothing.
+                    {{ t('c_system.amendments.try_body', 'A pre-vote hint only. The engine runs the same bounds check server-side when the amendment bill is filed — this screen enacts nothing.') }}
                 </p>
                 <div class="checker__controls">
                     <label class="checker__field">
-                        <span class="cc-small">Setting</span>
+                        <span class="cc-small">{{ t('c_system.amendments.field_setting', 'Setting') }}</span>
                         <select v-model="selectedKey" data-no-i18n>
                             <option v-for="s in checkable" :key="s.key" :value="s.key">{{ s.key }}</option>
                         </select>
                     </label>
                     <label class="checker__field">
-                        <span class="cc-small">Proposed value</span>
+                        <span class="cc-small">{{ t('c_system.amendments.field_proposed', 'Proposed value') }}</span>
                         <input v-model="proposed" type="text" data-no-i18n
                             :placeholder="rangeLabel(selectedSetting?.bounds)" />
                     </label>
@@ -208,19 +221,16 @@ const checkResult = computed(() => {
 
         <div class="grid-2">
             <!-- ================================ door one ================== -->
-            <Card as="section" title="Door one — amendable variables">
+            <Card as="section" :title="t('c_system.amendments.door_one_title', 'Door one — amendable variables')">
                 <p class="cc-small">
-                    Settings the constitution leaves to each jurisdiction, changed by a valid
-                    legislative act (an amendable setting change) through the ordinary bill flow.
-                    The engine blocks out-of-range values before the vote is even scheduled. Every
-                    applied change lands here, on the live ledger — appended, never edited.
+                    {{ t('c_system.amendments.door_one_body', 'Settings the constitution leaves to each jurisdiction, changed by a valid legislative act (an amendable setting change) through the ordinary bill flow. The engine blocks out-of-range values before the vote is even scheduled. Every applied change lands here, on the live ledger — appended, never edited.') }}
                 </p>
                 <DataTable
                     v-if="changes.length"
                     :columns="ledgerColumns"
                     :rows="changes"
                     row-key="id"
-                    caption="Applied amendable-setting changes, newest first"
+                    :caption="t('c_system.amendments.ledger_caption', 'Applied amendable-setting changes, newest first')"
                 >
                     <template #cell-applied_at="{ row }">
                         <span data-no-i18n>{{ dateOf(row.applied_at) }}</span>
@@ -239,59 +249,48 @@ const checkResult = computed(() => {
                     </template>
                 </DataTable>
                 <p v-else class="cc-small gloss">
-                    No amendments yet — every change will appear here, appended, never edited.
+                    {{ t('c_system.amendments.no_amendments', 'No amendments yet — every change will appear here, appended, never edited.') }}
                 </p>
             </Card>
 
             <!-- ================================ door two ================== -->
-            <Card as="section" title="Door two — the hardened layer">
+            <Card as="section" :title="t('c_system.amendments.door_two_title', 'Door two — the hardened layer')">
                 <p class="cc-small">
-                    Mechanics no act, admin panel, or office can touch. A change here is a new
-                    release of the software that must pass every automated constitutional check
-                    before it ships — <strong>softening exists only through this door</strong>, in
-                    the open, with the change and its checks on the public record.
+                    {{ t('c_system.amendments.door_two_body_a', 'Mechanics no act, admin panel, or office can touch. A change here is a new release of the software that must pass every automated constitutional check before it ships —') }} <strong>{{ t('c_system.amendments.door_two_body_strong', 'softening exists only through this door') }}</strong>{{ t('c_system.amendments.door_two_body_b', ', in the open, with the change and its checks on the public record.') }}
                 </p>
                 <div class="stack" style="gap: var(--space-2)">
                     <HardenedChip v-for="(rule, ri) in HARDENED_RULES" :key="ri">{{ rule }}</HardenedChip>
                 </div>
                 <p class="citation" style="margin-block-start: var(--space-4)">
-                    <Link href="/system/audit-chain">Releases are sealed in the audit chain</Link>
+                    <Link href="/system/audit-chain">{{ t('c_system.amendments.releases_sealed', 'Releases are sealed in the audit chain') }}</Link>
                 </p>
             </Card>
         </div>
 
         <!-- ==================================== the floor ================ -->
-        <Card as="section" title="The supermajority floor">
+        <Card as="section" :title="t('c_system.amendments.floor_title', 'The supermajority floor')">
             <p>
-                The supermajority fraction is amendable, but its definition has a hardened floor:
-                no redefinition may produce a threshold below <strong>majority + 1</strong> of all
-                serving members. The default is two thirds, computed as
-                <code data-no-i18n>ceil(serving_members × 2/3)</code> — against members
-                <em>serving</em>, never members present.
+                {{ t('c_system.amendments.floor_body_a', 'The supermajority fraction is amendable, but its definition has a hardened floor: no redefinition may produce a threshold below') }} <strong>{{ t('c_system.amendments.floor_majority_plus', 'majority + 1') }}</strong> {{ t('c_system.amendments.floor_body_b', 'of all serving members. The default is two thirds, computed as') }}
+                <code data-no-i18n>ceil(serving_members × 2/3)</code> {{ t('c_system.amendments.floor_body_c', '— against members') }}
+                <em>{{ t('c_system.amendments.floor_serving', 'serving') }}</em>{{ t('c_system.amendments.floor_body_d', ', never members present.') }}
             </p>
             <p class="gloss">
-                Supermajority, glossed: the share of every seated member — vacant seats still count
-                in the denominator until refilled — so absence can never lower the bar.
+                {{ t('c_system.amendments.floor_gloss', 'Supermajority, glossed: the share of every seated member — vacant seats still count in the denominator until refilled — so absence can never lower the bar.') }}
             </p>
         </Card>
 
         <!-- ==================================== ratification ============= -->
-        <Card as="section" title="Ratification thresholds">
+        <Card as="section" :title="t('c_system.amendments.ratify_title', 'Ratification thresholds')">
             <DataTable
                 :columns="ratificationColumns"
                 :rows="RATIFICATION_ROWS"
-                caption="Ratification thresholds by kind of change"
+                :caption="t('c_system.amendments.ratify_caption', 'Ratification thresholds by kind of change')"
             />
         </Card>
 
         <template #about>
             <p>
-                This screen shows the two ways the constitution can change — the settings door runs
-                through the amendable setting change and the ordinary bill flow, and every change
-                is sealed in the audit chain. Amendable settings are scoped per jurisdiction;
-                ratification climbs the nesting chain through constituent supermajorities. In
-                engineering terms, the hardened layer is a set of protected files guarded by the
-                constitutional test suite — a release deploys only when the full suite passes.
+                {{ t('c_system.amendments.about', 'This screen shows the two ways the constitution can change — the settings door runs through the amendable setting change and the ordinary bill flow, and every change is sealed in the audit chain. Amendable settings are scoped per jurisdiction; ratification climbs the nesting chain through constituent supermajorities. In engineering terms, the hardened layer is a set of protected files guarded by the constitutional test suite — a release deploys only when the full suite passes.') }}
             </p>
         </template>
     </PageScaffold>

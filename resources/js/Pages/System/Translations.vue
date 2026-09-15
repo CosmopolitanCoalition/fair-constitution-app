@@ -18,6 +18,7 @@
  */
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -28,6 +29,8 @@ import CitationLine from '@/Components/Ui/CitationLine.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 
 defineOptions({ layout: AppShellV2 });
+
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -131,39 +134,39 @@ const totalMissing = computed(() =>
     locales.value.reduce((sum, l) => sum + l.missing, 0),
 );
 
-const CODE_LABELS = {
-    'C1-missing': 'Key missing from a locale',
-    'C2-orphan': 'Key present in a locale but not in English',
-    'C3-placeholder': 'Placeholder mismatch ({name} tokens differ)',
-    'C4-idtoken': 'ID token or citation not byte-identical',
-    'C5-compile': 'Message does not compile in vue-i18n',
-    'C6-empty': 'Empty message',
-    'C7-registry': 'PHP and JS locale lists disagree',
-    'C0-parse': 'Catalog file could not be parsed',
-};
+const CODE_LABELS = computed(() => ({
+    'C1-missing': t('c_system.translations.code_c1', 'Key missing from a locale'),
+    'C2-orphan': t('c_system.translations.code_c2', 'Key present in a locale but not in English'),
+    'C3-placeholder': t('c_system.translations.code_c3', 'Placeholder mismatch ({token} tokens differ)', { token: '{name}' }),
+    'C4-idtoken': t('c_system.translations.code_c4', 'ID token or citation not byte-identical'),
+    'C5-compile': t('c_system.translations.code_c5', 'Message does not compile in vue-i18n'),
+    'C6-empty': t('c_system.translations.code_c6', 'Empty message'),
+    'C7-registry': t('c_system.translations.code_c7', 'PHP and JS locale lists disagree'),
+    'C0-parse': t('c_system.translations.code_c0', 'Catalog file could not be parsed'),
+}));
 
 const failures = computed(() => props.coverage?.failures ?? 0);
 const failureCodes = computed(() =>
     Object.entries(props.coverage?.failure_codes ?? {})
         .sort((a, b) => b[1] - a[1])
-        .map(([code, count]) => ({ code, count, label: CODE_LABELS[code] ?? code })),
+        .map(([code, count]) => ({ code, count, label: CODE_LABELS.value[code] ?? code })),
 );
 
-const localeColumns = [
-    { key: 'locale', label: 'Locale', mono: true },
-    { key: 'bar', label: 'Coverage' },
-    { key: 'pct', label: '%', align: 'right' },
-    { key: 'present', label: 'Carried', align: 'right' },
-    { key: 'missing', label: 'Missing', align: 'right' },
-    { key: 'identical', label: 'Same as English', align: 'right' },
-];
+const localeColumns = computed(() => [
+    { key: 'locale', label: t('c_system.translations.col_locale', 'Locale'), mono: true },
+    { key: 'bar', label: t('c_system.translations.col_coverage', 'Coverage') },
+    { key: 'pct', label: t('c_system.translations.col_pct', '%'), align: 'right' },
+    { key: 'present', label: t('c_system.translations.col_carried', 'Carried'), align: 'right' },
+    { key: 'missing', label: t('c_system.translations.col_missing', 'Missing'), align: 'right' },
+    { key: 'identical', label: t('c_system.translations.col_same', 'Same as English'), align: 'right' },
+]);
 
 const localeRows = computed(() => locales.value.map((l) => ({ ...l, bar: l.pct })));
 
 /* Namespace grid: one row per namespace, one column per locale. */
 const nsColumns = computed(() => [
-    { key: 'namespace', label: 'Namespace', mono: true },
-    { key: 'total', label: 'Messages', align: 'right' },
+    { key: 'namespace', label: t('c_system.translations.col_namespace', 'Namespace'), mono: true },
+    { key: 'total', label: t('c_system.translations.col_messages', 'Messages'), align: 'right' },
     ...locales.value.map((l) => ({ key: `loc_${l.locale}`, label: l.locale, align: 'right' })),
 ]);
 
@@ -188,10 +191,8 @@ function pctOf(part, whole) {
     <PageScaffold :surface="surface">
         <template #intro>
             <p class="page-intro">
-                How much of this application a person can read in their own language. Every figure
-                below is produced by the translation gate
-                (<code data-no-i18n>scripts/i18n/check.mjs</code>) — the same run that fails a build
-                when a language falls behind. Nothing on this page is measured a second way.
+                {{ t('c_system.translations.intro_a', 'How much of this application a person can read in their own language. Every figure below is produced by the translation gate') }}
+                (<code data-no-i18n>scripts/i18n/check.mjs</code>) {{ t('c_system.translations.intro_b', '— the same run that fails a build when a language falls behind. Nothing on this page is measured a second way.') }}
             </p>
         </template>
 
@@ -199,41 +200,41 @@ function pctOf(part, whole) {
              Shown whenever workers exist. The coverage half below answers
              "where are we"; this half answers "what is happening right now",
              which is a different question and needs its own surface. -->
-        <Card v-if="workers.length" :title="runLive ? 'Translating now' : 'Last run'"
-              eyebrow="live">
+        <Card v-if="workers.length" :title="runLive ? t('c_system.translations.translating_now', 'Translating now') : t('c_system.translations.last_run', 'Last run')"
+              :eyebrow="t('c_system.translations.eyebrow_live', 'live')">
             <div class="stat-row">
-                <Stat :value="activeWorkers" label="workers active" :accent="activeWorkers > 0" />
-                <Stat :value="`${deck?.rate ?? 0}/s`" label="strings per second" />
-                <Stat :value="(deck?.strings_done ?? 0).toLocaleString()" label="translated this run" />
-                <Stat :value="etaText" label="estimated remaining" />
+                <Stat :value="activeWorkers" :label="t('c_system.translations.workers_active', 'workers active')" :accent="activeWorkers > 0" />
+                <Stat :value="`${deck?.rate ?? 0}/s`" :label="t('c_system.translations.strings_per_second', 'strings per second')" />
+                <Stat :value="(deck?.strings_done ?? 0).toLocaleString()" :label="t('c_system.translations.translated_this_run', 'translated this run')" />
+                <Stat :value="etaText" :label="t('c_system.translations.estimated_remaining', 'estimated remaining')" />
             </div>
 
             <p v-if="halted" class="muted">
-                <StatusBadge tone="warning">Halt requested</StatusBadge>
-                Workers stop at their next committed chunk — at most one chunk is redone.
+                <StatusBadge tone="warning">{{ t('c_system.translations.halt_requested', 'Halt requested') }}</StatusBadge>
+                {{ t('c_system.translations.halt_note', 'Workers stop at their next committed chunk — at most one chunk is redone.') }}
             </p>
             <p v-if="deckError" class="muted">{{ deckError }}</p>
 
             <!-- one line per worker: what it is, what it is doing, how fast -->
             <DataTable
                 :columns="[
-                    { key: 'locale', label: 'Language', mono: true },
-                    { key: 'state', label: 'State' },
-                    { key: 'namespace', label: 'Area', mono: true },
-                    { key: 'bar', label: 'Progress' },
-                    { key: 'done', label: 'Done', align: 'right' },
-                    { key: 'rate', label: '/sec', align: 'right' },
-                    { key: 'device', label: 'On', mono: true },
+                    { key: 'locale', label: t('c_system.translations.wcol_language', 'Language'), mono: true },
+                    { key: 'state', label: t('c_system.translations.wcol_state', 'State') },
+                    { key: 'namespace', label: t('c_system.translations.wcol_area', 'Area'), mono: true },
+                    { key: 'bar', label: t('c_system.translations.wcol_progress', 'Progress') },
+                    { key: 'done', label: t('c_system.translations.wcol_done', 'Done'), align: 'right' },
+                    { key: 'rate', label: t('c_system.translations.wcol_rate', '/sec'), align: 'right' },
+                    { key: 'device', label: t('c_system.translations.wcol_on', 'On'), mono: true },
                 ]"
                 :rows="workers"
                 row-key="id"
-                caption="Translation workers currently running"
+                :caption="t('c_system.translations.workers_caption', 'Translation workers currently running')"
             >
                 <template #cell-state="{ row }">
                     <StatusBadge
                         :tone="row.stale ? 'danger' : row.state === 'translating' ? 'success'
                                : row.state === 'done' ? 'neutral' : 'info'"
-                    >{{ row.stale ? 'silent' : row.state }}</StatusBadge>
+                    >{{ row.stale ? t('c_system.translations.state_silent', 'silent') : row.state }}</StatusBadge>
                 </template>
                 <template #cell-namespace="{ row }">{{ row.namespace || '—' }}</template>
                 <template #cell-bar="{ row }">
@@ -251,7 +252,7 @@ function pctOf(part, whole) {
             <div v-for="w in workers.filter((x) => x.current?.length)" :key="`cur-${w.id}`"
                  class="inflight">
                 <p class="muted inflight-head">
-                    <span data-no-i18n>{{ w.locale }}</span> — in flight right now:
+                    <span data-no-i18n>{{ w.locale }}</span> {{ t('c_system.translations.in_flight', '— in flight right now:') }}
                 </p>
                 <ul class="inflight-list">
                     <li v-for="(t, i) in w.current" :key="i" class="inflight-item">{{ t }}</li>
@@ -259,22 +260,18 @@ function pctOf(part, whole) {
             </div>
 
             <p class="muted">
-                Each worker holds its own copy of the translation model, so the GPU — not the CPU —
-                sets how many can run at once. Work commits in small batches: halting, or a crash,
-                costs at most one batch and never leaves a half-written language.
+                {{ t('c_system.translations.worker_note', 'Each worker holds its own copy of the translation model, so the GPU — not the CPU — sets how many can run at once. Work commits in small batches: halting, or a crash, costs at most one batch and never leaves a half-written language.') }}
             </p>
         </Card>
 
         <!-- ── THE MATRIX ──────────────────────────────────────────────────
              Languages × the six kinds of content. This is the honest shape of
              the question "is this app translated?" — one number never was. -->
-        <Card v-if="matrix.length" title="Coverage" eyebrow="languages × kinds of content">
+        <Card v-if="matrix.length" :title="t('c_system.translations.coverage_title', 'Coverage')" :eyebrow="t('c_system.translations.coverage_eyebrow', 'languages × kinds of content')">
             <p class="gloss">
-                Six kinds of content per language. A cell shows how complete it is and where it sits
-                in the lifecycle. <strong>{{ totals.mapped }}</strong> languages are registered and
-                <strong>{{ totals.translated }}</strong> are marked for translation; the
-                {{ totals.shown }} with catalogs on this instance are shown — a row of dashes for the
-                rest would bury these.
+                {{ t('c_system.translations.matrix_gloss_a', 'Six kinds of content per language. A cell shows how complete it is and where it sits in the lifecycle.') }} <strong>{{ totals.mapped }}</strong> {{ t('c_system.translations.matrix_gloss_b', 'languages are registered and') }}
+                <strong>{{ totals.translated }}</strong> {{ t('c_system.translations.matrix_gloss_c', 'are marked for translation; the') }}
+                {{ totals.shown }} {{ t('c_system.translations.matrix_gloss_d', 'with catalogs on this instance are shown — a row of dashes for the rest would bury these.') }}
             </p>
 
             <div class="tlegend">
@@ -286,15 +283,15 @@ function pctOf(part, whole) {
             <div class="table-wrap">
                 <table class="tmatrix">
                     <caption class="visually-hidden">
-                        Translation coverage by language and kind of content
+                        {{ t('c_system.translations.matrix_caption', 'Translation coverage by language and kind of content') }}
                     </caption>
                     <thead>
                         <tr>
-                            <th scope="col">Language</th>
+                            <th scope="col">{{ t('c_system.translations.th_language', 'Language') }}</th>
                             <th v-for="m in modalities" :key="m.id" scope="col" :title="m.basis">
                                 {{ m.label }}
                             </th>
-                            <th scope="col">Overall</th>
+                            <th scope="col">{{ t('c_system.translations.th_overall', 'Overall') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -306,13 +303,14 @@ function pctOf(part, whole) {
                                     </span>
                                     <span class="lang-code" data-no-i18n>{{ r.code }}</span>
                                 </Link>
-                                <span v-if="r.code === 'en'" class="pill pill--pass">Source</span>
+                                <span v-if="r.code === 'en'" class="pill pill--pass">{{ t('c_system.translations.source_pill', 'Source') }}</span>
                             </th>
                             <td
                                 v-for="m in modalities" :key="m.id"
                                 class="tcell" :class="`tcell--${r.cells[m.id].state}`"
-                                :aria-label="`${m.label}: ${byState[r.cells[m.id].state]?.label}${
-                                    r.cells[m.id].state === 'none' ? '' : `, ${r.cells[m.id].pct} percent`}`"
+                                :aria-label="r.cells[m.id].state === 'none'
+                                    ? t('c_system.translations.cell_aria_none', '{modality}: {state}', { modality: m.label, state: byState[r.cells[m.id].state]?.label })
+                                    : t('c_system.translations.cell_aria', '{modality}: {state}, {pct} percent', { modality: m.label, state: byState[r.cells[m.id].state]?.label, pct: r.cells[m.id].pct })"
                             >
                                 <span class="tdot" :title="byState[r.cells[m.id].state]?.label">
                                     {{ cellLabel(r.cells[m.id]) }}
@@ -330,12 +328,11 @@ function pctOf(part, whole) {
             </div>
 
             <p class="citation">
-                Overall is the mean of all six kinds, so the four we do not yet produce pull it
-                down. That is deliberate: a language is not translated because its buttons are.
+                {{ t('c_system.translations.overall_note', 'Overall is the mean of all six kinds, so the four we do not yet produce pull it down. That is deliberate: a language is not translated because its buttons are.') }}
             </p>
         </Card>
 
-        <Card v-if="modalities.length" title="The six kinds of content">
+        <Card v-if="modalities.length" :title="t('c_system.translations.six_kinds_title', 'The six kinds of content')">
             <div class="role-grid">
                 <div v-for="m in modalities" :key="m.id" class="role-card">
                     <span class="role-name"><Icon :name="m.icon" size="sm" /> {{ m.label }}</span>
@@ -345,84 +342,79 @@ function pctOf(part, whole) {
                 </div>
             </div>
             <p class="gloss">
-                Interface and page copy are measured here. The other four are produced outside this
-                app and are reported as not-started rather than left blank — a blank cell reads as
-                "fine", which would be a lie.
+                {{ t('c_system.translations.six_kinds_note', 'Interface and page copy are measured here. The other four are produced outside this app and are reported as not-started rather than left blank — a blank cell reads as "fine", which would be a lie.') }}
             </p>
         </Card>
 
-        <Card title="How a language gets translated" inset>
+        <Card :title="t('c_system.translations.sop_title', 'How a language gets translated')" inset>
             <ol class="sop-steps">
                 <li>
-                    <span class="sop-do">Pick the language</span>
-                    <span class="sop-detail">Any of the {{ totals.mapped }} registered languages, or request a new one.</span>
+                    <span class="sop-do">{{ t('c_system.translations.sop1_do', 'Pick the language') }}</span>
+                    <span class="sop-detail">{{ t('c_system.translations.sop1_detail', 'Any of the {n} registered languages, or request a new one.', { n: totals.mapped }) }}</span>
                 </li>
                 <li>
-                    <span class="sop-do">Generate the first round</span>
-                    <span class="sop-detail">The machine drafts everything at once — people never start from a blank box.</span>
+                    <span class="sop-do">{{ t('c_system.translations.sop2_do', 'Generate the first round') }}</span>
+                    <span class="sop-detail">{{ t('c_system.translations.sop2_detail', 'The machine drafts everything at once — people never start from a blank box.') }}</span>
                 </li>
                 <li>
-                    <span class="sop-do">Open it for review</span>
-                    <span class="sop-detail">Readers of that language see the drafts and begin verifying.</span>
+                    <span class="sop-do">{{ t('c_system.translations.sop3_do', 'Open it for review') }}</span>
+                    <span class="sop-detail">{{ t('c_system.translations.sop3_detail', 'Readers of that language see the drafts and begin verifying.') }}</span>
                 </li>
                 <li>
-                    <span class="sop-do">Publish on quorum</span>
-                    <span class="sop-detail">A string settles once enough readers agree and the gate is clean.</span>
+                    <span class="sop-do">{{ t('c_system.translations.sop4_do', 'Publish on quorum') }}</span>
+                    <span class="sop-detail">{{ t('c_system.translations.sop4_detail', 'A string settles once enough readers agree and the gate is clean.') }}</span>
                 </li>
             </ol>
             <p class="citation">
                 <Icon name="lock" size="sm" />
-                Private records never enter the pipeline — a database check forbids it.
+                {{ t('c_system.translations.sop_private', 'Private records never enter the pipeline — a database check forbids it.') }}
             </p>
             <p class="citation">
                 <Icon name="users" size="sm" />
-                Verified by the people who read the interface in that language, never by the machine
-                grading itself.
+                {{ t('c_system.translations.sop_verified', 'Verified by the people who read the interface in that language, never by the machine grading itself.') }}
             </p>
         </Card>
 
         <!-- Never measured on this box: say so plainly rather than render zeros. -->
-        <Card v-if="!measured" title="Not measured yet">
+        <Card v-if="!measured" :title="t('c_system.translations.not_measured_title', 'Not measured yet')">
             <p>
-                No coverage artifact on this instance. Run the gate to produce one:
+                {{ t('c_system.translations.not_measured_body', 'No coverage artifact on this instance. Run the gate to produce one:') }}
             </p>
             <p><code data-no-i18n>node scripts/i18n/check.mjs</code></p>
             <p class="muted">
-                It writes <code data-no-i18n>resources/js/i18n/coverage.json</code> and exits
-                non-zero while any language is behind.
+                {{ t('c_system.translations.not_measured_a', 'It writes') }} <code data-no-i18n>resources/js/i18n/coverage.json</code> {{ t('c_system.translations.not_measured_b', 'and exits non-zero while any language is behind.') }}
             </p>
         </Card>
 
         <template v-else>
-            <Card title="Where we are" eyebrow="headline">
+            <Card :title="t('c_system.translations.where_title', 'Where we are')" :eyebrow="t('c_system.translations.where_eyebrow', 'headline')">
                 <div class="stat-row">
-                    <Stat :value="sourceKeys.toLocaleString()" label="translatable messages in the app" />
-                    <Stat :value="namespaces" label="namespaces" />
-                    <Stat :value="locales.length" label="languages present" />
+                    <Stat :value="sourceKeys.toLocaleString()" :label="t('c_system.translations.stat_messages', 'translatable messages in the app')" />
+                    <Stat :value="namespaces" :label="t('c_system.translations.stat_namespaces', 'namespaces')" />
+                    <Stat :value="locales.length" :label="t('c_system.translations.stat_languages', 'languages present')" />
                     <Stat
                         :value="`${bestPct}%`"
-                        label="best-covered language"
+                        :label="t('c_system.translations.stat_best', 'best-covered language')"
                         :accent="bestPct >= 90"
                     />
                 </div>
                 <p class="muted">
                     <template v-if="totalMissing > 0">
-                        {{ totalMissing.toLocaleString() }} message-translations are still owed across
-                        the languages below.
+                        {{ t('c_system.translations.owed', '{n} message-translations are still owed across the languages below.', { n: totalMissing.toLocaleString() }) }}
                     </template>
-                    <template v-else>Every registered language carries every message.</template>
+                    <template v-else>{{ t('c_system.translations.all_carried', 'Every registered language carries every message.') }}</template>
                 </p>
                 <p v-if="generatedAt" class="muted">
-                    Measured {{ generatedAt }}.
+                    {{ t('c_system.translations.measured_at', 'Measured {when}.', { when: generatedAt }) }}
                 </p>
             </Card>
 
-            <Card title="By language">
+            <Card :title="t('c_system.translations.by_language_title', 'By language')">
                 <DataTable
                     :columns="localeColumns"
                     :rows="localeRows"
                     row-key="locale"
-                    caption="Translation coverage per language"
+                    :caption="t('c_system.translations.by_language_caption', 'Translation coverage per language')"
                 >
                     <template #cell-bar="{ row }">
                         <div class="cov-bar" :title="`${row.pct}%`">
@@ -442,50 +434,46 @@ function pctOf(part, whole) {
                     </template>
                 </DataTable>
                 <p class="muted">
-                    <strong>Same as English</strong> counts values byte-identical to the source — a
-                    proper noun that legitimately does not translate, or a string nobody has
-                    translated yet. It is a hint for reviewers, not a failure.
+                    <strong>{{ t('c_system.translations.same_english_label', 'Same as English') }}</strong> {{ t('c_system.translations.same_english_body', 'counts values byte-identical to the source — a proper noun that legitimately does not translate, or a string nobody has translated yet. It is a hint for reviewers, not a failure.') }}
                 </p>
             </Card>
 
-            <Card :title="`Gate findings (${failures.toLocaleString()})`">
-                <p v-if="!failures">The gate passes. No language is behind and every message compiles.</p>
+            <Card :title="t('c_system.translations.gate_findings_title', 'Gate findings ({n})', { n: failures.toLocaleString() })">
+                <p v-if="!failures">{{ t('c_system.translations.gate_passes', 'The gate passes. No language is behind and every message compiles.') }}</p>
                 <template v-else>
                     <DataTable
                         :columns="[
-                            { key: 'label', label: 'Finding' },
-                            { key: 'code', label: 'Code', mono: true },
-                            { key: 'count', label: 'Count', align: 'right' },
+                            { key: 'label', label: t('c_system.translations.fcol_finding', 'Finding') },
+                            { key: 'code', label: t('c_system.translations.fcol_code', 'Code'), mono: true },
+                            { key: 'count', label: t('c_system.translations.fcol_count', 'Count'), align: 'right' },
                         ]"
                         :rows="failureCodes"
                         row-key="code"
-                        caption="Translation gate findings by code"
+                        :caption="t('c_system.translations.findings_caption', 'Translation gate findings by code')"
                     >
                         <template #cell-count="{ row }">
                             <span data-no-i18n>{{ row.count.toLocaleString() }}</span>
                         </template>
                     </DataTable>
                     <p class="muted">
-                        Run <code data-no-i18n>node scripts/i18n/check.mjs</code> for the per-key
-                        detail behind each code.
+                        {{ t('c_system.translations.findings_run_a', 'Run') }} <code data-no-i18n>node scripts/i18n/check.mjs</code> {{ t('c_system.translations.findings_run_b', 'for the per-key detail behind each code.') }}
                     </p>
                 </template>
             </Card>
 
-            <Card title="By namespace">
+            <Card :title="t('c_system.translations.by_namespace_title', 'By namespace')">
                 <p class="muted">
-                    Messages per area of the app, and how many of them each language carries.
-                    A namespace maps to a page folder.
+                    {{ t('c_system.translations.by_namespace_note', 'Messages per area of the app, and how many of them each language carries. A namespace maps to a page folder.') }}
                 </p>
                 <DataTable
                     :columns="nsColumns"
                     :rows="nsRows"
                     row-key="namespace"
-                    caption="Messages per namespace per language"
+                    :caption="t('c_system.translations.by_namespace_caption', 'Messages per namespace per language')"
                 />
             </Card>
 
-            <CitationLine text="Records publish with translations · WF-SYS-03" />
+            <CitationLine :text="t('c_system.translations.records_publish', 'Records publish with translations · WF-SYS-03')" />
         </template>
 
         <!-- ── BECOME A VERIFIER ───────────────────────────────────────────
@@ -495,17 +483,15 @@ function pctOf(part, whole) {
              can verify here (mockups/v3/translation/translation-home.html). -->
         <Card>
             <div class="cluster" style="justify-content: space-between; align-items: center">
-                <h2><Icon name="users" size="sm" /> Become a verifier</h2>
-                <StatusBadge tone="info">Verifier role · readers of a language</StatusBadge>
+                <h2><Icon name="users" size="sm" /> {{ t('c_system.translations.verifier_title', 'Become a verifier') }}</h2>
+                <StatusBadge tone="info">{{ t('c_system.translations.verifier_role', 'Verifier role · readers of a language') }}</StatusBadge>
             </div>
             <p class="gloss">
-                Anyone who reads a language can verify its translations. A draft is settled by a
-                quorum of readers who agree — the machine never publishes itself. The languages you
-                read come from your account and give weight to your verifications.
+                {{ t('c_system.translations.verifier_gloss', 'Anyone who reads a language can verify its translations. A draft is settled by a quorum of readers who agree — the machine never publishes itself. The languages you read come from your account and give weight to your verifications.') }}
             </p>
 
             <template v-if="myVerifyLangs.length">
-                <p class="gloss">You can verify — pick a language to work its queue, worst-first:</p>
+                <p class="gloss">{{ t('c_system.translations.can_verify', 'You can verify — pick a language to work its queue, worst-first:') }}</p>
                 <div class="cluster" style="gap: var(--space-1)">
                     <Link
                         v-for="l in myVerifyLangs"
@@ -518,38 +504,32 @@ function pctOf(part, whole) {
                     </Link>
                 </div>
                 <p v-if="viewer.isOperator" class="muted">
-                    As operator you can verify every language — use this to unstick a queue no reader
-                    has reached yet, never to overrule the readers of a language.
+                    {{ t('c_system.translations.operator_note', 'As operator you can verify every language — use this to unstick a queue no reader has reached yet, never to overrule the readers of a language.') }}
                 </p>
             </template>
 
             <template v-else>
                 <p class="muted" v-if="!viewer.authed">
-                    <Link href="/register">Sign up</Link> and set the languages you read on your
-                    profile to start verifying.
+                    <Link href="/register">{{ t('c_system.translations.sign_up', 'Sign up') }}</Link> {{ t('c_system.translations.sign_up_after', 'and set the languages you read on your profile to start verifying.') }}
                 </p>
                 <p class="muted" v-else>
-                    Add the languages you read on your profile to start verifying — the queue is
-                    gated to readers so a translation is only ever settled by people who can judge it.
+                    {{ t('c_system.translations.add_langs_profile', 'Add the languages you read on your profile to start verifying — the queue is gated to readers so a translation is only ever settled by people who can judge it.') }}
                 </p>
             </template>
         </Card>
 
         <!-- ── ADD A LANGUAGE ─────────────────────────────────────────────── -->
         <Card>
-            <h2>Add a language</h2>
+            <h2>{{ t('c_system.translations.add_language_title', 'Add a language') }}</h2>
             <p>
-                Don’t see yours? Any of the {{ totals.mapped ?? 0 }} mapped languages can be opened
-                for translation, and a new one can be requested. The machine drafts every kind of
-                content at once, then it opens for your review — never shipped as final until readers
-                confirm it.
+                {{ t('c_system.translations.add_language_body', 'Don’t see yours? Any of the {n} mapped languages can be opened for translation, and a new one can be requested. The machine drafts every kind of content at once, then it opens for your review — never shipped as final until readers confirm it.', { n: totals.mapped ?? 0 }) }}
             </p>
             <div class="cluster" style="gap: var(--space-1)">
                 <Link class="btn btn--primary" :href="`/support/report?ref=${encodeURIComponent('Add a language')}`">
-                    Request a language <Icon name="arrow-right" size="sm" />
+                    {{ t('c_system.translations.request_language', 'Request a language') }} <Icon name="arrow-right" size="sm" />
                 </Link>
                 <Link class="btn" href="/videos">
-                    See the video library <Icon name="arrow-right" size="sm" />
+                    {{ t('c_system.translations.see_videos', 'See the video library') }} <Icon name="arrow-right" size="sm" />
                 </Link>
             </div>
         </Card>
