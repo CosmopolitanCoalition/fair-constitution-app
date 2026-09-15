@@ -44,5 +44,5 @@ const active = (path) => current.value === path || (path === '/civic/rooms' && c
 .community-nav a:hover { text-decoration: underline; }
 .community-nav a[aria-current="page"] { background: var(--surface-raised, #edf2f4); color: var(--text-primary, #18343d); border-color: var(--border, #aabcc5); font-weight: 650; }
 .community-nav a:focus-visible { outline: 3px solid var(--accent, #a57924); outline-offset: 2px; }
-.community-nav p { margin: .65rem 0 0; font-size: .8rem; color: var(--text-secondary, #566573); }
+.community-nav p { margin: .65rem 0 0; font-size: .8rem; color: var(--gov-fg-muted, var(--text-secondary, #566573)); } /* W-0447: the fallback grey measured 3.36:1 on the dark shell; the gov token follows the theme */
 </style>
