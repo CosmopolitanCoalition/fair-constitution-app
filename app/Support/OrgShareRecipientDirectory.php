@@ -85,7 +85,7 @@ final class OrgShareRecipientDirectory
 
             return new Cursor(['directory_name' => $data['directory_name'], 'id' => $data['id']], $data['_pointsToNextItems']);
         } catch (\Throwable) {
-            throw ValidationException::withMessages(['recipient_cursor' => 'This page link is invalid. Search for the recipient again.']);
+            throw ValidationException::withMessages(['recipient_cursor' => __('This page link is invalid. Search for the recipient again.')]);
         }
     }
 

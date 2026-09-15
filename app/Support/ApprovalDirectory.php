@@ -108,7 +108,7 @@ final class ApprovalDirectory
             // GET validation redirects back, which can loop for a stale bookmarked
             // cursor (or after an approval redirects to yesterday's standings).
             $cursor = null;
-            $notice = 'The standings or search have changed, or the page link expired. Showing the first page.';
+            $notice = __('The standings or search have changed, or the page link expired. Showing the first page.');
         }
         $previous = ($cursor['direction'] ?? null) === 'previous';
         if ($cursor) {
@@ -186,7 +186,7 @@ final class ApprovalDirectory
             $cursor = $this->cursor($values['endorsement_cursor'] ?? null, $context, ['id'], 'endorsement_cursor');
         } catch (ValidationException) {
             $cursor = null;
-            $notice = 'This endorsement page link expired. Showing the first page.';
+            $notice = __('This endorsement page link expired. Showing the first page.');
         }
         $previous = ($cursor['direction'] ?? null) === 'previous';
         $query = $this->organizationQuery($candidate->id);
@@ -263,7 +263,7 @@ final class ApprovalDirectory
 
             return $value;
         } catch (\Throwable) {
-            throw ValidationException::withMessages([$field => 'This page link is no longer valid. Return to the first page.']);
+            throw ValidationException::withMessages([$field => __('This page link is no longer valid. Return to the first page.')]);
         }
     }
 }

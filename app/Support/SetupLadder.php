@@ -114,7 +114,7 @@ final class SetupLadder
             } else {
                 $status = 'locked';
             }
-            $rows[] = ['n' => $n, 'label' => self::LABELS[$n], 'applies' => $applies, 'status' => $status];
+            $rows[] = ['n' => $n, 'label' => __(self::LABELS[$n]), 'applies' => $applies, 'status' => $status];
         }
 
         return $rows;

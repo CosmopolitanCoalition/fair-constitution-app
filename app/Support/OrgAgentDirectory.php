@@ -49,7 +49,7 @@ final class OrgAgentDirectory
 
         if ($by === 'reference') {
             if (! Str::isUuid($search)) {
-                throw ValidationException::withMessages(['agent_q' => 'Enter the complete profile reference.']);
+                throw ValidationException::withMessages(['agent_q' => __('Enter the complete profile reference.')]);
             }
             $rows = DB::table('users')->whereNull('deleted_at')->where('id', $search)
                 ->when($current !== '', fn ($q) => $q->where('id', '!=', $current))
@@ -134,7 +134,7 @@ final class OrgAgentDirectory
 
             return $data;
         } catch (\Throwable) {
-            throw ValidationException::withMessages(['agent_cursor' => 'This person page link is invalid. Search for the name again.']);
+            throw ValidationException::withMessages(['agent_cursor' => __('This person page link is invalid. Search for the name again.')]);
         }
     }
 }

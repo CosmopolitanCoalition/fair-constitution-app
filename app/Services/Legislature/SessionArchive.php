@@ -116,7 +116,7 @@ class SessionArchive
         $value = is_array($decoded) ? ($decoded[$field] ?? null) : null;
         if (! is_array($decoded) || count($decoded) !== 2 || ! is_bool($decoded['_pointsToNextItems'] ?? null)
             || ($integer ? ! is_int($value) || $value < 1 : ! is_string($value) || ! Str::isUuid($value))) {
-            throw ValidationException::withMessages([$name => 'This page link is invalid. Open the session record again.']);
+            throw ValidationException::withMessages([$name => __('This page link is invalid. Open the session record again.')]);
         }
         return new Cursor([$field => $value], $decoded['_pointsToNextItems']);
     }

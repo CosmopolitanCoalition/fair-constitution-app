@@ -89,7 +89,7 @@ final class OrgStaffGrantDirectory
 
             return new Cursor(['granted_at' => $data['granted_at'], 'id' => $data['id']], $data['_pointsToNextItems']);
         } catch (\Throwable) {
-            throw ValidationException::withMessages([$key => 'This page link is invalid. Return to the first page.']);
+            throw ValidationException::withMessages([$key => __('This page link is invalid. Return to the first page.')]);
         }
     }
 }

@@ -250,7 +250,7 @@ class LeafGiantResolver
             if ($expectedPlanHash !== null) {
                 $planned = $this->planWithFallback($scopeId, $ctx, $year, $template, false);
                 if (! hash_equals($planned['plan']['plan_hash'], $expectedPlanHash)) {
-                    throw new PlanRefused('Plan changed — run the preview again.');
+                    throw new PlanRefused(__('Plan changed — run the preview again.'));
                 }
                 $this->assertScopeOwned();
                 $replaced = $replace ? $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId) : 0;
@@ -416,7 +416,7 @@ class LeafGiantResolver
                 }
             }
 
-            throw $first ?? new PlanRefused('No districting template produced a filable plan.');
+            throw $first ?? new PlanRefused(__('No districting template produced a filable plan.'));
         } finally {
             $this->autoseed->closeBladePool();
         }
@@ -615,7 +615,7 @@ class LeafGiantResolver
                 }
             }
 
-            throw $last ?? new PlanRefused('No districting template produced a plan.');
+            throw $last ?? new PlanRefused(__('No districting template produced a plan.'));
         } finally {
             if ($allowFallback) {
                 $this->autoseed->closeBladePool();

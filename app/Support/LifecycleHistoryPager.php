@@ -63,7 +63,7 @@ final class LifecycleHistoryPager
                 // (it is not an order column) — only the seek keys are.
                 $cursor = new Cursor(['created_at' => $data['created_at'], 'id' => $data['id']], $data['_pointsToNextItems']);
             } catch (\Throwable) {
-                throw ValidationException::withMessages([$name => 'This history page link is invalid. Open the first page again.']);
+                throw ValidationException::withMessages([$name => __('This history page link is invalid. Open the first page again.')]);
             }
         }
 

@@ -88,7 +88,7 @@ final class OrgMembershipReviewDirectory
 
             return new Cursor(['applied_at' => $data['applied_at'], 'id' => $data['id']], $data['_pointsToNextItems']);
         } catch (\Throwable) {
-            throw ValidationException::withMessages([$key => 'This page link is invalid. Return to the first page.']);
+            throw ValidationException::withMessages([$key => __('This page link is invalid. Return to the first page.')]);
         }
     }
 }

@@ -38,7 +38,7 @@ final class GovernorNomineeDirectory
 
         if ($by === 'reference') {
             if (! Str::isUuid($search)) {
-                throw ValidationException::withMessages(['nominee_q' => 'Enter the complete profile reference.']);
+                throw ValidationException::withMessages(['nominee_q' => __('Enter the complete profile reference.')]);
             }
             $ids = $this->associated(DB::table('users as u')->whereNull('u.deleted_at')->where('u.id', $search), $jurisdictionId)
                 ->limit(1)->pluck('u.id')->all();
@@ -124,7 +124,7 @@ final class GovernorNomineeDirectory
 
             return $data;
         } catch (\Throwable) {
-            throw ValidationException::withMessages(['nominee_cursor' => 'This nominee page link is invalid. Search for the name again.']);
+            throw ValidationException::withMessages(['nominee_cursor' => __('This nominee page link is invalid. Search for the name again.')]);
         }
     }
 }

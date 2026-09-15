@@ -80,7 +80,10 @@ final class SurfaceMeta
 
         return [
             'id'          => $meta['id'],
-            'name'        => $meta['name'],
+            // Form display name from the canonical registry. Passes through
+            // __() so the shared catalog can translate it; the English
+            // default returns verbatim when no catalog line exists.
+            'name'        => __($meta['name']),
             'alias'       => $drift[0] ?? null,
             'availableTo' => $entry['availableTo'] ?? $meta['roles'],
             // The per-form citation is a display string sourced from this

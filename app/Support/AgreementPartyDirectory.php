@@ -45,7 +45,7 @@ final class AgreementPartyDirectory
                 }
                 $cursor = new Cursor(['directory_name' => $data['directory_name'], 'id' => $data['id']], $data['_pointsToNextItems']);
             } catch (\Throwable) {
-                throw ValidationException::withMessages(['party_cursor' => 'This page link is invalid. Search for the person again.']);
+                throw ValidationException::withMessages(['party_cursor' => __('This page link is invalid. Search for the person again.')]);
             }
         }
 

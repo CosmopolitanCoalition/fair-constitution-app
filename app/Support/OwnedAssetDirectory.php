@@ -97,7 +97,7 @@ final class OwnedAssetDirectory
 
             return new Cursor(['directory_name' => $data['directory_name'], 'id' => $data['id']], $data['_pointsToNextItems']);
         } catch (\Throwable) {
-            throw ValidationException::withMessages(['asset_cursor' => 'This item page link is invalid. Search for your item again.']);
+            throw ValidationException::withMessages(['asset_cursor' => __('This item page link is invalid. Search for your item again.')]);
         }
     }
 }

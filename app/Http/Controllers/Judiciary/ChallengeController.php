@@ -254,8 +254,8 @@ class ChallengeController extends Controller
                     'adm_level' => $a['adm_level'],
                 ], $associations),
                 'bases' => [
-                    ['value' => ConstitutionalChallenge::BASIS_CONSTITUTION, 'label' => 'Contradicts the Constitution'],
-                    ['value' => ConstitutionalChallenge::BASIS_OTHER_LAW, 'label' => 'Contradicts another (superior) law'],
+                    ['value' => ConstitutionalChallenge::BASIS_CONSTITUTION, 'label' => __('Contradicts the Constitution')],
+                    ['value' => ConstitutionalChallenge::BASIS_OTHER_LAW, 'label' => __('Contradicts another (superior) law')],
                 ],
             ],
             'isAssociated' => $chainIds !== [],
@@ -742,7 +742,9 @@ class ChallengeController extends Controller
 
         return [
             'id' => $meta['id'],
-            'name' => $meta['name'],
+            // Form display name from the canonical registry — through __()
+            // so the shared catalog can translate it (name verbatim in English).
+            'name' => __($meta['name']),
             'alias' => $drift[0] ?? null,
             'citation' => $this->surfaceFormCitation($id),
         ];

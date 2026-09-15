@@ -78,7 +78,7 @@ final class JudicialNominationWorkspace
             }
 
             return ['id' => $seat->id, 'number' => $seat->seat_number, 'legislature_id' => $leg?->id,
-                'nominator' => $seat->nominatingJurisdiction?->name ?? 'Designated judicial committee', 'can_propose' => (bool) $can, 'reason' => $reason];
+                'nominator' => $seat->nominatingJurisdiction?->name ?? __('Designated judicial committee'), 'can_propose' => (bool) $can, 'reason' => $reason];
         })->all(), 'pages' => $pages];
     }
 
@@ -137,11 +137,11 @@ final class JudicialNominationWorkspace
             $nominee = $payload['nominee_user_id'] ?? null;
 
             return ['id' => $p->id, 'status' => $p->status,
-                'title' => $p->proposal_kind === JudicialNominationService::KINDS[1] ? 'Designate '.$committees->get($payload['committee_id'], 'judicial committee') : 'Authorize a judicial nomination',
+                'title' => $p->proposal_kind === JudicialNominationService::KINDS[1] ? __('Designate :committee', ['committee' => $committees->get($payload['committee_id'], __('judicial committee'))]) : __('Authorize a judicial nomination'),
                 'nominee' => $nominee ? ['id' => $nominee, 'name' => $names[$nominee]] + $people[$nominee] : null,
                 'statement' => $payload['statement'] ?? '', 'reason' => $reason,
                 'seat_number' => $seats->get($payload['seat_id'] ?? ''),
-                'body_name' => $vote?->body_type === 'committee' ? $committees->get($payload['committee_id'], 'Judicial committee') : ($leg?->jurisdiction?->name ?? 'Nominating').' legislature',
+                'body_name' => $vote?->body_type === 'committee' ? $committees->get($payload['committee_id'], __('Judicial committee')) : __(':place legislature', ['place' => $leg?->jurisdiction?->name ?? __('Nominating')]),
                 'result_href' => $p->status === 'adopted' && $p->proposal_kind === JudicialNominationService::KINDS[0] ? '/judiciaries/'.$court->id.'#judicial-confirmations' : null,
                 'vote' => $vote ? ['tally' => $this->presenter->tallyProps($vote), 'cast_url' => '/votes/'.$vote->id.'/cast', 'tiebreak_url' => '/votes/'.$vote->id.'/tiebreak',
                     'my_cast' => $cast?->value, 'can_cast' => (bool) ($pending && $belongs && ! $speaker && ! $cast && $vote->status === 'open'),
@@ -168,7 +168,7 @@ final class JudicialNominationWorkspace
                 }
                 $cursor = new Cursor(['id' => $data['id']], $data['_pointsToNextItems']);
             } catch (\Throwable) {
-                throw ValidationException::withMessages([$key => 'This page link is invalid. Return to the first page.']);
+                throw ValidationException::withMessages([$key => __('This page link is invalid. Return to the first page.')]);
             }
         }
         $page = $query->orderByDesc('id')->cursorPaginate(20, ['*'], $key, $cursor);

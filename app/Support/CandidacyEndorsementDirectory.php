@@ -59,7 +59,7 @@ class CandidacyEndorsementDirectory
         if ($id === null || $id === '') return null;
         // Never let a forged bookmark expose an anonymous endorser or a removed edge.
         if (! is_string($id) || ! Str::isUuid($id) || ! $this->hasPublicEdge($candidate, $id)) {
-            return ['endorser' => null, 'rows' => [], 'notice' => 'This public endorsement is no longer available.'];
+            return ['endorser' => null, 'rows' => [], 'notice' => __('This public endorsement is no longer available.')];
         }
         $query = $this->givenQuery($id)->where('endorsements.election_id', $candidate->election_id)
             ->where('endorsements.candidate_id', '<>', $candidate->id);
@@ -141,7 +141,7 @@ class CandidacyEndorsementDirectory
                 $cursor = new Cursor(['seek_id' => $data['seek_id']], $data['_pointsToNextItems']);
             }
         } catch (\Throwable) {
-            $notice = 'This page link is invalid or belongs to a different selection. Showing the first page.';
+            $notice = __('This page link is invalid or belongs to a different selection. Showing the first page.');
         }
         $page = $query->addSelect($idColumn.' as seek_id')->orderByDesc('seek_id')->toBase()->cursorPaginate(20, ['*'], $key, $cursor);
         $context = $candidate ? ['who' => $candidate->user_id, 'tab' => 'candidacy', 'candidacy' => $candidate->id]

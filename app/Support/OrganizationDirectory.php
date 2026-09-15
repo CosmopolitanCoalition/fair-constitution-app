@@ -47,7 +47,7 @@ final class OrganizationDirectory
                 if ($cursor === null || ! is_string($cursor->parameter('directory_name'))
                     || ! Str::isUuid($cursor->parameter('id'))) throw new \InvalidArgumentException;
             } catch (\Throwable) {
-                throw ValidationException::withMessages(['cursor' => 'This page link is invalid. Start the search again.']);
+                throw ValidationException::withMessages(['cursor' => __('This page link is invalid. Start the search again.')]);
             }
         }
         $query = Organization::query()

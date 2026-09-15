@@ -98,12 +98,14 @@ final class JurisdictionContext
         $legId  = $g['legislature_id'] ?? null;
         $isLeaf = (int) ($g['childCount'] ?? 0) === 0;
         $parent = $g['parent_name'] ?? null;
-        $leafNote = $parent ? "a leaf place; represented in {$parent}" : 'a leaf place';
+        $leafNote = $parent ? __('a leaf place; represented in :parent', ['parent' => $parent]) : __('a leaf place');
 
+        // group / label / hint are display strings; they pass through __() so
+        // the shared catalog can translate them (English verbatim by default).
         $link  = fn (string $key, string $group, string $label, string $href, ?string $hint = null, ?string $icon = null) =>
-            ['key' => $key, 'group' => $group, 'label' => $label, 'href' => $href, 'state' => 'link', 'hint' => $hint, 'icon' => $icon];
+            ['key' => $key, 'group' => __($group), 'label' => __($label), 'href' => $href, 'state' => 'link', 'hint' => $hint !== null ? __($hint) : null, 'icon' => $icon];
         $muted = fn (string $key, string $group, string $label, string $hint, ?string $icon = null) =>
-            ['key' => $key, 'group' => $group, 'label' => $label, 'href' => null, 'state' => 'muted', 'hint' => $hint, 'icon' => $icon];
+            ['key' => $key, 'group' => __($group), 'label' => __($label), 'href' => null, 'state' => 'muted', 'hint' => __($hint), 'icon' => $icon];
 
         $tools = [
             $link('overview', 'This place', 'Overview', "/jurisdictions/{$slug}", null, 'landmark'),
