@@ -19,6 +19,7 @@
  */
 import { computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -28,6 +29,7 @@ import Art4Section5Tracker from '@/Components/Judiciary/Art4Section5Tracker.vue'
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -70,20 +72,16 @@ function submitFiling() {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" title="Constitutional challenge tracker">
+    <PageScaffold :surface="surface" :title="t('c_institutions.constitutional_challenge.page_title', 'Constitutional challenge tracker')">
         <template #intro>
-            Any inhabitant can challenge a law that unjustly impedes their rights. When the court
-            finds a contradiction, three resolution paths open: the legislature amends, the
-            legislature overrides by supermajority within the veto window, or — if the window closes
-            with neither — the judiciary edits the law directly. A finding, a recommended fix, a
-            reasonable timeframe to act, and an override window — all on a public clock.
+            {{ t('c_institutions.constitutional_challenge.intro', 'Any inhabitant can challenge a law that unjustly impedes their rights. When the court finds a contradiction, three resolution paths open: the legislature amends, the legislature overrides by supermajority within the veto window, or — if the window closes with neither — the judiciary edits the law directly. A finding, a recommended fix, a reasonable timeframe to act, and an override window — all on a public clock.') }}
         </template>
 
         <!-- engine 422: the rejection citation, verbatim. Filing and the four
              outcome actions (finding/recommend/override/remedy) all land in
              errors.constitution; the title stays neutral so it never claims a
              filing refusal for an outcome-action refusal. -->
-        <Banner v-if="constitutionError" tone="emergency" role="alert" title="This action was refused.">
+        <Banner v-if="constitutionError" tone="emergency" role="alert" :title="t('c_institutions.constitutional_challenge.refused_title', 'This action was refused.')">
             {{ constitutionError }}
         </Banner>
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -104,16 +102,15 @@ function submitFiling() {
             :form="fileFormMeta"
             :inertia-form="filing"
             :disabled="!can.fileChallenge"
-            submit-label="File the challenge"
-            processing-label="Filing…"
+            :submit-label="t('c_institutions.constitutional_challenge.file_submit', 'File the challenge')"
+            :processing-label="t('c_institutions.constitutional_challenge.filing', 'Filing…')"
             @submit="submitFiling"
         >
             <p class="gloss" style="margin-block-end: var(--space-3)">
-                Any inhabitant may file; no standing gatekeeper beyond jurisdictional association —
-                the right is absolute and fee-free (Art. IV §5.1 · Art. I).
+                {{ t('c_institutions.constitutional_challenge.file_gloss', 'Any inhabitant may file; no standing gatekeeper beyond jurisdictional association — the right is absolute and fee-free (Art. IV §5.1 · Art. I).') }}
             </p>
 
-            <Field label="Law challenged" :error="filing.errors.challenged_law_id">
+            <Field :label="t('c_institutions.constitutional_challenge.law_label', 'Law challenged')" :error="filing.errors.challenged_law_id">
                 <template #control="{ id, invalid, describedBy }">
                     <select
                         :id="id"
@@ -122,7 +119,7 @@ function submitFiling() {
                         :aria-invalid="invalid ? 'true' : undefined"
                         :aria-describedby="describedBy"
                     >
-                        <option value="">— select an in-force or amended law —</option>
+                        <option value="">{{ t('c_institutions.constitutional_challenge.law_option', '— select an in-force or amended law —') }}</option>
                         <option v-for="law in fileForm.lawOptions" :key="law.id" :value="law.id">
                             {{ law.label }}
                         </option>
@@ -131,13 +128,13 @@ function submitFiling() {
             </Field>
 
             <Field
-                label="Jurisdiction you file in"
-                hint="The law's binding jurisdiction or a descendant under it that you inhabit."
+                :label="t('c_institutions.constitutional_challenge.jurisdiction_label', 'Jurisdiction you file in')"
+                :hint="t('c_institutions.constitutional_challenge.jurisdiction_hint', 'The law\'s binding jurisdiction or a descendant under it that you inhabit.')"
                 :error="filing.errors.jurisdiction_id"
             >
                 <template #control="{ id, describedBy }">
                     <select :id="id" v-model="filing.jurisdiction_id" class="select" :aria-describedby="describedBy">
-                        <option value="">— the law's binding jurisdiction (default) —</option>
+                        <option value="">{{ t('c_institutions.constitutional_challenge.jurisdiction_option', '— the law\'s binding jurisdiction (default) —') }}</option>
                         <option v-for="scale in fileForm.scaleOptions" :key="scale.id" :value="scale.id">
                             {{ scale.name }}
                         </option>
@@ -145,7 +142,7 @@ function submitFiling() {
                 </template>
             </Field>
 
-            <Field label="Asserted contradiction" :error="filing.errors.claimed_basis">
+            <Field :label="t('c_institutions.constitutional_challenge.basis_label', 'Asserted contradiction')" :error="filing.errors.claimed_basis">
                 <template #control="{ id, invalid, describedBy }">
                     <select
                         :id="id"
@@ -154,7 +151,7 @@ function submitFiling() {
                         :aria-invalid="invalid ? 'true' : undefined"
                         :aria-describedby="describedBy"
                     >
-                        <option value="">— select a basis —</option>
+                        <option value="">{{ t('c_institutions.constitutional_challenge.basis_option', '— select a basis —') }}</option>
                         <option v-for="basis in fileForm.bases" :key="basis.value" :value="basis.value">
                             {{ basis.label }}
                         </option>
@@ -163,8 +160,8 @@ function submitFiling() {
             </Field>
 
             <Field
-                label="How the law impedes your rights"
-                hint="The court reads this; there is no merits test at filing — the right to be heard is absolute."
+                :label="t('c_institutions.constitutional_challenge.impede_label', 'How the law impedes your rights')"
+                :hint="t('c_institutions.constitutional_challenge.impede_hint', 'The court reads this; there is no merits test at filing — the right to be heard is absolute.')"
                 :error="filing.errors.claim_text"
             >
                 <template #control="{ id, invalid, describedBy }">
@@ -180,8 +177,8 @@ function submitFiling() {
             </Field>
 
             <Field
-                label="Constitutional citation (optional)"
-                hint="The Article/Section the law contradicts, if you can name it."
+                :label="t('c_institutions.constitutional_challenge.citation_label', 'Constitutional citation (optional)')"
+                :hint="t('c_institutions.constitutional_challenge.citation_hint', 'The Article/Section the law contradicts, if you can name it.')"
                 :error="filing.errors.constitutional_citation"
             >
                 <template #control="{ id, describedBy }">
@@ -195,9 +192,8 @@ function submitFiling() {
             </Field>
 
             <p class="citation">
-                no fee, no eligibility ground, no standing gatekeeper — the engine enforces the
-                absolute right and parks the filing at <span class="mono" data-no-i18n>filed</span>
-                when no court is yet seated · F-IND-016 · Art. IV §5.1 · Art. I
+                {{ t('c_institutions.constitutional_challenge.file_cite_before', 'no fee, no eligibility ground, no standing gatekeeper — the engine enforces the absolute right and parks the filing at') }} <span class="mono" data-no-i18n>filed</span>
+                {{ t('c_institutions.constitutional_challenge.file_cite_after', 'when no court is yet seated · F-IND-016 · Art. IV §5.1 · Art. I') }}
             </p>
         </FormCard>
 
@@ -206,24 +202,18 @@ function submitFiling() {
             v-else-if="fileFormMeta && !isAssociated"
             tone="info"
             role="status"
-            title="Confirm a residency to file a challenge"
+            :title="t('c_institutions.constitutional_challenge.confirm_residency_title', 'Confirm a residency to file a challenge')"
         >
-            Reading is open to everyone — findings, remedies, and every member's override position
-            are public record (Art. II §2). Filing a challenge needs an active residency association
-            with the jurisdiction whose law you challenge (R-03).
-            <a href="/civic/residency">Confirm residency →</a>
+            {{ t('c_institutions.constitutional_challenge.confirm_residency_body', "Reading is open to everyone — findings, remedies, and every member's override position are public record (Art. II §2). Filing a challenge needs an active residency association with the jurisdiction whose law you challenge (R-03).") }}
+            <a href="/civic/residency">{{ t('c_institutions.constitutional_challenge.confirm_residency_link', 'Confirm residency →') }}</a>
         </Banner>
 
         <template #about>
             <p>
-                Workflows: <span class="mono" data-no-i18n>WF-JUD-05</span> — constitutional
-                challenge &amp; law remedy; hearings run on the WF-JUD-03 machinery; Path A
-                re-enters the bill flow (WF-LEG-06); executives enforce the outcome (WF-EXE-07).
+                {{ t('c_institutions.constitutional_challenge.about_workflows_label', 'Workflows:') }} <span class="mono" data-no-i18n>WF-JUD-05</span> {{ t('c_institutions.constitutional_challenge.about_workflows', '— constitutional challenge & law remedy; hearings run on the WF-JUD-03 machinery; Path A re-enters the bill flow (WF-LEG-06); executives enforce the outcome (WF-EXE-07).') }}
             </p>
             <p>
-                The challenge is its own durable entity, distinct from the case it is heard in: the
-                CLK-11/CLK-12 windows run for weeks-to-months after the hearing closes, gated on
-                legislature action. <span v-if="judiciary">Resolved court: {{ judiciary.name }}.</span>
+                {{ t('c_institutions.constitutional_challenge.about_entity', 'The challenge is its own durable entity, distinct from the case it is heard in: the CLK-11/CLK-12 windows run for weeks-to-months after the hearing closes, gated on legislature action.') }} <span v-if="judiciary">{{ t('c_institutions.constitutional_challenge.resolved_court', 'Resolved court:') }} {{ judiciary.name }}.</span>
             </p>
         </template>
     </PageScaffold>

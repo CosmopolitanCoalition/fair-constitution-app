@@ -26,6 +26,7 @@
  */
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AmendableSetting from '@/Components/Ui/AmendableSetting.vue';
@@ -44,6 +45,7 @@ import JudicialNominations from '@/Components/Judiciary/JudicialNominations.vue'
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -81,7 +83,7 @@ const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
 const status = computed(() => props.judiciary.status);
-const TYPE_LABELS = { appointed: 'Appointed', elected: 'Elected' };
+const TYPE_LABELS = { appointed: t('c_institutions.judiciary_home.type_appointed', 'Appointed'), elected: t('c_institutions.judiciary_home.type_elected', 'Elected') };
 const typeLabel = computed(() => TYPE_LABELS[props.judiciary.type] ?? props.judiciary.type);
 const isAppointed = computed(() => props.judiciary.type === 'appointed');
 
@@ -97,28 +99,24 @@ const conversionDeepLink = computed(
 );
 
 const MODE_LABELS = {
-    constituent: 'equal number from every constituent jurisdiction',
-    committee: 'judicial committee (the constitutional fallback)',
+    constituent: t('c_institutions.judiciary_home.mode_constituent', 'equal number from every constituent jurisdiction'),
+    committee: t('c_institutions.judiciary_home.mode_committee', 'judicial committee (the constitutional fallback)'),
 };
 const nominationModeLabel = computed(
     () => MODE_LABELS[props.creation?.nomination_mode] ?? props.creation?.nomination_mode ?? null,
 );
 
 const panelColumns = [
-    { key: 'severity', label: 'Case severity' },
-    { key: 'panel', label: 'Panel' },
-    { key: 'rule', label: 'Rule', mono: true },
+    { key: 'severity', label: t('c_institutions.judiciary_home.col_severity', 'Case severity') },
+    { key: 'panel', label: t('c_institutions.judiciary_home.col_panel', 'Panel') },
+    { key: 'rule', label: t('c_institutions.judiciary_home.col_rule', 'Rule'), mono: true },
 ];
 </script>
 
 <template>
     <PageScaffold :surface="surface" :title="judiciary.name">
         <template #intro>
-            An independent court serving this jurisdiction and its constituents. Created by
-            supermajority act of the legislature; judges nominated by the constituent jurisdictions
-            in equal numbers (or the judicial committee as fallback) and confirmed by consent vote.
-            Appointed is the default kind of court — converting it to an elected court takes two
-            separate supermajorities.
+            {{ t('c_institutions.judiciary_home.intro', 'An independent court serving this jurisdiction and its constituents. Created by supermajority act of the legislature; judges nominated by the constituent jurisdictions in equal numbers (or the judicial committee as fallback) and confirmed by consent vote. Appointed is the default kind of court — converting it to an elected court takes two separate supermajorities.') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -132,8 +130,8 @@ const panelColumns = [
             <Link v-if="judiciary.legislature" :href="judiciary.legislature.chamber_href">
                 {{ judiciary.legislature.name }} →
             </Link>
-            <Link href="/judiciary/docket">Case docket →</Link>
-            <Link href="/judiciary/challenges">Constitutional challenges →</Link>
+            <Link href="/judiciary/docket">{{ t('c_institutions.judiciary_home.case_docket', 'Case docket →') }}</Link>
+            <Link href="/judiciary/challenges">{{ t('c_institutions.judiciary_home.const_challenges', 'Constitutional challenges →') }}</Link>
         </div>
 
         <p class="cluster" style="gap: var(--space-2)">
@@ -148,43 +146,40 @@ const panelColumns = [
         </p>
 
         <!-- ===================================== how it sits =========== -->
-        <Card as="section" title="How this court sits">
+        <Card as="section" :title="t('c_institutions.judiciary_home.sits_title', 'How this court sits')">
             <p class="cluster" style="gap: var(--space-2)">
-                <HardenedChip>panel sizing is a hard constraint · CLK-16 · Art. IV §4</HardenedChip>
+                <HardenedChip>{{ t('c_institutions.judiciary_home.sits_chip', 'panel sizing is a hard constraint · CLK-16 · Art. IV §4') }}</HardenedChip>
                 <StatusBadge tone="neutral" icon="scale">
-                    {{ judiciary.judges_on_bench }} judge{{ judiciary.judges_on_bench === 1 ? '' : 's' }} on the bench
+                    {{ t('c_institutions.judiciary_home.judges_on_bench', { count: judiciary.judges_on_bench, s: judiciary.judges_on_bench === 1 ? '' : 's' }) }}
                 </StatusBadge>
             </p>
             <div style="margin-block-start: var(--space-3)">
                 <DataTable
                     :columns="panelColumns"
                     :rows="panelRule.rows"
-                    caption="Panel size by case severity"
+                    :caption="t('c_institutions.judiciary_home.panel_caption', 'Panel size by case severity')"
                 />
             </div>
             <p class="gloss" style="margin-block-start: var(--space-2)">
-                Severity scaling: the heavier the possible consequence, the more judges must hear
-                it — the panel is always odd so no case can deadlock.
+                {{ t('c_institutions.judiciary_home.severity_gloss', 'Severity scaling: the heavier the possible consequence, the more judges must hear it — the panel is always odd so no case can deadlock.') }}
             </p>
             <p class="citation">
-                Panels of at least 3, odd, scaled to severity; full court for major constitutional
-                questions · Art. IV §4 · CLK-16 — elected judges (if converted) run in groups of at
-                least {{ judiciary.min_judges_per_race }} · Art. IV §4 · CLK-15
+                {{ t('c_institutions.judiciary_home.panels_cite', { min: judiciary.min_judges_per_race }) }}
             </p>
         </Card>
 
         <!-- ===================================== creation act ========== -->
-        <Card as="section" title="How this court was created">
+        <Card as="section" :title="t('c_institutions.judiciary_home.created_title', 'How this court was created')">
             <template v-if="creation">
                 <p class="cluster" style="gap: var(--space-2)">
                     <FormChip form-id="F-LEG-017" :name="creationForm?.name" :alias="creationForm?.alias" />
                     <a class="tag-chip" :href="creation.act.href" data-no-i18n>{{ creation.act.act_number }}</a>
-                    <span v-if="creation.act.effective_on" class="citation">effective {{ creation.act.effective_on }}</span>
-                    <span v-else-if="creation.act.enacted_at" class="citation">enacted {{ creation.act.enacted_at }}</span>
+                    <span v-if="creation.act.effective_on" class="citation">{{ t('c_institutions.judiciary_home.effective_on', { date: creation.act.effective_on }) }}</span>
+                    <span v-else-if="creation.act.enacted_at" class="citation">{{ t('c_institutions.judiciary_home.enacted_at', { at: creation.act.enacted_at }) }}</span>
                 </p>
 
                 <div v-if="creation.vote" class="card card--inset" style="margin-block-start: var(--space-3)">
-                    <span class="eyebrow">The supermajority that chartered the court</span>
+                    <span class="eyebrow">{{ t('c_institutions.judiciary_home.chartered_eyebrow', 'The supermajority that chartered the court') }}</span>
                     <div style="margin-block-start: var(--space-2)">
                         <VoteTally
                             :mode="creation.vote.mode"
@@ -200,36 +195,30 @@ const panelColumns = [
                         />
                     </div>
                     <p class="gloss" style="margin-block-start: var(--space-2)">
-                        Supermajority: two thirds of all serving members — counted against everyone
-                        holding a seat, never just those present (ceil(serving × 2/3) · Art. VII).
+                        {{ t('c_institutions.judiciary_home.supermajority_gloss', 'Supermajority: two thirds of all serving members — counted against everyone holding a seat, never just those present (ceil(serving × 2/3) · Art. VII).') }}
                     </p>
                 </div>
 
                 <h3 style="font-size: var(--text-base); margin-block-start: var(--space-4)">
-                    Nomination
+                    {{ t('c_institutions.judiciary_home.nomination_heading', 'Nomination') }}
                 </h3>
                 <p v-if="nominationModeLabel">
-                    This court's {{ creation.judge_count }} seat{{ creation.judge_count === 1 ? '' : 's' }} were
-                    nominated by {{ nominationModeLabel }}. Equal numbers from each constituent
-                    jurisdiction are mandatory; where a constituent declines, the legislature's
-                    judicial committee supplies the nomination in its stead.
+                    {{ t('c_institutions.judiciary_home.nomination_intro', { count: creation.judge_count, s: creation.judge_count === 1 ? '' : 's', mode: nominationModeLabel }) }} {{ t('c_institutions.judiciary_home.nomination_intro_after', "Equal numbers from each constituent jurisdiction are mandatory; where a constituent declines, the legislature's judicial committee supplies the nomination in its stead.") }}
                 </p>
                 <p class="citation">
-                    Constituent jurisdictions nominate equal numbers; judicial committee as fallback · Art. IV §2
+                    {{ t('c_institutions.judiciary_home.nomination_cite', 'Constituent jurisdictions nominate equal numbers; judicial committee as fallback · Art. IV §2') }}
                 </p>
             </template>
             <template v-else>
                 <p class="gloss">
-                    No creation act on record — this judiciary is a constitutional placeholder. The
-                    legislature creates the court by supermajority act, deriving the nomination mode
-                    from the jurisdiction's constituent structure (Art. IV §1–§2).
+                    {{ t('c_institutions.judiciary_home.no_creation', "No creation act on record — this judiciary is a constitutional placeholder. The legislature creates the court by supermajority act, deriving the nomination mode from the jurisdiction's constituent structure (Art. IV §1–§2).") }}
                 </p>
                 <p class="cluster" style="gap: var(--space-2); margin-block-start: var(--space-2)">
                     <FormChip form-id="F-LEG-017" :name="creationForm?.name" :alias="creationForm?.alias" />
                     <Link v-if="creationDeepLink" :href="creationDeepLink">
-                        Propose court creation →
+                        {{ t('c_institutions.judiciary_home.propose_creation', 'Propose court creation →') }}
                     </Link>
-                    <span v-else class="citation">filed by a member of the source legislature (R-09)</span>
+                    <span v-else class="citation">{{ t('c_institutions.judiciary_home.filed_by_member', 'filed by a member of the source legislature (R-09)') }}</span>
                 </p>
             </template>
         </Card>
@@ -238,11 +227,9 @@ const panelColumns = [
         <JudicialConfirmations :judiciary="judiciary" :nominations="nominations" :pages="confirmationPages" :context="confirmationContext" />
 
         <!-- ===================================== conversion =========== -->
-        <Card as="section" title="Conversion to an elected judiciary">
+        <Card as="section" :title="t('c_institutions.judiciary_home.conversion_title', 'Conversion to an elected judiciary')">
             <p>
-                Converting this appointed court to a directly elected one needs
-                <strong>two independent supermajorities</strong>: the legislature's own, and a
-                supermajority of the constituent jurisdictions themselves. Neither alone is enough.
+                {{ t('c_institutions.judiciary_home.conversion_before', 'Converting this appointed court to a directly elected one needs') }} <strong>{{ t('c_institutions.judiciary_home.conversion_strong', 'two independent supermajorities') }}</strong>{{ t('c_institutions.judiciary_home.conversion_after', ": the legislature's own, and a supermajority of the constituent jurisdictions themselves. Neither alone is enough.") }}
             </p>
             <p class="cluster" style="gap: var(--space-2); margin-block-start: var(--space-2)">
                 <FormChip form-id="F-LEG-018" :name="conversionForm?.name" :alias="conversionForm?.alias" />
@@ -252,10 +239,10 @@ const panelColumns = [
             <div v-if="conversion && conversion.process" style="margin-block-start: var(--space-3)">
                 <ConstituentConsentPanel
                     :legislature-vote="conversion.legislatureVote"
-                    :legislature-label="judiciary.legislature?.name ?? 'The legislature'"
+                    :legislature-label="judiciary.legislature?.name ?? t('c_institutions.judiciary_home.the_legislature', 'The legislature')"
                     :process="conversion.process"
                     :subject-label="conversion.subjectLabel"
-                    basis="Art. IV §3 · Art. VII"
+                    :basis="t('c_institutions.judiciary_home.conversion_basis', 'Art. IV §3 · Art. VII')"
                 />
             </div>
 
@@ -264,15 +251,13 @@ const panelColumns = [
                 <Banner
                     tone="info"
                     role="status"
-                    title="Conversion adopted on the chamber supermajority alone"
+                    :title="t('c_institutions.judiciary_home.conversion_alone_title', 'Conversion adopted on the chamber supermajority alone')"
                     style="margin-block-start: var(--space-3)"
                 >
-                    No direct constituent jurisdiction holds a legislature able to vote, so the
-                    conversion completes on the chamber's own supermajority (Art. IV §3). A judicial
-                    election schedules from here.
+                    {{ t('c_institutions.judiciary_home.conversion_alone_body', "No direct constituent jurisdiction holds a legislature able to vote, so the conversion completes on the chamber's own supermajority (Art. IV §3). A judicial election schedules from here.") }}
                 </Banner>
                 <div v-if="conversion.legislatureVote" style="margin-block-start: var(--space-3)">
-                    <span class="eyebrow">The chamber supermajority</span>
+                    <span class="eyebrow">{{ t('c_institutions.judiciary_home.chamber_super_eyebrow', 'The chamber supermajority') }}</span>
                     <div style="margin-block-start: var(--space-2)">
                         <VoteTally
                             :mode="conversion.legislatureVote.mode"
@@ -293,68 +278,55 @@ const panelColumns = [
             <!-- no conversion: the F-LEG-018 reference + deep-link -->
             <template v-else>
                 <p class="gloss" style="margin-block-start: var(--space-2)">
-                    No conversion on record. If conversion passes, judges are thereafter elected in
-                    groups of at least {{ judiciary.min_judges_per_race }} via STV, and judicial
-                    terms sync to the general election clock (Art. IV §3 · CLK-15 · CLK-10).
+                    {{ t('c_institutions.judiciary_home.no_conversion', { min: judiciary.min_judges_per_race }) }}
                 </p>
                 <p class="cluster" style="gap: var(--space-2); margin-block-start: var(--space-2)">
                     <Link v-if="conversionDeepLink" :href="conversionDeepLink">
-                        Propose elected court →
+                        {{ t('c_institutions.judiciary_home.propose_elected', 'Propose elected court →') }}
                     </Link>
-                    <span v-else class="citation">filed by a member of the source legislature (R-09)</span>
+                    <span v-else class="citation">{{ t('c_institutions.judiciary_home.filed_by_member', 'filed by a member of the source legislature (R-09)') }}</span>
                 </p>
             </template>
 
             <p class="citation" style="margin-block-start: var(--space-2)">
-                Supermajority of legislature + supermajority of constituent jurisdictions · Art. IV §3 —
-                groups of at least {{ judiciary.min_judges_per_race }} per race · CLK-15 · Art. IV §4 —
-                terms synced · CLK-10
+                {{ t('c_institutions.judiciary_home.conversion_cite', { min: judiciary.min_judges_per_race }) }}
             </p>
         </Card>
 
         <!-- ===================================== term lockstep ========= -->
-        <Card as="section" title="Term length — judicial appointments">
+        <Card as="section" :title="t('c_institutions.judiciary_home.term_title', 'Term length — judicial appointments')">
             <AmendableSetting
                 :value="`${term.years} years`"
                 setting-key="judicial_appointment_years"
                 :default-value="10"
-                :citation="`must stay in lockstep with civil appointments · ${term.clk} · ${term.civilLockstep} · Art. IV §4; Art. II §9`"
+                :citation="t('c_institutions.judiciary_home.term_citation', { clk: term.clk, civil: term.civilLockstep })"
             />
             <p style="margin-block-start: var(--space-2)">
-                <HardenedChip>civil + judicial appointment lengths move in lockstep · Art. IV §1 · Art. II §9</HardenedChip>
+                <HardenedChip>{{ t('c_institutions.judiciary_home.term_chip', 'civil + judicial appointment lengths move in lockstep · Art. IV §1 · Art. II §9') }}</HardenedChip>
             </p>
             <p class="cc-small" style="margin-block-start: var(--space-2)">
-                Judicial and civil appointment lengths move together — a legislative act changing one
-                changes both. Renewals re-run the nomination and consent process (WF-JUD-07).
+                {{ t('c_institutions.judiciary_home.term_move', 'Judicial and civil appointment lengths move together — a legislative act changing one changes both. Renewals re-run the nomination and consent process (WF-JUD-07).') }}
                 <template v-if="isAppointed">
-                    Appointed judges hold a {{ term.years }}-year term ({{ term.clk }}); converted
-                    elected judges instead run in lockstep with the general election ({{ term.civilLockstep }}).
+                    {{ t('c_institutions.judiciary_home.term_appointed', { years: term.years, clk: term.clk, civil: term.civilLockstep }) }}
                 </template>
             </p>
             <p v-if="judiciary.legislature" class="citation" style="margin-block-start: var(--space-1)">
-                <Link :href="judiciary.legislature.chamber_href">term sync on the chamber page →</Link>
+                <Link :href="judiciary.legislature.chamber_href">{{ t('c_institutions.judiciary_home.term_sync_link', 'term sync on the chamber page →') }}</Link>
             </p>
         </Card>
 
         <!-- ===================================== ESM-18 strip ========== -->
-        <Card as="section" title="Judiciary lifecycle">
-            <span class="eyebrow">Judiciary lifecycle · ESM-18</span>
+        <Card as="section" :title="t('c_institutions.judiciary_home.lifecycle_title', 'Judiciary lifecycle')">
+            <span class="eyebrow">{{ t('c_institutions.judiciary_home.lifecycle_eyebrow', 'Judiciary lifecycle · ESM-18') }}</span>
             <StateStrip :states="machine" :current="status" />
             <p class="gloss" style="margin-block-start: var(--space-2)">
-                One judiciary row per jurisdiction with a legislature — the same row evolves through
-                its lifecycle (Art. IV §1–§3). There is no per-case entity behind this surface; cases
-                live on the <Link href="/judiciary/docket">docket</Link>.
+                {{ t('c_institutions.judiciary_home.lifecycle_before', 'One judiciary row per jurisdiction with a legislature — the same row evolves through its lifecycle (Art. IV §1–§3). There is no per-case entity behind this surface; cases live on the') }} <Link href="/judiciary/docket">{{ t('c_institutions.judiciary_home.docket_word', 'docket') }}</Link>.
             </p>
         </Card>
 
         <template #about>
             <p>
-                The judiciary is created by supermajority act and exists as a stub from the moment a
-                jurisdiction with a legislature is set up. The appointed footing is the default —
-                conversion to a directly elected court is the only path to elected judges, and it is
-                deliberately hard: a supermajority of the chamber AND a supermajority of the
-                constituent jurisdictions must each agree (Art. IV §3). Every meter on this page is
-                the engine's own snapshot — never a demo toggle.
+                {{ t('c_institutions.judiciary_home.about_body', "The judiciary is created by supermajority act and exists as a stub from the moment a jurisdiction with a legislature is set up. The appointed footing is the default — conversion to a directly elected court is the only path to elected judges, and it is deliberately hard: a supermajority of the chamber AND a supermajority of the constituent jurisdictions must each agree (Art. IV §3). Every meter on this page is the engine's own snapshot — never a demo toggle.") }}
             </p>
         </template>
     </PageScaffold>

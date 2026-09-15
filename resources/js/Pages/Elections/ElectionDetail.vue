@@ -16,6 +16,7 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AmendableSetting from '@/Components/Ui/AmendableSetting.vue';
@@ -37,6 +38,7 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 /* Phase-1 pilot (MASTER_PLAN): this page rides the v3 player chrome —
    floating header, tour-as-a-mode, bottom command bar (Menu + Learn). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -72,9 +74,9 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
 /* ─────────────────────────────────────────────── schedule table rows */
 
 const scheduleColumns = [
-    { key: 'stage', label: 'Stage' },
-    { key: 'when', label: 'When (your timezone)' },
-    { key: 'status', label: 'Status' },
+    { key: 'stage', label: t('c_institutions.election_detail.col_stage', 'Stage') },
+    { key: 'when', label: t('c_institutions.election_detail.col_when', 'When (your timezone)') },
+    { key: 'status', label: t('c_institutions.election_detail.col_status', 'Status') },
 ];
 
 const scheduleRows = computed(() =>
@@ -85,10 +87,10 @@ const scheduleRows = computed(() =>
 );
 
 const raceColumns = [
-    { key: 'label', label: 'Race' },
-    { key: 'seats', label: 'Seats', align: 'right' },
-    { key: 'finalist_count', label: 'Finalist places', align: 'right' },
-    { key: 'candidate_count', label: 'Candidates', align: 'right' },
+    { key: 'label', label: t('c_institutions.election_detail.col_race', 'Race') },
+    { key: 'seats', label: t('c_institutions.election_detail.col_seats', 'Seats'), align: 'right' },
+    { key: 'finalist_count', label: t('c_institutions.election_detail.col_finalist_places', 'Finalist places'), align: 'right' },
+    { key: 'candidate_count', label: t('c_institutions.election_detail.col_candidates', 'Candidates'), align: 'right' },
     { key: 'links', label: '' },
 ];
 
@@ -177,57 +179,52 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
 <template>
     <PageScaffold
         :surface="surface"
-        :title="election ? `${titleCase(election.kind_label ?? electionKindLabel(election.kind))} — ${election.jurisdiction.name}` : 'Elections'"
+        :title="election ? `${titleCase(election.kind_label ?? electionKindLabel(election.kind))} — ${election.jurisdiction.name}` : t('c_institutions.election_detail.page_title_fallback', 'Elections')"
     >
         <template #intro>
             <template v-if="election">
-                This is the {{ election.kind_label ?? electionKindLabel(election.kind) }} for
-                {{ election.jurisdiction.name }}<template v-if="election.jurisdiction.adm_label">, a {{ election.jurisdiction.adm_label.toLowerCase() }}</template>.
+                {{ election.jurisdiction.adm_label
+                    ? t('c_institutions.election_detail.intro_place_adm', { kind: election.kind_label ?? electionKindLabel(election.kind), name: election.jurisdiction.name, adm: election.jurisdiction.adm_label.toLowerCase() })
+                    : t('c_institutions.election_detail.intro_place', { kind: election.kind_label ?? electionKindLabel(election.kind), name: election.jurisdiction.name }) }}
             </template>
-            Review the schedule, explore the districts, and open a ballot. Residents can stand
-            for office, approve candidates, and rank the finalists when ranked voting opens.
+            {{ t('c_institutions.election_detail.intro_body', 'Review the schedule, explore the districts, and open a ballot. Residents can stand for office, approve candidates, and rank the finalists when ranked voting opens.') }}
         </template>
         <template #about>
             <p>
-                Approval voting identifies the finalists for each race. Voters then rank those
-                finalists, and the election board counts and certifies the result. The published
-                schedule below shows the current stage.
+                {{ t('c_institutions.election_detail.about_body', 'Approval voting identifies the finalists for each race. Voters then rank those finalists, and the election board counts and certifies the result. The published schedule below shows the current stage.') }}
             </p>
         </template>
 
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
-        <Banner v-if="errors.constitution" tone="warning" title="Filing rejected by the constitutional engine">
-            {{ errors.constitution }} — the rejection itself is on the audit chain (append-only).
+        <Banner v-if="errors.constitution" tone="warning" :title="t('c_institutions.election_detail.rejected_title', 'Filing rejected by the constitutional engine')">
+            {{ errors.constitution }} {{ t('c_institutions.election_detail.rejected_appendonly', '— the rejection itself is on the audit chain (append-only).') }}
         </Banner>
         <!-- Art. II §7 — an emergency cannot suspend an election. -->
-        <Banner v-if="emergenciesActive" tone="info" role="status" title="This election proceeds — an emergency cannot suspend it.">
-            Emergency powers are limited and can never suspend an election, a vote, or a
-            candidacy. Whatever emergency is in effect, this election runs on its clock,
-            untouched. <span class="citation">Art. II §7</span>
+        <Banner v-if="emergenciesActive" tone="info" role="status" :title="t('c_institutions.election_detail.emergency_title', 'This election proceeds — an emergency cannot suspend it.')">
+            {{ t('c_institutions.election_detail.emergency_body', 'Emergency powers are limited and can never suspend an election, a vote, or a candidacy. Whatever emergency is in effect, this election runs on its clock, untouched.') }} <span class="citation">Art. II §7</span>
         </Banner>
 
         <!-- ───────────────────────────────────── empty mode (resolver) -->
         <template v-if="!election">
-            <Card as="section" :title="empty?.place ? 'No open election' : 'Explore elections'">
+            <Card as="section" :title="empty?.place ? t('c_institutions.election_detail.empty_none_title', 'No open election') : t('c_institutions.election_detail.empty_explore_title', 'Explore elections')">
                 <p>
-                    {{ empty?.place ? `No open election was found for ${empty.place.name}.` : 'Choose a place to explore its elections.' }}
-                    <template v-if="empty?.interval">The configured election interval is {{ empty.interval }} months.</template>
+                    {{ empty?.place ? t('c_institutions.election_detail.empty_none_for', { name: empty.place.name }) : t('c_institutions.election_detail.empty_choose', 'Choose a place to explore its elections.') }}
+                    <template v-if="empty?.interval">{{ t('c_institutions.election_detail.empty_interval', { months: empty.interval }) }}</template>
                 </p>
                 <p v-if="empty?.clk01DueAt" style="margin-block-start: var(--space-2)">
-                    Next general election is due
+                    {{ t('c_institutions.election_detail.empty_due', 'Next general election is due') }}
                     <strong>{{ fmt(empty.clk01DueAt) }}</strong>
-                    <span class="citation"> · shown in your timezone</span>
+                    <span class="citation"> {{ t('c_institutions.election_detail.empty_due_tz', '· shown in your timezone') }}</span>
                 </p>
-                <p style="margin-block-start: var(--space-3)"><Btn :as="Link" href="/jurisdictions">Choose a place</Btn></p>
+                <p style="margin-block-start: var(--space-3)"><Btn :as="Link" href="/jurisdictions">{{ t('c_institutions.election_detail.choose_place', 'Choose a place') }}</Btn></p>
             </Card>
 
-            <Card v-if="others.length" as="section" title="Election records for this place">
+            <Card v-if="others.length" as="section" :title="t('c_institutions.election_detail.records_title', 'Election records for this place')">
                 <ul class="others-list">
                     <li v-for="other in others" :key="other.election_id">
                         <Link :href="`/elections/${other.election_id}`">{{ other.jurisdiction_name }}</Link>
                         <span class="citation">
-                            {{ electionKindLabel(other.kind) }} · {{ other.seats }} seats · {{ other.finalist_count }} finalist places ·
-                            {{ other.phase }}
+                            {{ t('c_institutions.election_detail.other_meta', { kind: electionKindLabel(other.kind), seats: other.seats, finalists: other.finalist_count, phase: other.phase }) }}
                         </span>
                     </li>
                 </ul>
@@ -240,70 +237,68 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
             <Banner
                 v-if="blocked"
                 tone="warning"
-                title="District boundaries must be completed before voting opens."
+                :title="t('c_institutions.election_detail.blocker_title', 'District boundaries must be completed before voting opens.')"
             >
-                A district map meeting this jurisdiction's configured seat limits must be activated
-                before this election can open its approval phase.
+                {{ t('c_institutions.election_detail.blocker_body', "A district map meeting this jurisdiction's configured seat limits must be activated before this election can open its approval phase.") }}
                 <span v-for="blocker in blockers" :key="blocker.detail" style="display: block">
                     {{ blocker.detail }}
                 </span>
                 <Link
                     v-if="election.legislature_id"
                     :href="`/legislatures/${election.legislature_id}`"
-                >Open the Legislature browser build mode →</Link>
-                <span class="citation" style="display: block">District boundaries must be settled before voting opens · Art. II §8</span>
+                >{{ t('c_institutions.election_detail.blocker_open_legislature', 'Open the Legislature browser build mode →') }}</Link>
+                <span class="citation" style="display: block">{{ t('c_institutions.election_detail.blocker_cite_text', 'District boundaries must be settled before voting opens') }} · Art. II §8</span>
             </Banner>
 
             <Card as="section">
                 <template #title>
                     <h2>
-                        Election lifecycle
+                        {{ t('c_institutions.election_detail.lifecycle_title', 'Election lifecycle') }}
                         <StatusBadge :tone="phase === 'approval' ? 'info' : phase === 'ranked' ? 'warning' : 'neutral'">
-                            phase: {{ phase }}<template v-if="election.certSubStep"> · {{ election.certSubStep }}</template>
+                            {{ t('c_institutions.election_detail.phase_prefix', 'phase:') }} {{ phase }}<template v-if="election.certSubStep"> · {{ election.certSubStep }}</template>
                         </StatusBadge>
                         <StatusBadge tone="neutral">{{ election.kind_label ?? electionKindLabel(election.kind) }}</StatusBadge>
                     </h2>
                 </template>
                 <StateStrip :states="machine" :current="currentState" />
                 <template v-if="myRace">
-                    <p style="margin-block-start: var(--space-3)"><strong>Your district:</strong> {{ myRace.label }}</p>
+                    <p style="margin-block-start: var(--space-3)"><strong>{{ t('c_institutions.election_detail.your_district', 'Your district:') }}</strong> {{ myRace.label }}</p>
                     <div class="cluster" style="gap: var(--space-6)">
-                        <Stat :value="myRace.seats" label="seats in your district" />
-                        <Stat :value="myRace.finalist_count" label="finalist places in your district" accent />
+                        <Stat :value="myRace.seats" :label="t('c_institutions.election_detail.seats_in_district', 'seats in your district')" />
+                        <Stat :value="myRace.finalist_count" :label="t('c_institutions.election_detail.finalist_in_district', 'finalist places in your district')" accent />
                     </div>
                 </template>
                 <div v-if="stats" class="cluster" style="gap: var(--space-6); margin-block-start: var(--space-3)">
-                    <Stat :value="stats.seats" :label="stats.races > 1 ? `seats across all ${stats.races} districts` : 'seats'" />
-                    <Stat :value="stats.finalistPlaces" :label="stats.races > 1 ? 'finalist places across all districts' : 'finalist places'" accent />
-                    <Stat :value="stats.validatedCandidates" label="candidates so far" />
-                    <Stat :value="stats.stage" label="current stage" />
+                    <Stat :value="stats.seats" :label="stats.races > 1 ? t('c_institutions.election_detail.seats_across', { n: stats.races }) : t('c_institutions.election_detail.seats_one', 'seats')" />
+                    <Stat :value="stats.finalistPlaces" :label="stats.races > 1 ? t('c_institutions.election_detail.finalist_across', 'finalist places across all districts') : t('c_institutions.election_detail.finalist_one', 'finalist places')" accent />
+                    <Stat :value="stats.validatedCandidates" :label="t('c_institutions.election_detail.candidates_so_far', 'candidates so far')" />
+                    <Stat :value="stats.stage" :label="t('c_institutions.election_detail.current_stage', 'current stage')" />
                 </div>
 
                 <!-- F-ELB-001 scheduling-order record (read-only) -->
                 <Card inset style="margin-block-start: var(--space-4)">
                     <p class="cc-small">
-                        Scheduling order <FormChip form-id="F-ELB-001" />
+                        {{ t('c_institutions.election_detail.scheduling_order', 'Scheduling order') }} <FormChip form-id="F-ELB-001" />
                         <template v-if="election.schedulingOrder">
-                            — issued {{ fmt(election.schedulingOrder.issued_at) }} by
-                            {{ election.schedulingOrder.board_name }}.
+                            {{ t('c_institutions.election_detail.order_issued', { at: fmt(election.schedulingOrder.issued_at), board: election.schedulingOrder.board_name }) }}
                         </template>
                         <template v-else>
-                            — not yet issued; the schedule below carries the clock-armed defaults.
+                            {{ t('c_institutions.election_detail.order_pending', '— not yet issued; the schedule below carries the clock-armed defaults.') }}
                         </template>
                         <span class="citation" style="display: block">
-                            Each race's number of finalist places is published before the cutoff · Art. II §2
+                            {{ t('c_institutions.election_detail.order_cite_text', "Each race's number of finalist places is published before the cutoff") }} · Art. II §2
                         </span>
                     </p>
                 </Card>
             </Card>
 
             <!-- ──────────────────────────────────────────── schedule -->
-            <Card as="section" title="Schedule">
+            <Card as="section" :title="t('c_institutions.election_detail.schedule_title', 'Schedule')">
                 <DataTable
                     :columns="scheduleColumns"
                     :rows="scheduleRows"
                     row-key="stage"
-                    caption="Election schedule and current stage"
+                    :caption="t('c_institutions.election_detail.schedule_caption', 'Election schedule and current stage')"
                 >
                     <template #cell-status="{ row }">
                         <StatusBadge
@@ -312,55 +307,55 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                     </template>
                 </DataTable>
                 <p class="citation" style="margin-block-start: var(--space-2)">
-                    All times stored as UTC, shown in your timezone.
+                    {{ t('c_institutions.election_detail.times_utc', 'All times stored as UTC, shown in your timezone.') }}
                 </p>
                 <p style="margin-block-start: var(--space-3)">
                     <AmendableSetting
                         :value="`${election.interval.value} ${election.interval.unit}`"
                         :setting-key="election.interval.settingKey"
                         :citation="election.interval.citation"
-                        label="Election interval"
+                        :label="t('c_institutions.election_detail.interval_label', 'Election interval')"
                     />
                     {{ ' ' }}
                     <AmendableSetting
                         :value="`${election.finalistMultiplier.value}× seats`"
                         :setting-key="election.finalistMultiplier.settingKey"
-                        label="Finalist places per seat"
-                        citation="The multiplier sets how many candidates advance to ranked voting."
+                        :label="t('c_institutions.election_detail.finalist_per_seat_label', 'Finalist places per seat')"
+                        :citation="t('c_institutions.election_detail.finalist_per_seat_cite', 'The multiplier sets how many candidates advance to ranked voting.')"
                     />
                 </p>
             </Card>
 
             <!-- ─────────────────────────────────── races + boundary -->
-            <Card as="section" title="Districts & finalist places">
+            <Card as="section" :title="t('c_institutions.election_detail.districts_title', 'Districts & finalist places')">
                 <p class="gloss">
-                    Each race publishes how many candidates can advance to its ranked ballot
-                    <strong>before</strong> approval voting closes.
+                    {{ t('c_institutions.election_detail.races_gloss_before', 'Each race publishes how many candidates can advance to its ranked ballot') }}
+                    <strong>{{ t('c_institutions.election_detail.races_gloss_strong', 'before') }}</strong> {{ t('c_institutions.election_detail.races_gloss_after', 'approval voting closes.') }}
                 </p>
                 <DataTable
                     v-if="races.length"
                     :columns="raceColumns"
                     :rows="races"
                     row-key="id"
-                    caption="Races in this election"
+                    :caption="t('c_institutions.election_detail.races_caption', 'Races in this election')"
                 >
                     <template #cell-links="{ row }">
-                        <Link :href="`/elections/${election.id}/open-ballot?race=${row.id}`">Open ballot</Link>
+                        <Link :href="`/elections/${election.id}/open-ballot?race=${row.id}`">{{ t('c_institutions.election_detail.open_ballot_link', 'Open ballot') }}</Link>
                     </template>
                 </DataTable>
                 <p v-else class="gloss">
-                    No races exist yet — race generation is pending
-                    {{ blocked ? 'subdivision (Art. II §8)' : 'the scheduling order' }}.
+                    {{ t('c_institutions.election_detail.no_races', 'No races exist yet — race generation is pending') }}
+                    {{ blocked ? t('c_institutions.election_detail.no_races_subdivision', 'subdivision (Art. II §8)') : t('c_institutions.election_detail.no_races_order', 'the scheduling order') }}.
                 </p>
             </Card>
 
             <div class="grid-2">
-                <Card as="section" title="Race boundary">
+                <Card as="section" :title="t('c_institutions.election_detail.boundary_title', 'Race boundary')">
                     <div
                         ref="mapEl"
                         class="boundary-map"
                         role="region"
-                        :aria-label="`Map of the ${election.jurisdiction.name} election boundary`"
+                        :aria-label="t('c_institutions.election_detail.map_aria', { name: election.jurisdiction.name })"
                     ></div>
                     <p v-if="basemapUnavailable" class="gloss" role="status">
                         {{ $t('c_elections.map.tiles_unavailable', 'Geographic map tiles are unavailable. The boundary outline can still be viewed.') }}
@@ -370,56 +365,54 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                     </p>
                     <p class="gloss" style="margin-block-start: var(--space-2)">
                         <template v-if="hasDistricts">
-                            This chamber is subdivided —
+                            {{ t('c_institutions.election_detail.subdivided_note', 'This chamber is subdivided —') }}
                             <Link v-if="election.legislature_id" :href="`/legislatures/${election.legislature_id}`">
-                                view the district map in the Legislature browser →
+                                {{ t('c_institutions.election_detail.view_district_map', 'view the district map in the Legislature browser →') }}
                             </Link>
                         </template>
                         <template v-else>
-                            This election uses a single at-large footprint.
+                            {{ t('c_institutions.election_detail.at_large_note', 'This election uses a single at-large footprint.') }}
                         </template>
                     </p>
                 </Card>
 
-                <Card as="section" title="More elections in this place">
+                <Card as="section" :title="t('c_institutions.election_detail.more_title', 'More elections in this place')">
                     <ul v-if="others.length" class="others-list">
                         <li v-for="other in others" :key="other.election_id">
                             <Link :href="`/elections/${other.election_id}`">{{ other.jurisdiction_name }}</Link>
                             <span class="citation">
-                                {{ electionKindLabel(other.kind) }} · {{ other.seats }} seats · {{ other.finalist_count }} finalist places ·
-                                {{ other.phase }}
+                                {{ t('c_institutions.election_detail.other_meta', { kind: electionKindLabel(other.kind), seats: other.seats, finalists: other.finalist_count, phase: other.phase }) }}
                             </span>
                         </li>
                     </ul>
-                    <p v-else class="gloss">No other elections are recorded for this place.</p>
-                    <Link href="/jurisdictions">Explore elections in another place →</Link>
+                    <p v-else class="gloss">{{ t('c_institutions.election_detail.no_others', 'No other elections are recorded for this place.') }}</p>
+                    <Link href="/jurisdictions">{{ t('c_institutions.election_detail.explore_another', 'Explore elections in another place →') }}</Link>
                 </Card>
             </div>
 
             <!-- ──────────────────────────────────────── phase actions -->
-            <Card as="section" title="Participate">
+            <Card as="section" :title="t('c_institutions.election_detail.participate_title', 'Participate')">
                 <div class="cluster">
                     <template v-if="phase === 'approval' && !scheduled">
                         <Btn :as="Link" :href="`/elections/${election.id}/open-ballot`" variant="primary" icon="vote">
-                            Open ballot — approve candidates
+                            {{ t('c_institutions.election_detail.cta_open_ballot', 'Open ballot — approve candidates') }}
                         </Btn>
                         <Btn :as="Link" :href="`/elections/${election.id}/candidacy`" variant="secondary" icon="user">
-                            Stand for office
+                            {{ t('c_institutions.election_detail.cta_stand', 'Stand for office') }}
                         </Btn>
                     </template>
                     <template v-else-if="phase === 'ranked'">
                         <Btn :as="Link" :href="`/elections/${election.id}/ranked-ballot`" variant="gold" icon="check">
-                            Rank your ballot
+                            {{ t('c_institutions.election_detail.cta_rank', 'Rank your ballot') }}
                         </Btn>
                     </template>
                     <template v-else-if="phase === 'certifying'">
                         <Btn :as="Link" :href="`/elections/${election.id}/results`" variant="primary" icon="bar-chart">
-                            Watch the count
+                            {{ t('c_institutions.election_detail.cta_watch', 'Watch the count') }}
                         </Btn>
                     </template>
                     <span v-if="scheduled" class="gloss">
-                        The approval phase has not opened yet — participation unlocks the moment it
-                        does.
+                        {{ t('c_institutions.election_detail.not_open_yet', 'The approval phase has not opened yet — participation unlocks the moment it does.') }}
                     </span>
                 </div>
 
@@ -433,23 +426,23 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                             :disabled="certifyForm.processing || certification !== null"
                             @click="submitCertify"
                         >
-                            {{ certifyForm.processing ? 'Certifying…' : 'Certify results' }}
+                            {{ certifyForm.processing ? t('c_institutions.election_detail.certifying', 'Certifying…') : t('c_institutions.election_detail.certify_results', 'Certify results') }}
                         </Btn>
                         <Btn
                             v-if="can.recount"
                             variant="secondary"
                             icon="refresh-cw"
                             :disabled="certification === null"
-                            :title="certification === null ? 'Requires certification first' : null"
+                            :title="certification === null ? t('c_institutions.election_detail.recount_needs_cert', 'Requires certification first') : null"
                             @click="recountConfirming = !recountConfirming"
                         >
-                            Order recount
+                            {{ t('c_institutions.election_detail.order_recount', 'Order recount') }}
                         </Btn>
                     </div>
                     <form v-if="recountConfirming" novalidate style="margin-block-start: var(--space-3)" @submit.prevent="submitRecount">
                         <Field
-                            label="Cause for the recount order"
-                            hint="The engine rejects an empty cause — recounts are audit re-runs with recorded grounds, never hand counts."
+                            :label="t('c_institutions.election_detail.recount_cause_label', 'Cause for the recount order')"
+                            :hint="t('c_institutions.election_detail.recount_cause_hint', 'The engine rejects an empty cause — recounts are audit re-runs with recorded grounds, never hand counts.')"
                             :error="recountForm.errors.cause"
                             required
                         >
@@ -466,16 +459,15 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                         </Field>
                         <div class="cluster">
                             <Btn type="submit" variant="danger" :disabled="recountForm.processing">
-                                {{ recountForm.processing ? 'Filing F-ELB-006…' : 'Confirm recount order' }}
+                                {{ recountForm.processing ? t('c_institutions.election_detail.recount_filing', 'Filing F-ELB-006…') : t('c_institutions.election_detail.recount_confirm', 'Confirm recount order') }}
                             </Btn>
-                            <Btn variant="ghost" @click="recountConfirming = false">Cancel</Btn>
+                            <Btn variant="ghost" @click="recountConfirming = false">{{ t('c_institutions.election_detail.cancel', 'Cancel') }}</Btn>
                         </div>
                     </form>
                 </div>
 
                 <p v-if="certification" class="citation" style="margin-block-start: var(--space-3)">
-                    Certified {{ fmtDate(certification.certified_at) }} by {{ certification.by }} ·
-                    F-ELB-004 · winners granted roles
+                    {{ t('c_institutions.election_detail.certified_by', { at: fmtDate(certification.certified_at), by: certification.by }) }} · F-ELB-004 · {{ t('c_institutions.election_detail.certified_roles', 'winners granted roles') }}
                 </p>
             </Card>
         </template>

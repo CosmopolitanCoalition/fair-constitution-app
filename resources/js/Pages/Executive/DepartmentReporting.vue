@@ -18,6 +18,7 @@
  */
 import { computed } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -33,6 +34,7 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -58,10 +60,10 @@ const constitutionError = computed(() => page.props.errors?.constitution ?? null
 
 /* ----------------------------------------------------------- badges ----- */
 const RULE_BADGES = {
-    draft: ['neutral', 'file-text', 'Draft'],
-    in_force: ['success', 'check', 'In force'],
-    superseded: ['neutral', 'minus', 'Superseded'],
-    expired: ['danger', 'x', 'Expired'],
+    draft: ['neutral', 'file-text', t('c_institutions.department_reporting.rule_draft', 'Draft')],
+    in_force: ['success', 'check', t('c_institutions.department_reporting.rule_in_force', 'In force')],
+    superseded: ['neutral', 'minus', t('c_institutions.department_reporting.rule_superseded', 'Superseded')],
+    expired: ['danger', 'x', t('c_institutions.department_reporting.rule_expired', 'Expired')],
 };
 function ruleBadge(status) {
     const [tone, icon, text] = RULE_BADGES[status] ?? ['neutral', null, status];
@@ -69,10 +71,10 @@ function ruleBadge(status) {
 }
 
 const REPORT_BADGES = {
-    due: ['info', 'clock', 'Due'],
-    due_soon: ['warning', 'clock', 'Due soon'],
-    filed: ['success', 'check', 'Filed'],
-    overdue: ['danger', 'alert-triangle', 'Overdue'],
+    due: ['info', 'clock', t('c_institutions.department_reporting.report_due', 'Due')],
+    due_soon: ['warning', 'clock', t('c_institutions.department_reporting.report_due_soon', 'Due soon')],
+    filed: ['success', 'check', t('c_institutions.department_reporting.report_filed', 'Filed')],
+    overdue: ['danger', 'alert-triangle', t('c_institutions.department_reporting.report_overdue', 'Overdue')],
 };
 function reportBadge(status) {
     const [tone, icon, text] = REPORT_BADGES[status] ?? ['neutral', null, status];
@@ -89,9 +91,9 @@ function fmtDate(value) {
 }
 
 const SEAT_CLASS_LABELS = {
-    governor: 'Governor',
-    worker_elected: 'Worker-elected',
-    owner_elected: 'Owner-elected',
+    governor: t('c_institutions.department_reporting.seat_governor', 'Governor'),
+    worker_elected: t('c_institutions.department_reporting.seat_worker_elected', 'Worker-elected'),
+    owner_elected: t('c_institutions.department_reporting.seat_owner_elected', 'Owner-elected'),
 };
 function seatClassLabel(cls) {
     return SEAT_CLASS_LABELS[cls] ?? cls;
@@ -99,18 +101,18 @@ function seatClassLabel(cls) {
 
 /* --------------------------------------------------------- columns ------ */
 const ruleColumns = [
-    { key: 'rule_code', label: 'Rule', mono: true },
-    { key: 'name', label: 'Name' },
-    { key: 'enabling', label: 'Enabling basis' },
-    { key: 'version_no', label: 'Ver.', align: 'right', mono: true },
-    { key: 'status', label: 'Status' },
+    { key: 'rule_code', label: t('c_institutions.department_reporting.col_rule', 'Rule'), mono: true },
+    { key: 'name', label: t('c_institutions.department_reporting.col_name', 'Name') },
+    { key: 'enabling', label: t('c_institutions.department_reporting.col_enabling', 'Enabling basis') },
+    { key: 'version_no', label: t('c_institutions.department_reporting.col_ver', 'Ver.'), align: 'right', mono: true },
+    { key: 'status', label: t('c_institutions.department_reporting.col_status', 'Status') },
 ];
 const reportColumns = [
-    { key: 'label', label: 'Report' },
-    { key: 'recipients', label: 'Recipients' },
-    { key: 'due_on', label: 'Due' },
-    { key: 'filed_at', label: 'Filed' },
-    { key: 'status', label: 'Status' },
+    { key: 'label', label: t('c_institutions.department_reporting.col_report', 'Report') },
+    { key: 'recipients', label: t('c_institutions.department_reporting.col_recipients', 'Recipients') },
+    { key: 'due_on', label: t('c_institutions.department_reporting.col_due', 'Due') },
+    { key: 'filed_at', label: t('c_institutions.department_reporting.col_filed', 'Filed') },
+    { key: 'status', label: t('c_institutions.department_reporting.col_status', 'Status') },
 ];
 
 /* -------------------------------------------------------- F-BOG-001 ----- */
@@ -169,48 +171,43 @@ const ruleBasis = computed({
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`Reporting — ${department.name}`">
+    <PageScaffold :surface="surface" :title="t('c_institutions.department_reporting.page_title', { name: department.name })">
         <template #intro>
-            This is where a department's board does its day-to-day work: writing the rules that
-            put laws into practice, and filing regular operational and financial reports to both
-            the executive and the legislature. Everything filed here is public record.
+            {{ t('c_institutions.department_reporting.intro', "This is where a department's board does its day-to-day work: writing the rules that put laws into practice, and filing regular operational and financial reports to both the executive and the legislature. Everything filed here is public record.") }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <!-- ===================== your appointment (seated governor) ===== -->
-        <Card v-if="appointment" as="section" title="Your appointment">
+        <Card v-if="appointment" as="section" :title="t('c_institutions.department_reporting.appointment_title', 'Your appointment')">
             <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
-                <Stat :value="seatClassLabel(appointment.seat_class)" label="seat" />
-                <Stat :value="`#${appointment.seat_no}`" label="seat no." />
-                <Stat :value="appointment.is_chair ? 'Chair' : 'Member'" label="role" />
-                <Stat :value="fmtDate(appointment.term_start)" label="term start" />
-                <Stat :value="fmtDate(appointment.term_end)" label="term end" />
+                <Stat :value="seatClassLabel(appointment.seat_class)" :label="t('c_institutions.department_reporting.stat_seat', 'seat')" />
+                <Stat :value="`#${appointment.seat_no}`" :label="t('c_institutions.department_reporting.stat_seat_no', 'seat no.')" />
+                <Stat :value="appointment.is_chair ? t('c_institutions.department_reporting.role_chair', 'Chair') : t('c_institutions.department_reporting.role_member', 'Member')" :label="t('c_institutions.department_reporting.stat_role', 'role')" />
+                <Stat :value="fmtDate(appointment.term_start)" :label="t('c_institutions.department_reporting.stat_term_start', 'term start')" />
+                <Stat :value="fmtDate(appointment.term_end)" :label="t('c_institutions.department_reporting.stat_term_end', 'term end')" />
             </div>
             <p class="gloss" style="margin-block-start: var(--space-3)">
-                Your board seat is a {{ appointment.term_years }}-year civil appointment
-                (CLK-09, Art. II §9) — amendable within constitutional bounds and held in
-                lockstep with the judicial term (CLK-10). You file this department's rules and
-                reports below.
+                {{ t('c_institutions.department_reporting.appointment_note', { years: appointment.term_years }) }}
             </p>
         </Card>
 
         <!-- ============================================ header ========== -->
         <Card as="section" :title="department.name">
             <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
-                <Stat :value="department.kind.replaceAll('_', ' ')" label="kind" />
-                <Stat :value="department.worker_count" label="workers" />
+                <Stat :value="department.kind.replaceAll('_', ' ')" :label="t('c_institutions.department_reporting.stat_kind', 'kind')" />
+                <Stat :value="department.worker_count" :label="t('c_institutions.department_reporting.stat_workers', 'workers')" />
                 <Stat
                     :value="department.charter.reporting_interval_months ?? '—'"
-                    label="reporting interval (months) — charter data, not a clock"
+                    :label="t('c_institutions.department_reporting.stat_reporting_interval', 'reporting interval (months) — charter data, not a clock')"
                 />
             </div>
             <p v-if="machine.length" style="margin-block-start: var(--space-3)">
                 <StateStrip :states="machine" :current="department.status" />
             </p>
             <p class="cluster" style="gap: var(--space-2); margin-block-start: var(--space-2)">
-                <Link :href="department.detail_href">Department detail →</Link>
+                <Link :href="department.detail_href">{{ t('c_institutions.department_reporting.department_detail', 'Department detail →') }}</Link>
                 <span v-if="department.charter.act_number" class="cluster" style="gap: var(--space-2)">
                     <FormChip form-id="F-LEG-016" />
                     <Link v-if="department.charter.href" :href="department.charter.href" class="tag-chip" data-no-i18n>
@@ -225,17 +222,15 @@ const ruleBasis = computed({
             v-if="!viewerIsGovernor"
             tone="info"
             role="status"
-            title="Registers are public; filing is the board's."
+            :title="t('c_institutions.department_reporting.public_title', 'Registers are public; filing is the board\'s.')"
         >
-            Both registers below read publicly. Filed by this department's seated governors
-            (R-18) — the engine is the boundary, so the filing forms appear only for them.
+            {{ t('c_institutions.department_reporting.public_body', "Both registers below read publicly. Filed by this department's seated governors (R-18) — the engine is the boundary, so the filing forms appear only for them.") }}
         </Banner>
 
         <!-- ============================ rules register ================== -->
-        <Card as="section" title="Implementation rules (F-BOG-001)">
+        <Card as="section" :title="t('c_institutions.department_reporting.rules_title', 'Implementation rules (F-BOG-001)')">
             <p class="gloss" style="margin-block-end: var(--space-3)">
-                Rules implement — they cannot exceed — the charter and the enabling acts.
-                An emergency-enabled rule expires with its power; nothing rolls over silently.
+                {{ t('c_institutions.department_reporting.rules_gloss', 'Rules implement — they cannot exceed — the charter and the enabling acts. An emergency-enabled rule expires with its power; nothing rolls over silently.') }}
             </p>
 
             <DataTable
@@ -243,7 +238,7 @@ const ruleBasis = computed({
                 :columns="ruleColumns"
                 :rows="rules"
                 row-key="id"
-                caption="Department rules"
+                :caption="t('c_institutions.department_reporting.rules_caption', 'Department rules')"
             >
                 <template #cell-rule_code="{ row }">
                     <span class="mono" data-no-i18n>{{ row.rule_code }}</span>
@@ -264,7 +259,7 @@ const ruleBasis = computed({
                         class="citation"
                         style="display: block; margin-block-start: var(--space-1)"
                     >
-                        expires with the emergency power · CLK-03
+                        {{ t('c_institutions.department_reporting.expires_with_power', 'expires with the emergency power · CLK-03') }}
                     </span>
                 </template>
                 <template #cell-version_no="{ row }">
@@ -277,9 +272,8 @@ const ruleBasis = computed({
                 </template>
             </DataTable>
 
-            <Banner v-else tone="info" role="status" title="No rules filed yet.">
-                When a governor files the first rule, it appears here with the act that enables it.
-                The implement-don't-exceed rule binds from the first rule.
+            <Banner v-else tone="info" role="status" :title="t('c_institutions.department_reporting.no_rules_title', 'No rules filed yet.')">
+                {{ t('c_institutions.department_reporting.no_rules_body', "When a governor files the first rule, it appears here with the act that enables it. The implement-don't-exceed rule binds from the first rule.") }}
             </Banner>
         </Card>
 
@@ -288,12 +282,12 @@ const ruleBasis = computed({
             v-if="can.fileRule"
             :form="surface.forms.find((f) => f.id === 'F-BOG-001')"
             :inertia-form="ruleFiling"
-            submit-label="File rule"
-            processing-label="Filing…"
+            :submit-label="t('c_institutions.department_reporting.file_rule', 'File rule')"
+            :processing-label="t('c_institutions.department_reporting.filing', 'Filing…')"
             :disabled="!hasEnablingOptions"
             @submit="submitRule"
         >
-            <Field label="Rule name" :error="ruleFiling.errors.name" required>
+            <Field :label="t('c_institutions.department_reporting.rule_name_label', 'Rule name')" :error="ruleFiling.errors.name" required>
                 <template #control="{ id, invalid, describedBy }">
                     <input
                         :id="id"
@@ -308,8 +302,8 @@ const ruleBasis = computed({
             </Field>
 
             <Field
-                label="Rule text"
-                hint="Rules implement — they cannot exceed — the charter and enabling acts."
+                :label="t('c_institutions.department_reporting.rule_text_label', 'Rule text')"
+                :hint="t('c_institutions.department_reporting.rule_text_hint', 'Rules implement — they cannot exceed — the charter and enabling acts.')"
                 :error="ruleFiling.errors.text"
                 required
             >
@@ -327,8 +321,8 @@ const ruleBasis = computed({
             </Field>
 
             <Field
-                label="Enabling basis"
-                hint="Charter law, an in-force enabling act, or an ACTIVE emergency power — the engine rejects scope overruns with the citation."
+                :label="t('c_institutions.department_reporting.enabling_label', 'Enabling basis')"
+                :hint="t('c_institutions.department_reporting.enabling_hint', 'Charter law, an in-force enabling act, or an ACTIVE emergency power — the engine rejects scope overruns with the citation.')"
                 :error="ruleFiling.errors.enabling_id || ruleFiling.errors.enabling_type"
                 required
             >
@@ -340,7 +334,7 @@ const ruleBasis = computed({
                         :aria-invalid="invalid ? 'true' : undefined"
                         :aria-describedby="describedBy"
                     >
-                        <option value="" disabled>Select the enabling instrument…</option>
+                        <option value="" disabled>{{ t('c_institutions.department_reporting.enabling_option', 'Select the enabling instrument…') }}</option>
                         <option
                             v-for="opt in ruleForm.enablingOptions"
                             :key="`${opt.type}:${opt.id}`"
@@ -353,26 +347,23 @@ const ruleBasis = computed({
             </Field>
 
             <p class="citation" style="margin-block-start: var(--space-2)">
-                catalog alias: F-GOV-001 · drafts publish for comment · emergency-enabled rules expire with the power (CLK-03).
+                {{ t('c_institutions.department_reporting.rule_cite', 'catalog alias: F-GOV-001 · drafts publish for comment · emergency-enabled rules expire with the power (CLK-03).') }}
             </p>
             <Banner
                 v-if="!hasEnablingOptions"
                 tone="warning"
                 role="status"
-                title="No live enabling instrument."
+                :title="t('c_institutions.department_reporting.no_instrument_title', 'No live enabling instrument.')"
                 style="margin-block-start: var(--space-2)"
             >
-                There is no charter, in-force act, or active emergency power to cite yet — a rule
-                cannot issue without a live instrument behind it (Art. III §2).
+                {{ t('c_institutions.department_reporting.no_instrument_body', 'There is no charter, in-force act, or active emergency power to cite yet — a rule cannot issue without a live instrument behind it (Art. III §2).') }}
             </Banner>
         </FormCard>
 
         <!-- ============================ report register ================= -->
-        <Card as="section" title="Report filings (F-BOG-002)">
+        <Card as="section" :title="t('c_institutions.department_reporting.reports_title', 'Report filings (F-BOG-002)')">
             <p class="gloss" style="margin-block-end: var(--space-3)">
-                Reports file to the executive AND the legislature, published to the public record.
-                Filing a periodic report seeds the next obligation; a missed due date is swept to
-                overdue (WF-EXE-09).
+                {{ t('c_institutions.department_reporting.reports_gloss', 'Reports file to the executive AND the legislature, published to the public record. Filing a periodic report seeds the next obligation; a missed due date is swept to overdue (WF-EXE-09).') }}
             </p>
 
             <DataTable
@@ -380,7 +371,7 @@ const ruleBasis = computed({
                 :columns="reportColumns"
                 :rows="reports"
                 row-key="id"
-                caption="Department reports"
+                :caption="t('c_institutions.department_reporting.reports_caption', 'Department reports')"
             >
                 <template #cell-label="{ row }">
                     <strong style="color: var(--gov-fg)">{{ row.label }}</strong>
@@ -396,7 +387,7 @@ const ruleBasis = computed({
                             on the public record →
                         </a>
                     </template>
-                    <span v-else class="gloss">not yet filed</span>
+                    <span v-else class="gloss">{{ t('c_institutions.department_reporting.not_yet_filed', 'not yet filed') }}</span>
                 </template>
                 <template #cell-status="{ row }">
                     <StatusBadge :tone="reportBadge(row.status).tone" :icon="reportBadge(row.status).icon">
@@ -405,9 +396,8 @@ const ruleBasis = computed({
                 </template>
             </DataTable>
 
-            <Banner v-else tone="info" role="status" title="No report obligations yet.">
-                The first periodic obligation seeds when the department begins operating and its
-                charter sets a reporting interval.
+            <Banner v-else tone="info" role="status" :title="t('c_institutions.department_reporting.no_reports_title', 'No report obligations yet.')">
+                {{ t('c_institutions.department_reporting.no_reports_body', 'The first periodic obligation seeds when the department begins operating and its charter sets a reporting interval.') }}
             </Banner>
         </Card>
 
@@ -416,11 +406,11 @@ const ruleBasis = computed({
             v-if="can.fileReport"
             :form="surface.forms.find((f) => f.id === 'F-BOG-002')"
             :inertia-form="reportFiling"
-            submit-label="File report"
-            processing-label="Filing…"
+            :submit-label="t('c_institutions.department_reporting.file_report', 'File report')"
+            :processing-label="t('c_institutions.department_reporting.filing', 'Filing…')"
             @submit="submitReport"
         >
-            <Field label="Report kind" :error="reportFiling.errors.kind" required>
+            <Field :label="t('c_institutions.department_reporting.report_kind_label', 'Report kind')" :error="reportFiling.errors.kind" required>
                 <template #control="{ id, invalid, describedBy }">
                     <select
                         :id="id"
@@ -429,16 +419,16 @@ const ruleBasis = computed({
                         :aria-invalid="invalid ? 'true' : undefined"
                         :aria-describedby="describedBy"
                     >
-                        <option value="periodic">Periodic — files the due obligation</option>
-                        <option value="special">Special — an ad-hoc filing</option>
+                        <option value="periodic">{{ t('c_institutions.department_reporting.kind_periodic', 'Periodic — files the due obligation') }}</option>
+                        <option value="special">{{ t('c_institutions.department_reporting.kind_special', 'Special — an ad-hoc filing') }}</option>
                     </select>
                 </template>
             </Field>
 
             <Field
                 v-if="reportFiling.kind === 'special'"
-                label="Period label"
-                hint="A short label for this special report."
+                :label="t('c_institutions.department_reporting.period_label', 'Period label')"
+                :hint="t('c_institutions.department_reporting.period_hint', 'A short label for this special report.')"
                 :error="reportFiling.errors.period_label"
             >
                 <template #control="{ id, invalid, describedBy }">
@@ -454,7 +444,7 @@ const ruleBasis = computed({
                 </template>
             </Field>
 
-            <Field label="Report body" :error="reportFiling.errors.body" required>
+            <Field :label="t('c_institutions.department_reporting.report_body_label', 'Report body')" :error="reportFiling.errors.body" required>
                 <template #control="{ id, invalid, describedBy }">
                     <textarea
                         :id="id"
@@ -469,20 +459,16 @@ const ruleBasis = computed({
             </Field>
 
             <p class="citation" style="margin-block-start: var(--space-2)">
-                catalog alias: F-GOV-002 · recipients fixed: Executive + legislature · published · WF-SYS-03.
+                {{ t('c_institutions.department_reporting.report_cite', 'catalog alias: F-GOV-002 · recipients fixed: Executive + legislature · published · WF-SYS-03.') }}
             </p>
         </FormCard>
 
         <template #about>
             <p>
-                Rules and reports are the Board of Governors' implementation layer (Art. III §4):
-                rules carry the act that enables them and can never exceed it; reports keep the
-                executive and the legislature informed and become public record. An emergency-
-                enabled rule is bound to the life of its power — when CLK-03 expires the power,
-                the rule expires with it.
+                {{ t('c_institutions.department_reporting.about_body', "Rules and reports are the Board of Governors' implementation layer (Art. III §4): rules carry the act that enables them and can never exceed it; reports keep the executive and the legislature informed and become public record. An emergency-enabled rule is bound to the life of its power — when CLK-03 expires the power, the rule expires with it.") }}
             </p>
             <p>
-                <HardenedChip>rules implement, they cannot exceed · Art. III §4</HardenedChip>
+                <HardenedChip>{{ t('c_institutions.department_reporting.about_chip', 'rules implement, they cannot exceed · Art. III §4') }}</HardenedChip>
             </p>
         </template>
     </PageScaffold>
