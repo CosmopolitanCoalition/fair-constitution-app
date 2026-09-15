@@ -416,3 +416,11 @@ test('no raw script attribution — Leaflet prefixes route through t()', () => {
   for (const l of leaks) console.log(`    ${l}`);
   assert.deepEqual(leaks, [], `no raw script attribution prefixes may remain: ${leaks.join(' | ')}`);
 });
+
+// W-0447 finding (2026-09-15): /board for a resident with no board crashed at
+// mount on board.jurisdiction_name. The title must guard the null board.
+test('board console — the title guards a null board', () => {
+    const src = readFileSync(path.join(jsRoot, 'Pages', 'Elections', 'BoardConsole.vue'), 'utf8');
+    assert.match(src, /board \? t\('c_elections\.board\.console_title'/, 'title reads board.jurisdiction_name without a guard');
+    assert.match(src, /console_title_none/, 'no title for the no-board case');
+});

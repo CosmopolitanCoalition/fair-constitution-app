@@ -187,7 +187,7 @@ function runPetitionAudit(row) {
         <CitationLine text="WF-ELE-02 · WF-ELE-10 · Art. II §2" />
     </Banner>
 
-    <PageScaffold :surface="surface" :title="t('c_elections.board.console_title', 'Election board console — {name}', { name: board.jurisdiction_name })">
+    <PageScaffold :surface="surface" :title="board ? t('c_elections.board.console_title', 'Election board console — {name}', { name: board.jurisdiction_name }) : t('c_elections.board.console_title_none', 'Election board console')">
         <template #intro>
             {{ t('c_elections.board.intro', 'The board is an independent, politically neutral office. It schedules, validates, oversees boundaries, certifies, audits, and orders recounts. It never counts by hand. Tabulation runs in protected code.') }}
         </template>

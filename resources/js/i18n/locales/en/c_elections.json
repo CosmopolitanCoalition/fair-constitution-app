@@ -24,6 +24,7 @@
   "board.col_residency": "Residency record",
   "board.col_status": "Status",
   "board.console_title": "Election board console — {name}",
+  "board.console_title_none": "Election board console",
   "board.contiguous_cite": "Contiguous, equal subdivisions · Art. II §8",
   "board.court_appeal": "court appeal · Planned · Phase E",
   "board.cutoff_hint": "X per race is pre-published with this order · CLK-21",

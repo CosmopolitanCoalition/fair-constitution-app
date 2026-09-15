@@ -16951,6 +16951,14 @@
         {
           "date": "2026-09-15",
           "note": "Gap lanes merged (3:05 PM Eastern): gap-elections-jurisdictions (eff4c684), gap-judiciary-exec-org (137d27df), gap-legislature (e56e2280; c_rooms.json union 93 keys). Pins green (9/8/7) and all 16 earlier wiring pins green (107). Running: civic-social (repair), shell-operator, system, js-registries (build); queued: content-data; PHP lanes a/b/support building."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Merged (3:20 PM Eastern): gap-civic-social (e94e022e; c_rooms.json union 136 keys), gap-system (c44af87b), gap-php-b (4c32556b, 52 files). All JS catalogue pins green (139 tests); PHP pins green after the lang/en.json growth (php_surfaces 1355 assertions). Remaining: shell-operator (review), content-data (review), js-registries (build), php-a (review), php-support (repair)."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "ALL 11 gap lanes merged (3:50 PM Eastern, main 7547f647): civic-social 363 keys, judiciary-exec-org 321, legislature 319, elections-jurisdictions 167, shell-operator 123, system 51, js-registries 635, content-data 203, php-a 469, php-b 372, php-support 369. lang/en.json 2,331 lines. All 174 JS catalogue pin tests green; all PHP pins green. Round 2 (wiring) next: gap-wiring-locale (persistence, registry-driven language lists, chrome dict for every locale, six @handle escapes, repo-wide raw-string pin) and gap-format-locale (locale-aware number and date formatting across 199 call sites)."
         }
       ]
     },
@@ -17015,6 +17023,14 @@
         {
           "date": "2026-09-15",
           "note": "Roster merged (64e057fe): 251 routes classified by rule: 56 guest, 45 signed-in, 62 parameterised templates (50 resolved on box E, 12 with no row), 87 machine endpoints, 1 viewer-bound. Throwaway sweep account created; harness session state saved on box E (gitignored). Finding from id resolution: /organizations/{organization}/cgc returns 500 (CgcController::show declares Inertia\\Response but returns a RedirectResponse at line 59); fix queued after the php-b lane merges to avoid a conflict."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Signed-in sweep started 3:13 PM Eastern (152 routes in signed-in mode). Batch 1 (13 routes): 9 pass, 4 hold at 30 s (/achievements, /building, /civic/commons/halls, /civic/commons/square) to requeue at 60 s. CGC 500 fixed (f8fac6ca): show() now admits the Inertia location hand-off; the page returns 302 to the organization page for a non-CGC org. Follow-up: the id resolver should pick a CGC organization for the /cgc route so the CGC page itself is swept."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Signed-in sweep 3:50 PM Eastern: 62 of 152 routes run; 40 pass, 19 hold (requeue at 60 s), 2 fail: /board crashed at mount for a resident with no board (pre-existing null read in the page title, guarded now with a pin) and /civic/halls has a colour-contrast finding (3.36:1 on a paragraph). Batch 4 (routes 61 to 90) running."
         }
       ]
     }
