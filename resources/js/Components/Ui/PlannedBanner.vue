@@ -4,17 +4,21 @@
  * mockups/v3 shell-v2.js plannedBanner). Marks a surface that is designed
  * ahead of the build: honest to the player, nothing live, no real money.
  */
+import { useI18n } from 'vue-i18n';
+
 defineProps({
     /** Optional replacement for the default explanation sentence. */
     extra: { type: String, default: null },
 });
+
+const { t } = useI18n();
 </script>
 
 <template>
     <div class="banner banner--demo planned-banner">
         <div>
-            <span class="banner-title">Planned — a preview.</span>
-            {{ extra || 'This part of the world is designed ahead of the build. Nothing here is live yet, and no real money is anywhere.' }}
+            <span class="banner-title">{{ t('c_ui_b.planned_banner.title', 'Planned — a preview.') }}</span>
+            {{ extra || t('c_ui_b.planned_banner.default_body', 'This part of the world is designed ahead of the build. Nothing here is live yet, and no real money is anywhere.') }}
         </div>
     </div>
 </template>
