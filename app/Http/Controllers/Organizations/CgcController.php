@@ -19,6 +19,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * FE-D9 — Common Good Corporation detail (PHASE_D_DESIGN_frontend.md §B.8;
@@ -51,7 +52,7 @@ class CgcController extends Controller
         private readonly ConstitutionalEngine $engine,
     ) {}
 
-    public function show(Request $request, Organization $organization): Response
+    public function show(Request $request, Organization $organization): Response|SymfonyResponse
     {
         // OrganizationController@show is the canonical entry for non-CGC
         // orgs; if a private org reaches here, hand it back to that route.
