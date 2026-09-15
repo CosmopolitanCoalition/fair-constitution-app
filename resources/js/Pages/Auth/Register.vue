@@ -276,7 +276,7 @@ function submit() {
                 <p class="gloss" style="margin-block-start: var(--space-2)">
                     {{ t('c_front.register.lifecycle_gloss', 'Association exists simultaneously at every nesting level (local → Earth); voting and candidacy unlock at R-03 with no other requirements.') }}
                 </p>
-                <p class="citation">Art. I · Art. V §1</p>
+                <p class="citation" data-no-i18n>Art. I · Art. V §1</p>
             </Card>
         </div>
     </main>

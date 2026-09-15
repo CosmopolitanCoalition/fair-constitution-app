@@ -70,13 +70,13 @@ const flash = computed(() => page.props.flash?.status ?? null);
 const errors = computed(() => page.props.errors ?? {});
 const signedIn = computed(() => !!page.props.auth?.user);
 
-const TAB_LABELS = {
-    overview: 'Overview',
-    record: 'Record',
-    candidacy: 'Candidacy',
-    office: 'Office',
-    achievements: 'Achievements',
-};
+const tabLabels = computed(() => ({
+    overview: t('c_gap_civic_social.person_profile.tab_overview', 'Overview'),
+    record: t('c_gap_civic_social.person_profile.tab_record', 'Record'),
+    candidacy: t('c_gap_civic_social.person_profile.tab_candidacy', 'Candidacy'),
+    office: t('c_gap_civic_social.person_profile.tab_office', 'Office'),
+    achievements: t('c_gap_civic_social.person_profile.tab_achievements', 'Achievements'),
+}));
 
 /* ─────────────────────────────────────────────────────────────── tabs */
 
@@ -99,7 +99,7 @@ function selectTab(key, focus = false) {
         preserveState: true, preserveScroll: true,
         onStart: () => { tabBusy.value = true; tabError.value = ''; },
         onFinish: () => { tabBusy.value = false; },
-        onError: errors => { tabError.value = Object.values(errors)[0] || 'This tab could not load. Select it again to retry.'; },
+        onError: errors => { tabError.value = Object.values(errors)[0] || t('c_gap_civic_social.person_profile.tab_load_error', 'This tab could not load. Select it again to retry.'); },
     });
     if (focus) {
         nextTick(() => tablistEl.value?.querySelector(`#ptab-${key}`)?.focus());
@@ -174,11 +174,11 @@ const fmtDate = iso => {
     return date.toLocaleDateString();
 };
 
-const requestColumns = [
-    { key: 'org_name', label: 'Organization' },
-    { key: 'requested_at', label: 'Requested' },
-    { key: 'status', label: 'Status' },
-];
+const requestColumns = computed(() => [
+    { key: 'org_name', label: t('c_gap_civic_social.person_profile.col_organization', 'Organization') },
+    { key: 'requested_at', label: t('c_gap_civic_social.person_profile.col_requested', 'Requested') },
+    { key: 'status', label: t('c_gap_civic_social.person_profile.col_status', 'Status') },
+]);
 
 /* Focus another of the person's candidacies — a real visit (server rebuilds the panel). */
 function focusCandidacy(id) {
@@ -233,8 +233,8 @@ function submitEndorse() {
         preserveScroll: true,
         onStart: () => { endorseBusy.value = true; endorseError.value = ''; endorseNotice.value = ''; },
         onFinish: () => { endorseBusy.value = false; },
-        onError: errs => { endorseError.value = Object.values(errs)[0] || 'The endorsement could not be filed. Please retry.'; },
-        onSuccess: () => { endorseNotice.value = endorsePublic.value ? 'Public endorsement recorded.' : 'Private endorsement recorded.'; },
+        onError: errs => { endorseError.value = Object.values(errs)[0] || t('c_gap_civic_social.person_profile.endorse_file_error', 'The endorsement could not be filed. Please retry.'); },
+        onSuccess: () => { endorseNotice.value = endorsePublic.value ? t('c_gap_civic_social.person_profile.endorse_public_recorded', 'Public endorsement recorded.') : t('c_gap_civic_social.person_profile.endorse_private_recorded', 'Private endorsement recorded.'); },
     });
 }
 function submitWithdrawEndorsement() {
@@ -243,30 +243,29 @@ function submitWithdrawEndorsement() {
         preserveScroll: true,
         onStart: () => { endorseBusy.value = true; endorseError.value = ''; endorseNotice.value = ''; },
         onFinish: () => { endorseBusy.value = false; },
-        onError: errs => { endorseError.value = Object.values(errs)[0] || 'The withdrawal could not be filed. Please retry.'; },
-        onSuccess: () => { endorseNotice.value = 'Endorsement withdrawn.'; },
+        onError: errs => { endorseError.value = Object.values(errs)[0] || t('c_gap_civic_social.person_profile.endorse_withdraw_error', 'The withdrawal could not be filed. Please retry.'); },
+        onSuccess: () => { endorseNotice.value = t('c_gap_civic_social.person_profile.endorse_withdrawn', 'Endorsement withdrawn.'); },
     });
 }
 </script>
 
 <template>
     <PageScaffold :surface="surface" :title="person.display">
-        <p v-if="tabBusy" role="status">Loading profile section…</p>
+        <p v-if="tabBusy" role="status">{{ t('c_gap_civic_social.person_profile.loading_section', 'Loading profile section…') }}</p>
         <p v-if="tabError" role="alert">{{ tabError }}</p>
         <template #intro>
             <template v-if="isSelf">
-                Your public profile — exactly what everyone else sees. Settings, wallet and the
-                rest of your private half live at <Link href="/civic/record">My record</Link>.
+                {{ t('c_gap_civic_social.person_profile.self_intro', 'Your public profile — exactly what everyone else sees. Settings, wallet and the rest of your private half live at') }}
+                <Link href="/civic/record">{{ t('c_gap_civic_social.person_profile.my_record', 'My record') }}</Link>.
             </template>
             <template v-else>
-                One person, shown the same way everyone is. If they hold an office, their office
-                record is just another tab — there is no separate kind of profile for officials.
+                {{ t('c_gap_civic_social.person_profile.other_intro', 'One person, shown the same way everyone is. If they hold an office, their office record is just another tab — there is no separate kind of profile for officials.') }}
             </template>
         </template>
 
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
-        <Banner v-if="errors.constitution" tone="warning" title="Filing rejected by the constitutional engine">
-            {{ errors.constitution }} — the rejection itself is on the audit chain (append-only).
+        <Banner v-if="errors.constitution" tone="warning" :title="t('c_gap_civic_social.person_profile.filing_rejected_title', 'Filing rejected by the constitutional engine')">
+            {{ t('c_gap_civic_social.person_profile.rejection_audit', { reason: errors.constitution }) }}
         </Banner>
 
         <!-- ─────────────────────────────────────────────────── head card -->
@@ -277,8 +276,8 @@ function submitWithdrawEndorsement() {
                 <p class="gloss" style="margin-block: var(--space-1) 0">
                     <template v-if="person.office">{{ person.office }}</template>
                     <template v-else-if="person.handle">@{{ person.handle }}</template>
-                    <template v-else-if="person.home">Resident of {{ person.home.name }}</template>
-                    <template v-else>A public profile</template>
+                    <template v-else-if="person.home">{{ t('c_gap_civic_social.person_profile.resident_of', { name: person.home.name }) }}</template>
+                    <template v-else>{{ t('c_gap_civic_social.person_profile.a_public_profile', 'A public profile') }}</template>
                 </p>
                 <p v-if="person.bio" style="margin-block: var(--space-2) 0">{{ person.bio }}</p>
                 <div class="profile-stats" style="margin-block-start: var(--space-2)">
@@ -286,10 +285,10 @@ function submitWithdrawEndorsement() {
                         <Icon name="map-pin" /> {{ person.home.name }}
                     </span>
                     <template v-if="person.followCounts">
-                        <span class="citation">{{ person.followCounts.followers }} followers</span>
-                        <span class="citation">{{ person.followCounts.following }} following</span>
+                        <span class="citation">{{ t('c_gap_civic_social.person_profile.followers_count', { count: person.followCounts.followers }) }}</span>
+                        <span class="citation">{{ t('c_gap_civic_social.person_profile.following_count', { count: person.followCounts.following }) }}</span>
                     </template>
-                    <span v-if="offices.length" class="citation">Serves every resident equally</span>
+                    <span v-if="offices.length" class="citation">{{ t('c_gap_civic_social.person_profile.serves_equally', 'Serves every resident equally') }}</span>
                 </div>
             </div>
             <div v-if="!isSelf" class="cluster" style="align-items: flex-start">
@@ -299,32 +298,30 @@ function submitWithdrawEndorsement() {
                     size="sm"
                     :disabled="followBusy"
                     @click="toggleFollow"
-                >{{ follow.isFollowing ? 'Following ✓' : 'Follow' }}</Btn>
-                <Btn v-else-if="!signedIn" :as="Link" href="/login" variant="primary" size="sm">Sign in to follow</Btn>
+                >{{ follow.isFollowing ? t('c_gap_civic_social.person_profile.following', 'Following ✓') : t('c_gap_civic_social.person_profile.follow', 'Follow') }}</Btn>
+                <Btn v-else-if="!signedIn" :as="Link" href="/login" variant="primary" size="sm">{{ t('c_gap_civic_social.person_profile.signin_to_follow', 'Sign in to follow') }}</Btn>
                 <Btn
                     v-if="canMessage"
                     variant="secondary"
                     size="sm"
                     :disabled="messageBusy"
                     @click="messagePerson"
-                >Message</Btn>
-                <Btn v-else-if="!signedIn" :as="Link" href="/login" variant="secondary" size="sm">Sign in to message</Btn>
+                >{{ t('c_gap_civic_social.person_profile.message', 'Message') }}</Btn>
+                <Btn v-else-if="!signedIn" :as="Link" href="/login" variant="secondary" size="sm">{{ t('c_gap_civic_social.person_profile.signin_to_message', 'Sign in to message') }}</Btn>
             </div>
             <div v-else class="cluster" style="align-items: flex-start">
                 <Btn variant="secondary" size="sm" @click="editing = !editing">
-                    {{ editing ? 'Close editor' : 'Edit profile' }}
+                    {{ editing ? t('c_gap_civic_social.person_profile.close_editor', 'Close editor') : t('c_gap_civic_social.person_profile.edit_profile', 'Edit profile') }}
                 </Btn>
             </div>
         </div>
 
         <!-- ───────────────────────────────── self-edit door (F-IND-002 §②) -->
-        <Card v-if="isSelf && editing" as="section" title="Edit your public profile">
+        <Card v-if="isSelf && editing" as="section" :title="t('c_gap_civic_social.person_profile.edit_card_title', 'Edit your public profile')">
             <p class="gloss" style="margin-block-start: 0">
-                Your display name, handle and bio file through the constitutional engine
-                (F-IND-002). The public chain records only <em>that</em> your profile changed,
-                never the values — a handle you later change can’t be linked back (Art. I).
+                {{ t('c_gap_civic_social.person_profile.edit_gloss', 'Your display name, handle and bio file through the constitutional engine (F-IND-002). The public chain records only that your profile changed, never the values — a handle you later change can’t be linked back (Art. I).') }}
             </p>
-            <Field label="Display name" :error="profileForm.errors.display_name">
+            <Field :label="t('c_gap_civic_social.person_profile.display_name_label', 'Display name')" :error="profileForm.errors.display_name">
                 <template #control="{ id, invalid, describedBy }">
                     <input
                         :id="id"
@@ -332,13 +329,13 @@ function submitWithdrawEndorsement() {
                         class="field-input"
                         type="text"
                         maxlength="255"
-                        placeholder="A pseudonym is a first-class civic identity"
+                        :placeholder="t('c_gap_civic_social.person_profile.display_name_placeholder', 'A pseudonym is a first-class civic identity')"
                         :aria-invalid="invalid ? 'true' : undefined"
                         :aria-describedby="describedBy"
                     />
                 </template>
             </Field>
-            <Field label="Handle" :error="profileForm.errors.handle" hint="3–64 chars: a–z, 0–9, hyphen or underscore. Your @address.">
+            <Field :label="t('c_gap_civic_social.person_profile.handle_label', 'Handle')" :error="profileForm.errors.handle" :hint="t('c_gap_civic_social.person_profile.handle_hint', '3–64 chars: a–z, 0–9, hyphen or underscore. Your @address.')">
                 <template #control="{ id, invalid, describedBy }">
                     <input
                         :id="id"
@@ -346,13 +343,13 @@ function submitWithdrawEndorsement() {
                         class="field-input"
                         type="text"
                         maxlength="64"
-                        placeholder="e.g. jordan-r"
+                        :placeholder="t('c_gap_civic_social.person_profile.handle_placeholder', 'e.g. jordan-r')"
                         :aria-invalid="invalid ? 'true' : undefined"
                         :aria-describedby="describedBy"
                     />
                 </template>
             </Field>
-            <Field label="Bio" :error="profileForm.errors.bio">
+            <Field :label="t('c_gap_civic_social.person_profile.bio_label', 'Bio')" :error="profileForm.errors.bio">
                 <template #control="{ id, invalid, describedBy }">
                     <textarea
                         :id="id"
@@ -360,13 +357,13 @@ function submitWithdrawEndorsement() {
                         class="field-input"
                         rows="3"
                         maxlength="2000"
-                        placeholder="A line about your civic life (optional)"
+                        :placeholder="t('c_gap_civic_social.person_profile.bio_placeholder', 'A line about your civic life (optional)')"
                         :aria-invalid="invalid ? 'true' : undefined"
                         :aria-describedby="describedBy"
                     ></textarea>
                 </template>
             </Field>
-            <Field label="Visibility" :error="profileForm.errors.visibility" hint="A preference — it never gates a right (Art. I).">
+            <Field :label="t('c_gap_civic_social.person_profile.visibility_label', 'Visibility')" :error="profileForm.errors.visibility" :hint="t('c_gap_civic_social.person_profile.visibility_hint', 'A preference — it never gates a right (Art. I).')">
                 <template #control="{ id, invalid, describedBy }">
                     <select
                         :id="id"
@@ -375,27 +372,25 @@ function submitWithdrawEndorsement() {
                         :aria-invalid="invalid ? 'true' : undefined"
                         :aria-describedby="describedBy"
                     >
-                        <option value="public">Public — anyone can see your bio, handle and counts</option>
-                        <option value="jurisdiction">Your jurisdiction only</option>
-                        <option value="private">Private — hidden from the public view</option>
+                        <option value="public">{{ t('c_gap_civic_social.person_profile.visibility_public', 'Public — anyone can see your bio, handle and counts') }}</option>
+                        <option value="jurisdiction">{{ t('c_gap_civic_social.person_profile.visibility_jurisdiction', 'Your jurisdiction only') }}</option>
+                        <option value="private">{{ t('c_gap_civic_social.person_profile.visibility_private', 'Private — hidden from the public view') }}</option>
                     </select>
                 </template>
             </Field>
             <div class="cluster" style="margin-block-start: var(--space-3)">
                 <Btn variant="primary" size="sm" :disabled="profileForm.processing" @click="saveProfile">
-                    {{ profileForm.processing ? 'Filing F-IND-002…' : 'Save profile' }}
+                    {{ profileForm.processing ? t('c_gap_civic_social.person_profile.saving_profile', 'Filing F-IND-002…') : t('c_gap_civic_social.person_profile.save_profile', 'Save profile') }}
                 </Btn>
-                <Btn variant="ghost" size="sm" @click="editing = false">Cancel</Btn>
+                <Btn variant="ghost" size="sm" @click="editing = false">{{ t('c_gap_civic_social.person_profile.cancel', 'Cancel') }}</Btn>
             </div>
         </Card>
         <p v-if="isSelf && person.visibility && person.visibility !== 'public'" class="citation">
-            Your profile visibility is “{{ person.visibility }}” — bio, follow counts and
-            achievements are hidden from this public view until you choose to show them.
-            Visibility is a preference; it never gates a right (Art. I).
+            {{ t('c_gap_civic_social.person_profile.visibility_notice', { visibility: person.visibility }) }}
         </p>
 
         <!-- ──────────────────────────────────────────────────────── tabs -->
-        <div ref="tablistEl" class="profile-tabs" role="tablist" aria-label="Profile sections" :aria-busy="tabBusy">
+        <div ref="tablistEl" class="profile-tabs" role="tablist" :aria-label="t('c_gap_civic_social.person_profile.tablist_label', 'Profile sections')" :aria-busy="tabBusy">
             <button
                 v-for="key in tabs"
                 :id="`ptab-${key}`"
@@ -408,7 +403,7 @@ function submitWithdrawEndorsement() {
                 type="button"
                 @click="selectTab(key)"
                 @keydown="onTabKeydown"
-            >{{ TAB_LABELS[key] ?? key }}</button>
+            >{{ tabLabels[key] ?? key }}</button>
         </div>
 
         <!-- ───────────────────────────────────────────────────── overview -->
@@ -420,35 +415,32 @@ function submitWithdrawEndorsement() {
         >
             <Banner tone="info">
                 <template v-if="isSelf">
-                    This is your <strong>public</strong> profile. Everything on it is what any
-                    resident — or any visitor — can already see.
+                    {{ t('c_gap_civic_social.person_profile.overview_self', 'This is your public profile. Everything on it is what any resident — or any visitor — can already see.') }}
                 </template>
                 <template v-else>
-                    This is {{ person.display }}'s public profile — following them, messaging
-                    them, or reading their public record never depends on paying or joining
-                    anything.
+                    {{ t('c_gap_civic_social.person_profile.overview_other', { display: person.display }) }}
                 </template>
             </Banner>
 
-            <Card as="section" title="At a glance">
+            <Card as="section" :title="t('c_gap_civic_social.person_profile.at_a_glance', 'At a glance')">
                 <ul style="margin: 0; padding-inline-start: var(--space-5)">
-                    <li v-if="person.home">Resident of {{ person.home.name }} — residency is the only civic prerequisite there is (Art. I).</li>
+                    <li v-if="person.home">{{ t('c_gap_civic_social.person_profile.at_glance_resident', { name: person.home.name }) }}</li>
                     <li v-if="candidacies.length">
-                        Standing in an election —
-                        <a href="#ppanel-candidacy" @click.prevent="selectTab('candidacy', true)">see the Candidacy tab</a>.
+                        {{ t('c_gap_civic_social.person_profile.standing_in_election', 'Standing in an election —') }}
+                        <a href="#ppanel-candidacy" @click.prevent="selectTab('candidacy', true)">{{ t('c_gap_civic_social.person_profile.see_candidacy_tab', 'see the Candidacy tab') }}</a>.
                     </li>
                     <li v-if="offices.length">
-                        Holds public office —
-                        <a href="#ppanel-office" @click.prevent="selectTab('office', true)">see the Office tab</a>.
+                        {{ t('c_gap_civic_social.person_profile.holds_office', 'Holds public office —') }}
+                        <a href="#ppanel-office" @click.prevent="selectTab('office', true)">{{ t('c_gap_civic_social.person_profile.see_office_tab', 'see the Office tab') }}</a>.
                     </li>
                     <li>
-                        The public record —
-                        <a href="#ppanel-record" @click.prevent="selectTab('record', true)">the Record tab</a> —
-                        is the audited civic history: it shows <em>that</em> a person participated, never <em>how</em> they voted.
+                        {{ t('c_gap_civic_social.person_profile.public_record_lead', 'The public record —') }}
+                        <a href="#ppanel-record" @click.prevent="selectTab('record', true)">{{ t('c_gap_civic_social.person_profile.the_record_tab', 'the Record tab') }}</a>
+                        {{ t('c_gap_civic_social.person_profile.public_record_tail', '— is the audited civic history: it shows that a person participated, never how they voted.') }}
                     </li>
                 </ul>
                 <p v-if="!person.bio && !person.handle" class="citation" style="margin-block-start: var(--space-2)">
-                    No public bio — a pseudonymous profile is a first-class way to live a civic life · Art. I
+                    {{ t('c_gap_civic_social.person_profile.no_public_bio', 'No public bio — a pseudonymous profile is a first-class way to live a civic life · Art. I') }}
                 </p>
             </Card>
         </section>
@@ -460,51 +452,49 @@ function submitWithdrawEndorsement() {
             role="tabpanel"
             aria-labelledby="ptab-record"
         >
-            <Card as="section" title="Public record">
+            <Card as="section" :title="t('c_gap_civic_social.person_profile.public_record_title', 'Public record')">
                 <p v-if="isSelf" class="gloss" data-testid="open-full-record">
-                    This tab shows your public record. Your private half and settings are on the full record.
-                    <Link href="/civic/record">Open the full record</Link>
+                    {{ t('c_gap_civic_social.person_profile.record_self_gloss', 'This tab shows your public record. Your private half and settings are on the full record.') }}
+                    <Link href="/civic/record">{{ t('c_gap_civic_social.person_profile.open_full_record', 'Open the full record') }}</Link>
                 </p>
-                <h3>Confirmed residencies</h3>
+                <h3>{{ t('c_gap_civic_social.person_profile.confirmed_residencies', 'Confirmed residencies') }}</h3>
                 <p v-if="record.associations.length" class="cluster" style="gap: var(--space-1)">
                     <TagChip v-for="a in record.associations" :key="a.id">{{ a.name }}</TagChip>
                 </p>
-                <p v-else-if="isSelf" class="gloss">No confirmed residency yet.</p>
+                <p v-else-if="isSelf" class="gloss">{{ t('c_gap_civic_social.person_profile.no_residency_yet', 'No confirmed residency yet.') }}</p>
                 <p v-else class="gloss">
-                    Not shown — a person's named home chain appears when they choose a public
-                    profile. Where they act publicly (a candidacy, an office), that place is on
-                    those tabs.
+                    {{ t('c_gap_civic_social.person_profile.residency_not_shown', 'Not shown — a person\'s named home chain appears when they choose a public profile. Where they act publicly (a candidacy, an office), that place is on those tabs.') }}
                 </p>
 
-                <h3 style="margin-block-start: var(--space-3)">Civic actions</h3>
+                <h3 style="margin-block-start: var(--space-3)">{{ t('c_gap_civic_social.person_profile.civic_actions', 'Civic actions') }}</h3>
                 <p v-if="actionHistory?.notice" role="status">{{ actionHistory.notice }}</p>
                 <template v-if="actions.length">
                     <LogRow v-for="action in actions" :key="action.seq" :seq="action.seq">
                         {{ action.label }}
                         <span class="citation">{{ fmtDate(action.date) }}</span>
-                        <Link v-if="action.href" :href="action.href">Audit receipt</Link>
+                        <Link v-if="action.href" :href="action.href">{{ t('c_gap_civic_social.person_profile.audit_receipt', 'Audit receipt') }}</Link>
                     </LogRow>
                 </template>
-                <p v-else class="gloss">No additional civic activity entries on this page.</p>
+                <p v-else class="gloss">{{ t('c_gap_civic_social.person_profile.no_civic_activity', 'No additional civic activity entries on this page.') }}</p>
                 <HistoryPager v-if="actionHistory" :pages="actionHistory.pages" :first="actionHistory.pages.first"
-                    :only="['actionHistory']" cursor-key="profile_actions_cursor" label="Public activity pages" />
+                    :only="['actionHistory']" cursor-key="profile_actions_cursor" :label="t('c_gap_civic_social.person_profile.public_activity_pages', 'Public activity pages')" />
 
                 <section v-if="publications" aria-labelledby="profile-publications-title">
-                    <h3 id="profile-publications-title">Published records</h3>
+                    <h3 id="profile-publications-title">{{ t('c_gap_civic_social.person_profile.published_records', 'Published records') }}</h3>
                     <p v-if="publications.notice" role="status">{{ publications.notice }}</p>
                     <article v-for="publication in publications.rows" :key="publication.id" class="profile-publication">
                         <h4>{{ publication.title }}</h4>
-                        <p class="citation">{{ publication.kind }} · {{ fmtDate(publication.date) }} · Publication #{{ publication.seq }}</p>
-                        <p v-if="publication.corrects">Corrects an earlier publication ({{ publication.corrects }}).</p>
-                        <details v-if="publication.body"><summary>Read published text</summary><p style="white-space: pre-wrap">{{ publication.body }}</p></details>
-                        <Link v-if="publication.audit_href" :href="publication.audit_href">Audit receipt →</Link>
+                        <p class="citation">{{ t('c_gap_civic_social.person_profile.publication_meta', { kind: publication.kind, date: fmtDate(publication.date), seq: publication.seq }) }}</p>
+                        <p v-if="publication.corrects">{{ t('c_gap_civic_social.person_profile.corrects_publication', { corrects: publication.corrects }) }}</p>
+                        <details v-if="publication.body"><summary>{{ t('c_gap_civic_social.person_profile.read_published_text', 'Read published text') }}</summary><p style="white-space: pre-wrap">{{ publication.body }}</p></details>
+                        <Link v-if="publication.audit_href" :href="publication.audit_href">{{ t('c_gap_civic_social.person_profile.audit_receipt_arrow', 'Audit receipt →') }}</Link>
                     </article>
-                    <p v-if="!publications.rows.length">No published documents on this page.</p>
+                    <p v-if="!publications.rows.length">{{ t('c_gap_civic_social.person_profile.no_published_docs', 'No published documents on this page.') }}</p>
                     <HistoryPager :pages="publications.pages" :first="publications.pages.first" :only="['publications']"
-                        cursor-key="profile_publications_cursor" label="Published record pages" />
+                        cursor-key="profile_publications_cursor" :label="t('c_gap_civic_social.person_profile.published_record_pages', 'Published record pages')" />
                 </section>
 
-                <h3 style="margin-block-start: var(--space-3)">Endorsements given — public by their choice</h3>
+                <h3 style="margin-block-start: var(--space-3)">{{ t('c_gap_civic_social.person_profile.endorsements_given_heading', 'Endorsements given — public by their choice') }}</h3>
                 <template v-if="givenEndorsements.length">
                     <p class="cluster" style="gap: var(--space-1)">
                         <Link
@@ -514,16 +504,15 @@ function submitWithdrawEndorsement() {
                         >{{ en.name }}</Link>
                     </p>
                 </template>
-                <p v-else class="gloss">No public endorsements on this page.</p>
+                <p v-else class="gloss">{{ t('c_gap_civic_social.person_profile.no_public_endorsements', 'No public endorsements on this page.') }}</p>
                 <template v-if="endorsementsGiven">
                     <p v-if="endorsementsGiven.notice" role="status">{{ endorsementsGiven.notice }}</p>
                     <HistoryPager :pages="endorsementsGiven.pages" :first="endorsementsGiven.pages.first" :only="['endorsementsGiven']"
-                        cursor-key="endorsement_given_cursor" label="Endorsements given pages" />
+                        cursor-key="endorsement_given_cursor" :label="t('c_gap_civic_social.person_profile.endorsements_given_pages', 'Endorsements given pages')" />
                 </template>
 
                 <p class="citation" style="margin-block-start: var(--space-2)">
-                    Participation is public; ballot choices are secret. The record can only ever be
-                    added to — never quietly edited · Art. II §2
+                    {{ t('c_gap_civic_social.person_profile.participation_public', 'Participation is public; ballot choices are secret. The record can only ever be added to — never quietly edited · Art. II §2') }}
                 </p>
             </Card>
         </section>
@@ -537,9 +526,8 @@ function submitWithdrawEndorsement() {
             aria-labelledby="ptab-candidacy"
         >
             <Banner v-if="cand" tone="info">
-                Candidacy record for {{ person.display }}
-                <template v-if="race"> — {{ race.label }} · {{ race.seats }} seats</template>.
-                A candidacy is not a separate identity: it is this same profile, carried onto the ballot.
+                {{ t('c_gap_civic_social.person_profile.candidacy_record_for', { display: person.display }) }}<template v-if="race"> {{ t('c_gap_civic_social.person_profile.candidacy_race_detail', { label: race.label, seats: race.seats }) }}</template>.
+                {{ t('c_gap_civic_social.person_profile.candidacy_not_separate', 'A candidacy is not a separate identity: it is this same profile, carried onto the ballot.') }}
             </Banner>
 
             <!-- more than one candidacy: pick which race to inspect -->
@@ -557,62 +545,60 @@ function submitWithdrawEndorsement() {
                 <Card as="section">
                     <template #title>
                         <h2>
-                            Platform statement
-                            <StatusBadge v-if="cand.incumbent" tone="neutral">incumbent</StatusBadge>
-                            <StatusBadge v-if="cand.withdrawn" tone="danger">withdrawn — recorded on the public record</StatusBadge>
+                            {{ t('c_gap_civic_social.person_profile.platform_statement', 'Platform statement') }}
+                            <StatusBadge v-if="cand.incumbent" tone="neutral">{{ t('c_gap_civic_social.person_profile.incumbent', 'incumbent') }}</StatusBadge>
+                            <StatusBadge v-if="cand.withdrawn" tone="danger">{{ t('c_gap_civic_social.person_profile.withdrawn_recorded', 'withdrawn — recorded on the public record') }}</StatusBadge>
                         </h2>
                     </template>
                     <p v-if="cand.statement">{{ cand.statement }}</p>
-                    <p v-else class="gloss">No platform statement published yet.</p>
+                    <p v-else class="gloss">{{ t('c_gap_civic_social.person_profile.no_statement_yet', 'No platform statement published yet.') }}</p>
                     <p class="cluster" style="gap: var(--space-1)">
                         <TagChip v-for="tag in cand.position_tags" :key="tag">{{ tag }}</TagChip>
                     </p>
                     <p v-if="race" class="citation">
-                        {{ race.label }} · {{ race.seats }} seats · top {{ race.finalist_count }} advance · CLK-21
+                        {{ t('c_gap_civic_social.person_profile.race_meta', { label: race.label, seats: race.seats, count: race.finalist_count }) }}
                     </p>
-                    <CitationLine text="Shown on the open ballot and the ranked ballot. Every edit is appended to the public record." />
+                    <CitationLine :text="t('c_gap_civic_social.person_profile.statement_citation', 'Shown on the open ballot and the ranked ballot. Every edit is appended to the public record.')" />
                     <StateStrip :states="candidacyPanel.machine" :current="candidacyPanel.currentState" style="margin-block-start: var(--space-3)" />
                 </Card>
 
-                <Card as="section" title="Approval standing">
+                <Card as="section" :title="t('c_gap_civic_social.person_profile.approval_standing', 'Approval standing')">
                     <template v-if="standing">
                         <div class="cluster" style="gap: var(--space-6)">
-                            <Stat :value="`#${standing.rank} of ${standing.of}`" label="full-race rank" />
-                            <Stat :value="standing.approvals.toLocaleString()" label="approvals — aggregate · updated daily" accent />
-                            <Stat :value="race?.finalist_count ?? '—'" label="finalist places (X)" />
+                            <Stat :value="t('c_gap_civic_social.person_profile.rank_of', { rank: standing.rank, of: standing.of })" :label="t('c_gap_civic_social.person_profile.full_race_rank', 'full-race rank')" />
+                            <Stat :value="standing.approvals.toLocaleString()" :label="t('c_gap_civic_social.person_profile.approvals_label', 'approvals — aggregate · updated daily')" accent />
+                            <Stat :value="race?.finalist_count ?? '—'" :label="t('c_gap_civic_social.person_profile.finalist_places', 'finalist places (X)')" />
                         </div>
                         <div style="margin-block-start: var(--space-3)">
                             <ThresholdMeter
                                 :value="standing.approvals"
                                 :max="Math.max(standing.topApprovals, standing.lineApprovals, standing.approvals, 1)"
                                 :threshold="standing.lineApprovals"
-                                label="Approvals relative to the finalist line"
+                                :label="t('c_gap_civic_social.person_profile.approvals_meter_label', 'Approvals relative to the finalist line')"
                             >
                                 <template v-if="standing.isFinalist">
-                                    rank #{{ standing.rank }} — inside the top {{ race?.finalist_count }} (finalist track)
+                                    {{ t('c_gap_civic_social.person_profile.rank_inside_top', { rank: standing.rank, count: race?.finalist_count }) }}
                                 </template>
                                 <template v-else>
-                                    below the finalist line · write-in eligible
+                                    {{ t('c_gap_civic_social.person_profile.below_line', 'below the finalist line · write-in eligible') }}
                                 </template>
                                 <template #note>
-                                    gold tick = finalist line · top {{ race?.finalist_count }} of {{ standing.of }} · CLK-21
+                                    {{ t('c_gap_civic_social.person_profile.meter_note', { count: race?.finalist_count, of: standing.of }) }}
                                 </template>
                             </ThresholdMeter>
                         </div>
                         <p class="citation" style="margin-block-start: var(--space-2)">
-                            {{ standing.frozen ? 'frozen at the finalist cutoff' : `aggregate as of ${standing.asOf} · updated daily` }}
-                            · individual approvals are secret · Art. II §2
+                            {{ standing.frozen ? t('c_gap_civic_social.person_profile.frozen_cutoff', 'frozen at the finalist cutoff') : t('c_gap_civic_social.person_profile.aggregate_asof', { asOf: standing.asOf }) }}
+                            {{ t('c_gap_civic_social.person_profile.approvals_secret', '· individual approvals are secret · Art. II §2') }}
                         </p>
                     </template>
                     <template v-else>
                         <p class="gloss">
                             <template v-if="!race">
-                                Awaiting board validation — the race binding (and with it the standing)
-                                appears once F-ELB-002 validates residency.
+                                {{ t('c_gap_civic_social.person_profile.awaiting_validation', 'Awaiting board validation — the race binding (and with it the standing) appears once F-ELB-002 validates residency.') }}
                             </template>
                             <template v-else>
-                                No standings aggregate exists for this race yet — see the count on the
-                                open ballot once the daily rollup runs.
+                                {{ t('c_gap_civic_social.person_profile.no_standings', 'No standings aggregate exists for this race yet — see the count on the open ballot once the daily rollup runs.') }}
                             </template>
                         </p>
                         <Btn
@@ -621,29 +607,28 @@ function submitWithdrawEndorsement() {
                             :href="`/elections/${race.election_id}/open-ballot?race=${race.id}`"
                             variant="secondary"
                             size="sm"
-                        >See the race standings</Btn>
+                        >{{ t('c_gap_civic_social.person_profile.see_race_standings', 'See the race standings') }}</Btn>
                     </template>
                 </Card>
 
                 <div class="grid-2">
-                    <Card as="section" title="Endorsements">
+                    <Card as="section" :title="t('c_gap_civic_social.person_profile.endorsements', 'Endorsements')">
                         <CandidacyEndorsements :organizations="endorsementOrganizations" :individuals="endorsementIndividuals" :web="endorsementWeb" />
 
                         <!-- EO-5 — your own endorsement (F-IND-025/026). Never shown to the candidate. -->
                         <section v-if="!isOwner" class="endorse-control" style="border-block-start: 1px solid var(--border, #344054); margin-block-start: var(--space-3); padding-block-start: var(--space-3)">
-                            <h3>Your endorsement</h3>
+                            <h3>{{ t('c_gap_civic_social.person_profile.your_endorsement', 'Your endorsement') }}</h3>
                             <p class="citation">
-                                An endorsement is your own public act — separate from the secret approval vote,
-                                which is anonymous, and from an organisation's endorsement, which its agent grants.
+                                {{ t('c_gap_civic_social.person_profile.endorsement_explainer', 'An endorsement is your own public act — separate from the secret approval vote, which is anonymous, and from an organisation\'s endorsement, which its agent grants.') }}
                             </p>
 
                             <p v-if="!signedIn" class="citation" role="note">
-                                Residents of this race can endorse this candidate. Sign in to add yours.
+                                {{ t('c_gap_civic_social.person_profile.endorse_signin', 'Residents of this race can endorse this candidate. Sign in to add yours.') }}
                             </p>
 
                             <template v-else-if="endorsesNow">
                                 <p role="status">
-                                    You endorse this candidate — {{ viewerEndorsement.is_public ? 'public on the record' : 'private (only you can see it)' }}.
+                                    {{ viewerEndorsement.is_public ? t('c_gap_civic_social.person_profile.you_endorse_public', 'You endorse this candidate — public on the record.') : t('c_gap_civic_social.person_profile.you_endorse_private', 'You endorse this candidate — private (only you can see it).') }}
                                 </p>
                                 <Btn
                                     v-if="canWithdrawEndorsement"
@@ -651,13 +636,13 @@ function submitWithdrawEndorsement() {
                                     size="sm"
                                     :disabled="endorseBusy"
                                     @click="submitWithdrawEndorsement"
-                                >{{ endorseBusy ? 'Withdrawing…' : 'Withdraw my endorsement' }}</Btn>
-                                <p v-else class="citation">You can withdraw this endorsement while the candidacy stands and you remain in this race.</p>
+                                >{{ endorseBusy ? t('c_gap_civic_social.person_profile.withdrawing', 'Withdrawing…') : t('c_gap_civic_social.person_profile.withdraw_my_endorsement', 'Withdraw my endorsement') }}</Btn>
+                                <p v-else class="citation">{{ t('c_gap_civic_social.person_profile.withdraw_window', 'You can withdraw this endorsement while the candidacy stands and you remain in this race.') }}</p>
                             </template>
 
                             <div v-else-if="canEndorse" class="endorse-choice">
                                 <p class="citation">
-                                    Your endorsement is private by default. Choose to make it public before you file.
+                                    {{ t('c_gap_civic_social.person_profile.endorse_private_default', 'Your endorsement is private by default. Choose to make it public before you file.') }}
                                 </p>
                                 <Btn
                                     variant="ghost"
@@ -665,15 +650,14 @@ function submitWithdrawEndorsement() {
                                     :pressed="endorsePublic"
                                     :disabled="endorseBusy"
                                     @click="endorsePublic = !endorsePublic"
-                                >{{ endorsePublic ? 'Public endorsement' : 'Private endorsement' }}</Btn>
+                                >{{ endorsePublic ? t('c_gap_civic_social.person_profile.public_endorsement', 'Public endorsement') : t('c_gap_civic_social.person_profile.private_endorsement', 'Private endorsement') }}</Btn>
                                 <Btn variant="primary" size="sm" :disabled="endorseBusy" @click="submitEndorse">
-                                    {{ endorseBusy ? 'Filing F-IND-025…' : 'Endorse this candidate' }}
+                                    {{ endorseBusy ? t('c_gap_civic_social.person_profile.filing_endorse', 'Filing F-IND-025…') : t('c_gap_civic_social.person_profile.endorse_this_candidate', 'Endorse this candidate') }}
                                 </Btn>
                             </div>
 
                             <p v-else class="citation" role="note">
-                                Endorsing requires an active association in this race, while the candidacy stands.
-                                You can endorse, withdraw and endorse again at any time.
+                                {{ t('c_gap_civic_social.person_profile.endorse_requires', 'Endorsing requires an active association in this race, while the candidacy stands. You can endorse, withdraw and endorse again at any time.') }}
                             </p>
 
                             <p v-if="endorseNotice" role="status">{{ endorseNotice }}</p>
@@ -681,39 +665,38 @@ function submitWithdrawEndorsement() {
                         </section>
                     </Card>
 
-                    <Card as="section" title="The record rides along">
+                    <Card as="section" :title="t('c_gap_civic_social.person_profile.record_rides_title', 'The record rides along')">
                         <p>
-                            Every candidacy carries the person's full public record with it —
-                            auto-attached, never editable by the candidate. It is the
-                            <a href="#ppanel-record" @click.prevent="selectTab('record', true)">Record tab</a>
-                            of this same profile.
+                            {{ t('c_gap_civic_social.person_profile.record_rides_lead', 'Every candidacy carries the person\'s full public record with it — auto-attached, never editable by the candidate. It is the') }}
+                            <a href="#ppanel-record" @click.prevent="selectTab('record', true)">{{ t('c_gap_civic_social.person_profile.record_tab_word', 'Record tab') }}</a>
+                            {{ t('c_gap_civic_social.person_profile.record_rides_tail', 'of this same profile.') }}
                         </p>
                         <template v-if="isOwner">
-                            <h3 style="margin-block-start: var(--space-3)">Endorsement requests <span class="citation">visible only to you</span></h3>
+                            <h3 style="margin-block-start: var(--space-3)">{{ t('c_gap_civic_social.person_profile.endorsement_requests_heading', 'Endorsement requests') }} <span class="citation">{{ t('c_gap_civic_social.person_profile.visible_only_to_you', 'visible only to you') }}</span></h3>
                             <DataTable
                                 v-if="endorsementRequests?.rows.length"
                                 :columns="requestColumns"
                                 :rows="endorsementRequests.rows"
-                                caption="Endorsement requests filed by this candidacy"
+                                :caption="t('c_gap_civic_social.person_profile.requests_caption', 'Endorsement requests filed by this candidacy')"
                             >
                                 <template #cell-requested_at="{ value }">{{ fmtDate(value) }}</template>
                                 <template #cell-status="{ value }">
                                     <StatusBadge :tone="value === 'granted' ? 'success' : value === 'declined' ? 'danger' : 'info'">
-                                        {{ value }}{{ value === 'granted' ? ' · grants R-07' : '' }}
+                                        {{ value }}{{ value === 'granted' ? t('c_gap_civic_social.person_profile.grants_r07', ' · grants R-07') : '' }}
                                     </StatusBadge>
                                 </template>
                             </DataTable>
-                            <p v-else class="gloss">No requests on this page.</p>
+                            <p v-else class="gloss">{{ t('c_gap_civic_social.person_profile.no_requests', 'No requests on this page.') }}</p>
                             <template v-if="endorsementRequests">
                                 <p v-if="endorsementRequests.notice" role="status">{{ endorsementRequests.notice }}</p>
                                 <HistoryPager :pages="endorsementRequests.pages" :first="endorsementRequests.pages.first" :only="['endorsementRequests']"
-                                    cursor-key="endorsement_requests_cursor" label="Endorsement request pages" />
+                                    cursor-key="endorsement_requests_cursor" :label="t('c_gap_civic_social.person_profile.endorsement_request_pages', 'Endorsement request pages')" />
                             </template>
 
                             <form novalidate style="margin-block-start: var(--space-3)" @submit.prevent="submitRequest">
                                 <Field
-                                    label="Ask an organization for its endorsement — F-CAN-002"
-                                    hint="The org's agent decides via F-ORG-002; a grant is public and grants R-07."
+                                    :label="t('c_gap_civic_social.person_profile.ask_org_label', 'Ask an organization for its endorsement — F-CAN-002')"
+                                    :hint="t('c_gap_civic_social.person_profile.ask_org_hint', 'The org\'s agent decides via F-ORG-002; a grant is public and grants R-07.')"
                                     :error="requestForm.errors.organization_id || errors.constitution"
                                 >
                                     <template #control="{ id, invalid, describedBy }">
@@ -724,31 +707,29 @@ function submitWithdrawEndorsement() {
                                             :aria-invalid="invalid ? 'true' : undefined"
                                             :aria-describedby="describedBy"
                                         >
-                                            <option value="" disabled>— select an organization —</option>
+                                            <option value="" disabled>{{ t('c_gap_civic_social.person_profile.select_org', '— select an organization —') }}</option>
                                             <option v-for="org in candidacyPanel.organizations" :key="org.id" :value="org.id">{{ org.name }}</option>
                                         </select>
                                     </template>
                                 </Field>
                                 <Btn type="submit" variant="secondary" size="sm" :disabled="requestForm.processing || !requestForm.organization_id">
-                                    {{ requestForm.processing ? 'Filing F-CAN-002…' : 'Request endorsement' }}
+                                    {{ requestForm.processing ? t('c_gap_civic_social.person_profile.filing_request', 'Filing F-CAN-002…') : t('c_gap_civic_social.person_profile.request_endorsement', 'Request endorsement') }}
                                 </Btn>
                             </form>
                         </template>
                         <p v-else class="citation" style="margin-block-start: var(--space-2)">
-                            Statement edits, endorsement requests, and withdrawal appear on this tab
-                            only when {{ person.display }} opens their own profile — every change
-                            lands on the public record.
+                            {{ t('c_gap_civic_social.person_profile.self_only_note', { display: person.display }) }}
                         </p>
                     </Card>
                 </div>
 
                 <!-- ──────────────────────────── manage (self only, F-CAN-001/003) -->
                 <template v-if="isOwner">
-                    <Card as="section" title="Manage this candidacy — visible only to you">
+                    <Card as="section" :title="t('c_gap_civic_social.person_profile.manage_candidacy_title', 'Manage this candidacy — visible only to you')">
                         <form novalidate @submit.prevent="submitStatement">
                             <Field
-                                label="Platform statement — F-CAN-001"
-                                hint="Public and self-managed; every save appends to your public record."
+                                :label="t('c_gap_civic_social.person_profile.platform_statement_label', 'Platform statement — F-CAN-001')"
+                                :hint="t('c_gap_civic_social.person_profile.platform_statement_hint', 'Public and self-managed; every save appends to your public record.')"
                                 :error="statementForm.errors.platform_statement"
                             >
                                 <template #control="{ id, invalid, describedBy }">
@@ -763,37 +744,36 @@ function submitWithdrawEndorsement() {
                                 </template>
                             </Field>
                             <Btn type="submit" variant="secondary" size="sm" :disabled="statementForm.processing">
-                                {{ statementForm.processing ? 'Filing F-CAN-001…' : 'Save statement — F-CAN-001' }}
+                                {{ statementForm.processing ? t('c_gap_civic_social.person_profile.filing_statement', 'Filing F-CAN-001…') : t('c_gap_civic_social.person_profile.save_statement', 'Save statement — F-CAN-001') }}
                             </Btn>
                         </form>
 
                         <hr style="margin-block: var(--space-4)" />
 
-                        <h3>Withdraw candidacy — F-CAN-003</h3>
+                        <h3>{{ t('c_gap_civic_social.person_profile.withdraw_candidacy_heading', 'Withdraw candidacy — F-CAN-003') }}</h3>
                         <p class="cc-small">
-                            Withdrawal is allowed until the ballot lock at the finalist cutoff. It is
-                            recorded permanently on the public record.
+                            {{ t('c_gap_civic_social.person_profile.withdrawal_window', 'Withdrawal is allowed until the ballot lock at the finalist cutoff. It is recorded permanently on the public record.') }}
                         </p>
                         <template v-if="cand.withdrawn">
-                            <StatusBadge tone="danger">Withdrawn — recorded on the public record</StatusBadge>
+                            <StatusBadge tone="danger">{{ t('c_gap_civic_social.person_profile.withdrawn_badge', 'Withdrawn — recorded on the public record') }}</StatusBadge>
                         </template>
                         <template v-else-if="!candidacyPanel.can.withdraw">
-                            <Btn variant="danger" disabled title="ballot locked at the finalist cutoff — withdrawal closed · CLK-21">
-                                Withdraw candidacy
+                            <Btn variant="danger" disabled :title="t('c_gap_civic_social.person_profile.ballot_locked_title', 'ballot locked at the finalist cutoff — withdrawal closed · CLK-21')">
+                                {{ t('c_gap_civic_social.person_profile.withdraw_candidacy', 'Withdraw candidacy') }}
                             </Btn>
-                            <CitationLine text="ballot locked at the finalist cutoff — withdrawal closed · CLK-21" />
+                            <CitationLine :text="t('c_gap_civic_social.person_profile.ballot_locked_title', 'ballot locked at the finalist cutoff — withdrawal closed · CLK-21')" />
                         </template>
                         <template v-else>
                             <div class="cluster">
                                 <Btn v-if="!withdrawConfirming" variant="danger" icon="alert-triangle" @click="withdrawConfirming = true">
-                                    Withdraw candidacy
+                                    {{ t('c_gap_civic_social.person_profile.withdraw_candidacy', 'Withdraw candidacy') }}
                                 </Btn>
                                 <template v-else>
-                                    <span><strong>Withdraw from this race? This cannot be undone.</strong></span>
+                                    <span><strong>{{ t('c_gap_civic_social.person_profile.withdraw_confirm', 'Withdraw from this race? This cannot be undone.') }}</strong></span>
                                     <Btn variant="danger" :disabled="withdrawForm.processing" @click="submitWithdraw">
-                                        {{ withdrawForm.processing ? 'Filing F-CAN-003…' : 'Yes, withdraw — F-CAN-003' }}
+                                        {{ withdrawForm.processing ? t('c_gap_civic_social.person_profile.filing_withdraw', 'Filing F-CAN-003…') : t('c_gap_civic_social.person_profile.yes_withdraw', 'Yes, withdraw — F-CAN-003') }}
                                     </Btn>
-                                    <Btn variant="ghost" @click="withdrawConfirming = false">Keep running</Btn>
+                                    <Btn variant="ghost" @click="withdrawConfirming = false">{{ t('c_gap_civic_social.person_profile.keep_running', 'Keep running') }}</Btn>
                                 </template>
                             </div>
                         </template>
@@ -812,9 +792,9 @@ function submitWithdrawEndorsement() {
         >
             <Card v-if="officeHistory" as="section"><OfficeHistory :history="officeHistory" /></Card>
             <p class="citation">
-                Every act taken in office is public and uneditable — it lives on the
-                <a href="#ppanel-record" @click.prevent="selectTab('record', true)">Record tab</a>
-                and in the institution's own records · Art. II
+                {{ t('c_gap_civic_social.person_profile.office_note_lead', 'Every act taken in office is public and uneditable — it lives on the') }}
+                <a href="#ppanel-record" @click.prevent="selectTab('record', true)">{{ t('c_gap_civic_social.person_profile.record_tab_word', 'Record tab') }}</a>
+                {{ t('c_gap_civic_social.person_profile.office_note_tail', 'and in the institution\'s own records · Art. II') }}
             </p>
         </section>
 
@@ -826,31 +806,29 @@ function submitWithdrawEndorsement() {
             role="tabpanel"
             aria-labelledby="ptab-achievements"
         >
-            <Card as="section" title="Achievements">
+            <Card as="section" :title="t('c_gap_civic_social.person_profile.achievements_title', 'Achievements')">
                 <template v-if="achievements && achievements.length">
                     <div class="role-grid">
                         <div v-for="medal in achievements" :key="medal.id" class="role-card">
                             <Icon name="award" />
                             <div>
                                 <strong>{{ achievementTitle(medal.title, t) }}</strong>
-                                <p class="citation" style="margin: 0">Earned {{ fmtDate(medal.earned_at) }}</p>
+                                <p class="citation" style="margin: 0">{{ t('c_gap_civic_social.person_profile.earned', { date: fmtDate(medal.earned_at) }) }}</p>
                             </div>
                         </div>
                     </div>
                 </template>
                 <p v-else class="gloss">
                     <template v-if="isSelf">
-                        Nothing earned yet — <Link href="/journeys">a guided journey</Link> is the
-                        natural first one.
+                        {{ t('c_gap_civic_social.person_profile.nothing_earned_lead', 'Nothing earned yet —') }} <Link href="/journeys">{{ t('c_gap_civic_social.person_profile.a_guided_journey', 'a guided journey') }}</Link> {{ t('c_gap_civic_social.person_profile.natural_first', 'is the natural first one.') }}
                     </template>
-                    <template v-else>Nothing shown here yet.</template>
+                    <template v-else>{{ t('c_gap_civic_social.person_profile.nothing_shown', 'Nothing shown here yet.') }}</template>
                 </p>
                 <p style="margin-block-start: var(--space-3)">
-                    <Btn :as="Link" href="/achievements" variant="ghost" size="sm">Browse the full catalog</Btn>
+                    <Btn :as="Link" href="/achievements" variant="ghost" size="sm">{{ t('c_gap_civic_social.person_profile.browse_catalog', 'Browse the full catalog') }}</Btn>
                 </p>
                 <p class="citation">
-                    A list, never a score — nothing here grants any vote, seat, role or
-                    eligibility, ever · CI-1 · PI-6
+                    {{ t('c_gap_civic_social.person_profile.list_never_score', 'A list, never a score — nothing here grants any vote, seat, role or eligibility, ever · CI-1 · PI-6') }}
                 </p>
             </Card>
         </section>

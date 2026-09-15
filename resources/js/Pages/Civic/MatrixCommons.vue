@@ -150,14 +150,14 @@ useLiveRoom({
         <Card v-if="roomId && myUserId" class="mb-4">
             <div class="flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                    <h3 class="text-base font-semibold">Invite someone to join you</h3>
+                    <h3 class="text-base font-semibold">{{ text('invite_title') }}</h3>
                     <p class="text-sm opacity-70">
-                        Share a link to this {{ isHalls ? 'hall' : 'square' }} and its live call — they can sign up and land right here.
+                        {{ text('invite_share', { space: isHalls ? text('space_hall') : text('space_square') }) }}
                     </p>
                 </div>
                 <InviteButton
                     :spec="{ kind: 'call', jurisdiction_id: jurisdictionId, space: isHalls ? 'halls' : 'square' }"
-                    label="Invite a friend"
+                    :label="text('invite_friend')"
                 />
             </div>
         </Card>
@@ -174,11 +174,11 @@ useLiveRoom({
 
         <Card v-if="roomId" class="mb-4">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-base font-semibold">Timeline</h3>
+                <h3 class="text-base font-semibold">{{ text('timeline') }}</h3>
             </div>
 
             <p v-if="messages.length === 0" class="text-sm opacity-70 py-6 text-center">
-                No messages yet{{ reachable ? '' : ' (homeserver offline)' }}.
+                {{ reachable ? text('no_messages') : text('no_messages_offline') }}
             </p>
 
             <ul v-else class="space-y-3">
@@ -186,19 +186,19 @@ useLiveRoom({
                     <div class="flex items-center gap-2 text-sm">
                         <span class="font-medium">{{ senderLabel(m.sender) }}</span>
                         <StatusBadge v-if="m.seat" tone="info">{{ m.seat }}</StatusBadge>
-                        <span v-if="mine(m)" class="text-xs opacity-60">you</span>
+                        <span v-if="mine(m)" class="text-xs opacity-60">{{ text('you') }}</span>
                     </div>
                     <p class="mt-1 whitespace-pre-wrap">{{ m.body }}</p>
                     <div v-if="isHalls && mine(m)" class="mt-1">
-                        <Btn size="sm" variant="ghost" @click="fileTestimony(m)">File as testimony</Btn>
+                        <Btn size="sm" variant="ghost" @click="fileTestimony(m)">{{ text('file_testimony') }}</Btn>
                     </div>
                 </li>
             </ul>
         </Card>
 
-        <Card as="section" v-if="roomId && myUserId" title="Post to the live commons">
+        <Card as="section" v-if="roomId && myUserId" :title="text('post_to_commons')">
             <form @submit.prevent="submit" class="space-y-3">
-                <Field label="Message" :error="compose.errors.body">
+                <Field :label="text('message_label')" :error="compose.errors.body">
                     <template #control="{ id, invalid, describedBy }">
                         <textarea
                             :id="id"
@@ -206,13 +206,13 @@ useLiveRoom({
                             rows="3"
                             class="form-textarea w-full"
                             maxlength="20000"
-                            placeholder="Speak in the commons…"
+                            :placeholder="text('compose_placeholder')"
                             :aria-invalid="invalid ? 'true' : undefined"
                             :aria-describedby="describedBy"
                         ></textarea>
                     </template>
                 </Field>
-                <Btn type="submit" :disabled="compose.processing || !compose.body.trim()">Post</Btn>
+                <Btn type="submit" :disabled="compose.processing || !compose.body.trim()">{{ text('post') }}</Btn>
             </form>
         </Card>
     </PageScaffold>

@@ -73,8 +73,8 @@ useLiveRoom({ keys: ['roster', 'rosterTruncated', 'displayNames', 'floorHolder',
         <p v-if="rosterTruncated" class="room-note">{{ t('c_rooms.roster_preview', { count: rosterLimit }, 'This view shows up to {count} assigned seats. Open the official workspace for the full membership. Other callers appear as they join.') }}</p>
         <section class="room-floor-controls" aria-labelledby="room-floor-heading">
             <h2 id="room-floor-heading">{{ text('floor_heading', 'Speaking floor') }}</h2>
-            <p role="status">{{ floorName ? text('recognized_speaker', 'Recognized to speak: ') + floorName : text('floor_open', 'The floor is open.') }}</p>
-            <p v-if="witnessName" role="status">{{ text('active_witness', 'At the witness stand: ') + witnessName }}</p>
+            <p role="status">{{ floorName ? text('recognized_speaker', { name: floorName }) : text('floor_open', 'The floor is open.') }}</p>
+            <p v-if="witnessName" role="status">{{ text('active_witness', { name: witnessName }) }}</p>
             <p v-if="variant === 'court'" class="room-note">{{ text('witness_position_note', 'The presiding judge can invite a waiting participant to the witness stand. Formal testimony is recorded through the case workspace.') }}</p>
             <div class="room-links">
                 <button v-if="floorControls.canRequest" type="button" class="btn btn--secondary" :disabled="floorForm.processing" @click="floorAction(floorControls.myHandRaised ? 'lower' : 'raise')">{{ floorControls.myHandRaised ? text('lower_hand', 'Lower my hand') : text('raise_hand', 'Raise my hand') }}</button>
@@ -84,12 +84,12 @@ useLiveRoom({ keys: ['roster', 'rosterTruncated', 'displayNames', 'floorHolder',
                 </template>
             </div>
             <p v-for="(error, key) in floorForm.errors" :key="key" role="alert">{{ error }}</p>
-            <ol v-if="floorControls.queue?.length" class="room-messages" aria-label="Waiting to speak">
+            <ol v-if="floorControls.queue?.length" class="room-messages" :aria-label="text('queue_aria', 'Waiting to speak')">
                 <li v-for="person in floorControls.queue" :key="person.handle">
                     <strong>{{ person.display_name || senderName(person.handle) }}</strong>
                     <div v-if="floorControls.canPreside" class="room-links">
-                        <button type="button" class="btn btn--secondary" :disabled="floorForm.processing" :aria-label="'Recognize ' + (person.display_name || senderName(person.handle))" @click="floorAction('recognize', person.handle)">{{ text('recognize_person', 'Recognize') }}</button>
-                        <button v-if="variant === 'court'" type="button" class="btn btn--secondary" :disabled="floorForm.processing" :aria-label="'Invite ' + (person.display_name || senderName(person.handle)) + ' to witness stand'" @click="floorAction('witness', person.handle)">{{ text('call_witness', 'Invite to witness stand') }}</button>
+                        <button type="button" class="btn btn--secondary" :disabled="floorForm.processing" :aria-label="text('recognize_aria', { name: person.display_name || senderName(person.handle) })" @click="floorAction('recognize', person.handle)">{{ text('recognize_person', 'Recognize') }}</button>
+                        <button v-if="variant === 'court'" type="button" class="btn btn--secondary" :disabled="floorForm.processing" :aria-label="text('invite_witness_aria', { name: person.display_name || senderName(person.handle) })" @click="floorAction('witness', person.handle)">{{ text('call_witness', 'Invite to witness stand') }}</button>
                     </div>
                 </li>
             </ol>

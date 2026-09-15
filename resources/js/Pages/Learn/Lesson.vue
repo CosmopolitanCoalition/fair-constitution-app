@@ -148,7 +148,7 @@ const next = computed(() => {
         </section>
 
         <section v-if="next" aria-labelledby="next-h" class="stack">
-            <h2 id="next-h">Up next</h2>
+            <h2 id="next-h">{{ t('c_learn.ui.up_next', 'Up next') }}</h2>
             <p>
                 <Link :href="`/learn/${track.key}/${next.key}`" class="btn">
                     {{ t(next.title) }} <Icon name="arrow-right" size="sm" />
