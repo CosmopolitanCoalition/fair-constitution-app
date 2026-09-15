@@ -15,6 +15,7 @@
  */
 import { computed, ref, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -32,6 +33,7 @@ import VoteCastList from '@/Components/Legislature/VoteCastList.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -95,7 +97,7 @@ function defaultRankItems() {
     return order.map((id) => ({
         id,
         name: byId.get(id)?.name ?? id,
-        chips: byId.get(id)?.status === 'created' ? ['awaiting assignment'] : [],
+        chips: byId.get(id)?.status === 'created' ? [t('c_legislature_pages.committees.chip_awaiting', 'awaiting assignment')] : [],
     }));
 }
 
@@ -117,9 +119,9 @@ function runAssignment() {
 }
 
 const tieBreakColumns = [
-    { key: 'committee', label: 'Committee' },
-    { key: 'won', label: 'Seat taken by (share)' },
-    { key: 'lost', label: 'Next preference honored for (share)' },
+    { key: 'committee', label: t('c_legislature_pages.committees.tb_col_committee', 'Committee') },
+    { key: 'won', label: t('c_legislature_pages.committees.tb_col_won', 'Seat taken by (share)') },
+    { key: 'lost', label: t('c_legislature_pages.committees.tb_col_lost', 'Next preference honored for (share)') },
 ];
 const tieBreakRows = computed(() =>
     (props.assignment?.tie_breaks ?? []).map((contest, i) => ({
@@ -173,12 +175,9 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`Committees — ${legislature.name}`">
+    <PageScaffold :surface="surface" :title="t('c_legislature_pages.committees.title', { name: legislature.name })">
         <template #intro>
-            Committee seats are assigned from each member's own ranked preferences — every
-            member answers for themselves, with no party machinery in between. When two members
-            want the same last seat, it goes to whoever won the larger share of the vote at
-            the election.
+            {{ t('c_legislature_pages.committees.intro', 'Committee seats are assigned from each member\'s own ranked preferences — every member answers for themselves, with no party machinery in between. When two members want the same last seat, it goes to whoever won the larger share of the vote at the election.') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -189,11 +188,11 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
             v-if="can.create && formMeta('F-LEG-009')"
             :form="formMeta('F-LEG-009')"
             :inertia-form="createForm"
-            submit-label="File creation act"
-            processing-label="Filing…"
+            :submit-label="t('c_legislature_pages.committees.submit_create', 'File creation act')"
+            :processing-label="t('c_legislature_pages.committees.processing_create', 'Filing…')"
             @submit="submitCreate"
         >
-            <Field label="Committee name" :error="createForm.errors.name" required>
+            <Field :label="t('c_legislature_pages.committees.field_name', 'Committee name')" :error="createForm.errors.name" required>
                 <template #control="{ id, invalid, describedBy }">
                     <input
                         :id="id"
@@ -204,7 +203,7 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                     />
                 </template>
             </Field>
-            <Field label="Purpose" :error="createForm.errors.purpose">
+            <Field :label="t('c_legislature_pages.committees.field_purpose', 'Purpose')" :error="createForm.errors.purpose">
                 <template #control="{ id, invalid, describedBy }">
                     <textarea
                         :id="id"
@@ -217,10 +216,10 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                 </template>
             </Field>
             <Field
-                label="Seats"
+                :label="t('c_legislature_pages.committees.field_seats', 'Seats')"
                 :hint="bicameral
-                    ? 'Bicameral committees mirror the chamber-kind ratio — largest remainder over serving type A : type B, each kind ≥ 1 at 2+ seats · Art. V §3.'
-                    : 'The committee exists only when the supermajority vote adopts (Art. II §4).'"
+                    ? t('c_legislature_pages.committees.hint_seats_bicameral', 'Bicameral committees mirror the chamber-kind ratio — largest remainder over serving type A : type B, each kind ≥ 1 at 2+ seats · Art. V §3.')
+                    : t('c_legislature_pages.committees.hint_seats', 'The committee exists only when the supermajority vote adopts (Art. II §4).')"
                 :error="createForm.errors.seats"
                 required
             >
@@ -244,7 +243,7 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
             v-for="proposal in pendingProposals"
             :key="proposal.proposal_id"
             as="section"
-            :title="`Creation vote — ${proposal.name} (${proposal.seats} seats)`"
+            :title="t('c_legislature_pages.committees.creation_vote_title', { name: proposal.name, seats: proposal.seats })"
         >
             <p v-if="proposal.purpose" class="cc-small">{{ proposal.purpose }}</p>
             <VoteTally
@@ -254,24 +253,21 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                 :casting="castingProposal === proposal.proposal_id"
                 @cast="castProposal(proposal, $event)"
             />
-            <p v-if="proposal.my_cast" class="citation">Your cast is recorded — casts are immutable (the record is the record).</p>
+            <p v-if="proposal.my_cast" class="citation">{{ t('c_legislature_pages.committees.cast_recorded', 'Your cast is recorded — casts are immutable (the record is the record).') }}</p>
             <details v-if="proposal.casts.length" style="margin-block-start: var(--space-2)">
-                <summary class="cc-small" style="cursor: pointer">Published casts ({{ proposal.casts.length }})</summary>
+                <summary class="cc-small" style="cursor: pointer">{{ t('c_legislature_pages.committees.published_casts', { count: proposal.casts.length }) }}</summary>
                 <VoteCastList :casts="proposal.casts" :group-by-kind="bicameral" />
             </details>
         </Card>
 
         <!-- ================================== allocation =============== -->
-        <Card as="section" title="Placement allocation">
+        <Card as="section" :title="t('c_legislature_pages.committees.allocation_title', 'Placement allocation')">
             <p class="cc-small" data-no-i18n>{{ allocation.share_formula }}</p>
             <p class="gloss">
-                Placements distribute evenly across members — counts differ by at most one.
-                Multi-org-endorsed and endorsement-less members are first-class: there is no
-                faction layer anywhere in the procedure · ledger #q1.
+                {{ t('c_legislature_pages.committees.allocation_gloss', 'Placements distribute evenly across members — counts differ by at most one. Multi-org-endorsed and endorsement-less members are first-class: there is no faction layer anywhere in the procedure · ledger #q1.') }}
             </p>
             <p class="citation">
-                {{ allocation.total_seats }} committee seat(s) across {{ allocation.committee_count }}
-                committee(s) · {{ allocation.total_reps }} serving member(s) · Art. II §4 · as implemented
+                {{ t('c_legislature_pages.committees.allocation_counts', { seats: allocation.total_seats, committees: allocation.committee_count, reps: allocation.total_reps }) }}
             </p>
         </Card>
 
@@ -279,16 +275,14 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
             <!-- ============================== preferences (F-LEG-010) == -->
             <section class="card" aria-labelledby="prefs-h">
                 <h2 id="prefs-h">
-                    Your committee preferences
+                    {{ t('c_legislature_pages.committees.prefs_h2', 'Your committee preferences') }}
                     <StatusBadge v-if="prefsSubmitted" tone="success" icon="check">
-                        Submitted {{ fmt(myPreferences.submitted_at) }}
+                        {{ t('c_legislature_pages.committees.prefs_submitted', { when: fmt(myPreferences.submitted_at) }) }}
                     </StatusBadge>
                 </h2>
                 <template v-if="committees.length && can.submitPreferences">
                     <p class="gloss">
-                        Rank every committee — the assignment algorithm honors your order; ties
-                        break by normalized vote share (ledger #q2). Default order is committee
-                        creation order. Keyboard: ↑/↓ buttons or Alt+Arrow keys — no drag needed.
+                        {{ t('c_legislature_pages.committees.prefs_gloss', 'Rank every committee — the assignment algorithm honors your order; ties break by normalized vote share (ledger #q2). Default order is committee creation order. Keyboard: ↑/↓ buttons or Alt+Arrow keys — no drag needed.') }}
                     </p>
                     <RankList
                         v-model="prefItems"
@@ -302,24 +296,22 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                             size="sm"
                             :disabled="prefsForm.processing"
                             @click="submitPreferences"
-                        >{{ prefsSubmitted ? 'Update preferences' : 'Submit preferences' }}</Btn>
+                        >{{ prefsSubmitted ? t('c_legislature_pages.committees.prefs_update', 'Update preferences') : t('c_legislature_pages.committees.prefs_submit', 'Submit preferences') }}</Btn>
                         <span class="citation">
-                            You can revise your preferences. Changes apply to future assignments; recorded assignments stay unchanged.
+                            {{ t('c_legislature_pages.committees.prefs_revise', 'You can revise your preferences. Changes apply to future assignments; recorded assignments stay unchanged.') }}
                         </span>
                     </div>
                 </template>
                 <p v-else class="gloss">
-                    {{ committees.length ? 'Preference ranking is a member action (R-09).' : 'No committees yet — preferences open once a creation act adopts.' }}
+                    {{ committees.length ? t('c_legislature_pages.committees.prefs_member_action', 'Preference ranking is a member action (R-09).') : t('c_legislature_pages.committees.prefs_none', 'No committees yet — preferences open once a creation act adopts.') }}
                 </p>
             </section>
 
             <!-- ============================== assignment (F-SPK-005) === -->
             <section class="card" aria-labelledby="assign-h">
-                <h2 id="assign-h">Assignment run</h2>
+                <h2 id="assign-h">{{ t('c_legislature_pages.committees.assign_h2', 'Assignment run') }}</h2>
                 <p class="cc-small">
-                    {{ preferencesState.submitted }} of {{ preferencesState.serving }} serving
-                    members have submitted preferences. Non-submitters default to committee
-                    creation order.
+                    {{ t('c_legislature_pages.committees.assign_state', { submitted: preferencesState.submitted, serving: preferencesState.serving }) }}
                 </p>
                 <div v-if="can.runAssignment" class="cluster" style="margin-block-start: var(--space-2)">
                     <Btn
@@ -327,44 +319,40 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                         size="sm"
                         :disabled="assignForm.processing"
                         @click="runAssignment"
-                    >Run assignment</Btn>
+                    >{{ t('c_legislature_pages.committees.run_assignment', 'Run assignment') }}</Btn>
                     <span v-if="preferencesState.pending.length" class="citation">
-                        Members who have not submitted preferences use committee creation order.
+                        {{ t('c_legislature_pages.committees.assign_pending', 'Members who have not submitted preferences use committee creation order.') }}
                     </span>
                 </div>
-                <p v-else class="citation">The assignment run is the Speaker's administration (F-SPK-005 · R-10).</p>
+                <p v-else class="citation">{{ t('c_legislature_pages.committees.assign_speaker', 'The assignment run is the Speaker\'s administration (F-SPK-005 · R-10).') }}</p>
 
                 <template v-if="assignment">
                     <p class="cc-small" style="margin-block-start: var(--space-3)">
-                        Last run {{ fmt(assignment.run_at) }} — {{ assignment.placements }} placement(s),
-                        sealed · audit #{{ assignment.audit_seq }}.
+                        {{ t('c_legislature_pages.committees.last_run', { when: fmt(assignment.run_at), placements: assignment.placements, seq: assignment.audit_seq }) }}
                     </p>
                     <template v-if="tieBreakRows.length">
-                        <h3 style="font-size: var(--text-base)">Contested seats — normalized-share tie-breaks</h3>
+                        <h3 style="font-size: var(--text-base)">{{ t('c_legislature_pages.committees.contested_h3', 'Contested seats — normalized-share tie-breaks') }}</h3>
                         <DataTable
                             :columns="tieBreakColumns"
                             :rows="tieBreakRows"
                             row-key="id"
-                            caption="Contested committee seats resolved by normalized vote share"
+                            :caption="t('c_legislature_pages.committees.contested_caption', 'Contested committee seats resolved by normalized vote share')"
                         />
                         <p class="gloss">
-                            The winner is the largest vote share after normalizing quotas to account
-                            for one-person-one-vote deviations; the loser's next preference is
-                            honored in the same pass · Art. II §4 · as implemented (ledger #q2).
+                            {{ t('c_legislature_pages.committees.contested_gloss', 'The winner is the largest vote share after normalizing quotas to account for one-person-one-vote deviations; the loser\'s next preference is honored in the same pass · Art. II §4 · as implemented (ledger #q2).') }}
                         </p>
                     </template>
                     <p v-else class="gloss" style="margin-block-start: var(--space-2)">
-                        No contested seats — every placement honored a preference without a tie-break.
+                        {{ t('c_legislature_pages.committees.no_contested', 'No contested seats — every placement honored a preference without a tie-break.') }}
                     </p>
                 </template>
             </section>
         </div>
 
         <!-- ================================== the register ============= -->
-        <Card as="section" title="Committees">
+        <Card as="section" :title="t('c_legislature_pages.committees.register_title', 'Committees')">
             <p v-if="!committees.length" class="gloss">
-                No committees yet — any member may file the creation act above; the committee
-                exists only when the supermajority adopts it.
+                {{ t('c_legislature_pages.committees.register_empty', 'No committees yet — any member may file the creation act above; the committee exists only when the supermajority adopts it.') }}
             </p>
 
             <div class="stack" style="gap: var(--space-3)">
@@ -376,11 +364,11 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                             <StatusBadge :tone="STATUS_TONES[committee.status] ?? 'neutral'">{{ committee.status }}</StatusBadge>
                         </h3>
                         <span class="cc-small">
-                            {{ committee.seats }} seats<template v-if="committee.by_kind">
-                                — {{ committee.by_kind.type_a }} type A + {{ committee.by_kind.type_b }} type B
-                                <span class="citation">mirrors the chamber-kind ratio · Art. V §3</span>
+                            {{ t('c_legislature_pages.committees.reg_seats', { n: committee.seats }) }}<template v-if="committee.by_kind">
+                                {{ t('c_legislature_pages.committees.reg_by_kind', { a: committee.by_kind.type_a, b: committee.by_kind.type_b }) }}
+                                <span class="citation">{{ t('c_legislature_pages.committees.reg_ratio', 'mirrors the chamber-kind ratio · Art. V §3') }}</span>
                             </template>
-                            · {{ committee.bills_count }} bill(s)
+                            {{ t('c_legislature_pages.committees.reg_bills', { n: committee.bills_count }) }}
                         </span>
                     </div>
 
@@ -393,27 +381,26 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                     <p class="cc-small" style="margin-block: var(--space-1)">
                         <template v-for="(member, mi) in committee.members" :key="mi">
                             <template v-if="mi > 0"> · </template>
-                            {{ member.name }}<TagChip v-if="member.seat_kind"> {{ member.seat_kind === 'type_b' ? 'type B' : 'type A' }}</TagChip>
+                            {{ member.name }}<TagChip v-if="member.seat_kind"> {{ member.seat_kind === 'type_b' ? t('c_legislature_pages.committees.type_b', 'type B') : t('c_legislature_pages.committees.type_a', 'type A') }}</TagChip>
                         </template>
-                        <span v-if="!committee.members.length" class="gloss">not yet seated — run the assignment</span>
+                        <span v-if="!committee.members.length" class="gloss">{{ t('c_legislature_pages.committees.not_seated', 'not yet seated — run the assignment') }}</span>
                     </p>
 
                     <Banner v-for="(note, ni) in committee.notes" :key="ni" tone="warning" role="status">
-                        {{ note }} <span class="citation">re-check pending the chamber countback · WF-LEG-13</span>
+                        {{ note }} <span class="citation">{{ t('c_legislature_pages.committees.note_recheck', 're-check pending the chamber countback · WF-LEG-13') }}</span>
                     </Banner>
 
                     <!-- chair / alternate ------------------------------- -->
                     <div class="cluster" style="margin-block-start: var(--space-2)">
                         <template v-if="committee.chair">
-                            <StatusBadge tone="success" icon="check">Chair: {{ committee.chair.name }} · R-12</StatusBadge>
-                            <StatusBadge v-if="committee.alternate" tone="info">Alternate: {{ committee.alternate.name }} · R-13</StatusBadge>
-                            <span class="citation">whole-legislature RCV · F-LEG-011</span>
+                            <StatusBadge tone="success" icon="check">{{ t('c_legislature_pages.committees.chair_badge', { name: committee.chair.name }) }}</StatusBadge>
+                            <StatusBadge v-if="committee.alternate" tone="info">{{ t('c_legislature_pages.committees.alternate_badge', { name: committee.alternate.name }) }}</StatusBadge>
+                            <span class="citation">{{ t('c_legislature_pages.committees.chair_rcv', 'whole-legislature RCV · F-LEG-011') }}</span>
                         </template>
                         <template v-else-if="committee.status === 'seated'">
                             <template v-if="committee.chair_ballot && committee.chair_ballot.status === 'open'">
                                 <StatusBadge tone="warning" icon="clock">
-                                    Chair ballot open — {{ committee.chair_ballot.cast_count }} of
-                                    {{ committee.chair_ballot.expected }} cast
+                                    {{ t('c_legislature_pages.committees.chair_ballot_open', { cast: committee.chair_ballot.cast_count, expected: committee.chair_ballot.expected }) }}
                                 </StatusBadge>
                             </template>
                             <template v-else>
@@ -423,8 +410,8 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                                     size="sm"
                                     :disabled="launchingChair === committee.id"
                                     @click="launchChairBallot(committee)"
-                                >Open chair ballot (F-LEG-011)</Btn>
-                                <span class="citation">whole-legislature RCV · candidates = the committee's seated members</span>
+                                >{{ t('c_legislature_pages.committees.open_chair_ballot', 'Open chair ballot (F-LEG-011)') }}</Btn>
+                                <span class="citation">{{ t('c_legislature_pages.committees.chair_candidates', 'whole-legislature RCV · candidates = the committee\'s seated members') }}</span>
                             </template>
                         </template>
                     </div>
@@ -435,8 +422,7 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                         style="margin-block-start: var(--space-2)"
                     >
                         <p class="gloss">
-                            Rank the committee's seated members for chair — all serving members cast,
-                            Speaker included (constitutive election · Art. II §3 · as implemented).
+                            {{ t('c_legislature_pages.committees.chair_rank_gloss', 'Rank the committee\'s seated members for chair — all serving members cast, Speaker included (constitutive election · Art. II §3 · as implemented).') }}
                         </p>
                         <RankList
                             :model-value="chairItems(committee)"
@@ -450,34 +436,28 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                             style="margin-block-start: var(--space-2)"
                             :disabled="castingChair === committee.id"
                             @click="castChair(committee)"
-                        >Cast chair ballot (F-LEG-011)</Btn>
+                        >{{ t('c_legislature_pages.committees.cast_chair_ballot', 'Cast chair ballot (F-LEG-011)') }}</Btn>
                     </div>
                     <p
                         v-else-if="committee.chair_ballot && committee.chair_ballot.status === 'open' && committee.chair_ballot.my_cast"
                         class="citation"
                         style="margin-block-start: var(--space-1)"
-                    >Your chair ballot is recorded — rankings are public · Art. II §2.</p>
+                    >{{ t('c_legislature_pages.committees.chair_cast_recorded', 'Your chair ballot is recorded — rankings are public · Art. II §2.') }}</p>
                 </Card>
             </div>
         </Card>
 
         <!-- ================================== seat machine ============= -->
-        <Card as="section" title="Committee seat lifecycle">
-            <StateStrip :states="seatMachine" aria-label="Committee seat state machine" />
+        <Card as="section" :title="t('c_legislature_pages.committees.seat_lifecycle_title', 'Committee seat lifecycle')">
+            <StateStrip :states="seatMachine" :aria-label="t('c_legislature_pages.committees.seat_lifecycle_aria', 'Committee seat state machine')" />
             <p class="gloss">
-                tie_broken is the F-SPK-005 normalized-quota branch (ledger #q2); vacated seats
-                refill by whole-house RCV among members at the chamber-minimum placement count
-                (WF-LEG-13 — proportion-safe with no faction layer).
+                {{ t('c_legislature_pages.committees.seat_lifecycle_gloss', 'tie_broken is the F-SPK-005 normalized-quota branch (ledger #q2); vacated seats refill by whole-house RCV among members at the chamber-minimum placement count (WF-LEG-13 — proportion-safe with no faction layer).') }}
             </p>
         </Card>
 
         <template #about>
             <p>
-                Committee assignment is faction-independent: every member rank-orders every
-                committee; placements honor rank order; ties break to the seat holder with the
-                largest vote share after normalizing quotas. This preserves the proportional
-                representation the STV election produced while making assignment independent of
-                any party layer.
+                {{ t('c_legislature_pages.committees.about', 'Committee assignment is faction-independent: every member rank-orders every committee; placements honor rank order; ties break to the seat holder with the largest vote share after normalizing quotas. This preserves the proportional representation the STV election produced while making assignment independent of any party layer.') }}
             </p>
         </template>
     </PageScaffold>

@@ -4,17 +4,17 @@
             class="shrink-0 bg-blue-900/40 border-b border-blue-700 px-4 py-2 flex items-center justify-between gap-3 text-sm"
         >
             <div class="text-blue-100">
-                <span class="font-semibold">Setup · Step 3 of 5 ·</span>
+                <span class="font-semibold">{{ t('c_legislature_pages.districts.setup_step', 'Setup · Step 3 of 5 ·') }}</span>
                 {{ active_map && active_map.status === 'active'
-                    ? 'District map activated — you can return to the wizard to continue.'
-                    : 'Build or auto-seed districts for this legislature, then activate a map to continue.' }}
+                    ? t('c_legislature_pages.districts.setup_activated', 'District map activated — you can return to the wizard to continue.')
+                    : t('c_legislature_pages.districts.setup_build', 'Build or auto-seed districts for this legislature, then activate a map to continue.') }}
             </div>
             <button
                 type="button"
                 @click="returnToSetup"
                 class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-md font-semibold transition-colors shrink-0"
             >
-                {{ active_map && active_map.status === 'active' ? '← Back to Setup' : '← Return to Setup' }}
+                {{ active_map && active_map.status === 'active' ? t('c_legislature_pages.districts.back_to_setup', '← Back to Setup') : t('c_legislature_pages.districts.return_to_setup', '← Return to Setup') }}
             </button>
         </div>
         <div class="lm-split flex flex-1 min-h-0 overflow-hidden">
@@ -31,7 +31,7 @@
                             <h1 class="text-base font-bold text-white leading-tight truncate">{{ scope.name }}</h1>
                         </div>
                         <div class="text-right shrink-0">
-                            <div class="text-xs text-gray-500 leading-tight">Legislature Seats</div>
+                            <div class="text-xs text-gray-500 leading-tight">{{ t('c_legislature_pages.districts.legislature_seats', 'Legislature Seats') }}</div>
                             <div class="text-base font-bold text-emerald-400">{{ legislatureSeats.toLocaleString() }}</div>
                         </div>
                     </div>
@@ -47,7 +47,7 @@
                        :href="`/legislatures/${legislature.slug ?? legislature.id}/panels`"
                        class="block w-full text-center text-xs font-medium px-3 py-2 rounded mt-2
                               bg-indigo-800 hover:bg-indigo-700 text-indigo-100 transition-colors">
-                        View Legislative Panels →
+                        {{ t('c_legislature_pages.districts.view_panels', 'View Legislative Panels →') }}
                     </a>
                     <!-- Breadcrumb (scope trail) — only when drilled BELOW root; the
                          root scope shows the cross-nav button instead. Sits directly
@@ -66,7 +66,7 @@
                     <a v-if="legislature.chamber_seated"
                        :href="`/legislatures/${legislature.id}/chamber`"
                        class="inline-block mt-1.5 text-xs font-medium text-amber-300 hover:text-amber-200 transition-colors">
-                        Chamber →
+                        {{ t('c_legislature_pages.districts.chamber_link', 'Chamber →') }}
                     </a>
                 </div>
 
@@ -76,15 +76,15 @@
                      compressed into the Seats badge here. -->
                 <div class="px-3 py-2 border-b border-gray-800 grid grid-cols-3 gap-1.5 text-center shrink-0">
                     <div class="bg-gray-800 rounded p-1.5">
-                        <div class="text-xs text-gray-500">Constituents</div>
+                        <div class="text-xs text-gray-500">{{ t('c_legislature_pages.districts.stat_constituents', 'Constituents') }}</div>
                         <div class="text-sm font-semibold text-white">{{ childrenRef.length }}</div>
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
-                        <div class="text-xs text-gray-500">Seats</div>
+                        <div class="text-xs text-gray-500">{{ t('c_legislature_pages.districts.stat_seats', 'Seats') }}</div>
                         <div class="text-sm font-semibold text-emerald-400">{{ scope_seats.toLocaleString() }}</div>
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
-                        <div class="text-xs text-gray-500">Districts</div>
+                        <div class="text-xs text-gray-500">{{ t('c_legislature_pages.districts.stat_districts', 'Districts') }}</div>
                         <div class="text-sm font-semibold text-white">{{ districtsRef.length }}</div>
                     </div>
                 </div>
@@ -92,7 +92,7 @@
                 <!-- Map selector bar -->
                 <div class="px-3 py-2 border-b border-gray-800 shrink-0 relative">
                     <div class="flex items-center gap-1.5">
-                        <span class="text-[10px] text-gray-500 uppercase tracking-wide shrink-0">Map:</span>
+                        <span class="text-[10px] text-gray-500 uppercase tracking-wide shrink-0">{{ t('c_legislature_pages.districts.map_label', 'Map:') }}</span>
                         <!-- Dropdown trigger -->
                         <button @click="mapSelectorOpen = !mapSelectorOpen; newMapFormOpen = false"
                                 class="flex-1 flex items-center justify-between gap-1.5 px-2 py-1 rounded text-xs bg-gray-800 border transition-colors min-w-0"
@@ -109,14 +109,14 @@
                         <!-- Activate (draft only) -->
                         <button v-if="props.active_map?.status === 'draft'"
                                 @click="activateCurrentMap"
-                                title="Activate as official apportionment"
+                                :title="t('c_legislature_pages.districts.activate_title', 'Activate as official apportionment')"
                                 class="px-1.5 py-1 rounded text-xs border bg-amber-900 border-amber-700 text-amber-300 hover:bg-amber-800 transition-colors shrink-0">
                             ⚡
                         </button>
                         <!-- New map -->
                         <button @click="newMapFormOpen = !newMapFormOpen; mapSelectorOpen = false"
                                 :disabled="creatingMap"
-                                title="Create a new district map"
+                                :title="t('c_legislature_pages.districts.new_map_title', 'Create a new district map')"
                                 class="px-1.5 py-1 rounded text-xs border transition-colors shrink-0"
                                 :class="creatingMap ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-emerald-400 hover:border-emerald-700'">
                             +
@@ -130,20 +130,20 @@
                             <!-- Delete confirmation row -->
                             <div v-if="deletingMapId === m.id"
                                  class="flex items-center gap-1.5 px-3 py-2 bg-red-950 border-b border-red-900">
-                                <span class="flex-1 text-xs text-red-300 truncate">Delete "{{ m.name }}"?</span>
+                                <span class="flex-1 text-xs text-red-300 truncate">{{ t('c_legislature_pages.districts.delete_confirm', { name: m.name }) }}</span>
                                 <button @click.stop="confirmDeleteMap(m.id)"
                                         class="px-2 py-0.5 rounded text-[10px] bg-red-700 border border-red-600 text-white hover:bg-red-600 shrink-0">
-                                    Delete
+                                    {{ t('c_legislature_pages.districts.delete', 'Delete') }}
                                 </button>
                                 <button @click.stop="deletingMapId = null"
                                         class="px-2 py-0.5 rounded text-[10px] bg-gray-800 border border-gray-700 text-gray-400 hover:text-white shrink-0">
-                                    Cancel
+                                    {{ t('c_legislature_pages.districts.cancel', 'Cancel') }}
                                 </button>
                             </div>
                             <!-- Rename row -->
                             <div v-else-if="renamingMapId === m.id"
                                  class="flex items-center gap-1.5 px-3 py-2 bg-gray-800 border-b border-gray-700">
-                                <input id="map-rename-input" v-model="renameValue" aria-label="Rename district map"
+                                <input id="map-rename-input" v-model="renameValue" :aria-label="t('c_legislature_pages.districts.rename_aria', 'Rename district map')"
                                        @keyup.enter="submitRename(m.id)"
                                        @keyup.escape="cancelRename"
                                        class="flex-1 px-1.5 py-0.5 rounded text-xs bg-gray-700 border border-gray-600 text-gray-200 focus:outline-none focus:border-indigo-500 min-w-0" />
@@ -151,7 +151,7 @@
                                         :disabled="!renameValue.trim()"
                                         class="px-2 py-0.5 rounded text-[10px] border shrink-0 transition-colors"
                                         :class="renameValue.trim() ? 'bg-indigo-700 border-indigo-600 text-white hover:bg-indigo-600' : 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'">
-                                    Save
+                                    {{ t('c_legislature_pages.districts.save', 'Save') }}
                                 </button>
                                 <button @click.stop="cancelRename"
                                         class="px-2 py-0.5 rounded text-[10px] bg-gray-800 border border-gray-700 text-gray-400 hover:text-white shrink-0">
@@ -176,12 +176,12 @@
                                 <!-- Rename + copy + delete buttons (visible on hover) -->
                                 <span class="shrink-0 flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
                                     <button @click.stop="startRename(m)"
-                                            title="Rename"
+                                            :title="t('c_legislature_pages.districts.rename_title', 'Rename')"
                                             class="px-1 py-0.5 rounded text-[10px] text-gray-400 hover:text-white hover:bg-gray-600 transition-colors">
                                         ✎
                                     </button>
                                     <button @click.stop="duplicateMap(m.id)"
-                                            title="Duplicate"
+                                            :title="t('c_legislature_pages.districts.duplicate_title', 'Duplicate')"
                                             :disabled="copyingMapId === m.id"
                                             class="px-1 py-0.5 rounded text-[10px] transition-colors"
                                             :class="copyingMapId === m.id
@@ -190,7 +190,7 @@
                                         ⎘
                                     </button>
                                     <button @click.stop="deletingMapId = m.id"
-                                            title="Delete"
+                                            :title="t('c_legislature_pages.districts.delete_title', 'Delete')"
                                             :disabled="m.status === 'active'"
                                             class="px-1 py-0.5 rounded text-[10px] transition-colors"
                                             :class="m.status === 'active'
@@ -202,16 +202,16 @@
                             </div>
                         </template>
                         <div v-if="props.maps.length === 0"
-                             class="px-3 py-2 text-xs text-gray-500 italic">No maps yet</div>
+                             class="px-3 py-2 text-xs text-gray-500 italic">{{ t('c_legislature_pages.districts.no_maps', 'No maps yet') }}</div>
                     </div>
 
                     <!-- New map inline form -->
                     <div v-if="newMapFormOpen" class="mt-2 flex items-center gap-1.5">
-                        <input v-model="newMapName" aria-label="New map name"
+                        <input v-model="newMapName" :aria-label="t('c_legislature_pages.districts.new_map_aria', 'New map name')"
                                @keyup.enter="submitNewMap"
                                @keyup.escape="if (!creatingMap) { newMapFormOpen = false; newMapName = '' }"
                                :disabled="creatingMap"
-                               placeholder="Map name…"
+                               :placeholder="t('c_legislature_pages.districts.map_name_placeholder', 'Map name…')"
                                class="flex-1 px-2 py-1 rounded text-xs bg-gray-800 border border-gray-600 text-gray-200 placeholder-gray-600 focus:outline-none focus:border-emerald-600 min-w-0 disabled:opacity-50 disabled:cursor-not-allowed" />
                         <button @click="submitNewMap"
                                 :disabled="!newMapName.trim() || creatingMap"
@@ -221,7 +221,7 @@
                                     : 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'">
                             <span v-if="creatingMap"
                                   class="inline-block w-2.5 h-2.5 rounded-full border border-emerald-400 border-t-transparent animate-spin shrink-0"></span>
-                            {{ creatingMap ? 'Creating…' : 'Create' }}
+                            {{ creatingMap ? t('c_legislature_pages.districts.creating', 'Creating…') : t('c_legislature_pages.districts.create', 'Create') }}
                         </button>
                         <button @click="if (!creatingMap) { newMapFormOpen = false; newMapName = '' }"
                                 :disabled="creatingMap"
@@ -250,7 +250,7 @@
                                 <span class="mt-1 inline-block w-2 h-2 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
                                 <div class="flex-1 min-w-0">
                                     <div class="text-[11px] font-semibold text-indigo-200">
-                                        {{ massProgress.current_scope ? `Autoseed: ${massProgress.current_scope}` : 'Autoseed (queued)' }}
+                                        {{ massProgress.current_scope ? t('c_legislature_pages.districts.autoseed_scope', { scope: massProgress.current_scope }) : t('c_legislature_pages.districts.autoseed_queued', 'Autoseed (queued)') }}
                                     </div>
                                     <div v-if="massProgress.phase_label"
                                          class="text-[10px] text-indigo-300 leading-tight break-words">
@@ -260,10 +260,10 @@
                                 <div class="flex flex-col items-end shrink-0 gap-0.5">
                                     <span v-if="massProgress.total > 0"
                                           class="text-[10px] text-indigo-400 tabular-nums">
-                                        scope {{ Math.min(massProgress.completed + 1, massProgress.total) }}/{{ massProgress.total }}
+                                        {{ t('c_legislature_pages.districts.scope_progress', { current: Math.min(massProgress.completed + 1, massProgress.total), total: massProgress.total }) }}
                                     </span>
                                     <span v-if="massScopeElapsed"
-                                          class="text-[10px] text-indigo-400 tabular-nums">{{ massScopeElapsed }} on scope</span>
+                                          class="text-[10px] text-indigo-400 tabular-nums">{{ t('c_legislature_pages.districts.on_scope', { elapsed: massScopeElapsed }) }}</span>
                                 </div>
                             </div>
                             <!-- Scope-level progress bar (only meaningful for multi-scope sweeps) -->
@@ -287,17 +287,17 @@
                                         class="px-2 py-0.5 rounded text-[10px] border bg-red-900/60 border-red-700 text-red-200
                                                hover:bg-red-800 hover:border-red-600 disabled:opacity-50 disabled:cursor-not-allowed
                                                transition-colors">
-                                    {{ haltRequesting ? 'Halting…' : 'Halt autoseed' }}
+                                    {{ haltRequesting ? t('c_legislature_pages.districts.halting', 'Halting…') : t('c_legislature_pages.districts.halt_autoseed', 'Halt autoseed') }}
                                 </button>
-                                <span class="text-[10px] text-indigo-500 italic">stops after current scope commits</span>
+                                <span class="text-[10px] text-indigo-500 italic">{{ t('c_legislature_pages.districts.halt_note', 'stops after current scope commits') }}</span>
                             </div>
                             <div v-if="massProgress.phase === 'halting'"
                                  class="text-[10px] text-amber-300 italic">
-                                Halt requested — finishing current scope, then stopping…
+                                {{ t('c_legislature_pages.districts.halt_requested', 'Halt requested — finishing current scope, then stopping…') }}
                             </div>
                             <div v-if="massProgress.phase === 'halted'"
                                  class="text-[10px] text-amber-400 italic">
-                                Halted by operator. Already-committed scopes preserved.
+                                {{ t('c_legislature_pages.districts.halted', 'Halted by operator. Already-committed scopes preserved.') }}
                             </div>
                         </div>
 
@@ -306,7 +306,7 @@
                         <div v-if="!massProgress"
                              class="flex items-center gap-2 px-2 py-1.5 rounded bg-indigo-900/60 border border-indigo-700/60">
                             <span class="inline-block w-2 h-2 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
-                            <span class="text-[11px] text-indigo-300 italic">Mass operation in progress — waiting for first progress update…</span>
+                            <span class="text-[11px] text-indigo-300 italic">{{ t('c_legislature_pages.districts.mass_waiting', 'Mass operation in progress — waiting for first progress update…') }}</span>
                         </div>
                     </div>
 
@@ -335,16 +335,16 @@
                                        bottom-20 right-2
                                        md:bottom-36 md:right-3"
                                 :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
-                            <span class="font-semibold text-cyan-400 uppercase tracking-wide">Map Quality</span>
+                            <span class="font-semibold text-cyan-400 uppercase tracking-wide">{{ t('c_legislature_pages.districts.map_quality', 'Map Quality') }}</span>
                             <span v-if="hardFlagCount > 0" class="text-red-400">⛔ {{ hardFlagCount }}</span>
                             <span v-else-if="hasAnyFlag" class="text-amber-400">⚠</span>
                             <span v-else class="text-emerald-400">✓</span>
                             <span v-if="props.stats?.population_equality?.avg_deviation_pct !== undefined"
                                   class="text-gray-400 hidden md:inline">
-                                Eq {{ Number(props.stats.population_equality.avg_deviation_pct).toFixed(1) }}%
+                                {{ t('c_legislature_pages.districts.pill_eq', { pct: Number(props.stats.population_equality.avg_deviation_pct).toFixed(1) }) }}
                             </span>
                             <span v-if="props.stats?.contiguity" class="text-gray-400 hidden md:inline">
-                                Contig {{ props.stats.contiguity.contiguous_count }}/{{ props.stats.contiguity.contiguous_count + props.stats.contiguity.non_contiguous_count }}
+                                {{ t('c_legislature_pages.districts.pill_contig', { a: props.stats.contiguity.contiguous_count, b: props.stats.contiguity.contiguous_count + props.stats.contiguity.non_contiguous_count }) }}
                             </span>
                             <span class="text-gray-600 transition-transform" :class="statsPanelCollapsed ? '' : 'rotate-90'">›</span>
                         </button>
@@ -354,7 +354,7 @@
                                     md:bottom-44 md:left-auto md:right-3 md:w-[400px]"
                              :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
                             <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-800">
-                                <span class="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Map Quality</span>
+                                <span class="text-xs font-semibold text-cyan-400 uppercase tracking-wide">{{ t('c_legislature_pages.districts.map_quality', 'Map Quality') }}</span>
                                 <button @click="statsPanelCollapsed = true"
                                         class="px-1 text-xs text-gray-500 hover:text-white">✕</button>
                             </div>
@@ -364,17 +364,17 @@
                             <div v-if="hasAnyFlag" class="pb-2 border-b border-gray-800">
                                 <div class="text-[10px] uppercase font-semibold mb-1"
                                      :class="hardFlagCount > 0 ? 'text-red-400' : 'text-amber-400'">
-                                    Constitutional Flags
+                                    {{ t('c_legislature_pages.districts.constitutional_flags', 'Constitutional Flags') }}
                                     <span class="text-gray-500 normal-case font-normal ml-1">
-                                        {{ (props.flags.cap ? 1 : 0) + (props.flags.floor_exceptions?.length ?? 0) + (props.flags.ceiling_exceptions?.length ?? 0) + (props.flags.deep_overages?.length ?? 0) + (props.flags.incomplete_scopes?.length ?? 0) }} issue(s)
+                                        {{ t('c_legislature_pages.districts.issue_count', { count: (props.flags.cap ? 1 : 0) + (props.flags.floor_exceptions?.length ?? 0) + (props.flags.ceiling_exceptions?.length ?? 0) + (props.flags.deep_overages?.length ?? 0) + (props.flags.incomplete_scopes?.length ?? 0) }) }}
                                     </span>
                                 </div>
                                 <div class="space-y-1">
                                     <div v-if="props.flags.cap" class="flex items-start gap-2 text-red-400">
                                         <span class="shrink-0">⛔</span>
                                         <span>
-                                            {{ props.flags.cap.delta > 0 ? 'Overcount' : 'Undercount' }}:
-                                            {{ props.flags.cap.total.toLocaleString() }} / {{ props.flags.cap.max.toLocaleString() }} seats
+                                            {{ props.flags.cap.delta > 0 ? t('c_legislature_pages.districts.overcount', 'Overcount') : t('c_legislature_pages.districts.undercount', 'Undercount') }}:
+                                            {{ props.flags.cap.total.toLocaleString() }} / {{ props.flags.cap.max.toLocaleString() }} {{ t('c_legislature_pages.districts.seats_word', 'seats') }}
                                             ({{ props.flags.cap.delta > 0 ? '+' : '' }}{{ props.flags.cap.delta }})
                                         </span>
                                     </div>
@@ -383,7 +383,7 @@
                                         <span class="shrink-0">⛔</span>
                                         <span>
                                             <a @click.prevent="drillTo(ov.scope_id)" href="#" class="underline hover:text-red-300 cursor-pointer">{{ ov.scope_name }}</a>:
-                                            districts total {{ ov.actual }} seats (budget {{ ov.budget }}, {{ ov.delta > 0 ? '+' : '' }}{{ ov.delta }})
+                                            {{ t('c_legislature_pages.districts.deep_overage', { actual: ov.actual, budget: ov.budget, delta: (ov.delta > 0 ? '+' : '') + ov.delta }) }}
                                         </span>
                                     </div>
                                     <div v-for="sc in (props.flags.incomplete_scopes ?? [])" :key="'is-' + sc.scope_id"
@@ -391,13 +391,13 @@
                                         <span class="shrink-0">⛔</span>
                                         <span>
                                             <a @click.prevent="drillTo(sc.scope_id)" href="#" class="underline hover:text-red-300 cursor-pointer">{{ sc.scope_name }}</a>:
-                                            {{ sc.unassigned_count }} unassigned jurisdiction{{ sc.unassigned_count === 1 ? '' : 's' }}
+                                            {{ sc.unassigned_count }} {{ t('c_legislature_pages.districts.unassigned_word', 'unassigned jurisdiction') }}{{ sc.unassigned_count === 1 ? '' : 's' }}
                                         </span>
                                     </div>
                                     <div v-if="(props.flags.floor_exceptions ?? []).length > 0"
                                          class="flex items-start gap-2 text-amber-400">
                                         <span class="shrink-0">ℹ</span>
-                                        <span>{{ props.flags.floor_exceptions.length }} floor exception{{ props.flags.floor_exceptions.length === 1 ? '' : 's' }} — fractional &lt; {{ FLOOR_OVERRIDE }}, rounds below minimum without override</span>
+                                        <span>{{ props.flags.floor_exceptions.length }} {{ t('c_legislature_pages.districts.floor_exc_word', 'floor exception') }}{{ props.flags.floor_exceptions.length === 1 ? '' : 's' }} {{ t('c_legislature_pages.districts.floor_exc_note', { floor: FLOOR_OVERRIDE }) }}</span>
                                     </div>
                                     <!-- THE LEGISLATURE CEILING EXCEPTION (2026-08-28): lawful
                                          bonus seats — informational, like floor exceptions. -->
@@ -406,12 +406,12 @@
                                          class="flex items-start gap-2 text-amber-400">
                                         <span class="shrink-0">ℹ</span>
                                         <span>
-                                            Ceiling exception —
+                                            {{ t('c_legislature_pages.districts.ceiling_exception', 'Ceiling exception —') }}
                                             <template v-if="ce.scope_id">
                                                 <a @click.prevent="drillTo(ce.scope_id)" href="#" class="underline hover:text-amber-300 cursor-pointer">{{ ce.scope_name }}</a>:
                                             </template>
-                                            <template v-else>{{ ce.district_name || 'district' }}:</template>
-                                            +{{ ce.bonus }} bonus seat{{ ce.bonus === 1 ? '' : 's' }} added to the legislature (sub-2 exception seats 2 — runners-up represented)
+                                            <template v-else>{{ ce.district_name || t('c_legislature_pages.districts.district_fallback', 'district') }}:</template>
+                                            +{{ ce.bonus }} {{ t('c_legislature_pages.districts.bonus_word', 'bonus seat') }}{{ ce.bonus === 1 ? '' : 's' }} {{ t('c_legislature_pages.districts.bonus_note', 'added to the legislature (sub-2 exception seats 2 — runners-up represented)') }}
                                         </span>
                                     </div>
                                 </div>
@@ -420,104 +420,104 @@
                             <!-- ── 1. Community Integrity ── -->
                             <div>
                                 <div class="relative group inline-flex items-center gap-1 mb-0.5">
-                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">Community Integrity</span>
+                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.community_integrity', 'Community Integrity') }}</span>
                                     <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
                                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
-                                        Districts drawn along pre-existing administrative boundaries help preserve community integrity. Manual line-drawing is only needed when a jurisdiction has more seats than the constitutional ceiling allows and has no child subdivisions. In all other cases, sub-districts can be created along existing administrative borders.
+                                        {{ t('c_legislature_pages.districts.community_integrity_tip', 'Districts drawn along pre-existing administrative boundaries help preserve community integrity. Manual line-drawing is only needed when a jurisdiction has more seats than the constitutional ceiling allows and has no child subdivisions. In all other cases, sub-districts can be created along existing administrative borders.') }}
                                     </div>
                                 </div>
                                 <div v-if="props.stats?.community_integrity" class="space-y-0.5">
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-emerald-400">&#9632;</span>
-                                        <span class="text-gray-400 whitespace-nowrap">Intact:</span>
+                                        <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.intact', 'Intact:') }}</span>
                                         <span class="text-gray-200">
                                             {{ props.stats.community_integrity.good_count }}
                                             ({{ pct(props.stats.community_integrity.good_count, props.stats.community_integrity.total_count) }})
                                         </span>
                                         <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.community_integrity.good_population) }} pop
+                                            {{ formatPop(props.stats.community_integrity.good_population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.community_integrity.good_population, props.stats.community_integrity.total_population) }})
                                         </span>
                                     </div>
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-amber-400">&#9632;</span>
-                                        <span class="text-gray-400 whitespace-nowrap">Segmented:</span>
+                                        <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.segmented', 'Segmented:') }}</span>
                                         <span class="text-gray-200">
                                             {{ props.stats.community_integrity.total_count - props.stats.community_integrity.good_count }}
                                             ({{ pct(props.stats.community_integrity.total_count - props.stats.community_integrity.good_count, props.stats.community_integrity.total_count) }})
                                         </span>
                                         <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.community_integrity.total_population - props.stats.community_integrity.good_population) }} pop
+                                            {{ formatPop(props.stats.community_integrity.total_population - props.stats.community_integrity.good_population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.community_integrity.total_population - props.stats.community_integrity.good_population, props.stats.community_integrity.total_population) }})
                                         </span>
                                     </div>
                                 </div>
-                                <span v-else class="text-gray-600 text-[10px]">— not yet computed</span>
+                                <span v-else class="text-gray-600 text-[10px]">{{ t('c_legislature_pages.districts.not_yet_computed', '— not yet computed') }}</span>
                             </div>
 
                             <!-- ── 2. Constitutional Contiguity ── -->
                             <div>
                                 <div class="relative group inline-flex items-center gap-1 mb-0.5">
-                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">Constitutional Contiguity</span>
+                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.constitutional_contiguity', 'Constitutional Contiguity') }}</span>
                                     <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
                                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
-                                        Contiguity is considered broken only when it was achievable in the first place. Geographic impossibilities are exempt. These include island jurisdictions with no land border to any sibling, members completely surrounded by jurisdictions too large to combine without breaching the constitutional ceiling, and single-member districts, which are never constitutionally incongruous. The same applies to similarly isolated clusters that cannot reach the constitutional floor.
+                                        {{ t('c_legislature_pages.districts.contiguity_tip', 'Contiguity is considered broken only when it was achievable in the first place. Geographic impossibilities are exempt. These include island jurisdictions with no land border to any sibling, members completely surrounded by jurisdictions too large to combine without breaching the constitutional ceiling, and single-member districts, which are never constitutionally incongruous. The same applies to similarly isolated clusters that cannot reach the constitutional floor.') }}
                                     </div>
                                 </div>
                                 <div v-if="props.stats?.contiguity" class="space-y-0.5">
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-emerald-400">&#9632;</span>
-                                        <span class="text-gray-400 whitespace-nowrap">Contiguous:</span>
+                                        <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.contiguous', 'Contiguous:') }}</span>
                                         <span class="text-gray-200">
                                             {{ props.stats.contiguity.contiguous_count }}
                                             ({{ pct(props.stats.contiguity.contiguous_count, props.stats.contiguity.checked_count) }})
                                         </span>
                                         <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.contiguity.contiguous_pop) }} pop
+                                            {{ formatPop(props.stats.contiguity.contiguous_pop) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.contiguity.contiguous_pop, props.stats.contiguity.contiguous_pop + props.stats.contiguity.non_contiguous_pop + props.stats.contiguity.unchecked_pop) }})
                                         </span>
                                     </div>
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-red-400">&#9632;</span>
-                                        <span class="text-gray-400 whitespace-nowrap">Non-contiguous:</span>
+                                        <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.non_contiguous', 'Non-contiguous:') }}</span>
                                         <span class="text-gray-200">
                                             {{ props.stats.contiguity.non_contiguous_count }}
                                             ({{ pct(props.stats.contiguity.non_contiguous_count, props.stats.contiguity.checked_count) }})
                                         </span>
                                         <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.contiguity.non_contiguous_pop) }} pop
+                                            {{ formatPop(props.stats.contiguity.non_contiguous_pop) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.contiguity.non_contiguous_pop, props.stats.contiguity.contiguous_pop + props.stats.contiguity.non_contiguous_pop + props.stats.contiguity.unchecked_pop) }})
                                         </span>
                                     </div>
                                     <div v-if="props.stats.contiguity.unchecked_count > 0" class="flex items-baseline gap-1">
                                         <span class="text-gray-600">&#9632;</span>
-                                        <span class="text-gray-500 whitespace-nowrap">Not computed:</span>
+                                        <span class="text-gray-500 whitespace-nowrap">{{ t('c_legislature_pages.districts.not_computed', 'Not computed:') }}</span>
                                         <span class="text-gray-500">
                                             {{ props.stats.contiguity.unchecked_count }}
                                             ({{ pct(props.stats.contiguity.unchecked_count, props.stats.contiguity.checked_count) }})
                                         </span>
                                         <span class="text-gray-600 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.contiguity.unchecked_pop) }} pop
+                                            {{ formatPop(props.stats.contiguity.unchecked_pop) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                         </span>
                                     </div>
                                 </div>
-                                <span v-else class="text-gray-600 text-[10px]">— not yet computed</span>
+                                <span v-else class="text-gray-600 text-[10px]">{{ t('c_legislature_pages.districts.not_yet_computed', '— not yet computed') }}</span>
                             </div>
 
                             <!-- ── 3. Population Equality ── -->
                             <div v-if="props.stats?.population_equality">
                                 <div class="relative group flex items-baseline justify-between gap-2 mb-1">
                                     <div class="inline-flex items-center gap-1">
-                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">Population Equality</span>
-                                        <span class="text-gray-600 normal-case font-normal text-[10px]">({{ props.stats.population_equality.district_count }} districts)</span>
+                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.population_equality', 'Population Equality') }}</span>
+                                        <span class="text-gray-600 normal-case font-normal text-[10px]">{{ t('c_legislature_pages.districts.district_count_paren', { count: props.stats.population_equality.district_count }) }}</span>
                                         <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
                                         <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
-                                            Measures how evenly each district's population-per-seat matches the ideal "one person, one vote" standard. Lower deviation means each vote carries more equal weight.
-                                            <span class="block mt-1 text-gray-400">(Includes all sub-national districts in this map.)</span>
+                                            {{ t('c_legislature_pages.districts.equality_tip', 'Measures how evenly each district\'s population-per-seat matches the ideal "one person, one vote" standard. Lower deviation means each vote carries more equal weight.') }}
+                                            <span class="block mt-1 text-gray-400">{{ t('c_legislature_pages.districts.equality_tip_sub', '(Includes all sub-national districts in this map.)') }}</span>
                                         </div>
                                     </div>
                                     <span class="text-gray-400 text-[10px] shrink-0">
-                                        Avg <span :class="qualityColor(props.stats.population_equality.avg_deviation_pct, 3, 7)">{{ props.stats.population_equality.avg_deviation_pct }}%</span>
+                                        {{ t('c_legislature_pages.districts.avg', 'Avg') }} <span :class="qualityColor(props.stats.population_equality.avg_deviation_pct, 3, 7)">{{ props.stats.population_equality.avg_deviation_pct }}%</span>
                                     </span>
                                 </div>
 
@@ -526,37 +526,37 @@
                                     <div class="space-y-0.5">
                                         <div class="flex items-baseline gap-1">
                                             <span class="text-emerald-400">&#9632;</span>
-                                            <span class="text-gray-400 whitespace-nowrap">Good (&le;5%):</span>
+                                            <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.eq_good', 'Good (≤5%):') }}</span>
                                             <span class="text-gray-200">
                                                 {{ props.stats.population_equality.tiers.good.count }}
                                                 ({{ props.stats.population_equality.tiers.good.pct }}%)
                                             </span>
                                             <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                                {{ formatPop(props.stats.population_equality.tiers.good.population) }} pop
+                                                {{ formatPop(props.stats.population_equality.tiers.good.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                                 ({{ pct(props.stats.population_equality.tiers.good.population, props.stats.population_equality.total_population) }})
                                             </span>
                                         </div>
                                         <div class="flex items-baseline gap-1">
                                             <span class="text-amber-400">&#9632;</span>
-                                            <span class="text-gray-400 whitespace-nowrap">OK (5-10%):</span>
+                                            <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.eq_ok', 'OK (5-10%):') }}</span>
                                             <span class="text-gray-200">
                                                 {{ props.stats.population_equality.tiers.ok.count }}
                                                 ({{ props.stats.population_equality.tiers.ok.pct }}%)
                                             </span>
                                             <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                                {{ formatPop(props.stats.population_equality.tiers.ok.population) }} pop
+                                                {{ formatPop(props.stats.population_equality.tiers.ok.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                                 ({{ pct(props.stats.population_equality.tiers.ok.population, props.stats.population_equality.total_population) }})
                                             </span>
                                         </div>
                                         <div class="flex items-baseline gap-1">
                                             <span class="text-red-400">&#9632;</span>
-                                            <span class="text-gray-400 whitespace-nowrap">Bad (&gt;10%):</span>
+                                            <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.eq_bad', 'Bad (>10%):') }}</span>
                                             <span class="text-gray-200">
                                                 {{ props.stats.population_equality.tiers.bad.count }}
                                                 ({{ props.stats.population_equality.tiers.bad.pct }}%)
                                             </span>
                                             <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                                {{ formatPop(props.stats.population_equality.tiers.bad.population) }} pop
+                                                {{ formatPop(props.stats.population_equality.tiers.bad.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                                 ({{ pct(props.stats.population_equality.tiers.bad.population, props.stats.population_equality.total_population) }})
                                             </span>
                                         </div>
@@ -566,9 +566,9 @@
                                 <!-- Extremes below distribution -->
                                 <div v-if="props.stats.population_equality.most_over">
                                     <div class="flex items-baseline justify-between gap-2 mb-0.5">
-                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">Extremes</span>
+                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.extremes', 'Extremes') }}</span>
                                         <span class="text-gray-400 text-[10px]">
-                                            Range
+                                            {{ t('c_legislature_pages.districts.range', 'Range') }}
                                             <span :class="qualityColor((props.stats.population_equality.range_ratio - 1) * 100, 5, 10)">
                                                 {{ props.stats.population_equality.range_ratio }}:1
                                             </span>
@@ -577,7 +577,7 @@
                                     <div class="space-y-0.5">
                                         <div>
                                             <span class="text-emerald-400">&#9650;</span>
-                                            <span class="text-gray-400">Over-rep:</span>
+                                            <span class="text-gray-400">{{ t('c_legislature_pages.districts.over_rep', 'Over-rep:') }}</span>
                                             <a @click.prevent="focusDistrictFromStats(props.stats.population_equality.most_over.scope_id, props.stats.population_equality.most_over.district_id)"
                                                href="#" class="underline hover:text-cyan-300 cursor-pointer text-cyan-400">
                                                 {{ props.stats.population_equality.most_over.district_label }}
@@ -588,7 +588,7 @@
                                         </div>
                                         <div>
                                             <span class="text-red-400">&#9660;</span>
-                                            <span class="text-gray-400">Under-rep:</span>
+                                            <span class="text-gray-400">{{ t('c_legislature_pages.districts.under_rep', 'Under-rep:') }}</span>
                                             <a @click.prevent="focusDistrictFromStats(props.stats.population_equality.most_under.scope_id, props.stats.population_equality.most_under.district_id)"
                                                href="#" class="underline hover:text-cyan-300 cursor-pointer text-cyan-400">
                                                 {{ props.stats.population_equality.most_under.district_label }}
@@ -605,68 +605,68 @@
                             <div>
                                 <div class="relative group flex items-baseline justify-between gap-2 mb-0.5">
                                     <div class="inline-flex items-center gap-1">
-                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">Shape Compactness</span>
+                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.shape_compactness', 'Shape Compactness') }}</span>
                                         <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
                                         <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
-                                            Measures whether the district's outer boundary is compact or irregular using the Convex Hull Ratio: district area divided by the area of its convex hull (1.0 = perfectly convex).
+                                            {{ t('c_legislature_pages.districts.compactness_tip', 'Measures whether the district\'s outer boundary is compact or irregular using the Convex Hull Ratio: district area divided by the area of its convex hull (1.0 = perfectly convex).') }}
                                         </div>
                                     </div>
                                     <span v-if="props.stats?.shape_compactness" class="text-gray-400 text-[10px] shrink-0">
-                                        Mean <span class="text-gray-300">{{ props.stats.shape_compactness.mean }}</span>
+                                        {{ t('c_legislature_pages.districts.mean', 'Mean') }} <span class="text-gray-300">{{ props.stats.shape_compactness.mean }}</span>
                                     </span>
                                 </div>
                                 <div v-if="props.stats?.shape_compactness" class="space-y-0.5">
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-emerald-400">&#9632;</span>
-                                        <span class="text-gray-400 whitespace-nowrap">Compact (&ge;0.70):</span>
+                                        <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.sc_compact', 'Compact (≥0.70):') }}</span>
                                         <span class="text-gray-200">{{ props.stats.shape_compactness.tiers.good.count }} ({{ props.stats.shape_compactness.tiers.good.pct }}%)</span>
                                         <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.shape_compactness.tiers.good.population) }} pop
+                                            {{ formatPop(props.stats.shape_compactness.tiers.good.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.shape_compactness.tiers.good.population, props.stats.shape_compactness.total_population) }})
                                         </span>
                                     </div>
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-amber-400">&#9632;</span>
-                                        <span class="text-gray-400 whitespace-nowrap">Moderate (0.50–0.70):</span>
+                                        <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.sc_moderate', 'Moderate (0.50–0.70):') }}</span>
                                         <span class="text-gray-200">{{ props.stats.shape_compactness.tiers.ok.count }} ({{ props.stats.shape_compactness.tiers.ok.pct }}%)</span>
                                         <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.shape_compactness.tiers.ok.population) }} pop
+                                            {{ formatPop(props.stats.shape_compactness.tiers.ok.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.shape_compactness.tiers.ok.population, props.stats.shape_compactness.total_population) }})
                                         </span>
                                     </div>
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-red-400">&#9632;</span>
-                                        <span class="text-gray-400 whitespace-nowrap">Irregular (&lt;0.50):</span>
+                                        <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.sc_irregular', 'Irregular (<0.50):') }}</span>
                                         <span class="text-gray-200">{{ props.stats.shape_compactness.tiers.bad.count }} ({{ props.stats.shape_compactness.tiers.bad.pct }}%)</span>
                                         <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.shape_compactness.tiers.bad.population) }} pop
+                                            {{ formatPop(props.stats.shape_compactness.tiers.bad.population) }} {{ t('c_legislature_pages.districts.pop_word', 'pop') }}
                                             ({{ pct(props.stats.shape_compactness.tiers.bad.population, props.stats.shape_compactness.total_population) }})
                                         </span>
                                     </div>
                                 </div>
-                                <span v-else class="text-gray-600 text-[10px]">— not yet computed</span>
+                                <span v-else class="text-gray-600 text-[10px]">{{ t('c_legislature_pages.districts.not_yet_computed', '— not yet computed') }}</span>
                             </div>
 
                             <!-- ── 5. Uniform Political Diversity ── -->
                             <div v-if="optimalLabel">
                                 <div class="relative group inline-flex items-center gap-1 mb-1">
-                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">Uniform Political Diversity</span>
+                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages.districts.uniform_political_diversity', 'Uniform Political Diversity') }}</span>
                                     <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
                                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
-                                        Tracks whether the current map produces evenly-sized districts. Optimal shows the mathematically ideal grouping for this scope. Suboptimal (if shown) is the best achievable given giants and floor exceptions. Current shows what has been committed so far.
+                                        {{ t('c_legislature_pages.districts.diversity_tip', 'Tracks whether the current map produces evenly-sized districts. Optimal shows the mathematically ideal grouping for this scope. Suboptimal (if shown) is the best achievable given giants and floor exceptions. Current shows what has been committed so far.') }}
                                     </div>
                                 </div>
                                 <div class="space-y-0.5">
                                     <div class="flex items-baseline gap-1">
-                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">Optimal:</span>
+                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">{{ t('c_legislature_pages.districts.optimal', 'Optimal:') }}</span>
                                         <span class="text-cyan-400 font-medium">{{ optimalLabel }}</span>
                                     </div>
                                     <div v-if="suboptimalLabel" class="flex items-baseline gap-1">
-                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">Suboptimal:</span>
+                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">{{ t('c_legislature_pages.districts.suboptimal', 'Suboptimal:') }}</span>
                                         <span class="text-violet-400 font-medium">{{ suboptimalLabel }}</span>
                                     </div>
                                     <div v-if="currentConfigLabel" class="flex items-baseline gap-1">
-                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">Current:</span>
+                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">{{ t('c_legislature_pages.districts.current', 'Current:') }}</span>
                                         <span class="text-amber-400">{{ currentConfigLabel }}</span>
                                     </div>
                                 </div>
@@ -685,24 +685,24 @@
                     <div class="flex items-center justify-center gap-1 px-3 py-2 border-b border-gray-800 bg-gray-900/50 shrink-0">
                         <select v-if="isLeafGiantScope"
                                 v-model="leafTool"
-                                title="Districting method for this undivided area"
+                                :title="t('c_legislature_pages.districts.method_title', 'Districting method for this undivided area')"
                                 class="flex-1 min-w-0 bg-gray-900 border border-gray-700 rounded px-1.5 py-1 text-xs text-gray-200 cursor-pointer">
-                            <option v-for="t in AUTOSEED_TEMPLATES" :key="t.key" :value="t.key">
-                                {{ t.label }}{{ t.hint ? ` — ${t.hint}` : '' }}
+                            <option v-for="tpl in AUTOSEED_TEMPLATES" :key="tpl.key" :value="tpl.key">
+                                {{ tpl.label }}{{ tpl.hint ? ` — ${tpl.hint}` : '' }}
                             </option>
-                            <option value="manual">✏️ Manual draw</option>
+                            <option value="manual">{{ t('c_legislature_pages.districts.manual_draw', '✏️ Manual draw') }}</option>
                         </select>
                         <button v-if="isLeafGiantScope"
                                 @click="previewAutoseedLines"
                                 :disabled="leafTool === 'manual' || autoseedBusy || autoseedCommitBusy || !!autoseedPlan || !drawTargetIsDraft"
-                                :title="leafTool === 'manual' ? 'Manual draw is selected — the draw tools below are active'
-                                    : !drawTargetIsDraft ? 'Pick or create a draft plan first'
-                                    : 'Propose a full plan with the selected method'"
+                                :title="leafTool === 'manual' ? t('c_legislature_pages.districts.autoseed_manual_title', 'Manual draw is selected — the draw tools below are active')
+                                    : !drawTargetIsDraft ? t('c_legislature_pages.districts.autoseed_draft_title', 'Pick or create a draft plan first')
+                                    : t('c_legislature_pages.districts.autoseed_propose_title', 'Propose a full plan with the selected method')"
                                 class="px-2 py-1 rounded text-xs border transition-colors shrink-0"
                                 :class="(leafTool === 'manual' || autoseedBusy || autoseedCommitBusy || !!autoseedPlan || !drawTargetIsDraft)
                                     ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
                                     : 'bg-indigo-900 border-indigo-700 text-indigo-300 hover:bg-indigo-800 hover:text-white'">
-                            {{ autoseedBusy ? '⚡ Proposing…' : '⚡ Autoseed' }}
+                            {{ autoseedBusy ? t('c_legislature_pages.districts.proposing', '⚡ Proposing…') : t('c_legislature_pages.districts.autoseed', '⚡ Autoseed') }}
                         </button>
                         <button v-else
                                 @click="openMassTool('reseed')"
@@ -713,7 +713,7 @@
                                     : massToolPanel === 'reseed'
                                         ? 'bg-indigo-700 border-indigo-500 text-white'
                                         : 'bg-indigo-900 border-indigo-700 text-indigo-300 hover:bg-indigo-800 hover:text-white'">
-                            ⚡ Autoseed
+                            {{ t('c_legislature_pages.districts.autoseed', '⚡ Autoseed') }}
                         </button>
                         <button @click="openMassTool('clear')"
                                 :disabled="massToolRunning || massJobRunning"
@@ -723,7 +723,7 @@
                                     : massToolPanel === 'clear'
                                         ? 'bg-red-700 border-red-500 text-white'
                                         : 'bg-red-900 border-red-800 text-red-300 hover:bg-red-800 hover:text-white'">
-                            ✕ Clear
+                            {{ t('c_legislature_pages.districts.clear', '✕ Clear') }}
                         </button>
                     </div>
 
@@ -770,24 +770,24 @@
                                     {{ massProgress.current_scope }}
                                     <span class="text-violet-500 ml-0.5">{{ massProgress.completed + 1 }}/{{ massProgress.total }}</span>
                                 </span>
-                                <span v-else class="text-[10px] text-violet-300 animate-pulse font-medium">Seeding…</span>
+                                <span v-else class="text-[10px] text-violet-300 animate-pulse font-medium">{{ t('c_legislature_pages.districts.seeding', 'Seeding…') }}</span>
                             </template>
                             <template v-else>
                                 <label class="flex items-center gap-1 cursor-pointer shrink-0">
                                     <input type="checkbox" v-model="wizardAutoSeed" class="w-3 h-3 accent-violet-400">
-                                    <span class="text-[10px] text-violet-400 whitespace-nowrap">Auto-seed</span>
+                                    <span class="text-[10px] text-violet-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.wizard_auto_seed', 'Auto-seed') }}</span>
                                 </label>
                                 <label class="flex items-center gap-1 cursor-pointer shrink-0">
                                     <input type="checkbox" v-model="wizardSkipSeeded" class="w-3 h-3 accent-violet-400">
-                                    <span class="text-[10px] text-violet-400 whitespace-nowrap">Skip Complete</span>
+                                    <span class="text-[10px] text-violet-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.wizard_skip', 'Skip Complete') }}</span>
                                 </label>
                                 <label class="flex items-center gap-1 cursor-pointer shrink-0">
                                     <input type="checkbox" v-model="wizardAutoStep" class="w-3 h-3 accent-violet-400">
-                                    <span class="text-[10px] text-violet-400 whitespace-nowrap">Auto Step</span>
+                                    <span class="text-[10px] text-violet-400 whitespace-nowrap">{{ t('c_legislature_pages.districts.wizard_auto_step', 'Auto Step') }}</span>
                                 </label>
                                 <select v-if="wizardAutoStep"
                                         v-model.number="wizardAutoDelay"
-                                        title="Auto-step delay"
+                                        :title="t('c_legislature_pages.districts.auto_step_delay', 'Auto-step delay')"
                                         class="shrink-0 text-[10px] bg-violet-900 border border-violet-700 rounded
                                                text-violet-200 py-0 px-1 leading-tight cursor-pointer">
                                     <option :value="3">3s</option>
@@ -814,7 +814,7 @@
                          class="shrink-0 border-b border-gray-700 bg-gray-900/80 px-3 py-3">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-xs font-semibold text-white">
-                                {{ massToolPanel === 'reseed' ? '⚡ Reseed' : '✕ Clear' }} — choose scope
+                                {{ massToolPanel === 'reseed' ? t('c_legislature_pages.districts.reseed', '⚡ Reseed') : t('c_legislature_pages.districts.clear', '✕ Clear') }} {{ t('c_legislature_pages.districts.choose_scope', '— choose scope') }}
                             </span>
                             <button @click="closeMassToolPanel" class="text-xs text-gray-500 hover:text-gray-300">✕</button>
                         </div>
@@ -827,13 +827,13 @@
                                         : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-600'">
                                 <div class="font-medium">{{ opt.label }}</div>
                                 <div class="text-gray-500 text-[10px] mt-0.5">{{ opt.desc }}</div>
-                                <div v-if="opt.warn" class="text-amber-400 text-[10px] mt-0.5">⚠ May be slow for large legislatures</div>
+                                <div v-if="opt.warn" class="text-amber-400 text-[10px] mt-0.5">{{ t('c_legislature_pages.districts.slow_warn', '⚠ May be slow for large legislatures') }}</div>
                             </button>
                         </div>
                         <div class="flex items-center justify-end gap-2 mt-3">
                             <button @click="closeMassToolPanel"
                                     class="px-3 py-1 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-white transition-colors">
-                                Cancel
+                                {{ t('c_legislature_pages.districts.cancel', 'Cancel') }}
                             </button>
                             <button @click="runMassTool"
                                     :disabled="!massToolScope || massToolRunning"
@@ -843,7 +843,7 @@
                                         : massToolPanel === 'clear'
                                             ? 'bg-red-700 border-red-600 text-white hover:bg-red-600'
                                             : 'bg-indigo-700 border-indigo-600 text-white hover:bg-indigo-600'">
-                                Run
+                                {{ t('c_legislature_pages.districts.run', 'Run') }}
                             </button>
                         </div>
                     </div>
@@ -855,7 +855,7 @@
                     <div v-if="roundingReady"
                          class="px-3 py-2 bg-emerald-950 border-b border-emerald-800 text-xs text-emerald-300 flex items-center gap-2 shrink-0">
                         <span class="text-emerald-500">✓</span>
-                        <span>All compositable jurisdictions assigned — expand subdivisions in the sidebar to continue.</span>
+                        <span>{{ t('c_legislature_pages.districts.rounding_ready', 'All compositable jurisdictions assigned — expand subdivisions in the sidebar to continue.') }}</span>
                     </div>
 
                     <!-- Phase H — manual draw panel: a childless leaf giant is subdivided by hand. -->
@@ -863,16 +863,16 @@
                          class="px-3 py-2 border-b border-amber-800 bg-amber-950/40 text-xs shrink-0">
                         <!-- Shared authorship note — one line for every disabled control below. -->
                         <div v-if="!canDraw" class="text-amber-400/90 mb-1.5">
-                            🔒 Drawing files F-ELB-008 — requires a seated election-board member (R-08).
+                            {{ t('c_legislature_pages.districts.draw_locked', '🔒 Drawing files F-ELB-008 — requires a seated election-board member (R-08).') }}
                         </div>
                         <!-- DEV — not part of the application: flips can_draw by seating
                              the signed-in user on the board via the dev-only route. -->
                         <div v-if="devSeatVisible"
                              class="flex items-center gap-1.5 flex-wrap mb-1.5 px-1.5 py-1 rounded border border-fuchsia-800/60 bg-fuchsia-950/30 text-[10px] text-fuchsia-300">
-                            <span class="font-semibold shrink-0">DEV — not part of the application:</span>
+                            <span class="font-semibold shrink-0">{{ t('c_legislature_pages.districts.dev_label', 'DEV — not part of the application:') }}</span>
                             <button class="underline hover:text-white disabled:opacity-60"
                                     :disabled="devSeatBusy"
-                                    @click="devSeatMe">{{ devSeatBusy ? 'Seating…' : 'Seat me on this board' }}</button>
+                                    @click="devSeatMe">{{ devSeatBusy ? t('c_legislature_pages.districts.dev_seating', 'Seating…') : t('c_legislature_pages.districts.dev_seat_me', 'Seat me on this board') }}</button>
                             <span v-if="devSeatMsg" class="text-red-400">{{ devSeatMsg }}</span>
                         </div>
                         <!-- 2026-07-17 rework: the method selector + ⚡ Autoseed live in the
@@ -881,13 +881,12 @@
                              selected method — the draw tools. -->
                         <template v-if="!drawMode && !autoseedPlan">
                             <div class="text-amber-300">
-                                Undivided area — no child units. Its <span class="font-semibold">{{ scope_seats }}</span> seats
-                                are cut from its territory: pick a method above and ⚡ Autoseed, or choose ✏️ Manual draw.
+                                {{ t('c_legislature_pages.districts.undivided_before', 'Undivided area — no child units. Its') }} <span class="font-semibold">{{ scope_seats }}</span> {{ t('c_legislature_pages.districts.undivided_after', 'seats are cut from its territory: pick a method above and ⚡ Autoseed, or choose ✏️ Manual draw.') }}
                             </div>
                             <!-- Drawing NEVER mints a plan from this panel — draft creation lives
                                  only at the map controls (operator ruling: no silent drafts). -->
                             <div v-if="!drawTargetIsDraft" class="text-amber-400/90 mt-1">
-                                Districting edits a draft plan — pick or create one with the [+] beside the MAP selector above.
+                                {{ t('c_legislature_pages.districts.edits_draft_plan', 'Districting edits a draft plan — pick or create one with the [+] beside the MAP selector above.') }}
                             </div>
                             <div v-if="autoseedError" class="text-red-400 mt-1">{{ autoseedError }}</div>
                         </template>
@@ -895,23 +894,22 @@
                         <!-- Autoseed-lines proposal — replaces the hint row until accepted or discarded. -->
                         <template v-else-if="!drawMode">
                             <div class="flex items-center justify-between gap-2 mb-1">
-                                <span class="text-amber-300 font-semibold">⚡ Autoseed proposal</span>
+                                <span class="text-amber-300 font-semibold">{{ t('c_legislature_pages.districts.autoseed_proposal', '⚡ Autoseed proposal') }}</span>
                                 <!-- Labels the PLAN's template (what commit will send), not the picker's. -->
                                 <span class="text-gray-500 tabular-nums shrink-0">
-                                    {{ autoseedTemplateLabel(autoseedPlan.template) }}<template v-if="autoseedPlan.cuts.length"> · {{ autoseedPlan.cuts.length }} cut{{ autoseedPlan.cuts.length === 1 ? '' : 's' }}</template>
+                                    {{ autoseedTemplateLabel(autoseedPlan.template) }}<template v-if="autoseedPlan.cuts.length"> · {{ autoseedPlan.cuts.length }} {{ t('c_legislature_pages.districts.cut_word', 'cut') }}{{ autoseedPlan.cuts.length === 1 ? '' : 's' }}</template>
                                 </span>
                             </div>
                             <div class="text-amber-300/80 mb-1">
-                                {{ autoseedPlan.districts.length }} districts · {{ autoseedSeatTotal }} seats ·
-                                quota {{ formatPop(autoseedPlan.quota) }} · pop {{ formatPop(autoseedPlan.total_pop) }}
+                                {{ t('c_legislature_pages.districts.plan_summary', { d: autoseedPlan.districts.length, s: autoseedSeatTotal, q: formatPop(autoseedPlan.quota), p: formatPop(autoseedPlan.total_pop) }) }}
                             </div>
                             <div class="flex items-center gap-1.5 px-1.5 text-[10px] text-gray-500">
                                 <span class="w-2 shrink-0"></span>
-                                <span class="flex-1">District</span>
-                                <span class="w-8 text-right shrink-0">Seats</span>
-                                <span class="w-12 text-right shrink-0">Pop</span>
-                                <span class="w-10 text-right shrink-0" title="Per-seat population deviation">Dev</span>
-                                <span class="w-8 text-right shrink-0" title="Convex-hull ratio (compactness)">CHR</span>
+                                <span class="flex-1">{{ t('c_legislature_pages.districts.col_district', 'District') }}</span>
+                                <span class="w-8 text-right shrink-0">{{ t('c_legislature_pages.districts.col_seats', 'Seats') }}</span>
+                                <span class="w-12 text-right shrink-0">{{ t('c_legislature_pages.districts.col_pop', 'Pop') }}</span>
+                                <span class="w-10 text-right shrink-0" :title="t('c_legislature_pages.districts.dev_title', 'Per-seat population deviation')">{{ t('c_legislature_pages.districts.col_dev', 'Dev') }}</span>
+                                <span class="w-8 text-right shrink-0" :title="t('c_legislature_pages.districts.chr_title', 'Convex-hull ratio (compactness)')">{{ t('c_legislature_pages.districts.col_chr', 'CHR') }}</span>
                             </div>
                             <div class="space-y-0.5">
                                 <div v-for="(d, i) in autoseedPlan.districts" :key="d.path"
@@ -928,24 +926,24 @@
                             <!-- Committing over live drawn districts 422s without explicit
                                  replace — surface the retirement up front instead. -->
                             <div v-if="(autoseedPlan.existing_districts ?? 0) > 0" class="text-amber-400/90 mt-1">
-                                Accepting retires the {{ autoseedPlan.existing_districts }} existing drawn district{{ autoseedPlan.existing_districts === 1 ? '' : 's' }} at this scope.
+                                {{ t('c_legislature_pages.districts.accept_retires_a', { n: autoseedPlan.existing_districts }) }} {{ t('c_legislature_pages.districts.accept_retires_word', 'existing drawn district') }}{{ autoseedPlan.existing_districts === 1 ? '' : 's' }} {{ t('c_legislature_pages.districts.accept_retires_b', 'at this scope.') }}
                             </div>
                             <div class="flex items-center gap-2 mt-1.5">
                                 <button class="flex-1 px-2 py-1 rounded text-white"
                                         :class="(autoseedCommitBusy || !canDraw || !drawTargetIsDraft) ? 'bg-gray-700 cursor-not-allowed opacity-70' : 'bg-emerald-600 hover:bg-emerald-500'"
                                         :disabled="autoseedCommitBusy || !canDraw || !drawTargetIsDraft"
                                         @click="acceptAutoseedPlan({ replace: (autoseedPlan.existing_districts ?? 0) > 0 })">{{
-                                            autoseedCommitBusy ? 'Committing…'
-                                            : (autoseedPlan.existing_districts ?? 0) > 0 ? `Accept & replace ${autoseedPlan.existing_districts}`
-                                            : 'Accept plan' }}</button>
+                                            autoseedCommitBusy ? t('c_legislature_pages.districts.committing', 'Committing…')
+                                            : (autoseedPlan.existing_districts ?? 0) > 0 ? t('c_legislature_pages.districts.accept_replace', { n: autoseedPlan.existing_districts })
+                                            : t('c_legislature_pages.districts.accept_plan', 'Accept plan') }}</button>
                                 <button class="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 disabled:opacity-60"
                                         :disabled="autoseedCommitBusy"
-                                        @click="discardAutoseedPlan">Discard</button>
+                                        @click="discardAutoseedPlan">{{ t('c_legislature_pages.districts.discard', 'Discard') }}</button>
                             </div>
                             <!-- Accept commits into the SELECTED plan — never a freshly minted one
                                  (operator ruling: draft creation lives at the map controls only). -->
                             <div v-if="!drawTargetIsDraft" class="text-amber-400/90 mt-1">
-                                Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector above.
+                                {{ t('c_legislature_pages.districts.drawing_edits_draft', 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector above.') }}
                             </div>
                             <div v-if="autoseedError || drawError" class="text-red-400 mt-1">{{ autoseedError || drawError }}</div>
                         </template>
@@ -953,8 +951,8 @@
                              controls; the panel keeps only the exit so nothing is duplicated. -->
                         <template v-else-if="showMobileDrawBar">
                             <div class="flex items-center justify-between gap-2">
-                                <span class="text-amber-300/80">Draw controls are in the bar at the bottom of the screen.</span>
-                                <button class="px-2 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 shrink-0" @click="exitDrawMode">Done</button>
+                                <span class="text-amber-300/80">{{ t('c_legislature_pages.districts.draw_controls_bottom', 'Draw controls are in the bar at the bottom of the screen.') }}</span>
+                                <button class="px-2 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 shrink-0" @click="exitDrawMode">{{ t('c_legislature_pages.districts.done', 'Done') }}</button>
                             </div>
                         </template>
                         <template v-else>
@@ -962,71 +960,71 @@
                                 <div class="inline-flex rounded overflow-hidden border border-amber-800 text-[11px]">
                                     <button class="px-2 py-0.5"
                                             :class="drawMethod === 'split' ? 'bg-amber-600 text-white' : 'text-amber-300 hover:bg-amber-900/40'"
-                                            @click="setDrawMethod('split')">📏 Split line</button>
+                                            @click="setDrawMethod('split')">{{ t('c_legislature_pages.districts.split_line', '📏 Split line') }}</button>
                                     <button class="px-2 py-0.5"
                                             :class="drawMethod === 'polygon' ? 'bg-amber-600 text-white' : 'text-amber-300 hover:bg-amber-900/40'"
-                                            @click="setDrawMethod('polygon')">✏️ Polygon</button>
+                                            @click="setDrawMethod('polygon')">{{ t('c_legislature_pages.districts.polygon', '✏️ Polygon') }}</button>
                                 </div>
-                                <button class="px-2 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 shrink-0" @click="exitDrawMode">Done</button>
+                                <button class="px-2 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 shrink-0" @click="exitDrawMode">{{ t('c_legislature_pages.districts.done', 'Done') }}</button>
                             </div>
 
                             <!-- Split-line: tap two points, see population each side. -->
                             <template v-if="drawMethod === 'split'">
-                                <div class="text-amber-300/80 mb-1">Tap the start of the cut, then tap the end — drag the dots to adjust; both sides update live.</div>
+                                <div class="text-amber-300/80 mb-1">{{ t('c_legislature_pages.districts.split_hint', 'Tap the start of the cut, then tap the end — drag the dots to adjust; both sides update live.') }}</div>
                                 <div v-if="splitSides" class="space-y-1">
                                     <div v-for="(s, i) in splitSides.sides" :key="i"
                                          class="flex items-center justify-between gap-2 px-1.5 py-0.5 rounded"
                                          :class="s.in_band ? 'bg-emerald-950/40' : 'bg-red-950/40'">
-                                        <span class="text-gray-400">Side {{ i === 0 ? 'A' : 'B' }}</span>
+                                        <span class="text-gray-400">{{ t('c_legislature_pages.districts.side', { side: i === 0 ? 'A' : 'B' }) }}</span>
                                         <span class="tabular-nums text-gray-200">{{ formatPop(s.population) }}</span>
                                         <span class="tabular-nums shrink-0" :class="s.in_band ? 'text-emerald-400' : 'text-red-400'">
-                                            {{ s.implied_seats }} seat{{ s.implied_seats === 1 ? '' : 's' }}
+                                            {{ s.implied_seats }} {{ t('c_legislature_pages.districts.seat_word', 'seat') }}{{ s.implied_seats === 1 ? '' : 's' }}
                                             <span class="text-gray-600">({{ s.implied_fractional_seats }})</span>
                                         </span>
                                     </div>
                                     <button class="w-full mt-1 px-2 py-1 rounded border border-amber-700 bg-amber-900/40 text-amber-200 hover:bg-amber-800/40 disabled:opacity-60 disabled:cursor-not-allowed"
                                             :disabled="snapBusy || drawBusy"
-                                            @click="snapToBalance">{{ snapBusy ? 'Balancing…' : '⚖ Snap to balance' }}</button>
+                                            @click="snapToBalance">{{ snapBusy ? t('c_legislature_pages.districts.balancing', 'Balancing…') : t('c_legislature_pages.districts.snap_balance', '⚖ Snap to balance') }}</button>
                                     <button class="w-full mt-1 px-2 py-1 rounded text-white"
                                             :class="(splitCommitReady && !drawBusy && !snapBusy && canDraw) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
                                             :disabled="!splitCommitReady || drawBusy || snapBusy || !canDraw"
-                                            @click="commitSplit">{{ drawBusy ? 'Saving…' : (splitCommitReady ? 'Commit both districts' : 'A side is out of band — move the line') }}</button>
+                                            @click="commitSplit">{{ drawBusy ? t('c_legislature_pages.districts.saving', 'Saving…') : (splitCommitReady ? t('c_legislature_pages.districts.commit_both', 'Commit both districts') : t('c_legislature_pages.districts.out_of_band', 'A side is out of band — move the line')) }}</button>
                                 </div>
-                                <div v-else-if="drawBusy" class="text-gray-500">Measuring…</div>
+                                <div v-else-if="drawBusy" class="text-gray-500">{{ t('c_legislature_pages.districts.measuring', 'Measuring…') }}</div>
                             </template>
 
                             <!-- Freeform polygon (secondary). -->
                             <template v-else>
-                                <div class="text-amber-300/80 mb-1">Draw a polygon with the ▢ tool (top-left, under zoom). Vertices snap to the giant's outline and drawn-district borders — hold Alt to disable.</div>
+                                <div class="text-amber-300/80 mb-1">{{ t('c_legislature_pages.districts.polygon_hint', 'Draw a polygon with the ▢ tool (top-left, under zoom). Vertices snap to the giant\'s outline and drawn-district borders — hold Alt to disable.') }}</div>
                                 <!-- Everything not yet drawn, staged as one reviewable piece. -->
                                 <button v-if="districtsRef.length > 0"
                                         class="w-full mb-1.5 px-2 py-1 rounded border border-amber-700 bg-amber-900/40 text-amber-200 hover:bg-amber-800/40 disabled:opacity-60 disabled:cursor-not-allowed"
                                         :disabled="remainderBusy || drawBusy"
-                                        @click="fillRemainder">{{ remainderBusy ? 'Filling…' : '▣ Fill remainder' }}</button>
+                                        @click="fillRemainder">{{ remainderBusy ? t('c_legislature_pages.districts.filling', 'Filling…') : t('c_legislature_pages.districts.fill_remainder', '▣ Fill remainder') }}</button>
                                 <div v-if="drawProbe" class="space-y-1">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-gray-400">Population</span>
+                                        <span class="text-gray-400">{{ t('c_legislature_pages.districts.population', 'Population') }}</span>
                                         <span class="tabular-nums text-gray-200">{{ formatPop(drawProbe.population) }}</span>
                                     </div>
                                     <div class="flex items-center justify-between">
-                                        <span class="text-gray-400">Implied seats</span>
+                                        <span class="text-gray-400">{{ t('c_legislature_pages.districts.implied_seats', 'Implied seats') }}</span>
                                         <span class="tabular-nums" :class="drawProbe.in_band ? 'text-emerald-400' : 'text-red-400'">
                                             {{ drawProbe.implied_seats }}
                                             <span class="text-gray-600">({{ drawProbe.implied_fractional_seats }})</span>
                                         </span>
                                     </div>
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <span :class="drawProbe.in_band ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.in_band ? '✓ in band' : '✕ out of band' }}</span>
-                                        <span :class="drawProbe.contiguous ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.contiguous ? '✓ contiguous' : '✕ split' }}</span>
-                                        <span :class="drawProbe.within_giant ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
+                                        <span :class="drawProbe.in_band ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.in_band ? t('c_legislature_pages.districts.in_band', '✓ in band') : t('c_legislature_pages.districts.out_band', '✕ out of band') }}</span>
+                                        <span :class="drawProbe.contiguous ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.contiguous ? t('c_legislature_pages.districts.probe_contiguous', '✓ contiguous') : t('c_legislature_pages.districts.probe_split', '✕ split') }}</span>
+                                        <span :class="drawProbe.within_giant ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.within_giant ? t('c_legislature_pages.districts.probe_inside', '✓ inside') : t('c_legislature_pages.districts.probe_outside', '✕ outside') }}</span>
                                     </div>
-                                    <div v-if="drawProbe.clipped" class="text-amber-400/80">✂ Trimmed to {{ scope.name }}'s boundary.</div>
+                                    <div v-if="drawProbe.clipped" class="text-amber-400/80">{{ t('c_legislature_pages.districts.trimmed_to', { name: scope.name }) }}</div>
                                     <button class="w-full mt-1 px-2 py-1 rounded text-white"
                                             :class="(drawCommitReady && !drawBusy && canDraw) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
                                             :disabled="!drawCommitReady || drawBusy || !canDraw"
-                                            @click="commitDraw">{{ drawBusy ? 'Saving…' : 'Commit district' }}</button>
+                                            @click="commitDraw">{{ drawBusy ? t('c_legislature_pages.districts.saving', 'Saving…') : t('c_legislature_pages.districts.commit_district', 'Commit district') }}</button>
                                 </div>
-                                <div v-else-if="drawBusy" class="text-gray-500">Measuring…</div>
+                                <div v-else-if="drawBusy" class="text-gray-500">{{ t('c_legislature_pages.districts.measuring', 'Measuring…') }}</div>
                             </template>
 
                             <div v-if="drawError" class="text-red-400 mt-1">{{ drawError }}</div>
@@ -1036,7 +1034,7 @@
                         <button v-if="undoStack.length && !showMobileDrawBar"
                                 class="w-full mt-1.5 px-2 py-1 rounded border border-gray-700 bg-gray-800/60 text-gray-300 hover:text-red-300 hover:border-red-800 disabled:opacity-60 disabled:cursor-not-allowed"
                                 :disabled="undoBusy || !canDraw"
-                                @click="undoLastCommit">{{ undoBusy ? 'Undoing…' : `↩ Undo last — ${undoStack[undoStack.length - 1].label}` }}</button>
+                                @click="undoLastCommit">{{ undoBusy ? t('c_legislature_pages.districts.undoing', 'Undoing…') : t('c_legislature_pages.districts.undo_last', { label: undoStack[undoStack.length - 1].label }) }}</button>
                     </div>
 
                     <!-- Phase 5e — drawn-district list: at a leaf-giant scope the districts
@@ -1045,9 +1043,9 @@
                     <template v-if="showLeafDrawnList">
                         <div class="flex items-center gap-1.5 px-3 py-1 bg-gray-900/80 border-b border-gray-700 text-xs text-gray-500 shrink-0 sticky top-0 z-10">
                             <span class="w-2.5 shrink-0"></span><!-- dot spacer -->
-                            <span class="flex-1">Drawn district</span>
-                            <span class="w-8 text-right shrink-0">Seats</span>
-                            <span class="w-16 text-right shrink-0">Population</span>
+                            <span class="flex-1">{{ t('c_legislature_pages.districts.drawn_district', 'Drawn district') }}</span>
+                            <span class="w-8 text-right shrink-0">{{ t('c_legislature_pages.districts.col_seats', 'Seats') }}</span>
+                            <span class="w-16 text-right shrink-0">{{ t('c_legislature_pages.districts.population', 'Population') }}</span>
                             <span class="w-4 shrink-0"></span><!-- delete spacer -->
                         </div>
                         <div v-for="d in leafDrawnDistricts" :key="d.id" class="border-b border-gray-800">
@@ -1058,15 +1056,15 @@
                                 <span class="tabular-nums text-gray-400 w-16 text-right shrink-0">{{ d.population > 0 ? formatPop(d.population) : '—' }}</span>
                                 <button class="shrink-0 w-4 text-center text-gray-600 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-wait"
                                         :disabled="deletingDrawnId !== null"
-                                        :title="`Delete ${d.label}`"
+                                        :title="t('c_legislature_pages.districts.delete_named', { label: d.label })"
                                         @click="deleteDrawnDistrict(d)">{{ deletingDrawnId === d.id ? '…' : '🗑' }}</button>
                             </div>
                             <!-- Quality strip — mirrors the composite district rows' bands -->
                             <div class="flex items-center gap-2 px-3 py-0.5 border-t border-gray-800/40 bg-gray-900/40 text-[10px] tabular-nums flex-wrap">
                                 <span :style="{ color: devColor(d.deviation) }"
-                                      title="Population deviation from ideal quota per seat">{{ devLabel(d.deviation) }}</span>
+                                      :title="t('c_legislature_pages.districts.dev_deviation_title', 'Population deviation from ideal quota per seat')">{{ devLabel(d.deviation) }}</span>
                                 <span class="text-gray-700">·</span>
-                                <span :style="{ color: chrColor(d.chr) }" :title="shapeLabel(d.chr)">CHR {{ chrLabel(d.chr) }}</span>
+                                <span :style="{ color: chrColor(d.chr) }" :title="shapeLabel(d.chr)">{{ t('c_legislature_pages.districts.col_chr', 'CHR') }} {{ chrLabel(d.chr) }}</span>
                                 <span class="text-gray-700">·</span>
                                 <span :style="{ color: contigColor(d.contiguous) }">{{ contigLabel(d.contiguous) }}</span>
                                 <span class="text-gray-700">·</span>
@@ -1079,10 +1077,10 @@
                     <!-- Sort header -->
                     <div class="flex items-center gap-1 px-3 py-1 bg-gray-900/80 border-b border-gray-700 text-xs text-gray-500 shrink-0 sticky top-0 z-10">
                         <span class="w-3 shrink-0"></span><!-- dot spacer -->
-                        <button class="flex-1 text-left hover:text-gray-300 truncate" @click="toggleSort('name')">Name{{ sortIndicator('name') }}</button>
-                        <button class="w-12 text-right hover:text-gray-300 shrink-0" @click="toggleSort('seats')">Seats{{ sortIndicator('seats') }}</button>
-                        <button class="w-20 text-right hover:text-gray-300 shrink-0" @click="toggleSort('pop')">Population{{ sortIndicator('pop') }}</button>
-                        <button class="w-12 text-right hover:text-gray-300 shrink-0" @click="toggleSort('frac')">Rep{{ sortIndicator('frac') }}</button>
+                        <button class="flex-1 text-left hover:text-gray-300 truncate" @click="toggleSort('name')">{{ t('c_legislature_pages.districts.sort_name', 'Name') }}{{ sortIndicator('name') }}</button>
+                        <button class="w-12 text-right hover:text-gray-300 shrink-0" @click="toggleSort('seats')">{{ t('c_legislature_pages.districts.col_seats', 'Seats') }}{{ sortIndicator('seats') }}</button>
+                        <button class="w-20 text-right hover:text-gray-300 shrink-0" @click="toggleSort('pop')">{{ t('c_legislature_pages.districts.population', 'Population') }}{{ sortIndicator('pop') }}</button>
+                        <button class="w-12 text-right hover:text-gray-300 shrink-0" @click="toggleSort('frac')">{{ t('c_legislature_pages.districts.sort_rep', 'Rep') }}{{ sortIndicator('frac') }}</button>
                         <span class="w-4 shrink-0"></span><!-- chevron spacer -->
                     </div>
 
@@ -1105,7 +1103,7 @@
                                 <span class="font-mono text-xs text-gray-100 flex-1 truncate">{{ row.district.name ?? '' }}</span>
                                 <span class="text-xs font-semibold w-12 text-right shrink-0"
                                       :class="row.district.fractional_seats < FLOOR_OVERRIDE ? 'text-amber-400' : seatClass(row.district.seats)"
-                                      :title="row.district.fractional_seats < FLOOR_OVERRIDE ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
+                                      :title="row.district.fractional_seats < FLOOR_OVERRIDE ? t('c_legislature_pages.districts.floor_override_title', 'Floor override — fractional seats rounds below minimum without override') : undefined">{{ row.district.seats }}</span>
                                 <span class="text-xs text-gray-400 tabular-nums w-20 text-right shrink-0">
                                     {{ (() => {
                                         const dp = row.district.population
@@ -1134,7 +1132,7 @@
                                         : row.district.members.reduce((s,m) => s + m.fractional_seats, 0)
                                     return row.district.seats > 0 ? (frac / row.district.seats - 1) * 100 : null
                                 })()) }"
-                                      title="Population deviation from ideal quota per seat">
+                                      :title="t('c_legislature_pages.districts.dev_deviation_title', 'Population deviation from ideal quota per seat')">
                                     {{ devLabel((() => {
                                         const frac = row.district.fractional_seats > 0
                                             ? row.district.fractional_seats
@@ -1146,18 +1144,18 @@
                                 <!-- Compactness (CHR) -->
                                 <span :style="{ color: chrColor(row.district.convex_hull_ratio) }"
                                       :title="shapeLabel(row.district.convex_hull_ratio)">
-                                    CHR {{ chrLabel(row.district.convex_hull_ratio) }}
+                                    {{ t('c_legislature_pages.districts.col_chr', 'CHR') }} {{ chrLabel(row.district.convex_hull_ratio) }}
                                 </span>
                                 <span class="text-gray-700">·</span>
                                 <!-- Contiguity -->
                                 <span :style="{ color: contigColor(row.district.is_contiguous) }"
-                                      :title="row.district.is_contiguous === true ? 'Contiguous' : row.district.is_contiguous === false ? 'Non-contiguous' : 'Contiguity not yet computed'">
+                                      :title="row.district.is_contiguous === true ? t('c_legislature_pages.districts.contig_yes_title', 'Contiguous') : row.district.is_contiguous === false ? t('c_legislature_pages.districts.contig_no_title', 'Non-contiguous') : t('c_legislature_pages.districts.contig_unknown_title', 'Contiguity not yet computed')">
                                     {{ contigLabel(row.district.is_contiguous) }}
                                 </span>
                                 <span class="text-gray-700">·</span>
                                 <!-- Community Integrity -->
                                 <span :style="{ color: integrityColor(row.district.has_integrity) }"
-                                      :title="row.district.has_integrity === true ? 'Drawn along admin boundaries' : row.district.has_integrity === false ? 'Leaf giant — requires manual line-drawing' : 'Integrity not computed'">
+                                      :title="row.district.has_integrity === true ? t('c_legislature_pages.districts.integrity_yes_title', 'Drawn along admin boundaries') : row.district.has_integrity === false ? t('c_legislature_pages.districts.integrity_no_title', 'Leaf giant — requires manual line-drawing') : t('c_legislature_pages.districts.integrity_unknown_title', 'Integrity not computed')">
                                     {{ integrityLabel(row.district.has_integrity) }}
                                 </span>
                             </div>
@@ -1174,15 +1172,15 @@
                                               :class="!pendingValid ? 'bg-red-900 text-red-300'
                                                     : pendingFloor  ? 'bg-orange-900 text-orange-300'
                                                     :                 'bg-emerald-900 text-emerald-300'">
-                                            <span>{{ pendingFractionalTotal.toFixed(2) }} → {{ pendingSeats }} seats
-                                            <span v-if="!pendingValid"> ✗ exceeds 9</span>
-                                            <span v-else-if="pendingFloor"> ⚑ floor</span></span>
+                                            <span>{{ pendingFractionalTotal.toFixed(2) }} → {{ pendingSeats }} {{ t('c_legislature_pages.districts.seats_word', 'seats') }}
+                                            <span v-if="!pendingValid"> {{ t('c_legislature_pages.districts.exceeds_9', '✗ exceeds 9') }}</span>
+                                            <span v-else-if="pendingFloor"> {{ t('c_legislature_pages.districts.floor_flag', '⚑ floor') }}</span></span>
                                             <span v-if="suboptimalConfig &&
                                                         suboptimalConfig.d > 0 &&
                                                         !(pendingSeats >= suboptimalConfig.q &&
                                                           pendingSeats <= suboptimalConfig.q + (suboptimalConfig.r > 0 ? 1 : 0))"
                                                   class="text-[10px] text-gray-400 font-normal">
-                                                target: {{ suboptimalConfig.q }}{{ suboptimalConfig.r > 0 ? '–' + (suboptimalConfig.q + 1) : '' }}
+                                                {{ t('c_legislature_pages.districts.target_label', 'target:') }} {{ suboptimalConfig.q }}{{ suboptimalConfig.r > 0 ? '–' + (suboptimalConfig.q + 1) : '' }}
                                             </span>
                                         </span>
                                         <!-- Save -->
@@ -1192,37 +1190,37 @@
                                                 :class="(pendingAdd.size > 0 || pendingRemove.size > 0) && !savingEdit && pendingValid
                                                     ? 'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600'
                                                     : 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'">
-                                            {{ savingEdit ? 'Saving…' : `Save (${pendingAdd.size + pendingRemove.size})` }}
+                                            {{ savingEdit ? t('c_legislature_pages.districts.saving', 'Saving…') : t('c_legislature_pages.districts.save_count', { n: pendingAdd.size + pendingRemove.size }) }}
                                         </button>
                                         <button @click="cancelEdit"
                                                 class="px-2 py-1.5 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-white transition-colors">
-                                            Cancel
+                                            {{ t('c_legislature_pages.districts.cancel', 'Cancel') }}
                                         </button>
                                     </template>
                                     <!-- Drawn (geometry) district surfaced from a descendant leaf
                                          giant: member edit / disband live where the draw tools are —
                                          its own scope — so no affordances here, same as the map. -->
                                     <template v-else-if="row.district.method === 'drawn'">
-                                        <span class="text-xs text-gray-500">Drawn district — manage it at its own scope.</span>
+                                        <span class="text-xs text-gray-500">{{ t('c_legislature_pages.districts.drawn_manage', 'Drawn district — manage it at its own scope.') }}</span>
                                     </template>
                                     <template v-else>
                                         <button @click.stop="startEdit(row.district.id)"
                                                 class="px-2 py-1.5 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-emerald-400 hover:border-emerald-700 transition-colors">
-                                            ✏ Edit
+                                            {{ t('c_legislature_pages.districts.edit', '✏ Edit') }}
                                         </button>
                                         <button v-if="deletingDistrictId !== row.district.id"
                                                 @click.stop="deletingDistrictId = row.district.id"
                                                 class="px-2 py-1.5 rounded text-xs border bg-gray-800 border-gray-700 text-gray-500 hover:text-red-400 hover:border-red-700 transition-colors">
-                                            × Disband
+                                            {{ t('c_legislature_pages.districts.disband', '× Disband') }}
                                         </button>
                                         <template v-else>
                                             <button @click.stop="deleteDistrict(row.district.id)"
                                                     class="flex-1 px-2 py-1.5 rounded text-xs border bg-red-900 border-red-700 text-red-200 hover:bg-red-800 transition-colors">
-                                                Confirm disband
+                                                {{ t('c_legislature_pages.districts.confirm_disband', 'Confirm disband') }}
                                             </button>
                                             <button @click.stop="deletingDistrictId = null"
                                                     class="px-2 py-1.5 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-white transition-colors">
-                                                Cancel
+                                                {{ t('c_legislature_pages.districts.cancel', 'Cancel') }}
                                             </button>
                                         </template>
                                     </template>
@@ -1243,20 +1241,20 @@
                                     <button v-if="isGiantChild(member) && member.child_count > 0"
                                             @click.stop="drillTo(member.id)"
                                             class="shrink-0 text-gray-500 hover:text-emerald-400 transition-colors"
-                                            title="Drill into sub-districts">▶</button>
+                                            :title="t('c_legislature_pages.districts.drill_subdistricts', 'Drill into sub-districts')">▶</button>
                                     <button v-if="editingDistrictId === row.district.id"
                                             @click.stop="togglePendingRemove(member.id)"
                                             class="shrink-0 w-5 h-5 flex items-center justify-center rounded transition-colors"
                                             :class="pendingRemove.has(member.id)
                                                 ? 'bg-red-700 text-white'
                                                 : 'text-gray-600 hover:text-red-400 hover:bg-red-900/30'"
-                                            title="Remove from district">−</button>
+                                            :title="t('c_legislature_pages.districts.remove_from_district', 'Remove from district')">−</button>
                                 </div>
 
                                 <!-- Edit-mode pending adds -->
                                 <div v-if="editingDistrictId === row.district.id && pendingAdd.size > 0"
                                      class="px-4 py-1 bg-yellow-900/20 border-t border-yellow-800/40">
-                                    <div class="text-xs text-yellow-400 font-medium mb-1">Adding ({{ pendingAdd.size }}):</div>
+                                    <div class="text-xs text-yellow-400 font-medium mb-1">{{ t('c_legislature_pages.districts.adding_count', { n: pendingAdd.size }) }}</div>
                                     <div v-for="jid in [...pendingAdd]" :key="jid"
                                          class="flex items-center gap-1 text-xs text-yellow-300 py-0.5">
                                         <span class="flex-1 truncate">{{ childrenRef.find(c => c.id === jid)?.name ?? jid }}</span>
@@ -1277,7 +1275,7 @@
                                 <span class="font-mono text-gray-300 flex-1 truncate">{{ row.district.name ?? '' }}</span>
                                 <span class="font-semibold w-12 text-right shrink-0"
                                       :class="row.district.fractional_seats < FLOOR_OVERRIDE ? 'text-amber-400' : seatClass(row.district.seats)"
-                                      :title="row.district.fractional_seats < FLOOR_OVERRIDE ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
+                                      :title="row.district.fractional_seats < FLOOR_OVERRIDE ? t('c_legislature_pages.districts.floor_override_title', 'Floor override — fractional seats rounds below minimum without override') : undefined">{{ row.district.seats }}</span>
                                 <span class="text-gray-500 tabular-nums w-20 text-right shrink-0">
                                     {{ (() => {
                                         const dp = row.district.population
@@ -1297,7 +1295,7 @@
                                     const frac = row.district.fractional_seats
                                     return row.district.seats > 0 ? (frac / row.district.seats - 1) * 100 : null
                                 })()) }"
-                                      title="Population deviation from ideal quota per seat">
+                                      :title="t('c_legislature_pages.districts.dev_deviation_title', 'Population deviation from ideal quota per seat')">
                                     {{ devLabel((() => {
                                         const frac = row.district.fractional_seats
                                         return row.district.seats > 0 ? (frac / row.district.seats - 1) * 100 : null
@@ -1306,16 +1304,16 @@
                                 <span class="text-gray-700">·</span>
                                 <span :style="{ color: chrColor(row.district.convex_hull_ratio) }"
                                       :title="shapeLabel(row.district.convex_hull_ratio)">
-                                    CHR {{ chrLabel(row.district.convex_hull_ratio) }}
+                                    {{ t('c_legislature_pages.districts.col_chr', 'CHR') }} {{ chrLabel(row.district.convex_hull_ratio) }}
                                 </span>
                                 <span class="text-gray-700">·</span>
                                 <span :style="{ color: contigColor(row.district.is_contiguous) }"
-                                      :title="row.district.is_contiguous === true ? 'Contiguous' : row.district.is_contiguous === false ? 'Non-contiguous' : 'Not yet computed'">
+                                      :title="row.district.is_contiguous === true ? t('c_legislature_pages.districts.contig_yes_title', 'Contiguous') : row.district.is_contiguous === false ? t('c_legislature_pages.districts.contig_no_title', 'Non-contiguous') : t('c_legislature_pages.districts.not_yet_computed_title', 'Not yet computed')">
                                     {{ contigLabel(row.district.is_contiguous) }}
                                 </span>
                                 <span class="text-gray-700">·</span>
                                 <span :style="{ color: integrityColor(row.district.has_integrity) }"
-                                      :title="row.district.has_integrity === true ? 'Drawn along admin boundaries' : row.district.has_integrity === false ? 'Leaf giant — requires manual line-drawing' : 'Not computed'">
+                                      :title="row.district.has_integrity === true ? t('c_legislature_pages.districts.integrity_yes_title', 'Drawn along admin boundaries') : row.district.has_integrity === false ? t('c_legislature_pages.districts.integrity_no_title', 'Leaf giant — requires manual line-drawing') : t('c_legislature_pages.districts.not_computed_title', 'Not computed')">
                                     {{ integrityLabel(row.district.has_integrity) }}
                                 </span>
                             </div>
@@ -1337,21 +1335,21 @@
                                             : giantStatusCache.get(row.giant.id)?.overage      ? 'text-red-400'
                                             : giantStatusCache.get(row.giant.id)?.progress === 'partial' ? 'text-amber-400'
                                             : 'text-gray-500'"
-                                      :title="giantStatusCache.get(row.giant.id)?.clean               ? 'All sub-districts complete, no issues'
-                                            : giantStatusCache.get(row.giant.id)?.progress === 'undistricted' ? 'No sub-districts yet'
+                                      :title="giantStatusCache.get(row.giant.id)?.clean               ? t('c_legislature_pages.districts.giant_clean_title', 'All sub-districts complete, no issues')
+                                            : giantStatusCache.get(row.giant.id)?.progress === 'undistricted' ? t('c_legislature_pages.districts.giant_none_title', 'No sub-districts yet')
                                             : giantStatusCache.get(row.giant.id)?.progress === 'partial'
-                                                ? `${giantStatusCache.get(row.giant.id)?.assigned} of ${giantStatusCache.get(row.giant.id)?.budget} seats assigned`
-                                            : `${giantStatusCache.get(row.giant.id)?.budget}/${giantStatusCache.get(row.giant.id)?.budget} seats assigned`">
+                                                ? t('c_legislature_pages.districts.giant_partial_title', { assigned: giantStatusCache.get(row.giant.id)?.assigned, budget: giantStatusCache.get(row.giant.id)?.budget })
+                                            : t('c_legislature_pages.districts.giant_full_title', { budget: giantStatusCache.get(row.giant.id)?.budget })">
                                     {{ giantStatusCache.get(row.giant.id)?.clean               ? '✓'
                                      : giantStatusCache.get(row.giant.id)?.progress === 'undistricted' ? '○'
                                      : `${giantStatusCache.get(row.giant.id)?.assigned}/${giantStatusCache.get(row.giant.id)?.budget}` }}
                                 </span>
                                 <span v-if="giantStatusCache.get(row.giant.id)?.overage"
                                       class="text-red-400 text-[10px]"
-                                      title="Child districts exceed apportioned budget">⛔</span>
+                                      :title="t('c_legislature_pages.districts.giant_overage_title', 'Child districts exceed apportioned budget')">⛔</span>
                                 <span v-if="giantStatusCache.get(row.giant.id)?.incomplete"
                                       class="text-amber-300 text-[10px]"
-                                      title="Unassigned compositable children within this scope">…</span>
+                                      :title="t('c_legislature_pages.districts.giant_incomplete_title', 'Unassigned compositable children within this scope')">…</span>
                             </span>
                             <span class="tabular-nums w-12 text-right shrink-0"
                                   :class="seatClass(seatsOf(row.giant))">{{ seatsOf(row.giant) }}</span><!-- Seats -->
@@ -1361,14 +1359,14 @@
                                   :class="expandedNodes[row.giant.id] ? 'rotate-90' : ''">›</span>
                             <button @click.stop="drillTo(row.giant.id)"
                                     class="shrink-0 text-gray-600 hover:text-emerald-400 transition-colors"
-                                    title="Navigate into this scope (change map view)">▶</button>
+                                    :title="t('c_legislature_pages.districts.navigate_scope', 'Navigate into this scope (change map view)')">▶</button>
                         </div>
 
                         <!-- Loading indicator -->
                         <div v-else-if="row.type === 'loading'"
                              class="border-b border-gray-800 py-2 text-xs text-gray-600 italic"
                              :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }">
-                            loading…
+                            {{ t('c_legislature_pages.districts.loading', 'loading…') }}
                         </div>
 
                         <!-- Drawn-group header: surfaced drawn districts whose giant has
@@ -1376,7 +1374,7 @@
                         <div v-else-if="row.type === 'drawn-group'"
                              class="border-b border-gray-800 py-1.5 text-[11px] uppercase tracking-wide text-gray-500"
                              :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }">
-                            ✎ {{ row.name }} — drawn districts
+                            {{ t('c_legislature_pages.districts.drawn_group', { name: row.name }) }}
                         </div>
 
                         <!-- Member jurisdiction row (from expanded nested district) -->
@@ -1393,7 +1391,7 @@
                             <button v-if="row.member.child_count > 0"
                                     @click.stop="drillTo(row.member.id)"
                                     class="w-4 text-center text-gray-600 hover:text-emerald-400 transition-colors shrink-0"
-                                    title="Drill into sub-districts">▶</button>
+                                    :title="t('c_legislature_pages.districts.drill_subdistricts', 'Drill into sub-districts')">▶</button>
                             <span v-else class="w-4 shrink-0"></span>
                         </div>
 
@@ -1413,7 +1411,7 @@
                                     ✕
                                 </button>
                                 <span class="text-xs font-semibold text-amber-400 truncate">
-                                    Unassigned ({{ unassignedAssignable.length }})
+                                    {{ t('c_legislature_pages.districts.unassigned_count', { n: unassignedAssignable.length }) }}
                                 </span>
                             </div>
                             <!-- Right: seat pill + Create button (draw mode) OR + New (browse) -->
@@ -1425,7 +1423,7 @@
                                           :class="!pendingValid ? 'bg-red-900 text-red-300'
                                                 : pendingFloor  ? 'bg-orange-900 text-orange-300'
                                                 :                 'bg-emerald-900 text-emerald-300'">
-                                        <span>{{ pendingFractionalTotal.toFixed(2) }} → {{ pendingSeats }} seats
+                                        <span>{{ pendingFractionalTotal.toFixed(2) }} → {{ pendingSeats }} {{ t('c_legislature_pages.districts.seats_word', 'seats') }}
                                         <span v-if="!pendingValid"> ✗</span>
                                         <span v-else-if="pendingFloor"> ⚑</span></span>
                                         <span v-if="suboptimalConfig &&
@@ -1433,7 +1431,7 @@
                                                     !(pendingSeats >= suboptimalConfig.q &&
                                                       pendingSeats <= suboptimalConfig.q + (suboptimalConfig.r > 0 ? 1 : 0))"
                                               class="text-[10px] text-gray-400 font-normal">
-                                            target: {{ suboptimalConfig.q }}{{ suboptimalConfig.r > 0 ? '–' + (suboptimalConfig.q + 1) : '' }}
+                                            {{ t('c_legislature_pages.districts.target_label', 'target:') }} {{ suboptimalConfig.q }}{{ suboptimalConfig.r > 0 ? '–' + (suboptimalConfig.q + 1) : '' }}
                                         </span>
                                     </span>
                                     <button @click="createDistrictFromPending"
@@ -1442,14 +1440,14 @@
                                             :class="pendingAdd.size > 0 && !savingEdit && pendingValid
                                                 ? 'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600'
                                                 : 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'">
-                                        {{ savingEdit ? 'Creating…' : `Create (${pendingAdd.size})` }}
+                                        {{ savingEdit ? t('c_legislature_pages.districts.creating', 'Creating…') : t('c_legislature_pages.districts.create_count', { n: pendingAdd.size }) }}
                                     </button>
                                 </div>
                             </template>
                             <div v-else class="flex items-center gap-1 shrink-0">
                                 <button @click="startNewDistrict"
                                         class="px-2 py-1 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-emerald-400 hover:border-emerald-700 transition-colors">
-                                    + New
+                                    {{ t('c_legislature_pages.districts.new_district', '+ New') }}
                                 </button>
                             </div>
                         </div>
@@ -1475,7 +1473,7 @@
                     <!-- All assigned notice -->
                     <div v-if="unassignedAssignable.length === 0 && districtsRef.length > 0"
                          class="px-4 py-3 text-xs text-emerald-400 text-center italic">
-                        All compositable jurisdictions assigned ✓
+                        {{ t('c_legislature_pages.districts.all_assigned', 'All compositable jurisdictions assigned ✓') }}
                     </div>
                     </template><!-- end composite-scope list (v-else of the drawn list) -->
                     </div><!-- end scrollable content area -->
@@ -1548,17 +1546,17 @@
                             <div class="inline-flex rounded overflow-hidden border border-amber-800">
                                 <button class="px-3 min-h-[44px]"
                                         :class="drawMethod === 'split' ? 'bg-amber-600 text-white' : 'text-amber-300'"
-                                        @click="setDrawMethod('split')">📏 Split</button>
+                                        @click="setDrawMethod('split')">{{ t('c_legislature_pages.districts.split_mobile', '📏 Split') }}</button>
                                 <button class="px-3 min-h-[44px]"
                                         :class="drawMethod === 'polygon' ? 'bg-amber-600 text-white' : 'text-amber-300'"
-                                        @click="setDrawMethod('polygon')">✏️ Polygon</button>
+                                        @click="setDrawMethod('polygon')">{{ t('c_legislature_pages.districts.polygon', '✏️ Polygon') }}</button>
                             </div>
                             <button v-if="undoStack.length"
                                     class="px-3 min-h-[44px] rounded border border-gray-700 bg-gray-800/80 text-gray-300 disabled:opacity-60"
                                     :disabled="undoBusy || !canDraw"
-                                    @click="undoLastCommit">{{ undoBusy ? 'Undoing…' : '↩ Undo' }}</button>
+                                    @click="undoLastCommit">{{ undoBusy ? t('c_legislature_pages.districts.undoing', 'Undoing…') : t('c_legislature_pages.districts.undo_short', '↩ Undo') }}</button>
                             <button class="ml-auto px-3 min-h-[44px] rounded bg-gray-700 text-gray-200"
-                                    @click="exitDrawMode">Done</button>
+                                    @click="exitDrawMode">{{ t('c_legislature_pages.districts.done', 'Done') }}</button>
                         </div>
 
                         <template v-if="drawMethod === 'split'">
@@ -1566,38 +1564,38 @@
                                 <span v-for="(s, i) in splitSides.sides" :key="i"
                                       class="px-2 py-1 rounded whitespace-nowrap tabular-nums"
                                       :class="s.in_band ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">
-                                    {{ i === 0 ? 'A' : 'B' }} · {{ formatPop(s.population) }} · {{ s.implied_seats }} seat{{ s.implied_seats === 1 ? '' : 's' }}
+                                    {{ i === 0 ? 'A' : 'B' }} · {{ formatPop(s.population) }} · {{ s.implied_seats }} {{ t('c_legislature_pages.districts.seat_word', 'seat') }}{{ s.implied_seats === 1 ? '' : 's' }}
                                 </span>
                             </div>
                             <div v-else class="mt-1.5 text-amber-300/80">{{ splitHint }}</div>
                             <div v-if="splitSides" class="flex items-stretch gap-1.5 mt-1.5">
                                 <button class="flex-1 min-h-[44px] px-2 rounded border border-amber-700 bg-amber-900/40 text-amber-200 disabled:opacity-60"
                                         :disabled="snapBusy || drawBusy"
-                                        @click="snapToBalance">{{ snapBusy ? 'Balancing…' : '⚖ Snap to balance' }}</button>
+                                        @click="snapToBalance">{{ snapBusy ? t('c_legislature_pages.districts.balancing', 'Balancing…') : t('c_legislature_pages.districts.snap_balance', '⚖ Snap to balance') }}</button>
                                 <button class="flex-1 min-h-[44px] px-2 rounded text-white"
                                         :class="(splitCommitReady && !drawBusy && !snapBusy && canDraw) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
                                         :disabled="!splitCommitReady || drawBusy || snapBusy || !canDraw"
-                                        @click="commitSplit">{{ drawBusy ? 'Saving…' : (splitCommitReady ? 'Commit' : 'Out of band') }}</button>
+                                        @click="commitSplit">{{ drawBusy ? t('c_legislature_pages.districts.saving', 'Saving…') : (splitCommitReady ? t('c_legislature_pages.districts.commit_short', 'Commit') : t('c_legislature_pages.districts.out_of_band_short', 'Out of band')) }}</button>
                             </div>
                         </template>
                         <template v-else>
                             <div v-if="drawProbe" class="flex items-center gap-1.5 mt-1.5 overflow-x-auto">
-                                <span class="px-2 py-1 rounded bg-gray-800 text-gray-200 whitespace-nowrap tabular-nums">{{ formatPop(drawProbe.population) }} · {{ drawProbe.implied_seats }} seat{{ drawProbe.implied_seats === 1 ? '' : 's' }}</span>
-                                <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.in_band ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.in_band ? '✓ band' : '✕ band' }}</span>
-                                <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.contiguous ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.contiguous ? '✓ contiguous' : '✕ split' }}</span>
-                                <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.within_giant ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
-                                <span v-if="drawProbe.clipped" class="px-2 py-1 rounded bg-amber-950/70 text-amber-300 whitespace-nowrap">✂ trimmed to boundary</span>
+                                <span class="px-2 py-1 rounded bg-gray-800 text-gray-200 whitespace-nowrap tabular-nums">{{ formatPop(drawProbe.population) }} · {{ drawProbe.implied_seats }} {{ t('c_legislature_pages.districts.seat_word', 'seat') }}{{ drawProbe.implied_seats === 1 ? '' : 's' }}</span>
+                                <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.in_band ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.in_band ? t('c_legislature_pages.districts.band_yes', '✓ band') : t('c_legislature_pages.districts.band_no', '✕ band') }}</span>
+                                <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.contiguous ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.contiguous ? t('c_legislature_pages.districts.probe_contiguous', '✓ contiguous') : t('c_legislature_pages.districts.probe_split', '✕ split') }}</span>
+                                <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.within_giant ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.within_giant ? t('c_legislature_pages.districts.probe_inside', '✓ inside') : t('c_legislature_pages.districts.probe_outside', '✕ outside') }}</span>
+                                <span v-if="drawProbe.clipped" class="px-2 py-1 rounded bg-amber-950/70 text-amber-300 whitespace-nowrap">{{ t('c_legislature_pages.districts.trimmed_boundary', '✂ trimmed to boundary') }}</span>
                             </div>
-                            <div v-else class="mt-1.5 text-amber-300/80">Draw a polygon with the ▢ tool (top-left, under zoom). Vertices snap to the giant's outline and drawn-district borders — hold Alt to disable.</div>
+                            <div v-else class="mt-1.5 text-amber-300/80">{{ t('c_legislature_pages.districts.polygon_hint', 'Draw a polygon with the ▢ tool (top-left, under zoom). Vertices snap to the giant\'s outline and drawn-district borders — hold Alt to disable.') }}</div>
                             <button v-if="districtsRef.length > 0"
                                     class="w-full min-h-[44px] px-2 rounded border border-amber-700 bg-amber-900/40 text-amber-200 mt-1.5 disabled:opacity-60"
                                     :disabled="remainderBusy || drawBusy"
-                                    @click="fillRemainder">{{ remainderBusy ? 'Filling…' : '▣ Fill remainder' }}</button>
+                                    @click="fillRemainder">{{ remainderBusy ? t('c_legislature_pages.districts.filling', 'Filling…') : t('c_legislature_pages.districts.fill_remainder', '▣ Fill remainder') }}</button>
                             <button v-if="drawProbe"
                                     class="w-full min-h-[44px] px-2 rounded text-white mt-1.5"
                                     :class="(drawCommitReady && !drawBusy && canDraw) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
                                     :disabled="!drawCommitReady || drawBusy || !canDraw"
-                                    @click="commitDraw">{{ drawBusy ? 'Saving…' : 'Commit district' }}</button>
+                                    @click="commitDraw">{{ drawBusy ? t('c_legislature_pages.districts.saving', 'Saving…') : t('c_legislature_pages.districts.commit_district', 'Commit district') }}</button>
                         </template>
                         <div v-if="drawError" class="mt-1 text-red-400">{{ drawError }}</div>
                     </div>
@@ -1614,48 +1612,48 @@
                             :class="showSeatsLabels
                                 ? 'bg-indigo-700 border-indigo-500 text-white'
                                 : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
-                            title="Toggle seat count labels">
-                        Seats
+                            :title="t('c_legislature_pages.districts.toggle_seats', 'Toggle seat count labels')">
+                        {{ t('c_legislature_pages.districts.col_seats', 'Seats') }}
                     </button>
                     <button @click="toggleMembersLabels"
                             class="px-2 py-1 rounded text-xs border transition-colors"
                             :class="showMembersLabels
                                 ? 'bg-emerald-700 border-emerald-500 text-white'
                                 : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
-                            title="Toggle population & fractional seats labels">
-                        Pop
+                            :title="t('c_legislature_pages.districts.toggle_pop', 'Toggle population & fractional seats labels')">
+                        {{ t('c_legislature_pages.districts.col_pop', 'Pop') }}
                     </button>
                     <button @click="toggleNameLabels"
                             class="px-2 py-1 rounded text-xs border transition-colors"
                             :class="showNameLabels
                                 ? 'bg-violet-700 border-violet-500 text-white'
                                 : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
-                            title="Toggle district name labels">
-                        Names
+                            :title="t('c_legislature_pages.districts.toggle_names', 'Toggle district name labels')">
+                        {{ t('c_legislature_pages.districts.toggle_names_btn', 'Names') }}
                     </button>
                     <button @click="toggleJurisdictionLabels"
                             class="px-2 py-1 rounded text-xs border transition-colors"
                             :class="showJurisdictionLabels
                                 ? 'bg-teal-700 border-teal-500 text-white'
                                 : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
-                            title="Toggle jurisdiction name labels">
-                        Jurs
+                            :title="t('c_legislature_pages.districts.toggle_jurs', 'Toggle jurisdiction name labels')">
+                        {{ t('c_legislature_pages.districts.toggle_jurs_btn', 'Jurs') }}
                     </button>
                     <button @click="toggleStatsLabels"
                             class="px-2 py-1 rounded text-xs border transition-colors"
                             :class="showStatsLabels
                                 ? 'bg-rose-700 border-rose-500 text-white'
                                 : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
-                            title="Toggle per-district quality stats (CHR · contiguity)">
-                        Stats
+                            :title="t('c_legislature_pages.districts.toggle_stats', 'Toggle per-district quality stats (CHR · contiguity)')">
+                        {{ t('c_legislature_pages.districts.toggle_stats_btn', 'Stats') }}
                     </button>
                     <button @click="toggleRaster"
                             class="px-2 py-1 rounded text-xs border transition-colors"
                             :class="showRaster
                                 ? 'bg-amber-700 border-amber-500 text-white'
                                 : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
-                            title="Toggle WorldPop population heatmap underlay">
-                        Raster
+                            :title="t('c_legislature_pages.districts.toggle_raster', 'Toggle WorldPop population heatmap underlay')">
+                        {{ t('c_legislature_pages.districts.toggle_raster_btn', 'Raster') }}
                     </button>
                 </div>
 
@@ -1663,7 +1661,7 @@
                 <div v-if="rasterLoading"
                      class="absolute top-3 left-3 z-[1001] px-2 py-1 rounded text-[11px]
                             bg-amber-900/80 border border-amber-700 text-amber-100 pointer-events-none">
-                    Loading raster…
+                    {{ t('c_legislature_pages.districts.loading_raster', 'Loading raster…') }}
                 </div>
 
                 <!-- Edit mode hint overlay -->
@@ -1672,13 +1670,13 @@
                             bg-gray-900/90 border border-gray-700 text-gray-300 whitespace-nowrap">
                     <span class="pointer-events-none">
                         <template v-if="isSpaceHeld">
-                            <span class="text-cyan-400">Pan mode</span> — release <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">Space</kbd> to resume select
+                            <span class="text-cyan-400">{{ t('c_legislature_pages.districts.pan_mode', 'Pan mode') }}</span> {{ t('c_legislature_pages.districts.pan_release', '— release') }} <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">Space</kbd> {{ t('c_legislature_pages.districts.pan_resume', 'to resume select') }}
                         </template>
                         <template v-else>
-                            <span class="text-blue-400">Drag</span> to add ·
-                            <span class="text-blue-300">Shift+drag</span> incl. assigned ·
-                            <span class="text-red-400">Ctrl+drag</span> to remove ·
-                            <span class="text-gray-500">hold</span> <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">Space</kbd> <span class="text-gray-500">to pan</span>
+                            <span class="text-blue-400">{{ t('c_legislature_pages.districts.hint_drag', 'Drag') }}</span> {{ t('c_legislature_pages.districts.hint_to_add', 'to add ·') }}
+                            <span class="text-blue-300">{{ t('c_legislature_pages.districts.hint_shift_drag', 'Shift+drag') }}</span> {{ t('c_legislature_pages.districts.hint_incl_assigned', 'incl. assigned ·') }}
+                            <span class="text-red-400">{{ t('c_legislature_pages.districts.hint_ctrl_drag', 'Ctrl+drag') }}</span> {{ t('c_legislature_pages.districts.hint_to_remove', 'to remove ·') }}
+                            <span class="text-gray-500">{{ t('c_legislature_pages.districts.hint_hold', 'hold') }}</span> <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">Space</kbd> <span class="text-gray-500">{{ t('c_legislature_pages.districts.hint_to_pan', 'to pan') }}</span>
                         </template>
                     </span>
                     <button @click.stop="cancelEdit"
@@ -1717,6 +1715,7 @@
  */
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import { csrfHeaders } from '@/lib/csrf'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import L from 'leaflet'
@@ -1730,6 +1729,8 @@ import 'leaflet-draw/dist/leaflet.draw.css'
 defineOptions({
     layout: (h, page) => h(AppShellV2, { variant: 'flush' }, () => page),
 })
+
+const { t } = useI18n()
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 const props = defineProps({
@@ -2157,13 +2158,13 @@ async function devSeatMe() {
             const err = await resp.json().catch(() => ({}))
             // Prod builds don't register the route at all — say so plainly.
             devSeatMsg.value = resp.status === 404
-                ? (err.message ?? err.error ?? 'Dev seat route not available in this build (404).')
-                : apiError(resp, err, 'Dev seat failed.')
+                ? (err.message ?? err.error ?? t('c_legislature_pages.districts.err_dev_route', 'Dev seat route not available in this build (404).'))
+                : apiError(resp, err, t('c_legislature_pages.districts.err_dev_seat', 'Dev seat failed.'))
             return
         }
         router.reload()   // can_draw is recomputed server-side now that R-08 is seated
     } catch (e) {
-        devSeatMsg.value = 'Dev seat failed — network error.'
+        devSeatMsg.value = t('c_legislature_pages.districts.err_dev_seat_net', 'Dev seat failed — network error.')
     } finally {
         devSeatBusy.value = false
     }
@@ -2226,12 +2227,12 @@ let _autoseedLayers      = null        // L.FeatureGroup — proposal fills + da
 // stored on the previewed plan, never the picker's live value (the picker may
 // move while a proposal is still open).
 const AUTOSEED_TEMPLATES = [
-    { key: 'shortest',          label: 'Shortest lines',    hint: 'neutral, compact' },
-    { key: 'box',               label: 'Box',               hint: 'envelope cuts, fast' },
-    { key: 'community_cells',   label: 'Community cells',   hint: 'keeps towns whole' },
-    { key: 'vertical_strips',   label: 'Vertical strips' },
-    { key: 'horizontal_strips', label: 'Horizontal strips' },
-    { key: 'components',        label: 'Components',        hint: 'whole landmasses, no cut' },
+    { key: 'shortest',          label: t('c_legislature_pages.districts.tpl_shortest', 'Shortest lines'),    hint: t('c_legislature_pages.districts.tpl_shortest_hint', 'neutral, compact') },
+    { key: 'box',               label: t('c_legislature_pages.districts.tpl_box', 'Box'),               hint: t('c_legislature_pages.districts.tpl_box_hint', 'envelope cuts, fast') },
+    { key: 'community_cells',   label: t('c_legislature_pages.districts.tpl_community_cells', 'Community cells'),   hint: t('c_legislature_pages.districts.tpl_community_cells_hint', 'keeps towns whole') },
+    { key: 'vertical_strips',   label: t('c_legislature_pages.districts.tpl_vertical_strips', 'Vertical strips') },
+    { key: 'horizontal_strips', label: t('c_legislature_pages.districts.tpl_horizontal_strips', 'Horizontal strips') },
+    { key: 'components',        label: t('c_legislature_pages.districts.tpl_components', 'Components'),        hint: t('c_legislature_pages.districts.tpl_components_hint', 'whole landmasses, no cut') },
 ]
 const _autoseedTplStored = localStorage.getItem('leg_autoseed_template')
 // The picker STARTS at the constitutional default (Setup Option
@@ -2245,7 +2246,7 @@ const autoseedTemplate = ref(
 )
 watch(autoseedTemplate, v => localStorage.setItem('leg_autoseed_template', v))
 function autoseedTemplateLabel(key) {
-    return AUTOSEED_TEMPLATES.find(t => t.key === key)?.label ?? (key || 'Shortest lines')
+    return AUTOSEED_TEMPLATES.find(tpl => tpl.key === key)?.label ?? (key || t('c_legislature_pages.districts.tpl_shortest', 'Shortest lines'))
 }
 
 // Unified leaf toolbar (2026-07-17 UX rework, operator direction): ONE method
@@ -2259,8 +2260,8 @@ watch(leafTool, (v, prev) => {
     if (v === 'manual') {
         if (!canDraw.value || !drawTargetIsDraft.value) {
             showStatus('error', !canDraw.value
-                ? 'Drawing files F-ELB-008 — requires a seated election-board member (R-08).'
-                : 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector.')
+                ? t('c_legislature_pages.districts.toast_draw_locked', 'Drawing files F-ELB-008 — requires a seated election-board member (R-08).')
+                : t('c_legislature_pages.districts.toast_edits_draft', 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector.'))
             leafTool.value = prev !== 'manual' ? prev : autoseedTemplate.value
             return
         }
@@ -2314,7 +2315,7 @@ async function haltMassOperation() {
             // Ghost state: the queued job never started, the server cleared
             // the flags outright — unblock the UI immediately.
             massJobRunning.value = false
-            showStatus('success', 'Halted — the stuck operation was cleared. You can autoseed again.')
+            showStatus('success', t('c_legislature_pages.districts.toast_halted_cleared', 'Halted — the stuck operation was cleared. You can autoseed again.'))
         }
     } catch (e) {
         // Non-fatal — operator can retry. The Halt is a cache flag; if the
@@ -2374,10 +2375,10 @@ function startMassStatusPolling() {
 // + line-split districts together. "All — recursively" from the root is the
 // canonical produce-the-whole-map run.
 const MASS_SCOPES = [
-    { key: 'map_view_unassigned',          label: 'Unassigned — this scope',  desc: 'Fill gaps only, keep existing districts',            clearable: false },
-    { key: 'map_view_all',                 label: 'All — this scope',         desc: 'Clear and redo all districts at this level',         clearable: true,  clearDesc: 'Remove all districts at this level' },
-    { key: 'map_plus_children_unassigned', label: 'Unassigned — recursively', desc: 'Fill gaps here and at every nested giant scope — undivided giants are line-drawn automatically', clearable: false },
-    { key: 'map_plus_children_all',        label: 'All — recursively',        desc: 'Clear and redo here and at every nested giant scope, line-drawing undivided giants — the complete map in one run', clearable: true,  clearDesc: 'Remove all districts here and at every nested giant scope' },
+    { key: 'map_view_unassigned',          label: t('c_legislature_pages.districts.scope_unassigned_label', 'Unassigned — this scope'),  desc: t('c_legislature_pages.districts.scope_unassigned_desc', 'Fill gaps only, keep existing districts'),            clearable: false },
+    { key: 'map_view_all',                 label: t('c_legislature_pages.districts.scope_all_label', 'All — this scope'),         desc: t('c_legislature_pages.districts.scope_all_desc', 'Clear and redo all districts at this level'),         clearable: true,  clearDesc: t('c_legislature_pages.districts.scope_all_cleardesc', 'Remove all districts at this level') },
+    { key: 'map_plus_children_unassigned', label: t('c_legislature_pages.districts.scope_unassigned_rec_label', 'Unassigned — recursively'), desc: t('c_legislature_pages.districts.scope_unassigned_rec_desc', 'Fill gaps here and at every nested giant scope — undivided giants are line-drawn automatically'), clearable: false },
+    { key: 'map_plus_children_all',        label: t('c_legislature_pages.districts.scope_all_rec_label', 'All — recursively'),        desc: t('c_legislature_pages.districts.scope_all_rec_desc', 'Clear and redo here and at every nested giant scope, line-drawing undivided giants — the complete map in one run'), clearable: true,  clearDesc: t('c_legislature_pages.districts.scope_all_rec_cleardesc', 'Remove all districts here and at every nested giant scope') },
 ]
 
 // Clear only removes existing districts, so the "Unassigned" (fill-gaps) scopes
@@ -2437,14 +2438,14 @@ function contigColor(isContiguous) {
 //   contigLabel    → "Contiguity" section            (e.g. "✓ Contig" / "✗ Non-contig")
 //   integrityLabel → "Community Integrity" section  (e.g. "✓ Intact" / "✗ Needs tools")
 function devLabel(dev) {
-    if (dev == null) return 'Dev ?'
+    if (dev == null) return t('c_legislature_pages.districts.dev_unknown', 'Dev ?')
     const sign = dev >= 0 ? '+' : ''
-    return `Dev ${sign}${dev.toFixed(1)}%`
+    return t('c_legislature_pages.districts.dev_value', { value: `${sign}${dev.toFixed(1)}%` })
 }
 function shapeLabel(chr) {
-    if (chr == null) return 'CHR —'
-    const tier = chr >= 0.70 ? 'Compact' : chr >= 0.50 ? 'Moderate' : 'Irregular'
-    return `CHR ${chr.toFixed(3)} (${tier})`
+    if (chr == null) return t('c_legislature_pages.districts.chr_dash', 'CHR —')
+    const tier = chr >= 0.70 ? t('c_legislature_pages.districts.tier_compact', 'Compact') : chr >= 0.50 ? t('c_legislature_pages.districts.tier_moderate', 'Moderate') : t('c_legislature_pages.districts.tier_irregular', 'Irregular')
+    return t('c_legislature_pages.districts.shape_value', { chr: chr.toFixed(3), tier })
 }
 function integrityColor(hasIntegrity) {
     if (hasIntegrity === true)  return '#34d399'
@@ -2452,18 +2453,18 @@ function integrityColor(hasIntegrity) {
     return '#6b7280'
 }
 function integrityLabel(hasIntegrity) {
-    if (hasIntegrity === true)  return '✓ Intact'
-    if (hasIntegrity === false) return '✗ Needs tools'
-    return '? Integrity'
+    if (hasIntegrity === true)  return t('c_legislature_pages.districts.integrity_intact', '✓ Intact')
+    if (hasIntegrity === false) return t('c_legislature_pages.districts.integrity_needs_tools', '✗ Needs tools')
+    return t('c_legislature_pages.districts.integrity_unknown', '? Integrity')
 }
 function chrLabel(chr) {   // short form for map badges where space is tight
     if (chr == null) return '—'
     return chr.toFixed(3)
 }
 function contigLabel(isContiguous) {
-    if (isContiguous === true)  return '✓ Contig'
-    if (isContiguous === false) return '✗ Non-contig'
-    return '? Contig'
+    if (isContiguous === true)  return t('c_legislature_pages.districts.contig_yes', '✓ Contig')
+    if (isContiguous === false) return t('c_legislature_pages.districts.contig_no', '✗ Non-contig')
+    return t('c_legislature_pages.districts.contig_unknown', '? Contig')
 }
 
 function rebuildDistrictLabelGroup() {
@@ -2476,9 +2477,9 @@ function rebuildDistrictLabelGroup() {
         if (showNameLabels.value && item.name)
             lines.push(item.name)
         if (showSeatsLabels.value && item.seats != null)
-            lines.push(`<span class="district-label-stat">${item.seats} seats</span>`)
+            lines.push(`<span class="district-label-stat">${t('c_legislature_pages.districts.map_seats', { n: item.seats })}</span>`)
         if (showMembersLabels.value)
-            lines.push(`<span class="district-label-stat">Pop: ${item.popStr} · Rep: ${item.fracStr}</span>`)
+            lines.push(`<span class="district-label-stat">${t('c_legislature_pages.districts.map_pop_rep', { pop: item.popStr, rep: item.fracStr })}</span>`)
         if (showStatsLabels.value) {
             // Four color-coded quality indicators across two lines
             const dCol  = devColor(item.dev)
@@ -2488,7 +2489,7 @@ function rebuildDistrictLabelGroup() {
             lines.push(
                 `<span class="district-label-stat">` +
                 `<span style="color:${dCol}">${devLabel(item.dev)}</span>` +
-                ` · <span style="color:${cCol}">CHR ${chrLabel(item.chr)}</span>` +
+                ` · <span style="color:${cCol}">${t('c_legislature_pages.districts.col_chr', 'CHR')} ${chrLabel(item.chr)}</span>` +
                 `</span>`
             )
             lines.push(
@@ -3334,7 +3335,7 @@ const sidebarRows = computed(() => {
     // row to nest under): group them under a labeled header instead of
     // scattering them through the flat list.
     for (const [, drawn] of drawnByGiant) {
-        rows.push({ type: 'drawn-group', name: drawn[0]?.scope_name ?? 'Drawn districts', depth: 0 })
+        rows.push({ type: 'drawn-group', name: drawn[0]?.scope_name ?? t('c_legislature_pages.districts.drawn_districts_fallback', 'Drawn districts'), depth: 0 })
         pushDistricts([...drawn].sort((a, b) => a.district_number - b.district_number), 1, true)
     }
     return rows
@@ -3567,7 +3568,7 @@ async function submitNewMap() {
         })
         const data = await resp.json()
         if (!resp.ok) {
-            showStatus('error', data.error ?? 'Failed to create map')
+            showStatus('error', data.error ?? t('c_legislature_pages.districts.err_create_map', 'Failed to create map'))
             creatingMap.value = false
             return
         }
@@ -3599,25 +3600,25 @@ async function submitNewMap() {
     } catch (e) {
         console.error('createMap:', e)
         showStatus('error', e?.name === 'TimeoutError'
-            ? 'Timed out — the server may be busy; refresh to see the current state.'
-            : 'Network error')
+            ? t('c_legislature_pages.districts.timed_out', 'Timed out — the server may be busy; refresh to see the current state.')
+            : t('c_legislature_pages.districts.net_error', 'Network error'))
         creatingMap.value = false
     }
 }
 
 async function activateCurrentMap() {
     if (!props.active_map?.id) return
-    if (!confirm(`Activate "${props.active_map.name}" as the official apportionment?`)) return
+    if (!confirm(t('c_legislature_pages.districts.confirm_activate', { name: props.active_map.name }))) return
     try {
         const resp = await fetch(
             `/api/legislatures/${props.legislature.id}/maps/${props.active_map.id}/activate`,
             { method: 'POST', headers: { ...csrfHeaders() } }
         )
-        if (!resp.ok) { showStatus('error', 'Failed to activate map'); return }
+        if (!resp.ok) { showStatus('error', t('c_legislature_pages.districts.err_activate_map', 'Failed to activate map')); return }
         router.visit(mapUrl(props.scope.id))
     } catch (e) {
         console.error('activateMap:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', t('c_legislature_pages.districts.net_error', 'Network error'))
     }
 }
 
@@ -3643,14 +3644,14 @@ async function submitRename(mapId) {
                 body:    JSON.stringify({ name }),
             }
         )
-        if (!resp.ok) { showStatus('error', 'Failed to rename map'); return }
+        if (!resp.ok) { showStatus('error', t('c_legislature_pages.districts.err_rename_map', 'Failed to rename map')); return }
         renamingMapId.value = null
         // Partial reload — a full router.visit() tore the whole page down
         // (and the map view with it) just to refresh a name.
         router.reload({ only: ['maps', 'active_map'] })
     } catch (e) {
         console.error('renameMap:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', t('c_legislature_pages.districts.net_error', 'Network error'))
     }
 }
 
@@ -3662,7 +3663,7 @@ function cancelRename() {
 async function duplicateMap(mapId) {
     copyingMapId.value = mapId
     const srcMap = props.maps.find(m => m.id === mapId)
-    const name   = 'Copy of ' + (srcMap?.name ?? 'Map')
+    const name   = t('c_legislature_pages.districts.copy_of', { name: srcMap?.name ?? t('c_legislature_pages.districts.map_fallback', 'Map') })
     try {
         const resp = await fetch(
             `/api/legislatures/${props.legislature.id}/maps/${mapId}/copy`,
@@ -3673,11 +3674,11 @@ async function duplicateMap(mapId) {
             }
         )
         const data = await resp.json()
-        if (!resp.ok) { showStatus('error', data.error ?? 'Failed to copy map'); return }
+        if (!resp.ok) { showStatus('error', data.error ?? t('c_legislature_pages.districts.err_copy_map', 'Failed to copy map')); return }
         router.visit(mapUrl(props.scope.id))
     } catch (e) {
         console.error('duplicateMap:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', t('c_legislature_pages.districts.net_error', 'Network error'))
     } finally {
         copyingMapId.value = null
     }
@@ -3691,7 +3692,7 @@ async function confirmDeleteMap(mapId) {
             { method: 'DELETE', headers: { ...csrfHeaders() } }
         )
         const data = await resp.json()
-        if (!resp.ok) { showStatus('error', data.error ?? 'Failed to delete map'); return }
+        if (!resp.ok) { showStatus('error', data.error ?? t('c_legislature_pages.districts.err_delete_map', 'Failed to delete map')); return }
         // If we deleted the map we're currently viewing, navigate to root (no map param)
         if (mapId === props.active_map?.id) {
             router.visit(`/legislatures/${props.legislature.slug ?? props.legislature.id}/districts`)
@@ -3700,7 +3701,7 @@ async function confirmDeleteMap(mapId) {
         }
     } catch (e) {
         console.error('deleteMap:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', t('c_legislature_pages.districts.net_error', 'Network error'))
     }
 }
 
@@ -3989,7 +3990,7 @@ async function loadWizardSteps() {
         wizardCurrentIndex.value = data.current_index ?? 0
     } catch (e) {
         console.error('wizardSteps:', e)
-        showStatus('error', 'Failed to load wizard sequence')
+        showStatus('error', t('c_legislature_pages.districts.err_wizard_sequence', 'Failed to load wizard sequence'))
     } finally {
         wizardLoading.value = false
     }
@@ -4115,8 +4116,8 @@ async function runWizardAutoActions() {
         const qualityClean = !props.flags?.cap && (props.flags?.deep_overages?.length ?? 0) === 0
         if (wizardAutoStep.value) wizardAutoStep.value = false
         showStatus('success', qualityClean
-            ? 'Map complete — every scope districted. Auto Step off.'
-            : 'Map fully drawn — Auto Step off. Quality flags remain (see Map Quality).')
+            ? t('c_legislature_pages.districts.toast_map_complete', 'Map complete — every scope districted. Auto Step off.')
+            : t('c_legislature_pages.districts.toast_map_flags', 'Map fully drawn — Auto Step off. Quality flags remain (see Map Quality).'))
         return true   // skip startAutoStepTimer() in the caller
     }
 
@@ -4308,7 +4309,7 @@ function startPolygonTool() {
         // ever moves it, say so in the panel instead of silently not snapping.
         const h = _polygonDrawHandler()
         if (!h || typeof h.addVertex !== 'function') {
-            drawError.value = 'Vertex snapping unavailable — the drawing library changed underneath this tool.'
+            drawError.value = t('c_legislature_pages.districts.err_vertex_snap', 'Vertex snapping unavailable — the drawing library changed underneath this tool.')
             console.error('polygon snap: _toolbars.draw._modes.polygon.handler.addVertex missing (leaflet-draw', L.drawVersion, ')')
         } else if (!h.__snapWrapped) {
             const origAddVertex = h.addVertex
@@ -4386,7 +4387,7 @@ async function probeDrawnLayer() {
         if (seq !== _probeSeq) return   // a newer probe superseded this one
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            drawError.value = apiError(resp, err, 'Probe failed.')
+            drawError.value = apiError(resp, err, t('c_legislature_pages.districts.err_probe', 'Probe failed.'))
             drawProbe.value = null
             return
         }
@@ -4409,7 +4410,7 @@ async function probeDrawnLayer() {
             }
         }
     } catch (e) {
-        if (seq === _probeSeq) { drawError.value = 'Probe failed.'; drawProbe.value = null }
+        if (seq === _probeSeq) { drawError.value = t('c_legislature_pages.districts.err_probe', 'Probe failed.'); drawProbe.value = null }
     } finally {
         if (seq === _probeSeq) drawBusy.value = false
     }
@@ -4422,7 +4423,7 @@ const drawCommitReady = computed(() =>
 async function commitDraw() {
     if (!_drawnLayer || !drawCommitReady.value || drawBusy.value || !canDraw.value) return
     if (!drawTargetIsDraft.value) {
-        drawError.value = 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector.'
+        drawError.value = t('c_legislature_pages.districts.toast_edits_draft', 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector.')
         return
     }
     drawBusy.value = true
@@ -4437,7 +4438,7 @@ async function commitDraw() {
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            drawError.value = apiError(resp, err, 'Commit failed.')
+            drawError.value = apiError(resp, err, t('c_legislature_pages.districts.err_commit', 'Commit failed.'))
             return
         }
         // Persisted: clear the pending piece, repaint the revealed layer (now
@@ -4449,7 +4450,7 @@ async function commitDraw() {
         drawProbe.value = null
         await reloadThenRepaint()   // fresh props FIRST, repaint second (tab-away bug)
     } catch (e) {
-        drawError.value = 'Commit failed.'
+        drawError.value = t('c_legislature_pages.districts.err_commit', 'Commit failed.')
     } finally {
         drawBusy.value = false
     }
@@ -4473,14 +4474,14 @@ async function fillRemainder() {
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            drawError.value = apiError(resp, err, 'Fill remainder failed.')
+            drawError.value = apiError(resp, err, t('c_legislature_pages.districts.err_fill', 'Fill remainder failed.'))
             return
         }
         const data  = await resp.json()
         const layer = L.geoJSON(data.geometry, {
             style: { color: '#fbbf24', weight: 2, fillColor: '#fbbf24', fillOpacity: 0.2 },
         }).getLayers()[0]
-        if (!layer) { drawError.value = 'Fill remainder returned no geometry.'; return }
+        if (!layer) { drawError.value = t('c_legislature_pages.districts.err_fill_geometry', 'Fill remainder returned no geometry.'); return }
         // reinitMapLayers() detaches _drawnItems from the map — re-attach so
         // the staged remainder is actually visible before its commit.
         if (!_drawnItems) _drawnItems = new L.FeatureGroup().addTo(_map)
@@ -4488,8 +4489,8 @@ async function fillRemainder() {
         onDrawCreated({ layer })   // same staging as a hand draw → probe → Commit district
     } catch (e) {
         drawError.value = e?.name === 'TimeoutError'
-            ? 'Fill remainder timed out — try again.'
-            : 'Fill remainder failed.'
+            ? t('c_legislature_pages.districts.err_fill_timeout', 'Fill remainder timed out — try again.')
+            : t('c_legislature_pages.districts.err_fill', 'Fill remainder failed.')
     } finally {
         remainderBusy.value = false
     }
@@ -4616,13 +4617,13 @@ async function probeSplit() {
         if (seq !== _probeSeq) return
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            drawError.value = apiError(resp, err, 'Probe failed.')
+            drawError.value = apiError(resp, err, t('c_legislature_pages.districts.err_probe', 'Probe failed.'))
             splitSides.value = null
             return
         }
         splitSides.value = await resp.json()
     } catch (e) {
-        if (seq === _probeSeq) { drawError.value = 'Probe failed.'; splitSides.value = null }
+        if (seq === _probeSeq) { drawError.value = t('c_legislature_pages.districts.err_probe', 'Probe failed.'); splitSides.value = null }
     } finally {
         if (seq === _probeSeq) drawBusy.value = false
     }
@@ -4631,12 +4632,12 @@ async function probeSplit() {
 const splitCommitReady = computed(() => !!splitSides.value && splitSides.value.both_in_band)
 const splitHint = computed(() =>
     splitArmed.value
-        ? 'Tap the end of the cut — Esc cancels'
+        ? t('c_legislature_pages.districts.split_hint_end', 'Tap the end of the cut — Esc cancels')
         : drawBusy.value
-            ? 'Measuring…'
+            ? t('c_legislature_pages.districts.measuring', 'Measuring…')
             : splitSides.value
-                ? 'Drag the dots to adjust — tap elsewhere to start over'
-                : 'Tap the start of the cut, then tap the end. Drag the dots to adjust.'
+                ? t('c_legislature_pages.districts.split_hint_adjust', 'Drag the dots to adjust — tap elsewhere to start over')
+                : t('c_legislature_pages.districts.split_hint_start', 'Tap the start of the cut, then tap the end. Drag the dots to adjust.')
 )
 
 // Slide the hand-placed line to the nearest in-band balance (the human picks
@@ -4655,7 +4656,7 @@ async function snapToBalance() {
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            drawError.value = apiError(resp, err, 'Snap failed.')
+            drawError.value = apiError(resp, err, t('c_legislature_pages.districts.err_snap', 'Snap failed.'))
             return
         }
         const data   = await resp.json()
@@ -4665,7 +4666,7 @@ async function snapToBalance() {
         _rebuildSplitHandles()
         splitSides.value = { ...splitSides.value, sides: data.sides, both_in_band: data.both_in_band }
     } catch (e) {
-        drawError.value = 'Snap failed.'
+        drawError.value = t('c_legislature_pages.districts.err_snap', 'Snap failed.')
     } finally {
         snapBusy.value = false
     }
@@ -4673,7 +4674,7 @@ async function snapToBalance() {
 
 async function commitSplit() {
     if (_splitPts.length !== 2 || !splitCommitReady.value || drawBusy.value || snapBusy.value || !canDraw.value) return
-    if (!drawTargetIsDraft.value) { drawError.value = 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector.'; return }
+    if (!drawTargetIsDraft.value) { drawError.value = t('c_legislature_pages.districts.toast_edits_draft', 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector.'); return }
     drawBusy.value = true
     drawError.value = ''
     try {
@@ -4686,7 +4687,7 @@ async function commitSplit() {
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            drawError.value = apiError(resp, err, 'Commit failed.')
+            drawError.value = apiError(resp, err, t('c_legislature_pages.districts.err_commit', 'Commit failed.'))
             return
         }
         const data = await resp.json().catch(() => ({}))
@@ -4694,7 +4695,7 @@ async function commitSplit() {
         resetSplit()
         await reloadThenRepaint()   // fresh props FIRST, repaint second (tab-away bug)
     } catch (e) {
-        drawError.value = 'Commit failed.'
+        drawError.value = t('c_legislature_pages.districts.err_commit', 'Commit failed.')
     } finally {
         drawBusy.value = false
     }
@@ -4732,7 +4733,7 @@ async function previewAutoseedLines() {
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            autoseedError.value = apiError(resp, err, 'Autoseed preview failed.')
+            autoseedError.value = apiError(resp, err, t('c_legislature_pages.districts.err_autoseed_preview', 'Autoseed preview failed.'))
             return
         }
         const plan = await resp.json()
@@ -4742,8 +4743,8 @@ async function previewAutoseedLines() {
         renderAutoseedOverlay(plan)
     } catch (e) {
         autoseedError.value = e?.name === 'TimeoutError'
-            ? 'The proposal timed out — the server may still be starting. Try again.'
-            : 'Autoseed preview failed.'
+            ? t('c_legislature_pages.districts.err_autoseed_timeout', 'The proposal timed out — the server may still be starting. Try again.')
+            : t('c_legislature_pages.districts.err_autoseed_preview', 'Autoseed preview failed.')
     } finally {
         autoseedBusy.value = false
     }
@@ -4800,7 +4801,7 @@ function discardAutoseedPlan() {
 // reported existing_districts > 0, the stepper only on partial rework.
 async function acceptAutoseedPlan({ replace = false } = {}) {
     if (!autoseedPlan.value || autoseedCommitBusy.value || !canDraw.value) return
-    if (!drawTargetIsDraft.value) { autoseedError.value = 'Accepting edits a draft plan — pick or create one with the [+] beside the MAP selector.'; return }
+    if (!drawTargetIsDraft.value) { autoseedError.value = t('c_legislature_pages.districts.err_accept_draft', 'Accepting edits a draft plan — pick or create one with the [+] beside the MAP selector.'); return }
     autoseedCommitBusy.value = true
     autoseedError.value = ''
     try {
@@ -4823,7 +4824,7 @@ async function acceptAutoseedPlan({ replace = false } = {}) {
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            autoseedError.value = apiError(resp, err, 'Commit failed.')
+            autoseedError.value = apiError(resp, err, t('c_legislature_pages.districts.err_commit', 'Commit failed.'))
             return
         }
         const data = await resp.json().catch(() => ({}))
@@ -4832,7 +4833,7 @@ async function acceptAutoseedPlan({ replace = false } = {}) {
         discardAutoseedPlan()
         await reloadThenRepaint()   // fresh props FIRST, repaint second (tab-away bug)
     } catch (e) {
-        autoseedError.value = 'Commit failed.'
+        autoseedError.value = t('c_legislature_pages.districts.err_commit', 'Commit failed.')
     } finally {
         autoseedCommitBusy.value = false
     }
@@ -4849,19 +4850,19 @@ async function runLeafAutoseed() {
     // guard so a direct call can't silently replace a finished set.
     if (scopeComplete.value) return
     if (!canDraw.value) {
-        showStatus('error', 'Drawing files F-ELB-008 — requires a seated election-board member (R-08).')
+        showStatus('error', t('c_legislature_pages.districts.toast_draw_locked', 'Drawing files F-ELB-008 — requires a seated election-board member (R-08).'))
         return
     }
     if (!drawTargetIsDraft.value) {
         // The accept endpoint refuses a non-draft target. Do NOT mint a draft
         // here — report and stay put; the operator picks or creates one via
         // the [+] beside the MAP selector.
-        showStatus('error', 'Autoseed skipped — the selected map is not a draft. Pick or create one with the [+] beside the MAP selector.')
+        showStatus('error', t('c_legislature_pages.districts.toast_autoseed_skipped', 'Autoseed skipped — the selected map is not a draft. Pick or create one with the [+] beside the MAP selector.'))
         return
     }
     await previewAutoseedLines()
     if (!autoseedPlan.value) {
-        showStatus('error', autoseedError.value || 'Autoseed preview failed.')
+        showStatus('error', autoseedError.value || t('c_legislature_pages.districts.err_autoseed_preview', 'Autoseed preview failed.'))
         return
     }
     // Partial rework: this path only runs when the leaf is INCOMPLETE, so any
@@ -4901,7 +4902,7 @@ async function undoLastCommit() {
     const entry = undoStack.value[undoStack.value.length - 1]
     if (!entry || undoBusy.value) return
     const n = entry.ids.length
-    if (!window.confirm(`Undo ${entry.label}? This deletes ${n} district${n === 1 ? '' : 's'}.`)) return
+    if (!window.confirm(t('c_legislature_pages.districts.confirm_undo', { label: entry.label, n, plural: n === 1 ? '' : 's' }))) return
     undoBusy.value = true
     try {
         while (entry.ids.length) {
@@ -4913,21 +4914,21 @@ async function undoLastCommit() {
             )
             if (!resp.ok) {
                 const err = await resp.json().catch(() => ({}))
-                showStatus('error', apiError(resp, err, 'Undo failed — some districts may remain.'))
+                showStatus('error', apiError(resp, err, t('c_legislature_pages.districts.err_undo', 'Undo failed — some districts may remain.')))
                 break
             }
             entry.ids.pop()
         }
         if (entry.ids.length === 0) {
             undoStack.value = undoStack.value.slice(0, -1)
-            showStatus('success', `Undid ${entry.label}`)
+            showStatus('success', t('c_legislature_pages.districts.toast_undid', { label: entry.label }))
         }
         await reloadThenRepaint()   // fresh props FIRST, repaint second (tab-away bug)
     } catch (e) {
         console.error('undoLastCommit:', e)
         showStatus('error', e?.name === 'TimeoutError'
-            ? 'Timed out — the server may be busy; refresh to see the current state.'
-            : 'Network error during undo')
+            ? t('c_legislature_pages.districts.timed_out', 'Timed out — the server may be busy; refresh to see the current state.')
+            : t('c_legislature_pages.districts.net_error_undo', 'Network error during undo'))
     } finally {
         undoBusy.value = false
     }
@@ -4952,7 +4953,7 @@ async function createDistrictFromPending() {
             signal:  AbortSignal.timeout(60_000),
         })
         const data = await resp.json()
-        if (!resp.ok) { showStatus('error', data.error ?? 'Failed to create district'); return }
+        if (!resp.ok) { showStatus('error', data.error ?? t('c_legislature_pages.districts.err_create_district', 'Failed to create district')); return }
 
         const d = data.district
         const members = jids.map(jid => {
@@ -5015,7 +5016,7 @@ async function createDistrictFromPending() {
         cancelEdit()
         selectedDistrictId.value = d.id
         restyleAll()
-        showStatus('success', `District created: ${d.seats} seats · ${jids.length} jurisdictions`)
+        showStatus('success', t('c_legislature_pages.districts.toast_district_created', { seats: d.seats, jurisdictions: jids.length }))
         // Converge to server truth (2026-08-28 stale-screen fix): the optimistic
         // surgery above gives instant feedback, but only the awaited authoritative
         // reload guarantees the list, counters and layers match the server —
@@ -5025,8 +5026,8 @@ async function createDistrictFromPending() {
     } catch (e) {
         console.error('createDistrict:', e)
         showStatus('error', e?.name === 'TimeoutError'
-            ? 'Timed out — the server may be busy; refresh to see the current state.'
-            : 'Network error')
+            ? t('c_legislature_pages.districts.timed_out', 'Timed out — the server may be busy; refresh to see the current state.')
+            : t('c_legislature_pages.districts.net_error', 'Network error'))
     } finally {
         savingEdit.value = false
     }
@@ -5050,7 +5051,7 @@ async function saveDistrictEdit(districtId) {
             }
         )
         const data = await resp.json()
-        if (!resp.ok) { showStatus('error', data.error ?? 'Failed to save'); return }
+        if (!resp.ok) { showStatus('error', data.error ?? t('c_legislature_pages.districts.err_save', 'Failed to save')); return }
 
         const updated = data.district
         const affectedMap2 = Object.fromEntries((data.affected_districts ?? []).map(a => [a.id, a]))
@@ -5108,7 +5109,7 @@ async function saveDistrictEdit(districtId) {
         cancelEdit()
         selectedDistrictId.value = districtId
         restyleAll()
-        showStatus('success', `District updated: ${updated.seats} seats`)
+        showStatus('success', t('c_legislature_pages.districts.toast_district_updated', { seats: updated.seats }))
         // Converge to server truth (2026-08-28 stale-screen fix): the optimistic
         // surgery above gives instant feedback, but only the awaited authoritative
         // reload guarantees the list, counters and layers match the server —
@@ -5118,8 +5119,8 @@ async function saveDistrictEdit(districtId) {
     } catch (e) {
         console.error('saveDistrictEdit:', e)
         showStatus('error', e?.name === 'TimeoutError'
-            ? 'Timed out — the server may be busy; refresh to see the current state.'
-            : 'Network error')
+            ? t('c_legislature_pages.districts.timed_out', 'Timed out — the server may be busy; refresh to see the current state.')
+            : t('c_legislature_pages.districts.net_error', 'Network error'))
     } finally {
         savingEdit.value = false
     }
@@ -5133,7 +5134,7 @@ async function deleteDistrict(districtId) {
               signal: AbortSignal.timeout(60_000) }
         )
         const data = await resp.json()
-        if (!resp.ok) { showStatus('error', 'Failed to disband district'); return }
+        if (!resp.ok) { showStatus('error', t('c_legislature_pages.districts.err_disband', 'Failed to disband district')); return }
 
         const memberIds    = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
         const numUpdates   = data.district_numbers ?? {}
@@ -5156,7 +5157,7 @@ async function deleteDistrict(districtId) {
         _districtLabelData = _districtLabelData.filter(item => item.distId !== districtId)
         rebuildDistrictLabelGroup()
         restyleAll()
-        showStatus('success', 'District disbanded')
+        showStatus('success', t('c_legislature_pages.districts.toast_disbanded', 'District disbanded'))
         // Converge to server truth (2026-08-28 stale-screen fix): the optimistic
         // surgery above gives instant feedback, but only the awaited authoritative
         // reload guarantees the list, counters and layers match the server —
@@ -5166,8 +5167,8 @@ async function deleteDistrict(districtId) {
     } catch (e) {
         console.error('deleteDistrict:', e)
         showStatus('error', e?.name === 'TimeoutError'
-            ? 'Timed out — the server may be busy; refresh to see the current state.'
-            : 'Network error')
+            ? t('c_legislature_pages.districts.timed_out', 'Timed out — the server may be busy; refresh to see the current state.')
+            : t('c_legislature_pages.districts.net_error', 'Network error'))
     }
 }
 
@@ -5177,7 +5178,7 @@ async function deleteDistrict(districtId) {
 const deletingDrawnId = ref(null)
 async function deleteDrawnDistrict(d) {
     if (!d?.id || deletingDrawnId.value) return
-    if (!window.confirm(`Delete drawn district ${d.label || d.id}? Its area returns to the remainder.`)) return
+    if (!window.confirm(t('c_legislature_pages.districts.confirm_delete_drawn', { name: d.label || d.id }))) return
     deletingDrawnId.value = d.id
     try {
         const resp = await fetch(
@@ -5187,16 +5188,16 @@ async function deleteDrawnDistrict(d) {
         )
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            showStatus('error', apiError(resp, err, 'Failed to delete district'))
+            showStatus('error', apiError(resp, err, t('c_legislature_pages.districts.err_delete_district', 'Failed to delete district')))
             return
         }
-        showStatus('success', 'Drawn district deleted')
+        showStatus('success', t('c_legislature_pages.districts.toast_drawn_deleted', 'Drawn district deleted'))
         await reloadThenRepaint()   // fresh props FIRST, repaint second (tab-away bug)
     } catch (e) {
         console.error('deleteDrawnDistrict:', e)
         showStatus('error', e?.name === 'TimeoutError'
-            ? 'Timed out — the server may be busy; refresh to see the current state.'
-            : 'Network error')
+            ? t('c_legislature_pages.districts.timed_out', 'Timed out — the server may be busy; refresh to see the current state.')
+            : t('c_legislature_pages.districts.net_error', 'Network error'))
     } finally {
         deletingDrawnId.value = null
     }
@@ -5285,10 +5286,10 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
                 clearAutoStepTimer()
                 massJobRunning.value = true
                 startMassStatusPolling()
-                showStatus('error', (data.error ?? 'A mass operation is already running.') + ' Wizard paused.')
+                showStatus('error', t('c_legislature_pages.districts.toast_mass_running', { detail: data.error ?? t('c_legislature_pages.districts.mass_running', 'A mass operation is already running.') }))
                 return
             }
-            showStatus('error', data.error ?? 'Reseed failed'); return
+            showStatus('error', data.error ?? t('c_legislature_pages.districts.err_reseed', 'Reseed failed')); return
         }
         // The endpoint dispatches a Horizon job and returns 202 immediately —
         // `data.districts_created` doesn't exist on the response. We learn the
@@ -5310,14 +5311,14 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
                 onFinish: resolve,
             })
         })
-        showStatus('success', 'Auto-seed complete')
+        showStatus('success', t('c_legislature_pages.districts.toast_autoseed_complete', 'Auto-seed complete'))
     } catch (e) {
         console.error('massReseed:', e)
         // Timeout ≠ failure: the job may still have been dispatched — the
         // mass-status poller (manual path) keeps tracking and reloads honestly.
         showStatus('error', e?.name === 'TimeoutError'
-            ? 'Timed out — the server may be busy; refresh to see the current state.'
-            : 'Network error')
+            ? t('c_legislature_pages.districts.timed_out', 'Timed out — the server may be busy; refresh to see the current state.')
+            : t('c_legislature_pages.districts.net_error', 'Network error'))
     } finally {
         massToolRunning.value = false
     }
@@ -5336,8 +5337,8 @@ async function runMassDisband(scope) {
             signal:  AbortSignal.timeout(60_000),
         })
         const data = await resp.json()
-        if (!resp.ok) { showStatus('error', data.error ?? 'Clear failed'); return }
-        showStatus('success', `Clear: ${data.districts_deleted} districts removed across ${data.scopes_processed} scope(s)`)
+        if (!resp.ok) { showStatus('error', data.error ?? t('c_legislature_pages.districts.err_clear', 'Clear failed')); return }
+        showStatus('success', t('c_legislature_pages.districts.toast_clear', { deleted: data.districts_deleted, scopes: data.scopes_processed }))
         // Stop polling before navigating — prevents double router.visit()
         clearInterval(massStatusTimer)
         massStatusTimer = null
@@ -5348,8 +5349,8 @@ async function runMassDisband(scope) {
         // Timeout ≠ failure: the clear may still have landed — the mass-status
         // poller keeps running and reloads to the honest current state.
         showStatus('error', e?.name === 'TimeoutError'
-            ? 'Timed out — the server may be busy; refresh to see the current state.'
-            : 'Network error')
+            ? t('c_legislature_pages.districts.timed_out', 'Timed out — the server may be busy; refresh to see the current state.')
+            : t('c_legislature_pages.districts.net_error', 'Network error'))
     } finally {
         massToolRunning.value = false
     }
@@ -5558,25 +5559,25 @@ async function reinitMapLayers() {
                     const isGiant = isGiantChild(c)
                     const lines = [
                         `<strong>${c.name}</strong>`,
-                        `Pop: ${c.population.toLocaleString()}`,
-                        `Fractional: ${c.fractional_seats.toFixed(2)}`,
+                        t('c_legislature_pages.districts.tip_pop', { n: c.population.toLocaleString() }),
+                        t('c_legislature_pages.districts.tip_fractional', { n: c.fractional_seats.toFixed(2) }),
                     ]
                     if (isGiant) {
-                        lines.push('<em style="color:#94a3b8">Expand in sidebar to see sub-districts</em>')
+                        lines.push(`<em style="color:#94a3b8">${t('c_legislature_pages.districts.tip_expand', 'Expand in sidebar to see sub-districts')}</em>`)
                     } else if (c.district_seats !== null) {
                         const dist = districtById[c.district_id]
-                        lines.push(`District: ${c.district_seats} seats${dist ? ` · ${dist.members.length} members` : ''}`)
+                        lines.push(`${t('c_legislature_pages.districts.tip_district', { seats: c.district_seats })}${dist ? t('c_legislature_pages.districts.tip_members_suffix', { n: dist.members.length }) : ''}`)
                     } else {
-                        lines.push('<em style="color:#fbbf24">Unassigned — compositable</em>')
+                        lines.push(`<em style="color:#fbbf24">${t('c_legislature_pages.districts.tip_unassigned', 'Unassigned — compositable')}</em>`)
                     }
                     // Edit-mode hints
                     if (!isGiant && editingDistrictId.value && editingDistrictId.value !== 'new') {
                         const editDist = districtById[editingDistrictId.value]
                         const isMember = editDist?.members.some(m => m.id === jid)
-                        if (isMember) lines.push('<span style="color:#4ade80">Click to remove</span>')
-                        else if (!c.district_id) lines.push('<span style="color:#fbbf24">Click to add</span>')
+                        if (isMember) lines.push(`<span style="color:#4ade80">${t('c_legislature_pages.districts.tip_click_remove', 'Click to remove')}</span>`)
+                        else if (!c.district_id) lines.push(`<span style="color:#fbbf24">${t('c_legislature_pages.districts.tip_click_add', 'Click to add')}</span>`)
                     } else if (!isGiant && editingDistrictId.value === 'new' && !c.district_id) {
-                        lines.push('<span style="color:#fbbf24">Click to select</span>')
+                        lines.push(`<span style="color:#fbbf24">${t('c_legislature_pages.districts.tip_click_select', 'Click to select')}</span>`)
                     }
                     return lines.join('<br>')
                 }

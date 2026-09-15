@@ -13,6 +13,7 @@
  */
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -31,6 +32,7 @@ import VoteCastList from '@/Components/Legislature/VoteCastList.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -53,8 +55,8 @@ const bicameral = computed(() => props.legislature.mode === 'bicameral');
 
 /* The closed cause enum — exactly two options, by construction (Art. II §7). */
 const CAUSE_LABELS = {
-    natural_disaster: 'Natural disaster',
-    actual_invasion: 'Actual invasion',
+    natural_disaster: t('c_legislature_pages.emergency_powers.cause_natural_disaster', 'Natural disaster'),
+    actual_invasion: t('c_legislature_pages.emergency_powers.cause_actual_invasion', 'Actual invasion'),
 };
 const causeOptions = computed(() =>
     props.invokeForm.causes.map((cause) => ({ value: cause, label: CAUSE_LABELS[cause] ?? cause })),
@@ -74,7 +76,7 @@ const invoke = useForm({
 const durationError = computed(() => {
     const n = Number(invoke.duration_days);
     if (Number.isFinite(n) && (n < 1 || n > props.invokeForm.maxDays)) {
-        return `Rejected pre-vote: exceeds the ${props.invokeForm.maxDays}-day constitutional ceiling · CLK-03`;
+        return t('c_legislature_pages.emergency_powers.duration_error', { max: props.invokeForm.maxDays });
     }
     /* The engine's verbatim rejection (duration is its only numeric gate). */
     return invoke.errors.duration_days ?? constitutionError.value ?? null;
@@ -122,12 +124,9 @@ function expiresDate(iso) {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`Emergency powers — ${legislature.name}`">
+    <PageScaffold :surface="surface" :title="t('c_legislature_pages.emergency_powers.title', { name: legislature.name })">
         <template #intro>
-            Emergency powers exist for exactly two causes — natural disaster and actual invasion.
-            They require a supermajority, run at most 90 days, are judicially reviewable at any
-            time, auto-expire, and can never disrupt elections, sessions, or courts. Any active
-            power is the first order of business at every session.
+            {{ t('c_legislature_pages.emergency_powers.intro', 'Emergency powers exist for exactly two causes — natural disaster and actual invasion. They require a supermajority, run at most 90 days, are judicially reviewable at any time, auto-expire, and can never disrupt elections, sessions, or courts. Any active power is the first order of business at every session.') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -135,14 +134,14 @@ function expiresDate(iso) {
 
         <!-- ==================================== active dashboard ========= -->
         <template v-if="active.length">
-            <Card v-for="power in active" :key="power.id" as="section" :title="`Active power — ${power.label}`">
-                <StateStrip :states="machine" :current="power.status" aria-label="Emergency powers state machine" />
+            <Card v-for="power in active" :key="power.id" as="section" :title="t('c_legislature_pages.emergency_powers.active_title', { label: power.label })">
+                <StateStrip :states="machine" :current="power.status" :aria-label="t('c_legislature_pages.emergency_powers.machine_aria', 'Emergency powers state machine')" />
 
                 <div class="cluster" style="gap: var(--space-6); margin-block-start: var(--space-3)">
-                    <Stat :value="power.day" :label="`day of ${power.max_days} · CLK-03 countdown`" accent />
+                    <Stat :value="power.day" :label="t('c_legislature_pages.emergency_powers.stat_day', { max: power.max_days })" accent />
                     <Stat
                         :value="Math.max(0, power.max_days - power.day)"
-                        :label="`days to auto-expiry (${expiresDate(power.expires_at)}) — no action required; nothing rolls over silently`"
+                        :label="t('c_legislature_pages.emergency_powers.stat_expiry', { date: expiresDate(power.expires_at) })"
                     />
                 </div>
 
@@ -150,42 +149,42 @@ function expiresDate(iso) {
                     :value="power.day"
                     :max="power.max_days"
                     :threshold="power.max_days"
-                    label="CLK-03 countdown"
+                    :label="t('c_legislature_pages.emergency_powers.meter_label', 'CLK-03 countdown')"
                     style="margin-block-start: var(--space-3)"
                 >
-                    day {{ power.day }} of {{ power.max_days }}
-                    <template #note>hard ceiling: 90 days · CLK-03 · Art. II §7</template>
+                    {{ t('c_legislature_pages.emergency_powers.meter_text', { day: power.day, max: power.max_days }) }}
+                    <template #note>{{ t('c_legislature_pages.emergency_powers.meter_note', 'hard ceiling: 90 days · CLK-03 · Art. II §7') }}</template>
                 </ThresholdMeter>
 
                 <p class="cc-small" style="margin-block-start: var(--space-3)">
-                    cause: <strong>{{ CAUSE_LABELS[power.cause] ?? power.cause }}</strong>
-                    · area:
+                    {{ t('c_legislature_pages.emergency_powers.label_cause', 'cause:') }} <strong>{{ CAUSE_LABELS[power.cause] ?? power.cause }}</strong>
+                    {{ t('c_legislature_pages.emergency_powers.label_area', '· area:') }}
                     <a v-if="power.area.geom_href" :href="power.area.geom_href">{{ power.area.label }}</a>
                     <template v-else>{{ power.area.label }}</template>
-                    · methods: {{ power.methods }}
+                    {{ t('c_legislature_pages.emergency_powers.label_methods', '· methods:') }} {{ power.methods }}
                 </p>
 
                 <template v-if="power.invoke_vote">
-                    <h3 style="font-size: var(--text-base); margin-block-start: var(--space-3)">Invocation vote record (F-LEG-024)</h3>
+                    <h3 style="font-size: var(--text-base); margin-block-start: var(--space-3)">{{ t('c_legislature_pages.emergency_powers.invoke_vote_record', 'Invocation vote record (F-LEG-024)') }}</h3>
                     <VoteTally v-bind="power.invoke_vote" basis="Art. II §7" />
                 </template>
 
                 <!-- renewal panel (F-LEG-025) -->
                 <Card inset style="margin-block-start: var(--space-3)">
                     <h3 style="font-size: var(--text-base)">
-                        Renewal
+                        {{ t('c_legislature_pages.emergency_powers.renewal', 'Renewal') }}
                         <StatusBadge :tone="power.renewal_window.open_now ? 'warning' : 'neutral'" icon="clock">
                             {{ power.renewal_window.open_now
-                                ? 'Renewal window open'
-                                : `Renewal window opens day ${power.renewal_window.opens_day} (${power.renewal_window.opens_at})` }}
+                                ? t('c_legislature_pages.emergency_powers.renewal_open', 'Renewal window open')
+                                : t('c_legislature_pages.emergency_powers.renewal_opens', { day: power.renewal_window.opens_day, at: power.renewal_window.opens_at }) }}
                         </StatusBadge>
                     </h3>
                     <p class="citation">
-                        window opens day {{ power.renewal_window.opens_day }} · fresh supermajority · fresh ≤ {{ invokeForm.maxDays }}-day maximum · Art. II §7
+                        {{ t('c_legislature_pages.emergency_powers.renewal_window', { day: power.renewal_window.opens_day, max: invokeForm.maxDays }) }}
                     </p>
                     <ul v-if="power.renewals.length" class="cc-small" style="margin-block: var(--space-2)">
                         <li v-for="(renewal, ri) in power.renewals" :key="ri">
-                            +{{ renewal.extension_days }} day(s) — {{ renewal.vote_summary }}
+                            {{ t('c_legislature_pages.emergency_powers.renewal_line', { days: renewal.extension_days, summary: renewal.vote_summary }) }}
                         </li>
                     </ul>
                     <template v-if="can.renew">
@@ -193,13 +192,13 @@ function expiresDate(iso) {
                             variant="secondary"
                             size="sm"
                             :disabled="!power.renewal_window.open_now"
-                            :title="power.renewal_window.open_now ? undefined : `Filing this early would pre-commit a future chamber — window opens ${power.renewal_window.opens_at}`"
+                            :title="power.renewal_window.open_now ? undefined : t('c_legislature_pages.emergency_powers.renewal_early', { at: power.renewal_window.opens_at })"
                             @click="renewTarget = renewTarget === power.id ? null : power.id"
-                        >Propose renewal (F-LEG-025)</Btn>
+                        >{{ t('c_legislature_pages.emergency_powers.propose_renewal', 'Propose renewal (F-LEG-025)') }}</Btn>
                         <div v-if="renewTarget === power.id" class="stack" style="gap: var(--space-2); margin-block-start: var(--space-2)">
                             <Field
-                                label="Extension (days)"
-                                :hint="`1–${invokeForm.maxDays} — the engine re-validates; each renewal carries its own ceiling`"
+                                :label="t('c_legislature_pages.emergency_powers.extension_label', 'Extension (days)')"
+                                :hint="t('c_legislature_pages.emergency_powers.extension_hint', { max: invokeForm.maxDays })"
                                 :error="renewForm.errors.extension_days"
                                 required
                             >
@@ -217,7 +216,7 @@ function expiresDate(iso) {
                                 </template>
                             </Field>
                             <Btn variant="primary" size="sm" :disabled="renewForm.processing" @click="submitRenew(power)">
-                                Put renewal to a vote
+                                {{ t('c_legislature_pages.emergency_powers.put_renewal', 'Put renewal to a vote') }}
                             </Btn>
                         </div>
                     </template>
@@ -225,31 +224,31 @@ function expiresDate(iso) {
 
                 <!-- judicial review panel (F-JDG-007) -->
                 <Card inset style="margin-block-start: var(--space-3)">
-                    <h3 style="font-size: var(--text-base)">Judicial review (F-JDG-007)</h3>
+                    <h3 style="font-size: var(--text-base)">{{ t('c_legislature_pages.emergency_powers.judicial_review', 'Judicial review (F-JDG-007)') }}</h3>
                     <div class="cluster">
                         <StatusBadge :tone="power.judicial_review === 'pending' ? 'warning' : 'neutral'" icon="scale">
-                            {{ power.judicial_review === 'pending' ? 'Review pending' : 'No review in progress' }}
+                            {{ power.judicial_review === 'pending' ? t('c_legislature_pages.emergency_powers.review_pending', 'Review pending') : t('c_legislature_pages.emergency_powers.review_none', 'No review in progress') }}
                         </StatusBadge>
                         <span class="citation">
-                            available at any time, by any inhabitant · filing arrives with the judiciary (Planned · Phase E) · Art. II §7 · WF-JUD-06
+                            {{ t('c_legislature_pages.emergency_powers.review_cite', 'available at any time, by any inhabitant · filing arrives with the judiciary (Planned · Phase E) · Art. II §7 · WF-JUD-06') }}
                         </span>
                     </div>
                 </Card>
             </Card>
         </template>
-        <Card v-else as="section" title="Active power dashboard">
+        <Card v-else as="section" :title="t('c_legislature_pages.emergency_powers.dashboard_title', 'Active power dashboard')">
             <div class="cluster">
-                <StatusBadge tone="success" icon="check">No active emergency powers</StatusBadge>
+                <StatusBadge tone="success" icon="check">{{ t('c_legislature_pages.emergency_powers.no_active', 'No active emergency powers') }}</StatusBadge>
                 <span class="citation">
                     {{ active.length === 0 && expired.length === 0
-                        ? `No emergency powers have ever been invoked in ${legislature.jurisdiction?.name ?? 'this jurisdiction'}`
-                        : `${legislature.jurisdiction?.name ?? 'This jurisdiction'} reports none in force` }}
+                        ? t('c_legislature_pages.emergency_powers.never_invoked', { name: legislature.jurisdiction?.name ?? t('c_legislature_pages.emergency_powers.this_jurisdiction_lower', 'this jurisdiction') })
+                        : t('c_legislature_pages.emergency_powers.none_in_force', { name: legislature.jurisdiction?.name ?? t('c_legislature_pages.emergency_powers.this_jurisdiction_upper', 'This jurisdiction') }) }}
                 </span>
             </div>
         </Card>
 
         <!-- ==================================== pending votes ============ -->
-        <Card v-if="pending.length" as="section" title="Open invocation & renewal votes">
+        <Card v-if="pending.length" as="section" :title="t('c_legislature_pages.emergency_powers.pending_title', 'Open invocation & renewal votes')">
             <div class="stack" style="gap: var(--space-3)">
                 <Card v-for="row in pending" :key="row.id" inset>
                     <p style="margin-block-end: var(--space-1)">
@@ -265,7 +264,7 @@ function expiresDate(iso) {
                             @cast="cast(row, $event)"
                         />
                         <details v-if="row.vote.casts.length" style="margin-block-start: var(--space-2)">
-                            <summary class="cc-small" style="cursor: pointer">Published casts ({{ row.vote.casts.length }})</summary>
+                            <summary class="cc-small" style="cursor: pointer">{{ t('c_legislature_pages.emergency_powers.published_casts', { count: row.vote.casts.length }) }}</summary>
                             <VoteCastList :casts="row.vote.casts" :group-by-kind="bicameral" />
                         </details>
                     </template>
@@ -278,18 +277,18 @@ function expiresDate(iso) {
             v-if="can.invoke && formMeta('F-LEG-024')"
             :form="formMeta('F-LEG-024')"
             :inertia-form="invoke"
-            submit-label="Put invocation to a vote"
+            :submit-label="t('c_legislature_pages.emergency_powers.put_invocation', 'Put invocation to a vote')"
             @submit="submitInvoke"
         >
             <div class="grid-2">
                 <RadioGroup
                     v-model="invoke.cause"
-                    label="Cause — the only two the engine accepts"
+                    :label="t('c_legislature_pages.emergency_powers.cause_label', 'Cause — the only two the engine accepts')"
                     :options="causeOptions"
                 />
                 <Field
-                    label="Duration (days)"
-                    :hint="`Engine validation: duration ≤ ${invokeForm.maxDays} days (CLK-03). Values above the ceiling are rejected before any vote is taken.`"
+                    :label="t('c_legislature_pages.emergency_powers.duration_label', 'Duration (days)')"
+                    :hint="t('c_legislature_pages.emergency_powers.duration_hint', { max: invokeForm.maxDays })"
                     :error="durationError"
                     required
                 >
@@ -308,16 +307,16 @@ function expiresDate(iso) {
                 </Field>
             </div>
             <p class="gloss" style="margin-block-start: calc(-1 * var(--space-2)); margin-block-end: var(--space-3)">
-                No other cause exists. Economic, political, or public-order rationales are rejected pre-vote.
+                {{ t('c_legislature_pages.emergency_powers.no_other_cause', 'No other cause exists. Economic, political, or public-order rationales are rejected pre-vote.') }}
             </p>
-            <Field label="Name the emergency" :error="invoke.errors.label" required>
+            <Field :label="t('c_legislature_pages.emergency_powers.name_label', 'Name the emergency')" :error="invoke.errors.label" required>
                 <template #control="{ id, invalid, describedBy }">
                     <input
                         :id="id"
                         v-model="invoke.label"
                         class="field-input"
                         type="text"
-                        placeholder="e.g. River Ausa flooding"
+                        :placeholder="t('c_legislature_pages.emergency_powers.name_placeholder', 'e.g. River Ausa flooding')"
                         :aria-invalid="invalid ? 'true' : undefined"
                         :aria-describedby="describedBy"
                     />
@@ -325,8 +324,8 @@ function expiresDate(iso) {
             </Field>
             <div class="grid-2">
                 <Field
-                    label="Area"
-                    hint="Engine validation: area ≤ this legislature's authority — own or descendant jurisdictions only."
+                    :label="t('c_legislature_pages.emergency_powers.area_label', 'Area')"
+                    :hint="t('c_legislature_pages.emergency_powers.area_hint', 'Engine validation: area ≤ this legislature\'s authority — own or descendant jurisdictions only.')"
                     :error="invoke.errors.area_jurisdiction_id"
                 >
                     <template #control="{ id }">
@@ -338,8 +337,8 @@ function expiresDate(iso) {
                     </template>
                 </Field>
                 <Field
-                    label="Methods"
-                    hint="Engine validation: methods must remain within constitutional order — rights and civic processes are untouchable."
+                    :label="t('c_legislature_pages.emergency_powers.methods_label', 'Methods')"
+                    :hint="t('c_legislature_pages.emergency_powers.methods_hint', 'Engine validation: methods must remain within constitutional order — rights and civic processes are untouchable.')"
                     :error="invoke.errors.methods"
                     required
                 >
@@ -349,7 +348,7 @@ function expiresDate(iso) {
                             v-model="invoke.methods"
                             class="field-input"
                             rows="2"
-                            placeholder="e.g. evacuation orders, shelter requisition, debris-clearance contracting"
+                            :placeholder="t('c_legislature_pages.emergency_powers.methods_placeholder', 'e.g. evacuation orders, shelter requisition, debris-clearance contracting')"
                             :aria-invalid="invalid ? 'true' : undefined"
                             :aria-describedby="describedBy"
                         ></textarea>
@@ -357,48 +356,43 @@ function expiresDate(iso) {
                 </Field>
             </div>
             <p class="citation" style="margin-block-end: var(--space-2)">
-                requires supermajority of all serving — {{ legislature.supermajority }} of {{ legislature.serving }} · Art. II §7
+                {{ t('c_legislature_pages.emergency_powers.requires_super', { super: legislature.supermajority, serving: legislature.serving }) }}
             </p>
         </FormCard>
-        <Card v-else as="section" title="Invoke emergency powers">
+        <Card v-else as="section" :title="t('c_legislature_pages.emergency_powers.invoke_title', 'Invoke emergency powers')">
             <p class="gloss">
-                Invocation is filed by a serving member (F-LEG-024, R-09) and adopted only by
-                supermajority of all serving. Every declaration, renewal, and expiry publishes to
-                the public record — citizens read this dashboard at all times.
+                {{ t('c_legislature_pages.emergency_powers.invoke_gloss', 'Invocation is filed by a serving member (F-LEG-024, R-09) and adopted only by supermajority of all serving. Every declaration, renewal, and expiry publishes to the public record — citizens read this dashboard at all times.') }}
             </p>
         </Card>
 
         <!-- ==================================== hard rails =============== -->
-        <Card as="section" title="The hard rails">
+        <Card as="section" :title="t('c_legislature_pages.emergency_powers.rails_title', 'The hard rails')">
             <ul style="margin-block-end: 0">
-                <li>Civic-process protection: <strong>elections, sessions, courts, and every civic process cannot be disrupted — enforced in code.</strong></li>
-                <li>Auto-expiry at the declared duration — no action required, no extension without a fresh supermajority.</li>
-                <li>First order of business: an active power leads the agenda of every session until it ends (AgendaStrip slot 1 — <a :href="`/legislatures/${legislature.id}/session`">session console</a>).</li>
-                <li>Judicially reviewable at any time (WF-JUD-06).</li>
+                <li>{{ t('c_legislature_pages.emergency_powers.rail_civic_label', 'Civic-process protection:') }} <strong>{{ t('c_legislature_pages.emergency_powers.rail_civic', 'elections, sessions, courts, and every civic process cannot be disrupted — enforced in code.') }}</strong></li>
+                <li>{{ t('c_legislature_pages.emergency_powers.rail_expiry', 'Auto-expiry at the declared duration — no action required, no extension without a fresh supermajority.') }}</li>
+                <li>{{ t('c_legislature_pages.emergency_powers.rail_first_order', 'First order of business: an active power leads the agenda of every session until it ends (AgendaStrip slot 1 —') }} <a :href="`/legislatures/${legislature.id}/session`">{{ t('c_legislature_pages.emergency_powers.session_console', 'session console') }}</a>).</li>
+                <li>{{ t('c_legislature_pages.emergency_powers.rail_reviewable', 'Judicially reviewable at any time (WF-JUD-06).') }}</li>
             </ul>
             <div class="cluster" style="margin-block-start: var(--space-3)">
-                <HardenedChip>cannot disrupt elections, sessions, courts, or any civic process — enforced in code · Art. II §7</HardenedChip>
-                <span class="citation">CLK-03 — the 90-day ceiling is itself the amendable setting's constitutional maximum</span>
+                <HardenedChip>{{ t('c_legislature_pages.emergency_powers.rails_chip', 'cannot disrupt elections, sessions, courts, or any civic process — enforced in code · Art. II §7') }}</HardenedChip>
+                <span class="citation">{{ t('c_legislature_pages.emergency_powers.rails_cite', 'CLK-03 — the 90-day ceiling is itself the amendable setting\'s constitutional maximum') }}</span>
             </div>
         </Card>
 
         <!-- ==================================== expired register ========= -->
-        <Card v-if="expired.length" as="section" title="Expired register">
-            <p class="gloss">Auto-expiry publishes a full audit record — nothing rolls over silently.</p>
+        <Card v-if="expired.length" as="section" :title="t('c_legislature_pages.emergency_powers.expired_title', 'Expired register')">
+            <p class="gloss">{{ t('c_legislature_pages.emergency_powers.expired_gloss', 'Auto-expiry publishes a full audit record — nothing rolls over silently.') }}</p>
             <div class="stack" style="gap: var(--space-2)">
                 <div v-for="row in expired" :key="row.id" class="cluster" style="justify-content: space-between">
                     <span><strong>{{ row.label }}</strong> <span class="citation">· {{ row.status }} {{ row.expired_at }}</span></span>
-                    <a v-if="row.record_href" :href="row.record_href" class="citation">sealed audit record →</a>
+                    <a v-if="row.record_href" :href="row.record_href" class="citation">{{ t('c_legislature_pages.emergency_powers.sealed_audit', 'sealed audit record →') }}</a>
                 </div>
             </div>
         </Card>
 
         <template #about>
             <p>
-                All validation runs PRE-VOTE: the closed cause enum, the ≤ 90-day ceiling, the
-                area-of-authority check, and the methods requirement reject before any vote is
-                taken — the rejection rows are the operator-visible record. The power row and its
-                CLK-03 countdown exist only on supermajority adoption.
+                {{ t('c_legislature_pages.emergency_powers.about', 'All validation runs PRE-VOTE: the closed cause enum, the ≤ 90-day ceiling, the area-of-authority check, and the methods requirement reject before any vote is taken — the rejection rows are the operator-visible record. The power row and its CLK-03 countdown exist only on supermajority adoption.') }}
             </p>
         </template>
     </PageScaffold>
