@@ -63,7 +63,7 @@ const otherTracks = computed(() =>
         <section aria-labelledby="tracks-h" class="stack">
             <h2 id="tracks-h">{{ t('c_learn.ui.all_tracks') }}</h2>
             <p v-if="!tracks.length" class="gloss">
-                Nothing is published yet — training content arrives with the world's curriculum.
+                {{ t('c_learn.ui.nothing_published', 'Nothing is published yet — training content arrives with the world\'s curriculum.') }}
             </p>
             <Card v-for="track in otherTracks" :key="track.key">
                 <h3>

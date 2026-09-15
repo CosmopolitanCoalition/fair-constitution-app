@@ -439,7 +439,7 @@ async function mountMap() {
         '<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>',
     );
     map.attributionControl.addAttribution(
-        'Boundaries &copy; <a href="https://www.geoboundaries.org/" target="_blank" rel="noopener">geoBoundaries</a>',
+        t('c_civic.residency.attr_boundaries', 'Boundaries') + ' &copy; <a href="https://www.geoboundaries.org/" target="_blank" rel="noopener">geoBoundaries</a>',
     );
     map.setView([20, 0], 2);
     addBasemap(map);
@@ -760,7 +760,7 @@ onBeforeUnmount(() => {
                 </p>
                 <Banner tone="info" :title="t('c_civic.residency.privacy_title', 'Check-ins are private.')" style="margin-block-start: var(--space-3)">
                     {{ t('c_civic.residency.privacy_body', 'Locations are encrypted at rest, never shown to anyone, and deleted once you are confirmed. Only the number of days is ever visible.') }}
-                    <span class="citation">location_pings · private · Art. I</span>
+                    <span class="citation">{{ t('c_civic.residency.pings_cite', 'location_pings · private · Art. I') }}</span>
                 </Banner>
             </Card>
         </details>

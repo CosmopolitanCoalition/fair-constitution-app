@@ -80,7 +80,7 @@ const currentMachineState = computed(() => props.newClaim?.status ?? props.homeC
         <Card as="section" :title="t('c_civic.relocation.detection_title', 'Away-pattern detection')">
             <template v-if="detection">
                 <Banner tone="warning" icon="map-pin" :title="t('c_civic.relocation.away_banner_title', { days: detection.away_days, near: detection.detected_near?.label ?? t('c_civic.relocation.another_jurisdiction', 'another jurisdiction'), home: homeClaim?.jurisdiction?.name ?? t('c_civic.relocation.your_home', 'your home jurisdiction') })">
-                    {{ t('c_civic.relocation.away_banner_body', 'Detection uses the same encrypted ping log as verification; only day-counts are visible.') }} <span class="citation">CLK-05 · residency_confirmation_days · Art. V §1</span>
+                    {{ t('c_civic.relocation.away_banner_body', 'Detection uses the same encrypted ping log as verification; only day-counts are visible.') }} <span class="citation" data-no-i18n>CLK-05 · residency_confirmation_days · Art. V §1</span>
                 </Banner>
                 <ThresholdMeter
                     :value="detection.away_days"
@@ -90,7 +90,7 @@ const currentMachineState = computed(() => props.newClaim?.status ?? props.homeC
                     style="margin-block-start: var(--space-3)"
                 >
                     {{ t('c_civic.relocation.away_meter', { days: detection.away_days, threshold: detection.threshold_days, near: detection.detected_near?.label ?? '—' }) }}
-                    <template #note>threshold · CLK-05</template>
+                    <template #note>{{ t('c_civic.relocation.threshold_note', 'threshold · CLK-05') }}</template>
                 </ThresholdMeter>
                 <p class="gloss" style="margin-block-start: var(--space-2)">
                     {{ t('c_civic.relocation.away_note', 'A move only completes when the away-pattern reaches the full residency threshold — the same standard your home verification used.') }}
@@ -231,7 +231,7 @@ const currentMachineState = computed(() => props.newClaim?.status ?? props.homeC
                 {{ t('c_civic.relocation.lifecycle_body', 'Your old residency claim becomes Superseded only when the new one verifies —') }}
                 <HardenedChip>{{ t('c_civic.relocation.never_gap', 'there is never a gap in your rights') }}</HardenedChip>
             </p>
-            <p class="citation">Art. V §1–2 · CLK-05</p>
+            <p class="citation" data-no-i18n>Art. V §1–2 · CLK-05</p>
         </Card>
 
         <template #about>

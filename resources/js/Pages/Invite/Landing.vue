@@ -74,7 +74,7 @@ const memberLine = computed(() => {
         <div class="stack">
             <template v-if="invite">
                 <header class="invite-header">
-                    <span class="eyebrow">World of Statecraft</span>
+                    <span class="eyebrow" data-no-i18n>World of Statecraft</span>
                     <h1>{{ heading }}</h1>
                     <p class="page-intro">
                         <template v-if="isSpace">
@@ -121,7 +121,7 @@ const memberLine = computed(() => {
 
             <template v-else>
                 <header class="invite-header">
-                    <span class="eyebrow">World of Statecraft</span>
+                    <span class="eyebrow" data-no-i18n>World of Statecraft</span>
                     <h1>{{ t('c_front.landing.expired_title', 'This invite link has expired') }}</h1>
                     <p class="page-intro">
                         {{ t('c_front.landing.expired_intro', 'That link is no longer valid — but the door is still open. Anyone can join.') }}

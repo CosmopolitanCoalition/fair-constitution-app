@@ -145,7 +145,7 @@ const recordDate = (iso) => {
         <!-- Emergency banner slot — dormant (shell-wide banner is live, Art. II §7). -->
         <Banner v-if="emergency" tone="emergency" :title="emergency.title">
             {{ emergency.body }}
-            <span class="citation">Art. II §7 · CLK-03</span>
+            <span class="citation" data-no-i18n>Art. II §7 · CLK-03</span>
         </Banner>
 
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
@@ -175,7 +175,7 @@ const recordDate = (iso) => {
                     :label="t('c_civic.home.qualifying_label', 'Qualifying days toward the residency threshold')"
                 >
                     {{ t('c_civic.home.qualifying_days', { done: claim.qualifying_days, threshold: claim.threshold }) }}
-                    <template #note>residency_confirmation_days · CLK-05</template>
+                    <template #note><span data-no-i18n>residency_confirmation_days · CLK-05</span></template>
                 </ThresholdMeter>
                 <p v-else>
                     {{ t('c_civic.home.verified_associated', { count: associations.length, plural: associations.length === 1 ? '' : 's' }) }}

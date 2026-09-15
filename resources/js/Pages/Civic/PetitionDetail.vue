@@ -161,7 +161,7 @@ function toggleSignature() {
                     <p class="gloss" style="margin-block-start: var(--space-2)">
                         {{ t('c_civic.petition_detail.audit_empty', 'The election board\'s independent audit runs when the threshold is reached — every unrevoked signature is verified against point-in-time association. Kill-path: too many invalid → invalidated.') }}
                     </p>
-                    <p class="citation">independent audit · Art. II §6 · CLK-17</p>
+                    <p class="citation">{{ t('c_civic.petition_detail.audit_cite_empty', 'independent audit · Art. II §6 · CLK-17') }}</p>
                 </template>
             </section>
 

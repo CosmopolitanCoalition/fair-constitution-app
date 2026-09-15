@@ -40,12 +40,12 @@ const props = defineProps({
 
 /* Plain labels for the onboarding strip — the raw tokens are machine grammar
    ("jurisdictionally_associated"); the player chrome speaks plainly (S8). */
-const ONBOARDING_LABELS = {
-    registered: 'Registered',
-    identity_verified: 'ID linked',
-    residency_declared: 'Residency declared',
-    jurisdictionally_associated: 'Represented',
-};
+const ONBOARDING_LABELS = computed(() => ({
+    registered: t('c_civic.identity_verification.label_registered', 'Registered'),
+    identity_verified: t('c_civic.identity_verification.label_identity_verified', 'ID linked'),
+    residency_declared: t('c_civic.identity_verification.label_residency_declared', 'Residency declared'),
+    jurisdictionally_associated: t('c_civic.identity_verification.label_jurisdictionally_associated', 'Represented'),
+}));
 
 /* The onboarding stepper context — this is step 2 of the 3-step arrival arc,
    and it is the OPTIONAL one. Steps 1 and 3 are always reachable regardless. */
@@ -105,7 +105,7 @@ const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
         <Banner tone="info" :title="t('c_civic.identity_verification.banner_title', 'Verification is never a rights requirement.')">
             {{ t('c_civic.identity_verification.banner_body', 'Voting and candidacy depend on jurisdictional residency alone — no identity check, document, course, or fee can ever be added between you and your rights. Skipping this page is always allowed and changes nothing.') }}
             <span class="citation" style="display: block; margin-block-start: var(--space-1)">
-                Art. I · hardened <HardenedChip><span class="visually-hidden">{{ t('c_civic.identity_verification.hardened', 'hardened') }}</span></HardenedChip>
+                {{ t('c_civic.identity_verification.hardened_cite', 'Art. I · hardened') }} <HardenedChip><span class="visually-hidden">{{ t('c_civic.identity_verification.hardened', 'hardened') }}</span></HardenedChip>
             </span>
         </Banner>
 

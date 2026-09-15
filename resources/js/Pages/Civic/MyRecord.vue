@@ -75,24 +75,24 @@ const roleLabel = (role) => referenceLabel(role, { translate: (key, fallback) =>
 
 const tabs = computed(() => {
     const list = [
-        { key: 'overview', label: 'Overview', icon: 'user' },
-        { key: 'record', label: 'Record', icon: 'file-text' },
+        { key: 'overview', label: t('c_civic.my_record.tab_overview', 'Overview'), icon: 'user' },
+        { key: 'record', label: t('c_civic.my_record.tab_record', 'Record'), icon: 'file-text' },
     ];
     /* A candidacy is a TAB of this same profile — only while one exists. */
     if (props.candidacies.length) {
-        list.push({ key: 'candidacy', label: 'Candidacy', icon: 'vote' });
+        list.push({ key: 'candidacy', label: t('c_civic.my_record.tab_candidacy', 'Candidacy'), icon: 'vote' });
     }
     /* Office appears only when you hold one — same rule as candidacy, and the
        same order the public profile uses (after candidacy, before reps). */
     if (props.offices.length) {
-        list.push({ key: 'office', label: 'Office', icon: 'landmark' });
+        list.push({ key: 'office', label: t('c_civic.my_record.tab_office', 'Office'), icon: 'landmark' });
     }
     list.push(
-        { key: 'representatives', label: 'Representatives', icon: 'landmark' },
+        { key: 'representatives', label: t('c_civic.my_record.tab_representatives', 'Representatives'), icon: 'landmark' },
         /* Always shown for yourself — the empty state is the invitation. */
-        { key: 'achievements', label: 'Achievements', icon: 'award' },
-        { key: 'wallet', label: 'Wallet', icon: 'lock' },
-        { key: 'settings', label: 'Settings', icon: 'sliders' },
+        { key: 'achievements', label: t('c_civic.my_record.tab_achievements', 'Achievements'), icon: 'award' },
+        { key: 'wallet', label: t('c_civic.my_record.tab_wallet', 'Wallet'), icon: 'lock' },
+        { key: 'settings', label: t('c_civic.my_record.tab_settings', 'Settings'), icon: 'sliders' },
     );
     return list;
 });
@@ -217,17 +217,17 @@ function pageHref(url) {
 
 /* ──────────────────────────────────────────────────── candidacy display */
 
-const CANDIDACY_LABELS = {
-    registered: 'Registered',
-    validated: 'Validated',
-    in_pool: 'In the approval pool',
-    finalist: 'Finalist — on the ranked ballot',
-    non_finalist: 'Non-finalist · write-in eligible',
-    elected: 'Elected',
-    defeated: 'Not elected',
-    withdrawn: 'Withdrawn',
-    rejected: 'Rejected',
-};
+const CANDIDACY_LABELS = computed(() => ({
+    registered: t('c_civic.my_record.cand_registered', 'Registered'),
+    validated: t('c_civic.my_record.cand_validated', 'Validated'),
+    in_pool: t('c_civic.my_record.cand_in_pool', 'In the approval pool'),
+    finalist: t('c_civic.my_record.cand_finalist', 'Finalist — on the ranked ballot'),
+    non_finalist: t('c_civic.my_record.cand_non_finalist', 'Non-finalist · write-in eligible'),
+    elected: t('c_civic.my_record.cand_elected', 'Elected'),
+    defeated: t('c_civic.my_record.cand_defeated', 'Not elected'),
+    withdrawn: t('c_civic.my_record.cand_withdrawn', 'Withdrawn'),
+    rejected: t('c_civic.my_record.cand_rejected', 'Rejected'),
+}));
 
 const CANDIDACY_TONES = {
     registered: 'info',
@@ -243,7 +243,10 @@ const CANDIDACY_TONES = {
 
 /* ────────────────────────────────────────────── representatives display */
 
-const SEAT_TYPE_LABELS = { a: 'Type A · constituent', b: 'Type B · at-large' };
+const SEAT_TYPE_LABELS = computed(() => ({
+    a: t('c_civic.my_record.seat_type_a', 'Type A · constituent'),
+    b: t('c_civic.my_record.seat_type_b', 'Type B · at-large'),
+}));
 
 function repInitials(name) {
     return (
@@ -285,11 +288,11 @@ const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
 
 /* ──────────────────────────────────────────── associations DataTable */
 
-const associationColumns = [
-    { key: 'jurisdiction', label: 'Jurisdiction' },
-    { key: 'days_confirmed', label: 'Days confirmed', align: 'end', mono: true },
-    { key: 'confirmed_at', label: 'Confirmed on' },
-];
+const associationColumns = computed(() => [
+    { key: 'jurisdiction', label: t('c_civic.my_record.col_jurisdiction', 'Jurisdiction') },
+    { key: 'days_confirmed', label: t('c_civic.my_record.col_days_confirmed', 'Days confirmed'), align: 'end', mono: true },
+    { key: 'confirmed_at', label: t('c_civic.my_record.col_confirmed_on', 'Confirmed on') },
+]);
 
 const associationRows = computed(() =>
     props.associations.map((assoc) => ({
@@ -301,25 +304,19 @@ const associationRows = computed(() =>
 </script>
 
 <template>
-    <PageScaffold :surface="surface" title="My profile">
+    <PageScaffold :surface="surface" :title="t('c_civic.my_record.page_title', 'My profile')">
         <template #intro>
-            Everything about your civic life in one place — who you are, your record, the people
-            who represent you, and (when you stand) your candidacy. Ballot choices and raw ping
-            locations are never here: they are structurally never written to the chain.
+            {{ t('c_civic.my_record.intro', 'Everything about your civic life in one place — who you are, your record, the people who represent you, and (when you stand) your candidacy. Ballot choices and raw ping locations are never here: they are structurally never written to the chain.') }}
         </template>
         <template #about>
             <p>
-                One person, one profile (profile-v2 contract). The Record tab is a read-only slice
-                of the append-only audit chain (WF-SYS-03/04) filtered to your own filings; the
-                Settings tab files F-IND-002 through the constitutional engine so the mutation and
-                its chain entry commit together. A candidacy is a tab of this same profile — never
-                a separate identity.
+                {{ t('c_civic.my_record.about', 'One person, one profile (profile-v2 contract). The Record tab is a read-only slice of the append-only audit chain (WF-SYS-03/04) filtered to your own filings; the Settings tab files F-IND-002 through the constitutional engine so the mutation and its chain entry commit together. A candidacy is a tab of this same profile — never a separate identity.') }}
             </p>
         </template>
 
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
-        <Banner v-if="errors.constitution" tone="warning" title="Filing rejected by the constitutional engine">
-            {{ errors.constitution }} — the rejection itself is on the audit chain (append-only).
+        <Banner v-if="errors.constitution" tone="warning" :title="t('c_civic.my_record.filing_rejected_title', 'Filing rejected by the constitutional engine')">
+            {{ t('c_civic.my_record.rejection_audit', { reason: errors.constitution }) }}
         </Banner>
 
         <!-- ──────────────────────────────────────────────────── the head -->
@@ -327,28 +324,28 @@ const associationRows = computed(() =>
             <span class="profile-avatar" aria-hidden="true">{{ initials }}</span>
             <div class="stack" style="gap: var(--space-1); flex: 1 1 16rem">
                 <div class="cluster" style="align-items: baseline; gap: var(--space-2)">
-                    <h2 style="margin: 0">{{ profile.display_name || 'Your profile' }}</h2>
+                    <h2 style="margin: 0">{{ profile.display_name || t('c_civic.my_record.your_profile', 'Your profile') }}</h2>
                     <span class="gloss">
-                        {{ mostLocal ? `Resident of ${mostLocal.name}` : 'No verified residency yet' }}
+                        {{ mostLocal ? t('c_civic.my_record.resident_of', { name: mostLocal.name }) : t('c_civic.my_record.no_residency', 'No verified residency yet') }}
                     </span>
                 </div>
                 <div class="profile-stats" style="margin-block-start: var(--space-2)">
                     <span class="profile-stat">
                         <Icon name="landmark" size="sm" />
                         <b>{{ stats.associations }}</b>
-                        association{{ stats.associations === 1 ? '' : 's' }}
+                        {{ stats.associations === 1 ? t('c_civic.my_record.association_one', 'association') : t('c_civic.my_record.association_many', 'associations') }}
                     </span>
                     <span class="profile-stat">
                         <Icon name="file-text" size="sm" />
                         <b>{{ stats.record_entries }}</b>
-                        record entr{{ stats.record_entries === 1 ? 'y' : 'ies' }}
+                        {{ stats.record_entries === 1 ? t('c_civic.my_record.record_entry_one', 'record entry') : t('c_civic.my_record.record_entry_many', 'record entries') }}
                     </span>
                 </div>
             </div>
         </div>
 
         <!-- ──────────────────────────────────────────────────── tab bar -->
-        <div ref="tablistEl" class="profile-tabs" role="tablist" aria-label="Profile sections">
+        <div ref="tablistEl" class="profile-tabs" role="tablist" :aria-label="t('c_civic.my_record.tablist_label', 'Profile sections')">
             <button
                 v-for="t in tabs"
                 :id="`ptab-${t.key}`"
@@ -377,26 +374,23 @@ const associationRows = computed(() =>
             class="stack"
         >
             <Banner tone="info">
-                <strong>Right now</strong> — {{ stats.ballots_cast }} ballot{{
-                    stats.ballots_cast === 1 ? '' : 's'
-                }}
-                cast on your record. Your ballot only ever shows that voting is open — never how
-                you voted.
+                <strong>{{ t('c_civic.my_record.right_now', 'Right now') }}</strong> — {{ stats.ballots_cast }} {{ stats.ballots_cast === 1 ? t('c_civic.my_record.ballot_one', 'ballot') : t('c_civic.my_record.ballot_many', 'ballots') }}
+                {{ t('c_civic.my_record.ballots_tail', 'cast on your record. Your ballot only ever shows that voting is open — never how you voted.') }}
             </Banner>
 
             <Card as="section">
                 <div class="cluster" style="gap: var(--space-6)">
-                    <Stat :value="stats.record_entries" label="record entries" accent />
-                    <Stat :value="stats.associations" label="associations" />
-                    <Stat :value="stats.qualifying_days" label="qualifying days" />
-                    <Stat :value="stats.ballots_cast" label="ballots cast" />
+                    <Stat :value="stats.record_entries" :label="t('c_civic.my_record.stat_record_entries', 'record entries')" accent />
+                    <Stat :value="stats.associations" :label="t('c_civic.my_record.stat_associations', 'associations')" />
+                    <Stat :value="stats.qualifying_days" :label="t('c_civic.my_record.stat_qualifying_days', 'qualifying days')" />
+                    <Stat :value="stats.ballots_cast" :label="t('c_civic.my_record.stat_ballots_cast', 'ballots cast')" />
                 </div>
                 <p class="citation" style="margin-block-start: var(--space-3)">
-                    Participation is public; ballot choices are secret · Art. II §2
+                    {{ t('c_civic.my_record.participation_secret', 'Participation is public; ballot choices are secret · Art. II §2') }}
                 </p>
             </Card>
 
-            <Card as="section" title="Roles held">
+            <Card as="section" :title="t('c_civic.my_record.roles_held', 'Roles held')">
                 <div class="cluster" style="gap: var(--space-3)">
                     <StatusBadge v-for="role in roles" :key="role" tone="info" icon="user">
                         {{ roleLabel(role) }}
@@ -406,7 +400,7 @@ const associationRows = computed(() =>
                 <p style="margin-block-start: var(--space-3)">
                     {{ t('c_references.roles_explained', 'Your roles follow your residency, elections, and appointments. Residency determines where you can vote and stand for office.') }}
                 </p>
-                <p class="citation">Rights derive from residency alone · Art. I; Art. V §1</p>
+                <p class="citation">{{ t('c_civic.my_record.rights_derive', 'Rights derive from residency alone · Art. I; Art. V §1') }}</p>
             </Card>
         </div>
 
@@ -418,16 +412,14 @@ const associationRows = computed(() =>
             aria-labelledby="ptab-record"
             class="stack"
         >
-            <Card as="section" title="Record entries">
-                <p class="gloss">The record IS the chain — it cannot be quietly edited.</p>
+            <Card as="section" :title="t('c_civic.my_record.record_entries_title', 'Record entries')">
+                <p class="gloss">{{ t('c_civic.my_record.record_is_chain', 'The record IS the chain — it cannot be quietly edited.') }}</p>
                 <p class="cc-small">
-                    Append-only · hash-chained · shown in your timezone
-                    (<code>{{ displayTimezone }}</code>) · stored as UTC.
+                    {{ t('c_civic.my_record.record_meta_lead', 'Append-only · hash-chained · shown in your timezone (') }}<code>{{ displayTimezone }}</code>{{ t('c_civic.my_record.record_meta_tail', ') · stored as UTC.') }}
                 </p>
 
                 <p v-if="entries.data.length === 0" class="gloss">
-                    No entries yet — your first filing (account creation) appears here as soon as
-                    the chain records it.
+                    {{ t('c_civic.my_record.no_entries', 'No entries yet — your first filing (account creation) appears here as soon as the chain records it.') }}
                 </p>
 
                 <div v-else>
@@ -442,7 +434,7 @@ const associationRows = computed(() =>
                         <span>{{ entry.module }} · {{ entry.event }}</span>
                         <FormChip v-if="isFormRef(entry.ref)" :form-id="entry.ref" />
                         <span v-else-if="entry.ref" class="form-chip"><span class="form-id">{{ entry.ref }}</span></span>
-                        <StatusBadge v-if="entry.rejected" tone="danger" icon="x">rejected</StatusBadge>
+                        <StatusBadge v-if="entry.rejected" tone="danger" icon="x">{{ t('c_civic.my_record.rejected', 'rejected') }}</StatusBadge>
                         <span v-if="entry.rejected && entry.blocked_reason" class="cc-small">
                             {{ entry.blocked_reason }}
                         </span>
@@ -457,7 +449,7 @@ const associationRows = computed(() =>
                             variant="secondary"
                             size="sm"
                         >
-                            Newer
+                            {{ t('c_civic.my_record.newer', 'Newer') }}
                         </Btn>
                         <Btn
                             v-if="entries.next_page_url"
@@ -467,38 +459,37 @@ const associationRows = computed(() =>
                             variant="secondary"
                             size="sm"
                         >
-                            Older
+                            {{ t('c_civic.my_record.older', 'Older') }}
                         </Btn>
                         <span class="cc-small">
-                            Page {{ entries.current_page }} of {{ entries.last_page }} ·
-                            {{ entries.total }} entr{{ entries.total === 1 ? 'y' : 'ies' }}
+                            {{ t('c_civic.my_record.page_of', { current: entries.current_page, last: entries.last_page }) }} ·
+                            {{ entries.total }} {{ entries.total === 1 ? t('c_civic.my_record.entry_one', 'entry') : t('c_civic.my_record.entry_many', 'entries') }}
                         </span>
                     </div>
                 </div>
 
                 <p class="citation" style="margin-block-start: var(--space-3)">
-                    Never contains ballot content or raw locations — they are never written · Art. II · WF-SYS-04
+                    {{ t('c_civic.my_record.never_contains', 'Never contains ballot content or raw locations — they are never written · Art. II · WF-SYS-04') }}
                 </p>
             </Card>
 
-            <Card as="section" title="Jurisdictional associations">
+            <Card as="section" :title="t('c_civic.my_record.associations_title', 'Jurisdictional associations')">
                 <p v-if="associations.length === 0" class="gloss">
-                    None yet — associations at every nesting level appear here the moment residency
-                    verifies. <Link href="/civic/residency">Declare residency</Link> to begin.
+                    {{ t('c_civic.my_record.no_associations_lead', 'None yet — associations at every nesting level appear here the moment residency verifies.') }} <Link href="/civic/residency">{{ t('c_civic.my_record.declare_residency', 'Declare residency') }}</Link> {{ t('c_civic.my_record.to_begin', 'to begin.') }}
                 </p>
                 <DataTable
                     v-else
                     :columns="associationColumns"
                     :rows="associationRows"
                     row-key="id"
-                    caption="Active jurisdictional associations at every nesting level"
+                    :caption="t('c_civic.my_record.associations_caption', 'Active jurisdictional associations at every nesting level')"
                 >
                     <template #cell-jurisdiction="{ row }">
                         <AdmChip :level="row.adm_level" :label="row.name" />
                     </template>
                 </DataTable>
                 <p class="citation" style="margin-block-start: var(--space-2)">
-                    One verified residency → associations at every enclosing level · Art. I
+                    {{ t('c_civic.my_record.one_residency', 'One verified residency → associations at every enclosing level · Art. I') }}
                 </p>
             </Card>
         </div>
@@ -513,8 +504,7 @@ const associationRows = computed(() =>
             class="stack"
         >
             <p class="gloss">
-                A candidacy is not a separate identity: it is this same profile, carried onto the
-                ballot.
+                {{ t('c_civic.my_record.candidacy_not_separate', 'A candidacy is not a separate identity: it is this same profile, carried onto the ballot.') }}
             </p>
 
             <Card v-for="candidacy in candidacies" :key="candidacy.id" as="section">
@@ -529,7 +519,7 @@ const associationRows = computed(() =>
                     {{ candidacy.platform_statement }}
                 </p>
                 <p v-else class="gloss" style="margin-block-start: var(--space-3)">
-                    No platform statement published yet.
+                    {{ t('c_civic.my_record.no_statement', 'No platform statement published yet.') }}
                 </p>
 
                 <div
@@ -542,11 +532,11 @@ const associationRows = computed(() =>
 
                 <div class="cluster" style="margin-block-start: var(--space-3)">
                     <Btn :as="Link" href="/elections" variant="secondary" size="sm">
-                        <Icon name="vote" size="sm" /> Open the election
+                        <Icon name="vote" size="sm" /> {{ t('c_civic.my_record.open_election', 'Open the election') }}
                     </Btn>
                 </div>
                 <p class="citation" style="margin-block-start: var(--space-2)">
-                    The record rides along — it is the Record tab of this same profile · Art. II
+                    {{ t('c_civic.my_record.record_rides', 'The record rides along — it is the Record tab of this same profile · Art. II') }}
                 </p>
             </Card>
         </div>
@@ -568,26 +558,24 @@ const associationRows = computed(() =>
                 <template #title>
                     <h2>
                         {{ office.title }}
-                        <StatusBadge v-if="office.is_speaker" tone="success" icon="landmark">Speaker</StatusBadge>
+                        <StatusBadge v-if="office.is_speaker" tone="success" icon="landmark">{{ t('c_civic.my_record.speaker', 'Speaker') }}</StatusBadge>
                         <StatusBadge tone="neutral">{{ office.status }}</StatusBadge>
                     </h2>
                 </template>
                 <p class="gloss">
-                    Elected by every resident of {{ office.jurisdiction }} — this seat answers to
-                    all of them equally, never to a party or a donor.
+                    {{ t('c_civic.my_record.office_elected', { jurisdiction: office.jurisdiction }) }}
                 </p>
                 <p class="citation">
-                    <template v-if="office.since">seated {{ formatDate(office.since) }}</template>
-                    <template v-if="office.until"> · term ends {{ formatDate(office.until) }}</template>
+                    <template v-if="office.since">{{ t('c_civic.my_record.office_seated', { date: formatDate(office.since) }) }}</template>
+                    <template v-if="office.until"> {{ t('c_civic.my_record.office_term_ends', { date: formatDate(office.until) }) }}</template>
                 </p>
                 <Btn v-if="office.href" :as="Link" :href="office.href" variant="secondary" size="sm">
-                    Open the {{ office.kind === 'legislature' ? 'chamber' : office.kind }} page
+                    {{ t('c_civic.my_record.open_kind_page', { kind: office.kind === 'legislature' ? t('c_civic.my_record.chamber', 'chamber') : office.kind }) }}
                 </Btn>
             </Card>
             <p class="citation">
-                Every act you take in office is public and uneditable — it lives on your
-                <a href="#" @click.prevent="selectTab('record')">Record tab</a> and in the
-                institution’s own records · Art. II
+                {{ t('c_civic.my_record.office_note_lead', 'Every act you take in office is public and uneditable — it lives on your') }}
+                <a href="#" @click.prevent="selectTab('record')">{{ t('c_civic.my_record.record_tab', 'Record tab') }}</a> {{ t('c_civic.my_record.office_note_tail', 'and in the institution’s own records · Art. II') }}
             </p>
         </div>
 
@@ -599,15 +587,13 @@ const associationRows = computed(() =>
             aria-labelledby="ptab-representatives"
             class="stack"
         >
-            <Card as="section" title="Your representatives">
+            <Card as="section" :title="t('c_civic.my_record.reps_title', 'Your representatives')">
                 <p class="gloss">
-                    Seats are elected in multi-winner rounds, so several people represent you at
-                    once — every one of them answers to you, including the ones you didn't rank.
+                    {{ t('c_civic.my_record.reps_gloss', 'Seats are elected in multi-winner rounds, so several people represent you at once — every one of them answers to you, including the ones you didn\'t rank.') }}
                 </p>
 
                 <p v-if="representatives.length === 0" class="gloss">
-                    No representatives seated yet — they appear here the moment a legislature is
-                    seated for a place you live.
+                    {{ t('c_civic.my_record.no_reps', 'No representatives seated yet — they appear here the moment a legislature is seated for a place you live.') }}
                 </p>
 
                 <div v-else class="role-grid" style="margin-block-start: var(--space-3)">
@@ -617,10 +603,10 @@ const associationRows = computed(() =>
                         </span>
                         <span class="role-name">{{ rep.name ?? '—' }}</span>
                         <span class="cc-small">
-                            Seat {{ rep.seat_no ?? '—' }} ·
+                            {{ t('c_civic.my_record.seat_label', { no: rep.seat_no ?? '—' }) }} ·
                             {{ SEAT_TYPE_LABELS[rep.seat_type] ?? rep.seat_type }}
                         </span>
-                        <StatusBadge v-if="rep.is_speaker" tone="info" icon="landmark">Speaker</StatusBadge>
+                        <StatusBadge v-if="rep.is_speaker" tone="info" icon="landmark">{{ t('c_civic.my_record.speaker', 'Speaker') }}</StatusBadge>
                         <AdmChip
                             v-if="rep.jurisdiction.adm_level !== null"
                             :level="rep.jurisdiction.adm_level"
@@ -628,13 +614,13 @@ const associationRows = computed(() =>
                         />
                         <span v-else class="cc-small">{{ rep.jurisdiction.name ?? '—' }}</span>
                         <span v-if="rep.term_ends_on" class="cc-small">
-                            Term ends {{ formatDate(rep.term_ends_on) }}
+                            {{ t('c_civic.my_record.term_ends', { date: formatDate(rep.term_ends_on) }) }}
                         </span>
                     </div>
                 </div>
 
                 <p class="citation" style="margin-block-start: var(--space-3)">
-                    Multi-winner seats answer to every resident · Art. II §2
+                    {{ t('c_civic.my_record.multiwinner', 'Multi-winner seats answer to every resident · Art. II §2') }}
                 </p>
             </Card>
         </div>
@@ -649,14 +635,14 @@ const associationRows = computed(() =>
         >
             <Card as="section">
                 <div class="cluster" style="justify-content: space-between; align-items: flex-start">
-                    <h3 style="margin: 0"><Icon name="award" size="sm" /> Achievements</h3>
+                    <h3 style="margin: 0"><Icon name="award" size="sm" /> {{ t('c_civic.my_record.achievements', 'Achievements') }}</h3>
                 </div>
 
                 <div v-if="achievements.length" class="role-grid" style="margin-block-start: var(--space-3)">
                     <div v-for="medal in achievements" :key="medal.id" class="role-card">
                         <Icon name="award" />
                         <span class="role-name">{{ achievementTitle(medal.title, t) }}</span>
-                        <span class="cc-small">Earned {{ formatDate(medal.earned_at) }}</span>
+                        <span class="cc-small">{{ t('c_civic.my_record.earned', { date: formatDate(medal.earned_at) }) }}</span>
                         <!-- Only the 13 guided arcs have a journey page. K-2 catalogue
                              awards (ACH-*) are earned from real acts and have nowhere
                              to "revisit", so the link is suppressed rather than 404ing. -->
@@ -665,18 +651,17 @@ const associationRows = computed(() =>
                             :href="`/journeys/${medal.award_key}`"
                             class="cc-small"
                         >
-                            Revisit the journey
+                            {{ t('c_civic.my_record.revisit_journey', 'Revisit the journey') }}
                         </Link>
                     </div>
                 </div>
 
                 <p v-else class="gloss" style="margin-block-start: var(--space-3)">
-                    Nothing here yet — finish your first
-                    <Link href="/journeys">journey</Link> to earn one.
+                    {{ t('c_civic.my_record.nothing_yet_lead', 'Nothing here yet — finish your first') }}
+                    <Link href="/journeys">{{ t('c_civic.my_record.journey', 'journey') }}</Link> {{ t('c_civic.my_record.to_earn', 'to earn one.') }}
                 </p>
                 <p class="cc-small">
-                    Earned records of the journeys you complete and your civic firsts. None ever
-                    changes a vote, a seat, or what you are allowed to do.
+                    {{ t('c_civic.my_record.achievements_note', 'Earned records of the journeys you complete and your civic firsts. None ever changes a vote, a seat, or what you are allowed to do.') }}
                 </p>
             </Card>
         </div>
@@ -695,18 +680,18 @@ const associationRows = computed(() =>
                  conformance punch (gap matrix, M); this tab is the door. -->
             <Card as="section">
                 <div class="cluster" style="justify-content: space-between; align-items: flex-start">
-                    <h3 style="margin: 0"><Icon name="lock" size="sm" /> Wallet</h3>
-                    <StatusBadge tone="success" icon="check">Live</StatusBadge>
+                    <h3 style="margin: 0"><Icon name="lock" size="sm" /> {{ t('c_civic.my_record.wallet', 'Wallet') }}</h3>
+                    <StatusBadge tone="success" icon="check">{{ t('c_civic.my_record.live', 'Live') }}</StatusBadge>
                 </div>
                 <p style="margin-block-start: var(--space-3)">
-                    Your balance, transfers, and holdings live on the wallet page.
+                    {{ t('c_civic.my_record.wallet_gloss', 'Your balance, transfers, and holdings live on the wallet page.') }}
                 </p>
                 <Btn as="a" href="/economy/wallet" variant="primary" size="sm">
-                    Open my wallet
+                    {{ t('c_civic.my_record.open_wallet', 'Open my wallet') }}
                 </Btn>
                 <p class="never-federated" style="margin-block-start: var(--space-3)">
                     <Icon name="lock" size="sm" />
-                    <span>Private — like a ballot, only you can read it.</span>
+                    <span>{{ t('c_civic.my_record.wallet_private', 'Private — like a ballot, only you can read it.') }}</span>
                 </p>
             </Card>
         </div>
@@ -722,16 +707,15 @@ const associationRows = computed(() =>
             <FormCard
                 :form="formMeta('F-IND-002')"
                 :inertia-form="settingsForm"
-                submit-label="Save settings"
-                processing-label="Filing F-IND-002…"
+                :submit-label="t('c_civic.my_record.save_settings', 'Save settings')"
+                :processing-label="t('c_civic.my_record.filing_settings', 'Filing F-IND-002…')"
                 @submit="submitSettings"
             >
                 <p class="cc-small" style="margin-block-end: var(--space-3)">
-                    Self-managed, no civic weight — only the fields that actually changed are
-                    filed, and only those ever appear on the chain.
+                    {{ t('c_civic.my_record.settings_note', 'Self-managed, no civic weight — only the fields that actually changed are filed, and only those ever appear on the chain.') }}
                 </p>
 
-                <Field label="Display name" :error="settingsForm.errors.display_name">
+                <Field :label="t('c_civic.my_record.display_name', 'Display name')" :error="settingsForm.errors.display_name">
                     <template #control="{ id, invalid, describedBy }">
                         <input
                             :id="id"
@@ -746,7 +730,7 @@ const associationRows = computed(() =>
                     </template>
                 </Field>
 
-                <Field label="Interface language" :error="settingsForm.errors.locale">
+                <Field :label="t('c_civic.my_record.interface_language', 'Interface language')" :error="settingsForm.errors.locale">
                     <template #control="{ id, invalid, describedBy }">
                         <select
                             :id="id"
@@ -764,8 +748,8 @@ const associationRows = computed(() =>
                 </Field>
 
                 <Field
-                    label="Timezone"
-                    hint="Dates are shown in your timezone · stored as UTC."
+                    :label="t('c_civic.my_record.timezone_label', 'Timezone')"
+                    :hint="t('c_civic.my_record.timezone_hint', 'Dates are shown in your timezone · stored as UTC.')"
                     :error="settingsForm.errors.timezone"
                 >
                     <template #control="{ id, invalid, describedBy }">
@@ -794,8 +778,8 @@ const associationRows = computed(() =>
                 </Field>
 
                 <Field
-                    label="Languages"
-                    hint="Records are translated per your selection."
+                    :label="t('c_civic.my_record.languages_label', 'Languages')"
+                    :hint="t('c_civic.my_record.languages_hint', 'Records are translated per your selection.')"
                     :error="settingsForm.errors.languages"
                 >
                     <template #control="{ id, invalid, describedBy }">
