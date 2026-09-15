@@ -121,7 +121,7 @@ function pick(id) {
                 >
                     <span class="tk-n">{{ v.seconds ? fmt(v.seconds) : '—' }}</span>
                     <span class="tk-title">
-                        {{ v.title }}
+                        {{ t(v.title_key, v.title) }}
                         <Icon v-if="v.id === currentId" name="play" size="sm" />
                     </span>
                     <span class="tk-meta">{{ t('c_front.video_library.track_meta', { audio: v.audio.length, captions: v.captions.length }) }}</span>

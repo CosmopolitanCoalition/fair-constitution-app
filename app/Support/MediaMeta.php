@@ -111,6 +111,9 @@ final class MediaMeta
             'slug'     => $video['slug'] ?? null,
             'master'   => $video['master'] ?? null,
             'title'    => $video['title'] ?? $video['subject'],
+            // Stable i18n key for the title. VideoLibrary.vue resolves it
+            // through t(v.title_key, v.title); the title stays the fallback.
+            'title_key' => $video['title_key'] ?? ('c_media.video.'.($video['slug'] ?? '')),
             'summary'  => $video['summary'] ?? null,
             'poster'   => $video['poster'] ?? 'learn',
             'seconds'  => $video['seconds'] ?? null,

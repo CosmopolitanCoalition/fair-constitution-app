@@ -252,14 +252,14 @@ const METERS = [
                         :class="{ 'op-role--recommended': r.recommended }"
                     >
                         <div class="cluster" style="justify-content: space-between; align-items: flex-start">
-                            <span class="orc-title">{{ r.label }}</span>
+                            <span class="orc-title">{{ t('c_operator_pages.roles.mesh_role.' + r.role + '.label', r.label) }}</span>
                             <span v-if="r.recommended" class="pill pill--planned">{{ t('c_operator_pages.roles.recommended_first', 'Recommended first node') }}</span>
                             <span v-else-if="roleSelfAsserted(r)" class="pill pill--live">{{ t('c_operator_pages.roles.self_asserted', 'Self-asserted') }}</span>
                             <span v-else class="pill pill--info">{{ t('c_operator_pages.roles.governed', 'Governed') }}</span>
                         </div>
 
-                        <p style="font-size: var(--text-sm)">{{ r.what }}</p>
-                        <p class="orc-duty">{{ t('c_operator_pages.roles.your_duty', { duty: r.duty }) }}</p>
+                        <p style="font-size: var(--text-sm)">{{ t('c_operator_pages.roles.mesh_role.' + r.role + '.what', r.what) }}</p>
+                        <p class="orc-duty">{{ t('c_operator_pages.roles.your_duty', { duty: t('c_operator_pages.roles.mesh_role.' + r.role + '.duty', r.duty) }) }}</p>
 
                         <div class="orc-channels">
                             <span
@@ -328,17 +328,17 @@ const METERS = [
                         <span class="channel-chip" :class="`channel-chip--${row.kind === 'self-asserted' ? 'self' : 'governed'}`">
                             {{ row.capability }}
                         </span>
-                        <div class="gloss">{{ row.label }}</div>
+                        <div class="gloss">{{ t('c_operator_pages.roles.mesh_channel.' + row.capability + '.label', row.label) }}</div>
                     </template>
 
                     <template #cell-kind="{ row }">
                         <StatusBadge :tone="row.kind === 'self-asserted' ? 'success' : 'warning'">
-                            {{ row.kind }}
+                            {{ t('c_operator_pages.roles.mesh_channel_kind.' + row.kind, row.kind) }}
                         </StatusBadge>
                     </template>
 
                     <template #cell-what="{ row }">
-                        <span style="font-size: var(--text-sm)">{{ row.what }}</span>
+                        <span style="font-size: var(--text-sm)">{{ t('c_operator_pages.roles.mesh_channel.' + row.capability + '.what', row.what) }}</span>
                         <span
                             v-if="row.affects_peer_subtree"
                             class="relation-chip"

@@ -17,12 +17,25 @@
  * transform, so every existing consumer renders byte-identically.
  */
 import { plainState } from '@/lib/plain.js';
+import { useI18n } from 'vue-i18n';
 
-defineProps({
+const props = defineProps({
     states: { type: Array, required: true },
     current: { type: String, default: null },
     labels: { type: Object, default: null },
+    // Optional state-machine key (e.g. 'bill'). When set, each token resolves
+    // through the c_states catalog (c_states.<machine>.<token>); the plain
+    // humanisation stays the fallback, so an unset machine renders unchanged.
+    machine: { type: String, default: '' },
 });
+
+const { t } = useI18n();
+
+// One display label per state token. The catalog key is machine-scoped; the
+// generic humanisation (labels override honoured) is the fallback.
+function stateLabel(state) {
+    return t('c_states.' + props.machine + '.' + state, plainState(state, props.labels));
+}
 </script>
 
 <template>
@@ -33,7 +46,7 @@ defineProps({
                 class="state-node"
                 :class="{ 'state-node--current': state === current }"
                 :aria-current="state === current ? 'step' : undefined"
-            >{{ plainState(state, labels) }}</span>
+            >{{ stateLabel(state) }}</span>
         </template>
     </div>
 </template>

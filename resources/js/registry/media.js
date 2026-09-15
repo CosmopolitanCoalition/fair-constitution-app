@@ -487,6 +487,7 @@ export const MEDIA_VIDEOS = [
         "slug": "affiliate-report",
         "master": "Affiliate Report-Silent.mp4",
         "title": "Affiliate Report",
+        "title_key": "c_media.video.affiliate-report",
         "poster": "econ",
         "seconds": 82.3,
         "audio": [
@@ -655,6 +656,7 @@ export const MEDIA_VIDEOS = [
         "slug": "autocratic-voting",
         "master": "Autocratic Voting-Silent.mp4",
         "title": "Autocratic Voting",
+        "title_key": "c_media.video.autocratic-voting",
         "poster": "elections",
         "seconds": null,
         "audio": [
@@ -823,6 +825,7 @@ export const MEDIA_VIDEOS = [
         "slug": "balance-interests-uniformly",
         "master": "Balance Interests Uniformly-Silent.mp4",
         "title": "Balance Interests Uniformly",
+        "title_key": "c_media.video.balance-interests-uniformly",
         "poster": "learn",
         "seconds": null,
         "audio": [
@@ -991,6 +994,7 @@ export const MEDIA_VIDEOS = [
         "slug": "coalition-directory",
         "master": "Coalition Directory-Silent.mp4",
         "title": "Coalition Directory",
+        "title_key": "c_media.video.coalition-directory",
         "poster": "social",
         "seconds": null,
         "audio": [
@@ -1159,6 +1163,7 @@ export const MEDIA_VIDEOS = [
         "slug": "committees",
         "master": "Committees-Silent.mp4",
         "title": "Committees",
+        "title_key": "c_media.video.committees",
         "poster": "chamber",
         "seconds": null,
         "audio": [
@@ -1327,6 +1332,7 @@ export const MEDIA_VIDEOS = [
         "slug": "community",
         "master": "Community-Silent.mp4",
         "title": "Community",
+        "title_key": "c_media.video.community",
         "poster": "social",
         "seconds": null,
         "audio": [
@@ -1495,6 +1501,7 @@ export const MEDIA_VIDEOS = [
         "slug": "community-leader-directory",
         "master": "Community Leader Directory-Silent.mp4",
         "title": "Community Leader Directory",
+        "title_key": "c_media.video.community-leader-directory",
         "poster": "social",
         "seconds": null,
         "audio": [
@@ -1663,6 +1670,7 @@ export const MEDIA_VIDEOS = [
         "slug": "constitutional-order",
         "master": "Constitutional Order-Silent.mp4",
         "title": "Constitutional Order",
+        "title_key": "c_media.video.constitutional-order",
         "poster": "chamber",
         "seconds": null,
         "audio": [
@@ -1831,6 +1839,7 @@ export const MEDIA_VIDEOS = [
         "slug": "content-creator-directory",
         "master": "Content Creator Directory-Silent.mp4",
         "title": "Content Creator Directory",
+        "title_key": "c_media.video.content-creator-directory",
         "poster": "social",
         "seconds": null,
         "audio": [
@@ -1999,6 +2008,7 @@ export const MEDIA_VIDEOS = [
         "slug": "cosmopolitan-principles",
         "master": "Cosmopolitan Principles-Silent.mp4",
         "title": "Cosmopolitan Principles",
+        "title_key": "c_media.video.cosmopolitan-principles",
         "poster": "chamber",
         "seconds": null,
         "audio": [
@@ -2167,6 +2177,7 @@ export const MEDIA_VIDEOS = [
         "slug": "cosmopolitan-template1",
         "master": "Cosmopolitan Template1-Silent.mp4",
         "title": "Cosmopolitan Template (Part 1)",
+        "title_key": "c_media.video.cosmopolitan-template1",
         "poster": "chamber",
         "seconds": null,
         "audio": [
@@ -2335,6 +2346,7 @@ export const MEDIA_VIDEOS = [
         "slug": "cosmopolitan-template2",
         "master": "Cosmopolitan Template2-Silent.mp4",
         "title": "Cosmopolitan Template (Part 2)",
+        "title_key": "c_media.video.cosmopolitan-template2",
         "poster": "chamber",
         "seconds": null,
         "audio": [
@@ -2503,6 +2515,7 @@ export const MEDIA_VIDEOS = [
         "slug": "discord",
         "master": "Discord-Silent.mp4",
         "title": "Discord",
+        "title_key": "c_media.video.discord",
         "poster": "social",
         "seconds": null,
         "audio": [
@@ -2671,6 +2684,7 @@ export const MEDIA_VIDEOS = [
         "slug": "donors-list",
         "master": "Donors List-Silent.mp4",
         "title": "Donors List",
+        "title_key": "c_media.video.donors-list",
         "poster": "econ",
         "seconds": null,
         "audio": [
@@ -2839,6 +2853,7 @@ export const MEDIA_VIDEOS = [
         "slug": "driving-reform",
         "master": "Driving Reform-Silent.mp4",
         "title": "Driving Reform",
+        "title_key": "c_media.video.driving-reform",
         "poster": "learn",
         "seconds": null,
         "audio": [
@@ -3007,6 +3022,7 @@ export const MEDIA_VIDEOS = [
         "slug": "edit-profile",
         "master": "Edit Profile-Silent.mp4",
         "title": "Edit Profile",
+        "title_key": "c_media.video.edit-profile",
         "poster": "civic",
         "seconds": null,
         "audio": [
@@ -3175,6 +3191,7 @@ export const MEDIA_VIDEOS = [
         "slug": "education",
         "master": "Education-Silent.mp4",
         "title": "Education",
+        "title_key": "c_media.video.education",
         "poster": "learn",
         "seconds": null,
         "audio": [
@@ -3343,6 +3360,7 @@ export const MEDIA_VIDEOS = [
         "slug": "electoral-systems-compared1",
         "master": "Electoral Systems Compared1-Silent.mp4",
         "title": "Electoral Systems Compared (Part 1)",
+        "title_key": "c_media.video.electoral-systems-compared1",
         "poster": "elections",
         "seconds": null,
         "audio": [
@@ -3511,6 +3529,7 @@ export const MEDIA_VIDEOS = [
         "slug": "electoral-systems-compared2",
         "master": "Electoral Systems Compared2-Silent.mp4",
         "title": "Electoral Systems Compared (Part 2)",
+        "title_key": "c_media.video.electoral-systems-compared2",
         "poster": "elections",
         "seconds": null,
         "audio": [
@@ -3679,6 +3698,7 @@ export const MEDIA_VIDEOS = [
         "slug": "engage",
         "master": "Engage-Silent.mp4",
         "title": "Engage",
+        "title_key": "c_media.video.engage",
         "poster": "social",
         "seconds": null,
         "audio": [
@@ -3847,6 +3867,7 @@ export const MEDIA_VIDEOS = [
         "slug": "events",
         "master": "Events-Silent.mp4",
         "title": "Events",
+        "title_key": "c_media.video.events",
         "poster": "social",
         "seconds": 82.633,
         "audio": [
@@ -4015,6 +4036,7 @@ export const MEDIA_VIDEOS = [
         "slug": "focus-areas",
         "master": "Focus Areas-Silent.mp4",
         "title": "Focus Areas",
+        "title_key": "c_media.video.focus-areas",
         "poster": "social",
         "seconds": null,
         "audio": [
@@ -4183,6 +4205,7 @@ export const MEDIA_VIDEOS = [
         "slug": "global-community1",
         "master": "Global Community1-Silent.mp4",
         "title": "Global Community (Part 1)",
+        "title_key": "c_media.video.global-community1",
         "poster": "social",
         "seconds": null,
         "audio": [
@@ -4351,6 +4374,7 @@ export const MEDIA_VIDEOS = [
         "slug": "global-community2",
         "master": "Global Community2-Silent.mp4",
         "title": "Global Community (Part 2)",
+        "title_key": "c_media.video.global-community2",
         "poster": "social",
         "seconds": null,
         "audio": [
@@ -4519,6 +4543,7 @@ export const MEDIA_VIDEOS = [
         "slug": "governments",
         "master": "Governments-Silent.mp4",
         "title": "Governments",
+        "title_key": "c_media.video.governments",
         "poster": "operator",
         "seconds": null,
         "audio": [
@@ -4687,6 +4712,7 @@ export const MEDIA_VIDEOS = [
         "slug": "individuals",
         "master": "Individuals-Silent.mp4",
         "title": "Individuals",
+        "title_key": "c_media.video.individuals",
         "poster": "civic",
         "seconds": null,
         "audio": [
@@ -4855,6 +4881,7 @@ export const MEDIA_VIDEOS = [
         "slug": "initiatives",
         "master": "Initiatives-Silent.mp4",
         "title": "Initiatives",
+        "title_key": "c_media.video.initiatives",
         "poster": "learn",
         "seconds": null,
         "audio": [
@@ -5023,6 +5050,7 @@ export const MEDIA_VIDEOS = [
         "slug": "introduction-to-the-coalition1",
         "master": "Introduction to the Coalition1-Silent.mp4",
         "title": "Introduction to the Coalition (Part 1)",
+        "title_key": "c_media.video.introduction-to-the-coalition1",
         "poster": "brand",
         "seconds": null,
         "audio": [
@@ -5191,6 +5219,7 @@ export const MEDIA_VIDEOS = [
         "slug": "introduction-to-the-coalition2",
         "master": "Introduction to the Coalition2-Silent.mp4",
         "title": "Introduction to the Coalition (Part 2)",
+        "title_key": "c_media.video.introduction-to-the-coalition2",
         "poster": "brand",
         "seconds": null,
         "audio": [
@@ -5359,6 +5388,7 @@ export const MEDIA_VIDEOS = [
         "slug": "judiciaries",
         "master": "Judiciaries-Silent.mp4",
         "title": "Judiciaries",
+        "title_key": "c_media.video.judiciaries",
         "poster": "court",
         "seconds": null,
         "audio": [
@@ -5527,6 +5557,7 @@ export const MEDIA_VIDEOS = [
         "slug": "jurisdictions1",
         "master": "Jurisdictions1-Silent.mp4",
         "title": "Jurisdictions (Part 1)",
+        "title_key": "c_media.video.jurisdictions1",
         "poster": "operator",
         "seconds": null,
         "audio": [
@@ -5695,6 +5726,7 @@ export const MEDIA_VIDEOS = [
         "slug": "jurisdictions2",
         "master": "Jurisdictions2-Silent.mp4",
         "title": "Jurisdictions (Part 2)",
+        "title_key": "c_media.video.jurisdictions2",
         "poster": "operator",
         "seconds": null,
         "audio": [
@@ -5863,6 +5895,7 @@ export const MEDIA_VIDEOS = [
         "slug": "legislatures1",
         "master": "Legislatures1-Silent.mp4",
         "title": "Legislatures (Part 1)",
+        "title_key": "c_media.video.legislatures1",
         "poster": "chamber",
         "seconds": null,
         "audio": [
@@ -6031,6 +6064,7 @@ export const MEDIA_VIDEOS = [
         "slug": "legislatures2",
         "master": "Legislatures2-Silent.mp4",
         "title": "Legislatures (Part 2)",
+        "title_key": "c_media.video.legislatures2",
         "poster": "chamber",
         "seconds": null,
         "audio": [
@@ -6199,6 +6233,7 @@ export const MEDIA_VIDEOS = [
         "slug": "legislatures3",
         "master": "Legislatures3-Silent.mp4",
         "title": "Legislatures (Part 3)",
+        "title_key": "c_media.video.legislatures3",
         "poster": "chamber",
         "seconds": null,
         "audio": [
@@ -6367,6 +6402,7 @@ export const MEDIA_VIDEOS = [
         "slug": "legitimacy-tests",
         "master": "Legitimacy Tests-Silent.mp4",
         "title": "Legitimacy Tests",
+        "title_key": "c_media.video.legitimacy-tests",
         "poster": "operator",
         "seconds": null,
         "audio": [
@@ -6535,6 +6571,7 @@ export const MEDIA_VIDEOS = [
         "slug": "local-coalition-support",
         "master": "Local Coalition Support-Silent.mp4",
         "title": "Local Coalition Support",
+        "title_key": "c_media.video.local-coalition-support",
         "poster": "brand",
         "seconds": null,
         "audio": [
@@ -6703,6 +6740,7 @@ export const MEDIA_VIDEOS = [
         "slug": "login",
         "master": "Login-Silent.mp4",
         "title": "Login",
+        "title_key": "c_media.video.login",
         "poster": "civic",
         "seconds": null,
         "audio": [
@@ -6871,6 +6909,7 @@ export const MEDIA_VIDEOS = [
         "slug": "manage-account",
         "master": "Manage Account-Silent.mp4",
         "title": "Manage Account",
+        "title_key": "c_media.video.manage-account",
         "poster": "civic",
         "seconds": null,
         "audio": [
@@ -7039,6 +7078,7 @@ export const MEDIA_VIDEOS = [
         "slug": "onboarding",
         "master": "Onboarding-Silent.mp4",
         "title": "Onboarding",
+        "title_key": "c_media.video.onboarding",
         "poster": "civic",
         "seconds": null,
         "audio": [
@@ -7207,6 +7247,7 @@ export const MEDIA_VIDEOS = [
         "slug": "plurality-voting",
         "master": "Plurality Voting-Silent.mp4",
         "title": "Plurality Voting",
+        "title_key": "c_media.video.plurality-voting",
         "poster": "elections",
         "seconds": null,
         "audio": [
@@ -7375,6 +7416,7 @@ export const MEDIA_VIDEOS = [
         "slug": "preamble",
         "master": "Preamble-Silent.mp4",
         "title": "Preamble",
+        "title_key": "c_media.video.preamble",
         "poster": "chamber",
         "seconds": null,
         "audio": [
@@ -7543,6 +7585,7 @@ export const MEDIA_VIDEOS = [
         "slug": "proportional-ranked-choice-voting",
         "master": "Proportional Ranked Choice Voting-Silent.mp4",
         "title": "Proportional Ranked Choice Voting",
+        "title_key": "c_media.video.proportional-ranked-choice-voting",
         "poster": "elections",
         "seconds": null,
         "audio": [
@@ -7711,6 +7754,7 @@ export const MEDIA_VIDEOS = [
         "slug": "public-profile",
         "master": "Public Profile-Silent.mp4",
         "title": "Public Profile",
+        "title_key": "c_media.video.public-profile",
         "poster": "civic",
         "seconds": null,
         "audio": [
@@ -7879,6 +7923,7 @@ export const MEDIA_VIDEOS = [
         "slug": "ranked-choice-voting",
         "master": "Ranked Choice Voting-Silent.mp4",
         "title": "Ranked Choice Voting",
+        "title_key": "c_media.video.ranked-choice-voting",
         "poster": "elections",
         "seconds": null,
         "audio": [
@@ -8047,6 +8092,7 @@ export const MEDIA_VIDEOS = [
         "slug": "ratification",
         "master": "Ratification-Silent.mp4",
         "title": "Ratification",
+        "title_key": "c_media.video.ratification",
         "poster": "chamber",
         "seconds": null,
         "audio": [
@@ -8215,6 +8261,7 @@ export const MEDIA_VIDEOS = [
         "slug": "reciprocity",
         "master": "Reciprocity-Silent.mp4",
         "title": "Reciprocity",
+        "title_key": "c_media.video.reciprocity",
         "poster": "learn",
         "seconds": null,
         "audio": [
@@ -8383,6 +8430,7 @@ export const MEDIA_VIDEOS = [
         "slug": "regulatory-parity",
         "master": "Regulatory Parity-Silent.mp4",
         "title": "Regulatory Parity",
+        "title_key": "c_media.video.regulatory-parity",
         "poster": "org",
         "seconds": null,
         "audio": [
@@ -8551,6 +8599,7 @@ export const MEDIA_VIDEOS = [
         "slug": "remove-role",
         "master": "Remove Role-Silent.mp4",
         "title": "Remove Role",
+        "title_key": "c_media.video.remove-role",
         "poster": "civic",
         "seconds": null,
         "audio": [
@@ -8719,6 +8768,7 @@ export const MEDIA_VIDEOS = [
         "slug": "resources",
         "master": "Resources-Silent.mp4",
         "title": "Resources",
+        "title_key": "c_media.video.resources",
         "poster": "econ",
         "seconds": null,
         "audio": [
@@ -8887,6 +8937,7 @@ export const MEDIA_VIDEOS = [
         "slug": "role-history",
         "master": "Role History-Silent.mp4",
         "title": "Role History",
+        "title_key": "c_media.video.role-history",
         "poster": "civic",
         "seconds": null,
         "audio": [
@@ -9055,6 +9106,7 @@ export const MEDIA_VIDEOS = [
         "slug": "scaling-co-determination",
         "master": "Scaling Co-Determination-Silent.mp4",
         "title": "Scaling Co-Determination",
+        "title_key": "c_media.video.scaling-co-determination",
         "poster": "org",
         "seconds": null,
         "audio": [
@@ -9223,6 +9275,7 @@ export const MEDIA_VIDEOS = [
         "slug": "shop",
         "master": "Shop-Silent.mp4",
         "title": "Shop",
+        "title_key": "c_media.video.shop",
         "poster": "econ",
         "seconds": null,
         "audio": [
@@ -9391,6 +9444,7 @@ export const MEDIA_VIDEOS = [
         "slug": "strategy",
         "master": "Strategy-Silent.mp4",
         "title": "Strategy",
+        "title_key": "c_media.video.strategy",
         "poster": "learn",
         "seconds": null,
         "audio": [
@@ -9559,6 +9613,7 @@ export const MEDIA_VIDEOS = [
         "slug": "summary",
         "master": "Summary-Silent.mp4",
         "title": "Summary",
+        "title_key": "c_media.video.summary",
         "poster": "learn",
         "seconds": null,
         "audio": [
@@ -9727,6 +9782,7 @@ export const MEDIA_VIDEOS = [
         "slug": "supporter-directory",
         "master": "Supporter Directory-Silent.mp4",
         "title": "Supporter Directory",
+        "title_key": "c_media.video.supporter-directory",
         "poster": "social",
         "seconds": null,
         "audio": [
@@ -9895,6 +9951,7 @@ export const MEDIA_VIDEOS = [
         "slug": "survey",
         "master": "Survey-Silent.mp4",
         "title": "Survey",
+        "title_key": "c_media.video.survey",
         "poster": "learn",
         "seconds": null,
         "audio": [
@@ -10063,6 +10120,7 @@ export const MEDIA_VIDEOS = [
         "slug": "thank-you-and-welcome",
         "master": "Thank You and Welcome-Silent.mp4",
         "title": "Thank You and Welcome",
+        "title_key": "c_media.video.thank-you-and-welcome",
         "poster": "brand",
         "seconds": null,
         "audio": [
@@ -10231,6 +10289,7 @@ export const MEDIA_VIDEOS = [
         "slug": "translations",
         "master": "Translations-Silent.mp4",
         "title": "Translations",
+        "title_key": "c_media.video.translations",
         "poster": "learn",
         "seconds": null,
         "audio": [
@@ -10399,6 +10458,7 @@ export const MEDIA_VIDEOS = [
         "slug": "volunteer-directory",
         "master": "Volunteer Directory-Silent.mp4",
         "title": "Volunteer Directory",
+        "title_key": "c_media.video.volunteer-directory",
         "poster": "social",
         "seconds": null,
         "audio": [
@@ -10567,6 +10627,7 @@ export const MEDIA_VIDEOS = [
         "slug": "your-profile",
         "master": "Your Profile-Silent.mp4",
         "title": "Your Profile",
+        "title_key": "c_media.video.your-profile",
         "poster": "civic",
         "seconds": null,
         "audio": [
