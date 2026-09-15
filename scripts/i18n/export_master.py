@@ -30,7 +30,8 @@ Usage:
   python3 scripts/i18n/export_master.py --self-test
 
 Options:
-  --locale CODE     target locale, or `all` for the six conference locales
+  --locale CODE     target locale, `all` for every registry row with target: true
+                    (75 non-English today), or `conference` for the six conference locales
   --namespace NS    restrict to one namespace (default: all)
   --chunk N         max strings per file (default 250)
   --out DIR         output root (default storage/app/i18n-export)
@@ -158,6 +159,8 @@ def read_registry(registry_js: Path) -> dict[str, dict]:
             "endonym": field("endonym"),
             "dir": field("dir", "ltr"),
             "script": field("script"),
+            # the translation pass target set (operator order 2026-09-14)
+            "target": bool(re.search(r"target: true", rest)),
         }
     return rows
 
@@ -482,6 +485,12 @@ def main() -> int:
 
     reg = read_registry(registry_js)
     if args.locale == "all":
+        # THE registry's target rows (operator order 2026-09-14: the UN six,
+        # Polish, Italian, Turkish and the Coalition website programme).
+        locales = [c for c, r in reg.items() if r.get("target") and c != "en"]
+        if not locales:
+            locales = [c for c in CONFERENCE if c in reg]
+    elif args.locale == "conference":
         locales = [c for c in CONFERENCE if c in reg]
     else:
         if args.locale not in reg:
