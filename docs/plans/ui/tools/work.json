@@ -12797,7 +12797,7 @@
       "order": 10,
       "kind": "content",
       "status": "blocked",
-      "blocker": "other",
+      "blocker": "operator_go",
       "detail": "Merged item (operator, 2026-09-14): the absent per-locale catalog files and the untranslated keys are one job. The export writes each missing file with its keys; the machine first pass (local model on box E, ruling translation-first-pass-provider = A) or any AI translates; the importer validates and writes. Blocked until the surfaces settle. Tooling built (LG-0): scripts/i18n/export_master.py, import_translated.py, the Ollama provider; procedure in docs/plans/i18n/MASTER_EXPORT.md.",
       "done_when": "Every English namespace file exists for every registry row with target: true (75 non-English: the UN six, pl, it, tr and the Coalition website programme languages) and tests/js/i18nCoverage.test.mjs reports zero missing keys for the six conference locales; human naturalness review stays separate.",
       "depends_on": [],
@@ -12865,6 +12865,10 @@
         {
           "date": "2026-09-15",
           "note": "Overnight run ended at the weekly usage limit (about 12:20 AM Eastern); resumed at the noon reset. Merged this morning: i18n-legislature-a (7013fcf1, 589 keys), i18n-operator (cc43f4da, 820 keys), i18n-jurisdictions (876ca468, 626 keys, committed at the desk after the reviewer's one finding was already wired), i18n-front (328f509e, 237 keys, reviewer PASS, committed at the desk). 20 of 21 lanes merged. Remaining: i18n-institutions (builder cut off after wiring 13 of 15 pages; no catalog or pin yet; OrgDetail.vue and TransfersConversions.vue untouched) relaunched as a single lane at 12:10 PM Eastern."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "CATALOGUE COMPLETE (12:50 PM Eastern). Lane i18n-institutions merged (e1577018, 15 pages, 1032 keys); 21 of 21 lanes on main. All 16 JS lane pins green together (107 tests); the 5 PHP pins and LangJsonFlattenTest were green at their merges. English catalogue: 64 JS namespace files, 14,152 keys, plus lang/en.json 1,120 lines. Export dry run for Polish: 15,235 strings across 65 namespaces. The blocker (surfaces not settled / strings not catalogued) is cleared; the translation pass waits on the operator GO. Note: Docker Desktop was not running at 12:46 PM (Vite and nginx unreachable); the desk does not restart it. Pre-existing i18nCoverage failures (4) are the missing target-locale catalogs this item fills."
         }
       ]
     },

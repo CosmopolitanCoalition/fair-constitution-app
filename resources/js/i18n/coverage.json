@@ -1,61 +1,61 @@
 {
-  "generated_at": "2026-09-15T16:08:06.887Z",
-  "source_keys": 13231,
-  "namespaces": 63,
+  "generated_at": "2026-09-15T16:46:37.503Z",
+  "source_keys": 14263,
+  "namespaces": 64,
   "locales": [
     {
       "locale": "ar",
-      "total": 13231,
+      "total": 14263,
       "present": 4312,
-      "missing": 8919,
+      "missing": 9951,
       "orphan": 8,
       "identical": 15,
-      "pct": 32.6
+      "pct": 30.2
     },
     {
       "locale": "es",
-      "total": 13231,
+      "total": 14263,
       "present": 4350,
-      "missing": 8881,
+      "missing": 9913,
       "orphan": 8,
       "identical": 26,
-      "pct": 32.9
+      "pct": 30.5
     },
     {
       "locale": "fr",
-      "total": 13231,
+      "total": 14263,
       "present": 4136,
-      "missing": 9095,
+      "missing": 10127,
       "orphan": 8,
       "identical": 32,
-      "pct": 31.3
+      "pct": 29
     },
     {
       "locale": "hi",
-      "total": 13231,
+      "total": 14263,
       "present": 4357,
-      "missing": 8874,
+      "missing": 9906,
       "orphan": 8,
       "identical": 19,
-      "pct": 32.9
+      "pct": 30.5
     },
     {
       "locale": "pt",
-      "total": 13231,
+      "total": 14263,
       "present": 4139,
-      "missing": 9092,
+      "missing": 10124,
       "orphan": 8,
       "identical": 31,
-      "pct": 31.3
+      "pct": 29
     },
     {
       "locale": "zh-Hans",
-      "total": 13231,
+      "total": 14263,
       "present": 4119,
-      "missing": 9112,
+      "missing": 10144,
       "orphan": 8,
       "identical": 12,
-      "pct": 31.1
+      "pct": 28.9
     }
   ],
   "by_namespace": [
@@ -254,6 +254,18 @@
     {
       "namespace": "c_institution_components",
       "total": 447,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_institutions",
+      "total": 1032,
       "locales": {
         "ar": 0,
         "es": 0,
@@ -816,11 +828,11 @@
       }
     }
   ],
-  "failures": 54031,
+  "failures": 60225,
   "warnings": 4294,
   "failure_codes": {
-    "C5-compile": 4,
-    "C1-missing": 53973,
+    "C5-compile": 6,
+    "C1-missing": 60165,
     "C2-orphan": 48,
     "C4-idtoken": 6
   }
