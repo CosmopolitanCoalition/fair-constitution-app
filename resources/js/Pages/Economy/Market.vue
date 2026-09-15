@@ -18,6 +18,7 @@
  */
 import { computed, reactive, ref, watch } from 'vue';
 import { Link, router, useForm, usePage, useRemember } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -30,6 +31,7 @@ import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 import { formatMoney, formatCount, formatQuantity } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     tab: { type: String, default: 'offers' },
@@ -76,7 +78,7 @@ const assetVisitOptions = () => ({
     preserveScroll: true,
     onStart: () => { assetSearching.value = true; assetSearchError.value = ''; },
     onFinish: () => { assetSearching.value = false; },
-    onError: errors => { assetSearchError.value = errors.asset_q ?? errors.asset_cursor ?? 'The item search could not be completed. Try again.'; },
+    onError: errors => { assetSearchError.value = errors.asset_q ?? errors.asset_cursor ?? t('c_economy.market.search_failed', 'The item search could not be completed. Try again.'); },
 });
 function searchAssets() {
     const marketCursor = new URLSearchParams((page.url ?? '').split('?')[1] ?? '').get('cursor');
@@ -95,93 +97,92 @@ function submitOffer() {
 }
 
 /* Deep-linkable, matching the mockup's ?tab= contract. */
-const TABS = [
-    { key: 'offers', label: 'For sale' },
-    { key: 'work', label: 'Work' },
-    { key: 'assistance', label: 'Requests for help' },
-];
+const TABS = computed(() => [
+    { key: 'offers', label: t('c_economy.market.tab_offers', 'For sale') },
+    { key: 'work', label: t('c_economy.market.tab_work', 'Work') },
+    { key: 'assistance', label: t('c_economy.market.tab_assistance', 'Requests for help') },
+]);
 
 const tab = computed(() => props.tab);
 const pageCount = computed(() => (props[tab.value] ?? []).length);
 </script>
 
 <template>
-    <PageScaffold title="Market & work">
+    <PageScaffold :title="t('c_economy.market.title', 'Market & work')">
         <template #intro>
-            Things and services for sale, work on offer, and neighbours asking for help — one board,
-            open to everyone who lives here.
+            {{ t('c_economy.market.intro', 'Things and services for sale, work on offer, and neighbours asking for help — one board, open to everyone who lives here.') }}
         </template>
         <WorkTradeNav active="market" />
 
-        <Banner v-if="!currency" tone="info" title="No currency yet">
-            Nothing can be priced until this world's root legislature defines a currency.
+        <Banner v-if="!currency" tone="info" :title="t('c_economy.market.no_currency_title', 'No currency yet')">
+            {{ t('c_economy.market.no_currency_body', 'Nothing can be priced until this world\'s root legislature defines a currency.') }}
         </Banner>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <details v-if="currency && tab === 'offers'" class="mkt-compose" :open="composer.open" @toggle="composer.open = $event.target.open">
-            <summary>Sell a good or offer a service</summary>
+            <summary>{{ t('c_economy.market.sell_summary', 'Sell a good or offer a service') }}</summary>
         <Card as="section">
             <template #title>
-                <h2>Offer something <FormChip form-id="F-IND-022" name="Marketplace Listing" /></h2>
+                <h2>{{ t('c_economy.market.offer_something', 'Offer something') }} <FormChip form-id="F-IND-022" name="Marketplace Listing" /></h2>
             </template>
 
             <form @submit.prevent="submitOffer">
-                <Field label="What are you offering" :error="offer.errors.title" required>
+                <Field :label="t('c_economy.market.what_offering_label', 'What are you offering')" :error="offer.errors.title" required>
                     <template #control="{ id, invalid, describedBy }">
                         <input :id="id" v-model="offer.title" class="field-input" type="text"
-                            placeholder="Two hours of carpentry"
+                            :placeholder="t('c_economy.market.what_offering_placeholder', 'Two hours of carpentry')"
                             :aria-invalid="invalid ? 'true' : undefined" :aria-describedby="describedBy" />
                     </template>
                 </Field>
 
-                <Field label="A thing or a service" :error="offer.errors.kind" required>
+                <Field :label="t('c_economy.market.thing_or_service_label', 'A thing or a service')" :error="offer.errors.kind" required>
                     <template #control="{ id }">
                         <select :id="id" v-model="offer.kind" class="select">
-                            <option value="service">A service — my time or work</option>
-                            <option value="good">A thing I hold</option>
+                            <option value="service">{{ t('c_economy.market.opt_service', 'A service — my time or work') }}</option>
+                            <option value="good">{{ t('c_economy.market.opt_good', 'A thing I hold') }}</option>
                         </select>
                     </template>
                 </Field>
 
                 <fieldset v-if="offer.kind === 'good'" class="mkt-asset-picker">
-                    <legend>Choose a registered item</legend>
+                    <legend>{{ t('c_economy.market.choose_item_legend', 'Choose a registered item') }}</legend>
                     <p v-if="offer.asset_id" class="mkt-selected-asset">
-                        <span><strong>Selected: {{ selectedAsset.name || 'Previously selected item' }}</strong>
-                            <span v-if="selectedAsset.quantity"> · {{ formatQuantity(selectedAsset.quantity) }} held</span>
+                        <span><strong>{{ t('c_economy.market.selected_prefix', { name: selectedAsset.name || t('c_economy.market.previously_selected_item', 'Previously selected item') }) }}</strong>
+                            <span v-if="selectedAsset.quantity"> {{ t('c_economy.market.qty_held', { qty: formatQuantity(selectedAsset.quantity) }) }}</span>
                         </span>
-                        <button type="button" @click="clearAsset">Clear selection</button>
+                        <button type="button" @click="clearAsset">{{ t('c_economy.market.clear_selection', 'Clear selection') }}</button>
                     </p>
-                    <p class="econ-note">Goods must use an item you hold. Items with an open listing are excluded.</p>
-                    <p v-if="!asset_directory.available" class="econ-note">Check <Link href="/economy/wallet">My wallet</Link> to see or register your items.</p>
+                    <p class="econ-note">{{ t('c_economy.market.goods_note', 'Goods must use an item you hold. Items with an open listing are excluded.') }}</p>
+                    <p v-if="!asset_directory.available" class="econ-note">{{ t('c_economy.market.check_prefix', 'Check') }} <Link href="/economy/wallet">{{ t('c_economy.market.my_wallet', 'My wallet') }}</Link> {{ t('c_economy.market.wallet_see_register', 'to see or register your items.') }}</p>
                     <template v-else>
-                        <label for="market-asset-search">Find an item by the beginning of its name</label>
+                        <label for="market-asset-search">{{ t('c_economy.market.find_item_label', 'Find an item by the beginning of its name') }}</label>
                         <div class="mkt-asset-search">
                             <input id="market-asset-search" v-model="assetSearch" type="search" maxlength="120" @keydown.enter.prevent="searchAssets" />
-                            <button type="button" :disabled="assetSearching" @click="searchAssets">{{ assetSearching ? 'Searching…' : 'Search items' }}</button>
+                            <button type="button" :disabled="assetSearching" @click="searchAssets">{{ assetSearching ? t('c_economy.market.searching', 'Searching…') : t('c_economy.market.search_items', 'Search items') }}</button>
                         </div>
                         <p v-if="assetSearchError" class="mkt-asset-error" role="alert">{{ assetSearchError }}</p>
                         <div :aria-busy="assetSearching">
                             <p v-if="!my_assets.length" class="econ-note" role="status">
-                                {{ asset_directory.query ? `No available items start with “${asset_directory.query}”.` : 'No unlisted items are available.' }}
-                                You can register an item in <Link href="/economy/wallet">My wallet</Link>.
+                                {{ asset_directory.query ? t('c_economy.market.no_items_start', { query: asset_directory.query }) : t('c_economy.market.no_unlisted_items', 'No unlisted items are available.') }}
+                                {{ t('c_economy.market.register_item_in', 'You can register an item in') }} <Link href="/economy/wallet">{{ t('c_economy.market.my_wallet', 'My wallet') }}</Link>.
                             </p>
-                            <p v-else class="econ-note" role="status">{{ my_assets.length }} available items on this page. Your selection stays selected when you browse.</p>
+                            <p v-else class="econ-note" role="status">{{ t('c_economy.market.available_items', { count: my_assets.length }) }}</p>
                             <label v-for="asset in my_assets" :key="asset.id" class="mkt-asset-option">
                                 <input type="radio" name="market-asset" :value="asset.id" :checked="offer.asset_id === asset.id" @change="chooseAsset(asset)" />
-                                <span>{{ asset.name }} · {{ asset.kind === 'virtual' ? 'Digital' : 'Physical' }} · {{ formatQuantity(asset.quantity) }} held</span>
+                                <span>{{ asset.name }} · {{ asset.kind === 'virtual' ? t('c_economy.market.digital', 'Digital') : t('c_economy.market.physical', 'Physical') }} · {{ t('c_economy.market.held_suffix', { qty: formatQuantity(asset.quantity) }) }}</span>
                             </label>
                         </div>
-                        <nav v-if="asset_directory.previous || asset_directory.next" class="mkt-asset-pages" aria-label="Available item pages">
-                            <Link v-if="asset_directory.previous" :href="asset_directory.previous" v-bind="assetVisitOptions()">Previous items</Link>
-                            <Link v-if="asset_directory.next" :href="asset_directory.next" v-bind="assetVisitOptions()">More items</Link>
+                        <nav v-if="asset_directory.previous || asset_directory.next" class="mkt-asset-pages" :aria-label="t('c_economy.market.available_item_pages', 'Available item pages')">
+                            <Link v-if="asset_directory.previous" :href="asset_directory.previous" v-bind="assetVisitOptions()">{{ t('c_economy.market.previous_items', 'Previous items') }}</Link>
+                            <Link v-if="asset_directory.next" :href="asset_directory.next" v-bind="assetVisitOptions()">{{ t('c_economy.market.more_items', 'More items') }}</Link>
                         </nav>
                     </template>
                     <p v-if="offer.errors.asset_id" class="mkt-asset-error">{{ offer.errors.asset_id }}</p>
                 </fieldset>
 
-                <Field label="Price" :error="offer.errors.price" required>
+                <Field :label="t('c_economy.market.price_label', 'Price')" :error="offer.errors.price" required>
                     <template #control="{ id, invalid, describedBy }">
                         <input :id="id" v-model="offer.price" class="field-input" type="text"
                             inputmode="decimal" placeholder="0.00"
@@ -189,7 +190,7 @@ const pageCount = computed(() => (props[tab.value] ?? []).length);
                     </template>
                 </Field>
 
-                <Field label="Describe it (optional)" :error="offer.errors.description">
+                <Field :label="t('c_economy.market.describe_label', 'Describe it (optional)')" :error="offer.errors.description">
                     <template #control="{ id, invalid, describedBy }">
                         <textarea :id="id" v-model="offer.description" class="field-input" rows="2"
                             :aria-invalid="invalid ? 'true' : undefined" :aria-describedby="describedBy"></textarea>
@@ -197,33 +198,33 @@ const pageCount = computed(() => (props[tab.value] ?? []).length);
                 </Field>
 
                 <Btn type="submit" variant="primary" :disabled="offer.processing || (offer.kind === 'good' && !offer.asset_id)">
-                    {{ offer.processing ? 'Listing…' : 'Put it on the market' }}
+                    {{ offer.processing ? t('c_economy.market.listing_progress', 'Listing…') : t('c_economy.market.put_on_market', 'Put it on the market') }}
                 </Btn>
             </form>
 
         </Card>
         </details>
 
-        <nav class="mkt-tabs" aria-label="Market sections">
+        <nav class="mkt-tabs" :aria-label="t('c_economy.market.sections_nav', 'Market sections')">
             <Link
-                v-for="t in TABS"
-                :key="t.key"
-                :href="`/economy/market?tab=${t.key}`"
+                v-for="mt in TABS"
+                :key="mt.key"
+                :href="`/economy/market?tab=${mt.key}`"
                 :only="['offers', 'work', 'assistance', 'tab', 'pagination', 'my_assets', 'asset_directory']"
                 preserve-state
                 class="mkt-tab"
-                :class="{ 'mkt-tab--on': tab === t.key }"
-                :aria-current="tab === t.key ? 'page' : undefined"
+                :class="{ 'mkt-tab--on': tab === mt.key }"
+                :aria-current="tab === mt.key ? 'page' : undefined"
             >
-                {{ t.label }}
+                {{ mt.label }}
             </Link>
         </nav>
-        <p role="status" aria-live="polite">{{ formatCount(pageCount) }} entries on this page</p>
+        <p role="status" aria-live="polite">{{ t('c_economy.market.entries_on_page', { count: formatCount(pageCount) }) }}</p>
 
         <!-- ------------------------------------------------------ for sale -->
-        <section v-if="tab === 'offers'" aria-label="Things and services for sale">
+        <section v-if="tab === 'offers'" :aria-label="t('c_economy.market.for_sale_section', 'Things and services for sale')">
             <p v-if="!offers.length" class="econ-empty">
-                Nothing is for sale right now.
+                {{ t('c_economy.market.nothing_for_sale', 'Nothing is for sale right now.') }}
             </p>
             <Card v-for="o in offers" :key="o.id" as="article" inset class="mkt-row">
                 <div class="mkt-head">
@@ -234,24 +235,24 @@ const pageCount = computed(() => (props[tab.value] ?? []).length);
                 </div>
                 <p v-if="o.description" class="mkt-desc">{{ o.description }}</p>
                 <p class="mkt-meta">
-                    <StatusBadge>{{ o.kind === 'service' ? 'A service' : 'A thing' }}</StatusBadge>
-                    <span>Quantity {{ formatQuantity(o.quantity) }}</span>
-                    <span v-if="o.asset">{{ o.asset.kind === 'virtual' ? 'Digital item' : 'Physical item' }}</span>
+                    <StatusBadge>{{ o.kind === 'service' ? t('c_economy.market.kind_service', 'A service') : t('c_economy.market.kind_thing', 'A thing') }}</StatusBadge>
+                    <span>{{ t('c_economy.market.quantity_meta', { qty: formatQuantity(o.quantity) }) }}</span>
+                    <span v-if="o.asset">{{ o.asset.kind === 'virtual' ? t('c_economy.market.digital_item', 'Digital item') : t('c_economy.market.physical_item', 'Physical item') }}</span>
                     <span>{{ o.status }}</span>
                     <span v-if="o.seller_org">
-                        by {{ o.seller_org.name }}<template v-if="o.seller_org.is_cgc"> · common-good</template>
+                        {{ t('c_economy.market.by_seller', { name: o.seller_org.name }) }}<template v-if="o.seller_org.is_cgc">{{ t('c_economy.market.common_good_suffix', ' · common-good') }}</template>
                     </span>
                 </p>
             </Card>
         </section>
 
         <!-- ---------------------------------------------------------- work -->
-        <section v-if="tab === 'work'" aria-label="Work on offer">
-            <nav class="mkt-pages" aria-label="Manage work">
-                <Link href="/economy/work">My applications</Link>
-                <Link href="/economy/work?tab=hiring">Hire for an organization</Link>
+        <section v-if="tab === 'work'" :aria-label="t('c_economy.market.work_section', 'Work on offer')">
+            <nav class="mkt-pages" :aria-label="t('c_economy.market.manage_work', 'Manage work')">
+                <Link href="/economy/work">{{ t('c_economy.market.my_applications', 'My applications') }}</Link>
+                <Link href="/economy/work?tab=hiring">{{ t('c_economy.market.hire_for_org', 'Hire for an organization') }}</Link>
             </nav>
-            <p v-if="!work.length" class="econ-empty">No work is being offered right now.</p>
+            <p v-if="!work.length" class="econ-empty">{{ t('c_economy.market.no_work', 'No work is being offered right now.') }}</p>
             <Card v-for="w in work" :key="w.id" as="article" inset class="mkt-row">
                 <div class="mkt-head">
                     <h3 class="mkt-title">
@@ -261,26 +262,26 @@ const pageCount = computed(() => (props[tab.value] ?? []).length);
                 </div>
                 <p class="mkt-desc">{{ w.terms }}</p>
                 <p class="mkt-meta">
-                    <span>{{ formatCount(w.applications) }} applied</span>
+                    <span>{{ t('c_economy.market.applied_meta', { count: formatCount(w.applications) }) }}</span>
                     <span>{{ w.status }}</span>
-                    <Link :href="`/economy/requests/${w.id}`">View &amp; apply</Link>
+                    <Link :href="`/economy/requests/${w.id}`">{{ t('c_economy.market.view_apply', 'View & apply') }}</Link>
                 </p>
             </Card>
         </section>
 
         <!-- ---------------------------------------------------- assistance -->
-        <section v-if="tab === 'assistance'" aria-label="Requests for help">
-            <nav class="mkt-pages" aria-label="Manage requests for help"><Link href="/economy/help">Give &amp; find help</Link><Link href="/economy/help?tab=mine">My requests</Link></nav>
-            <p v-if="!assistance.length" class="econ-empty">Nobody is asking for help right now.</p>
+        <section v-if="tab === 'assistance'" :aria-label="t('c_economy.market.assistance_section', 'Requests for help')">
+            <nav class="mkt-pages" :aria-label="t('c_economy.market.manage_help', 'Manage requests for help')"><Link href="/economy/help">{{ t('c_economy.market.give_find_help', 'Give & find help') }}</Link><Link href="/economy/help?tab=mine">{{ t('c_economy.market.my_requests', 'My requests') }}</Link></nav>
+            <p v-if="!assistance.length" class="econ-empty">{{ t('c_economy.market.nobody_asking', 'Nobody is asking for help right now.') }}</p>
             <Card v-for="a in assistance" :key="a.id" as="article" inset class="mkt-row">
                 <h3 class="mkt-title"><Link :href="`/economy/help/${a.id}`">{{ a.title }}</Link></h3>
                 <p class="mkt-desc">{{ a.need }}</p>
                 <p class="mkt-meta"><span>{{ a.status }}</span></p>
             </Card>
         </section>
-        <nav v-if="pagination.previous || pagination.next" class="mkt-pages" aria-label="Market pages">
-            <Link v-if="pagination.previous" :href="pagination.previous" :only="['offers', 'work', 'assistance', 'tab', 'pagination']" preserve-state rel="prev">Previous entries</Link>
-            <Link v-if="pagination.next" :href="pagination.next" :only="['offers', 'work', 'assistance', 'tab', 'pagination']" preserve-state rel="next">Next entries</Link>
+        <nav v-if="pagination.previous || pagination.next" class="mkt-pages" :aria-label="t('c_economy.market.market_pages', 'Market pages')">
+            <Link v-if="pagination.previous" :href="pagination.previous" :only="['offers', 'work', 'assistance', 'tab', 'pagination']" preserve-state rel="prev">{{ t('c_economy.market.previous_entries', 'Previous entries') }}</Link>
+            <Link v-if="pagination.next" :href="pagination.next" :only="['offers', 'work', 'assistance', 'tab', 'pagination']" preserve-state rel="next">{{ t('c_economy.market.next_entries', 'Next entries') }}</Link>
         </nav>
     </PageScaffold>
 </template>

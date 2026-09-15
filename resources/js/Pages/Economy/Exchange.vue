@@ -1,6 +1,7 @@
 <script setup>
 /** Share resale uses the existing constitutional engine; ordinary assets trade in Market. */
 import { Link, useForm, router } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -10,6 +11,7 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { formatMoney } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -42,69 +44,67 @@ const submitOffer = () => sell.post('/economy/shares/offer', {
 </script>
 
 <template>
-    <PageScaffold title="Shares">
-        <template #intro>Buy shares offered by other holders, or offer some of your own at a fixed price.</template>
+    <PageScaffold :title="t('c_economy.exchange.title', 'Shares')">
+        <template #intro>{{ t('c_economy.exchange.intro', 'Buy shares offered by other holders, or offer some of your own at a fixed price.') }}</template>
         <WorkTradeNav active="shares" />
-        <p class="econ-note"><Link href="/organizations">Find an organization</Link> to review its ownership and finances. Goods and registered items are in <Link href="/economy/market">the market</Link>.</p>
-        <Banner v-if="!currency" tone="info" title="No currency yet">
-            This world's root legislature hasn't defined one, so nothing prices or trades.
+        <p class="econ-note"><Link href="/organizations">{{ t('c_economy.exchange.find_org', 'Find an organization') }}</Link> {{ t('c_economy.exchange.market_pointer_mid', 'to review its ownership and finances. Goods and registered items are in') }} <Link href="/economy/market">{{ t('c_economy.exchange.the_market', 'the market') }}</Link>.</p>
+        <Banner v-if="!currency" tone="info" :title="t('c_economy.exchange.no_currency_title', 'No currency yet')">
+            {{ t('c_economy.exchange.no_currency_body', 'This world\'s root legislature hasn\'t defined one, so nothing prices or trades.') }}
         </Banner>
 
         <!-- ------------------------------------------- shares for sale -->
-        <Card as="section" title="Shares for sale">
+        <Card as="section" :title="t('c_economy.exchange.shares_for_sale', 'Shares for sale')">
             <p v-if="!offers.length" class="econ-absent">
-                No shares are offered for sale right now. A holder lists some below; a buyer takes the
-                whole offer at its fixed price — money and units move together or not at all.
+                {{ t('c_economy.exchange.none_for_sale', 'No shares are offered for sale right now. A holder lists some below; a buyer takes the whole offer at its fixed price — money and units move together or not at all.') }}
             </p>
             <ul v-else class="ex-list">
                 <li v-for="o in offers" :key="o.id" class="ex-row">
                     <div class="ex-main">
                         <Link :href="`/organizations/${o.org_id}/economy`" class="ex-title">{{ o.org_name }}</Link>
                         <span class="ex-meta">
-                            <StatusBadge v-if="o.is_cgc">CGC — same terms</StatusBadge>
-                            <span class="econ-note">{{ o.units }} units · sold by {{ o.seller }}</span>
+                            <StatusBadge v-if="o.is_cgc">{{ t('c_economy.exchange.cgc_same_terms', 'CGC — same terms') }}</StatusBadge>
+                            <span class="econ-note">{{ t('c_economy.exchange.units_sold_by', { units: o.units, seller: o.seller }) }}</span>
                         </span>
                     </div>
                     <div class="ex-price">
                         <strong>{{ formatMoney(o.price_per_unit, currency) }}</strong>
-                        <span class="econ-note">per unit</span>
+                        <span class="econ-note">{{ t('c_economy.exchange.per_unit', 'per unit') }}</span>
                         <div class="ex-acts">
-                            <button v-if="o.is_mine" type="button" @click="cancel(o.id)">Withdraw</button>
-                            <button v-else-if="my_id" type="button" @click="buy(o.id)">Buy all {{ o.units }}</button>
+                            <button v-if="o.is_mine" type="button" @click="cancel(o.id)">{{ t('c_economy.exchange.withdraw', 'Withdraw') }}</button>
+                            <button v-else-if="my_id" type="button" @click="buy(o.id)">{{ t('c_economy.exchange.buy_all', { units: o.units }) }}</button>
                         </div>
                     </div>
                 </li>
             </ul>
         </Card>
 
-        <nav v-if="pagination.previous || pagination.next" class="ex-acts" aria-label="Share offer pages">
-            <Link v-if="pagination.previous" :href="pagination.previous">Newer offers</Link>
-            <Link v-if="pagination.next" :href="pagination.next">Older offers</Link>
+        <nav v-if="pagination.previous || pagination.next" class="ex-acts" :aria-label="t('c_economy.exchange.offer_pages', 'Share offer pages')">
+            <Link v-if="pagination.previous" :href="pagination.previous">{{ t('c_economy.exchange.newer_offers', 'Newer offers') }}</Link>
+            <Link v-if="pagination.next" :href="pagination.next">{{ t('c_economy.exchange.older_offers', 'Older offers') }}</Link>
         </nav>
         <!-- ------------------------------------------- offer your shares -->
-        <Card v-if="my_holdings.length" as="section" title="Offer your shares">
+        <Card v-if="my_holdings.length" as="section" :title="t('c_economy.exchange.offer_your_shares', 'Offer your shares')">
             <p class="econ-desc">
-                You hold equity you can resell. List some at a fixed per-unit price; a buyer takes the
-                whole offer. You cannot offer more than you hold.
+                {{ t('c_economy.exchange.offer_desc', 'You hold equity you can resell. List some at a fixed per-unit price; a buyer takes the whole offer. You cannot offer more than you hold.') }}
             </p>
             <form class="ex-offer" @submit.prevent="submitOffer">
-                <label>Organization
+                <label>{{ t('c_economy.exchange.organization_label', 'Organization') }}
                     <select v-model="sell.organization_id" required>
-                        <option value="" disabled>Choose a holding</option>
+                        <option value="" disabled>{{ t('c_economy.exchange.choose_holding', 'Choose a holding') }}</option>
                         <option v-for="h in my_holdings" :key="h.org_id" :value="h.org_id">
-                            {{ h.org_name }} — you hold {{ h.units }}
+                            {{ t('c_economy.exchange.you_hold_option', { name: h.org_name, units: h.units }) }}
                         </option>
                     </select>
                 </label>
-                <label>Units<input v-model="sell.units" type="text" inputmode="decimal" pattern="[0-9]{1,14}(\.[0-9]{1,6})?"
+                <label>{{ t('c_economy.exchange.units_label', 'Units') }}<input v-model="sell.units" type="text" inputmode="decimal" pattern="[0-9]{1,14}(\.[0-9]{1,6})?"
                     aria-describedby="share-quantity-hint share-quantity-error" :aria-invalid="sell.errors.units ? 'true' : undefined" required /></label>
-                <p id="share-quantity-hint" class="econ-note">Enter a positive quantity with up to six decimal places.</p>
+                <p id="share-quantity-hint" class="econ-note">{{ t('c_economy.exchange.quantity_hint', 'Enter a positive quantity with up to six decimal places.') }}</p>
                 <p id="share-quantity-error" class="ex-err">{{ sell.errors.units }}</p>
-                <label>Price per unit ({{ currency?.symbol ?? 'units' }})<input v-model="sell.price_per_unit" type="text" inputmode="decimal" pattern="[0-9]{1,18}(\.[0-9]{1,6})?"
+                <label>{{ t('c_economy.exchange.price_per_unit_label', { symbol: currency?.symbol ?? t('c_economy.exchange.units_fallback', 'units') }) }}<input v-model="sell.price_per_unit" type="text" inputmode="decimal" pattern="[0-9]{1,18}(\.[0-9]{1,6})?"
                     aria-describedby="share-price-hint share-price-error" :aria-invalid="sell.errors.price_per_unit ? 'true' : undefined" required /></label>
-                <p id="share-price-hint" class="econ-note">Enter a nonnegative price with up to six decimal places. Zero makes this a gift.</p>
+                <p id="share-price-hint" class="econ-note">{{ t('c_economy.exchange.price_hint', 'Enter a nonnegative price with up to six decimal places. Zero makes this a gift.') }}</p>
                 <p id="share-price-error" class="ex-err">{{ sell.errors.price_per_unit }}</p>
-                <button type="submit" :disabled="sell.processing || !sell.organization_id">Offer for sale</button>
+                <button type="submit" :disabled="sell.processing || !sell.organization_id">{{ t('c_economy.exchange.offer_for_sale', 'Offer for sale') }}</button>
                 <p v-if="sell.errors.constitution" class="ex-err">{{ sell.errors.constitution }}</p>
             </form>
         </Card>

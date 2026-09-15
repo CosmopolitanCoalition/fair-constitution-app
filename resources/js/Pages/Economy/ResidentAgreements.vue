@@ -11,6 +11,7 @@
  */
 import { computed, reactive, ref, watch } from 'vue';
 import { Link, useForm, useRemember, router } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -19,6 +20,7 @@ import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 import SelectionIdentity from '@/Components/Ui/SelectionIdentity.vue';
 
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -64,7 +66,7 @@ const searchOptions = () => ({
     only: ['candidates', 'party_directory'],
     onStart: () => { searching.value = true; searchError.value = ''; },
     onFinish: () => { searching.value = false; },
-    onError: errors => { searchError.value = errors.party_q ?? errors.party_cursor ?? 'The search could not be completed. Try again.'; },
+    onError: errors => { searchError.value = errors.party_q ?? errors.party_cursor ?? t('c_economy.resident_agreements.search_failed', 'The search could not be completed. Try again.'); },
 });
 function searchParties() {
     router.get('/economy/resident-agreements', { new: 1, party_q: searchInput.value.trim() }, searchOptions());
@@ -92,88 +94,88 @@ const proposeOn = (agreementId, clauseId) => {
 </script>
 
 <template>
-    <PageScaffold :title="compose ? 'Offer an agreement' : (agreements[0]?.title ?? 'Agreement')">
+    <PageScaffold :title="compose ? t('c_economy.resident_agreements.offer_title', 'Offer an agreement') : (agreements[0]?.title ?? t('c_economy.resident_agreements.agreement_fallback', 'Agreement'))">
         <template #intro>
-            {{ compose ? 'Write terms and invite the other people to sign.' : 'Review the terms, signatures and proposed changes with the other parties.' }}
+            {{ compose ? t('c_economy.resident_agreements.compose_intro', 'Write terms and invite the other people to sign.') : t('c_economy.resident_agreements.review_intro', 'Review the terms, signatures and proposed changes with the other parties.') }}
         </template>
-        <WorkTradeNav active="agreements" back-href="/economy/agreements" back-label="My agreements" />
-        <p class="econ-note">Terms are private to the parties. Every party must sign, and no term may waive a constitutional right.</p>
+        <WorkTradeNav active="agreements" back-href="/economy/agreements" :back-label="t('c_economy.resident_agreements.back_label', 'My agreements')" />
+        <p class="econ-note">{{ t('c_economy.resident_agreements.privacy_note', 'Terms are private to the parties. Every party must sign, and no term may waive a constitutional right.') }}</p>
 
         <!-- ------------------------------------------------- new agreement -->
-        <Card v-if="compose" as="section" title="Terms & parties">
+        <Card v-if="compose" as="section" :title="t('c_economy.resident_agreements.terms_parties', 'Terms & parties')">
             <form class="ra-form" @submit.prevent="submit">
-                <label>Title<input v-model="draft.title" type="text" maxlength="200" required /></label>
-                <label>Terms<textarea v-model="draft.terms" rows="3" maxlength="10000" required /></label>
+                <label>{{ t('c_economy.resident_agreements.title_label', 'Title') }}<input v-model="draft.title" type="text" maxlength="200" required /></label>
+                <label>{{ t('c_economy.resident_agreements.terms_label', 'Terms') }}<textarea v-model="draft.terms" rows="3" maxlength="10000" required /></label>
                 <fieldset>
-                    <legend>Other parties (all must sign)</legend>
+                    <legend>{{ t('c_economy.resident_agreements.other_parties_legend', 'Other parties (all must sign)') }}</legend>
                     <div v-if="selectedParties.length" class="ra-selected">
-                        <h3>Selected parties ({{ selectedParties.length }})</h3>
+                        <h3>{{ t('c_economy.resident_agreements.selected_parties', { count: selectedParties.length }) }}</h3>
                         <ul>
                             <li v-for="person in selectedParties" :key="person.id">
                                 <SelectionIdentity :person="person" />
-                                <button type="button" :aria-label="`Remove ${person.name}, reference ${person.id}`" @click="removeParty(person.id)">Remove</button>
+                                <button type="button" :aria-label="t('c_economy.resident_agreements.remove_aria', { name: person.name, id: person.id })" @click="removeParty(person.id)">{{ t('c_economy.resident_agreements.remove', 'Remove') }}</button>
                             </li>
                         </ul>
                     </div>
-                    <label for="agreement-party-search">Find another party by name</label>
+                    <label for="agreement-party-search">{{ t('c_economy.resident_agreements.find_party_label', 'Find another party by name') }}</label>
                     <div class="ra-search-row">
                         <input id="agreement-party-search" v-model="searchInput" type="search" maxlength="120"
                             autocomplete="off" aria-describedby="agreement-party-search-hint" @keydown.enter.prevent="searchParties" />
-                        <button type="button" :disabled="searching" @click="searchParties">{{ searching ? 'Searching…' : 'Search' }}</button>
+                        <button type="button" :disabled="searching" @click="searchParties">{{ searching ? t('c_economy.resident_agreements.searching', 'Searching…') : t('c_economy.resident_agreements.search', 'Search') }}</button>
                     </div>
-                    <p id="agreement-party-search-hint" class="econ-note">Enter the beginning of a person's name. Selected parties stay selected when you search again.</p>
+                    <p id="agreement-party-search-hint" class="econ-note">{{ t('c_economy.resident_agreements.search_hint', 'Enter the beginning of a person\'s name. Selected parties stay selected when you search again.') }}</p>
                     <p v-if="searchError" class="ra-err" role="alert">{{ searchError }}</p>
                     <div :aria-busy="searching" class="ra-search-results">
-                        <p v-if="!party_directory.searched" class="econ-note" role="status">Search to find people to invite.</p>
-                        <p v-else-if="!candidates.length" class="econ-note" role="status">No matching people for “{{ party_directory.query }}”. Try another beginning.</p>
-                        <p v-else class="econ-note" role="status">{{ candidates.length }} results on this page for “{{ party_directory.query }}”.</p>
+                        <p v-if="!party_directory.searched" class="econ-note" role="status">{{ t('c_economy.resident_agreements.search_to_find', 'Search to find people to invite.') }}</p>
+                        <p v-else-if="!candidates.length" class="econ-note" role="status">{{ t('c_economy.resident_agreements.no_matching', { query: party_directory.query }) }}</p>
+                        <p v-else class="econ-note" role="status">{{ t('c_economy.resident_agreements.results_count', { count: candidates.length, query: party_directory.query }) }}</p>
                         <div v-for="person in candidates" :key="person.id" class="ra-check">
                             <input type="checkbox" :checked="draft.signers.includes(person.id)" :value="person.id"
-                                :aria-label="`Invite ${person.name}, profile reference ${person.id}`" @change="chooseParty(person, $event.target.checked)" />
+                                :aria-label="t('c_economy.resident_agreements.invite_aria', { name: person.name, id: person.id })" @change="chooseParty(person, $event.target.checked)" />
                             <SelectionIdentity :person="person" />
                         </div>
-                        <nav v-if="party_directory.previous || party_directory.next" class="ra-search-pages" aria-label="People search pages">
-                            <Link v-if="party_directory.previous" :href="party_directory.previous" v-bind="searchOptions()">Previous people</Link>
-                            <Link v-if="party_directory.next" :href="party_directory.next" v-bind="searchOptions()">More people</Link>
+                        <nav v-if="party_directory.previous || party_directory.next" class="ra-search-pages" :aria-label="t('c_economy.resident_agreements.people_pages', 'People search pages')">
+                            <Link v-if="party_directory.previous" :href="party_directory.previous" v-bind="searchOptions()">{{ t('c_economy.resident_agreements.previous_people', 'Previous people') }}</Link>
+                            <Link v-if="party_directory.next" :href="party_directory.next" v-bind="searchOptions()">{{ t('c_economy.resident_agreements.more_people', 'More people') }}</Link>
                         </nav>
                     </div>
                     <p v-if="draft.errors.signers" class="ra-err">{{ draft.errors.signers }}</p>
                 </fieldset>
                 <p v-if="draft.errors.constitution" class="ra-err">{{ draft.errors.constitution }}</p>
-                <button type="submit" :disabled="draft.processing || !draft.signers.length">Offer it</button>
+                <button type="submit" :disabled="draft.processing || !draft.signers.length">{{ t('c_economy.resident_agreements.offer_it', 'Offer it') }}</button>
             </form>
         </Card>
 
         <!-- ---------------------------------------------------- my agreements -->
-        <Card v-for="a in agreements" :key="a.id" as="section" title="Agreement record">
+        <Card v-for="a in agreements" :key="a.id" as="section" :title="t('c_economy.resident_agreements.agreement_record', 'Agreement record')">
             <p class="ra-status">
                 <StatusBadge>{{ a.status }}</StatusBadge>
-                <span v-if="a.is_initiator" class="econ-note">· you offered this</span>
+                <span v-if="a.is_initiator" class="econ-note">{{ t('c_economy.resident_agreements.you_offered', '· you offered this') }}</span>
             </p>
 
             <p class="ra-terms">{{ a.terms }}</p>
 
             <div class="ra-signers">
                 <span v-for="(s, i) in a.signers" :key="i" class="ra-signer" :class="{ signed: s.signed }">
-                    {{ s.signed ? '✓' : '○' }} {{ s.name }}<template v-if="s.is_me"> (you)</template>
+                    {{ s.signed ? '✓' : '○' }} {{ s.name }}<template v-if="s.is_me">{{ t('c_economy.resident_agreements.you_suffix', ' (you)') }}</template>
                 </span>
             </div>
 
-            <button v-if="a.can_sign" class="ra-sign" @click="sign(a.id)">Sign this agreement</button>
+            <button v-if="a.can_sign" class="ra-sign" @click="sign(a.id)">{{ t('c_economy.resident_agreements.sign_agreement', 'Sign this agreement') }}</button>
 
             <!-- pending redlines -->
             <div v-if="a.redlines.length" class="ra-redlines">
-                <h3>Proposed changes</h3>
+                <h3>{{ t('c_economy.resident_agreements.proposed_changes', 'Proposed changes') }}</h3>
                 <div v-for="r in a.redlines" :key="r.id" class="ra-redline">
                     <p><strong>{{ r.kind }}</strong>: {{ r.body }}</p>
-                    <p v-if="r.rationale" class="econ-note">Why: {{ r.rationale }}</p>
+                    <p v-if="r.rationale" class="econ-note">{{ t('c_economy.resident_agreements.redline_why', { rationale: r.rationale }) }}</p>
                     <div class="ra-redline-acts">
                         <template v-if="r.is_mine">
-                            <button @click="resolve(r.id, 'withdraw')">Withdraw</button>
+                            <button @click="resolve(r.id, 'withdraw')">{{ t('c_economy.resident_agreements.withdraw', 'Withdraw') }}</button>
                         </template>
                         <template v-else>
-                            <button @click="resolve(r.id, 'accept')">Accept (voids signatures)</button>
-                            <button @click="resolve(r.id, 'reject')">Reject</button>
+                            <button @click="resolve(r.id, 'accept')">{{ t('c_economy.resident_agreements.accept_voids', 'Accept (voids signatures)') }}</button>
+                            <button @click="resolve(r.id, 'reject')">{{ t('c_economy.resident_agreements.reject', 'Reject') }}</button>
                         </template>
                     </div>
                 </div>
@@ -181,13 +183,13 @@ const proposeOn = (agreementId, clauseId) => {
 
             <!-- propose a redline on a clause -->
             <details class="ra-propose">
-                <summary>Propose a change</summary>
+                <summary>{{ t('c_economy.resident_agreements.propose_change', 'Propose a change') }}</summary>
                 <div v-for="c in a.clauses" :key="c.id" class="ra-clause">
-                    <p class="econ-note">{{ c.heading || 'Clause' }}: {{ c.body }}</p>
+                    <p class="econ-note">{{ c.heading || t('c_economy.resident_agreements.clause_fallback', 'Clause') }}: {{ c.body }}</p>
                     <div class="ra-propose-row">
-                        <select v-model="redline.kind" aria-label="Kind of change"><option value="edit">Edit</option><option value="strike">Strike</option></select>
-                        <input v-model="redline.body" type="text" placeholder="Your language" aria-label="Proposed wording" />
-                        <button @click="proposeOn(a.id, c.id)">Propose</button>
+                        <select v-model="redline.kind" :aria-label="t('c_economy.resident_agreements.kind_of_change_aria', 'Kind of change')"><option value="edit">{{ t('c_economy.resident_agreements.opt_edit', 'Edit') }}</option><option value="strike">{{ t('c_economy.resident_agreements.opt_strike', 'Strike') }}</option></select>
+                        <input v-model="redline.body" type="text" :placeholder="t('c_economy.resident_agreements.your_language_placeholder', 'Your language')" :aria-label="t('c_economy.resident_agreements.proposed_wording_aria', 'Proposed wording')" />
+                        <button @click="proposeOn(a.id, c.id)">{{ t('c_economy.resident_agreements.propose', 'Propose') }}</button>
                     </div>
                 </div>
                 <p v-if="redline.errors.constitution" class="ra-err">{{ redline.errors.constitution }}</p>

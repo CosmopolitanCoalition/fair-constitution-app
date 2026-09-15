@@ -20,6 +20,7 @@
  */
 import { computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -30,6 +31,7 @@ import FormChip from '@/Components/Ui/FormChip.vue';
 import { formatMoney, formatWhen, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     currency: { type: Object, default: null },
@@ -89,42 +91,34 @@ function submitApprove(movementId) {
 </script>
 
 <template>
-    <PageScaffold title="Joint ledgers">
+    <PageScaffold :title="t('c_economy.joint_ledgers.title', 'Joint ledgers')">
         <template #intro>
-            A joint ledger is a co-owned account: its balance belongs to more than one party, and
-            no movement leaves it until every required co-owner agrees. One signer can never move
-            shared money alone — a movement is proposed, waits, and settles only when the ledger's
-            approval rule is met.
+            {{ t('c_economy.joint_ledgers.intro', 'A joint ledger is a co-owned account: its balance belongs to more than one party, and no movement leaves it until every required co-owner agrees. One signer can never move shared money alone — a movement is proposed, waits, and settles only when the ledger\'s approval rule is met.') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
-        <Card as="section" title="How a joint movement settles">
+        <Card as="section" :title="t('c_economy.joint_ledgers.how_title', 'How a joint movement settles')">
             <ol class="jl-how">
                 <li>
-                    <strong>Propose.</strong> Any co-owner proposes a movement out — a payment, a
-                    transfer, a drawdown. Proposing counts as their signature.
+                    <strong>{{ t('c_economy.joint_ledgers.step_propose_strong', 'Propose.') }}</strong> {{ t('c_economy.joint_ledgers.step_propose_body', 'Any co-owner proposes a movement out — a payment, a transfer, a drawdown. Proposing counts as their signature.') }}
                 </li>
                 <li>
-                    <strong>Wait.</strong> The movement is held while the remaining co-owners
-                    decide. Each approval is on the record.
+                    <strong>{{ t('c_economy.joint_ledgers.step_wait_strong', 'Wait.') }}</strong> {{ t('c_economy.joint_ledgers.step_wait_body', 'The movement is held while the remaining co-owners decide. Each approval is on the record.') }}
                 </li>
                 <li>
-                    <strong>Settle.</strong> The approval that meets the rule — all signers, or a
-                    majority, as agreed at opening — moves the money in the same act.
+                    <strong>{{ t('c_economy.joint_ledgers.step_settle_strong', 'Settle.') }}</strong> {{ t('c_economy.joint_ledgers.step_settle_body', 'The approval that meets the rule — all signers, or a majority, as agreed at opening — moves the money in the same act.') }}
                 </li>
             </ol>
             <p class="econ-note">
-                Money enters a joint ledger the ordinary way: a plain transfer to its account. The
-                ledger holds and moves the unit; it never issues it.
+                {{ t('c_economy.joint_ledgers.money_enters_note', 'Money enters a joint ledger the ordinary way: a plain transfer to its account. The ledger holds and moves the unit; it never issues it.') }}
             </p>
         </Card>
 
-        <Card as="section" title="Your joint ledgers">
+        <Card as="section" :title="t('c_economy.joint_ledgers.your_ledgers', 'Your joint ledgers')">
             <p v-if="!ledgers.length" class="econ-empty">
-                None yet — you are not a co-owner of any joint ledger, and no public one exists in
-                this world.
+                {{ t('c_economy.joint_ledgers.none_yet', 'None yet — you are not a co-owner of any joint ledger, and no public one exists in this world.') }}
             </p>
 
             <article v-for="l in ledgers" :key="l.id" class="jl-card">
@@ -133,37 +127,37 @@ function submitApprove(movementId) {
                         <h3>{{ l.name }}</h3>
                         <p v-if="l.purpose" class="econ-desc">{{ l.purpose }}</p>
                     </div>
-                    <span class="jl-vis">{{ l.public ? 'Public ledger' : 'Private ledger' }}</span>
+                    <span class="jl-vis">{{ l.public ? t('c_economy.joint_ledgers.public_ledger', 'Public ledger') : t('c_economy.joint_ledgers.private_ledger', 'Private ledger') }}</span>
                 </div>
 
                 <p class="jl-balance">
                     <strong>{{ formatMoney(l.balance, currency) }}</strong>
                     <span class="econ-note">
-                        · rule: {{ l.approval_rule === 'all' ? 'every signer' : 'a majority of signers' }}
+                        {{ t('c_economy.joint_ledgers.rule_line', { rule: l.approval_rule === 'all' ? t('c_economy.joint_ledgers.every_signer', 'every signer') : t('c_economy.joint_ledgers.majority_of_signers', 'a majority of signers') }) }}
                     </span>
                 </p>
 
                 <p v-if="!l.public" class="econ-note">
-                    A private ledger is readable only by its co-owners — like a ballot.
+                    {{ t('c_economy.joint_ledgers.private_note', 'A private ledger is readable only by its co-owners — like a ballot.') }}
                 </p>
 
                 <p class="econ-meta">
-                    <span>Co-owners (signers):</span>
+                    <span>{{ t('c_economy.joint_ledgers.co_owners_label', 'Co-owners (signers):') }}</span>
                     <span v-for="p in l.parties" :key="p.account_id" class="mono">
-                        {{ shortId(p.account_id) }}<template v-if="p.is_me"> (you)</template>
+                        {{ shortId(p.account_id) }}<template v-if="p.is_me">{{ t('c_economy.joint_ledgers.you_suffix', ' (you)') }}</template>
                     </span>
                 </p>
 
                 <p v-if="l.is_party && l.escrow_account_id" class="econ-note">
-                    Fund it: send a plain transfer to account
-                    <span class="mono">{{ l.escrow_account_id }}</span> from your wallet.
+                    {{ t('c_economy.joint_ledgers.fund_before', 'Fund it: send a plain transfer to account') }}
+                    <span class="mono">{{ l.escrow_account_id }}</span> {{ t('c_economy.joint_ledgers.fund_after', 'from your wallet.') }}
                 </p>
 
                 <div class="jl-movements">
-                    <h4>Movements</h4>
+                    <h4>{{ t('c_economy.joint_ledgers.movements_heading', 'Movements') }}</h4>
                     <p v-if="!l.movements.length" class="econ-note">
-                        No movements yet. Any new one will need
-                        {{ l.approval_rule === 'all' ? 'every signer' : 'a majority' }} to agree.
+                        {{ t('c_economy.joint_ledgers.no_movements_before', 'No movements yet. Any new one will need') }}
+                        {{ l.approval_rule === 'all' ? t('c_economy.joint_ledgers.every_signer', 'every signer') : t('c_economy.joint_ledgers.a_majority', 'a majority') }} {{ t('c_economy.joint_ledgers.no_movements_after', 'to agree.') }}
                     </p>
                     <div v-for="m in l.movements" :key="m.id" class="jl-movement">
                         <p>
@@ -173,13 +167,11 @@ function submitApprove(movementId) {
                         </p>
                         <p class="econ-note">
                             <template v-if="m.status === 'pending'">
-                                {{ m.approvals }} of {{ m.needed }} agreed — held until the
-                                agreement is complete.
-                                <template v-if="m.i_approved"> Your signature is on it.</template>
+                                {{ t('c_economy.joint_ledgers.movement_pending', { approvals: m.approvals, needed: m.needed }) }}
+                                <template v-if="m.i_approved">{{ t('c_economy.joint_ledgers.movement_pending_mine', ' Your signature is on it.') }}</template>
                             </template>
                             <template v-else-if="m.status === 'settled'">
-                                Settled {{ formatWhen(m.at) }} — the agreement completed and the
-                                money moved.
+                                {{ t('c_economy.joint_ledgers.movement_settled', { when: formatWhen(m.at) }) }}
                             </template>
                             <template v-else>{{ m.status }}</template>
                         </p>
@@ -189,25 +181,25 @@ function submitApprove(movementId) {
                             :disabled="approving.processing"
                             @click="submitApprove(m.id)"
                         >
-                            Approve this movement
+                            {{ t('c_economy.joint_ledgers.approve_movement', 'Approve this movement') }}
                         </Btn>
                     </div>
                 </div>
 
                 <form v-if="l.is_party" class="econ-form jl-propose" @submit.prevent="submitPropose(l.id)">
-                    <h4>Propose a movement <FormChip form-id="F-IND-023" name="Joint-Ledger Movement" /></h4>
-                    <Field label="To account" :error="propose.errors.to_account_id">
+                    <h4>{{ t('c_economy.joint_ledgers.propose_movement_heading', 'Propose a movement') }} <FormChip form-id="F-IND-023" name="Joint-Ledger Movement" /></h4>
+                    <Field :label="t('c_economy.joint_ledgers.to_account_label', 'To account')" :error="propose.errors.to_account_id">
                         <template #control="{ id, describedBy }">
                             <input
                                 :id="id"
                                 v-model="propose.to_account_id"
                                 :aria-describedby="describedBy"
                                 type="text"
-                                placeholder="The recipient's account id"
+                                :placeholder="t('c_economy.joint_ledgers.to_account_placeholder', 'The recipient\'s account id')"
                             />
                         </template>
                     </Field>
-                    <Field label="Amount" :error="propose.errors.amount">
+                    <Field :label="t('c_economy.joint_ledgers.amount_label', 'Amount')" :error="propose.errors.amount">
                         <template #control="{ id, describedBy }">
                             <input
                                 :id="id"
@@ -219,7 +211,7 @@ function submitApprove(movementId) {
                             />
                         </template>
                     </Field>
-                    <Field label="What for (optional)" :error="propose.errors.memo">
+                    <Field :label="t('c_economy.joint_ledgers.what_for_label', 'What for (optional)')" :error="propose.errors.memo">
                         <template #control="{ id, describedBy }">
                             <input
                                 :id="id"
@@ -230,10 +222,9 @@ function submitApprove(movementId) {
                             />
                         </template>
                     </Field>
-                    <Btn type="submit" :disabled="propose.processing">Propose</Btn>
+                    <Btn type="submit" :disabled="propose.processing">{{ t('c_economy.joint_ledgers.propose', 'Propose') }}</Btn>
                     <p class="econ-note">
-                        Proposing signs it. It settles only when the rule is met — your signature
-                        alone moves nothing.
+                        {{ t('c_economy.joint_ledgers.propose_note', 'Proposing signs it. It settles only when the rule is met — your signature alone moves nothing.') }}
                     </p>
                 </form>
             </article>
@@ -242,68 +233,60 @@ function submitApprove(movementId) {
         <Card v-if="can_open" as="section">
             <template #title>
                 <span class="econ-card-title">
-                    New joint ledger <FormChip form-id="F-IND-023" name="Funds Transfer · Joint Ledger" />
+                    {{ t('c_economy.joint_ledgers.new_ledger_heading', 'New joint ledger') }} <FormChip form-id="F-IND-023" name="Funds Transfer · Joint Ledger" />
                 </span>
             </template>
             <p class="econ-desc">
-                Name the co-owners and the approval rule up front. You are always a signer of a
-                ledger you open; the other co-owners join as their account ids — the same way a
-                transfer names its recipient.
+                {{ t('c_economy.joint_ledgers.new_ledger_desc', 'Name the co-owners and the approval rule up front. You are always a signer of a ledger you open; the other co-owners join as their account ids — the same way a transfer names its recipient.') }}
             </p>
             <form class="econ-form" @submit.prevent="submitOpen">
-                <Field label="Name" :error="open.errors.name">
+                <Field :label="t('c_economy.joint_ledgers.name_label', 'Name')" :error="open.errors.name">
                     <template #control="{ id, describedBy }">
                         <input :id="id" v-model="open.name" :aria-describedby="describedBy" type="text" maxlength="160" />
                     </template>
                 </Field>
-                <Field label="Purpose (optional)" :error="open.errors.purpose">
+                <Field :label="t('c_economy.joint_ledgers.purpose_label', 'Purpose (optional)')" :error="open.errors.purpose">
                     <template #control="{ id, describedBy }">
                         <input :id="id" v-model="open.purpose" :aria-describedby="describedBy" type="text" maxlength="500" />
                     </template>
                 </Field>
-                <Field label="Co-owners' account ids (comma or space separated)" :error="open.errors.party_account_ids">
+                <Field :label="t('c_economy.joint_ledgers.co_owners_ids_label', 'Co-owners\' account ids (comma or space separated)')" :error="open.errors.party_account_ids">
                     <template #control="{ id, describedBy }">
                         <textarea :id="id" v-model="open.parties_raw" :aria-describedby="describedBy" rows="2"></textarea>
                     </template>
                 </Field>
-                <Field label="Approval rule" :error="open.errors.approval_rule">
+                <Field :label="t('c_economy.joint_ledgers.approval_rule_label', 'Approval rule')" :error="open.errors.approval_rule">
                     <template #control="{ id, describedBy }">
                         <select :id="id" v-model="open.approval_rule" :aria-describedby="describedBy">
-                            <option value="all">Every signer must agree</option>
-                            <option value="majority">A majority of signers</option>
+                            <option value="all">{{ t('c_economy.joint_ledgers.rule_option_all', 'Every signer must agree') }}</option>
+                            <option value="majority">{{ t('c_economy.joint_ledgers.rule_option_majority', 'A majority of signers') }}</option>
                         </select>
                     </template>
                 </Field>
                 <label class="jl-public">
                     <input v-model="open.public" type="checkbox" />
-                    Public ledger — anyone may watch it (a jurisdiction-style shared fund)
+                    {{ t('c_economy.joint_ledgers.public_ledger_option', 'Public ledger — anyone may watch it (a jurisdiction-style shared fund)') }}
                 </label>
-                <Btn type="submit" :disabled="open.processing">Open the ledger</Btn>
+                <Btn type="submit" :disabled="open.processing">{{ t('c_economy.joint_ledgers.open_ledger', 'Open the ledger') }}</Btn>
             </form>
         </Card>
 
-        <Card as="section" title="The rails that hold a joint ledger">
+        <Card as="section" :title="t('c_economy.joint_ledgers.rails_title', 'The rails that hold a joint ledger')">
             <ul class="jl-rails">
                 <li>
-                    <strong>No movement without agreement.</strong> A single co-owner can never move
-                    shared money — the movement waits until the approval rule is met.
+                    <strong>{{ t('c_economy.joint_ledgers.rail_1_strong', 'No movement without agreement.') }}</strong>{{ t('c_economy.joint_ledgers.rail_1_body', ' A single co-owner can never move shared money — the movement waits until the approval rule is met.') }}
                 </li>
                 <li>
-                    <strong>Freedom to contract, with a floor.</strong> Parties set their own rule
-                    and purpose, but no clause may waive a right.
+                    <strong>{{ t('c_economy.joint_ledgers.rail_2_strong', 'Freedom to contract, with a floor.') }}</strong>{{ t('c_economy.joint_ledgers.rail_2_body', ' Parties set their own rule and purpose, but no clause may waive a right.') }}
                 </li>
                 <li>
-                    <strong>One set of rails.</strong> The balance lives in an ordinary account on
-                    the public hash-chained ledger; funding and settlement are ordinary balanced
-                    transfers. There is no special joint money.
+                    <strong>{{ t('c_economy.joint_ledgers.rail_3_strong', 'One set of rails.') }}</strong>{{ t('c_economy.joint_ledgers.rail_3_body', ' The balance lives in an ordinary account on the public hash-chained ledger; funding and settlement are ordinary balanced transfers. There is no special joint money.') }}
                 </li>
                 <li>
-                    <strong>No overdraft.</strong> An underfunded ledger refuses a movement the
-                    same way a wallet refuses an overdraft.
+                    <strong>{{ t('c_economy.joint_ledgers.rail_4_strong', 'No overdraft.') }}</strong>{{ t('c_economy.joint_ledgers.rail_4_body', ' An underfunded ledger refuses a movement the same way a wallet refuses an overdraft.') }}
                 </li>
                 <li>
-                    <strong>Currency stays root-reserved.</strong> A joint ledger holds and moves
-                    the unit; it never issues it.
+                    <strong>{{ t('c_economy.joint_ledgers.rail_5_strong', 'Currency stays root-reserved.') }}</strong>{{ t('c_economy.joint_ledgers.rail_5_body', ' A joint ledger holds and moves the unit; it never issues it.') }}
                 </li>
             </ul>
         </Card>
