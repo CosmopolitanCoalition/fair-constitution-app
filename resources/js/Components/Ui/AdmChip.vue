@@ -5,9 +5,9 @@
  * (numeric adm levels are development terminology and never display).
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-/* Natural level labels (the ETL repo's vocabulary). */
-const ADM_LABELS = ['Planet', 'Country', 'State / Province', 'County', 'Municipality', 'Township', 'Neighborhood'];
+const { t } = useI18n();
 
 const props = defineProps({
     level: { type: Number, required: true },
@@ -18,7 +18,20 @@ const props = defineProps({
 });
 
 const clamped = computed(() => Math.min(Math.max(Math.trunc(props.level), 0), 5));
-const naturalLabel = computed(() => ADM_LABELS[Math.min(Math.max(Math.trunc(props.level), 0), 6)]);
+/* Natural level labels (the ETL repo's vocabulary). */
+const naturalLabel = computed(() => {
+    const i = Math.min(Math.max(Math.trunc(props.level), 0), 6);
+    const labels = [
+        t('c_ui_a.adm_chip.level_0', 'Planet'),
+        t('c_ui_a.adm_chip.level_1', 'Country'),
+        t('c_ui_a.adm_chip.level_2', 'State / Province'),
+        t('c_ui_a.adm_chip.level_3', 'County'),
+        t('c_ui_a.adm_chip.level_4', 'Municipality'),
+        t('c_ui_a.adm_chip.level_5', 'Township'),
+        t('c_ui_a.adm_chip.level_6', 'Neighborhood'),
+    ];
+    return labels[i];
+});
 const resolvedTitle = computed(() => props.title ?? naturalLabel.value);
 </script>
 

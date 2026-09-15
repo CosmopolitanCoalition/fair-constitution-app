@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Country",
+  "adm_chip.level_2": "State / Province",
+  "adm_chip.level_3": "County",
+  "adm_chip.level_4": "Municipality",
+  "adm_chip.level_5": "Township",
+  "adm_chip.level_6": "Neighborhood",
+  "citation_line.as_implemented": "as implemented",
+  "data_table.caption_scrollable": "{caption} (scrollable)",
+  "data_table.scrollable_table": "Scrollable table",
+  "history_pager.first_page": "First page",
+  "history_pager.load_error": "This page could not be loaded. Try again.",
+  "history_pager.loading": "Loading records…",
+  "history_pager.next": "Next",
+  "history_pager.previous": "Previous"
+}

@@ -1,6 +1,9 @@
 <script setup>
 import { ref } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     pages: { type: Object, default: () => ({ previous: null, next: null }) },
@@ -31,17 +34,17 @@ function visit(url) {
         only: props.only, preserveState: true, preserveScroll: true,
         onStart: () => { busy.value = true; error.value = ''; },
         onFinish: () => { busy.value = false; },
-        onError: errors => { error.value = Object.values(errors)[0] || 'This page could not be loaded. Try again.'; },
+        onError: errors => { error.value = Object.values(errors)[0] || t('c_ui_a.history_pager.load_error', 'This page could not be loaded. Try again.'); },
     });
 }
 </script>
 
 <template>
     <nav class="history-pages" :aria-label="label" :aria-busy="busy">
-        <button v-if="pages.previous" type="button" :disabled="busy" @click="visit(pages.previous)">Previous</button>
-        <button v-if="pages.next" type="button" :disabled="busy" @click="visit(pages.next)">Next</button>
-        <button v-if="pages.previous || error" type="button" :disabled="busy" @click="visit(first)">First page</button>
-        <span role="status">{{ busy ? 'Loading records…' : '' }}</span>
+        <button v-if="pages.previous" type="button" :disabled="busy" @click="visit(pages.previous)">{{ t('c_ui_a.history_pager.previous', 'Previous') }}</button>
+        <button v-if="pages.next" type="button" :disabled="busy" @click="visit(pages.next)">{{ t('c_ui_a.history_pager.next', 'Next') }}</button>
+        <button v-if="pages.previous || error" type="button" :disabled="busy" @click="visit(first)">{{ t('c_ui_a.history_pager.first_page', 'First page') }}</button>
+        <span role="status">{{ busy ? t('c_ui_a.history_pager.loading', 'Loading records…') : '' }}</span>
         <p v-if="error" role="alert">{{ error }}</p>
     </nav>
 </template>
