@@ -24,6 +24,7 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
@@ -40,6 +41,7 @@ import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
 import { addProtomapsBasemap } from '@/lib/protomapsBasemap.js';
 
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -115,10 +117,10 @@ async function locatePoint(lat, lng) {
             located.value = null;
             declareForm.jurisdiction_id = '';
             locateError.value =
-                data?.message ?? `Could not find a place for this point (${res.status}).`;
+                data?.message ?? t('c_civic.residency.locate_not_found', { status: res.status });
         }
     } catch {
-        if (seq === locateSeq) locateError.value = 'Could not reach the server. Check your connection and try again.';
+        if (seq === locateSeq) locateError.value = t('c_civic.residency.server_unreachable', 'Could not reach the server. Check your connection and try again.');
     } finally {
         if (seq === locateSeq) locatingPoint.value = false;
     }
@@ -129,7 +131,7 @@ const geolocating = ref(false);
 function useMyLocation() {
     locateError.value = null;
     if (!('geolocation' in navigator)) {
-        locateError.value = 'Your browser cannot share your location. Click your home on the map instead.';
+        locateError.value = t('c_civic.residency.no_geo_map', 'Your browser cannot share your location. Click your home on the map instead.');
         return;
     }
     geolocating.value = true;
@@ -143,7 +145,7 @@ function useMyLocation() {
         },
         () => {
             geolocating.value = false;
-            locateError.value = 'Could not read your location. Click your home on the map instead.';
+            locateError.value = t('c_civic.residency.geo_failed_map', 'Could not read your location. Click your home on the map instead.');
         },
         { enableHighAccuracy: false, timeout: 10000 },
     );
@@ -217,7 +219,7 @@ const geoError = ref(null);
 function pingHere() {
     geoError.value = null;
     if (!('geolocation' in navigator)) {
-        geoError.value = 'Your browser cannot share your location. Enter your coordinates below.';
+        geoError.value = t('c_civic.residency.no_geo_coords', 'Your browser cannot share your location. Enter your coordinates below.');
         showManualCoords.value = true;
         return;
     }
@@ -231,7 +233,7 @@ function pingHere() {
         },
         () => {
             locating.value = false;
-            geoError.value = 'Could not read your location. Enter your coordinates below.';
+            geoError.value = t('c_civic.residency.geo_failed_coords', 'Could not read your location. Enter your coordinates below.');
             showManualCoords.value = true;
         },
         { enableHighAccuracy: false, timeout: 10000 },
@@ -274,11 +276,11 @@ async function simulate(days = 30) {
         });
         const data = await res.json().catch(() => null);
         simulateResult.value = res.ok
-            ? `Simulated ${data?.simulated_days ?? days} day(s) — ${data?.qualifying_days ?? '?'} qualifying.`
-            : (data?.message ?? `Simulation failed (${res.status}).`);
+            ? t('c_civic.residency.sim_ok', { days: data?.simulated_days ?? days, qualifying: data?.qualifying_days ?? '?' })
+            : (data?.message ?? t('c_civic.residency.sim_failed', { status: res.status }));
         if (res.ok) router.reload({ preserveScroll: true });
     } catch {
-        simulateResult.value = 'Simulation failed — network error.';
+        simulateResult.value = t('c_civic.residency.sim_network', 'Simulation failed — network error.');
     } finally {
         simulating.value = false;
     }
@@ -291,13 +293,13 @@ const devGrantTarget = computed(() => {
     if (declareForm.jurisdiction_id) {
         return {
             payload: { jurisdiction_id: declareForm.jurisdiction_id },
-            name: chosenName.value ?? 'the selected place',
+            name: chosenName.value ?? t('c_civic.residency.selected_place', 'the selected place'),
         };
     }
     if (pickerLatLng.value) {
         return {
             payload: { lat: pickerLatLng.value.lat, lng: pickerLatLng.value.lng },
-            name: 'the picked point',
+            name: t('c_civic.residency.picked_point', 'the picked point'),
         };
     }
     if (props.claim?.jurisdiction?.id) {
@@ -327,14 +329,14 @@ async function devGrant() {
         const data = await res.json().catch(() => null);
         if (res.ok && data?.granted) {
             grantResult.value = data.already
-                ? `Already a verified resident of ${data.jurisdiction?.name} — nothing to do.`
-                : `Granted — verified resident of ${data.jurisdiction?.name} (${data.chain?.length ?? '?'} associations).`;
+                ? t('c_civic.residency.grant_already', { name: data.jurisdiction?.name })
+                : t('c_civic.residency.grant_ok', { name: data.jurisdiction?.name, count: data.chain?.length ?? '?' });
             router.reload({ preserveScroll: true });
         } else {
-            grantResult.value = data?.message ?? `Grant failed (${res.status}).`;
+            grantResult.value = data?.message ?? t('c_civic.residency.grant_failed', { status: res.status });
         }
     } catch {
-        grantResult.value = 'Grant failed — network error.';
+        grantResult.value = t('c_civic.residency.grant_network', 'Grant failed — network error.');
     } finally {
         granting.value = false;
     }
@@ -504,20 +506,16 @@ onBeforeUnmount(() => {
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            Tell us where you live. That is the only requirement. Once your home is confirmed you
-            belong to every place that contains it, and you can vote and stand for office in each
-            of them.
+            {{ t('c_civic.residency.intro', 'Tell us where you live. That is the only requirement. Once your home is confirmed you belong to every place that contains it, and you can vote and stand for office in each of them.') }}
         </template>
         <template #about>
             <p>
-                WF-CIV-02 residency establishment — declaration, check-in monitoring, threshold,
-                verification, and the association sweep all land on this surface. Entity machines:
-                Residency Claim ({{ machine.join(' → ') }}) and Individual (R-02 → R-03).
+                {{ t('c_civic.residency.about', { machine: machine.join(' → ') }) }}
             </p>
         </template>
 
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
-        <Banner v-if="errors.constitution" tone="warning" title="This filing was refused">
+        <Banner v-if="errors.constitution" tone="warning" :title="t('c_civic.residency.filing_refused', 'This filing was refused')">
             {{ errors.constitution }}
         </Banner>
         <Banner v-if="errors.claim" tone="warning">{{ errors.claim }}</Banner>
@@ -525,86 +523,83 @@ onBeforeUnmount(() => {
         <!-- ═══════════════════ The one question for the current state ═══════════════════ -->
 
         <!-- Monitoring: show you live there -->
-        <Card v-if="panel === 'locked'" as="section" class="hero" eyebrow="Step 2 of 2">
+        <Card v-if="panel === 'locked'" as="section" class="hero" :eyebrow="t('c_civic.residency.eyebrow_step2', 'Step 2 of 2')">
             <template #title>
-                <h2>You declared {{ homeName }}. Now show you live there.</h2>
+                <h2>{{ t('c_civic.residency.locked_h2', { home: homeName }) }}</h2>
             </template>
             <ThresholdMeter
                 :value="qualifyingDays"
                 :max="thresholdDays"
                 :threshold="thresholdDays"
-                label="Days checked in from home"
+                :label="t('c_civic.residency.days_checked_label', 'Days checked in from home')"
             >
-                {{ qualifyingDays }} of {{ thresholdDays }} days checked in
-                <template #note>one check-in per day, from inside {{ homeName }}</template>
+                {{ t('c_civic.residency.days_checked_meter', { done: qualifyingDays, threshold: thresholdDays }) }}
+                <template #note>{{ t('c_civic.residency.checkin_note', { home: homeName }) }}</template>
             </ThresholdMeter>
             <p style="margin-block-start: var(--space-3)">
-                Open this page while you are at home and check in. Each day counts once. Your
-                location stays private; only the number of days is kept. When you reach
-                {{ thresholdDays }} days you will be asked to confirm.
+                {{ t('c_civic.residency.checkin_body', { days: thresholdDays }) }}
             </p>
             <div class="cluster" style="margin-block-start: var(--space-3)">
                 <Btn variant="primary" icon="map-pin" :disabled="locating || pingForm.processing" @click="pingHere">
-                    {{ locating ? 'Finding you…' : pingForm.processing ? 'Recording…' : 'Check in from here' }}
+                    {{ locating ? t('c_civic.residency.finding_you', 'Finding you…') : pingForm.processing ? t('c_civic.residency.recording', 'Recording…') : t('c_civic.residency.check_in_here', 'Check in from here') }}
                 </Btn>
                 <Btn variant="ghost" size="sm" :pressed="showManualCoords" @click="showManualCoords = !showManualCoords">
-                    Enter coordinates instead
+                    {{ t('c_civic.residency.enter_coords', 'Enter coordinates instead') }}
                 </Btn>
             </div>
             <p v-if="geoError" class="field-error" role="alert" style="margin-block-start: var(--space-2)">{{ geoError }}</p>
             <form v-if="showManualCoords" novalidate style="margin-block-start: var(--space-3)" @submit.prevent="submitPing">
                 <div class="cluster" style="align-items: flex-end">
-                    <Field label="Latitude" :error="pingForm.errors.latitude">
+                    <Field :label="t('c_civic.residency.latitude', 'Latitude')" :error="pingForm.errors.latitude">
                         <template #control="{ id }">
                             <input :id="id" v-model="pingForm.latitude" class="field-input" type="text" inputmode="decimal" style="inline-size: 9rem" />
                         </template>
                     </Field>
-                    <Field label="Longitude" :error="pingForm.errors.longitude">
+                    <Field :label="t('c_civic.residency.longitude', 'Longitude')" :error="pingForm.errors.longitude">
                         <template #control="{ id }">
                             <input :id="id" v-model="pingForm.longitude" class="field-input" type="text" inputmode="decimal" style="inline-size: 9rem" />
                         </template>
                     </Field>
-                    <Btn type="submit" variant="secondary" :disabled="pingForm.processing">Record check-in</Btn>
+                    <Btn type="submit" variant="secondary" :disabled="pingForm.processing">{{ t('c_civic.residency.record_checkin', 'Record check-in') }}</Btn>
                 </div>
             </form>
             <p class="gloss" style="margin-block-start: var(--space-3)">
-                Wrong place?
-                <button type="button" class="link-btn" @click="openDeclare">Change my home</button>
+                {{ t('c_civic.residency.wrong_place', 'Wrong place?') }}
+                <button type="button" class="link-btn" @click="openDeclare">{{ t('c_civic.residency.change_home', 'Change my home') }}</button>
             </p>
         </Card>
 
         <!-- Threshold met: is this your home? -->
-        <Card v-else-if="panel === 'pending_confirmation'" as="section" class="hero" eyebrow="Last step">
+        <Card v-else-if="panel === 'pending_confirmation'" as="section" class="hero" :eyebrow="t('c_civic.residency.eyebrow_last', 'Last step')">
             <template #title>
-                <h2>Is {{ homeName }} your home?</h2>
+                <h2>{{ t('c_civic.residency.confirm_h2', { home: homeName }) }}</h2>
             </template>
             <p>
-                <template v-if="isInstant">You declared {{ homeName }}.</template>
-                <template v-else>You checked in from {{ homeName }} on {{ qualifyingDays }} days.</template>
-                Confirm and you belong to every place that contains it.
+                <template v-if="isInstant">{{ t('c_civic.residency.declared_instant', { home: homeName }) }}</template>
+                <template v-else>{{ t('c_civic.residency.checked_in', { home: homeName, days: qualifyingDays }) }}</template>
+                {{ t('c_civic.residency.confirm_belong', 'Confirm and you belong to every place that contains it.') }}
             </p>
             <div class="cluster" style="margin-block-start: var(--space-3)">
                 <Btn variant="primary" icon="check" :disabled="confirmForm.processing" @click="submitConfirm">
-                    {{ confirmForm.processing ? 'Confirming…' : 'Yes, this is my home' }}
+                    {{ confirmForm.processing ? t('c_civic.residency.confirming', 'Confirming…') : t('c_civic.residency.yes_home', 'Yes, this is my home') }}
                 </Btn>
-                <Btn variant="secondary" @click="openDeclare">No, change my home</Btn>
+                <Btn variant="secondary" @click="openDeclare">{{ t('c_civic.residency.no_change_home', 'No, change my home') }}</Btn>
             </div>
         </Card>
 
         <!-- Verified: you live in X -->
-        <Card v-else-if="panel === 'verified'" as="section" class="hero" eyebrow="Confirmed">
+        <Card v-else-if="panel === 'verified'" as="section" class="hero" :eyebrow="t('c_civic.residency.eyebrow_confirmed', 'Confirmed')">
             <template #title>
-                <h2>You live in {{ homeName }}.</h2>
+                <h2>{{ t('c_civic.residency.verified_h2', { home: homeName }) }}</h2>
             </template>
             <div
                 ref="mapEl"
                 class="boundary-map"
                 role="img"
-                :aria-label="`Map of ${homeName}`"
+                :aria-label="t('c_civic.residency.map_of', { home: homeName })"
             ></div>
             <p style="margin-block-start: var(--space-3)">
-                You belong to {{ associations.length }} place{{ associations.length === 1 ? '' : 's' }} at once,
-                and you can vote and stand for office in every one of them:
+                {{ t('c_civic.residency.belong_count', { count: associations.length, plural: associations.length === 1 ? '' : 's' }) }}
             </p>
             <div class="cluster" style="margin-block-start: var(--space-2)">
                 <AdmChip
@@ -615,23 +610,22 @@ onBeforeUnmount(() => {
                 />
             </div>
             <p class="gloss" style="margin-block-start: var(--space-3)">
-                Moved?
-                <button type="button" class="link-btn" @click="openDeclare">Change my home</button>
+                {{ t('c_civic.residency.moved', 'Moved?') }}
+                <button type="button" class="link-btn" @click="openDeclare">{{ t('c_civic.residency.change_home', 'Change my home') }}</button>
             </p>
         </Card>
 
         <!-- ═══════════════════ Declare / change my home (F-IND-003) ═══════════════════ -->
         <div v-if="declareVisible" ref="declareCardEl">
-            <Card as="section" class="hero" :eyebrow="isUndeclared ? (isInstant ? 'One step' : 'Step 1 of 2') : 'Change my home'">
+            <Card as="section" class="hero" :eyebrow="isUndeclared ? (isInstant ? t('c_civic.residency.eyebrow_one_step', 'One step') : t('c_civic.residency.eyebrow_step1', 'Step 1 of 2')) : t('c_civic.residency.change_home', 'Change my home')">
                 <template #title>
-                    <h2>{{ isUndeclared ? 'Where do you live?' : 'Where do you live now?' }}</h2>
+                    <h2>{{ isUndeclared ? t('c_civic.residency.where_live', 'Where do you live?') : t('c_civic.residency.where_live_now', 'Where do you live now?') }}</h2>
                 </template>
                 <form novalidate @submit.prevent="submitDeclare">
                     <p>
-                        Use your current location, or click your home on the map. Only the place you
-                        live in is recorded, never the exact point.
+                        {{ t('c_civic.residency.declare_body', 'Use your current location, or click your home on the map. Only the place you live in is recorded, never the exact point.') }}
                         <template v-if="!isUndeclared && !isInstant">
-                            Changing your home starts the check-in days again inside the new place.
+                            {{ t('c_civic.residency.change_restart', 'Changing your home starts the check-in days again inside the new place.') }}
                         </template>
                     </p>
 
@@ -643,24 +637,24 @@ onBeforeUnmount(() => {
                             :disabled="geolocating || locatingPoint"
                             @click="useMyLocation"
                         >
-                            {{ geolocating ? 'Finding you…' : 'Use my current location' }}
+                            {{ geolocating ? t('c_civic.residency.finding_you', 'Finding you…') : t('c_civic.residency.use_location', 'Use my current location') }}
                         </Btn>
-                        <span class="gloss">or click your home on the map</span>
+                        <span class="gloss">{{ t('c_civic.residency.or_click_map', 'or click your home on the map') }}</span>
                     </div>
 
                     <div class="map-wrap" style="margin-block-end: var(--space-3)">
-                        <div ref="pickerEl" class="boundary-map" aria-label="Map — click where you live"></div>
+                        <div ref="pickerEl" class="boundary-map" :aria-label="t('c_civic.residency.map_click', 'Map — click where you live')"></div>
                         <p v-if="basemapMissing" class="map-note">
-                            No map tiles are loaded on this box. Use your current location or search by name below.
+                            {{ t('c_civic.residency.no_tiles', 'No map tiles are loaded on this box. Use your current location or search by name below.') }}
                         </p>
                     </div>
 
-                    <p v-if="locatingPoint" class="gloss" role="status">Finding the place at that point…</p>
+                    <p v-if="locatingPoint" class="gloss" role="status">{{ t('c_civic.residency.finding_point', 'Finding the place at that point…') }}</p>
                     <p v-if="locateError" class="field-error" role="alert">{{ locateError }}</p>
 
                     <div v-if="located" class="locate-preview" role="status">
                         <p class="cc-small" style="margin-block-end: var(--space-1)">
-                            Your home is in <strong>{{ located.jurisdiction.name }}</strong>. It sits inside:
+                            {{ t('c_civic.residency.home_is_in', 'Your home is in') }} <strong>{{ located.jurisdiction.name }}</strong>{{ t('c_civic.residency.sits_inside', '. It sits inside:') }}
                         </p>
                         <div class="cluster">
                             <template v-for="(level, i) in located.chain" :key="level.id">
@@ -670,16 +664,16 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
                     <p v-else-if="selected" class="locate-preview" role="status">
-                        Your home:
+                        {{ t('c_civic.residency.your_home', 'Your home:') }}
                         <AdmChip :level="selected.adm_level" :label="selected.name" />
-                        <span v-if="selected.parent_name" class="citation"> in {{ selected.parent_name }}</span>
+                        <span v-if="selected.parent_name" class="citation"> {{ t('c_civic.residency.in_parent', { parent: selected.parent_name }) }}</span>
                     </p>
 
                     <details class="search-collapse" style="margin-block-end: var(--space-3)">
-                        <summary>Search by place name instead</summary>
+                        <summary>{{ t('c_civic.residency.search_by_name', 'Search by place name instead') }}</summary>
                         <Field
-                            label="Place name"
-                            hint="Type the name of the town, county, region or country you live in. Street addresses are not searched."
+                            :label="t('c_civic.residency.place_name', 'Place name')"
+                            :hint="t('c_civic.residency.place_name_hint', 'Type the name of the town, county, region or country you live in. Street addresses are not searched.')"
                             :error="declareForm.errors.jurisdiction_id"
                         >
                             <template #control="{ id, invalid, describedBy }">
@@ -688,20 +682,20 @@ onBeforeUnmount(() => {
                                     v-model="search"
                                     class="field-input"
                                     type="search"
-                                    placeholder="e.g. Anne Arundel, New York, Serravalle"
+                                    :placeholder="t('c_civic.residency.place_name_placeholder', 'e.g. Anne Arundel, New York, Serravalle')"
                                     autocomplete="off"
                                     :aria-invalid="invalid ? 'true' : undefined"
                                     :aria-describedby="describedBy"
                                 />
                             </template>
                         </Field>
-                        <p v-if="searching" class="gloss" role="status">Searching…</p>
-                        <ul v-if="results.length" class="search-results" role="listbox" aria-label="Matching places">
+                        <p v-if="searching" class="gloss" role="status">{{ t('c_civic.residency.searching', 'Searching…') }}</p>
+                        <ul v-if="results.length" class="search-results" role="listbox" :aria-label="t('c_civic.residency.matching_places', 'Matching places')">
                             <li v-for="result in results" :key="result.id">
                                 <button type="button" class="search-result" role="option" aria-selected="false" @click="pick(result)">
                                     <AdmChip :level="result.adm_level" :label="result.name" />
                                     <span class="citation">
-                                        {{ result.parent_name ? `in ${result.parent_name}` : '' }}
+                                        {{ result.parent_name ? t('c_civic.residency.in_parent', { parent: result.parent_name }) : '' }}
                                     </span>
                                 </button>
                             </li>
@@ -709,35 +703,32 @@ onBeforeUnmount(() => {
                     </details>
 
                     <p v-if="declareForm.errors.jurisdiction_id && !located && !selected" class="field-error">
-                        Choose the place you live in first.
+                        {{ t('c_civic.residency.choose_first', 'Choose the place you live in first.') }}
                     </p>
 
                     <div class="field" :class="{ 'field--invalid': declareForm.errors.ping_consent }">
                         <CheckboxField v-model="declareForm.ping_consent" name="ping_consent">
                             <template v-if="isInstant">
-                                I confirm this is where I live. My location is private and is used only to
-                                place me here.
+                                {{ t('c_civic.residency.consent_instant', 'I confirm this is where I live. My location is private and is used only to place me here.') }}
                             </template>
                             <template v-else>
-                                I agree to check in from home over the next {{ thresholdDays }} days so my
-                                residency can be confirmed. Check-ins are private; only the number of days
-                                is kept, and the locations are deleted once I am confirmed.
+                                {{ t('c_civic.residency.consent_monitored', { days: thresholdDays }) }}
                             </template>
                         </CheckboxField>
                         <span v-if="declareForm.errors.ping_consent" class="field-error">
-                            Please tick the box to continue.
+                            {{ t('c_civic.residency.tick_box', 'Please tick the box to continue.') }}
                         </span>
                     </div>
 
                     <div class="cluster" style="margin-block-start: var(--space-3)">
                         <Btn type="submit" variant="primary" icon="check" :disabled="declareForm.processing || !declareForm.jurisdiction_id">
-                            {{ declareForm.processing ? 'Saving…' : isInstant ? 'Confirm my home' : (isUndeclared ? 'Declare my home' : 'Change my home') }}
+                            {{ declareForm.processing ? t('c_civic.residency.saving', 'Saving…') : isInstant ? t('c_civic.residency.confirm_my_home', 'Confirm my home') : (isUndeclared ? t('c_civic.residency.declare_my_home', 'Declare my home') : t('c_civic.residency.change_home', 'Change my home')) }}
                         </Btn>
-                        <Btn v-if="!isUndeclared" type="button" variant="ghost" @click="showDeclare = false">Keep my current home</Btn>
+                        <Btn v-if="!isUndeclared" type="button" variant="ghost" @click="showDeclare = false">{{ t('c_civic.residency.keep_current', 'Keep my current home') }}</Btn>
                     </div>
                     <p class="gloss" style="margin-block-start: var(--space-2)">
-                        <template v-if="isInstant">You are confirmed the moment you declare.</template>
-                        <template v-else>Then check in from home on {{ thresholdDays }} days and you are confirmed.</template>
+                        <template v-if="isInstant">{{ t('c_civic.residency.instant_note', 'You are confirmed the moment you declare.') }}</template>
+                        <template v-else>{{ t('c_civic.residency.monitored_note', { days: thresholdDays }) }}</template>
                     </p>
                 </form>
             </Card>
@@ -745,32 +736,30 @@ onBeforeUnmount(() => {
 
         <!-- ═══════════════════ How this works (the fine print) ═══════════════════ -->
         <details class="more">
-            <summary>How this works, and the fine print</summary>
-            <Card as="section" title="Your residency claim">
+            <summary>{{ t('c_civic.residency.how_works_summary', 'How this works, and the fine print') }}</summary>
+            <Card as="section" :title="t('c_civic.residency.claim_title', 'Your residency claim')">
                 <StateStrip :states="machine" :current="claim?.status ?? null" />
                 <p v-if="hasClaim" class="gloss" style="margin-block-start: var(--space-2)">
-                    Declared:
+                    {{ t('c_civic.residency.declared_label', 'Declared:') }}
                     <AdmChip :level="claim.jurisdiction?.adm_level ?? 0" :label="claim.jurisdiction?.name ?? '—'" />
                     · {{ claim.declared_at ? new Date(claim.declared_at).toLocaleDateString() : '—' }}
                 </p>
                 <p style="margin-block-start: var(--space-3)">
                     <AmendableSetting
-                        :value="isInstant ? 'instant' : `${thresholdDays} days`"
+                        :value="isInstant ? t('c_civic.residency.instant_value', 'instant') : t('c_civic.residency.days_value', { days: thresholdDays })"
                         setting-key="residency_confirmation_days"
                         citation="CLK-05 · Art. I; Art. V §1"
                     />
                 </p>
                 <p class="cc-small" style="margin-block-start: var(--space-3)">
-                    Declaration <FormChip form-id="F-IND-003" /> · Check-in <FormChip form-id="F-IND-005" /> ·
-                    Confirmation <FormChip form-id="F-IND-006" /> <HardenedChip />
+                    {{ t('c_civic.residency.decl_word', 'Declaration') }} <FormChip form-id="F-IND-003" /> {{ t('c_civic.residency.checkin_word', '· Check-in') }} <FormChip form-id="F-IND-005" />
+                    {{ t('c_civic.residency.confirm_word', '· Confirmation') }} <FormChip form-id="F-IND-006" /> <HardenedChip />
                     <span class="citation" style="display: block">
-                        available to R-01 Individual · the confirmation creates verified residency and every
-                        jurisdictional association (R-03) · Art. I; Art. V §1
+                        {{ t('c_civic.residency.roles_cite', 'available to R-01 Individual · the confirmation creates verified residency and every jurisdictional association (R-03) · Art. I; Art. V §1') }}
                     </span>
                 </p>
-                <Banner tone="info" title="Check-ins are private." style="margin-block-start: var(--space-3)">
-                    Locations are encrypted at rest, never shown to anyone, and deleted once you are
-                    confirmed. Only the number of days is ever visible.
+                <Banner tone="info" :title="t('c_civic.residency.privacy_title', 'Check-ins are private.')" style="margin-block-start: var(--space-3)">
+                    {{ t('c_civic.residency.privacy_body', 'Locations are encrypted at rest, never shown to anyone, and deleted once you are confirmed. Only the number of days is ever visible.') }}
                     <span class="citation">location_pings · private · Art. I</span>
                 </Banner>
             </Card>
@@ -778,22 +767,22 @@ onBeforeUnmount(() => {
 
         <!-- ═══════════════════ Developer tools (local builds only) ═══════════════════ -->
         <details v-if="isDev" class="more">
-            <summary>Developer tools (local only)</summary>
-            <Card as="section" title="Shortcuts through the real engine">
+            <summary>{{ t('c_civic.residency.dev_summary', 'Developer tools (local only)') }}</summary>
+            <Card as="section" :title="t('c_civic.residency.dev_title', 'Shortcuts through the real engine')">
                 <div class="cluster">
                     <Btn variant="gold" size="sm" icon="map-pin" :disabled="!devGrantTarget || granting" @click="devGrant">
-                        {{ granting ? 'Granting…' : 'Grant residency instantly' }}
+                        {{ granting ? t('c_civic.residency.granting', 'Granting…') : t('c_civic.residency.grant_instantly', 'Grant residency instantly') }}
                     </Btn>
                     <span class="citation">
-                        targets {{ devGrantTarget?.name ?? '—' }} · real F-IND-003/005/006 filings · relocates if already verified
+                        {{ t('c_civic.residency.grant_targets', { name: devGrantTarget?.name ?? '—' }) }}
                     </span>
                 </div>
                 <p v-if="grantResult" class="gloss" role="status" style="margin-block-start: var(--space-2)">{{ grantResult }}</p>
                 <div class="cluster" style="margin-block-start: var(--space-3)">
                     <Btn variant="gold" size="sm" icon="clock" :disabled="!hasClaim || isInstant || simulating" @click="simulate(30)">
-                        {{ simulating ? 'Simulating…' : 'Simulate 30 days of check-ins' }}
+                        {{ simulating ? t('c_civic.residency.simulating', 'Simulating…') : t('c_civic.residency.simulate_30', 'Simulate 30 days of check-ins') }}
                     </Btn>
-                    <span class="citation">files 30 real F-IND-005 entries on the open claim</span>
+                    <span class="citation">{{ t('c_civic.residency.simulate_cite', 'files 30 real F-IND-005 entries on the open claim') }}</span>
                 </div>
                 <p v-if="simulateResult" class="gloss" role="status" style="margin-block-start: var(--space-2)">{{ simulateResult }}</p>
             </Card>

@@ -11,6 +11,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -27,6 +28,7 @@ import CommunityNav from '@/Components/Civic/CommunityNav.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -102,9 +104,7 @@ function submitCreate() {
     <PageScaffold :surface="surface" :title="selectedPlace ? $t('places.petitions_in', { name: selectedPlace.name }) : undefined">
         <CommunityNav :jurisdiction-id="selectedPlace?.id || ''" />
         <template #intro>
-            Anyone who lives here can draft a law and put it to a vote. Reach the signature
-            threshold, pass an independent check and a constitutionality review, and your
-            proposal goes on the next jurisdiction-wide ballot.
+            {{ t('c_civic.petitions.intro', 'Anyone who lives here can draft a law and put it to a vote. Reach the signature threshold, pass an independent check and a constitutionality review, and your proposal goes on the next jurisdiction-wide ballot.') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -112,16 +112,16 @@ function submitCreate() {
 
         <div class="cluster" style="gap: var(--space-6)">
             <Stat :value="petitions.length" :label="$t('places.petitions_in_view')" />
-            <Stat :value="`${thresholdSetting.pct}%`" label="signature threshold · CLK-17" accent />
-            <Stat :value="mySignatures" label="your live signatures" />
+            <Stat :value="`${thresholdSetting.pct}%`" :label="t('c_civic.petitions.stat_threshold', 'signature threshold · CLK-17')" accent />
+            <Stat :value="mySignatures" :label="t('c_civic.petitions.stat_signatures', 'your live signatures')" />
         </div>
         <p class="amendable" style="margin-block-start: calc(-1 * var(--space-3))">
-            <span class="amendable-value">{{ thresholdSetting.pct }}%</span> of jurisdiction population
+            <span class="amendable-value">{{ thresholdSetting.pct }}%</span> {{ t('c_civic.petitions.of_population', 'of jurisdiction population') }}
             <span class="amendable-meta" data-no-i18n>{{ thresholdSetting.key }} · amendable by legislative act · {{ thresholdSetting.clock }} · Art. II §6</span>
         </p>
 
         <!-- ==================================== list ===================== -->
-        <Card as="section" title="Open petitions">
+        <Card as="section" :title="t('c_civic.petitions.open_petitions', 'Open petitions')">
             <p class="citation" style="margin-block-end: var(--space-3)">{{ selectedPlace ? $t('places.viewing', { name: selectedPlace.name }) : $t('places.association_view') }}</p>
 
             <div v-if="petitions.length" class="stack" style="gap: var(--space-3)">
@@ -139,9 +139,9 @@ function submitCreate() {
                             size="sm"
                             :aria-pressed="petition.signed_by_me ? 'true' : 'false'"
                             :disabled="!petition.signable || signing === petition.id"
-                            :title="petition.signable ? undefined : 'audited count frozen at the threshold check'"
+                            :title="petition.signable ? undefined : t('c_civic.petitions.frozen_title', 'audited count frozen at the threshold check')"
                             @click="toggleSignature(petition)"
-                        >{{ petition.signed_by_me ? 'Signed' : 'Sign' }}</Btn>
+                        >{{ petition.signed_by_me ? t('c_civic.petitions.signed', 'Signed') : t('c_civic.petitions.sign', 'Sign') }}</Btn>
                     </div>
                     <SignatureMeter
                         :signatures="petition.signatures"
@@ -151,7 +151,7 @@ function submitCreate() {
                         style="margin-block-start: var(--space-2)"
                     />
                     <p class="citation" style="margin-block-start: var(--space-1)">
-                        scale: {{ petition.scale_label }} · scope: {{ petition.scope_label }}
+                        {{ t('c_civic.petitions.scale_scope', { scale: petition.scale_label, scope: petition.scope_label }) }}
                     </p>
                 </Card>
             </div>
@@ -160,10 +160,10 @@ function submitCreate() {
             </p>
 
             <p class="cc-small" style="margin-block-start: var(--space-3)">
-                The Sign toggles use Petition signature
+                {{ t('c_civic.petitions.sign_toggles', 'The Sign toggles use Petition signature') }}
                 <span class="form-chip"><span class="form-id" data-no-i18n>F-IND-010</span></span>
-                — revocable while the petition gathers; the audited count freezes at the threshold check.
-                <span class="citation" style="display: block">available to R-03 Jurisdictionally Associated · Art. II §6</span>
+                {{ t('c_civic.petitions.sign_toggles_after', '— revocable while the petition gathers; the audited count freezes at the threshold check.') }}
+                <span class="citation" style="display: block">{{ t('c_civic.petitions.avail_cite', 'available to R-03 Jurisdictionally Associated · Art. II §6') }}</span>
             </p>
         </Card>
 
@@ -173,25 +173,25 @@ function submitCreate() {
             v-if="isAssociated && formMeta('F-IND-009')"
             :form="formMeta('F-IND-009')"
             :inertia-form="create"
-            submit-label="Register petition"
+            :submit-label="t('c_civic.petitions.register', 'Register petition')"
             @submit="submitCreate"
         >
-            <Field label="Title" :error="create.errors.title" required>
+            <Field :label="t('c_civic.petitions.title_label', 'Title')" :error="create.errors.title" required>
                 <template #control="{ id, invalid, describedBy }">
                     <input
                         :id="id"
                         v-model="create.title"
                         class="field-input"
                         type="text"
-                        placeholder="Short, neutral title for the proposed law"
+                        :placeholder="t('c_civic.petitions.title_placeholder', 'Short, neutral title for the proposed law')"
                         :aria-invalid="invalid ? 'true' : undefined"
                         :aria-describedby="describedBy"
                     />
                 </template>
             </Field>
             <Field
-                label="Law text"
-                hint="Write the binding text itself, not a summary — this is what voters ratify. It is reviewed for constitutionality before ballot placement."
+                :label="t('c_civic.petitions.law_text_label', 'Law text')"
+                :hint="t('c_civic.petitions.law_text_hint', 'Write the binding text itself, not a summary — this is what voters ratify. It is reviewed for constitutionality before ballot placement.')"
                 :error="create.errors.law_text"
                 required
             >
@@ -207,49 +207,45 @@ function submitCreate() {
                 </template>
             </Field>
             <Field
-                label="Scale — which jurisdiction adopts it"
+                :label="t('c_civic.petitions.scale_label', 'Scale — which jurisdiction adopts it')"
                 :hint="selectedScale
-                    ? `≈ ${selectedScale.threshold_preview.toLocaleString()} signatures at ${selectedScale.name}'s civic population of ${selectedScale.population.toLocaleString()} (${selectedScale.threshold_pct}% · CLK-17 — snapshot taken at creation)`
-                    : 'Threshold preview updates with your selection.'"
+                    ? t('c_civic.petitions.scale_hint', { count: selectedScale.threshold_preview.toLocaleString(), name: selectedScale.name, population: selectedScale.population.toLocaleString(), pct: selectedScale.threshold_pct })
+                    : t('c_civic.petitions.scale_hint_default', 'Threshold preview updates with your selection.')"
                 :error="create.errors.jurisdiction_id"
             >
                 <template #control="{ id }">
                     <select :id="id" v-model="create.jurisdiction_id" class="select">
                         <option v-for="option in createForm.scaleOptions" :key="option.id" :value="option.id">
-                            {{ option.name }} — civic pop {{ option.population.toLocaleString() }}
+                            {{ t('c_civic.petitions.option', { name: option.name, pop: option.population.toLocaleString() }) }}
                         </option>
                     </select>
                 </template>
             </Field>
             <p class="gloss" style="margin-block-end: var(--space-3)">
-                Scale and scope travel with the law — the same fields a bill carries. The petition
-                enters at <em>Created</em> and signature gathering opens immediately.
+                {{ t('c_civic.petitions.scale_scope_a', 'Scale and scope travel with the law — the same fields a bill carries. The petition enters at') }} <em>{{ t('c_civic.petitions.created_em', 'Created') }}</em> {{ t('c_civic.petitions.scale_scope_b', 'and signature gathering opens immediately.') }}
             </p>
         </FormCard>
-        <Card v-else as="section" title="Petition creation (F-IND-009)">
+        <Card v-else as="section" :title="t('c_civic.petitions.creation_title', 'Petition creation (F-IND-009)')">
             <p class="gloss">
-                Creating a petition requires an active jurisdictional association (R-03) — the same
-                gate as voting and candidacy, and the only one (Art. I).
+                {{ t('c_civic.petitions.creation_body', 'Creating a petition requires an active jurisdictional association (R-03) — the same gate as voting and candidacy, and the only one (Art. I).') }}
             </p>
-            <Btn as="a" href="/civic/residency" variant="primary" size="sm">Declare residency →</Btn>
+            <Btn as="a" href="/civic/residency" variant="primary" size="sm">{{ t('c_civic.petitions.declare_residency', 'Declare residency →') }}</Btn>
         </Card>
 
         <!-- ==================================== lifecycle ================ -->
-        <Card as="section" title="Petition lifecycle">
-            <StateStrip :states="machine" aria-label="Petition state machine" />
+        <Card as="section" :title="t('c_civic.petitions.lifecycle_title', 'Petition lifecycle')">
+            <StateStrip :states="machine" :aria-label="t('c_civic.petitions.lifecycle_aria', 'Petition state machine')" />
             <p class="gloss" style="margin-block-start: var(--space-2)">
-                Two kill-paths: a failed signature audit, or an unconstitutional finding.
+                {{ t('c_civic.petitions.two_kill_paths', 'Two kill-paths: a failed signature audit, or an unconstitutional finding.') }}
             </p>
             <p class="citation">
-                Audit by the election board (F-ELB-005) · review by the judiciary (F-JDG-008 · Planned · Phase E) · Art. II §6
+                {{ t('c_civic.petitions.lifecycle_cite', 'Audit by the election board (F-ELB-005) · review by the judiciary (F-JDG-008 · Planned · Phase E) · Art. II §6') }}
             </p>
         </Card>
 
         <template #about>
             <p>
-                Signing (F-IND-010) is available to any R-03 associated resident of the petition's
-                jurisdiction — no petitioner role needed to sign. Thresholds are snapshots: the
-                civic-population basis and the resolved percentage freeze at creation (CLK-17).
+                {{ t('c_civic.petitions.about', "Signing (F-IND-010) is available to any R-03 associated resident of the petition's jurisdiction — no petitioner role needed to sign. Thresholds are snapshots: the civic-population basis and the resolved percentage freeze at creation (CLK-17).") }}
             </p>
         </template>
     </PageScaffold>

@@ -14,6 +14,7 @@
  */
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
@@ -29,6 +30,7 @@ import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -62,8 +64,11 @@ const showResidencyCard = computed(() => hasClaim.value || props.associations.le
 const total = computed(() => props.feed?.total ?? 0);
 const pageTitle = computed(() =>
     total.value > 0
-        ? `Home — ${total.value} thing${total.value === 1 ? '' : 's'} happening now`
-        : 'Home',
+        ? t('c_civic.home.page_title_count', {
+            count: total.value,
+            unit: total.value === 1 ? t('c_civic.home.thing', 'thing') : t('c_civic.home.things', 'things'),
+        })
+        : t('c_civic.home.page_title', 'Home'),
 );
 
 /* Feed row icon by kind (the today.html vocabulary). */
@@ -83,8 +88,8 @@ const kindIcon = (kind) => KIND_ICONS[kind] ?? 'landmark';
 const countdown = (target) => {
     if (!target?.iso) return null;
     const ms = new Date(target.iso).getTime() - Date.now();
-    const verb = target.kind === 'opensAt' ? 'opens' : 'closes';
-    if (ms <= 0) return target.kind === 'opensAt' ? 'opening now' : 'closing now';
+    if (ms <= 0) return target.kind === 'opensAt' ? t('c_civic.home.opening_now', 'opening now') : t('c_civic.home.closing_now', 'closing now');
+    const verb = target.kind === 'opensAt' ? t('c_civic.home.opens', 'opens') : t('c_civic.home.closes', 'closes');
     const totalMin = Math.floor(ms / 60000);
     const d = Math.floor(totalMin / 1440);
     const h = Math.floor((totalMin % 1440) / 60);
@@ -93,7 +98,7 @@ const countdown = (target) => {
     if (d) parts.push(`${d}d`);
     if (h) parts.push(`${h}h`);
     if (m || !parts.length) parts.push(`${m}m`);
-    return `${verb} in ${parts.join(' ')}`;
+    return t('c_civic.home.countdown', { verb, parts: parts.join(' ') });
 };
 
 /** Calendar rows grouped into their server-computed day buckets, in order. */
@@ -129,14 +134,11 @@ const recordDate = (iso) => {
 <template>
     <PageScaffold :surface="surface" :title="pageTitle">
         <template #intro>
-            Everything live in the places you live, each one a tap away.
+            {{ t('c_civic.home.intro', 'Everything live in the places you live, each one a tap away.') }}
         </template>
         <template #about>
             <p>
-                The post-login home (WF-CIV-02): every live proceeding in your association
-                chain — elections, chamber sessions, petitions, referendums — plus the
-                community calendar and the public record. You can watch every public
-                proceeding; you speak, testify, and vote where you live.
+                {{ t('c_civic.home.about', 'The post-login home (WF-CIV-02): every live proceeding in your association chain — elections, chamber sessions, petitions, referendums — plus the community calendar and the public record. You can watch every public proceeding; you speak, testify, and vote where you live.') }}
             </p>
         </template>
 
@@ -149,57 +151,53 @@ const recordDate = (iso) => {
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
 
         <!-- ────────────────────────────── Residency (top card while unsettled) -->
-        <Card v-if="showResidencyCard" as="section" title="Residency">
+        <Card v-if="showResidencyCard" as="section" :title="t('c_civic.home.residency', 'Residency')">
             <template v-if="!hasClaim">
                 <p>
-                    You have not said where you live yet. Declare the smallest boundary you
-                    live inside; every enclosing level associates automatically once your
-                    presence pattern verifies — and voting and candidacy unlock with it.
+                    {{ t('c_civic.home.no_claim_body', 'You have not said where you live yet. Declare the smallest boundary you live inside; every enclosing level associates automatically once your presence pattern verifies — and voting and candidacy unlock with it.') }}
                 </p>
                 <div class="cluster" style="margin-block-start: var(--space-3)">
                     <Btn :as="Link" href="/civic/residency" variant="primary" icon="map-pin">
-                        Say where you live
+                        {{ t('c_civic.home.say_where', 'Say where you live') }}
                     </Btn>
                 </div>
             </template>
             <template v-else>
                 <StateStrip :states="machine" :current="claim.status" />
                 <p class="gloss" style="margin-block-start: var(--space-2)">
-                    Declared boundary: <strong>{{ claim.jurisdiction?.name ?? '—' }}</strong>
+                    {{ t('c_civic.home.declared_boundary', 'Declared boundary:') }} <strong>{{ claim.jurisdiction?.name ?? '—' }}</strong>
                 </p>
                 <ThresholdMeter
                     v-if="!claimActive"
                     :value="claim.qualifying_days"
                     :max="claim.threshold"
                     :threshold="claim.threshold"
-                    label="Qualifying days toward the residency threshold"
+                    :label="t('c_civic.home.qualifying_label', 'Qualifying days toward the residency threshold')"
                 >
-                    {{ claim.qualifying_days }} of {{ claim.threshold }} qualifying days
+                    {{ t('c_civic.home.qualifying_days', { done: claim.qualifying_days, threshold: claim.threshold }) }}
                     <template #note>residency_confirmation_days · CLK-05</template>
                 </ThresholdMeter>
                 <p v-else>
-                    Residency verified — you are associated at {{ associations.length }}
-                    nesting level{{ associations.length === 1 ? '' : 's' }}.
+                    {{ t('c_civic.home.verified_associated', { count: associations.length, plural: associations.length === 1 ? '' : 's' }) }}
                 </p>
                 <div class="cluster" style="margin-block-start: var(--space-3)">
                     <Btn :as="Link" href="/civic/residency" variant="secondary" size="sm">
-                        Open residency
+                        {{ t('c_civic.home.open_residency', 'Open residency') }}
                         <Icon name="arrow-right" size="sm" />
                     </Btn>
                 </div>
             </template>
-            <p class="citation">Residency verified → all associations → rights unlocked · Art. I · CLK-05</p>
+            <p class="citation">{{ t('c_civic.home.residency_cite', 'Residency verified → all associations → rights unlocked · Art. I · CLK-05') }}</p>
         </Card>
 
         <!-- ─────────────────────────────────────────────────────── The rail -->
         <Banner tone="info">
-            You watch everything; you act where you reside. A ballot row shows only that
-            voting is open — never how you voted.
+            {{ t('c_civic.home.rail', 'You watch everything; you act where you reside. A ballot row shows only that voting is open — never how you voted.') }}
         </Banner>
 
         <!-- ──────────────────────────────────────────── Live in your places -->
         <section aria-labelledby="now-h" class="stack" style="gap: var(--space-2)">
-            <h2 id="now-h">Live in your places</h2>
+            <h2 id="now-h">{{ t('c_civic.home.live_here', 'Live in your places') }}</h2>
 
             <template v-if="feed.rows.length">
                 <div
@@ -219,25 +217,24 @@ const recordDate = (iso) => {
                         <span v-if="countdown(row.target)" class="countdown">{{ countdown(row.target) }}</span>
                     </span>
                     <Btn :as="Link" :href="row.href" variant="secondary" size="sm">
-                        Open
+                        {{ t('c_civic.home.open', 'Open') }}
                         <Icon name="arrow-right" size="sm" />
                     </Btn>
                 </div>
             </template>
             <Card v-else as="div" inset>
-                <strong>Nothing is live in your places right now</strong>
+                <strong>{{ t('c_civic.home.nothing_live', 'Nothing is live in your places right now') }}</strong>
                 <p class="gloss" style="margin-block-start: var(--space-2)">
-                    The galleries stay open, and anything that starts will appear here.
+                    {{ t('c_civic.home.galleries_open', 'The galleries stay open, and anything that starts will appear here.') }}
                 </p>
             </Card>
         </section>
 
         <!-- ──────────────────────────────────────────── Community calendar -->
-        <Card as="section" title="Community calendar">
-            <p class="gloss">What's coming up in the places you belong to.</p>
+        <Card as="section" :title="t('c_civic.home.calendar_title', 'Community calendar')">
+            <p class="gloss">{{ t('c_civic.home.calendar_lede', "What's coming up in the places you belong to.") }}</p>
             <p v-if="calendarDays.length === 0" class="gloss">
-                Nothing on the calendar yet — scheduled sessions and election dates appear
-                here the moment they are set.
+                {{ t('c_civic.home.calendar_empty', 'Nothing on the calendar yet — scheduled sessions and election dates appear here the moment they are set.') }}
             </p>
             <div v-for="bucket in calendarDays" :key="bucket.day" class="cal-day">
                 <h3 class="cal-day-head">{{ bucket.day }}</h3>
@@ -253,7 +250,7 @@ const recordDate = (iso) => {
                         <span class="gloss">{{ event.where }} · {{ eventTime(event.at) }}</span>
                     </span>
                     <span class="enter-as">
-                        Open
+                        {{ t('c_civic.home.open', 'Open') }}
                         <Icon name="arrow-right" size="sm" />
                     </span>
                 </Link>
@@ -261,10 +258,9 @@ const recordDate = (iso) => {
         </Card>
 
         <!-- ─────────────────────────────────────────────────── On the record -->
-        <Card as="section" title="On the record">
+        <Card as="section" :title="t('c_civic.home.record_title', 'On the record')">
             <p v-if="feed.record.length === 0" class="gloss">
-                No public-record entries in your places yet — every act, vote, and minute
-                publishes here the moment it happens.
+                {{ t('c_civic.home.record_empty', 'No public-record entries in your places yet — every act, vote, and minute publishes here the moment it happens.') }}
             </p>
             <ul v-else class="stack" style="gap: var(--space-2); list-style: none; margin: 0; padding: 0">
                 <li v-for="entry in feed.record" :key="entry.seq" class="cluster" style="align-items: baseline">
@@ -275,37 +271,34 @@ const recordDate = (iso) => {
             </ul>
             <p style="margin-block-start: var(--space-3)">
                 <Link href="/system/public-records">
-                    Open the public record
+                    {{ t('c_civic.home.open_public_record', 'Open the public record') }}
                     <Icon name="arrow-right" size="sm" />
                 </Link>
             </p>
         </Card>
 
         <!-- ────────────────────────────────────────────────── Your rights here -->
-        <Card as="section" title="Your rights here">
+        <Card as="section" :title="t('c_civic.home.rights_title', 'Your rights here')">
             <div class="cluster" style="gap: var(--space-4)">
                 <template v-if="isVoter">
-                    <StatusBadge tone="success" icon="check">Voting unlocked</StatusBadge>
-                    <StatusBadge tone="success" icon="check">Candidacy unlocked</StatusBadge>
+                    <StatusBadge tone="success" icon="check">{{ t('c_civic.home.voting_unlocked', 'Voting unlocked') }}</StatusBadge>
+                    <StatusBadge tone="success" icon="check">{{ t('c_civic.home.candidacy_unlocked', 'Candidacy unlocked') }}</StatusBadge>
                 </template>
                 <template v-else>
-                    <StatusBadge tone="neutral" icon="clock">Voting — unlocks on residency verification</StatusBadge>
-                    <StatusBadge tone="neutral" icon="clock">Candidacy — unlocks on residency verification</StatusBadge>
+                    <StatusBadge tone="neutral" icon="clock">{{ t('c_civic.home.voting_locked', 'Voting — unlocks on residency verification') }}</StatusBadge>
+                    <StatusBadge tone="neutral" icon="clock">{{ t('c_civic.home.candidacy_locked', 'Candidacy — unlocks on residency verification') }}</StatusBadge>
                 </template>
                 <HardenedChip />
             </div>
             <p style="margin-block-start: var(--space-3)">
                 <template v-if="isVoter">
-                    Living here is the only requirement — these unlocked the moment your
-                    residency was confirmed, in every place that contains your home.
+                    {{ t('c_civic.home.rights_voter', 'Living here is the only requirement — these unlocked the moment your residency was confirmed, in every place that contains your home.') }}
                 </template>
                 <template v-else>
-                    Voting and candidacy unlock automatically the moment residency verifies —
-                    jurisdictional residency is the only requirement, ever. No identity check,
-                    course, or fee can be added between you and your rights.
+                    {{ t('c_civic.home.rights_nonvoter', 'Voting and candidacy unlock automatically the moment residency verifies — jurisdictional residency is the only requirement, ever. No identity check, course, or fee can be added between you and your rights.') }}
                 </template>
             </p>
-            <p class="citation">Voting and candidacy — no other requirements · Art. I; Art. V §1</p>
+            <p class="citation">{{ t('c_civic.home.rights_cite', 'Voting and candidacy — no other requirements · Art. I; Art. V §1') }}</p>
             <div v-if="associations.length" class="cluster" style="margin-block-start: var(--space-3)">
                 <AdmChip
                     v-for="assoc in associations"
@@ -317,16 +310,16 @@ const recordDate = (iso) => {
         </Card>
 
         <!-- ──────────────────────────────────────────────────────── My record -->
-        <Card as="section" title="My record">
-            <p class="cc-small">Your public civic record — it travels with any future candidacy.</p>
+        <Card as="section" :title="t('c_civic.home.my_record_title', 'My record')">
+            <p class="cc-small">{{ t('c_civic.home.my_record_lede', 'Your public civic record — it travels with any future candidacy.') }}</p>
             <div class="cluster" style="gap: var(--space-6)">
-                <Stat :value="stats.record_entries" label="record entries" />
-                <Stat :value="stats.associations" label="associations" />
-                <Stat :value="stats.ballots_cast" label="ballots cast" />
+                <Stat :value="stats.record_entries" :label="t('c_civic.home.stat_record_entries', 'record entries')" />
+                <Stat :value="stats.associations" :label="t('c_civic.home.stat_associations', 'associations')" />
+                <Stat :value="stats.ballots_cast" :label="t('c_civic.home.stat_ballots_cast', 'ballots cast')" />
             </div>
             <p style="margin-block-start: var(--space-3)">
                 <Link href="/civic/record">
-                    Open my record
+                    {{ t('c_civic.home.open_my_record', 'Open my record') }}
                     <Icon name="arrow-right" size="sm" />
                 </Link>
             </p>

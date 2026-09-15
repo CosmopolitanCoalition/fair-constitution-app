@@ -13,6 +13,7 @@
  */
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import { useLiveRoom } from '@/composables/useLiveRoom';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import LiveRoom from '@/Components/Civic/Room/LiveRoom.vue';
@@ -25,6 +26,7 @@ import { requestPrivateVoiceToken } from '@/lib/deviceIdentity.js';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     locked: { type: Boolean, default: false },
@@ -44,7 +46,7 @@ const flashStatus = computed(() => page.props.flash?.status ?? null);
 // DM does not (it would be noise). Member count is REAL; there is no persisted DM-vs-group kind.
 const isGroup = computed(() => props.members.length > 2);
 const memberLine = computed(() =>
-    props.members.length <= 1 ? 'Just you' : `${props.members.length} people`,
+    props.members.length <= 1 ? t('c_civic.private_room.just_you', 'Just you') : t('c_civic.private_room.people', { count: props.members.length }),
 );
 
 // The private-room token requester — member-gated + local SFU, so no device attestation (commons-only).
@@ -57,7 +59,7 @@ function submit() {
 }
 
 function senderLabel(sender) {
-    if (!sender) return 'member';
+    if (!sender) return t('c_civic.private_room.member', 'member');
     return String(sender).replace(/^@/, '').split(':')[0];
 }
 function mine(m) {
@@ -99,17 +101,17 @@ useLiveRoom({
 </script>
 
 <template>
-    <Head :title="locked ? 'Private room' : room.title" />
+    <Head :title="locked ? t('c_civic.private_room.head_locked', 'Private room') : room.title" />
 
     <div v-if="locked" class="mx-auto max-w-lg space-y-3 py-16 text-center">
-        <h1 class="text-xl font-semibold">This is a private room</h1>
-        <p class="opacity-70">You need an invite to join. Ask whoever shared it to send you a fresh link.</p>
-        <Link href="/civic/rooms" class="inline-block underline">Back to your messages</Link>
+        <h1 class="text-xl font-semibold">{{ t('c_civic.private_room.locked_title', 'This is a private room') }}</h1>
+        <p class="opacity-70">{{ t('c_civic.private_room.locked_body', 'You need an invite to join. Ask whoever shared it to send you a fresh link.') }}</p>
+        <Link href="/civic/rooms" class="inline-block underline">{{ t('c_civic.private_room.back_to_messages', 'Back to your messages') }}</Link>
     </div>
 
     <div v-else class="stack" style="gap: var(--space-4)">
         <header>
-            <p class="eyebrow">People, together · a conversation</p>
+            <p class="eyebrow">{{ t('c_civic.private_room.eyebrow', 'People, together · a conversation') }}</p>
         </header>
 
         <p v-if="flashStatus" class="gloss" role="status" style="color: var(--status-success-fg)">{{ flashStatus }}</p>
@@ -126,8 +128,8 @@ useLiveRoom({
                     </div>
                 </div>
                 <div class="cluster" style="gap: var(--space-2)">
-                    <InviteButton :spec="{ kind: 'space', space_id: room.id }" label="Invite a friend" />
-                    <Btn v-if="!room.is_owner" variant="ghost" size="sm" @click="leave">Leave</Btn>
+                    <InviteButton :spec="{ kind: 'space', space_id: room.id }" :label="t('c_civic.private_room.invite_friend', 'Invite a friend')" />
+                    <Btn v-if="!room.is_owner" variant="ghost" size="sm" @click="leave">{{ t('c_civic.private_room.leave', 'Leave') }}</Btn>
                 </div>
             </div>
 
@@ -141,9 +143,9 @@ useLiveRoom({
                 :token-requester="tokenRequester"
             />
 
-            <div v-if="roomId" ref="threadEl" class="msg-thread" aria-label="Conversation" aria-live="polite">
+            <div v-if="roomId" ref="threadEl" class="msg-thread" :aria-label="t('c_civic.private_room.conversation', 'Conversation')" aria-live="polite">
                 <p v-if="messages.length === 0" class="gloss" style="text-align: center; padding: var(--space-4)">
-                    No messages yet{{ reachable ? '' : ' — this room is offline right now' }}.
+                    {{ t('c_civic.private_room.no_messages', { offline: reachable ? '' : t('c_civic.private_room.offline_suffix', ' — this room is offline right now') }) }}
                 </p>
                 <div
                     v-for="m in messages"
@@ -156,11 +158,11 @@ useLiveRoom({
                     <span class="msg-when">{{ msgWhen(m) }}</span>
                 </div>
             </div>
-            <p v-else class="gloss">The live channel for this room isn’t up yet — try again shortly.</p>
+            <p v-else class="gloss">{{ t('c_civic.private_room.channel_not_up', 'The live channel for this room isn’t up yet — try again shortly.') }}</p>
 
             <div v-if="roomId" class="msg-composer">
                 <form class="stack" style="gap: var(--space-2)" @submit.prevent="submit">
-                    <Field label="Message" :error="compose.errors.body">
+                    <Field :label="t('c_civic.private_room.message_label', 'Message')" :error="compose.errors.body">
                         <template #control="{ id, invalid, describedBy }">
                             <textarea
                                 :id="id"
@@ -169,7 +171,7 @@ useLiveRoom({
                                 class="field-input"
                                 style="inline-size: 100%"
                                 maxlength="20000"
-                                placeholder="Write a message…"
+                                :placeholder="t('c_civic.private_room.message_placeholder', 'Write a message…')"
                                 :aria-invalid="invalid ? 'true' : undefined"
                                 :aria-describedby="describedBy"
                             ></textarea>
@@ -177,9 +179,9 @@ useLiveRoom({
                     </Field>
                     <div class="cluster" style="justify-content: space-between; gap: var(--space-2)">
                         <Btn type="submit" variant="primary" size="sm" :disabled="compose.processing || !compose.body.trim()">
-                            <Icon name="arrow-right" size="sm" /> Send
+                            <Icon name="arrow-right" size="sm" /> {{ t('c_civic.private_room.send', 'Send') }}
                         </Btn>
-                        <span class="gloss" style="margin: 0">Text and voice/video are live here; file attachments aren’t wired yet.</span>
+                        <span class="gloss" style="margin: 0">{{ t('c_civic.private_room.text_voice_note', 'Text and voice/video are live here; file attachments aren’t wired yet.') }}</span>
                     </div>
                 </form>
             </div>
@@ -187,23 +189,23 @@ useLiveRoom({
 
         <Card v-if="members.length" as="section" inset>
             <h2 style="font-size: var(--text-base); margin: 0 0 var(--space-2)">
-                <Icon name="users" size="sm" /> In this room
+                <Icon name="users" size="sm" /> {{ t('c_civic.private_room.in_this_room', 'In this room') }}
             </h2>
             <div class="cluster" style="gap: var(--space-2); flex-wrap: wrap">
                 <span v-for="(m, i) in members" :key="i" class="party-chip">
-                    @{{ m.handle }}<span v-if="m.role === 'owner'" class="gloss"> · owner</span>
+                    @{{ m.handle }}<span v-if="m.role === 'owner'" class="gloss">{{ t('c_civic.private_room.owner', ' · owner') }}</span>
                 </span>
             </div>
             <p class="gloss" style="margin-block-start: var(--space-2)">
-                Anyone here can add or leave at any time. When the last person leaves, the conversation is gone.
+                {{ t('c_civic.private_room.add_leave_note', 'Anyone here can add or leave at any time. When the last person leaves, the conversation is gone.') }}
             </p>
             <p style="margin-block-start: var(--space-2)">
                 <Link href="/organizations" class="btn btn--ghost btn--sm">
-                    <Icon name="building" size="sm" /> Make this a standing organization
+                    <Icon name="building" size="sm" /> {{ t('c_civic.private_room.make_organization', 'Make this a standing organization') }}
                 </Link>
             </p>
         </Card>
 
-        <p><Link href="/civic/rooms" class="underline">All messages</Link></p>
+        <p><Link href="/civic/rooms" class="underline">{{ t('c_civic.private_room.all_messages', 'All messages') }}</Link></p>
     </div>
 </template>
