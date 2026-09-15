@@ -107,6 +107,7 @@ NAMESPACE_CONTEXT = {
     "invite": "Invitation pages body copy.",
     "judiciary": "Judiciary pages body copy.",
     "jurisdictions": "Jurisdiction pages: places and boundaries.",
+    "lang": "Server-produced messages: validation text, refusals, and record labels.",
     "legislature": "Legislature pages body copy.",
     "operator": "Operator console: instance and mesh administration.",
     "organizations": "Organizations pages body copy.",
@@ -237,12 +238,13 @@ def build_instructions(language: str, native: str, direction: str) -> str:
     return "\n".join(lines)
 
 
-def collect_pending(locale: str, ns: str, locales_dir: Path, meta_dir: Path) -> dict[str, str]:
+def collect_pending(locale: str, ns: str, locales_dir: Path, meta_dir: Path,
+                    lang_dir: Path | None = None) -> dict[str, str]:
     """The strings this locale needs for one namespace. English key -> English text."""
-    en = tc.load(locales_dir / "en" / f"{ns}.json")
+    en = tc.load(tc.english_source(ns, locales_dir, lang_dir))
     if not en:
         return {}
-    target = tc.load(locales_dir / locale / f"{ns}.json")
+    target = tc.load(tc.locale_catalog(ns, locale, locales_dir, lang_dir))
     meta = tc.load(meta_dir / locale / f"{ns}.json")
     pending: dict[str, str] = {}
     for key, text in en.items():
@@ -259,23 +261,21 @@ def collect_pending(locale: str, ns: str, locales_dir: Path, meta_dir: Path) -> 
 
 def export_locale(locale: str, locales_dir: Path, meta_dir: Path, glossary_file: Path,
                   registry_js: Path, js_root: Path, out_root: Path, chunk: int,
-                  only_ns: str | None = None) -> dict:
+                  only_ns: str | None = None, lang_dir: Path | None = None) -> dict:
     """Write every needed string for one locale as chunk files. Returns a summary."""
     reg = read_registry(registry_js)
     row = reg.get(locale, {"name": locale, "endonym": locale, "dir": "ltr", "script": "Latn"})
     glossary = read_glossary(glossary_file, locale)
     meta_en_dir = meta_dir / "en"
 
-    en_dir = locales_dir / "en"
-    namespaces = ([only_ns] if only_ns
-                  else sorted(p.stem for p in en_dir.glob("*.json")))
+    namespaces = tc.list_namespaces(locales_dir, only_ns, lang_dir)
 
     out_dir = out_root / locale
     summary = {"locale": locale, "language": row["name"], "namespaces": 0,
                "strings": 0, "files": 0, "detail": []}
 
     for ns in namespaces:
-        pending = collect_pending(locale, ns, locales_dir, meta_dir)
+        pending = collect_pending(locale, ns, locales_dir, meta_dir, lang_dir)
         if not pending:
             continue
         summary["namespaces"] += 1
@@ -384,9 +384,22 @@ def self_test() -> int:
             '    { code: "es", name: "Spanish", endonym: "Espa\\u00f1ol", dir: "ltr", script: "Latn", enabled: true },\n'
             '];\n', encoding="utf-8")
 
+        # The Laravel PHP catalog, keyed by the English string: one absent
+        # (translatable), one absent with a :placeholder, one pure citation
+        # (non-translatable). No es catalog yet, so the two words are pending.
+        lang = tmp / "lang"
+        lang.mkdir(parents=True)
+        (lang / "en.json").write_text(json.dumps({
+            "Art. II §2": "Art. II §2",
+            "Log in": "Log in",
+            "Unknown organization type [:type].": "Unknown organization type [:type].",
+        }, ensure_ascii=False), encoding="utf-8")
+        (lang / "es.json").write_text(json.dumps({}, ensure_ascii=False), encoding="utf-8")
+
         out = tmp / "out"
         summary = export_locale("es", loc, meta, i18n / "glossary" / "term-base.json",
-                                i18n / "locales.generated.js", tmp / "nojs", out, chunk=250)
+                                i18n / "locales.generated.js", tmp / "nojs", out, chunk=250,
+                                lang_dir=lang)
 
         f = out / "es" / "auth.json"
         check("a chunk file was written", f.exists())
@@ -409,12 +422,27 @@ def self_test() -> int:
         check("_meta string_count matches", m.get("string_count") == len(strings))
         check("_meta used_by carries the manifest file",
               "Pages/Auth/Login.vue" in m.get("used_by", []), str(m.get("used_by")))
-        check("summary counts the strings", summary["strings"] == len(strings))
+
+        # the Laravel lang namespace exports beside the JS namespaces.
+        lf = out / "es" / "lang.json"
+        check("lang namespace chunk written", lf.exists())
+        lpayload = json.loads(lf.read_text(encoding="utf-8")) if lf.exists() else {}
+        lstrings = lpayload.get("strings", {})
+        check("lang plain string exported", "Log in" in lstrings, str(list(lstrings)))
+        check("lang :placeholder string exported",
+              "Unknown organization type [:type]." in lstrings, str(list(lstrings)))
+        check("lang pure-citation string NOT exported",
+              "Art. II §2" not in lstrings, str(list(lstrings)))
+        check("lang _meta names the namespace", lpayload.get("_meta", {}).get("namespace") == "lang")
+        check("summary counts every namespace's strings",
+              summary["strings"] == len(strings) + len(lstrings),
+              f"{summary['strings']} vs {len(strings)}+{len(lstrings)}")
 
         # chunking: a small chunk splits into numbered files.
         out2 = tmp / "out2"
         export_locale("es", loc, meta, i18n / "glossary" / "term-base.json",
-                      i18n / "locales.generated.js", tmp / "nojs", out2, chunk=1)
+                      i18n / "locales.generated.js", tmp / "nojs", out2, chunk=1,
+                      only_ns="auth", lang_dir=lang)
         n_files = len(list((out2 / "es").glob("auth.*.json")))
         check("chunk=1 splits into numbered files", n_files == 2, f"got {n_files}")
     finally:
@@ -436,6 +464,7 @@ def main() -> int:
     ap.add_argument("--chunk", type=int, default=250)
     ap.add_argument("--out")
     ap.add_argument("--i18n-dir")
+    ap.add_argument("--lang-dir")
     args = ap.parse_args()
 
     i18n = Path(args.i18n_dir).resolve() if args.i18n_dir else DEFAULT_I18N
@@ -444,6 +473,7 @@ def main() -> int:
     glossary_file = i18n / "glossary" / "term-base.json"
     registry_js = i18n / "locales.generated.js"
     js_root = i18n.parent  # resources/js
+    lang_dir = Path(args.lang_dir).resolve() if args.lang_dir else tc.LANG_DIR
     out_root = Path(args.out).resolve() if args.out else DEFAULT_OUT
 
     if not (locales_dir / "en").exists():
@@ -463,7 +493,7 @@ def main() -> int:
     for locale in locales:
         summaries.append(export_locale(
             locale, locales_dir, meta_dir, glossary_file, registry_js, js_root,
-            out_root, args.chunk, args.namespace))
+            out_root, args.chunk, args.namespace, lang_dir))
     print_summary(summaries, out_root)
     return 0
 

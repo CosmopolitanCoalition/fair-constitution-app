@@ -59,6 +59,48 @@ LOCALES_DIR = I18N / "locales"
 META_DIR = I18N / "meta"
 REGISTRY_JS = I18N / "locales.generated.js"
 
+# The Laravel PHP string catalog. PHP-produced user strings reach the page
+# through Laravel's own translator: lang/en.json keyed by the English string,
+# lang/<locale>.json the translated catalog. It is one more translation
+# namespace. Its files live in the Laravel lang/ directory, not under
+# locales/<locale>/, and each per-locale file is flat with the English string
+# as the key. LANG_NS names it in the same namespace lists the JS catalogs use.
+LANG_NS = "lang"
+LANG_DIR = ROOT / "lang"
+
+
+def english_source(ns: str, locales_dir: Path, lang_dir: Path | None = None) -> Path:
+    """The English catalog file for a namespace. lang resolves to lang/en.json."""
+    if ns == LANG_NS:
+        return (lang_dir or LANG_DIR) / "en.json"
+    return locales_dir / "en" / f"{ns}.json"
+
+
+def locale_catalog(ns: str, locale: str, locales_dir: Path,
+                   lang_dir: Path | None = None) -> Path:
+    """The per-locale catalog file for a namespace. lang resolves to lang/<locale>.json."""
+    if ns == LANG_NS:
+        return (lang_dir or LANG_DIR) / f"{locale}.json"
+    return locales_dir / locale / f"{ns}.json"
+
+
+def list_namespaces(locales_dir: Path, only: str | None = None,
+                    lang_dir: Path | None = None) -> list[str]:
+    """
+    Every namespace with an English catalog: the JS locale namespaces plus the
+    Laravel lang catalog when lang/en.json exists. A single --namespace restricts
+    to that one. The lang namespace is appended, not sorted in, so the JS order
+    is untouched and lang is absent when the PHP catalog has not been created.
+    """
+    if only:
+        return [only]
+    en_dir = locales_dir / "en"
+    names = sorted(p.stem for p in en_dir.glob("*.json")) if en_dir.exists() else []
+    ld = lang_dir or LANG_DIR
+    if (ld / "en.json").exists():
+        names.append(LANG_NS)
+    return names
+
 # Live run state. Same shape as the ETL supervisor's control directory: plain
 # JSON written atomically, one file per worker, so the UI can watch a run
 # WITHOUT the workers needing a database, a queue, or a lock server. The halt
@@ -833,12 +875,10 @@ def smoke(args, reg) -> int:
     with the qa() verdict for each. Writes NOTHING. This is how a local model is
     compared against another before a full pass is authorised.
     """
-    src_dir = LOCALES_DIR / "en"
-    namespaces = ([args.namespace] if args.namespace
-                  else sorted(p.stem for p in src_dir.glob("*.json")))
+    namespaces = list_namespaces(LOCALES_DIR, args.namespace)
     picks: list[tuple[str, str, str]] = []
     for ns in namespaces:
-        for key, text in load(src_dir / f"{ns}.json").items():
+        for key, text in load(english_source(ns, LOCALES_DIR)).items():
             m, _ = mask(text)
             if re.sub(r"\[\d+\]", "", m).strip():
                 picks.append((ns, key, text))
@@ -910,13 +950,10 @@ def main() -> int:
     if args.smoke is not None:
         return smoke(args, reg)
 
-    src_dir = LOCALES_DIR / "en"
-    if not src_dir.exists():
+    namespaces = list_namespaces(LOCALES_DIR, args.namespace)
+    if not namespaces:
         print("no English catalogs — run scripts/i18n/extract.mjs --write first")
         return 2
-
-    namespaces = ([args.namespace] if args.namespace
-                  else sorted(p.stem for p in src_dir.glob("*.json")))
 
     script = reg[args.locale].get("script") or "Latn"
     glossary = glossary_terms(args.locale)
@@ -926,8 +963,8 @@ def main() -> int:
     # total outstanding across every namespace, so the bar has a real denominator
     outstanding = 0
     for _ns in namespaces:
-        _src = load(src_dir / f"{_ns}.json")
-        _tgt = load(LOCALES_DIR / args.locale / f"{_ns}.json")
+        _src = load(english_source(_ns, LOCALES_DIR))
+        _tgt = load(locale_catalog(_ns, args.locale, LOCALES_DIR))
         _meta = load(META_DIR / args.locale / f"{_ns}.json")
         for _k in _src:
             if _meta.get(_k, {}).get("status") in PROTECTED_STATUS:
@@ -948,10 +985,10 @@ def main() -> int:
     started = time.time()
 
     for ns in namespaces:
-        source = load(src_dir / f"{ns}.json")
+        source = load(english_source(ns, LOCALES_DIR))
         if not source:
             continue
-        tgt_path = LOCALES_DIR / args.locale / f"{ns}.json"
+        tgt_path = locale_catalog(ns, args.locale, LOCALES_DIR)
         meta_path = META_DIR / args.locale / f"{ns}.json"
         target, meta = load(tgt_path), load(meta_path)
 

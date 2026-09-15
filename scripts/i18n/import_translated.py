@@ -125,7 +125,7 @@ def gather_files(target: Path) -> list[Path]:
 
 
 def import_files(paths: list[Path], locales_dir: Path, meta_dir: Path, registry_js: Path,
-                 force_locale: str | None, dry_run: bool) -> dict:
+                 force_locale: str | None, dry_run: bool, lang_dir: Path | None = None) -> dict:
     reg = read_registry(registry_js)
     totals = {"accepted": 0, "rejected": 0, "files": 0, "rejections": []}
 
@@ -149,11 +149,11 @@ def import_files(paths: list[Path], locales_dir: Path, meta_dir: Path, registry_
         totals["files"] += 1
 
         script = reg.get(locale, {}).get("script") or "Latn"
-        en = tc.load(locales_dir / "en" / f"{ns}.json")
+        en = tc.load(tc.english_source(ns, locales_dir, lang_dir))
         if not en:
             print(f"  skip {path.name}: no English namespace [{ns}]")
             continue
-        tgt_path = locales_dir / locale / f"{ns}.json"
+        tgt_path = tc.locale_catalog(ns, locale, locales_dir, lang_dir)
         meta_path = meta_dir / locale / f"{ns}.json"
         target = tc.load(tgt_path)
         meta = tc.load(meta_path)
@@ -236,10 +236,19 @@ def self_test() -> int:
             '    { code: "es", name: "Spanish", endonym: "Espa\\u00f1ol", dir: "ltr", script: "Latn", enabled: true },\n'
             '];\n', encoding="utf-8")
 
+        # The Laravel PHP catalog, keyed by the English string. No es catalog yet.
+        lang = tmp / "lang"
+        lang.mkdir(parents=True)
+        (lang / "en.json").write_text(json.dumps({
+            "Log in": "Log in",
+        }, ensure_ascii=False), encoding="utf-8")
+        (lang / "es.json").write_text(json.dumps({}, ensure_ascii=False), encoding="utf-8")
+
         # 1) export the fixture, 2) stub-translate the values, 3) import.
         out = tmp / "out"
         em.export_locale("es", loc, meta, i18n / "glossary" / "term-base.json",
-                         i18n / "locales.generated.js", tmp / "nojs", out, chunk=250)
+                         i18n / "locales.generated.js", tmp / "nojs", out, chunk=250,
+                         lang_dir=lang)
         exp = out / "es" / "auth.json"
         check("export produced a file for import", exp.exists())
 
@@ -252,7 +261,8 @@ def self_test() -> int:
         payload["strings"] = {k: good[k] for k in payload["strings"] if k in good}
         exp.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
-        totals = import_files([exp], loc, meta, i18n / "locales.generated.js", None, False)
+        totals = import_files([exp], loc, meta, i18n / "locales.generated.js", None, False,
+                              lang_dir=lang)
         check("both good strings accepted", totals["accepted"] == 2, str(totals))
         tgt = json.loads((loc / "es" / "auth.json").read_text(encoding="utf-8"))
         check("catalog carries the translation", tgt.get("auth_login.log_in") == "Iniciar sesión")
@@ -268,9 +278,26 @@ def self_test() -> int:
 
         # idempotent: a second import of the same file changes nothing.
         before = (loc / "es" / "auth.json").read_text(encoding="utf-8")
-        import_files([exp], loc, meta, i18n / "locales.generated.js", None, False)
+        import_files([exp], loc, meta, i18n / "locales.generated.js", None, False, lang_dir=lang)
         after = (loc / "es" / "auth.json").read_text(encoding="utf-8")
         check("second import is idempotent", before == after)
+
+        # the Laravel lang namespace round-trips into lang/<locale>.json, not
+        # into locales/<locale>/. Export produced a lang chunk; translate it and
+        # import it back with the same lang_dir.
+        lexp = out / "es" / "lang.json"
+        check("export produced a lang chunk", lexp.exists())
+        lpayload = json.loads(lexp.read_text(encoding="utf-8"))
+        lpayload["strings"] = {"Log in": "Iniciar sesión"}
+        lexp.write_text(json.dumps(lpayload, ensure_ascii=False), encoding="utf-8")
+        lt = import_files([lexp], loc, meta, i18n / "locales.generated.js", None, False,
+                          lang_dir=lang)
+        check("lang string accepted", lt["accepted"] == 1, str(lt))
+        ltgt = json.loads((lang / "es.json").read_text(encoding="utf-8"))
+        check("lang/<locale>.json carries the translation",
+              ltgt.get("Log in") == "Iniciar sesión", str(ltgt))
+        check("no lang catalog leaked into locales/es",
+              not (loc / "es" / "lang.json").exists())
 
         # rejected-placeholder case: a value that drops the {name} token.
         bad = tmp / "bad.json"
@@ -335,12 +362,14 @@ def main() -> int:
     ap.add_argument("--locale")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--i18n-dir")
+    ap.add_argument("--lang-dir")
     args = ap.parse_args()
 
     i18n = Path(args.i18n_dir).resolve() if args.i18n_dir else DEFAULT_I18N
     locales_dir = i18n / "locales"
     meta_dir = i18n / "meta"
     registry_js = i18n / "locales.generated.js"
+    lang_dir = Path(args.lang_dir).resolve() if args.lang_dir else tc.LANG_DIR
 
     target = Path(args.target).resolve()
     if not target.exists():
@@ -352,7 +381,8 @@ def main() -> int:
         return 2
 
     print(f"\nimport {len(paths)} file(s){'  [DRY RUN]' if args.dry_run else ''}")
-    totals = import_files(paths, locales_dir, meta_dir, registry_js, args.locale, args.dry_run)
+    totals = import_files(paths, locales_dir, meta_dir, registry_js, args.locale, args.dry_run,
+                          lang_dir)
     report(totals, args.dry_run)
     return 0
 
