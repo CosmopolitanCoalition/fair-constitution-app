@@ -950,7 +950,7 @@ function applyRasterOverlay() {
                 maxNativeZoom: 12,
                 opacity: 0.7,
                 tms: false,
-                attribution: 'Population &copy; <a href="https://www.worldpop.org/" target="_blank" rel="noopener">WorldPop</a>',
+                attribution: `${t('c_jurisdictions.show.attr_population', 'Population')} &copy; <a href="https://www.worldpop.org/" target="_blank" rel="noopener">WorldPop</a>`,
                 // Prevent the "doubled opacity" flicker during zoom: don't
                 // hold stretched parent-zoom tiles while new tiles load. The
                 // semi-transparent overlay stacks visually when old + new
@@ -1033,7 +1033,7 @@ onMounted(async () => {
         '<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>'
     )
     map.attributionControl.addAttribution(
-        'Boundaries &copy; <a href="https://www.geoboundaries.org/" target="_blank" rel="noopener">geoBoundaries</a>'
+        `${t('c_jurisdictions.show.attr_boundaries', 'Boundaries')} &copy; <a href="https://www.geoboundaries.org/" target="_blank" rel="noopener">geoBoundaries</a>`
     )
 
     // Explicit layer panes to guarantee z-order regardless of layer-add

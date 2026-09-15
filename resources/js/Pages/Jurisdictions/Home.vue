@@ -61,16 +61,16 @@ const electionLive = computed(() => {
 const plain = (v) => String(v ?? '').replace(/_/g, ' ');
 
 // JurisdictionActivation::STATE_ORDER, in plain words.
-const ACTIVATION = {
-    boundary_loaded: 'Mapped, not yet awake',
-    critical_population: 'Enough people to start',
-    bootstrapping: 'Setting up its government',
-    self_governing: 'Self-governing',
-};
+const activationLabel = (s) => ({
+    boundary_loaded: t('c_gap_elections_jurisdictions.home.act_boundary_loaded', 'Mapped, not yet awake'),
+    critical_population: t('c_gap_elections_jurisdictions.home.act_critical_population', 'Enough people to start'),
+    bootstrapping: t('c_gap_elections_jurisdictions.home.act_bootstrapping', 'Setting up its government'),
+    self_governing: t('c_gap_elections_jurisdictions.home.act_self_governing', 'Self-governing'),
+}[s] ?? plain(s));
 const activation = computed(() => {
     const s = props.activation?.state;
     if (!s) return null;
-    return { label: ACTIVATION[s] ?? plain(s), tone: s === 'self_governing' ? 'success' : 'neutral' };
+    return { label: activationLabel(s), tone: s === 'self_governing' ? 'success' : 'neutral' };
 });
 
 // Reach: verified residents over the measured population (legitimacy_snapshots).
@@ -92,10 +92,10 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
 <template>
     <PageScaffold :surface="surface" :title="j.name">
         <template #intro>
-            <template v-if="parent">{{ j.name }} is a {{ kind }} in {{ parent.name }}.</template>
-            <template v-else>{{ j.name }} is the whole world of this instance.</template>
-            <template v-if="people"> About {{ people }} people live here<template v-if="j.population_year"> ({{ j.population_year }} figures)</template>.</template>
-            <template v-if="hasChildren"> It contains {{ fmt(childCount) }} smaller place{{ childCount === 1 ? '' : 's' }}.</template>
+            <template v-if="parent">{{ t('c_gap_elections_jurisdictions.home.intro_child', '{name} is a {kind} in {parent}.', { name: j.name, kind, parent: parent.name }) }}</template>
+            <template v-else>{{ t('c_gap_elections_jurisdictions.home.intro_root', '{name} is the whole world of this instance.', { name: j.name }) }}</template>
+            <template v-if="people"> {{ j.population_year ? t('c_gap_elections_jurisdictions.home.people_live_year', 'About {people} people live here ({year} figures).', { people, year: j.population_year }) : t('c_gap_elections_jurisdictions.home.people_live', 'About {people} people live here.', { people }) }}</template>
+            <template v-if="hasChildren"> {{ childCount === 1 ? t('c_gap_elections_jurisdictions.home.contains_one', 'It contains {n} smaller place.', { n: fmt(childCount) }) : t('c_gap_elections_jurisdictions.home.contains_many', 'It contains {n} smaller places.', { n: fmt(childCount) }) }}</template>
         </template>
 
         <div class="place-layout">
@@ -113,88 +113,88 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
                 </Card>
 
                 <!-- at a glance -->
-                <div class="cluster place-stats" aria-label="At a glance">
-                    <Stat :value="people ?? '—'" label="people" />
-                    <Stat :value="hasChildren ? fmt(childCount) : '0'" label="places inside" />
-                    <Stat :value="seats !== null ? fmt(seats) : '—'" :label="seats !== null ? 'seats in its legislature' : 'no legislature yet'" />
-                    <Stat :value="reachPct ?? '—'" :label="reachPct ? 'of people confirmed here' : 'reach not measured yet'" accent />
+                <div class="cluster place-stats" :aria-label="t('c_gap_elections_jurisdictions.home.at_a_glance', 'At a glance')">
+                    <Stat :value="people ?? '—'" :label="t('c_gap_elections_jurisdictions.home.stat_people', 'people')" />
+                    <Stat :value="hasChildren ? fmt(childCount) : '0'" :label="t('c_gap_elections_jurisdictions.home.stat_places_inside', 'places inside')" />
+                    <Stat :value="seats !== null ? fmt(seats) : '—'" :label="seats !== null ? t('c_gap_elections_jurisdictions.home.stat_seats', 'seats in its legislature') : t('c_gap_elections_jurisdictions.home.stat_no_legislature', 'no legislature yet')" />
+                    <Stat :value="reachPct ?? '—'" :label="reachPct ? t('c_gap_elections_jurisdictions.home.stat_confirmed', 'of people confirmed here') : t('c_gap_elections_jurisdictions.home.stat_reach_unmeasured', 'reach not measured yet')" accent />
                     <StatusBadge v-if="activation" :tone="activation.tone">{{ activation.label }}</StatusBadge>
                 </div>
 
                 <div class="grid-2">
                     <!-- its government -->
-                    <Card as="section" title="Its government">
+                    <Card as="section" :title="t('c_gap_elections_jurisdictions.home.gov_title', 'Its government')">
                         <ul class="gov">
                             <li>
                                 <Icon name="landmark" size="sm" />
                                 <div>
-                                    <strong>Legislature</strong>
+                                    <strong>{{ t('c_gap_elections_jurisdictions.home.legislature', 'Legislature') }}</strong>
                                     <template v-if="legislature_id && chamber_seated">
-                                        <span class="gloss">seated<template v-if="seats"> · {{ fmt(seats) }} seats</template></span>
-                                        <div class="cluster"><Link :href="`/legislatures/${legislature_id}/chamber`">The chamber</Link><Link :href="`/legislatures/${legislature_id}/districts`">{{ t('places.legislative_maps') }}</Link></div>
+                                        <span class="gloss">{{ seats ? t('c_gap_elections_jurisdictions.home.seated_seats', 'seated · {n} seats', { n: fmt(seats) }) : t('c_gap_elections_jurisdictions.home.seated', 'seated') }}</span>
+                                        <div class="cluster"><Link :href="`/legislatures/${legislature_id}/chamber`">{{ t('c_gap_elections_jurisdictions.home.the_chamber', 'The chamber') }}</Link><Link :href="`/legislatures/${legislature_id}/districts`">{{ t('places.legislative_maps') }}</Link></div>
                                     </template>
                                     <template v-else-if="legislature_id && has_district_map">
-                                        <span class="gloss">districts drawn, seats not yet filled<template v-if="seats"> · {{ fmt(seats) }} seats</template></span>
-                                        <div class="cluster"><Link :href="`/legislatures/${legislature_id}/districts`">Districts</Link></div>
+                                        <span class="gloss">{{ seats ? t('c_gap_elections_jurisdictions.home.districts_seats', 'districts drawn, seats not yet filled · {n} seats', { n: fmt(seats) }) : t('c_gap_elections_jurisdictions.home.districts_drawn', 'districts drawn, seats not yet filled') }}</span>
+                                        <div class="cluster"><Link :href="`/legislatures/${legislature_id}/districts`">{{ t('c_gap_elections_jurisdictions.home.districts', 'Districts') }}</Link></div>
                                     </template>
                                     <template v-else-if="legislature_id">
-                                        <span class="gloss">forming</span>
-                                        <Link :href="`/legislatures/${legislature_id}/chamber`">The chamber</Link>
+                                        <span class="gloss">{{ t('c_gap_elections_jurisdictions.home.forming', 'forming') }}</span>
+                                        <Link :href="`/legislatures/${legislature_id}/chamber`">{{ t('c_gap_elections_jurisdictions.home.the_chamber', 'The chamber') }}</Link>
                                     </template>
-                                    <span v-else class="gloss">none (a leaf place; it is represented in {{ parent?.name ?? 'its parent' }})</span>
+                                    <span v-else class="gloss">{{ t('c_gap_elections_jurisdictions.home.leaf_repr', 'none (a leaf place; it is represented in {parent})', { parent: parent?.name ?? t('c_gap_elections_jurisdictions.home.its_parent', 'its parent') }) }}</span>
                                 </div>
                             </li>
                             <li>
                                 <Icon name="briefcase" size="sm" />
                                 <div>
-                                    <strong>Executive</strong>
-                                    <div v-if="executive_id" class="cluster"><Link :href="`/executives/${executive_id}`">The executive</Link></div>
-                                    <span v-else class="gloss">none yet</span>
+                                    <strong>{{ t('c_gap_elections_jurisdictions.home.executive', 'Executive') }}</strong>
+                                    <div v-if="executive_id" class="cluster"><Link :href="`/executives/${executive_id}`">{{ t('c_gap_elections_jurisdictions.home.the_executive', 'The executive') }}</Link></div>
+                                    <span v-else class="gloss">{{ t('c_gap_elections_jurisdictions.home.none_yet', 'none yet') }}</span>
                                 </div>
                             </li>
                             <li>
                                 <Icon name="scale" size="sm" />
                                 <div>
-                                    <strong>Courts</strong>
-                                    <div v-if="judiciary_id" class="cluster"><Link :href="`/judiciaries/${judiciary_id}`">The courts</Link></div>
-                                    <span v-else class="gloss">none yet</span>
+                                    <strong>{{ t('c_gap_elections_jurisdictions.home.courts', 'Courts') }}</strong>
+                                    <div v-if="judiciary_id" class="cluster"><Link :href="`/judiciaries/${judiciary_id}`">{{ t('c_gap_elections_jurisdictions.home.the_courts', 'The courts') }}</Link></div>
+                                    <span v-else class="gloss">{{ t('c_gap_elections_jurisdictions.home.none_yet', 'none yet') }}</span>
                                 </div>
                             </li>
                             <li>
                                 <Icon name="vote" size="sm" />
                                 <div>
-                                    <strong>Elections</strong>
+                                    <strong>{{ t('c_gap_elections_jurisdictions.home.elections', 'Elections') }}</strong>
                                     <div v-if="current_election" class="cluster">
-                                        <Link :href="`/elections/${current_election.id}`">{{ electionLive ? 'An election is under way' : 'The last election' }}</Link>
+                                        <Link :href="`/elections/${current_election.id}`">{{ electionLive ? t('c_gap_elections_jurisdictions.home.election_under_way', 'An election is under way') : t('c_gap_elections_jurisdictions.home.last_election', 'The last election') }}</Link>
                                         <StatusBadge v-if="electionLive" tone="warning">{{ plain(current_election.status) }}</StatusBadge>
                                     </div>
-                                    <span v-else class="gloss">none scheduled</span>
+                                    <span v-else class="gloss">{{ t('c_gap_elections_jurisdictions.home.none_scheduled', 'none scheduled') }}</span>
                                 </div>
                             </li>
                         </ul>
                     </Card>
 
                     <!-- take part -->
-                    <Card as="section" title="Take part">
+                    <Card as="section" :title="t('c_gap_elections_jurisdictions.home.take_part', 'Take part')">
                         <p style="margin-block-end: var(--space-3)"><Btn :as="Link" :href="`/explore?jurisdiction=${encodeURIComponent(j.slug)}`" variant="secondary" icon="users">{{ t('places.explore_roles') }}</Btn></p>
                         <ul class="gov">
-                            <li><Icon name="message-square" size="sm" /><div><Link :href="`/civic/square?jurisdiction=${j.id}`">The public square</Link><span class="gloss">what people here are saying</span></div></li>
-                            <li><Icon name="file-text" size="sm" /><div><Link :href="`/civic/petitions?jurisdiction=${j.id}`">Petitions</Link><span class="gloss">start one or sign one</span></div></li>
-                            <li><Icon name="users" size="sm" /><div><Link :href="`/civic/commons/square?jurisdiction=${j.id}`">Live rooms</Link><span class="gloss">meet, talk, vote together</span></div></li>
-                            <li><Icon name="globe" size="sm" /><div><Link :href="map_href">The map</Link><span class="gloss">{{ hasChildren ? `${fmt(childCount)} places inside` : 'the boundary' }}</span></div></li>
+                            <li><Icon name="message-square" size="sm" /><div><Link :href="`/civic/square?jurisdiction=${j.id}`">{{ t('c_gap_elections_jurisdictions.home.public_square', 'The public square') }}</Link><span class="gloss">{{ t('c_gap_elections_jurisdictions.home.public_square_gloss', 'what people here are saying') }}</span></div></li>
+                            <li><Icon name="file-text" size="sm" /><div><Link :href="`/civic/petitions?jurisdiction=${j.id}`">{{ t('c_gap_elections_jurisdictions.home.petitions', 'Petitions') }}</Link><span class="gloss">{{ t('c_gap_elections_jurisdictions.home.petitions_gloss', 'start one or sign one') }}</span></div></li>
+                            <li><Icon name="users" size="sm" /><div><Link :href="`/civic/commons/square?jurisdiction=${j.id}`">{{ t('c_gap_elections_jurisdictions.home.live_rooms', 'Live rooms') }}</Link><span class="gloss">{{ t('c_gap_elections_jurisdictions.home.live_rooms_gloss', 'meet, talk, vote together') }}</span></div></li>
+                            <li><Icon name="globe" size="sm" /><div><Link :href="map_href">{{ t('c_gap_elections_jurisdictions.home.the_map', 'The map') }}</Link><span class="gloss">{{ hasChildren ? t('c_gap_elections_jurisdictions.home.places_inside_n', '{n} places inside', { n: fmt(childCount) }) : t('c_gap_elections_jurisdictions.home.the_boundary', 'the boundary') }}</span></div></li>
                         </ul>
                         <div class="cluster" style="margin-block-start: var(--space-3)">
-                            <Btn :as="Link" :href="map_href" variant="primary" icon="map-pin">Open the map</Btn>
-                            <Btn :as="Link" href="/jurisdictions" variant="ghost">All places</Btn>
+                            <Btn :as="Link" :href="map_href" variant="primary" icon="map-pin">{{ t('c_gap_elections_jurisdictions.home.open_map', 'Open the map') }}</Btn>
+                            <Btn :as="Link" href="/jurisdictions" variant="ghost">{{ t('c_gap_elections_jurisdictions.home.all_places', 'All places') }}</Btn>
                         </div>
                     </Card>
 
                     <!-- places inside (bounded) -->
-                    <Card v-if="children_preview.length" as="section" :title="childCount > children_preview.length ? 'The largest places inside' : 'The places inside'">
+                    <Card v-if="children_preview.length" as="section" :title="childCount > children_preview.length ? t('c_gap_elections_jurisdictions.home.largest_inside', 'The largest places inside') : t('c_gap_elections_jurisdictions.home.places_inside_title', 'The places inside')">
                         <ul class="places">
                             <li v-for="c in children_preview" :key="c.id">
                                 <Link :href="`/jurisdictions/${c.slug}`"><AdmChip :level="c.adm_level" :label="c.name" /></Link>
-                                <span class="gloss">{{ c.population > 0 ? `${fmt(c.population)} people` : 'population not measured' }}</span>
+                                <span class="gloss">{{ c.population > 0 ? t('c_gap_elections_jurisdictions.home.people_count', '{n} people', { n: fmt(c.population) }) : t('c_gap_elections_jurisdictions.home.population_unmeasured', 'population not measured') }}</span>
                             </li>
                         </ul>
                         <div class="cluster" style="margin-block-start: var(--space-3)">
@@ -204,16 +204,16 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
                     </Card>
 
                     <!-- region and dataset -->
-                    <Card v-if="meta || j.source || (j.official_languages && j.official_languages.length)" as="section" title="Region and dataset">
+                    <Card v-if="meta || j.source || (j.official_languages && j.official_languages.length)" as="section" :title="t('c_gap_elections_jurisdictions.home.region_dataset', 'Region and dataset')">
                         <dl class="facts">
-                            <template v-if="meta?.boundary_canonical && meta.boundary_canonical !== j.name"><dt>Boundary name</dt><dd>{{ meta.boundary_canonical }}</dd></template>
-                            <template v-if="meta?.continent"><dt>Continent</dt><dd>{{ meta.continent }}</dd></template>
-                            <template v-if="meta?.unsdg_region"><dt>UN region</dt><dd>{{ meta.unsdg_region }}<template v-if="meta.unsdg_subregion"> · {{ meta.unsdg_subregion }}</template></dd></template>
-                            <template v-if="meta?.world_bank_income_group"><dt>Income group</dt><dd>{{ meta.world_bank_income_group }}</dd></template>
-                            <template v-if="j.adm_level > 0 && j.official_languages && j.official_languages.length"><dt>Languages</dt><dd>{{ j.official_languages.join(', ') }}</dd></template>
-                            <template v-if="j.iso_code"><dt>Code</dt><dd>{{ j.iso_code }}</dd></template>
-                            <template v-if="j.source"><dt>Boundary source</dt><dd>{{ plain(j.source) }}<template v-if="meta?.year_represented"> · {{ meta.year_represented }}</template></dd></template>
-                            <template v-if="j.population_year"><dt>Population figures</dt><dd>{{ j.population_year }}</dd></template>
+                            <template v-if="meta?.boundary_canonical && meta.boundary_canonical !== j.name"><dt>{{ t('c_gap_elections_jurisdictions.home.fact_boundary_name', 'Boundary name') }}</dt><dd>{{ meta.boundary_canonical }}</dd></template>
+                            <template v-if="meta?.continent"><dt>{{ t('c_gap_elections_jurisdictions.home.fact_continent', 'Continent') }}</dt><dd>{{ meta.continent }}</dd></template>
+                            <template v-if="meta?.unsdg_region"><dt>{{ t('c_gap_elections_jurisdictions.home.fact_un_region', 'UN region') }}</dt><dd>{{ meta.unsdg_region }}<template v-if="meta.unsdg_subregion"> · {{ meta.unsdg_subregion }}</template></dd></template>
+                            <template v-if="meta?.world_bank_income_group"><dt>{{ t('c_gap_elections_jurisdictions.home.fact_income_group', 'Income group') }}</dt><dd>{{ meta.world_bank_income_group }}</dd></template>
+                            <template v-if="j.adm_level > 0 && j.official_languages && j.official_languages.length"><dt>{{ t('c_gap_elections_jurisdictions.home.fact_languages', 'Languages') }}</dt><dd>{{ j.official_languages.join(', ') }}</dd></template>
+                            <template v-if="j.iso_code"><dt>{{ t('c_gap_elections_jurisdictions.home.fact_code', 'Code') }}</dt><dd>{{ j.iso_code }}</dd></template>
+                            <template v-if="j.source"><dt>{{ t('c_gap_elections_jurisdictions.home.fact_boundary_source', 'Boundary source') }}</dt><dd>{{ plain(j.source) }}<template v-if="meta?.year_represented"> · {{ meta.year_represented }}</template></dd></template>
+                            <template v-if="j.population_year"><dt>{{ t('c_gap_elections_jurisdictions.home.fact_population_figures', 'Population figures') }}</dt><dd>{{ j.population_year }}</dd></template>
                         </dl>
                     </Card>
                 </div>

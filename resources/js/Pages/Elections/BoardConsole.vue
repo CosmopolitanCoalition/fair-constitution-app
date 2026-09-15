@@ -187,7 +187,7 @@ function runPetitionAudit(row) {
         <CitationLine text="WF-ELE-02 · WF-ELE-10 · Art. II §2" />
     </Banner>
 
-    <PageScaffold :surface="surface" :title="`Election board console — ${board.jurisdiction_name}`">
+    <PageScaffold :surface="surface" :title="t('c_elections.board.console_title', 'Election board console — {name}', { name: board.jurisdiction_name })">
         <template #intro>
             {{ t('c_elections.board.intro', 'The board is an independent, politically neutral office. It schedules, validates, oversees boundaries, certifies, audits, and orders recounts. It never counts by hand. Tabulation runs in protected code.') }}
         </template>
@@ -206,7 +206,7 @@ function runPetitionAudit(row) {
             <label class="field-label" for="board-picker">{{ t('c_elections.board.board_label', 'Board') }}</label>
             <select id="board-picker" class="select" :value="board.id" @change="switchBoard">
                 <option v-for="b in boards" :key="b.id" :value="b.id">
-                    {{ b.jurisdiction_name }}{{ b.is_bootstrap ? ' (bootstrap)' : '' }}
+                    {{ b.jurisdiction_name }}{{ b.is_bootstrap ? t('c_elections.board.bootstrap_suffix', ' (bootstrap)') : '' }}
                 </option>
             </select>
         </div>
@@ -215,14 +215,14 @@ function runPetitionAudit(row) {
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
         <!-- Art. II §7 — the board's work cannot be disrupted by an emergency. -->
         <Banner v-if="emergenciesActive" tone="info" role="status" :title="t('c_elections.board.emergency_title', 'Elections cannot be disrupted — the board proceeds.')">
-            {{ t('c_elections.board.emergency_body', 'An emergency cannot suspend an election or the board work. Certification, seating and the countback run on their clocks regardless.') }} <span class="citation">Art. II §7</span>
+            {{ t('c_elections.board.emergency_body', 'An emergency cannot suspend an election or the board work. Certification, seating and the countback run on their clocks regardless.') }} <span class="citation" data-no-i18n>Art. II §7</span>
         </Banner>
 
         <div class="cluster" style="gap: var(--space-6)">
-            <Stat :value="stats.electionsAdministered" label="elections under administration" />
-            <Stat :value="stats.validationsPending" label="validations pending" accent />
-            <Stat :value="stats.countbacksRunning" label="countbacks running" />
-            <Stat :value="stats.petitionAuditsDue" label="petition audits due" />
+            <Stat :value="stats.electionsAdministered" :label="t('c_elections.board.stat_elections', 'elections under administration')" />
+            <Stat :value="stats.validationsPending" :label="t('c_elections.board.stat_validations', 'validations pending')" accent />
+            <Stat :value="stats.countbacksRunning" :label="t('c_elections.board.stat_countbacks', 'countbacks running')" />
+            <Stat :value="stats.petitionAuditsDue" :label="t('c_elections.board.stat_audits_due', 'petition audits due')" />
         </div>
 
         <!-- ======================================= scheduling ============ -->
@@ -293,7 +293,7 @@ function runPetitionAudit(row) {
             <template #title>
                 <h2>
                     {{ t('c_elections.board.queue_title', 'Validation queue') }}
-                    <span class="citation">Candidate validation · F-ELB-002</span>
+                    <span class="citation">{{ t('c_elections.board.queue_form_cite', 'Candidate validation · F-ELB-002') }}</span>
                 </h2>
             </template>
             <p class="citation">{{ t('c_elections.board.queue_cite', 'available to R-08 · prereq: F-IND-011 submitted · Art. II §2 (election integrity)') }}</p>
@@ -353,7 +353,7 @@ function runPetitionAudit(row) {
                 <template #title>
                     <h2>
                         {{ t('c_elections.board.district_title', 'District-map oversight') }}
-                        <span class="citation">Subdivision boundary drawing · F-ELB-003</span>
+                        <span class="citation">{{ t('c_elections.board.district_form_cite', 'Subdivision boundary drawing · F-ELB-003') }}</span>
                     </h2>
                 </template>
                 <p class="citation">{{ t('c_elections.board.district_cite', 'available to R-08 · prereq: legislature seat count above 9 · Art. II §2; Art. II §8 (Subdivision)') }}</p>
@@ -391,7 +391,7 @@ function runPetitionAudit(row) {
                 <template #title>
                     <h2>
                         {{ t('c_elections.board.cert_title', 'Certification') }}
-                        <span class="citation">Election results certification · F-ELB-004</span>
+                        <span class="citation">{{ t('c_elections.board.cert_form_cite', 'Election results certification · F-ELB-004') }}</span>
                     </h2>
                 </template>
                 <p class="citation">{{ t('c_elections.board.cert_cite', 'available to R-08 · prereq: voting closed + tabulation complete · Art. II §2 (transparent election process)') }}</p>
@@ -418,7 +418,7 @@ function runPetitionAudit(row) {
                         >{{ t('c_elections.board.certify_results', 'Certify results') }}</Btn>
                     </div>
                     <hr />
-                    <h3>{{ t('c_elections.board.recount_title', 'Recount') }} <span class="citation">Recount/audit order · F-ELB-006</span></h3>
+                    <h3>{{ t('c_elections.board.recount_title', 'Recount') }} <span class="citation">{{ t('c_elections.board.recount_form_cite', 'Recount/audit order · F-ELB-006') }}</span></h3>
                     <div class="cluster">
                         <StatusBadge v-if="row.recount.ordered" tone="danger" icon="refresh-cw">
                             {{ t('c_elections.board.recount_open', 'Recount proceedings open · WF-ELE-05') }}
@@ -433,7 +433,7 @@ function runPetitionAudit(row) {
                             >{{ t('c_elections.board.order_recount', 'Order recount') }}</Btn>
                             <span class="citation">
                                 {{ row.certified ? t('c_elections.board.cause_required', 'cause must be stated on the order') : t('c_elections.board.after_cert', 'enabled after certification') }}
-                                · opens WF-ELE-05
+                                {{ t('c_elections.board.recount_opens_tail', '· opens WF-ELE-05') }}
                             </span>
                         </template>
                     </div>
@@ -464,7 +464,7 @@ function runPetitionAudit(row) {
                 <template #title>
                     <h2>
                         {{ t('c_elections.board.sig_title', 'Signature audit') }}
-                        <span class="citation">Petition signature audit · F-ELB-005</span>
+                        <span class="citation">{{ t('c_elections.board.sig_form_cite', 'Petition signature audit · F-ELB-005') }}</span>
                     </h2>
                 </template>
                 <p class="citation">{{ t('c_elections.board.sig_cite', 'available to R-08 · prereq: petition at threshold · Art. II §6 (independent audit)') }}</p>

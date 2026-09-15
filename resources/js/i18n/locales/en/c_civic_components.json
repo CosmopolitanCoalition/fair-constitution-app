@@ -65,6 +65,7 @@
   "sync_progress.lifecycle_running": "Syncing…",
   "sync_progress.of": "{current} of {total}",
   "sync_progress.pages": "· {count} pages",
+  "sync_progress.rate_per_sec": "{n}/s",
   "sync_progress.records": "{count} records",
   "sync_progress.status_done": "done",
   "sync_progress.status_failed": "failed",

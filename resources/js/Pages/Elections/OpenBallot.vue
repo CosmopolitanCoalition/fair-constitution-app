@@ -132,7 +132,7 @@ function loadEndorsements(candidateId, url = null) {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="race ? `Open ballot — ${race.label}` : 'Open ballot'">
+    <PageScaffold :surface="surface" :title="race ? t('c_elections.open.title_race', 'Open ballot — {race}', { race: race.label }) : t('c_elections.open.title', 'Open ballot')">
         <template #intro>
             {{ t('c_elections.open.intro', 'Approve the candidates you trust. You can change your mind until the phase closes. The top finalists then go on the ranked ballot, where write-ins stay open.') }}
         </template>
@@ -173,10 +173,10 @@ function loadEndorsements(candidateId, url = null) {
                 </div>
             </Card>
             <div class="cluster" style="gap: var(--space-6)">
-                <Stat :value="stats.seats" label="seats in this race" />
-                <Stat :value="stats.finalistPlaces" label="finalist places" accent />
-                <Stat :value="stats.validatedCandidates" label="candidates in this race" />
-                <Stat :value="myActiveApprovals" label="your active approvals across this race" />
+                <Stat :value="stats.seats" :label="t('c_elections.open.stat_seats', 'seats in this race')" />
+                <Stat :value="stats.finalistPlaces" :label="t('c_elections.open.stat_finalist_places', 'finalist places')" accent />
+                <Stat :value="stats.validatedCandidates" :label="t('c_elections.open.stat_candidates', 'candidates in this race')" />
+                <Stat :value="myActiveApprovals" :label="t('c_elections.open.stat_my_approvals', 'your active approvals across this race')" />
             </div>
             <Banner tone="info" :title="t('c_elections.open.secret_title', 'Your approvals are secret.')">
                 {{ t('c_elections.open.secret_body', 'Public counts update daily. Your approval appears immediately in your switch and personal total. It does not change the public count until the next update.') }}

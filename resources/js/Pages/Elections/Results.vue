@@ -78,7 +78,7 @@ function splitRounds(stv) {
         final: key[key.length - 1] ?? null,
         mid,
         midLabel: mid.length
-            ? `Rounds ${mid[0].n}–${mid[mid.length - 1].n} — expand any round for its vote transfers`
+            ? t('c_elections.results.mid_label', 'Rounds {a}–{b} — expand any round for its vote transfers', { a: mid[0].n, b: mid[mid.length - 1].n })
             : null,
         electedRound: Object.fromEntries(stv.elected.map((e) => [e.name, e.round])),
     };
@@ -104,6 +104,20 @@ const writeIns = computed(() => {
     props.stv.elected.forEach((e) => e.write_in && names.add(e.name));
     return [...names];
 });
+
+/* Write-in footnote as one sentence per plurality (§B.6). */
+const writeInNote = computed(() => {
+    const names = writeIns.value.join(', ');
+    return writeIns.value.length === 1
+        ? t('c_elections.results.write_in_note_one', '{names} entered as a write-in and was tabulated identically — transfers flow onward like any other.', { names })
+        : t('c_elections.results.write_in_note_other', '{names} entered as write-ins and were tabulated identically — transfers flow onward like any other.', { names });
+});
+
+const observerColumns = computed(() => [
+    { key: 'name', label: t('c_elections.results.col_observer', 'Observer') },
+    { key: 'standing', label: t('c_elections.results.col_standing', 'Standing'), mono: true },
+    { key: 'attestation', label: t('c_elections.results.col_attestation', 'Attestation') },
+]);
 
 /* -------------------------------------------------- recount (cause) ---- */
 
@@ -136,14 +150,14 @@ function switchRace(event) {
 }
 
 const phaseBadge = computed(() => ({
-    tabulating: { tone: 'warning', icon: 'clock', label: 'Tabulating' },
-    certified: { tone: 'success', icon: 'check', label: 'Certified' },
-    recount: { tone: 'danger', icon: 'refresh-cw', label: 'Recount — audit re-run' },
-}[props.election.certSubStep] ?? { tone: 'warning', icon: 'clock', label: 'Certifying' }));
+    tabulating: { tone: 'warning', icon: 'clock', label: t('c_elections.results.phase_tabulating', 'Tabulating') },
+    certified: { tone: 'success', icon: 'check', label: t('c_elections.results.phase_certified', 'Certified') },
+    recount: { tone: 'danger', icon: 'refresh-cw', label: t('c_elections.results.phase_recount', 'Recount — audit re-run') },
+}[props.election.certSubStep] ?? { tone: 'warning', icon: 'clock', label: t('c_elections.results.phase_certifying', 'Certifying') }));
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`Results — ${race.label}`">
+    <PageScaffold :surface="surface" :title="t('c_elections.results.title', 'Results — {race}', { race: race.label })">
         <template #intro>
             {{ t('c_elections.results.intro', 'Every seat fills in this single count. Your vote moves to your next choice when your favorite either wins with room to spare or is eliminated, so no vote is wasted. Write-ins are counted exactly like finalists, and the full record below is public and auditable.') }}
         </template>
@@ -170,7 +184,7 @@ const phaseBadge = computed(() => ({
             :title="t('c_elections.results.tab_running_title', 'Tabulating — instant count in progress.')"
         >
             {{ t('c_elections.results.tab_running_body', 'The ranked window has closed and the protected counting engine is re-running every ballot. This page refreshes itself until the record lands.') }}
-            <CitationLine text="VoteCountingService · hardened · Art. II §2" />
+            <CitationLine :text="t('c_elections.results.cite_votecounting', 'VoteCountingService · hardened · Art. II §2')" />
         </Banner>
 
         <Banner
@@ -184,35 +198,33 @@ const phaseBadge = computed(() => ({
 
         <template v-if="stv">
             <div class="cluster" style="gap: var(--space-6)">
-                <Stat :value="stv.total.toLocaleString()" label="valid ballots" />
+                <Stat :value="stv.total.toLocaleString()" :label="t('c_elections.results.stat_valid_ballots', 'valid ballots')" />
                 <Stat
                     :value="stv.quota.toLocaleString()"
-                    label="Droop quota = floor(votes ÷ (seats+1)) + 1"
+                    :label="t('c_elections.results.stat_quota', 'Droop quota = floor(votes ÷ (seats+1)) + 1')"
                     accent
                 />
-                <Stat :value="stv.seats" label="seats — all filled in one count" />
-                <Stat :value="stv.rounds" label="counting rounds" />
+                <Stat :value="stv.seats" :label="t('c_elections.results.stat_seats', 'seats — all filled in one count')" />
+                <Stat :value="stv.rounds" :label="t('c_elections.results.stat_rounds', 'counting rounds')" />
             </div>
 
             <!-- ===================================== elected ============= -->
-            <Card as="section" :title="`Elected — ${stv.elected.length} of ${stv.seats} seats`">
+            <Card as="section" :title="t('c_elections.results.elected_title', 'Elected — {n} of {total} seats', { n: stv.elected.length, total: stv.seats })">
                 <div class="cluster">
                     <span v-for="winner in stv.elected" :key="winner.candidacy_id" class="cluster" style="gap: var(--space-1)">
                         <PersonaChip :name="winner.name" />
-                        <Link :href="profileHref(winner.candidacy_id)" class="citation">profile</Link>
-                        <StatusBadge tone="success" icon="check">elected · round {{ winner.round }}</StatusBadge>
-                        <span class="persona-roles">seat {{ winner.seat_no }}</span>
-                        <TagChip v-if="winner.write_in">write-in</TagChip>
+                        <Link :href="profileHref(winner.candidacy_id)" class="citation">{{ t('c_elections.results.profile_link', 'profile') }}</Link>
+                        <StatusBadge tone="success" icon="check">{{ t('c_elections.results.elected_round', 'elected · round {round}', { round: winner.round }) }}</StatusBadge>
+                        <span class="persona-roles">{{ t('c_elections.results.seat_no', 'seat {no}', { no: winner.seat_no }) }}</span>
+                        <TagChip v-if="winner.write_in">{{ t('c_elections.results.write_in_tag', 'write-in') }}</TagChip>
                     </span>
                 </div>
                 <p class="citation" style="margin-block-start: var(--space-3)">
                     <template v-if="certification">
-                        Certified {{ fmt(certification.certified_at) }} · F-ELB-004 · Election Results
-                        Certification · Art. II §2
+                        {{ t('c_elections.results.cert_done', 'Certified {when} · F-ELB-004 · Election Results Certification · Art. II §2', { when: fmt(certification.certified_at) }) }}
                     </template>
                     <template v-else>
-                        Certification pending · F-ELB-004 · Election Results Certification ·
-                        available to R-08 · Art. II §2
+                        {{ t('c_elections.results.cert_pending', 'Certification pending · F-ELB-004 · Election Results Certification · available to R-08 · Art. II §2') }}
                     </template>
                 </p>
             </Card>
@@ -222,7 +234,7 @@ const phaseBadge = computed(() => ({
                 <p class="gloss">
                     {{ t('c_elections.results.count_gloss', 'Gold tick = the Droop quota. Reaching it elects a candidate; their surplus transfers onward at fractional value so no vote is wasted.') }}
                 </p>
-                <span class="visually-hidden">Droop quota {{ stv.quota.toLocaleString() }}</span>
+                <span class="visually-hidden">{{ t('c_elections.results.droop_quota_sr', 'Droop quota {n}', { n: stv.quota.toLocaleString() }) }}</span>
 
                 <StvRound
                     v-for="round in main.opening"
@@ -260,42 +272,40 @@ const phaseBadge = computed(() => ({
                 />
 
                 <p v-if="writeIns.length" class="cc-small" style="margin-block-start: var(--space-3)">
-                    <TagChip>write-in</TagChip>
-                    {{ writeIns.join(', ') }} entered as
-                    {{ writeIns.length === 1 ? 'a write-in and was' : 'write-ins and were' }}
-                    tabulated identically — transfers flow onward like any other.
-                    <CitationLine text="Write-in of any validated candidate always allowed · Art. II §2" />
+                    <TagChip>{{ t('c_elections.results.write_in_tag', 'write-in') }}</TagChip>
+                    {{ writeInNote }}
+                    <CitationLine :text="t('c_elections.results.cite_writein', 'Write-in of any validated candidate always allowed · Art. II §2')" />
                 </p>
 
                 <p style="margin-block-start: var(--space-3)">
                     <Btn as="a" :href="csvHref" variant="secondary" size="sm" icon="file-text">
                         {{ t('c_elections.results.download_csv', 'Download full count record (CSV)') }}
                     </Btn>
-                    <span class="citation"> full precision · streamed from tabulation_rounds</span>
+                    <span class="citation"> {{ t('c_elections.results.csv_note', 'full precision · streamed from tabulation_rounds') }}</span>
                 </p>
             </Card>
 
             <!-- ===================================== audit re-run ======== -->
             <Card v-if="auditStv" as="section" :title="t('c_elections.results.audit_title', 'Audit re-run (recount)')">
                 <div class="cluster" style="margin-block-end: var(--space-3)">
-                    <StatusBadge tone="danger" icon="refresh-cw">kind: audit_rerun</StatusBadge>
+                    <StatusBadge tone="danger" icon="refresh-cw">{{ t('c_elections.results.audit_kind', 'kind: audit_rerun') }}</StatusBadge>
                     <template v-for="audit in audits" :key="audit.id">
                         <StatusBadge
                             v-if="audit.outcome"
                             :tone="audit.outcome === 'reaffirmed' ? 'success' : 'warning'"
                             :icon="audit.outcome === 'reaffirmed' ? 'check' : 'alert-triangle'"
-                        >outcome: {{ audit.outcome }}</StatusBadge>
-                        <StatusBadge v-else tone="warning" icon="clock">re-run in progress</StatusBadge>
-                        <span class="citation">cause: {{ audit.cause }} · ordered {{ fmt(audit.ordered_at) }}</span>
+                        >{{ t('c_elections.results.audit_outcome', 'outcome: {outcome}', { outcome: audit.outcome }) }}</StatusBadge>
+                        <StatusBadge v-else tone="warning" icon="clock">{{ t('c_elections.results.audit_rerun_progress', 're-run in progress') }}</StatusBadge>
+                        <span class="citation">{{ t('c_elections.results.audit_cause', 'cause: {cause} · ordered {when}', { cause: audit.cause, when: fmt(audit.ordered_at) }) }}</span>
                     </template>
                 </div>
                 <p class="gloss">
                     {{ t('c_elections.results.audit_gloss', 'A recount is an audit re-run of the stored ballots through the same protected engine. There is no hand count. Identical inputs reproduce an identical record hash.') }}
                 </p>
                 <details class="about-surface">
-                    <summary>Re-run record — {{ auditStv.rounds }} rounds</summary>
+                    <summary>{{ t('c_elections.results.rerun_summary', 'Re-run record — {n} rounds', { n: auditStv.rounds }) }}</summary>
                     <div class="about-surface-body">
-                        <span class="visually-hidden">Droop quota {{ auditStv.quota.toLocaleString() }}</span>
+                        <span class="visually-hidden">{{ t('c_elections.results.droop_quota_sr', 'Droop quota {n}', { n: auditStv.quota.toLocaleString() }) }}</span>
                         <StvRound
                             v-for="round in [...rerun.opening, ...rerun.mid, ...(rerun.final ? [rerun.final] : [])]"
                             :key="round.n"
@@ -316,30 +326,26 @@ const phaseBadge = computed(() => ({
             <p>
                 {{ t('c_elections.results.cert_body', 'The count ran under a public chain of custody. Observation and audit standing belongs to the endorsing organizations and to the candidates themselves. Any voter can verify their own ballot by receipt hash.') }}
             </p>
-            <p class="citation">All factions can observe and audit · Art. II §2 · as implemented — observer standing transfers to endorsing organizations and candidates</p>
+            <p class="citation">{{ t('c_elections.results.cert_observe_cite', 'All factions can observe and audit · Art. II §2 · as implemented — observer standing transfers to endorsing organizations and candidates') }}</p>
 
             <DataTable
-                :columns="[
-                    { key: 'name', label: 'Observer' },
-                    { key: 'standing', label: 'Standing', mono: true },
-                    { key: 'attestation', label: 'Attestation' },
-                ]"
+                :columns="observerColumns"
                 :rows="observers"
-                caption="Observers of record"
+                :caption="t('c_elections.results.observers_caption', 'Observers of record')"
             >
                 <template #cell-name="{ row }">
                     <Link v-if="row.href" :href="row.href">{{ row.name }}</Link>
                     <template v-else>{{ row.name }}</template>
                 </template>
                 <template #cell-attestation="{ row }">
-                    <StatusBadge v-if="row.attested" tone="success" icon="check">attested</StatusBadge>
-                    <StatusBadge v-else tone="neutral" icon="clock">observing</StatusBadge>
+                    <StatusBadge v-if="row.attested" tone="success" icon="check">{{ t('c_elections.results.attested', 'attested') }}</StatusBadge>
+                    <StatusBadge v-else tone="neutral" icon="clock">{{ t('c_elections.results.observing', 'observing') }}</StatusBadge>
                 </template>
             </DataTable>
 
             <div class="cluster" style="margin-block-start: var(--space-3)">
-                <FormChip form-id="F-ELB-004" name="Election results certification" />
-                <FormChip form-id="F-ELB-006" name="Recount/audit order" />
+                <FormChip form-id="F-ELB-004" :name="t('c_elections.results.formchip_cert', 'Election results certification')" />
+                <FormChip form-id="F-ELB-006" :name="t('c_elections.results.formchip_recount', 'Recount/audit order')" />
                 <span class="gloss">
                     {{ t('c_elections.results.recount_gloss', 'The count runs in-system, so a recount is an audit review. Tabulation re-runs and the chain of custody is re-verified. There is no hand count.') }}
                 </span>
@@ -379,7 +385,7 @@ const phaseBadge = computed(() => ({
             <p class="cc-small">
                 {{ t('c_elections.results.rcv_body', 'Single-winner ranked-choice voting applies only to the individual executive office model. The top 4 runners-up become the executive advisors and alternates automatically, derived by sequential exclusion.') }}
             </p>
-            <p class="citation">Single-winner RCV only for the individual executive · top-4 runners-up as advisors · Art. III §3</p>
+            <p class="citation">{{ t('c_elections.results.rcv_cite', 'Single-winner RCV only for the individual executive · top-4 runners-up as advisors · Art. III §3') }}</p>
         </Card>
 
         <template #about>

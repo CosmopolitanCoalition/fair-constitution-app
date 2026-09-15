@@ -100,7 +100,7 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
         <Card v-if="canProvision" class="mb-4">
             <h2 class="text-sm font-semibold mb-1">{{ t('c_jurisdictions.progress.provision_title', 'Provision missing institutions') }}</h2>
             <p class="text-sm text-gray-400 mb-3">
-                {{ t('c_jurisdictions.progress.provision_body_before', 'Fill every jurisdiction\'s executive, court, election board and civic spaces (the ') }}<code>institutions:provision</code>{{ t('c_jurisdictions.progress.provision_body_after', ' twin). It is set-based and chunked, so a real run is queued and the bars above fill as it goes — preview first to see what is missing.') }}
+                {{ t('c_jurisdictions.progress.provision_body_before', 'Fill every jurisdiction\'s executive, court, election board and civic spaces (the ') }}<code data-no-i18n>institutions:provision</code>{{ t('c_jurisdictions.progress.provision_body_after', ' twin). It is set-based and chunked, so a real run is queued and the bars above fill as it goes — preview first to see what is missing.') }}
             </p>
             <div class="flex gap-2">
                 <Btn variant="secondary" size="sm" :disabled="provisionForm.processing" @click="preview">
