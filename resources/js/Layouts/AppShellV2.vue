@@ -265,7 +265,7 @@ onBeforeUnmount(() => {
                     v-if="homeAway"
                     :href="`/jurisdictions/${homeAway.slug}`"
                     class="btn btn--ghost btn--sm"
-                    :title="`Back to ${homeAway.name}, where you live`"
+                    :title="t('c_gap_shell_operator.app_shell_v2.back_home', { name: homeAway.name })"
                 >
                     <Icon name="home" size="sm" />
                     <span>{{ homeAway.name }}</span>
@@ -285,7 +285,7 @@ onBeforeUnmount(() => {
                         <option v-for="l in LOCALES" :key="l.code" :value="l.code">{{ l.name }}</option>
                         <!-- present only while the QA pseudo-locale is active (Demo
                              flyout toggle), so the select never shows a blank value -->
-                        <option v-if="locale === 'en-XA'" value="en-XA">Pseudo (en-XA)</option>
+                        <option v-if="locale === 'en-XA'" value="en-XA" data-no-i18n>Pseudo (en-XA)</option>
                     </select>
                 </label>
 
@@ -309,7 +309,7 @@ onBeforeUnmount(() => {
                             icon="x"
                             @click="logout"
                         >
-                            Log out
+                            {{ t('c_gap_shell_operator.app_shell_v2.log_out', 'Log out') }}
                         </Btn>
                     </div>
                 </details>
@@ -319,8 +319,8 @@ onBeforeUnmount(() => {
                          its own". The full banner still renders on document
                          surfaces, where there is room to say more; on a flush
                          tool surface these two buttons ARE the signal. -->
-                    <Btn as="a" href="/login" variant="ghost" size="sm">Log in</Btn>
-                    <Btn as="a" href="/register" variant="primary" size="sm">Register</Btn>
+                    <Btn as="a" href="/login" variant="ghost" size="sm">{{ t('c_gap_shell_operator.app_shell_v2.log_in', 'Log in') }}</Btn>
+                    <Btn as="a" href="/register" variant="primary" size="sm">{{ t('c_gap_shell_operator.app_shell_v2.register', 'Register') }}</Btn>
                 </span>
             </div>
 
@@ -341,10 +341,9 @@ onBeforeUnmount(() => {
                      `guest-banner` = B) — see the badge beside Log in /
                      Register. Same information, no vertical tax. -->
                 <Banner v-if="!user && surface && variant !== 'flush'"
-                        tone="info" title="You’re viewing as a guest">
-                    These proceedings are public record (Art. II §2).
-                    <a :href="continueHref"><strong>Sign up to take part</strong></a> — speak, vote, and stand
-                    for office once your residency is confirmed.
+                        tone="info" :title="t('c_gap_shell_operator.app_shell_v2.guest_title', 'You’re viewing as a guest')">
+                    {{ t('c_gap_shell_operator.app_shell_v2.guest_public', 'These proceedings are public record (Art. II §2).') }}
+                    <a :href="continueHref"><strong>{{ t('c_gap_shell_operator.app_shell_v2.guest_signup', 'Sign up to take part') }}</strong></a> {{ t('c_gap_shell_operator.app_shell_v2.guest_after', '— speak, vote, and stand for office once your residency is confirmed.') }}
                 </Banner>
             </div>
 

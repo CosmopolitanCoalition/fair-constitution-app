@@ -182,9 +182,8 @@ const syncColumns = [
             <div class="health-line">
                 <span class="health-dot" :class="`health-dot--${rollup}`" aria-hidden="true"></span>
                 <strong style="color: var(--gov-fg)">{{ t('c_operator_pages.mesh.at_a_glance', 'Peers & sync at a glance') }}</strong>
-                <span class="citation" data-no-i18n>
-                    {{ trustedCount }} trusted · {{ peers.length }} known · last sync
-                    {{ lastSync ? fmtWhen(lastSync.created_at) : 'never' }}
+                <span class="citation">
+                    {{ t('c_operator_pages.mesh.glance_trusted', { n: trustedCount }) }} · {{ t('c_operator_pages.mesh.glance_known', { n: peers.length }) }} · {{ t('c_operator_pages.mesh.glance_last_sync', { when: lastSync ? fmtWhen(lastSync.created_at) : t('c_operator_pages.mesh.never', 'never') }) }}
                 </span>
             </div>
 
@@ -382,7 +381,7 @@ const syncColumns = [
                     </li>
                     <li v-if="gates.length === 0" class="gloss">{{ t('c_operator_pages.mesh.no_gates', 'No gates reported.') }}</li>
                 </ul>
-                <p class="gloss" data-no-i18n>Signed in as {{ operator }}.</p>
+                <p class="gloss">{{ t('c_operator_pages.mesh.signed_in_as', { operator }) }}</p>
             </Card>
         </template>
 

@@ -124,21 +124,21 @@ const mainClass = computed(() => ({
 /* --------------------------------------------------------------- identity */
 const appName = computed(() => instance.value.name || t('app.name'));
 
-const ROLE_LABELS = {
-    'R-00': 'Visitor',
-    'R-01': 'Individual',
-    'R-02': 'Resident',
-    'R-03': 'Jurisdictionally Associated',
-    'R-04': 'Voter',
-    'R-05': 'Petitioner',
-};
+const roleLabels = computed(() => ({
+    'R-00': t('c_gap_shell_operator.app_shell.role_r00', 'Visitor'),
+    'R-01': t('c_gap_shell_operator.app_shell.role_r01', 'Individual'),
+    'R-02': t('c_gap_shell_operator.app_shell.role_r02', 'Resident'),
+    'R-03': t('c_gap_shell_operator.app_shell.role_r03', 'Jurisdictionally Associated'),
+    'R-04': t('c_gap_shell_operator.app_shell.role_r04', 'Voter'),
+    'R-05': t('c_gap_shell_operator.app_shell.role_r05', 'Petitioner'),
+}));
 
 const highestRole = computed(() => {
     const sorted = [...roles.value].sort(
         (a, b) => (parseInt(a.slice(2), 10) || 0) - (parseInt(b.slice(2), 10) || 0),
     );
     const id = sorted[sorted.length - 1] ?? 'R-00';
-    return { id, label: ROLE_LABELS[id] ?? id };
+    return { id, label: roleLabels.value[id] ?? id };
 });
 
 const initials = computed(() => {
@@ -312,7 +312,7 @@ onBeforeUnmount(() => {
                         @change="onLocaleChange"
                     >
                         <option v-for="l in LOCALES" :key="l.code" :value="l.code">{{ l.name }}</option>
-                        <option v-if="pseudoOn" value="en-XA">Pseudo (en-XA)</option>
+                        <option v-if="pseudoOn" value="en-XA" data-no-i18n>Pseudo (en-XA)</option>
                     </select>
                 </label>
             </template>
@@ -338,15 +338,15 @@ onBeforeUnmount(() => {
                             icon="x"
                             @click="logout"
                         >
-                            Log out
+                            {{ t('c_gap_shell_operator.app_shell.log_out', 'Log out') }}
                         </Btn>
                     </div>
                 </details>
                 <!-- Login/Register only once setup is complete — during founding
                      there is no world to log into yet, so they'd be premature. -->
                 <span v-else-if="instance.setupComplete !== false" class="cluster" style="gap: var(--space-2)">
-                    <Btn as="a" href="/login" variant="ghost" size="sm">Log in</Btn>
-                    <Btn as="a" href="/register" variant="primary" size="sm">Register</Btn>
+                    <Btn as="a" href="/login" variant="ghost" size="sm">{{ t('c_gap_shell_operator.app_shell.log_in', 'Log in') }}</Btn>
+                    <Btn as="a" href="/register" variant="primary" size="sm">{{ t('c_gap_shell_operator.app_shell.register', 'Register') }}</Btn>
                 </span>
             </template>
         </AppHeader>
@@ -369,10 +369,9 @@ onBeforeUnmount(() => {
                 <!-- Art. II §7 · CLK-03 — renders nothing when no power is
                      active; every page gets the banner for free. -->
                 <EmergencyBanner :emergencies="activeEmergencies" />
-                <Banner v-if="!user && surface" tone="info" title="You’re viewing as a guest">
-                    These proceedings are public record (Art. II §2).
-                    <a :href="continueHref"><strong>Sign up to take part</strong></a> — speak, vote, and stand
-                    for office once your residency is confirmed.
+                <Banner v-if="!user && surface" tone="info" :title="t('c_gap_shell_operator.app_shell.guest_title', 'You’re viewing as a guest')">
+                    {{ t('c_gap_shell_operator.app_shell.guest_public', 'These proceedings are public record (Art. II §2).') }}
+                    <a :href="continueHref"><strong>{{ t('c_gap_shell_operator.app_shell.guest_signup', 'Sign up to take part') }}</strong></a> {{ t('c_gap_shell_operator.app_shell.guest_after', '— speak, vote, and stand for office once your residency is confirmed.') }}
                 </Banner>
             </div>
 
@@ -389,6 +388,7 @@ onBeforeUnmount(() => {
 
         <DevBar
             v-if="devBarOn"
+            data-no-i18n
             :impersonating="impersonatingUser"
             :real-user="realUser"
         >

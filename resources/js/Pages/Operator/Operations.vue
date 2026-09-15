@@ -256,8 +256,8 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
             <section class="rounded-lg border border-amber-200 bg-amber-50/40 p-5">
                 <h2 class="text-sm font-semibold text-slate-900">{{ t('c_operator_pages.operations.apply_restart_title', 'Apply restart-tier changes — LiveKit networking') }}</h2>
                 <p class="mt-1 max-w-2xl text-xs text-slate-600">
-                    {{ t('c_operator_pages.operations.apply_restart_before', 'These knobs are env-baked, so applying rewrites') }} <code class="font-mono">.env</code> {{ t('c_operator_pages.operations.apply_restart_mid', "and recreates the container — which the app can't do from inside itself. A host-side supervisor does it: run") }}
-                    <code class="font-mono">python3 scripts/ops/infra_supervisor.py</code> {{ t('c_operator_pages.operations.apply_restart_after', 'on the host first (see the LiveKit runbook). No secrets are applyable here.') }}
+                    {{ t('c_operator_pages.operations.apply_restart_before', 'These knobs are env-baked, so applying rewrites') }} <code class="font-mono" data-no-i18n>.env</code> {{ t('c_operator_pages.operations.apply_restart_mid', "and recreates the container — which the app can't do from inside itself. A host-side supervisor does it: run") }}
+                    <code class="font-mono" data-no-i18n>python3 scripts/ops/infra_supervisor.py</code> {{ t('c_operator_pages.operations.apply_restart_after', 'on the host first (see the LiveKit runbook). No secrets are applyable here.') }}
                 </p>
 
                 <div class="mt-3 space-y-2">
@@ -281,14 +281,14 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
                      }">
                     <span class="font-medium">{{ applyLabel }}</span>
                     <span v-if="applyState.lifecycle === 'pending' && !applyState.supervisor_seen">
-                        {{ t('c_operator_pages.operations.waiting_supervisor_before', '— waiting for the host supervisor. Is') }} <code class="font-mono">scripts/ops/infra_supervisor.py</code> {{ t('c_operator_pages.operations.waiting_supervisor_after', 'running on the host?') }}
+                        {{ t('c_operator_pages.operations.waiting_supervisor_before', '— waiting for the host supervisor. Is') }} <code class="font-mono" data-no-i18n>scripts/ops/infra_supervisor.py</code> {{ t('c_operator_pages.operations.waiting_supervisor_after', 'running on the host?') }}
                     </span>
                     <span v-if="applyState.error"> — {{ applyState.error }}</span>
                 </div>
             </section>
 
             <p class="text-xs text-slate-600">
-                {{ t('c_operator_pages.operations.footer_before', 'Instant-tier knobs are edited in place (applied on the next request). Restart-tier LiveKit networking is applied via the host supervisor above. Secret rotation is intentionally not yet wired — it is gated on the credential-security pass; rotate via') }} <code class="font-mono">matrix:setup</code> {{ t('c_operator_pages.operations.footer_after', 'for now.') }}
+                {{ t('c_operator_pages.operations.footer_before', 'Instant-tier knobs are edited in place (applied on the next request). Restart-tier LiveKit networking is applied via the host supervisor above. Secret rotation is intentionally not yet wired — it is gated on the credential-security pass; rotate via') }} <code class="font-mono" data-no-i18n>matrix:setup</code> {{ t('c_operator_pages.operations.footer_after', 'for now.') }}
             </p>
         </template>
     </div>

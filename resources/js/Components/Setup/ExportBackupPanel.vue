@@ -168,7 +168,7 @@ onBeforeUnmount(() => {
     <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
         <h2 class="text-white font-semibold mb-2">{{ title }}</h2>
         <p class="text-gray-400 text-xs mb-4">
-            {{ t('c_setup_components.export_backup_panel.about_1', 'Build a portable') }} <code class="text-gray-300">.tar.gz</code> {{ t('c_setup_components.export_backup_panel.about_2', 'snapshot of this instance — every table that\'s part of the FK-downstream graph of jurisdictions, plus settings and rasters. Restoring this bundle on another instance via Step 0\'s') }} <em>{{ t('c_setup_components.export_backup_panel.about_restore_link', 'Restore from a backup') }}</em> {{ t('c_setup_components.export_backup_panel.about_3', 'panel reproduces the full state, including district maps. Runs async via Horizon; large exports (full rasters) take 20–40 minutes.') }}
+            {{ t('c_setup_components.export_backup_panel.about_1', 'Build a portable') }} <code class="text-gray-300" data-no-i18n>.tar.gz</code> {{ t('c_setup_components.export_backup_panel.about_2', 'snapshot of this instance — every table that\'s part of the FK-downstream graph of jurisdictions, plus settings and rasters. Restoring this bundle on another instance via Step 0\'s') }} <em>{{ t('c_setup_components.export_backup_panel.about_restore_link', 'Restore from a backup') }}</em> {{ t('c_setup_components.export_backup_panel.about_3', 'panel reproduces the full state, including district maps. Runs async via Horizon; large exports (full rasters) take 20–40 minutes.') }}
         </p>
 
         <div class="flex items-center gap-3 mb-3">

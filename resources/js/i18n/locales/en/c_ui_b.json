@@ -1,5 +1,6 @@
 {
   "law_diff.added": "added: ",
+  "law_diff.label": "Law text changes",
   "law_diff.removed": "removed: ",
   "planned_banner.default_body": "This part of the world is designed ahead of the build. Nothing here is live yet, and no real money is anywhere.",
   "planned_banner.title": "Planned — a preview.",

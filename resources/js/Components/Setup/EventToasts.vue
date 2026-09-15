@@ -165,9 +165,9 @@ const noEvents = computed(() => (props.events || []).length === 0)
                     class="w-full px-3 py-2 flex items-center justify-between text-xs text-gray-400 hover:bg-gray-900/40">
                 <span>
                     {{ t('c_setup_components.event_toasts.events', 'Events') }}
-                    <span class="text-red-400 ml-2" v-if="errorCount">{{ errorCount }}E</span>
-                    <span class="text-amber-400 ml-1" v-if="warnCount">{{ warnCount }}W</span>
-                    <span class="text-gray-500 ml-1" v-if="infoCount">{{ infoCount }}i</span>
+                    <span class="text-red-400 ml-2" v-if="errorCount" data-no-i18n>{{ errorCount }}E</span>
+                    <span class="text-amber-400 ml-1" v-if="warnCount" data-no-i18n>{{ warnCount }}W</span>
+                    <span class="text-gray-500 ml-1" v-if="infoCount" data-no-i18n>{{ infoCount }}i</span>
                 </span>
                 <span>{{ feedExpanded ? '▾' : '▸' }}</span>
             </button>

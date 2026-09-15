@@ -273,7 +273,7 @@ async function onSubmit() {
 
             <!-- Set once, inherited everywhere. -->
             <div class="flex items-start gap-3 bg-blue-950/40 border border-blue-900 rounded-lg p-4 mb-6">
-                <div class="text-blue-300 mt-0.5">ℹ</div>
+                <div class="text-blue-300 mt-0.5" data-no-i18n>ℹ</div>
                 <p class="text-sm text-gray-300" v-html="t('c_setup.step1_constants.inherit_note', '<span class=&quot;font-semibold text-gray-100&quot;>Set once, inherited everywhere.</span> Every constitutional and economic default here seeds each jurisdiction\'s own amendable settings and cascades to new child jurisdictions as they come online — so they don\'t reinvent the wheel. Each jurisdiction can still amend its own values locally once its legitimacy gate activates. The <span class=&quot;font-semibold text-gray-100&quot;>game mode</span> below is a world-wide property, not per-jurisdiction.')"></p>
             </div>
 

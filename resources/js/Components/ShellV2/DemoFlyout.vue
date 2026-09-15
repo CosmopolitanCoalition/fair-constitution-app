@@ -81,8 +81,9 @@ function onPseudoToggle(event) {
         <p class="cmdbar-panel-title eyebrow">
             {{ t('c_explore.demo_title', 'Explore this world') }}
             <span v-if="impersonating">
-                · Impersonating {{ impersonating.name
-                }}<template v-if="realUser"> (really {{ realUser.name }})</template>
+                <span data-no-i18n aria-hidden="true">· </span>{{ realUser
+                    ? t('c_explore.impersonating_really', { name: impersonating.name, real: realUser.name })
+                    : t('c_explore.impersonating', { name: impersonating.name }) }}
             </span>
         </p>
 

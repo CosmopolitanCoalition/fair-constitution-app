@@ -145,7 +145,7 @@ function startImport() {
     <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
         <h2 class="text-white font-semibold mb-2">{{ title }}</h2>
         <p class="text-gray-400 text-xs mb-4">
-            {{ t('c_setup_components.import_backup_panel.about_1', 'Already have a') }} <code class="text-gray-300">.tar.gz</code> {{ t('c_setup_components.import_backup_panel.about_2', 'exported from another instance? Upload it here to skip ahead. The backend validates the manifest\'s schema version before restoring — older snapshots are refused with a clear message. After a successful restore you\'ll land on whichever wizard step matches the bundle\'s saved progress (so a backup taken at Step 3 drops you back at Step 3).') }}
+            {{ t('c_setup_components.import_backup_panel.about_1', 'Already have a') }} <code class="text-gray-300" data-no-i18n>.tar.gz</code> {{ t('c_setup_components.import_backup_panel.about_2', 'exported from another instance? Upload it here to skip ahead. The backend validates the manifest\'s schema version before restoring — older snapshots are refused with a clear message. After a successful restore you\'ll land on whichever wizard step matches the bundle\'s saved progress (so a backup taken at Step 3 drops you back at Step 3).') }}
         </p>
 
         <!-- Table picker — collapsed by default. Most operators want "everything",
