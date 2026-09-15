@@ -11,6 +11,7 @@
  */
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -29,6 +30,7 @@ import VoteCastList from '@/Components/Legislature/VoteCastList.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n();
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -171,63 +173,59 @@ function submitVacancy() {
 }
 
 const REASON_OPTIONS = [
-    { value: 'resigned', label: 'Resigned' },
-    { value: 'deceased', label: 'Deceased' },
-    { value: 'removed', label: 'Removed' },
-    { value: 'relocation', label: 'Relocation' },
-    { value: 'other', label: 'Other' },
+    { value: 'resigned', label: t('c_legislature_pages_b.oversight.reason_resigned', 'Resigned') },
+    { value: 'deceased', label: t('c_legislature_pages_b.oversight.reason_deceased', 'Deceased') },
+    { value: 'removed', label: t('c_legislature_pages_b.oversight.reason_removed', 'Removed') },
+    { value: 'relocation', label: t('c_legislature_pages_b.oversight.reason_relocation', 'Relocation') },
+    { value: 'other', label: t('c_legislature_pages_b.oversight.reason_other', 'Other') },
 ];
 
 const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed'];
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="`Oversight & ethics — ${legislature.name}`">
+    <PageScaffold :surface="surface" :title="t('c_legislature_pages_b.oversight.page_title', { name: legislature.name })">
         <template #intro>
-            The independent administrative office enforces parliamentary procedure and the
-            ethics code. It takes misconduct complaints, investigates, and refers findings to
-            removal proceedings — and it declares vacancies when seats fall empty.
+            {{ t('c_legislature_pages_b.oversight.intro', 'The independent administrative office enforces parliamentary procedure and the ethics code. It takes misconduct complaints, investigates, and refers findings to removal proceedings — and it declares vacancies when seats fall empty.') }}
         </template>
 
         <Banner v-if="isGallery" tone="neutral" role="status">
-            You are watching. Oversight is public — it's government (Art. II §2). Complaints,
-            investigations, and removal votes are run by the chamber and its administrative
-            office; findings publish to the public record.
+            {{ t('c_legislature_pages_b.oversight.gallery', 'You are watching. Oversight is public — it\'s government (Art. II §2). Complaints, investigations, and removal votes are run by the chamber and its administrative office; findings publish to the public record.') }}
         </Banner>
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <!-- ================================== I-ADM ==================== -->
-        <Card as="section" title="Administrative office (I-ADM)">
+        <Card as="section" :title="t('c_legislature_pages_b.oversight.adm_title', 'Administrative office (I-ADM)')">
             <template v-if="adminOffice">
                 <p class="cc-small">
                     <StatusBadge :tone="adminOffice.status === 'staffed' ? 'success' : 'info'">{{ adminOffice.status }}</StatusBadge>
                     {{ ' ' }}
-                    <HardenedChip>independent · neutral record-keeper · Art. II §2</HardenedChip>
+                    <HardenedChip>{{ t('c_legislature_pages_b.oversight.adm_hardened', 'independent · neutral record-keeper · Art. II §2') }}</HardenedChip>
                 </p>
 
                 <p v-if="adminOffice.staff?.length" class="cc-small">
-                    Staff:
+                    {{ t('c_legislature_pages_b.oversight.staff_label', 'Staff:') }}
                     <template v-for="(person, pi) in adminOffice.staff" :key="pi">
                         <template v-if="pi > 0"> · </template>
-                        {{ person.name }} <span class="citation">(10-yr civil appointment, ends {{ person.term_ends }} · CLK-09)</span>
+                        {{ person.name }} <span class="citation">{{ t('c_legislature_pages_b.oversight.staff_term', { ends: person.term_ends }) }}</span>
                     </template>
                 </p>
 
                 <!-- creation act vote (pending office) -->
                 <template v-if="adminOffice.pending">
-                    <h3 style="font-size: var(--text-base)">Creation act vote — majority of all serving</h3>
+                    <h3 style="font-size: var(--text-base)">{{ t('c_legislature_pages_b.oversight.creation_vote_heading', 'Creation act vote — majority of all serving') }}</h3>
                     <ConsentVoteCard :consent="adminOffice.pending" :can-cast="can.vote" />
                 </template>
 
                 <!-- staffing consents -->
                 <template v-if="adminOffice.consents?.length">
                     <h3 style="font-size: var(--text-base); margin-block-start: var(--space-3)">
-                        Staffing consents (appointment pipeline · majority)
+                        {{ t('c_legislature_pages_b.oversight.staffing_consents_heading', 'Staffing consents (appointment pipeline · majority)') }}
                     </h3>
                     <div class="stack" style="gap: var(--space-3)">
                         <Card v-for="consent in adminOffice.consents" :key="consent.cast_url" inset>
-                            <p style="margin-block-end: var(--space-1)"><strong>{{ consent.nominee }}</strong> — consent vote</p>
+                            <p style="margin-block-end: var(--space-1)"><strong>{{ consent.nominee }}</strong> {{ t('c_legislature_pages_b.oversight.consent_vote_suffix', '— consent vote') }}</p>
                             <ConsentVoteCard :consent="consent" :can-cast="can.vote" />
                         </Card>
                     </div>
@@ -236,19 +234,18 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
 
             <template v-else>
                 <p class="gloss">
-                    No administrative office exists — intake cannot docket until the chamber
-                    creates one by majority act.
+                    {{ t('c_legislature_pages_b.oversight.no_office', 'No administrative office exists — intake cannot docket until the chamber creates one by majority act.') }}
                 </p>
                 <FormCard
                     v-if="can.createOffice"
-                    :form="{ id: 'F-LEG-013', name: 'Administrative Office Creation Act', availableTo: ['R-09'], citation: 'Art. II §2 — ordinary majority of all serving' }"
+                    :form="{ id: 'F-LEG-013', name: t('c_legislature_pages_b.oversight.office_form_name', 'Administrative Office Creation Act'), availableTo: ['R-09'], citation: t('c_legislature_pages_b.oversight.office_form_citation', 'Art. II §2 — ordinary majority of all serving') }"
                     :inertia-form="officeForm"
-                    submit-label="File creation act"
+                    :submit-label="t('c_legislature_pages_b.oversight.file_creation', 'File creation act')"
                     @submit="submitOffice"
                 >
                     <Field
-                        label="Staff nominee user IDs (one per line, optional)"
-                        hint="Nominees follow the appointment-consent pipeline — one majority consent vote each; 10-year civil appointments (CLK-09)."
+                        :label="t('c_legislature_pages_b.oversight.nominee_label', 'Staff nominee user IDs (one per line, optional)')"
+                        :hint="t('c_legislature_pages_b.oversight.nominee_hint', 'Nominees follow the appointment-consent pipeline — one majority consent vote each; 10-year civil appointments (CLK-09).')"
                         :error="officeForm.errors.nominees ?? officeForm.errors.constitution"
                     >
                         <template #control="{ id, invalid, describedBy }">
@@ -270,14 +267,12 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
         <!-- ================================== intake + docket ========== -->
         <div class="grid-2">
             <section class="card" aria-labelledby="intake-h">
-                <h2 id="intake-h">Misconduct intake</h2>
+                <h2 id="intake-h">{{ t('c_legislature_pages_b.oversight.intake_heading', 'Misconduct intake') }}</h2>
                 <p class="gloss">
-                    From any resident, any member, or the chamber's own motion. No catalog form
-                    exists for intake (flagged registry gap) — the complaint is an audited
-                    non-form action; the docket is public.
+                    {{ t('c_legislature_pages_b.oversight.intake_gloss', 'From any resident, any member, or the chamber\'s own motion. No catalog form exists for intake (flagged registry gap) — the complaint is an audited non-form action; the docket is public.') }}
                 </p>
                 <template v-if="can.intake">
-                    <Field label="Subject (serving member)" :error="intakeForm.errors.subject_member_id" required>
+                    <Field :label="t('c_legislature_pages_b.oversight.subject_label', 'Subject (serving member)')" :error="intakeForm.errors.subject_member_id" required>
                         <template #control="{ id, invalid, describedBy }">
                             <select
                                 :id="id"
@@ -286,14 +281,14 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                                 :aria-invalid="invalid ? 'true' : undefined"
                                 :aria-describedby="describedBy"
                             >
-                                <option value="" disabled>— choose —</option>
+                                <option value="" disabled>{{ t('c_legislature_pages_b.oversight.choose', '— choose —') }}</option>
                                 <option v-for="member in members" :key="member.id" :value="member.id">
-                                    {{ member.name }}{{ member.is_speaker ? ' (Speaker)' : '' }}
+                                    {{ member.name }}{{ member.is_speaker ? t('c_legislature_pages_b.oversight.speaker_suffix', ' (Speaker)') : '' }}
                                 </option>
                             </select>
                         </template>
                     </Field>
-                    <Field label="Complaint summary" :error="intakeForm.errors.summary ?? intakeForm.errors.constitution" required>
+                    <Field :label="t('c_legislature_pages_b.oversight.complaint_summary', 'Complaint summary')" :error="intakeForm.errors.summary ?? intakeForm.errors.constitution" required>
                         <template #control="{ id, invalid, describedBy }">
                             <textarea
                                 :id="id"
@@ -310,15 +305,15 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                         size="sm"
                         :disabled="intakeForm.processing || !intakeForm.subject_member_id || !intakeForm.summary.trim()"
                         @click="submitIntake"
-                    >Docket complaint</Btn>
+                    >{{ t('c_legislature_pages_b.oversight.docket_complaint', 'Docket complaint') }}</Btn>
                 </template>
                 <p v-else class="citation">
-                    Intake requires a live administrative office (F-LEG-013) and an authenticated account.
+                    {{ t('c_legislature_pages_b.oversight.intake_requires', 'Intake requires a live administrative office (F-LEG-013) and an authenticated account.') }}
                 </p>
             </section>
 
             <section class="card" aria-labelledby="docket-h">
-                <h2 id="docket-h">Investigations docket</h2>
+                <h2 id="docket-h">{{ t('c_legislature_pages_b.oversight.docket_heading', 'Investigations docket') }}</h2>
                 <div v-if="investigations.length" class="stack" style="gap: var(--space-2)">
                     <Card v-for="inv in investigations" :key="inv.id" inset>
                         <p style="margin-block-end: var(--space-1)">
@@ -328,7 +323,7 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                         </p>
                         <p class="cc-small">{{ inv.re }}</p>
                         <p v-if="inv.findings_record_href" class="citation">
-                            <a :href="inv.findings_record_href">findings — sealed public record →</a>
+                            <a :href="inv.findings_record_href">{{ t('c_legislature_pages_b.oversight.findings_link', 'findings — sealed public record →') }}</a>
                         </p>
                         <div v-if="can.refer" class="cluster" style="margin-block-start: var(--space-1)">
                             <Btn
@@ -337,16 +332,16 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                                 size="sm"
                                 :disabled="advancing === inv.id"
                                 @click="advance(inv)"
-                            >Begin investigating</Btn>
+                            >{{ t('c_legislature_pages_b.oversight.begin_investigating', 'Begin investigating') }}</Btn>
                             <Btn
                                 v-if="inv.state === 'investigating'"
                                 variant="secondary"
                                 size="sm"
                                 @click="referTarget = referTarget === inv.id ? null : inv.id"
-                            >Publish findings…</Btn>
+                            >{{ t('c_legislature_pages_b.oversight.publish_findings_open', 'Publish findings…') }}</Btn>
                         </div>
                         <div v-if="referTarget === inv.id" class="stack" style="gap: var(--space-2); margin-block-start: var(--space-2)">
-                            <Field label="Findings (published to the public record)" :error="referForm.errors.findings ?? referForm.errors.constitution" required>
+                            <Field :label="t('c_legislature_pages_b.oversight.findings_label', 'Findings (published to the public record)')" :error="referForm.errors.findings ?? referForm.errors.constitution" required>
                                 <template #control="{ id, invalid, describedBy }">
                                     <textarea
                                         :id="id"
@@ -360,18 +355,18 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                             </Field>
                             <RadioGroup
                                 v-model="referForm.refer"
-                                label="Disposition"
+                                :label="t('c_legislature_pages_b.oversight.disposition', 'Disposition')"
                                 :options="[
-                                    { value: true, label: 'Refer to a removal proceeding' },
-                                    { value: false, label: 'Close with no finding' },
+                                    { value: true, label: t('c_legislature_pages_b.oversight.refer_option', 'Refer to a removal proceeding') },
+                                    { value: false, label: t('c_legislature_pages_b.oversight.close_option', 'Close with no finding') },
                                 ]"
                             />
-                            <Field v-if="referForm.refer" label="Proceeding kind">
+                            <Field v-if="referForm.refer" :label="t('c_legislature_pages_b.oversight.proceeding_kind', 'Proceeding kind')">
                                 <template #control="{ id }">
                                     <select :id="id" v-model="referForm.kind" class="select">
-                                        <option value="impeachment">Impeachment</option>
-                                        <option value="censure">Censure</option>
-                                        <option value="expulsion">Expulsion</option>
+                                        <option value="impeachment">{{ t('c_legislature_pages_b.oversight.opt_impeachment', 'Impeachment') }}</option>
+                                        <option value="censure">{{ t('c_legislature_pages_b.oversight.opt_censure', 'Censure') }}</option>
+                                        <option value="expulsion">{{ t('c_legislature_pages_b.oversight.opt_expulsion', 'Expulsion') }}</option>
                                     </select>
                                 </template>
                             </Field>
@@ -380,39 +375,37 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                                 size="sm"
                                 :disabled="referForm.processing || !referForm.findings.trim()"
                                 @click="submitRefer(inv)"
-                            >Publish findings</Btn>
+                            >{{ t('c_legislature_pages_b.oversight.publish_findings', 'Publish findings') }}</Btn>
                         </div>
                     </Card>
                 </div>
-                <p v-else class="cc-small gloss">The docket is empty.</p>
+                <p v-else class="cc-small gloss">{{ t('c_legislature_pages_b.oversight.docket_empty', 'The docket is empty.') }}</p>
             </section>
         </div>
 
         <!-- ================================== removal ================== -->
-        <Card as="section" title="Removal proceedings">
+        <Card as="section" :title="t('c_legislature_pages_b.oversight.removal_title', 'Removal proceedings')">
             <p class="gloss">
-                Removal parity: legislators, executives, and judges are removed by the same
-                standard — a supermajority of all serving members. The Speaker presides, never
-                over their own case (Art. II §3 · removal.presider, hardened).
+                {{ t('c_legislature_pages_b.oversight.removal_gloss', 'Removal parity: legislators, executives, and judges are removed by the same standard — a supermajority of all serving members. The Speaker presides, never over their own case (Art. II §3 · removal.presider, hardened).') }}
             </p>
 
             <FormCard
                 v-if="can.openProceeding && formMeta('F-LEG-022')"
-                :form="{ id: 'F-SPK-007', name: 'Impeachment/Censure/Expulsion Presiding', availableTo: ['R-10'], citation: 'Art. II §3 — own-case presiding blocked in code' }"
+                :form="{ id: 'F-SPK-007', name: t('c_legislature_pages_b.oversight.spk_form_name', 'Impeachment/Censure/Expulsion Presiding'), availableTo: ['R-10'], citation: t('c_legislature_pages_b.oversight.spk_form_citation', 'Art. II §3 — own-case presiding blocked in code') }"
                 :inertia-form="proceedingForm"
-                submit-label="Open proceeding"
+                :submit-label="t('c_legislature_pages_b.oversight.open_proceeding', 'Open proceeding')"
                 @submit="submitProceeding"
             >
-                <Field label="Kind" required>
+                <Field :label="t('c_legislature_pages_b.oversight.kind_label', 'Kind')" required>
                     <template #control="{ id }">
                         <select :id="id" v-model="proceedingForm.kind" class="select">
-                            <option value="impeachment">Impeachment</option>
-                            <option value="censure">Censure</option>
-                            <option value="expulsion">Expulsion</option>
+                            <option value="impeachment">{{ t('c_legislature_pages_b.oversight.opt_impeachment', 'Impeachment') }}</option>
+                            <option value="censure">{{ t('c_legislature_pages_b.oversight.opt_censure', 'Censure') }}</option>
+                            <option value="expulsion">{{ t('c_legislature_pages_b.oversight.opt_expulsion', 'Expulsion') }}</option>
                         </select>
                     </template>
                 </Field>
-                <Field label="Subject (serving member)" :error="proceedingForm.errors.subject_member_id ?? proceedingForm.errors.constitution" required>
+                <Field :label="t('c_legislature_pages_b.oversight.subject_label', 'Subject (serving member)')" :error="proceedingForm.errors.subject_member_id ?? proceedingForm.errors.constitution" required>
                     <template #control="{ id, invalid, describedBy }">
                         <select
                             :id="id"
@@ -421,9 +414,9 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                             :aria-invalid="invalid ? 'true' : undefined"
                             :aria-describedby="describedBy"
                         >
-                            <option value="" disabled>— choose —</option>
+                            <option value="" disabled>{{ t('c_legislature_pages_b.oversight.choose', '— choose —') }}</option>
                             <option v-for="member in members" :key="member.id" :value="member.id">
-                                {{ member.name }}{{ member.is_speaker ? ' (Speaker — own case requires a designated presider)' : '' }}
+                                {{ member.name }}{{ member.is_speaker ? t('c_legislature_pages_b.oversight.speaker_owncase_suffix', ' (Speaker — own case requires a designated presider)') : '' }}
                             </option>
                         </select>
                     </template>
@@ -439,15 +432,15 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                             {{ proceeding.outcome ?? proceeding.status }}
                         </StatusBadge>
                     </p>
-                    <StateStrip :states="PROCEEDING_MACHINE" :current="proceeding.status" aria-label="Proceeding state machine" />
+                    <StateStrip :states="PROCEEDING_MACHINE" :current="proceeding.status" :aria-label="t('c_legislature_pages_b.oversight.proceeding_state_aria', 'Proceeding state machine')" />
                     <p class="citation" style="margin-block: var(--space-1)">
-                        Presiding: {{ proceeding.presided_by ?? '— awaiting designation (the chamber designates; the engine blocks the subject)' }}
+                        {{ t('c_legislature_pages_b.oversight.presiding_label', 'Presiding:') }} {{ proceeding.presided_by ?? t('c_legislature_pages_b.oversight.awaiting_designation', '— awaiting designation (the chamber designates; the engine blocks the subject)') }}
                     </p>
 
                     <!-- designate (own-case / presider-less path) -->
                     <div v-if="proceeding.status === 'opened' && can.designate" class="cluster">
-                        <select v-model="designateForms[proceeding.id]" class="select" aria-label="Designate presider">
-                            <option :value="undefined" disabled>— designate a presider —</option>
+                        <select v-model="designateForms[proceeding.id]" class="select" :aria-label="t('c_legislature_pages_b.oversight.designate_presider_aria', 'Designate presider')">
+                            <option :value="undefined" disabled>{{ t('c_legislature_pages_b.oversight.designate_option', '— designate a presider —') }}</option>
                             <option
                                 v-for="member in members.filter((m) => m.id !== proceeding.subject_member_id)"
                                 :key="member.id"
@@ -459,7 +452,7 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                             size="sm"
                             :disabled="!designateForms[proceeding.id] || designating === proceeding.id"
                             @click="designate(proceeding)"
-                        >Designate (F-SPK-007)</Btn>
+                        >{{ t('c_legislature_pages_b.oversight.designate_btn', 'Designate (F-SPK-007)') }}</Btn>
                     </div>
 
                     <!-- open the F-LEG-022 vote -->
@@ -470,8 +463,8 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                             size="sm"
                             :disabled="openingVote === proceeding.id"
                             @click="openVote(proceeding)"
-                        >Open removal vote (F-LEG-022)</Btn>
-                        <span class="citation">supermajority of all serving · Art. VII</span>
+                        >{{ t('c_legislature_pages_b.oversight.open_removal_vote', 'Open removal vote (F-LEG-022)') }}</Btn>
+                        <span class="citation">{{ t('c_legislature_pages_b.oversight.supermajority_note', 'supermajority of all serving · Art. VII') }}</span>
                     </div>
 
                     <!-- the vote -->
@@ -484,60 +477,56 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                             @cast="castRemoval(proceeding, $event)"
                         />
                         <p class="gloss">
-                            Needs the supermajority of ALL serving — vacancies stay in the
-                            denominator; the Speaker presides and cannot cast (a supermajority tie
-                            is arithmetically impossible).
+                            {{ t('c_legislature_pages_b.oversight.needs_supermajority', 'Needs the supermajority of ALL serving — vacancies stay in the denominator; the Speaker presides and cannot cast (a supermajority tie is arithmetically impossible).') }}
                         </p>
                         <details v-if="proceeding.vote.casts.length" style="margin-block-start: var(--space-2)">
-                            <summary class="cc-small" style="cursor: pointer">Published casts ({{ proceeding.vote.casts.length }})</summary>
+                            <summary class="cc-small" style="cursor: pointer">{{ t('c_legislature_pages_b.oversight.published_casts', { n: proceeding.vote.casts.length }) }}</summary>
                             <VoteCastList :casts="proceeding.vote.casts" :group-by-kind="bicameral" />
                         </details>
                     </template>
 
                     <!-- removal → vacancy chip (the closed loop) -->
                     <p v-if="proceeding.vacancy" class="cc-small" style="margin-block-start: var(--space-2)">
-                        <StatusBadge tone="danger" icon="alert-triangle">seat vacated</StatusBadge>
+                        <StatusBadge tone="danger" icon="alert-triangle">{{ t('c_legislature_pages_b.oversight.seat_vacated', 'seat vacated') }}</StatusBadge>
                         {{ ' ' }}
-                        F-LEG-036 system-filed →
-                        <a :href="proceeding.vacancy.href">vacancy {{ proceeding.vacancy.status }} — countback page →</a>
+                        {{ t('c_legislature_pages_b.oversight.system_filed', 'F-LEG-036 system-filed →') }}
+                        <a :href="proceeding.vacancy.href">{{ t('c_legislature_pages_b.oversight.vacancy_countback_link', { status: proceeding.vacancy.status }) }}</a>
                     </p>
                 </Card>
             </div>
-            <p v-if="!proceedings.length" class="cc-small gloss">No proceedings on record.</p>
+            <p v-if="!proceedings.length" class="cc-small gloss">{{ t('c_legislature_pages_b.oversight.no_proceedings', 'No proceedings on record.') }}</p>
         </Card>
 
         <!-- ================================== vacancies ================ -->
-        <Card as="section" title="Vacancies">
+        <Card as="section" :title="t('c_legislature_pages_b.oversight.vacancies_title', 'Vacancies')">
             <div v-if="vacancies.length" class="stack" style="gap: var(--space-3)">
                 <Card v-for="vacancy in vacancies" :key="vacancy.id" inset>
                     <p style="margin-block-end: var(--space-1)">
-                        <strong>Seat {{ vacancy.seat ?? '—' }}</strong> — {{ vacancy.member }}
+                        <strong>{{ t('c_legislature_pages_b.oversight.seat_label', { seat: vacancy.seat ?? '—' }) }}</strong> — {{ vacancy.member }}
                         <span v-if="vacancy.declared_via" class="citation" data-no-i18n>· declared via {{ vacancy.declared_via }}</span>
                     </p>
-                    <StateStrip :states="vacancyMachine" :current="vacancy.status" aria-label="Vacancy state machine" />
+                    <StateStrip :states="vacancyMachine" :current="vacancy.status" :aria-label="t('c_legislature_pages_b.oversight.vacancy_state_aria', 'Vacancy state machine')" />
                     <p class="cc-small" style="margin-block-start: var(--space-1)">
-                        <a :href="vacancy.countback_href">Countback record →</a>
+                        <a :href="vacancy.countback_href">{{ t('c_legislature_pages_b.oversight.countback_record', 'Countback record →') }}</a>
                         <template v-if="vacancy.special">
-                            · special election {{ vacancy.special.scheduled_for }} ({{ vacancy.special.status }})
+                            · {{ t('c_legislature_pages_b.oversight.special_election', { when: vacancy.special.scheduled_for, status: vacancy.special.status }) }}
                         </template>
                     </p>
                 </Card>
             </div>
-            <p v-else class="cc-small gloss">No vacancies on record.</p>
+            <p v-else class="cc-small gloss">{{ t('c_legislature_pages_b.oversight.no_vacancies', 'No vacancies on record.') }}</p>
 
             <FormCard
                 v-if="can.declareVacancy && formMeta('F-LEG-036')"
                 :form="formMeta('F-LEG-036')"
                 :inertia-form="vacancyForm"
-                submit-label="Declare vacancy"
+                :submit-label="t('c_legislature_pages_b.oversight.declare_vacancy', 'Declare vacancy')"
                 @submit="submitVacancy"
             >
                 <p class="citation" style="margin-block-end: var(--space-2)">
-                    catalog alias: F-LEG-030 · workflows catalog (renumbering drift). Declarer
-                    rule (hardened): the Speaker or system may declare any current seat; a plain
-                    member only their own — declaration is never a weapon · Art. II §5.
+                    {{ t('c_legislature_pages_b.oversight.declarer_rule', 'catalog alias: F-LEG-030 · workflows catalog (renumbering drift). Declarer rule (hardened): the Speaker or system may declare any current seat; a plain member only their own — declaration is never a weapon · Art. II §5.') }}
                 </p>
-                <Field label="Member" :error="vacancyForm.errors.member_id ?? vacancyForm.errors.constitution" required>
+                <Field :label="t('c_legislature_pages_b.oversight.member_label', 'Member')" :error="vacancyForm.errors.member_id ?? vacancyForm.errors.constitution" required>
                     <template #control="{ id, invalid, describedBy }">
                         <select
                             :id="id"
@@ -546,23 +535,20 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                             :aria-invalid="invalid ? 'true' : undefined"
                             :aria-describedby="describedBy"
                         >
-                            <option value="" disabled>— choose —</option>
+                            <option value="" disabled>{{ t('c_legislature_pages_b.oversight.choose', '— choose —') }}</option>
                             <option v-for="member in members" :key="member.id" :value="member.id">
-                                {{ member.name }}{{ member.id === viewerMemberId ? ' (you)' : '' }}
+                                {{ member.name }}{{ member.id === viewerMemberId ? t('c_legislature_pages_b.oversight.you_suffix', ' (you)') : '' }}
                             </option>
                         </select>
                     </template>
                 </Field>
-                <RadioGroup v-model="vacancyForm.reason" label="Reason" :options="REASON_OPTIONS" />
+                <RadioGroup v-model="vacancyForm.reason" :label="t('c_legislature_pages_b.oversight.reason_label', 'Reason')" :options="REASON_OPTIONS" />
             </FormCard>
         </Card>
 
         <template #about>
             <p>
-                A removal or expulsion system-files F-LEG-036 in the same transaction as the
-                closing cast — the vacancy record, the countback, and the
-                certify-or-special-election branch are the Phase B machinery, unchanged. This
-                page is where the loop closes.
+                {{ t('c_legislature_pages_b.oversight.about', 'A removal or expulsion system-files F-LEG-036 in the same transaction as the closing cast — the vacancy record, the countback, and the certify-or-special-election branch are the Phase B machinery, unchanged. This page is where the loop closes.') }}
             </p>
         </template>
     </PageScaffold>
