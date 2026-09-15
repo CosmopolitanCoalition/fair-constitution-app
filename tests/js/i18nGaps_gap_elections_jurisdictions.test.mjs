@@ -423,4 +423,5 @@ test('board console — the title guards a null board', () => {
     const src = readFileSync(path.join(jsRoot, 'Pages', 'Elections', 'BoardConsole.vue'), 'utf8');
     assert.match(src, /board \? t\('c_elections\.board\.console_title'/, 'title reads board.jurisdiction_name without a guard');
     assert.match(src, /console_title_none/, 'no title for the no-board case');
+    assert.match(src, /<p v-if="board"[^>]*>\s*\{\{ t\('c_elections\.board\.members_label'/, 'the members list reads board.members without a guard');
 });

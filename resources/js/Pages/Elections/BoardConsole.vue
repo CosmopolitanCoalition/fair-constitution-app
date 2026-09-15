@@ -195,7 +195,7 @@ function runPetitionAudit(row) {
         <p class="citation">{{ t('c_elections.board.cite_establish', 'Establish independent election boards · Art. II §2') }}</p>
         <p v-if="!board" class="citation">{{ t('c_elections.board.no_board', 'No election board is standing for you. This console is readable by everyone. Its actions belong to seated board members (R-08).') }}</p>
         <p v-else-if="!can_act" class="citation">{{ t('c_elections.board.viewing', 'You are viewing this board. Its actions belong to seated board members (R-08).') }}</p>
-        <p class="citation">
+        <p v-if="board" class="citation">
             {{ t('c_elections.board.members_label', 'Board members:') }}
             <template v-for="(member, i) in board.members" :key="i">
                 <template v-if="i > 0"> · </template>{{ member.name }}
