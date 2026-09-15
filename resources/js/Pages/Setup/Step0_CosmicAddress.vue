@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
@@ -98,6 +98,7 @@ const canSubmit = computed(() =>
 
 <template>
     <div class="max-w-4xl mx-auto px-6 py-8 w-full">
+        <Head :title="t('c_setup.step0_cosmic_address.welcome', 'Welcome to the Cosmopolitan Coalition')" />
             <SetupStepper :current="0" :completed="settings.setup_step_completed" :steps="settings.ladder" />
 
             <header class="mt-8 mb-6">
@@ -129,7 +130,7 @@ const canSubmit = computed(() =>
                         :placeholder="t('c_setup.step0_cosmic_address.instance_name_placeholder', 'e.g. Earth Prime, Midgard, Starfall')"
                         class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
                     />
-                    <p class="text-xs text-gray-500 mt-1">
+                    <p class="text-xs text-gray-400 mt-1">
                         {{ t('c_setup.step0_cosmic_address.instance_name_help', 'A friendly label for this install — shown in nav and federation directories.') }}
                     </p>
                 </div>
@@ -142,7 +143,7 @@ const canSubmit = computed(() =>
                         v-model="cosmicAddressId"
                         @path-change="onPathChange"
                     />
-                    <p class="text-xs text-gray-500 mt-2 truncate" :title="pathBreadcrumb">
+                    <p class="text-xs text-gray-400 mt-2 truncate" :title="pathBreadcrumb">
                         {{ pathBreadcrumb }}
                     </p>
                 </div>
@@ -188,7 +189,7 @@ const canSubmit = computed(() =>
                                     {{ p.label }}
                                 </option>
                             </select>
-                            <span class="text-xs text-gray-500">
+                            <span class="text-xs text-gray-400">
                                 {{ t('c_setup.step0_cosmic_address.cycle_label', { cycle: electionCycleText }) }}
                             </span>
                         </div>

@@ -70,7 +70,7 @@
     },
     {
       "param": "jurisdiction",
-      "value": "vat-1-holy-see",
+      "value": "earth-0-earth",
       "source": "jurisdictions.slug"
     },
     {
@@ -272,12 +272,12 @@
     },
     {
       "uri": "/jurisdictions/{jurisdiction}",
-      "url": "/jurisdictions/vat-1-holy-see",
+      "url": "/jurisdictions/earth-0-earth",
       "code": "200"
     },
     {
       "uri": "/jurisdictions/{jurisdiction}/map",
-      "url": "/jurisdictions/vat-1-holy-see/map",
+      "url": "/jurisdictions/earth-0-earth/map",
       "code": "200"
     },
     {
@@ -419,6 +419,42 @@
       "uri": "/system/translations/review/{locale}",
       "url": "/system/translations/review/es",
       "code": "302"
+    },
+    {
+      "uri": "/setup/step/{n}",
+      "url": "/setup/step/1",
+      "code": "200",
+      "note": "wizard step 1"
+    },
+    {
+      "uri": "/setup/step/{n}",
+      "url": "/setup/step/2",
+      "code": "200",
+      "note": "wizard step 2"
+    },
+    {
+      "uri": "/setup/step/{n}",
+      "url": "/setup/step/3",
+      "code": "200",
+      "note": "wizard step 3"
+    },
+    {
+      "uri": "/setup/step/{n}",
+      "url": "/setup/step/4",
+      "code": "200",
+      "note": "wizard step 4"
+    },
+    {
+      "uri": "/setup/step/{n}",
+      "url": "/setup/step/5",
+      "code": "200",
+      "note": "wizard step 5"
+    },
+    {
+      "uri": "/setup/step/{n}",
+      "url": "/setup/step/6",
+      "code": "200",
+      "note": "wizard step 6"
     }
   ],
   "noSample": [

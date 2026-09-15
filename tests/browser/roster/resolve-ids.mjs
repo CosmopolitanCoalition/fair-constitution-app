@@ -92,6 +92,16 @@ for (const p of paramPages) {
     resolved.push({ uri: p.uri, url, code });
 }
 
+// The setup wizard has seven step pages behind one template; sample every step,
+// not only step 0, so each page component is swept (W-0447, 2026-09-15).
+const step0 = resolved.find((r) => r.uri === '/setup/step/{n}');
+if (step0) {
+    for (const n of [1, 2, 3, 4, 5, 6]) {
+        const url = step0.url.slice(0, -1) + n;
+        resolved.push({ uri: '/setup/step/{n}', url, code: httpCode(url), note: 'wizard step ' + n });
+    }
+}
+
 const out = {
     _note: 'Committed sample of resolved parameterised URLs for the a11y sweep. Regenerate: node tests/browser/roster/resolve-ids.mjs. 200 or 302 (to login) = resolved; 404 = wrong id.',
     _generatedAt: new Date().toISOString().slice(0, 10),
