@@ -157,19 +157,19 @@
                     <span class="text-gray-600 normal-case font-normal text-[10px]">{{ group.flags.length }}</span>
                     <span class="px-1 py-0 rounded text-[9px] border"
                           :class="natureChip(group.category)">
-                        {{ natureBadge(group.category).text }}
+                        {{ natureText(group.category) }}
                     </span>
                     <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
 
                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-72 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg space-y-1">
-                        <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.measures_label', 'Measures.') }}</span> {{ describeCheck(group.category).measures }}</div>
-                        <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.why_label', 'Why it matters.') }}</span> {{ describeCheck(group.category).why }}</div>
-                        <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.reading_label', 'How to read it.') }}</span> {{ describeCheck(group.category).reading }}</div>
+                        <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.measures_label', 'Measures.') }}</span> {{ checkText(group.category, 'measures') }}</div>
+                        <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.why_label', 'Why it matters.') }}</span> {{ checkText(group.category, 'why') }}</div>
+                        <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.reading_label', 'How to read it.') }}</span> {{ checkText(group.category, 'reading') }}</div>
                         <div v-if="describeCheck(group.category).remedy">
-                            <span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.remedy_label', 'Default remedy.') }}</span> {{ describeCheck(group.category).remedy }}
+                            <span class="text-gray-400 font-semibold">{{ t('c_shell_components.geodata_flag_queue.remedy_label', 'Default remedy.') }}</span> {{ checkText(group.category, 'remedy') }}
                         </div>
                         <div class="pt-1 border-t border-gray-600 text-gray-400">
-                            {{ natureBadge(group.category).hint }}
+                            {{ natureHint(group.category) }}
                         </div>
                     </div>
                 </div>
@@ -394,6 +394,18 @@ function natureBadge(cat) {
 }
 function natureChip(cat) {
     return NATURE_CHIPS[describeCheck(cat).nature] ?? NATURE_CHIPS.informational
+}
+
+// The Map Health explainer prose (lib/mapHealth.js) resolves through the
+// c_map_health catalog, keyed by check id; the registry text is the fallback.
+function checkText(cat, field) {
+    return t(`c_map_health.${cat}.${field}`, describeCheck(cat)[field] || '')
+}
+function natureText(cat) {
+    return t(`c_map_health.nature.${describeCheck(cat).nature}.text`, natureBadge(cat).text)
+}
+function natureHint(cat) {
+    return t(`c_map_health.nature.${describeCheck(cat).nature}.hint`, natureBadge(cat).hint)
 }
 
 const ACTION_LABELS = {

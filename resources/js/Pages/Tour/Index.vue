@@ -50,6 +50,10 @@ const firstVisit = computed(() => {
 });
 
 const actId = (act) => 'act-' + act.replace(/\s+/g, '-').toLowerCase();
+
+/* Resolve a tour act heading through the c_tour catalog (registry text is the
+   fallback). Key slug matches the extractor in tests. */
+const actKey = (act) => 'c_tour.act.' + act.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 </script>
 
 <template>
@@ -88,8 +92,8 @@ const actId = (act) => 'act-' + act.replace(/\s+/g, '-').toLowerCase();
                 :href="tourHref(o.i)"
             >
                 <span class="tour-stop-n">{{ n + 1 }}</span>
-                <span class="tour-stop-title">{{ o.title }}</span>
-                <span class="tour-stop-blurb">{{ o.blurb }}</span>
+                <span class="tour-stop-title">{{ t('c_tour.stop.' + o.i + '.title', o.title) }}</span>
+                <span class="tour-stop-blurb">{{ t('c_tour.stop.' + o.i + '.blurb', o.blurb) }}</span>
                 <span class="lesson-meta"><Icon name="arrow-right" size="sm" /></span>
             </Link>
         </section>
@@ -98,7 +102,7 @@ const actId = (act) => 'act-' + act.replace(/\s+/g, '-').toLowerCase();
         <h2 style="margin-block-start: var(--space-6)">{{ t('c_front.index.complete_walkthrough', 'The complete walkthrough') }}</h2>
 
         <section v-for="g in acts" :key="g.act" class="tour-act" :aria-labelledby="actId(g.act)">
-            <h2 :id="actId(g.act)">{{ g.act }}</h2>
+            <h2 :id="actId(g.act)">{{ t(actKey(g.act), g.act) }}</h2>
             <Link
                 v-for="o in g.stops"
                 :key="`stop-${o.i}`"
@@ -106,8 +110,8 @@ const actId = (act) => 'act-' + act.replace(/\s+/g, '-').toLowerCase();
                 :href="tourHref(o.i)"
             >
                 <span class="tour-stop-n">{{ o.i + 1 }}</span>
-                <span class="tour-stop-title">{{ o.title }}</span>
-                <span class="tour-stop-blurb">{{ o.blurb }}</span>
+                <span class="tour-stop-title">{{ t('c_tour.stop.' + o.i + '.title', o.title) }}</span>
+                <span class="tour-stop-blurb">{{ t('c_tour.stop.' + o.i + '.blurb', o.blurb) }}</span>
                 <span class="lesson-meta"><Icon name="arrow-right" size="sm" /></span>
             </Link>
         </section>
