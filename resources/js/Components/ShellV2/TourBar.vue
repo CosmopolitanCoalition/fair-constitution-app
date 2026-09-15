@@ -25,8 +25,8 @@ const { active, onPath, stop, currentTitle, stepNumber, total, progressPct, back
             <span v-if="onPath" class="tour-step"><Icon name="map" size="sm" /> {{ t('c_shell_components.tour_bar.step_of', { step: stepNumber, total: total }) }}</span>
             <span v-else class="tour-step"><Icon name="map" size="sm" /> {{ t('c_shell_components.tour_bar.exploring', 'Guided tour · exploring') }}</span>
             <template v-if="onPath && stop">
-                <strong class="tour-title">{{ stop.title }}</strong>
-                <span class="tour-blurb">{{ stop.blurb }}</span>
+                <strong class="tour-title">{{ t('c_tour.stop.' + (stepNumber - 1) + '.title', stop.title) }}</strong>
+                <span class="tour-blurb">{{ t('c_tour.stop.' + (stepNumber - 1) + '.blurb', stop.blurb) }}</span>
             </template>
             <template v-else>
                 <strong class="tour-title">{{ currentTitle || t('c_shell_components.tour_bar.this_page', 'This page') }}</strong>

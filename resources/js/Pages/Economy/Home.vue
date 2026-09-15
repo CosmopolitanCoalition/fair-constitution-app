@@ -13,44 +13,44 @@ defineProps({
     account: { type: Object, default: null },
 });
 
-// Inherit the selected language; untranslated messages fall back to English.
-const { t } = useI18n({
-    useScope: 'local',
-    fallbackLocale: 'en',
-    messages: { en: {
-        title: 'Work & trade',
-        intro: 'Find useful work, trade goods and services, and organize with others.',
-        start: 'What would you like to do?',
-        market: 'Buy or sell',
-        marketHint: 'Browse goods and services, or offer something of your own.',
-        marketAction: 'Open the market',
-        work: 'Find work',
-        workHint: 'Explore open jobs and see what organizations need.',
-        workAction: 'Browse work',
-        wallet: 'My wallet',
-        walletHint: 'Your balance, payments, and items in one place.',
-        balance: 'Your balance',
-        noWallet: 'No wallet is linked to your account in this currency.',
-        walletAction: 'Open my wallet',
-        currencyMissing: 'A currency has not been defined yet',
-        currencyMissingHint: 'You can explore organizations and work. Priced transactions become available after the currency is defined.',
-        together: 'Work together',
-        organizations: 'Organizations',
-        organizationsHint: 'Find a group, join its work, or manage an organization.',
-        agreements: 'My agreements',
-        agreementsHint: 'Review terms, negotiate changes, and sign agreements.',
-        assistance: 'Give or find help',
-        assistanceHint: 'Browse public requests for support.',
-        finance: 'Public money & shared funds',
-        financeHint: 'Accounts, currency rules, and other financial tools',
-        treasury: 'Public accounts',
-        units: 'Currency & monetary policy',
-        stipend: 'Civic stipend',
-        exchange: 'Buy or sell shares',
-        joint: 'Shared funds',
-        unit: 'Currency',
-    } },
-});
+// Strings live in the c_economy namespace (loader-visible, translatable); the
+// verbatim English is the fallback so nothing changes for an English viewer. A
+// local messages block would be invisible to the i18n loader.
+const { t: i18nT } = useI18n();
+const HOME_EN = {
+    title: 'Work & trade',
+    intro: 'Find useful work, trade goods and services, and organize with others.',
+    start: 'What would you like to do?',
+    market: 'Buy or sell',
+    marketHint: 'Browse goods and services, or offer something of your own.',
+    marketAction: 'Open the market',
+    work: 'Find work',
+    workHint: 'Explore open jobs and see what organizations need.',
+    workAction: 'Browse work',
+    wallet: 'My wallet',
+    walletHint: 'Your balance, payments, and items in one place.',
+    balance: 'Your balance',
+    noWallet: 'No wallet is linked to your account in this currency.',
+    walletAction: 'Open my wallet',
+    currencyMissing: 'A currency has not been defined yet',
+    currencyMissingHint: 'You can explore organizations and work. Priced transactions become available after the currency is defined.',
+    together: 'Work together',
+    organizations: 'Organizations',
+    organizationsHint: 'Find a group, join its work, or manage an organization.',
+    agreements: 'My agreements',
+    agreementsHint: 'Review terms, negotiate changes, and sign agreements.',
+    assistance: 'Give or find help',
+    assistanceHint: 'Browse public requests for support.',
+    finance: 'Public money & shared funds',
+    financeHint: 'Accounts, currency rules, and other financial tools',
+    treasury: 'Public accounts',
+    units: 'Currency & monetary policy',
+    stipend: 'Civic stipend',
+    exchange: 'Buy or sell shares',
+    joint: 'Shared funds',
+    unit: 'Currency',
+};
+const t = (key) => i18nT('c_economy.home.' + key, HOME_EN[key] ?? key);
 
 const sharedActions = [
     { href: '/organizations', key: 'organizations', icon: Users },

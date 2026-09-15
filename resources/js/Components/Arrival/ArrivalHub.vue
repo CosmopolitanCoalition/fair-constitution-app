@@ -5,43 +5,44 @@ import { useI18n } from 'vue-i18n';
 import Icon from '@/Components/Ui/Icon.vue';
 
 const page = usePage();
-const { t: globalT } = useI18n({ useScope: 'global' });
-const { t } = useI18n({
-    useScope: 'local',
-    fallbackLocale: 'en',
-    messages: { en: {
-        title: 'Welcome',
-        eyebrow: 'Learn government by taking part',
-        intro: 'Explore a simulated world, follow its public decisions, and discover how civic roles work.',
-        start: 'Start exploring',
-        places: 'Explore places & maps',
-        placesHint: 'Browse the jurisdiction tree from the world to local communities. Open a place to find its government and legislative district maps.',
-        placesAction: 'Choose a place',
-        roles: 'Explore civic roles',
-        rolesHint: 'See the work of a resident, legislator, judge, committee chair, election board member, or instance operator.',
-        rolesAction: 'Choose a role',
-        everyday: 'Take part in everyday life',
-        community: 'Community',
-        communityHint: 'Public discussions, live rooms, and private messages.',
-        economy: 'Work & trade',
-        economyHint: 'Find work, trade goods and services, and manage your wallet.',
-        learn: 'Learn',
-        learnHint: 'Follow a guided journey, read a lesson, or watch a video.',
-        accountTitle: 'Ready to take part?',
-        accountHint: 'Create an account to participate. You can browse places and explore roles before joining.',
-        register: 'Create an account',
-        login: 'Sign in',
-        returnTitle: 'Continue your day',
-        returnHint: 'Find your upcoming events and current civic activity.',
-        today: 'Go to Today',
-        setup: 'Opening instance setup…',
-        setupAction: 'Continue to setup',
-    } },
-});
+const { t: i18nT } = useI18n();
+
+/* Strings live in the c_arrival namespace (loader-visible, translatable). The
+   verbatim English is the fallback, so nothing changes for an English viewer.
+   A local messages block would be invisible to the i18n loader. */
+const ARRIVAL_EN = {
+    title: 'Welcome',
+    eyebrow: 'Learn government by taking part',
+    intro: 'Explore a simulated world, follow its public decisions, and discover how civic roles work.',
+    start: 'Start exploring',
+    places: 'Explore places & maps',
+    placesHint: 'Browse the jurisdiction tree from the world to local communities. Open a place to find its government and legislative district maps.',
+    placesAction: 'Choose a place',
+    roles: 'Explore civic roles',
+    rolesHint: 'See the work of a resident, legislator, judge, committee chair, election board member, or instance operator.',
+    rolesAction: 'Choose a role',
+    everyday: 'Take part in everyday life',
+    community: 'Community',
+    communityHint: 'Public discussions, live rooms, and private messages.',
+    economy: 'Work & trade',
+    economyHint: 'Find work, trade goods and services, and manage your wallet.',
+    learn: 'Learn',
+    learnHint: 'Follow a guided journey, read a lesson, or watch a video.',
+    accountTitle: 'Ready to take part?',
+    accountHint: 'Create an account to participate. You can browse places and explore roles before joining.',
+    register: 'Create an account',
+    login: 'Sign in',
+    returnTitle: 'Continue your day',
+    returnHint: 'Find your upcoming events and current civic activity.',
+    today: 'Go to Today',
+    setup: 'Opening instance setup…',
+    setupAction: 'Continue to setup',
+};
+const t = (key) => i18nT('c_arrival.arrival_hub.' + key, ARRIVAL_EN[key] ?? key);
 
 const instance = computed(() => page.props.shellInstance ?? page.props.instance);
 const setupComplete = computed(() => instance.value?.setupComplete ?? true);
-const appName = computed(() => instance.value?.name || globalT('app.name'));
+const appName = computed(() => instance.value?.name || i18nT('app.name'));
 const signedIn = computed(() => Boolean(page.props.auth?.user));
 const viewedPlace = computed(() => {
     const resolved = page.props.selectedPlace?.id || page.props.jurisdictionContext?.current?.id;

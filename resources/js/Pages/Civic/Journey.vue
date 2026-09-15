@@ -24,7 +24,7 @@ import FormChip from '@/Components/Ui/FormChip.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { useAnnounce } from '@/composables/useAnnounce';
-import { JOURNEYS_BY_ID, yourPartFor } from '@/registry/journeys.js';
+import { JOURNEYS_BY_ID } from '@/registry/journeys.js';
 
 defineOptions({ layout: AppShellV2 });
 const { t } = useI18n();
@@ -52,12 +52,25 @@ const learnLabel = computed(() => {
     return words.charAt(0).toUpperCase() + words.slice(1);
 });
 
-/* Client display data (class label, flagship, your-part, earn copy) by id. */
+/* Client display data (class label, flagship, your-part, earn copy) by id.
+   Journey display strings resolve through the c_journeys catalog, keyed by
+   journey id; the registry value stays the fallback. */
 const display = computed(() => JOURNEYS_BY_ID[props.journey.id] ?? null);
-const clsLabel = computed(() => display.value?.clsLabel ?? props.journey.cls);
-const yourPart = computed(() => yourPartFor(display.value));
+const clsLabel = computed(() => {
+    const clsId = display.value?.cls ?? props.journey.cls;
+    return t('c_journeys.class.' + clsId, display.value?.clsLabel ?? props.journey.cls);
+});
+const yourPart = computed(() => {
+    const d = display.value;
+    if (d?.yourPart) return t('c_journeys.' + props.journey.id + '.your_part', d.yourPart);
+    return (d?.rooms || []).length
+        ? t('c_journeys.generic.arc_rooms', 'follow the arc below — watch from the gallery, or take the floor where you’re a resident')
+        : t('c_journeys.generic.arc', 'follow the arc below');
+});
 const earnLine = computed(
-    () => display.value?.earn ?? t('c_civic.journey.earn_default', 'the places this journey touches will greet you as someone who knows the ropes'),
+    () => (display.value?.earn
+        ? t('c_journeys.' + props.journey.id + '.earn', display.value.earn)
+        : t('c_civic.journey.earn_default', 'the places this journey touches will greet you as someone who knows the ropes')),
 );
 
 /* Steps arrive as objects; a legacy string step still renders as a label. */
@@ -92,7 +105,7 @@ function toggleStep(index) {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="journey.title">
+    <PageScaffold :surface="surface" :title="t('c_journeys.' + journey.id + '.title', journey.title)">
         <template #intro>
             {{ t('c_civic.journey.intro', 'Follow the real thing as it moves through the world. Each step tells you what happens, what your part is, and where to go. Mark a step when you have done it.') }}
         </template>
@@ -142,9 +155,9 @@ function toggleStep(index) {
                         <template v-else>{{ index + 1 }}</template>
                     </span>
                     <div class="journey-body">
-                        <h3 class="journey-title">{{ step.label }}</h3>
-                        <p v-if="step.what" class="journey-what">{{ step.what }}</p>
-                        <p v-if="step.you" class="journey-you"><strong>{{ t('c_civic.journey.your_part_label', 'Your part:') }}</strong> {{ step.you }}</p>
+                        <h3 class="journey-title">{{ t('c_journeys.' + journey.id + '.step.' + index + '.label', step.label) }}</h3>
+                        <p v-if="step.what" class="journey-what">{{ t('c_journeys.' + journey.id + '.step.' + index + '.what', step.what) }}</p>
+                        <p v-if="step.you" class="journey-you"><strong>{{ t('c_civic.journey.your_part_label', 'Your part:') }}</strong> {{ t('c_journeys.' + journey.id + '.step.' + index + '.you', step.you) }}</p>
                         <div class="cluster journey-actions">
                             <Btn v-if="step.href" :as="Link" :href="step.href" variant="secondary" size="sm" icon="arrow-right">{{ t('c_civic.journey.go_there', 'Go there') }}</Btn>
                             <FormChip v-if="step.form" :form-id="step.form" />
@@ -172,7 +185,7 @@ function toggleStep(index) {
         <!-- ───────────────────────────────── what completing this earns -->
         <Card as="section" :title="t('c_civic.journey.earns_title', 'What finishing this earns')">
             <ul class="earn">
-                <li><strong>{{ t('c_civic.journey.medal_label', 'A medal on your profile.') }}</strong> {{ t('c_civic.journey.medal_joins', { title: journey.title }) }} <Link href="/civic/record?tab=achievements">{{ t('c_civic.journey.your_achievements', 'your achievements') }}</Link>.</li>
+                <li><strong>{{ t('c_civic.journey.medal_label', 'A medal on your profile.') }}</strong> {{ t('c_civic.journey.medal_joins', { title: t('c_journeys.' + journey.id + '.title', journey.title) }) }} <Link href="/civic/record?tab=achievements">{{ t('c_civic.journey.your_achievements', 'your achievements') }}</Link>.</li>
                 <li><strong>{{ t('c_civic.journey.head_start', 'A head start.') }}</strong> {{ earnLine }}.</li>
                 <li><strong>{{ t('c_civic.journey.stipend_bonus', 'A stipend bonus') }}</strong> {{ t('c_civic.journey.when_economy', 'when the economy pays it.') }} <StatusBadge tone="neutral" icon="clock">{{ t('c_civic.journey.coming', 'Coming') }}</StatusBadge></li>
             </ul>

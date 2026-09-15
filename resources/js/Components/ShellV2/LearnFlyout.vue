@@ -23,6 +23,8 @@
 import { computed, inject } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js';
 import Icon from '@/Components/Ui/Icon.vue';
 import { LEARN_BY_MODULE } from '@/registry/surfaces.js';
 import { EDUCATION_BY_SURFACE } from '@/registry/education.js';
@@ -35,6 +37,18 @@ const surface = inject('cga:surface', computed(() => page.props.surface ?? null)
 const contentTarget = inject('cga:learn-target', null);
 const text = (key, fallback) => t('c_learn.ui.' + key, fallback);
 const label = (code, name = null) => referenceLabel(code, { name, translate: (key, fallback) => t(key, fallback) });
+
+/* registry/flows.js is GENERATED, so it carries no i18n keys. Its strings live
+   in the flows namespace under a key that is a pure function of the text:
+   slug(text)_<first 8 hex of sha256(text)>. Keep in sync with
+   scripts/i18n/extract_flows.mjs flowsKey(). The raw text is the fallback, so
+   the English viewer sees no change. */
+function flowsKey(raw) {
+    const s = String(raw ?? '').replace(/\s+/g, ' ').trim();
+    const slug = s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40) || 'step';
+    return 'flows.' + slug + '_' + bytesToHex(sha256(utf8ToBytes(s))).slice(0, 8);
+}
+const flowText = (raw) => (raw ? t(flowsKey(raw), raw) : raw);
 
 /* The authored K-2 payload for this surface, when it exists. */
 const education = computed(() => {
@@ -72,11 +86,12 @@ const URL_MODULE = {
 const about = computed(() => {
     const s = surface.value;
     const urlModule = URL_MODULE[String(page.url ?? '/').split('?')[0].split('/')[1] ?? ''];
-    return (
-        (s?.module && LEARN_BY_MODULE[s.module]) ||
-        (urlModule && LEARN_BY_MODULE[urlModule]) ||
-        'A quick guide to this screen.'
-    );
+    const mod = (s?.module && LEARN_BY_MODULE[s.module]) ? s.module
+        : (urlModule && LEARN_BY_MODULE[urlModule]) ? urlModule
+            : null;
+    return mod
+        ? t('c_learn.module.' + mod, LEARN_BY_MODULE[mod])
+        : t('c_learn.ui.about_fallback', 'A quick guide to this screen.');
 });
 
 const forms = computed(() => surface.value?.forms ?? []);
@@ -114,7 +129,7 @@ const videoIsDefault = computed(() => education.value?.video?.source === 'defaul
 
         <!-- How to use this page — the mockups' sop idiom, verbatim classes. -->
         <section v-if="education && education.steps.length" class="sop">
-            <span class="eyebrow"><Icon name="list-checks" size="sm" /> How to use this page</span>
+            <span class="eyebrow"><Icon name="list-checks" size="sm" /> {{ text('how_to_use', 'How to use this page') }}</span>
             <ol class="sop-steps">
                 <li v-for="(step, i) in education.steps" :key="i">
                     <span class="sop-do">{{ t(step.do) }}</span>
@@ -127,26 +142,26 @@ const videoIsDefault = computed(() => education.value?.video?.source === 'defaul
         <!-- The constitutional why — the half that is never in the chrome. -->
         <aside v-if="education && education.why" class="ld-why">
             <Icon name="scale" size="sm" />
-            <p><strong>The why:</strong> {{ t(education.why) }}</p>
+            <p><strong>{{ text('the_why', 'The why:') }}</strong> {{ t(education.why) }}</p>
         </aside>
 
         <!-- Where this fits — the flow(s) this screen takes part in. -->
         <section v-if="primaryFlow" class="ld-flow">
-            <span class="ld-context-h"><Icon name="git-branch" size="sm" /> Where this fits</span>
+            <span class="ld-context-h"><Icon name="git-branch" size="sm" /> {{ text('where_this_fits', 'Where this fits') }}</span>
             <div class="ld-flow-row">
                 <span class="ld-flow-name">
-                    {{ primaryFlow.wfName }}
-                    <span class="ld-flow-fam">· {{ primaryFlow.familyLabel }}</span>
+                    {{ flowText(primaryFlow.wfName) }}
+                    <span class="ld-flow-fam">· {{ flowText(primaryFlow.familyLabel) }}</span>
                 </span>
-                <span class="ld-flow-pos">Step {{ stepLabel(primaryFlow) }} of {{ primaryFlow.total }}</span>
-                <span v-if="prevOf(primaryFlow)" class="ld-flow-adj">← before this: {{ prevOf(primaryFlow) }}</span>
-                <span v-if="nextOf(primaryFlow)" class="ld-flow-adj">→ after this: {{ nextOf(primaryFlow) }}</span>
+                <span class="ld-flow-pos">{{ t('c_learn.ui.step_of', { step: stepLabel(primaryFlow), total: primaryFlow.total }) }}</span>
+                <span v-if="prevOf(primaryFlow)" class="ld-flow-adj">{{ t('c_learn.ui.before_this', { step: flowText(prevOf(primaryFlow)) }) }}</span>
+                <span v-if="nextOf(primaryFlow)" class="ld-flow-adj">{{ t('c_learn.ui.after_this', { step: flowText(nextOf(primaryFlow)) }) }}</span>
             </div>
             <details v-if="moreFlows.length" class="ld-flow-more">
-                <summary>Also part of {{ moreFlows.length }} other process{{ moreFlows.length === 1 ? '' : 'es' }}</summary>
+                <summary>{{ moreFlows.length === 1 ? t('c_learn.ui.also_part_one', { count: moreFlows.length }) : t('c_learn.ui.also_part_many', { count: moreFlows.length }) }}</summary>
                 <div v-for="f in moreFlows" :key="f.wf" class="ld-flow-row">
-                    <span class="ld-flow-name">{{ f.wfName }} <span class="ld-flow-fam">· {{ f.familyLabel }}</span></span>
-                    <span class="ld-flow-pos">Step {{ stepLabel(f) }} of {{ f.total }}</span>
+                    <span class="ld-flow-name">{{ flowText(f.wfName) }} <span class="ld-flow-fam">· {{ flowText(f.familyLabel) }}</span></span>
+                    <span class="ld-flow-pos">{{ t('c_learn.ui.step_of', { step: stepLabel(f), total: f.total }) }}</span>
                 </div>
             </details>
         </section>
@@ -174,7 +189,7 @@ const videoIsDefault = computed(() => education.value?.video?.source === 'defaul
 
         <div class="cluster" style="gap: var(--space-1)">
             <Link class="form-chip form-chip--report" :href="reportHref">
-                <Icon name="flag" size="sm" /> Report an issue
+                <Icon name="flag" size="sm" /> {{ text('report_issue', 'Report an issue') }}
             </Link>
         </div>
     </div>

@@ -58,12 +58,12 @@ const groups = computed(() =>
         <p><Link href="/learn">{{ t('places.journeys.back_learn', '← Learn & help') }}</Link></p>
         <p v-if="!groups.length">{{ t('places.journeys.none', 'No guided journeys are available yet. You can explore the lessons in Learn & help.') }}</p>
         <section v-for="group in groups" :key="group.id" :aria-labelledby="`jcls-${group.id}`">
-            <h2 :id="`jcls-${group.id}`">{{ group.label }}</h2>
+            <h2 :id="`jcls-${group.id}`">{{ t('c_journeys.class.' + group.id, group.label) }}</h2>
 
             <div class="role-grid">
                 <div v-for="j in group.journeys" :key="j.id" class="card stack" style="gap: var(--space-2)">
                     <div class="cluster" style="justify-content: space-between; align-items: baseline">
-                        <h3 style="margin: 0">{{ j.title }}</h3>
+                        <h3 style="margin: 0">{{ t('c_journeys.' + j.id + '.title', j.title) }}</h3>
                     </div>
 
                     <!-- steps-done meter — n of N -->
