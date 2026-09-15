@@ -33,10 +33,81 @@ class LanguagePackageServiceTest extends TestCase
     private function svc(): LanguagePackageService
     {
         return new LanguagePackageService($this->tmp, [
-            'en' => ['target' => true],
-            'es' => ['target' => true],
+            'en' => ['name' => 'English', 'endonym' => 'English', 'target' => true],
+            'es' => ['name' => 'Spanish', 'endonym' => 'español', 'target' => true],
+            'pl' => ['name' => 'Polish', 'endonym' => 'polski', 'target' => true],
             'xx' => ['target' => false],
         ]);
+    }
+
+    public function test_english_is_the_source_exportable_as_a_master_never_a_package_target(): void
+    {
+        $svc = $this->svc();
+
+        $this->assertTrue($svc->isSourceLocale('en'));
+        $this->assertFalse($svc->isSourceLocale('es'));
+        $this->assertTrue($svc->isExportable('en'));
+        $this->assertTrue($svc->isExportable('es'));
+        $this->assertFalse($svc->isExportable('xx'));
+        $this->assertNotContains('en', $svc->targetLocales());
+
+        // The script command is for targets only; the master is staged, not scripted.
+        $this->expectException(InvalidArgumentException::class);
+        $svc->exportCommand('en', 'run-1');
+    }
+
+    public function test_language_rows_state_what_is_present_and_what_is_not(): void
+    {
+        $rows = $this->svc()->languageRows([
+            'source_keys' => 10,
+            'locales' => [['locale' => 'es', 'pct' => 28.9, 'missing' => 7]],
+        ]);
+
+        $this->assertSame(['es', 'pl'], array_column($rows, 'code'), 'present first, then by name');
+        $this->assertSame(['Spanish', 'Polish'], array_column($rows, 'name'));
+        $this->assertTrue($rows[0]['present']);
+        $this->assertSame(28.9, $rows[0]['pct']);
+        $this->assertSame(7, $rows[0]['missing']);
+        $this->assertFalse($rows[1]['present']);
+        $this->assertNull($rows[1]['pct']);
+        $this->assertNull($rows[1]['missing']);
+
+        // Never measured: every target is absent, English is still not a row.
+        $unmeasured = $this->svc()->languageRows(null);
+        $this->assertSame(['pl', 'es'], array_column($unmeasured, 'code'), 'by name when nothing is present');
+        $this->assertSame([false, false], array_column($unmeasured, 'present'));
+    }
+
+    public function test_the_english_master_stages_the_source_catalogues_and_a_readme(): void
+    {
+        $repo = $this->tmp . '/repo';
+        mkdir($repo . '/resources/js/i18n/locales/en', 0775, true);
+        mkdir($repo . '/lang', 0775, true);
+        file_put_contents($repo . '/resources/js/i18n/locales/en/auth.json', json_encode(['a' => 'A', 'b' => 'B']));
+        file_put_contents($repo . '/resources/js/i18n/locales/en/civic.json', json_encode(['c' => 'C']));
+        file_put_contents($repo . '/lang/en.json', json_encode(['Line' => 'Line']));
+
+        $svc = $this->svc();
+        $files = $svc->sourceFiles($repo);
+        $this->assertSame(['ui/auth.json', 'ui/civic.json', 'php/en.json'], array_keys($files));
+
+        $count = $svc->stageSourceMaster('run-en', $repo);
+        $this->assertSame(3, $count);
+
+        $dir = $svc->exportDir('run-en') . '/en';
+        $this->assertFileExists($dir . '/ui/auth.json');
+        $this->assertFileExists($dir . '/ui/civic.json');
+        $this->assertFileExists($dir . '/php/en.json');
+        $this->assertFileExists($dir . '/README.txt');
+        $readme = (string) file_get_contents($dir . '/README.txt');
+        $this->assertStringContainsString('Strings: 4 across 3 files.', $readme);
+        $this->assertStringContainsString('the 2 Vue namespace catalogues', $readme);
+
+        // Zipped like any package: the master lands as en-package.zip.
+        if (class_exists(\ZipArchive::class)) {
+            $n = $svc->zipDir($dir, $svc->packageZipPath('run-en', 'en'));
+            $this->assertSame(4, $n);
+        }
     }
 
     public function test_it_builds_the_export_command_and_zip_path(): void

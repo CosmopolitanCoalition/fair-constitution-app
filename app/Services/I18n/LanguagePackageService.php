@@ -24,9 +24,22 @@ use Illuminate\Support\Str;
  * TARGET LOCALES ONLY. Export refuses a locale that is not a registry target
  * (locales.generated.js / config('locales') rows with target: true). A row
  * that is display-only is not opened for a machine draft.
+ *
+ * THE SOURCE (operator observation 2026-09-15: "only one language is actually
+ * in the system"). English is the source catalogue, never a package target:
+ * every target package is English strings addressed to one language, and the
+ * English MASTER export zips the source catalogues themselves. Import refuses
+ * the source: English is edited in code, never imported.
  */
 class LanguagePackageService
 {
+    /** The source catalogue's locale. Exportable as a master, never a package target. */
+    public const SOURCE_LOCALE = 'en';
+
+    /** The source catalogues, relative to the repo root: the UI namespaces and the PHP lines. */
+    private const SOURCE_UI_DIR = 'resources/js/i18n/locales/en';
+    private const SOURCE_PHP_FILE = 'lang/en.json';
+
     /** Relative to base_path(). Both scripts read/write the real catalogs from here. */
     private const EXPORT_SCRIPT = 'scripts/i18n/export_master.py';
     private const IMPORT_SCRIPT = 'scripts/i18n/import_translated.py';
@@ -119,7 +132,7 @@ class LanguagePackageService
     {
         return array_values(array_filter(
             array_keys($this->registry()),
-            fn (string $c): bool => $c !== 'en' && $this->isTargetLocale($c),
+            fn (string $c): bool => $c !== self::SOURCE_LOCALE && $this->isTargetLocale($c),
         ));
     }
 
@@ -128,6 +141,136 @@ class LanguagePackageService
         if (! $this->isTargetLocale($code)) {
             throw new InvalidArgumentException("[{$code}] is not a translation target in the locale registry");
         }
+    }
+
+    public function isSourceLocale(string $code): bool
+    {
+        return $code === self::SOURCE_LOCALE;
+    }
+
+    /** A code the export action accepts: the source master or a registry target. */
+    public function isExportable(string $code): bool
+    {
+        return $this->isSourceLocale($code) || $this->isTargetLocale($code);
+    }
+
+    public function assertExportable(string $code): void
+    {
+        if (! $this->isExportable($code)) {
+            throw new InvalidArgumentException("[{$code}] is neither the source catalogue nor a translation target");
+        }
+    }
+
+    /**
+     * What is actually in the app, one row per target: the registry name and
+     * the coverage the gate last measured. A language with no catalogue on
+     * disk is `present: false` with null numbers, so the card can say "no
+     * strings yet" instead of listing it as if it existed. Pure: the coverage
+     * artifact is handed in (resources/js/i18n/coverage.json, decoded), never
+     * read here.
+     *
+     * @param  array<string, mixed>|null  $coverage  the decoded coverage artifact, or null when never measured
+     * @return list<array{code:string, name:string, endonym:string, present:bool, pct:float|null, missing:int|null}>
+     */
+    public function languageRows(?array $coverage): array
+    {
+        $measured = [];
+        foreach ((array) ($coverage['locales'] ?? []) as $row) {
+            if (is_array($row) && isset($row['locale'])) {
+                $measured[(string) $row['locale']] = $row;
+            }
+        }
+
+        $rows = [];
+        foreach ($this->targetLocales() as $code) {
+            $reg = $this->registry()[$code] ?? [];
+            $m = $measured[$code] ?? null;
+            $rows[] = [
+                'code' => $code,
+                'name' => (string) ($reg['name'] ?? $code),
+                'endonym' => (string) ($reg['endonym'] ?? $reg['name'] ?? $code),
+                'present' => $m !== null,
+                'pct' => $m !== null ? (float) ($m['pct'] ?? 0) : null,
+                'missing' => $m !== null ? (int) ($m['missing'] ?? 0) : null,
+            ];
+        }
+
+        // Present languages first (most complete first), then the rest by name.
+        usort($rows, function (array $a, array $b): int {
+            if ($a['present'] !== $b['present']) {
+                return $a['present'] ? -1 : 1;
+            }
+            if ($a['present'] && $a['pct'] !== $b['pct']) {
+                return $b['pct'] <=> $a['pct'];
+            }
+
+            return strcmp($a['name'], $b['name']);
+        });
+
+        return $rows;
+    }
+
+    /**
+     * The source catalogues on disk: every English UI namespace file and the
+     * PHP line file, keyed by the path they take inside the master zip.
+     *
+     * @return array<string, string> zip path => absolute file path
+     */
+    public function sourceFiles(?string $repoRoot = null): array
+    {
+        $root = rtrim(str_replace('\\', '/', $repoRoot ?? base_path()), '/');
+        $files = [];
+
+        foreach (glob($root . '/' . self::SOURCE_UI_DIR . '/*.json') ?: [] as $abs) {
+            $files['ui/' . basename($abs)] = $abs;
+        }
+        ksort($files);
+
+        $php = $root . '/' . self::SOURCE_PHP_FILE;
+        if (is_file($php)) {
+            $files['php/en.json'] = $php;
+        }
+
+        return $files;
+    }
+
+    /**
+     * Stage the English master under <run>/export/en: the source catalogues
+     * copied as they stand plus a README that states the layout and counts.
+     * Returns the number of catalogue files staged. The export job zips the
+     * directory afterwards exactly like a target package.
+     */
+    public function stageSourceMaster(string $run, ?string $repoRoot = null): int
+    {
+        $dir = $this->exportDir($run) . '/' . self::SOURCE_LOCALE;
+        $files = $this->sourceFiles($repoRoot);
+        if ($files === []) {
+            throw new \RuntimeException('no English source catalogues found under ' . self::SOURCE_UI_DIR);
+        }
+
+        $keys = 0;
+        foreach ($files as $rel => $abs) {
+            $dest = $dir . '/' . $rel;
+            $this->ensureDir(dirname($dest));
+            copy($abs, $dest);
+            $decoded = json_decode((string) file_get_contents($abs), true);
+            $keys += is_array($decoded) ? count($decoded) : 0;
+        }
+
+        $ui = count(array_filter(array_keys($files), fn (string $k): bool => str_starts_with($k, 'ui/')));
+        file_put_contents($dir . '/README.txt', implode("\n", [
+            'CGA English master (the source catalogue, not a translation).',
+            '',
+            'ui/<namespace>.json  the ' . $ui . ' Vue namespace catalogues (vue-i18n keys => English)',
+            'php/en.json          the Laravel __() lines (English line => English line)',
+            '',
+            'Strings: ' . $keys . ' across ' . count($files) . ' files.',
+            'Placeholders {name}, :name, ID tokens and citations must be kept verbatim in any translation.',
+            'A translated copy comes back through Import on /system/translations, addressed to its own language.',
+            '',
+        ]));
+
+        return count($files);
     }
 
     // ── Commands (built here, run in the queued jobs) ─────────────────────────
@@ -140,6 +283,9 @@ class LanguagePackageService
      */
     public function exportCommand(string $locale, string $run): array
     {
+        if ($this->isSourceLocale($locale)) {
+            throw new InvalidArgumentException('the English master is staged from the source catalogues, never exported by script');
+        }
         $this->assertTargetLocale($locale);
 
         return [

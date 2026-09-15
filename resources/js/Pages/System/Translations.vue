@@ -189,11 +189,15 @@ function pctOf(part, whole) {
 }
 
 /* ── Language packages (W-0446, operator-only) ─────────────────────────────
-   Export a target locale's outstanding strings as a zip, import a translated
-   package back, request a language nobody has opened. The scripts run in
-   queued jobs; this card only calls the operator-gated endpoints and polls
-   the run records every 2s, the same contract the live deck uses. */
-const pkg = ref({ runs: [], requests: [], targets: [] });
+   Every package is ENGLISH: the source strings a chosen language still
+   lacks, or the whole English master. Import brings a translated copy back
+   under its own language. The picker states what is actually in the app
+   (operator observation 2026-09-15): English as the source, the machine
+   drafts with their measured coverage, and every other registered language
+   as "no strings yet". The scripts run in queued jobs; this card only calls
+   the operator-gated endpoints and polls the run records every 2s, the same
+   contract the live deck uses. */
+const pkg = ref({ runs: [], requests: [], targets: [], languages: [], source: null });
 const pkgError = ref('');
 const pkgBusy = ref(false);
 const exportLocale = ref('');
@@ -206,6 +210,25 @@ let pkgTimer = null;
 const pkgRuns = computed(() => pkg.value?.runs ?? []);
 const pkgRequests = computed(() => pkg.value?.requests ?? []);
 const pkgTargets = computed(() => pkg.value?.targets ?? []);
+const pkgLanguages = computed(() => pkg.value?.languages ?? []);
+const pkgPresent = computed(() => pkgLanguages.value.filter((l) => l.present));
+const pkgAbsent = computed(() => pkgLanguages.value.filter((l) => !l.present));
+const pkgSource = computed(() => pkg.value?.source ?? null);
+const pkgSourceCode = computed(() => pkgSource.value?.code ?? 'en');
+/** One option line: "Spanish (es) · 29% drafted, 10,722 to go" or "Polish (pl) · no strings yet". */
+function pkgOptionLabel(l) {
+    const head = `${l.name} (${l.code})`;
+    if (!l.present) return `${head} · ${t('c_system.translations.pkg_opt_absent', 'no strings yet')}`;
+    return `${head} · ${t('c_system.translations.pkg_opt_present', '{pct}% drafted, {missing} to go', {
+        pct: localeFmt.number(Math.round(l.pct ?? 0)),
+        missing: localeFmt.number(l.missing ?? 0),
+    })}`;
+}
+function pkgRunLocale(r) {
+    if (r.kind === 'export' && r.locale === pkgSourceCode.value) return t('c_system.translations.pkg_source_master', 'English master');
+    const row = pkgLanguages.value.find((l) => l.code === r.locale);
+    return row ? `${row.name} (${row.code})` : (r.locale || '—');
+}
 
 async function pollPackages() {
     if (!props.viewer?.isOperator) return;
@@ -618,13 +641,22 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
         </Card>
 
         <!-- ── LANGUAGE PACKAGES (operator-only) ────────────────────────────
-             Export a target locale's outstanding strings, translate them
-             anywhere, import the result. Operator-only: the actions run real
-             work against the real catalogs through queued jobs. -->
+             Every package is English: the source strings a language still
+             lacks, or the whole English master. Translate anywhere, import
+             the result under its own language. Operator-only: the actions
+             run real work against the real catalogs through queued jobs. -->
         <Card v-if="viewer.isOperator" :title="t('c_system.translations.pkg_title', 'Language packages')"
               :eyebrow="t('c_system.translations.pkg_eyebrow', 'operator')">
             <p class="gloss">
-                {{ t('c_system.translations.pkg_intro', 'Export the strings a language still needs, translate them anywhere, then import the result. Every action runs as a queued job, never in the page.') }}
+                {{ t('c_system.translations.pkg_intro', 'Every package you export is English. Pick the language a translator will produce and the zip holds the English strings that language still lacks, with surface context and the glossary. Translate anywhere, then import the result under that language. Every action runs as a queued job, never in the page.') }}
+            </p>
+            <p v-if="pkgSource" class="muted" data-no-i18n>
+                {{ t('c_system.translations.pkg_state_line', 'In the app now: English (the source, {keys} strings in {files} files), {present} machine drafts in progress, {absent} registered languages with no strings yet.', {
+                    keys: localeFmt.number(pkgSource.keys ?? 0),
+                    files: localeFmt.number(pkgSource.files ?? 0),
+                    present: localeFmt.number(pkgPresent.length),
+                    absent: localeFmt.number(pkgAbsent.length),
+                }) }}
             </p>
 
             <p v-if="pkgError" class="muted">
@@ -634,13 +666,19 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
             <div class="pkg-grid">
                 <!-- EXPORT -->
                 <div class="pkg-panel">
-                    <h3>{{ t('c_system.translations.pkg_export_title', 'Export a package') }}</h3>
-                    <p class="gloss">{{ t('c_system.translations.pkg_export_hint', 'Pick a target language. The server collects every string that language still needs into a zip.') }}</p>
+                    <h3>{{ t('c_system.translations.pkg_export_title', 'Export English strings') }}</h3>
+                    <p class="gloss">{{ t('c_system.translations.pkg_export_hint', 'Pick the language the translation is for. The zip holds the English strings that language still lacks. Or export the English master: every source string, no target.') }}</p>
                     <label class="pkg-label">
-                        {{ t('c_system.translations.pkg_export_select', 'Language') }}
+                        {{ t('c_system.translations.pkg_export_select', 'Export for') }}
                         <select v-model="exportLocale" class="pkg-input">
                             <option value="">{{ t('c_system.translations.pkg_export_placeholder', 'Choose a language') }}</option>
-                            <option v-for="code in pkgTargets" :key="code" :value="code">{{ langOf(code).name }} ({{ code }})</option>
+                            <option :value="pkgSourceCode">{{ t('c_system.translations.pkg_source_option', 'English master (en) · the source, every string') }}</option>
+                            <optgroup v-if="pkgPresent.length" :label="t('c_system.translations.pkg_group_present', 'Machine drafts in the app')">
+                                <option v-for="l in pkgPresent" :key="l.code" :value="l.code">{{ pkgOptionLabel(l) }}</option>
+                            </optgroup>
+                            <optgroup v-if="pkgAbsent.length" :label="t('c_system.translations.pkg_group_absent', 'Registered, no strings yet')">
+                                <option v-for="l in pkgAbsent" :key="l.code" :value="l.code">{{ pkgOptionLabel(l) }}</option>
+                            </optgroup>
                         </select>
                     </label>
                     <button class="btn btn--primary" :disabled="pkgBusy || !exportLocale" @click="startExport">
@@ -651,12 +689,17 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
                 <!-- IMPORT -->
                 <div class="pkg-panel">
                     <h3>{{ t('c_system.translations.pkg_import_title', 'Import a translation') }}</h3>
-                    <p class="gloss">{{ t('c_system.translations.pkg_import_hint', 'Upload a translated zip or a single JSON file. The server checks it first and shows what it would accept before anything is written.') }}</p>
+                    <p class="gloss">{{ t('c_system.translations.pkg_import_hint', 'Upload a translated zip or a single JSON file and name its language. The server checks it first and shows what it would accept before anything is written. English is never imported.') }}</p>
                     <label class="pkg-label">
-                        {{ t('c_system.translations.pkg_import_locale', 'Language') }}
+                        {{ t('c_system.translations.pkg_import_locale', 'Translated into') }}
                         <select v-model="importLocale" class="pkg-input">
                             <option value="">{{ t('c_system.translations.pkg_export_placeholder', 'Choose a language') }}</option>
-                            <option v-for="code in pkgTargets" :key="code" :value="code">{{ langOf(code).name }} ({{ code }})</option>
+                            <optgroup v-if="pkgPresent.length" :label="t('c_system.translations.pkg_group_present', 'Machine drafts in the app')">
+                                <option v-for="l in pkgPresent" :key="l.code" :value="l.code">{{ pkgOptionLabel(l) }}</option>
+                            </optgroup>
+                            <optgroup v-if="pkgAbsent.length" :label="t('c_system.translations.pkg_group_absent', 'Registered, no strings yet')">
+                                <option v-for="l in pkgAbsent" :key="l.code" :value="l.code">{{ pkgOptionLabel(l) }}</option>
+                            </optgroup>
                         </select>
                     </label>
                     <label class="pkg-label">
@@ -684,7 +727,7 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
                 <tbody>
                     <tr v-for="r in pkgRuns" :key="r.run">
                         <td>{{ r.kind }}</td>
-                        <td><span data-no-i18n>{{ r.locale || '—' }}</span></td>
+                        <td><span data-no-i18n>{{ pkgRunLocale(r) }}</span></td>
                         <td>
                             <StatusBadge :tone="r.status === 'ready' || r.status === 'imported' ? 'success'
                                 : r.status === 'failed' ? 'danger'

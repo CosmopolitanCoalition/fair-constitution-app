@@ -3,9 +3,13 @@
 namespace Tests\Feature;
 
 use App\Http\Controllers\System\TranslationPackageController;
+use App\Jobs\I18n\ExportLanguagePackageJob;
+use App\Jobs\I18n\ImportLanguagePackageJob;
 use App\Models\User;
 use App\Services\I18n\LanguagePackageService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
@@ -42,8 +46,69 @@ class LanguagePackageRoutesTest extends TestCase
     private function controller(): TranslationPackageController
     {
         return new TranslationPackageController(
-            new LanguagePackageService($this->tmp, ['es' => ['target' => true]]),
+            new LanguagePackageService($this->tmp, [
+                'en' => ['name' => 'English', 'target' => true],
+                'es' => ['name' => 'Spanish', 'target' => true],
+                'pl' => ['name' => 'Polish', 'target' => true],
+            ]),
         );
+    }
+
+    public function test_an_operator_can_export_the_english_master_and_any_target(): void
+    {
+        Queue::fake();
+        $c = $this->controller();
+
+        $en = $c->export($this->req(true, ['locale' => 'en']))->getData(true);
+        $this->assertSame('queued', $en['status']);
+        $pl = $c->export($this->req(true, ['locale' => 'pl']))->getData(true);
+        $this->assertSame('queued', $pl['status']);
+
+        Queue::assertPushed(ExportLanguagePackageJob::class, fn ($job) => $job->locale === 'en');
+        Queue::assertPushed(ExportLanguagePackageJob::class, fn ($job) => $job->locale === 'pl');
+
+        $runs = $c->status($this->req(true))->getData(true)['runs'];
+        $locales = array_column($runs, 'locale');
+        sort($locales);
+        $this->assertSame(['en', 'pl'], $locales, 'both runs recorded');
+        $this->assertSame(['export', 'export'], array_column($runs, 'kind'));
+    }
+
+    public function test_import_refuses_the_source_and_a_non_target(): void
+    {
+        Queue::fake();
+        $c = $this->controller();
+
+        $r = $this->req(true, ['locale' => 'en']);
+        $r->files->set('package', UploadedFile::fake()->create('en_auth.json', 1, 'application/json'));
+        $resp = $c->import($r);
+        $this->assertSame(422, $resp->getStatusCode());
+        $this->assertStringContainsString('source', $resp->getData(true)['error']);
+
+        $r = $this->req(true, ['locale' => 'xx']);
+        $r->files->set('package', UploadedFile::fake()->create('xx_auth.json', 1, 'application/json'));
+        $this->assertSame(422, $c->import($r)->getStatusCode());
+
+        Queue::assertNothingPushed();
+        $this->assertSame([], $c->status($this->req(true))->getData(true)['runs'], 'a refused import records no run');
+    }
+
+    public function test_status_states_the_source_and_one_row_per_target(): void
+    {
+        $data = $this->controller()->status($this->req(true))->getData(true);
+
+        $this->assertSame('en', $data['source']['code']);
+        $this->assertArrayHasKey('keys', $data['source']);
+        $this->assertArrayHasKey('files', $data['source']);
+        $this->assertSame(['es', 'pl'], $data['targets']);
+        $codes = array_column($data['languages'], 'code');
+        sort($codes);
+        $this->assertSame(['es', 'pl'], $codes, 'one row per target, never English');
+        foreach ($data['languages'] as $row) {
+            $this->assertArrayHasKey('present', $row);
+            $this->assertArrayHasKey('pct', $row);
+            $this->assertArrayHasKey('missing', $row);
+        }
     }
 
     private function req(bool $operator, array $body = []): Request

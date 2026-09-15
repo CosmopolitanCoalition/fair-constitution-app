@@ -77,6 +77,14 @@ const KEYS = [
     'translations.pkg_no_requests',
     'translations.pkg_busy',
     'translations.pkg_error',
+    // 2026-09-15: the picker states what is in the app; the English master export.
+    'translations.pkg_state_line',
+    'translations.pkg_source_option',
+    'translations.pkg_group_present',
+    'translations.pkg_group_absent',
+    'translations.pkg_opt_present',
+    'translations.pkg_opt_absent',
+    'translations.pkg_source_master',
 ];
 
 test('every card key resolves in en/c_system.json', () => {
@@ -115,6 +123,20 @@ test('the export, import, confirm and request flows are wired', () => {
     assert.match(src, /function startExport\(/);
     assert.match(src, /function startImport\(/);
     assert.match(src, /function requestLanguageSubmit\(/);
+});
+
+test('the picker tells the truth about what is in the app', () => {
+    // English is offered as the master, never inside the target groups; the
+    // targets split into present (measured) and absent (no strings yet).
+    assert.match(src, /:value="pkgSourceCode"/);
+    assert.match(src, /pkg_source_option/);
+    assert.match(src, /v-for="l in pkgPresent"/);
+    assert.match(src, /v-for="l in pkgAbsent"/);
+    assert.match(src, /pkg_opt_absent', 'no strings yet'/);
+    // The import picker never offers English.
+    const importPanel = src.slice(src.indexOf('<!-- IMPORT -->'), src.indexOf('<!-- RUNS -->'));
+    assert.doesNotMatch(importPanel, /pkgSourceCode/);
+    assert.doesNotMatch(importPanel, /pkg_source_option/);
 });
 
 test('the card is operator-gated', () => {

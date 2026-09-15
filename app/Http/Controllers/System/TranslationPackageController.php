@@ -32,7 +32,10 @@ class TranslationPackageController extends Controller
     {
     }
 
-    /** Queue an export of a target locale. */
+    /** The coverage artifact the board reads; the card's truth about what is present. */
+    private const COVERAGE_PATH = 'resources/js/i18n/coverage.json';
+
+    /** Queue an export: a target locale's outstanding English strings, or the English master. */
     public function export(Request $request): JsonResponse
     {
         $this->operatorOnly($request);
@@ -42,9 +45,9 @@ class TranslationPackageController extends Controller
         ]);
         $locale = $data['locale'];
 
-        if (! $this->packages->isTargetLocale($locale)) {
+        if (! $this->packages->isExportable($locale)) {
             return response()->json([
-                'error' => __('[:locale] is not a translation target', ['locale' => $locale]),
+                'error' => __('[:locale] is neither the source catalogue nor a translation target', ['locale' => $locale]),
             ], 422);
         }
 
@@ -77,6 +80,17 @@ class TranslationPackageController extends Controller
         if (! in_array($ext, ['zip', 'json'], true)) {
             return response()->json([
                 'error' => __('A language package is a .zip or a single translated .json file.'),
+            ], 422);
+        }
+
+        if ($this->packages->isSourceLocale($locale)) {
+            return response()->json([
+                'error' => __('English is the source catalogue. It is edited in code, never imported.'),
+            ], 422);
+        }
+        if (! $this->packages->isTargetLocale($locale)) {
+            return response()->json([
+                'error' => __('[:locale] is not a translation target', ['locale' => $locale]),
             ], 422);
         }
 
@@ -133,18 +147,43 @@ class TranslationPackageController extends Controller
     }
 
     /**
-     * The card's poll: every run record and every language request. The same
-     * 2s contract TranslationCoverageController::progress uses.
+     * The card's poll: every run record, every language request, and what is
+     * actually in the app: the English source with its counts, and one row
+     * per target with its measured coverage or `present: false`. The same 2s
+     * contract TranslationCoverageController::progress uses.
      */
     public function status(Request $request): JsonResponse
     {
         $this->operatorOnly($request);
 
+        $coverage = $this->coverage();
+        $source = $this->packages->sourceFiles();
+
         return response()->json([
             'runs' => $this->packages->listRuns(),
             'requests' => $this->packages->listRequests(),
             'targets' => $this->packages->targetLocales(),
+            'languages' => $this->packages->languageRows($coverage),
+            'source' => [
+                'code' => LanguagePackageService::SOURCE_LOCALE,
+                'keys' => (int) ($coverage['source_keys'] ?? 0),
+                'namespaces' => (int) ($coverage['namespaces'] ?? 0),
+                'files' => count($source),
+                'measured_at' => $coverage['generated_at'] ?? null,
+            ],
         ]);
+    }
+
+    /** The decoded coverage artifact, or null when the gate has never run on this box. */
+    private function coverage(): ?array
+    {
+        $path = base_path(self::COVERAGE_PATH);
+        if (! is_file($path)) {
+            return null;
+        }
+        $decoded = json_decode((string) file_get_contents($path), true);
+
+        return is_array($decoded) ? $decoded : null;
     }
 
     /** Record a request for a language nobody has opened yet. */
