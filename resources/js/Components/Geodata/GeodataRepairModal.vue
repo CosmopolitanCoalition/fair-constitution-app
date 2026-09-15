@@ -20,25 +20,23 @@
                 <!-- ── accept_flag ── -->
                 <template v-if="mode === 'accept_flag'">
                     <p class="text-gray-400 text-xs">
-                        Accept this flag as-is: the condition stays in the data,
-                        recorded as reviewed and acceptable. No rows change.
+                        {{ t('c_shell_components.geodata_repair_modal.accept_body', 'Accept this flag as-is: the condition stays in the data, recorded as reviewed and acceptable. No rows change.') }}
                     </p>
                 </template>
 
                 <!-- ── reparent ── -->
                 <template v-else-if="mode === 'reparent'">
                     <p class="text-gray-400 text-xs">
-                        Move a jurisdiction under a different parent. The move is
-                        recorded as a manual repair and can be reverted.
+                        {{ t('c_shell_components.geodata_repair_modal.reparent_body', 'Move a jurisdiction under a different parent. The move is recorded as a manual repair and can be reverted.') }}
                     </p>
                     <label class="block">
-                        <span class="text-gray-300 text-xs">Jurisdiction to move (slug)</span>
+                        <span class="text-gray-300 text-xs">{{ t('c_shell_components.geodata_repair_modal.reparent_move_label', 'Jurisdiction to move (slug)') }}</span>
                         <input type="text" v-model.trim="targetSlug" placeholder="usa-2-some-county"
                                class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
                                       text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none" />
                     </label>
                     <div v-if="candidateParents.length > 0">
-                        <span class="text-gray-300 text-xs">Suggested parents</span>
+                        <span class="text-gray-300 text-xs">{{ t('c_shell_components.geodata_repair_modal.suggested_parents', 'Suggested parents') }}</span>
                         <div class="mt-1 flex flex-wrap gap-1.5">
                             <button v-for="cand in candidateParents" :key="cand.slug"
                                     type="button"
@@ -52,7 +50,7 @@
                         </div>
                     </div>
                     <label class="block">
-                        <span class="text-gray-300 text-xs">New parent (slug)</span>
+                        <span class="text-gray-300 text-xs">{{ t('c_shell_components.geodata_repair_modal.new_parent_label', 'New parent (slug)') }}</span>
                         <input type="text" v-model.trim="newParentSlug" placeholder="usa-1-california"
                                class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
                                       text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none" />
@@ -62,41 +60,37 @@
                 <!-- ── synthesize_anchor ── -->
                 <template v-else-if="mode === 'synthesize_anchor'">
                     <p class="text-gray-400 text-xs">
-                        Create a new intermediate jurisdiction under the parent —
-                        its geometry is the union of the listed children, its
-                        population their sum — then reparent the children to it.
+                        {{ t('c_shell_components.geodata_repair_modal.synth_body', 'Create a new intermediate jurisdiction under the parent — its geometry is the union of the listed children, its population their sum — then reparent the children to it.') }}
                     </p>
                     <label class="block">
-                        <span class="text-gray-300 text-xs">Parent (slug)</span>
+                        <span class="text-gray-300 text-xs">{{ t('c_shell_components.geodata_repair_modal.synth_parent_label', 'Parent (slug)') }}</span>
                         <input type="text" v-model.trim="parentSlug" placeholder="usa-0-united-states"
                                class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
                                       text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none" />
                     </label>
                     <label class="block">
-                        <span class="text-gray-300 text-xs">Name of the new jurisdiction</span>
+                        <span class="text-gray-300 text-xs">{{ t('c_shell_components.geodata_repair_modal.synth_name_label', 'Name of the new jurisdiction') }}</span>
                         <input type="text" v-model.trim="anchorName" placeholder="Northern Cluster"
                                class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
                                       text-gray-200 text-xs focus:border-blue-500 focus:outline-none" />
                     </label>
                     <label class="block">
-                        <span class="text-gray-300 text-xs">Children to gather (one slug per line)</span>
+                        <span class="text-gray-300 text-xs">{{ t('c_shell_components.geodata_repair_modal.synth_children_label', 'Children to gather (one slug per line)') }}</span>
                         <textarea v-model="childSlugsText" rows="5"
                                   class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
                                          text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none"></textarea>
-                        <span class="text-[10px] text-gray-500">{{ childSlugs.length }} child(ren)</span>
+                        <span class="text-[10px] text-gray-500">{{ t('c_shell_components.geodata_repair_modal.child_count', { count: childSlugs.length }) }}</span>
                     </label>
                 </template>
 
                 <!-- ── merge_chain ── -->
                 <template v-else-if="mode === 'merge_chain'">
                     <p class="text-gray-400 text-xs">
-                        Collapse a single-child chain of same-space rows. The
-                        <strong class="text-gray-200">topmost</strong> member survives;
-                        every lower member's children move to it and the lower
-                        members are soft-deleted (recorded, revertible).
+                        {{ t('c_shell_components.geodata_repair_modal.merge_body_before', 'Collapse a single-child chain of same-space rows. The') }}
+                        <strong class="text-gray-200">{{ t('c_shell_components.geodata_repair_modal.merge_topmost', 'topmost') }}</strong>{{ t('c_shell_components.geodata_repair_modal.merge_body_after', ' member survives; every lower member\'s children move to it and the lower members are soft-deleted (recorded, revertible).') }}
                     </p>
                     <label class="block">
-                        <span class="text-gray-300 text-xs">Chain — topmost first (one slug per line)</span>
+                        <span class="text-gray-300 text-xs">{{ t('c_shell_components.geodata_repair_modal.merge_chain_label', 'Chain — topmost first (one slug per line)') }}</span>
                         <textarea v-model="chainSlugsText" rows="5"
                                   class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
                                          text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none"></textarea>
@@ -108,9 +102,9 @@
                             <span :class="i === 0 ? 'text-emerald-300' : 'text-gray-400'">{{ slug }}</span>
                             <span v-if="i === 0"
                                   class="px-1.5 py-0 rounded text-[10px] bg-emerald-900 text-emerald-200 border border-emerald-700">
-                                survivor
+                                {{ t('c_shell_components.geodata_repair_modal.survivor', 'survivor') }}
                             </span>
-                            <span v-else class="text-[10px] text-gray-600">merged away</span>
+                            <span v-else class="text-[10px] text-gray-600">{{ t('c_shell_components.geodata_repair_modal.merged_away', 'merged away') }}</span>
                         </div>
                     </div>
                 </template>
@@ -118,29 +112,28 @@
                 <!-- ── recompute_population ── -->
                 <template v-else-if="mode === 'recompute_population'">
                     <p class="text-gray-400 text-xs">
-                        Replace the stored population. The prior value is recorded
-                        so the repair can be reverted.
+                        {{ t('c_shell_components.geodata_repair_modal.recompute_body', 'Replace the stored population. The prior value is recorded so the repair can be reverted.') }}
                     </p>
                     <label class="block">
-                        <span class="text-gray-300 text-xs">Jurisdiction (slug)</span>
+                        <span class="text-gray-300 text-xs">{{ t('c_shell_components.geodata_repair_modal.recompute_juris_label', 'Jurisdiction (slug)') }}</span>
                         <input type="text" v-model.trim="targetSlug" placeholder="usa-1-california"
                                class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
                                       text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none" />
                     </label>
                     <div>
-                        <span class="text-gray-300 text-xs">Method</span>
+                        <span class="text-gray-300 text-xs">{{ t('c_shell_components.geodata_repair_modal.method', 'Method') }}</span>
                         <label class="mt-1 flex items-start gap-2 text-gray-200 text-xs">
                             <input type="radio" value="children_sum" v-model="method" class="mt-0.5" />
                             <span>
-                                Sum of live children
-                                <span class="block text-gray-500">Adds up the direct children's populations.</span>
+                                {{ t('c_shell_components.geodata_repair_modal.method_children', 'Sum of live children') }}
+                                <span class="block text-gray-500">{{ t('c_shell_components.geodata_repair_modal.method_children_hint', 'Adds up the direct children\'s populations.') }}</span>
                             </span>
                         </label>
                         <label class="mt-1 flex items-start gap-2 text-gray-200 text-xs">
                             <input type="radio" value="raster_total" v-model="method" class="mt-0.5" />
                             <span>
-                                WorldPop raster total
-                                <span class="block text-gray-500">Sums the country's population raster (whole-ISO total).</span>
+                                {{ t('c_shell_components.geodata_repair_modal.method_raster', 'WorldPop raster total') }}
+                                <span class="block text-gray-500">{{ t('c_shell_components.geodata_repair_modal.method_raster_hint', 'Sums the country\'s population raster (whole-ISO total).') }}</span>
                             </span>
                         </label>
                     </div>
@@ -149,11 +142,10 @@
                 <!-- ── prune ── -->
                 <template v-else-if="mode === 'prune'">
                     <p class="text-gray-400 text-xs">
-                        Soft-delete this jurisdiction. Every removed row is
-                        recorded, so the prune can be reverted.
+                        {{ t('c_shell_components.geodata_repair_modal.prune_body', 'Soft-delete this jurisdiction. Every removed row is recorded, so the prune can be reverted.') }}
                     </p>
                     <label class="block">
-                        <span class="text-gray-300 text-xs">Jurisdiction to prune (slug)</span>
+                        <span class="text-gray-300 text-xs">{{ t('c_shell_components.geodata_repair_modal.prune_juris_label', 'Jurisdiction to prune (slug)') }}</span>
                         <input type="text" v-model.trim="targetSlug" placeholder="usa-2-ghost-row"
                                class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
                                       text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none" />
@@ -161,16 +153,16 @@
                     <label class="flex items-start gap-2 text-gray-200 text-xs">
                         <input type="checkbox" v-model="cascade" class="mt-0.5" />
                         <span>
-                            Cascade — also delete the whole subtree beneath it
+                            {{ t('c_shell_components.geodata_repair_modal.cascade_label', 'Cascade — also delete the whole subtree beneath it') }}
                             <span class="block text-gray-500">
-                                Without this, pruning a row that still has live children is refused.
+                                {{ t('c_shell_components.geodata_repair_modal.cascade_hint', 'Without this, pruning a row that still has live children is refused.') }}
                             </span>
                         </span>
                     </label>
                     <div class="rounded border border-red-900/70 bg-red-950/40 p-2">
                         <label class="block">
                             <span class="text-red-200 text-xs">
-                                Type the slug to confirm{{ cascade ? ' (subtree included)' : '' }}
+                                {{ t('c_shell_components.geodata_repair_modal.confirm_label', 'Type the slug to confirm') }}{{ cascade ? t('c_shell_components.geodata_repair_modal.confirm_subtree', ' (subtree included)') : '' }}
                             </span>
                             <input type="text" v-model.trim="confirmText" :placeholder="targetSlug"
                                    class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-red-800
@@ -181,8 +173,8 @@
 
                 <!-- Note — every action takes one -->
                 <label class="block">
-                    <span class="text-gray-300 text-xs">Note (optional)</span>
-                    <textarea v-model="note" rows="2" placeholder="Why this repair?"
+                    <span class="text-gray-300 text-xs">{{ t('c_shell_components.geodata_repair_modal.note_label', 'Note (optional)') }}</span>
+                    <textarea v-model="note" rows="2" :placeholder="t('c_shell_components.geodata_repair_modal.note_placeholder', 'Why this repair?')"
                               class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
                                      text-gray-200 text-xs focus:border-blue-500 focus:outline-none"></textarea>
                 </label>
@@ -194,13 +186,13 @@
             <div class="flex items-center justify-end gap-2 px-4 py-3 border-t border-gray-800">
                 <button type="button" @click="$emit('close')"
                         class="px-3 py-1.5 rounded text-xs font-medium text-gray-300 hover:text-white transition-colors">
-                    Cancel
+                    {{ t('c_shell_components.geodata_repair_modal.cancel', 'Cancel') }}
                 </button>
                 <button type="button" @click="submit" :disabled="busy || !canSubmit"
                         class="px-4 py-1.5 rounded text-xs font-semibold text-white transition-colors
                                disabled:bg-gray-700 disabled:cursor-not-allowed"
                         :class="mode === 'prune' ? 'bg-red-700 hover:bg-red-600' : 'bg-blue-700 hover:bg-blue-600'">
-                    {{ busy ? 'Applying…' : submitLabel }}
+                    {{ busy ? t('c_shell_components.geodata_repair_modal.applying', 'Applying…') : submitLabel }}
                 </button>
             </div>
         </div>
@@ -209,7 +201,10 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { csrfFetch } from '@/lib/csrf'
+
+const { t } = useI18n()
 
 // One modal, six shapes — the form for whichever repair action the operator
 // picked off a flag. Fields prefill from the flag's payload evidence but stay
@@ -288,13 +283,15 @@ const TITLES = {
     recompute_population: 'Recompute population',
     prune:                'Prune jurisdiction',
 }
-const title = computed(() => TITLES[props.mode] || props.mode)
+const title = computed(() => (TITLES[props.mode]
+    ? t(`c_shell_components.geodata_repair_modal.title_${props.mode}`, TITLES[props.mode])
+    : props.mode))
 
 const submitLabel = computed(() => {
-    if (props.mode === 'accept_flag') return 'Accept'
-    if (props.mode === 'prune')       return cascade.value ? 'Prune subtree' : 'Prune'
-    if (props.mode === 'merge_chain') return `Merge ${Math.max(chainSlugs.value.length - 1, 0)} into survivor`
-    return 'Apply repair'
+    if (props.mode === 'accept_flag') return t('c_shell_components.geodata_repair_modal.submit_accept', 'Accept')
+    if (props.mode === 'prune')       return cascade.value ? t('c_shell_components.geodata_repair_modal.submit_prune_subtree', 'Prune subtree') : t('c_shell_components.geodata_repair_modal.submit_prune', 'Prune')
+    if (props.mode === 'merge_chain') return t('c_shell_components.geodata_repair_modal.submit_merge', { count: Math.max(chainSlugs.value.length - 1, 0) })
+    return t('c_shell_components.geodata_repair_modal.submit_apply', 'Apply repair')
 })
 
 const canSubmit = computed(() => {

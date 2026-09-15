@@ -26,6 +26,9 @@
 import { computed, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { csrfFetch } from '../../lib/csrf';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /** GET /dev/playtest/state payload, fetched by the parent flyout. */
@@ -48,9 +51,9 @@ const picked = computed(() => votes.value.find((v) => v.id === voteId.value) ?? 
 const nothingToCast = computed(() => Number(yes.value) + Number(no.value) + Number(abstain.value) === 0);
 
 function laneLabel(l) {
-    return l === 'type_a' ? 'Type A · population-apportioned'
-        : l === 'type_b' ? 'Type B · one per constituent'
-        : 'whole chamber';
+    return l === 'type_a' ? t('c_shell_components.dev_chamber_cast.lane_type_a', 'Type A · population-apportioned')
+        : l === 'type_b' ? t('c_shell_components.dev_chamber_cast.lane_type_b', 'Type B · one per constituent')
+        : t('c_shell_components.dev_chamber_cast.lane_whole', 'whole chamber');
 }
 
 async function cast() {
@@ -92,54 +95,52 @@ async function cast() {
         <p v-if="!state.enabled" class="chamcast-refusal">{{ state.reason }}</p>
 
         <template v-else>
-            <label class="chamcast-label" for="dev-cast-vote">Cast a chamber</label>
+            <label class="chamcast-label" for="dev-cast-vote">{{ t('c_shell_components.dev_chamber_cast.cast_label', 'Cast a chamber') }}</label>
 
             <p v-if="!votes.length" class="chamcast-dim chamcast-note">
-                No vote is open. Nothing is waiting to be balloted.
+                {{ t('c_shell_components.dev_chamber_cast.no_vote_open', 'No vote is open. Nothing is waiting to be balloted.') }}
             </p>
 
             <template v-else>
                 <select id="dev-cast-vote" v-model="voteId" class="chamcast-input">
-                    <option value="" disabled>Pick an open vote…</option>
+                    <option value="" disabled>{{ t('c_shell_components.dev_chamber_cast.pick_vote', 'Pick an open vote…') }}</option>
                     <option v-for="v in votes" :key="v.id" :value="v.id">
-                        {{ v.vote_type }} · {{ v.jurisdiction || 'unscoped' }}
-                        {{ v.bicameral ? '· bicameral' : '' }} · {{ v.serving }} serving
+                        {{ v.vote_type }} · {{ v.jurisdiction || t('c_shell_components.dev_chamber_cast.unscoped', 'unscoped') }}
+                        {{ v.bicameral ? t('c_shell_components.dev_chamber_cast.bicameral', '· bicameral') : '' }} · {{ t('c_shell_components.dev_chamber_cast.n_serving', { count: v.serving }) }}
                     </option>
                 </select>
 
                 <div v-if="picked" class="chamcast-lanes">
-                    <p v-for="t in picked.lanes" :key="t.lane" class="chamcast-dim chamcast-note">
-                        {{ laneLabel(t.lane) }}: yes {{ t.yes }} · no {{ t.no }} · abstain {{ t.abstain }}
-                        — needs {{ t.required_yes }} yes of {{ t.serving }} serving, quorum {{ t.quorum_required }}
+                    <p v-for="lane in picked.lanes" :key="lane.lane" class="chamcast-dim chamcast-note">
+                        {{ t('c_shell_components.dev_chamber_cast.lane_tally', { label: laneLabel(lane.lane), yes: lane.yes, no: lane.no, abstain: lane.abstain, required: lane.required_yes, serving: lane.serving, quorum: lane.quorum_required }) }}
                     </p>
                 </div>
 
                 <div class="chamcast-counts">
                     <label class="chamcast-count">
-                        <span>Yes</span>
+                        <span>{{ t('c_shell_components.dev_chamber_cast.yes', 'Yes') }}</span>
                         <input v-model.number="yes" type="number" min="0" max="5000" class="chamcast-input chamcast-input--n" />
                     </label>
                     <label class="chamcast-count">
-                        <span>No</span>
+                        <span>{{ t('c_shell_components.dev_chamber_cast.no', 'No') }}</span>
                         <input v-model.number="no" type="number" min="0" max="5000" class="chamcast-input chamcast-input--n" />
                     </label>
                     <label class="chamcast-count">
-                        <span>Abstain</span>
+                        <span>{{ t('c_shell_components.dev_chamber_cast.abstain', 'Abstain') }}</span>
                         <input v-model.number="abstain" type="number" min="0" max="5000" class="chamcast-input chamcast-input--n" />
                     </label>
                     <label class="chamcast-count">
-                        <span>Who ballots</span>
+                        <span>{{ t('c_shell_components.dev_chamber_cast.who_ballots', 'Who ballots') }}</span>
                         <select v-model="lane" class="chamcast-input">
-                            <option value="">every seated member</option>
-                            <option value="type_a">Type A members only</option>
-                            <option value="type_b">Type B members only</option>
+                            <option value="">{{ t('c_shell_components.dev_chamber_cast.every_member', 'every seated member') }}</option>
+                            <option value="type_a">{{ t('c_shell_components.dev_chamber_cast.type_a_only', 'Type A members only') }}</option>
+                            <option value="type_b">{{ t('c_shell_components.dev_chamber_cast.type_b_only', 'Type B members only') }}</option>
                         </select>
                     </label>
                 </div>
 
                 <p class="chamcast-dim chamcast-note">
-                    Ballots file as the seated members through the real engine — the outcome is the
-                    engine's alone. Restrict to one chamber to watch dual agreement fail on purpose.
+                    {{ t('c_shell_components.dev_chamber_cast.ballots_note', 'Ballots file as the seated members through the real engine — the outcome is the engine\'s alone. Restrict to one chamber to watch dual agreement fail on purpose.') }}
                 </p>
 
                 <button
@@ -148,25 +149,23 @@ async function cast() {
                     :disabled="busy || !voteId || nothingToCast"
                     @click="cast"
                 >
-                    {{ busy ? 'Filing ballots…' : 'File these ballots' }}
+                    {{ busy ? t('c_shell_components.dev_chamber_cast.filing', 'Filing ballots…') : t('c_shell_components.dev_chamber_cast.file_ballots', 'File these ballots') }}
                 </button>
 
                 <p class="chamcast-status" aria-live="polite">{{ error }}</p>
 
                 <div v-if="outcome" class="chamcast-result" aria-live="polite">
                     <p class="chamcast-result-head">
-                        Filed {{ outcome.cast.yes }}/{{ outcome.cast.no }}/{{ outcome.cast.abstain }}
-                        (y/n/a) of {{ outcome.requested.yes }}/{{ outcome.requested.no }}/{{ outcome.requested.abstain }}
-                        requested, across {{ outcome.eligible }} eligible member(s).
+                        {{ t('c_shell_components.dev_chamber_cast.filed_summary', { cy: outcome.cast.yes, cn: outcome.cast.no, ca: outcome.cast.abstain, ry: outcome.requested.yes, rn: outcome.requested.no, ra: outcome.requested.abstain, eligible: outcome.eligible }) }}
                     </p>
                     <p v-for="(vals, l) in outcome.tallies" :key="l" class="chamcast-dim chamcast-note">
-                        {{ laneLabel(l) }}: yes {{ vals.yes || 0 }} · no {{ vals.no || 0 }} · abstain {{ vals.abstain || 0 }}
+                        {{ t('c_shell_components.dev_chamber_cast.tally_line', { label: laneLabel(l), yes: vals.yes || 0, no: vals.no || 0, abstain: vals.abstain || 0 }) }}
                     </p>
                     <ul v-if="outcome.refusals.length" class="chamcast-refusals">
-                        <li v-for="ref in outcome.refusals" :key="ref" class="chamcast-dim">refused: {{ ref }}</li>
+                        <li v-for="ref in outcome.refusals" :key="ref" class="chamcast-dim">{{ t('c_shell_components.dev_chamber_cast.refused', { reason: ref }) }}</li>
                     </ul>
                     <p class="chamcast-result-head">
-                        The vote is <strong>{{ outcome.status }}</strong><template v-if="outcome.outcome"> — <strong>{{ outcome.outcome }}</strong></template>.
+                        {{ t('c_shell_components.dev_chamber_cast.vote_is', 'The vote is') }} <strong>{{ outcome.status }}</strong><template v-if="outcome.outcome"> — <strong>{{ outcome.outcome }}</strong></template>.
                     </p>
                     <p class="chamcast-dim chamcast-note">{{ outcome.ballots_only }}</p>
                 </div>

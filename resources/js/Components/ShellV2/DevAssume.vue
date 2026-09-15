@@ -14,11 +14,20 @@
  */
 import { computed, ref } from 'vue';
 import { csrfFetch } from '../../lib/csrf';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /** GET /dev/playtest/state payload, fetched by the parent. */
     state: { type: Object, required: true },
 });
+
+// Role display name, translated at the point of use. English defaults live
+// in the ROLES list below.
+function roleLabel(r) {
+    return t(`c_shell_components.dev_assume.role_${r.code}`, r.label);
+}
 
 const ROLES = [
     { code: 'R-04', label: 'Resident / voter (relocates one if needed)' },
@@ -55,12 +64,12 @@ async function assume() {
         const data = await r.json();
         if (!r.ok) throw new Error(data?.error || `assume failed (${r.status})`);
 
-        note.value = `Becoming ${data.user.name} (${data.how} · ${data.role} in ${data.jurisdiction.name})…`;
+        note.value = t('c_shell_components.dev_assume.becoming', { name: data.user.name, how: data.how, role: data.role, place: data.jurisdiction.name });
         /* Identity changed server-side already — full load, never a partial. */
         window.location.reload();
     } catch (e) {
         failed.value = true;
-        note.value = e?.message || 'Could not assume.';
+        note.value = e?.message || t('c_shell_components.dev_assume.err_assume', 'Could not assume.');
         busy.value = false;
     }
 }
@@ -72,21 +81,21 @@ async function assume() {
         <p v-if="!state.enabled" class="assume-refusal">{{ state.reason }}</p>
 
         <template v-else>
-            <label class="assume-label" for="dev-assume-place">Assume a resident or role of a place</label>
+            <label class="assume-label" for="dev-assume-place">{{ t('c_shell_components.dev_assume.label', 'Assume a resident or role of a place') }}</label>
             <div class="assume-row">
                 <input
                     id="dev-assume-place"
                     v-model="place"
                     type="text"
                     class="assume-input"
-                    placeholder="Place slug or id (e.g. smr-1-san-marino)"
+                    :placeholder="t('c_shell_components.dev_assume.place_placeholder', 'Place slug or id (e.g. smr-1-san-marino)')"
                     autocomplete="off"
                 />
-                <select v-model="role" class="assume-input" aria-label="Role to assume">
-                    <option v-for="r in ROLES" :key="r.code" :value="r.code">{{ r.code }} — {{ r.label }}</option>
+                <select v-model="role" class="assume-input" :aria-label="t('c_shell_components.dev_assume.role_aria', 'Role to assume')">
+                    <option v-for="r in ROLES" :key="r.code" :value="r.code">{{ r.code }} — {{ roleLabel(r) }}</option>
                 </select>
                 <button type="button" class="assume-btn" :disabled="busy || !ready" @click="assume">
-                    {{ busy ? 'Assuming…' : 'Assume' }}
+                    {{ busy ? t('c_shell_components.dev_assume.assuming', 'Assuming…') : t('c_shell_components.dev_assume.assume', 'Assume') }}
                 </button>
             </div>
             <p class="assume-status" :class="{ 'assume-status--refused': failed }" aria-live="polite">

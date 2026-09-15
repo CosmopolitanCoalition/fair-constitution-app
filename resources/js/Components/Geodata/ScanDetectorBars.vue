@@ -15,7 +15,10 @@
  * two surfaces, no drift.
  */
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NATURE_BADGE, describeCheck } from '@/lib/mapHealth'
+
+const { t } = useI18n()
 
 const props = defineProps({
     detectors: { type: Array, default: () => [] },
@@ -44,10 +47,10 @@ function natureChip(key) {
     <div v-if="detectors.length > 0">
         <div class="flex items-baseline justify-between mb-2">
             <h3 class="text-gray-200 text-xs font-semibold uppercase tracking-wide">
-                Map health scan — {{ doneCount }} / {{ detectors.length }} checks
+                {{ t('c_shell_components.scan_detector_bars.title', { done: doneCount, total: detectors.length }) }}
             </h3>
             <span class="text-gray-500 text-[10px]">
-                hover a check for what it measures
+                {{ t('c_shell_components.scan_detector_bars.hover_hint', 'hover a check for what it measures') }}
             </span>
         </div>
 
@@ -83,11 +86,11 @@ function natureChip(key) {
                     <span class="tabular-nums shrink-0 ml-3"
                           :class="d.state === 'error' ? 'text-red-400'
                                 : d.state === 'stalled' ? 'text-amber-400' : 'text-gray-500'">
-                        <template v-if="d.state === 'done'">{{ d.flags.toLocaleString() }} flag{{ d.flags === 1 ? '' : 's' }}</template>
+                        <template v-if="d.state === 'done'">{{ d.flags === 1 ? t('c_shell_components.scan_detector_bars.flag_one', { count: d.flags.toLocaleString() }) : t('c_shell_components.scan_detector_bars.flag_other', { count: d.flags.toLocaleString() }) }}</template>
                         <template v-else-if="d.state === 'running'">{{ Math.floor(d.elapsed_s / 60) }}m {{ d.elapsed_s % 60 }}s</template>
-                        <template v-else-if="d.state === 'stalled'">stalled {{ Math.floor(d.elapsed_s / 60) }}m — will retry</template>
-                        <template v-else-if="d.state === 'error'">errored</template>
-                        <template v-else>queued</template>
+                        <template v-else-if="d.state === 'stalled'">{{ t('c_shell_components.scan_detector_bars.stalled', { min: Math.floor(d.elapsed_s / 60) }) }}</template>
+                        <template v-else-if="d.state === 'error'">{{ t('c_shell_components.scan_detector_bars.errored', 'errored') }}</template>
+                        <template v-else>{{ t('c_shell_components.scan_detector_bars.queued', 'queued') }}</template>
                     </span>
                 </div>
                 <div class="h-1.5 bg-gray-900 rounded overflow-hidden">
@@ -98,11 +101,11 @@ function natureChip(key) {
                 </div>
 
                 <div class="pointer-events-none absolute left-4 top-full mt-0.5 z-50 w-72 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg space-y-1">
-                    <div><span class="text-gray-400 font-semibold">Measures.</span> {{ describeCheck(d.key).measures }}</div>
-                    <div><span class="text-gray-400 font-semibold">Why it matters.</span> {{ describeCheck(d.key).why }}</div>
-                    <div><span class="text-gray-400 font-semibold">How to read it.</span> {{ describeCheck(d.key).reading }}</div>
+                    <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.scan_detector_bars.measures_label', 'Measures.') }}</span> {{ describeCheck(d.key).measures }}</div>
+                    <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.scan_detector_bars.why_label', 'Why it matters.') }}</span> {{ describeCheck(d.key).why }}</div>
+                    <div><span class="text-gray-400 font-semibold">{{ t('c_shell_components.scan_detector_bars.reading_label', 'How to read it.') }}</span> {{ describeCheck(d.key).reading }}</div>
                     <div v-if="describeCheck(d.key).remedy">
-                        <span class="text-gray-400 font-semibold">Default remedy.</span> {{ describeCheck(d.key).remedy }}
+                        <span class="text-gray-400 font-semibold">{{ t('c_shell_components.scan_detector_bars.remedy_label', 'Default remedy.') }}</span> {{ describeCheck(d.key).remedy }}
                     </div>
                     <div class="pt-1 border-t border-gray-600 text-gray-400">
                         {{ natureBadge(d.key).hint }}

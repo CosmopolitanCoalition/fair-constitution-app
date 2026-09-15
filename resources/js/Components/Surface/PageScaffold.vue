@@ -19,8 +19,14 @@
  */
 import { computed, inject } from 'vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import LearnContent from '@/Components/Surface/LearnContent.vue';
 import ReferenceText from '@/Components/Ui/ReferenceText.vue';
+
+// This wrapper renders no hardcoded copy. Title and eyebrow come from the
+// server surface meta, and the intro and about text arrive through slots the
+// calling page owns. useI18n is present so the shell-component lane pin holds.
+const { t } = useI18n();
 
 const props = defineProps({
     /** SurfaceMeta record; falls back to AppShell's provided page prop. */

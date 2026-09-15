@@ -28,6 +28,9 @@
  */
 import { ref, watch, computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /** { name } of the impersonated user, or null when you are yourself. */
@@ -78,7 +81,7 @@ async function search() {
         results.value = Array.isArray(data?.users) ? data.users : [];
         searched.value = true;
     } catch (e) {
-        error.value = e?.message || 'Could not reach the user list.';
+        error.value = e?.message || t('c_shell_components.dev_persona_switcher.err_user_list', 'Could not reach the user list.');
         results.value = [];
     } finally {
         busy.value = false;
@@ -122,7 +125,7 @@ async function become(user) {
            needs. */
         window.location.reload();
     } catch (e) {
-        error.value = e?.message || 'Could not switch persona.';
+        error.value = e?.message || t('c_shell_components.dev_persona_switcher.err_switch', 'Could not switch persona.');
         busy.value = false;
     }
 }
@@ -135,23 +138,25 @@ async function returnToSelf() {
         if (!r.ok) throw new Error(`Could not return (${r.status})`);
         window.location.reload();
     } catch (e) {
-        error.value = e?.message || 'Could not return to your own account.';
+        error.value = e?.message || t('c_shell_components.dev_persona_switcher.err_return', 'Could not return to your own account.');
         busy.value = false;
     }
 }
 
 const resultLabel = computed(() => {
-    if (busy.value) return 'Searching…';
-    if (!searched.value) return 'Type a name or email to find someone.';
-    if (!results.value.length) return 'Nobody matched.';
-    return `${results.value.length} ${results.value.length === 1 ? 'person' : 'people'}`;
+    if (busy.value) return t('c_shell_components.dev_persona_switcher.searching', 'Searching…');
+    if (!searched.value) return t('c_shell_components.dev_persona_switcher.prompt', 'Type a name or email to find someone.');
+    if (!results.value.length) return t('c_shell_components.dev_persona_switcher.none', 'Nobody matched.');
+    return results.value.length === 1
+        ? t('c_shell_components.dev_persona_switcher.count_one', { count: results.value.length })
+        : t('c_shell_components.dev_persona_switcher.count_other', { count: results.value.length });
 });
 </script>
 
 <template>
     <div v-if="canSwitch" class="persona">
         <div class="persona-head">
-            <label class="persona-label" for="dev-persona-q">Become someone else</label>
+            <label class="persona-label" for="dev-persona-q">{{ t('c_shell_components.dev_persona_switcher.become', 'Become someone else') }}</label>
             <button
                 v-if="impersonating"
                 type="button"
@@ -159,7 +164,7 @@ const resultLabel = computed(() => {
                 :disabled="busy"
                 @click="returnToSelf"
             >
-                Return to yourself
+                {{ t('c_shell_components.dev_persona_switcher.return_self', 'Return to yourself') }}
             </button>
         </div>
 
@@ -168,7 +173,7 @@ const resultLabel = computed(() => {
             v-model="query"
             type="search"
             class="persona-input"
-            placeholder="Search by name or email"
+            :placeholder="t('c_shell_components.dev_persona_switcher.search_placeholder', 'Search by name or email')"
             autocomplete="off"
             aria-describedby="dev-persona-status"
         />
@@ -182,7 +187,7 @@ const resultLabel = computed(() => {
                 <button type="button" class="persona-pick" :disabled="busy" @click="become(u)">
                     <span class="persona-name">
                         {{ u.display_name || u.name }}
-                        <span v-if="u.is_operator" class="persona-op">operator</span>
+                        <span v-if="u.is_operator" class="persona-op">{{ t('c_shell_components.dev_persona_switcher.operator', 'operator') }}</span>
                     </span>
                     <span class="persona-email">{{ u.email }}</span>
                     <span v-if="u.roles?.length" class="persona-roles">{{ u.roles.join(' · ') }}</span>

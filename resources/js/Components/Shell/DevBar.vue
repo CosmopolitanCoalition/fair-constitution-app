@@ -6,7 +6,10 @@
  * devBar), and the controls (impersonation select, view-context jurisdiction,
  * RTL flip, pseudo-locale) mount via the default slot in the layout WI.
  */
+import { useI18n } from 'vue-i18n';
 import Icon from '@/Components/Ui/Icon.vue';
+
+const { t } = useI18n();
 
 defineProps({
     label: { type: String, default: 'Dev controls — not part of the application' },
@@ -26,7 +29,7 @@ defineProps({
                     <Icon name="alert-triangle" size="sm" />
                     {{ label }}
                     <span v-if="impersonating">
-                        — Impersonating {{ impersonating.name }}<template v-if="realUser"> · return to {{ realUser.name }}</template>
+                        {{ t('c_shell_components.dev_bar.impersonating', { name: impersonating.name }) }}<template v-if="realUser"> {{ t('c_shell_components.dev_bar.return_to', { name: realUser.name }) }}</template>
                     </span>
                 </span>
                 <Icon name="chevron-down" size="sm" class="dev-caret" />
@@ -34,7 +37,7 @@ defineProps({
             <div class="dev-controls">
                 <!-- Static dev-tool pointer (no props — the residency page
                      hosts the actual dev grant/simulate controls). -->
-                <a class="dev-control" href="/civic/residency">Residency tool → /civic/residency</a>
+                <a class="dev-control" href="/civic/residency">{{ t('c_shell_components.dev_bar.residency_tool', 'Residency tool → /civic/residency') }}</a>
                 <slot />
             </div>
         </details>

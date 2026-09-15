@@ -10,6 +10,9 @@
  * pretending to be measurement.
  */
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const streams = ref([]);
 const collapsed = ref(false);
@@ -55,9 +58,9 @@ onBeforeUnmount(() => { if (timer) clearTimeout(timer); });
     <div v-if="streams.length" class="bgjobs" role="status" aria-live="polite">
         <button class="bgjobs-head" type="button" @click="toggle"
                 :aria-expanded="String(!collapsed)"
-                :title="collapsed ? 'Show background jobs' : 'Hide background jobs'">
+                :title="collapsed ? t('c_shell_components.background_jobs_widget.show', 'Show background jobs') : t('c_shell_components.background_jobs_widget.hide', 'Hide background jobs')">
             <span class="bgjobs-dot" aria-hidden="true"></span>
-            <span>{{ streams.length }} background {{ streams.length === 1 ? 'job' : 'jobs' }}</span>
+            <span>{{ streams.length === 1 ? t('c_shell_components.background_jobs_widget.count_one', { count: streams.length }) : t('c_shell_components.background_jobs_widget.count_other', { count: streams.length }) }}</span>
             <span class="bgjobs-chev" aria-hidden="true">{{ collapsed ? '▸' : '▾' }}</span>
         </button>
         <ul v-if="!collapsed" class="bgjobs-list">

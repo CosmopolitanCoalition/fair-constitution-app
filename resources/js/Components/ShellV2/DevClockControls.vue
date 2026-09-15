@@ -25,6 +25,9 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { csrfFetch } from '../../lib/csrf';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     /**
@@ -63,7 +66,7 @@ async function postCoordinator(body) {
         if (!r.ok) throw new Error(data?.error || `could not set coordinator (${r.status})`);
         refresh();
     } catch (e) {
-        error.value = e?.message || 'Could not update the mesh coordinator.';
+        error.value = e?.message || t('c_shell_components.dev_clock_controls.err_coordinator', 'Could not update the mesh coordinator.');
     } finally {
         coordBusy.value = false;
     }
@@ -137,7 +140,7 @@ async function postAdvance(apply) {
             router.reload({ preserveScroll: true });
         }
     } catch (e) {
-        error.value = e?.message || 'Could not reach the clock controls.';
+        error.value = e?.message || t('c_shell_components.dev_clock_controls.err_clock', 'Could not reach the clock controls.');
     } finally {
         busy.value = false;
     }
@@ -157,12 +160,12 @@ async function fireTimer(timer) {
         const data = await r.json();
         if (!r.ok) throw new Error(data?.error || `fire failed (${r.status})`);
         fireNote.value = data.fired
-            ? `${data.clock_id} fired.`
-            : `${data.clock_id} did not fire — it was no longer armed.`;
+            ? t('c_shell_components.dev_clock_controls.fired', { clock: data.clock_id })
+            : t('c_shell_components.dev_clock_controls.not_armed', { clock: data.clock_id });
         refresh();
         router.reload({ preserveScroll: true });
     } catch (e) {
-        error.value = e?.message || 'Could not fire that timer.';
+        error.value = e?.message || t('c_shell_components.dev_clock_controls.err_fire', 'Could not fire that timer.');
     } finally {
         firing.value = '';
     }
@@ -183,15 +186,14 @@ const shiftedRows = computed(() =>
                  mirrors it. -->
             <div v-if="mesh" class="clockctl-mesh" :class="`clockctl-mesh--${mesh.role}`">
                 <p v-if="mesh.role === 'coordinator'" class="clockctl-mesh-head">
-                    This node <strong>coordinates</strong> the demo mesh — an advance here replays on
-                    {{ mesh.demo_peers }} declared-demo peer(s).
+                    {{ t('c_shell_components.dev_clock_controls.coord_before', 'This node') }} <strong>{{ t('c_shell_components.dev_clock_controls.coord_term', 'coordinates') }}</strong>{{ t('c_shell_components.dev_clock_controls.coord_after', { peers: mesh.demo_peers }) }}
                 </p>
                 <p v-else-if="mesh.role === 'follower'" class="clockctl-mesh-head clockctl-mesh-head--follower">
-                    This node <strong>follows</strong> {{ mesh.coordinator.label }}.
+                    {{ t('c_shell_components.dev_clock_controls.follows_before', 'This node') }} <strong>{{ t('c_shell_components.dev_clock_controls.follows_term', 'follows') }}</strong>{{ t('c_shell_components.dev_clock_controls.follows_after', { label: mesh.coordinator.label }) }}
                     <span v-if="meshRefusal">{{ meshRefusal }}</span>
                 </p>
                 <p v-else class="clockctl-mesh-head clockctl-dim">
-                    Solo — no demo peers to coordinate with.
+                    {{ t('c_shell_components.dev_clock_controls.solo', 'Solo — no demo peers to coordinate with.') }}
                 </p>
                 <div class="clockctl-mesh-controls">
                     <button
@@ -200,7 +202,7 @@ const shiftedRows = computed(() =>
                         class="clockctl-btn clockctl-btn--fire"
                         :disabled="coordBusy"
                         @click="postCoordinator({ self: true })"
-                    >Make this node the coordinator</button>
+                    >{{ t('c_shell_components.dev_clock_controls.make_coordinator', 'Make this node the coordinator') }}</button>
                     <label class="clockctl-mesh-skew">
                         <input
                             type="checkbox"
@@ -208,13 +210,13 @@ const shiftedRows = computed(() =>
                             :disabled="coordBusy"
                             @change="postCoordinator({ skew_tolerated: $event.target.checked })"
                         />
-                        Tolerate skew (advance independently)
+                        {{ t('c_shell_components.dev_clock_controls.tolerate_skew', 'Tolerate skew (advance independently)') }}
                     </label>
                 </div>
             </div>
 
             <div class="clockctl-row">
-                <label class="clockctl-label" for="dev-clock-days">Advance the world</label>
+                <label class="clockctl-label" for="dev-clock-days">{{ t('c_shell_components.dev_clock_controls.advance_world', 'Advance the world') }}</label>
                 <div class="clockctl-controls">
                     <input
                         id="dev-clock-days"
@@ -225,9 +227,9 @@ const shiftedRows = computed(() =>
                         class="clockctl-input"
                         aria-describedby="dev-clock-status"
                     />
-                    <span class="clockctl-unit">day(s)</span>
+                    <span class="clockctl-unit">{{ t('c_shell_components.dev_clock_controls.day_unit', 'day(s)') }}</span>
                     <button type="button" class="clockctl-btn" :disabled="busy || days < 1" @click="postAdvance(false)">
-                        Preview what would fire
+                        {{ t('c_shell_components.dev_clock_controls.preview', 'Preview what would fire') }}
                     </button>
                 </div>
             </div>
@@ -239,31 +241,31 @@ const shiftedRows = computed(() =>
             <!-- THE DRY RUN, rendered before anything moves (P3). -->
             <div v-if="plan" class="clockctl-plan">
                 <p class="clockctl-plan-head">
-                    In {{ plan.days }} day(s): <strong>{{ plan.total_timers }}</strong> timer(s) come due.
+                    {{ t('c_shell_components.dev_clock_controls.plan_in', { days: plan.days }) }} <strong>{{ plan.total_timers }}</strong> {{ t('c_shell_components.dev_clock_controls.plan_timers_due', 'timer(s) come due.') }}
                 </p>
 
                 <table v-if="plan.timers.length" class="clockctl-table">
-                    <caption class="sr-only">Timers that would come due, grouped by clock and place</caption>
+                    <caption class="sr-only">{{ t('c_shell_components.dev_clock_controls.plan_caption', 'Timers that would come due, grouped by clock and place') }}</caption>
                     <thead>
-                        <tr><th>Clock</th><th>Place</th><th>Due</th><th>Window</th></tr>
+                        <tr><th>{{ t('c_shell_components.dev_clock_controls.col_clock', 'Clock') }}</th><th>{{ t('c_shell_components.dev_clock_controls.col_place', 'Place') }}</th><th>{{ t('c_shell_components.dev_clock_controls.col_due', 'Due') }}</th><th>{{ t('c_shell_components.dev_clock_controls.col_window', 'Window') }}</th></tr>
                     </thead>
                     <tbody>
-                        <tr v-for="t in plan.timers" :key="t.clock_id + (t.jurisdiction_id || '')">
-                            <td>{{ t.clock_id }}</td>
-                            <td>{{ t.jurisdiction_name || 'all places' }}</td>
-                            <td>{{ t.due }}</td>
-                            <td class="clockctl-dim">{{ t.earliest }} → {{ t.latest }}</td>
+                        <tr v-for="tm in plan.timers" :key="tm.clock_id + (tm.jurisdiction_id || '')">
+                            <td>{{ tm.clock_id }}</td>
+                            <td>{{ tm.jurisdiction_name || t('c_shell_components.dev_clock_controls.all_places', 'all places') }}</td>
+                            <td>{{ tm.due }}</td>
+                            <td class="clockctl-dim">{{ tm.earliest }} → {{ tm.latest }}</td>
                         </tr>
                     </tbody>
                 </table>
 
                 <details class="clockctl-cols">
-                    <summary>Deadline columns that would move</summary>
+                    <summary>{{ t('c_shell_components.dev_clock_controls.cols_summary', 'Deadline columns that would move') }}</summary>
                     <table class="clockctl-table">
                         <tbody>
                             <tr v-for="c in plan.columns" :key="c.table + c.column">
                                 <td><code>{{ c.table }}.{{ c.column }}</code></td>
-                                <td>{{ c.rows }} row(s)</td>
+                                <td>{{ t('c_shell_components.dev_clock_controls.n_rows', { count: c.rows }) }}</td>
                                 <td class="clockctl-dim">{{ c.why }}</td>
                             </tr>
                         </tbody>
@@ -276,44 +278,44 @@ const shiftedRows = computed(() =>
                     :disabled="busy || !applyArmed || !!meshRefusal"
                     @click="postAdvance(true)"
                 >
-                    Apply — pull every deadline {{ planDays }} day(s) closer and fire what comes due
+                    {{ t('c_shell_components.dev_clock_controls.apply_btn', { days: planDays }) }}
                 </button>
                 <p v-if="meshRefusal" class="clockctl-dim clockctl-note">
-                    Advance on the coordinator — it replays here on sync.
+                    {{ t('c_shell_components.dev_clock_controls.advance_coordinator', 'Advance on the coordinator — it replays here on sync.') }}
                 </p>
                 <p v-else-if="!applyArmed" class="clockctl-dim clockctl-note">
-                    The day count changed — preview again before applying.
+                    {{ t('c_shell_components.dev_clock_controls.preview_again', 'The day count changed — preview again before applying.') }}
                 </p>
             </div>
 
             <!-- What actually happened, off the server's own response. -->
             <div v-if="result" class="clockctl-result" aria-live="polite">
                 <p class="clockctl-plan-head">
-                    Advanced {{ result.days }} day(s): <strong>{{ result.fired }}</strong> timer(s) fired<span v-if="result.failed">, {{ result.failed }} refused by their handlers (a refusal is a real constitutional outcome)</span>.
+                    {{ t('c_shell_components.dev_clock_controls.advanced_in', { days: result.days }) }} <strong>{{ result.fired }}</strong> {{ t('c_shell_components.dev_clock_controls.timers_fired', 'timer(s) fired') }}<span v-if="result.failed">{{ t('c_shell_components.dev_clock_controls.refused_by', { count: result.failed }) }}</span>.
                 </p>
                 <ul v-if="shiftedRows.length" class="clockctl-shifted">
-                    <li v-for="[key, n] in shiftedRows" :key="key"><code>{{ key }}</code> — {{ n }} row(s) moved</li>
+                    <li v-for="[key, n] in shiftedRows" :key="key"><code>{{ key }}</code> — {{ t('c_shell_components.dev_clock_controls.rows_moved', { count: n }) }}</li>
                 </ul>
             </div>
 
             <!-- Fire one timer, from the same list dev:clock-fire prints. -->
             <details class="clockctl-armed">
-                <summary>Fire one timer ({{ st.armed.length }} armed{{ st.armed.length === 50 ? ', soonest 50 shown' : '' }})</summary>
-                <p v-if="!st.armed.length" class="clockctl-dim clockctl-note">Nothing is armed. Nothing is waiting to happen.</p>
+                <summary>{{ t('c_shell_components.dev_clock_controls.fire_one', { count: st.armed.length }) }}{{ st.armed.length === 50 ? t('c_shell_components.dev_clock_controls.soonest_50', ', soonest 50 shown') : '' }})</summary>
+                <p v-if="!st.armed.length" class="clockctl-dim clockctl-note">{{ t('c_shell_components.dev_clock_controls.nothing_armed', 'Nothing is armed. Nothing is waiting to happen.') }}</p>
                 <ul v-else class="clockctl-armed-list">
-                    <li v-for="t in st.armed" :key="t.id" class="clockctl-armed-row">
+                    <li v-for="tm in st.armed" :key="tm.id" class="clockctl-armed-row">
                         <span class="clockctl-armed-what">
-                            <strong>{{ t.clock_id }}</strong>
-                            <span class="clockctl-dim"> · {{ t.jurisdiction || 'all places' }}<template v-if="t.subject_type"> · {{ t.subject_type }}</template></span>
-                            <span class="clockctl-dim clockctl-when">{{ t.fires_at }}</span>
+                            <strong>{{ tm.clock_id }}</strong>
+                            <span class="clockctl-dim"> · {{ tm.jurisdiction || t('c_shell_components.dev_clock_controls.all_places', 'all places') }}<template v-if="tm.subject_type"> · {{ tm.subject_type }}</template></span>
+                            <span class="clockctl-dim clockctl-when">{{ tm.fires_at }}</span>
                         </span>
                         <button
                             type="button"
                             class="clockctl-btn clockctl-btn--fire"
                             :disabled="firing !== ''"
-                            @click="fireTimer(t)"
+                            @click="fireTimer(tm)"
                         >
-                            {{ firing === t.id ? 'Firing…' : 'Fire now' }}
+                            {{ firing === tm.id ? t('c_shell_components.dev_clock_controls.firing', 'Firing…') : t('c_shell_components.dev_clock_controls.fire_now', 'Fire now') }}
                         </button>
                     </li>
                 </ul>

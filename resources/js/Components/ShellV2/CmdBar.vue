@@ -13,7 +13,10 @@
  */
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import Icon from '@/Components/Ui/Icon.vue';
+
+const { t } = useI18n();
 import MenuNav from '@/Components/ShellV2/MenuNav.vue';
 import LearnFlyout from '@/Components/ShellV2/LearnFlyout.vue';
 import DemoFlyout from '@/Components/ShellV2/DemoFlyout.vue';
@@ -73,11 +76,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div ref="rootEl" class="cmdbar" :aria-label="learnOnly ? 'Learn' : 'Navigation and learn'" @toggle.capture="onToggle">
+    <div ref="rootEl" class="cmdbar" :aria-label="learnOnly ? t('c_shell_components.cmd_bar.aria_learn', 'Learn') : t('c_shell_components.cmd_bar.aria_nav_learn', 'Navigation and learn')" @toggle.capture="onToggle">
         <div class="cmdbar-flies">
             <details v-if="!learnOnly" class="cmdbar-fly" id="cmd-menu">
                 <summary class="cmdbar-btn">
-                    <Icon name="menu" size="sm" /><span class="cmdbar-lbl">Menu</span>
+                    <Icon name="menu" size="sm" /><span class="cmdbar-lbl">{{ t('c_shell_components.cmd_bar.menu', 'Menu') }}</span>
                     <Icon name="chevron-down" size="sm" class="cmdbar-caret" />
                 </summary>
                 <div class="cmdbar-panel cmdbar-panel--menu">
@@ -88,7 +91,7 @@ onBeforeUnmount(() => {
 
             <details class="cmdbar-fly" id="cmd-learn">
                 <summary class="cmdbar-btn">
-                    <Icon name="graduation-cap" size="sm" /><span class="cmdbar-lbl">Learn</span>
+                    <Icon name="graduation-cap" size="sm" /><span class="cmdbar-lbl">{{ t('c_shell_components.cmd_bar.learn', 'Learn') }}</span>
                     <Icon name="chevron-down" size="sm" class="cmdbar-caret" />
                 </summary>
                 <div class="cmdbar-panel cmdbar-panel--learn">
@@ -97,8 +100,8 @@ onBeforeUnmount(() => {
             </details>
 
             <details v-if="demo && !learnOnly" class="cmdbar-fly" id="cmd-demo">
-                <summary class="cmdbar-btn" :title="impersonating ? `Impersonating ${impersonating.name}` : undefined">
-                    <Icon name="sliders" size="sm" /><span class="cmdbar-lbl">Demo<template v-if="impersonating"> · as {{ impersonating.name }}</template></span>
+                <summary class="cmdbar-btn" :title="impersonating ? t('c_shell_components.cmd_bar.impersonating_title', { name: impersonating.name }) : undefined">
+                    <Icon name="sliders" size="sm" /><span class="cmdbar-lbl">{{ t('c_shell_components.cmd_bar.demo', 'Demo') }}<template v-if="impersonating"> {{ t('c_shell_components.cmd_bar.demo_as', { name: impersonating.name }) }}</template></span>
                     <Icon name="chevron-down" size="sm" class="cmdbar-caret" />
                 </summary>
                 <div class="cmdbar-panel cmdbar-panel--demo">

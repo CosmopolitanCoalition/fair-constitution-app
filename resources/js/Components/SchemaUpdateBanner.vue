@@ -12,6 +12,9 @@
  */
 import { computed, onMounted, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const status  = ref(null)
 const loading = ref(true)
@@ -40,7 +43,9 @@ const visible = computed(() => {
 
 const pendingLabel = computed(() => {
     const n = status.value?.pending_count || 0
-    return `${n} schema update${n === 1 ? '' : 's'} available`
+    return n === 1
+        ? t('c_shell_components.schema_update_banner.pending_one', { count: n })
+        : t('c_shell_components.schema_update_banner.pending_other', { count: n })
 })
 
 function applyUpdates() {
@@ -54,14 +59,14 @@ function applyUpdates() {
         class="bg-amber-900/95 border-b border-amber-700 px-4 py-2 text-sm text-amber-100 flex items-center justify-between gap-3 shrink-0"
     >
         <div>
-            <span class="font-semibold">Required:</span>
-            {{ pendingLabel }} — apply before starting an ETL run.
+            <span class="font-semibold">{{ t('c_shell_components.schema_update_banner.required', 'Required:') }}</span>
+            {{ t('c_shell_components.schema_update_banner.apply_notice', { pending: pendingLabel }) }}
         </div>
         <button
             @click="applyUpdates"
             class="px-3 py-1 bg-amber-700 hover:bg-amber-600 text-amber-50 rounded text-xs font-medium transition"
         >
-            Apply updates
+            {{ t('c_shell_components.schema_update_banner.apply_button', 'Apply updates') }}
         </button>
     </div>
 </template>

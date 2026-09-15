@@ -8,8 +8,21 @@
 // lease — what every worker holds at this instant), the review census, and
 // halt/resume controls. Renders nothing until a run exists.
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { csrfFetch } from '@/lib/csrf'
 import LaneStrip from '@/Components/Geodata/LaneStrip.vue'
+
+const { t } = useI18n()
+
+// Phase display name, translated at the point of use. The English defaults
+// live in the GROUPS list below.
+function phaseLabel(p) {
+    return t(`c_shell_components.geodata_pull_panel.phase_${p.key}`, p.label)
+}
+// Per-level census name. Keys 1-6 only; other levels show no name.
+function levelName(n) {
+    return LEVEL_NAMES[n] ? t(`c_shell_components.geodata_pull_panel.level_${n}`, LEVEL_NAMES[n]) : ''
+}
 
 // `scan-state` carries the acceptance-scan detectors to whoever renders them.
 // This panel no longer does: they belong beside their findings in Review &
@@ -78,7 +91,11 @@ const resolvePct = computed(() => {
 function itemLabel(it) {
     const iso = it.iso_code ? ` · ${it.iso_code}` : ''
     const lvl = it.adm_level !== null && it.adm_level !== undefined ? ` L${it.adm_level}` : ''
-    const kind = { boundary_iso: 'boundaries', raster_iso: 'rasters', attribution_pair: 'attribution' }[it.kind] ?? it.kind
+    const kind = {
+        boundary_iso: t('c_shell_components.geodata_pull_panel.kind_boundaries', 'boundaries'),
+        raster_iso: t('c_shell_components.geodata_pull_panel.kind_rasters', 'rasters'),
+        attribution_pair: t('c_shell_components.geodata_pull_panel.kind_attribution', 'attribution'),
+    }[it.kind] ?? it.kind
     return kind + iso + lvl
 }
 
@@ -92,9 +109,9 @@ function itemEta(it) {
     if (elapsedMs <= 0) return ''
     const remainMs = elapsedMs * (1 - frac) / frac
     const m = Math.round(remainMs / 60000)
-    if (m < 1) return '· <1m left'
-    if (m < 90) return `· ~${m}m left`
-    return `· ~${Math.round(m / 60)}h left`
+    if (m < 1) return t('c_shell_components.geodata_pull_panel.eta_lt1', '· <1m left')
+    if (m < 90) return t('c_shell_components.geodata_pull_panel.eta_min', { m })
+    return t('c_shell_components.geodata_pull_panel.eta_hr', { h: Math.round(m / 60) })
 }
 
 // The breadcrumb models the TRUE dependency shape, not the phase pointer's
@@ -422,7 +439,7 @@ onBeforeUnmount(() => {
     <section v-if="run" class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
-                <h2 class="text-white font-semibold">2. GeoData Ingestion</h2>
+                <h2 class="text-white font-semibold">{{ t('c_shell_components.geodata_pull_panel.heading', '2. GeoData Ingestion') }}</h2>
                 <span
                     class="text-xs px-2 py-0.5 rounded-full font-medium"
                     :class="{
@@ -432,7 +449,7 @@ onBeforeUnmount(() => {
                         'bg-red-900/60 text-red-300':         run.status === 'failed',
                     }"
                 >
-                    {{ run.paused ? 'paused (pg recovery)' : run.status }}
+                    {{ run.paused ? t('c_shell_components.geodata_pull_panel.paused_pg', 'paused (pg recovery)') : run.status }}
                 </span>
             </div>
             <div class="flex gap-2 items-center">
@@ -443,7 +460,7 @@ onBeforeUnmount(() => {
                 <label
                     v-if="active"
                     class="flex items-center gap-1.5 text-xs text-gray-300 select-none cursor-pointer"
-                    title="When unchecked, the run finishes at finalize and the scan becomes an on-demand button."
+                    :title="t('c_shell_components.geodata_pull_panel.scan_toggle_title', 'When unchecked, the run finishes at finalize and the scan becomes an on-demand button.')"
                 >
                     <input
                         type="checkbox" class="accent-sky-500"
@@ -451,21 +468,21 @@ onBeforeUnmount(() => {
                         :disabled="actionBusy"
                         @change="setAutoScan($event.target.checked)"
                     >
-                    Scan after finalize
+                    {{ t('c_shell_components.geodata_pull_panel.scan_after_finalize', 'Scan after finalize') }}
                 </label>
                 <button
                     v-if="run.status === 'running' && !run.halt_requested"
                     type="button" :disabled="actionBusy" @click="control('halt')"
                     class="text-xs px-3 py-1.5 rounded border border-amber-700 text-amber-300 hover:bg-amber-900/40 disabled:opacity-50"
                 >
-                    Halt (workers stop at next claim)
+                    {{ t('c_shell_components.geodata_pull_panel.halt', 'Halt (workers stop at next claim)') }}
                 </button>
                 <button
                     v-if="run.status === 'halted' || run.halt_requested"
                     type="button" :disabled="actionBusy" @click="control('resume')"
                     class="text-xs px-3 py-1.5 rounded border border-emerald-700 text-emerald-300 hover:bg-emerald-900/40 disabled:opacity-50"
                 >
-                    Resume
+                    {{ t('c_shell_components.geodata_pull_panel.resume', 'Resume') }}
                 </button>
                 <!-- Re-run the acceptance scan in place (operator, 2026-08-05):
                      field-test detector fixes against the loaded planet without
@@ -475,7 +492,7 @@ onBeforeUnmount(() => {
                     type="button" :disabled="actionBusy" @click="control('rescan')"
                     class="text-xs px-3 py-1.5 rounded border border-sky-700 text-sky-300 hover:bg-sky-900/40 disabled:opacity-50"
                 >
-                    {{ run.scan_skipped ? 'Run scan' : 'Re-run scan' }}
+                    {{ run.scan_skipped ? t('c_shell_components.geodata_pull_panel.run_scan', 'Run scan') : t('c_shell_components.geodata_pull_panel.rerun_scan', 'Re-run scan') }}
                 </button>
             </div>
         </div>
@@ -492,32 +509,29 @@ onBeforeUnmount(() => {
              class="mb-4 rounded-lg border-2 border-amber-500 bg-amber-950/60 px-4 py-3 animate-pulse-border">
             <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div class="text-sm text-amber-100">
-                    <span class="font-semibold text-base">⏸ RUN PAUSED — waiting on you</span>
+                    <span class="font-semibold text-base">{{ t('c_shell_components.geodata_pull_panel.hold_paused', '⏸ RUN PAUSED — waiting on you') }}</span>
                     <span v-if="run.review_hold.since" class="ml-2 font-mono text-amber-300">
-                        {{ elapsedSince(run.review_hold.since) }} and counting
+                        {{ t('c_shell_components.geodata_pull_panel.hold_counting', { elapsed: elapsedSince(run.review_hold.since) }) }}
                     </span>
                     <span class="block mt-1">
-                        {{ run.review_hold.label }}: the automatic retries (together, then one
-                        at a time) left
+                        {{ t('c_shell_components.geodata_pull_panel.hold_retries_before', { label: run.review_hold.label }) }}
                         <span class="font-semibold">{{ run.review_hold.unresolved }}</span>
-                        item{{ run.review_hold.unresolved === 1 ? '' : 's' }} unresolved.
-                        No work is happening — the work timers are frozen until you decide.
+                        {{ run.review_hold.unresolved === 1 ? t('c_shell_components.geodata_pull_panel.hold_retries_after_one', 'item unresolved. No work is happening — the work timers are frozen until you decide.') : t('c_shell_components.geodata_pull_panel.hold_retries_after_other', { count: run.review_hold.unresolved }) }}
                     </span>
                     <span class="block text-amber-300/80 text-xs mt-1">
-                        Retry re-runs the full automatic ladder. Continue accepts the residue
-                        as flagged items and moves on.
+                        {{ t('c_shell_components.geodata_pull_panel.hold_actions', 'Retry re-runs the full automatic ladder. Continue accepts the residue as flagged items and moves on.') }}
                     </span>
                 </div>
                 <div class="flex gap-2 shrink-0">
                     <button type="button" :disabled="actionBusy"
                             @click="control('review_retry', run.review_hold.group)"
                             class="text-xs px-3 py-1.5 rounded border border-sky-600 text-sky-200 hover:bg-sky-900/40 disabled:opacity-50">
-                        Retry (isolated)
+                        {{ t('c_shell_components.geodata_pull_panel.retry_isolated', 'Retry (isolated)') }}
                     </button>
                     <button type="button" :disabled="actionBusy"
                             @click="control('review_continue', run.review_hold.group)"
                             class="text-xs px-3 py-1.5 rounded border border-amber-500 bg-amber-900/40 text-amber-100 hover:bg-amber-900/70 disabled:opacity-50">
-                        Continue anyway →
+                        {{ t('c_shell_components.geodata_pull_panel.continue_anyway', 'Continue anyway →') }}
                     </button>
                 </div>
             </div>
@@ -531,51 +545,51 @@ onBeforeUnmount(() => {
         <section v-if="worldBuild"
                  class="mb-5 rounded-lg p-5 border bg-gray-900/60 border-gray-800">
             <div class="flex items-center justify-between gap-3 mb-3">
-                <h3 class="font-semibold text-white">World build
-                    <span class="text-gray-500 text-xs font-normal">— legislatures sized, maps drawn, shells provisioned</span>
+                <h3 class="font-semibold text-white">{{ t('c_shell_components.geodata_pull_panel.world_build', 'World build') }}
+                    <span class="text-gray-500 text-xs font-normal">{{ t('c_shell_components.geodata_pull_panel.world_build_sub', '— legislatures sized, maps drawn, shells provisioned') }}</span>
                 </h3>
                 <span :class="worldBuild.status === 'complete' ? 'text-emerald-400' : 'text-blue-300'"
                       class="text-xs uppercase tracking-wide">{{ worldBuild.status }}</span>
             </div>
             <div v-if="worldBuild.report" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                 <div class="bg-gray-800/60 rounded p-3">
-                    <div class="text-gray-400 text-xs uppercase mb-1">Apportionment</div>
+                    <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_apportionment', 'Apportionment') }}</div>
                     <div class="text-white">{{ worldBuild.report.apportionment.done.toLocaleString() }} / {{ worldBuild.report.apportionment.total.toLocaleString() }}</div>
-                    <div v-if="worldBuild.report.apportionment.refusals > 0" class="text-amber-300 text-xs mt-1">{{ worldBuild.report.apportionment.refusals }} gate refusals</div>
+                    <div v-if="worldBuild.report.apportionment.refusals > 0" class="text-amber-300 text-xs mt-1">{{ t('c_shell_components.geodata_pull_panel.wb_gate_refusals', { count: worldBuild.report.apportionment.refusals }) }}</div>
                 </div>
                 <div class="bg-gray-800/60 rounded p-3">
-                    <div class="text-gray-400 text-xs uppercase mb-1">Borders precomputed</div>
+                    <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_borders', 'Borders precomputed') }}</div>
                     <div class="text-white">{{ (worldBuild.report.adjacency.total - worldBuild.report.adjacency.open).toLocaleString() }} / {{ worldBuild.report.adjacency.total.toLocaleString() }}</div>
                 </div>
                 <div class="bg-gray-800/60 rounded p-3">
-                    <div class="text-gray-400 text-xs uppercase mb-1">Founding maps</div>
-                    <div class="text-white">{{ worldBuild.report.maps.unstamped === 0 ? 'all stamped' : worldBuild.report.maps.unstamped.toLocaleString() + ' unstamped' }}</div>
+                    <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_founding_maps', 'Founding maps') }}</div>
+                    <div class="text-white">{{ worldBuild.report.maps.unstamped === 0 ? t('c_shell_components.geodata_pull_panel.wb_all_stamped', 'all stamped') : t('c_shell_components.geodata_pull_panel.wb_unstamped', { count: worldBuild.report.maps.unstamped.toLocaleString() }) }}</div>
                 </div>
                 <div class="bg-gray-800/60 rounded p-3">
-                    <div class="text-gray-400 text-xs uppercase mb-1">Legislatures</div>
-                    <div class="text-white">{{ worldBuild.report.legislatures.missing_headers === 0 ? 'all covered' : worldBuild.report.legislatures.missing_headers.toLocaleString() + ' uncovered' }}</div>
+                    <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_legislatures', 'Legislatures') }}</div>
+                    <div class="text-white">{{ worldBuild.report.legislatures.missing_headers === 0 ? t('c_shell_components.geodata_pull_panel.wb_all_covered', 'all covered') : t('c_shell_components.geodata_pull_panel.wb_uncovered', { count: worldBuild.report.legislatures.missing_headers.toLocaleString() }) }}</div>
                 </div>
                 <div class="bg-gray-800/60 rounded p-3">
-                    <div class="text-gray-400 text-xs uppercase mb-1">Block keys</div>
-                    <div class="text-white">{{ worldBuild.report.block_keys_missing === 0 ? 'stamped' : worldBuild.report.block_keys_missing.toLocaleString() + ' missing' }}</div>
+                    <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_block_keys', 'Block keys') }}</div>
+                    <div class="text-white">{{ worldBuild.report.block_keys_missing === 0 ? t('c_shell_components.geodata_pull_panel.wb_stamped', 'stamped') : t('c_shell_components.geodata_pull_panel.wb_missing', { count: worldBuild.report.block_keys_missing.toLocaleString() }) }}</div>
                 </div>
                 <div class="bg-gray-800/60 rounded p-3">
-                    <div class="text-gray-400 text-xs uppercase mb-1">Bootstrap board</div>
-                    <div class="text-white">{{ worldBuild.report.board ? 'seated' : 'missing' }}</div>
+                    <div class="text-gray-400 text-xs uppercase mb-1">{{ t('c_shell_components.geodata_pull_panel.wb_bootstrap_board', 'Bootstrap board') }}</div>
+                    <div class="text-white">{{ worldBuild.report.board ? t('c_shell_components.geodata_pull_panel.wb_seated', 'seated') : t('c_shell_components.geodata_pull_panel.wb_board_missing', 'missing') }}</div>
                 </div>
             </div>
             <p v-if="worldBuild.status === 'complete'" class="text-emerald-300 text-sm mt-3">
-                World build complete — every legislature sized, every map drawn, institution shells provisioned. Continue accepts the map data and starts the drawing.
+                {{ t('c_shell_components.geodata_pull_panel.wb_complete', 'World build complete — every legislature sized, every map drawn, institution shells provisioned. Continue accepts the map data and starts the drawing.') }}
             </p>
             <p v-else class="text-blue-300/80 text-sm mt-3">
-                Building behind the ingest — sizing legislatures, precomputing borders, drawing founding maps. No action needed; this runs after geodata finishes.
+                {{ t('c_shell_components.geodata_pull_panel.wb_building', 'Building behind the ingest — sizing legislatures, precomputing borders, drawing founding maps. No action needed; this runs after geodata finishes.') }}
             </p>
             <p v-if="worldBuild.last_error" class="text-amber-400/80 text-xs mt-2">{{ worldBuild.last_error }}</p>
         </section>
 
         <!-- Phase pipeline — one bubble per dependency stage:
              Enumerate => [Boundaries + Rasters] => [Resolve + Attribution] => Finalize => Scan -->
-        <ol class="flex flex-wrap items-center gap-1.5 mb-5" aria-label="Pipeline phases">
+        <ol class="flex flex-wrap items-center gap-1.5 mb-5" :aria-label="t('c_shell_components.geodata_pull_panel.pipeline_phases', 'Pipeline phases')">
             <template v-for="(group, gi) in GROUPS" :key="gi">
                 <li
                     class="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border"
@@ -598,11 +612,11 @@ onBeforeUnmount(() => {
                                  done, it is waiting on review (the old ✓-while-
                                  unresolved is exactly the lie the operator hit). -->
                             <span v-if="chipState(p) === 'done' && groupState(group) !== 'held'" aria-hidden="true">✓</span>
-                            {{ p.label }}
+                            {{ phaseLabel(p) }}
                         </span>
                     </template>
                     <span v-if="groupState(group) === 'held'"
-                          class="text-[10px] font-semibold uppercase tracking-wide">⚑ review</span>
+                          class="text-[10px] font-semibold uppercase tracking-wide">{{ t('c_shell_components.geodata_pull_panel.review_chip', '⚑ review') }}</span>
                     <span v-if="groupElapsed(group)" class="text-[10px] opacity-70">{{ groupElapsed(group) }}</span>
                 </li>
                 <li v-if="gi < GROUPS.length - 1" class="text-gray-700 text-xs" aria-hidden="true">⇒</li>
@@ -617,7 +631,7 @@ onBeforeUnmount(() => {
              resolve barrier chains the planet's parent hierarchy -->
         <div v-if="resolve && resolve.total" class="mb-5">
             <div class="flex justify-between text-xs mb-1">
-                <span class="text-gray-200 font-semibold">Parent chains (resolve)</span>
+                <span class="text-gray-200 font-semibold">{{ t('c_shell_components.geodata_pull_panel.parent_chains', 'Parent chains (resolve)') }}</span>
                 <span class="text-gray-300 tabular-nums">
                     {{ (resolve.total - resolve.unparented).toLocaleString() }} / {{ resolve.total.toLocaleString() }}
                     <span class="text-gray-500">· {{ resolvePct }}%</span>
@@ -630,14 +644,14 @@ onBeforeUnmount(() => {
                 />
             </div>
             <div v-if="resolve.unparented === resolve.total" class="text-[11px] text-gray-500 mt-1">
-                strategy passes run as set-based SQL — the count moves in steps as each pass commits
+                {{ t('c_shell_components.geodata_pull_panel.resolve_note', 'strategy passes run as set-based SQL — the count moves in steps as each pass commits') }}
             </div>
         </div>
 
         <!-- Per-level population census (the legacy by-level counts) -->
         <div v-if="levels.length" class="mb-5">
             <h3 class="text-gray-300 text-xs font-semibold uppercase tracking-wide mb-2">
-                Population by level
+                {{ t('c_shell_components.geodata_pull_panel.pop_by_level', 'Population by level') }}
             </h3>
             <table class="w-full text-xs tabular-nums">
                 <!-- Named columns (operator, 2026-08-04). "3,216 / 3,240
@@ -647,25 +661,22 @@ onBeforeUnmount(() => {
                      still a real place — it is not a row we failed to reach. -->
                 <thead>
                     <tr class="border-b border-gray-700 text-[10px] uppercase tracking-wide text-gray-500">
-                        <th class="py-1 text-left font-semibold">Level</th>
+                        <th class="py-1 text-left font-semibold">{{ t('c_shell_components.geodata_pull_panel.col_level', 'Level') }}</th>
                         <th class="py-1 text-right font-semibold">
                             <span class="relative group inline-flex items-center gap-1 cursor-help">
-                                Populated / Jurisdictions
+                                {{ t('c_shell_components.geodata_pull_panel.col_populated', 'Populated / Jurisdictions') }}
                                 <span class="text-gray-600 text-[9px]">?</span>
                                 <div class="pointer-events-none absolute right-0 top-full mt-0.5 z-50 w-64 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 normal-case tracking-normal font-normal text-left leading-snug hidden group-hover:block shadow-lg">
-                                    Right-hand number is how many jurisdictions exist at this level.
-                                    Left is how many carry a population. A jurisdiction can legitimately
-                                    hold zero — a neighbourhood smaller than a 100&nbsp;m raster pixel that
-                                    falls between populated pixels reads zero and is still a real place.
+                                    {{ t('c_shell_components.geodata_pull_panel.col_populated_hint', 'Right-hand number is how many jurisdictions exist at this level. Left is how many carry a population. A jurisdiction can legitimately hold zero — a neighbourhood smaller than a 100 m raster pixel that falls between populated pixels reads zero and is still a real place.') }}
                                 </div>
                             </span>
                         </th>
-                        <th class="py-1 text-right font-semibold">Population</th>
+                        <th class="py-1 text-right font-semibold">{{ t('c_shell_components.geodata_pull_panel.col_population', 'Population') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="l in levels" :key="l.adm_level" class="border-b border-gray-800/60">
-                        <td class="py-1 text-gray-400">L{{ l.adm_level }} {{ LEVEL_NAMES[l.adm_level] ?? '' }}</td>
+                        <td class="py-1 text-gray-400">L{{ l.adm_level }} {{ levelName(l.adm_level) }}</td>
                         <td class="py-1 text-right text-gray-300">{{ Number(l.with_pop).toLocaleString() }} / {{ Number(l.rows).toLocaleString() }}</td>
                         <td class="py-1 text-right" :class="Number(l.pop_sum) > 0 ? 'text-emerald-300' : 'text-gray-600'">
                             {{ Number(l.pop_sum).toLocaleString() }}
@@ -686,11 +697,11 @@ onBeforeUnmount(() => {
                          Earth is the sum of its countries, so that is what
                          belongs here. -->
                     <tr class="border-t-2 border-gray-700">
-                        <td class="py-1.5 text-gray-200 font-semibold">Total</td>
+                        <td class="py-1.5 text-gray-200 font-semibold">{{ t('c_shell_components.geodata_pull_panel.total', 'Total') }}</td>
                         <td class="py-1.5 text-right text-gray-200 font-semibold">
                             {{ levelTotals.with_pop.toLocaleString() }} / {{ levelTotals.rows.toLocaleString() }}
                             <span v-if="world && world.expected" class="text-gray-500 font-normal">
-                                · {{ Math.round(levelTotals.rows / world.expected * 100) }}% loaded
+                                {{ t('c_shell_components.geodata_pull_panel.pct_loaded', { pct: Math.round(levelTotals.rows / world.expected * 100) }) }}
                             </span>
                         </td>
                         <td class="py-1.5 text-right font-semibold"
@@ -699,10 +710,7 @@ onBeforeUnmount(() => {
                                 {{ earthPopulation.toLocaleString() }}
                                 <span class="text-gray-600 text-[9px] font-normal">?</span>
                                 <div class="pointer-events-none absolute right-0 bottom-full mb-0.5 z-50 w-64 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 font-normal text-left leading-snug hidden group-hover:block shadow-lg">
-                                    Earth's roll-up — the sum of the countries at L{{ rollupLevel }}.
-                                    Not the column sum: each level attributes the whole planet
-                                    independently, so adding them would count the same people once
-                                    per level.
+                                    {{ t('c_shell_components.geodata_pull_panel.earth_rollup', { level: rollupLevel }) }}
                                 </div>
                             </span>
                         </td>
@@ -716,15 +724,15 @@ onBeforeUnmount(() => {
             <div v-for="row in BAR_ROWS" :key="row.phase.key">
                 <!-- The phase's own bar -->
                 <div v-if="row.layer" class="flex justify-between text-xs mb-1">
-                    <span class="text-gray-300 font-medium">{{ row.phase.label }}</span>
+                    <span class="text-gray-300 font-medium">{{ phaseLabel(row.phase) }}</span>
                     <span class="text-gray-400 tabular-nums">
                         {{ (row.layer.total - row.layer.open).toLocaleString() }}
                         / {{ row.layer.total.toLocaleString() }}
-                        <span v-if="Number(row.layer.review)" class="text-amber-400"> · {{ row.layer.review }} review</span>
-                        <span v-if="Number(row.layer.failed)" class="text-red-400"> · {{ row.layer.failed }} failed</span>
+                        <span v-if="Number(row.layer.review)" class="text-amber-400"> {{ t('c_shell_components.geodata_pull_panel.n_review', { count: row.layer.review }) }}</span>
+                        <span v-if="Number(row.layer.failed)" class="text-red-400"> {{ t('c_shell_components.geodata_pull_panel.n_failed', { count: row.layer.failed }) }}</span>
                     </span>
                 </div>
-                <div v-else class="text-xs text-gray-300 font-medium mb-1">{{ row.phase.label }}</div>
+                <div v-else class="text-xs text-gray-300 font-medium mb-1">{{ phaseLabel(row.phase) }}</div>
                 <div v-if="row.layer" class="h-2 bg-gray-800 rounded overflow-hidden">
                     <div
                         class="h-full rounded transition-all duration-500"
@@ -750,13 +758,13 @@ onBeforeUnmount(() => {
              progress (the legacy stacked-bar detail, one mini bar per country) -->
         <div v-if="active" class="mb-4">
             <h3 class="text-gray-300 text-xs font-semibold uppercase tracking-wide mb-2">
-                Workers ({{ workers.length }})
+                {{ t('c_shell_components.geodata_pull_panel.workers', { count: workers.length }) }}
                 <span v-if="workers.length" class="text-gray-500 normal-case font-normal">
-                    — {{ inflight.length }} working<template v-if="idleWorkers"> · {{ idleWorkers }} idle</template>
+                    — {{ t('c_shell_components.geodata_pull_panel.working', { count: inflight.length }) }}<template v-if="idleWorkers"> · {{ t('c_shell_components.geodata_pull_panel.idle', { count: idleWorkers }) }}</template>
                 </span>
             </h3>
             <div v-if="workers.length === 0" class="text-gray-500 text-xs">
-                No live workers — the ETL supervisor seeds the pool within a few seconds of the run starting.
+                {{ t('c_shell_components.geodata_pull_panel.no_workers', 'No live workers — the ETL supervisor seeds the pool within a few seconds of the run starting.') }}
             </div>
             <ul v-else class="space-y-1.5">
                 <!-- Working lanes now live UNDER the bar they are advancing
@@ -789,8 +797,7 @@ onBeforeUnmount(() => {
                     </div>
                 </li>
                 <li v-if="idleWorkers" class="text-xs text-gray-500 px-2.5 py-1">
-                    {{ idleWorkers }} worker{{ idleWorkers > 1 ? 's' : '' }} between claims —
-                    yield backoff (a giant holds the parse floor) or waiting for work
+                    {{ idleWorkers > 1 ? t('c_shell_components.geodata_pull_panel.idle_between_other', { count: idleWorkers }) : t('c_shell_components.geodata_pull_panel.idle_between_one', { count: idleWorkers }) }}
                 </li>
             </ul>
         </div>
@@ -805,7 +812,7 @@ onBeforeUnmount(() => {
         <!-- Review census -->
         <div v-if="review.length">
             <h3 class="text-amber-300 text-xs font-semibold uppercase tracking-wide mb-2">
-                Needs review ({{ review.length }}) — these never sink the run
+                {{ t('c_shell_components.geodata_pull_panel.needs_review', { count: review.length }) }}
             </h3>
             <ul class="space-y-1 max-h-48 overflow-y-auto pr-1">
                 <li v-for="(r, i) in review" :key="i" class="text-xs text-gray-400">
@@ -817,8 +824,7 @@ onBeforeUnmount(() => {
         </div>
 
         <p v-if="run.status === 'done'" class="text-emerald-300 text-sm mt-2">
-            Ingestion complete — {{ run.items_done.toLocaleString() }} items done<template v-if="run.items_review"> ·
-            {{ run.items_review }} for review</template>. Review any flags below, then continue.
+            {{ t('c_shell_components.geodata_pull_panel.ingest_complete', { count: run.items_done.toLocaleString() }) }}<template v-if="run.items_review"> {{ t('c_shell_components.geodata_pull_panel.items_review', { count: run.items_review }) }}</template>{{ t('c_shell_components.geodata_pull_panel.review_then_continue', '. Review any flags below, then continue.') }}
         </p>
     </section>
 </template>

@@ -1,5 +1,8 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
     modelValue: { type: String, default: null },
@@ -14,6 +17,12 @@ const LEVEL_LABELS = {
     galactic_region: 'Galactic Region',
     star_system: 'Star System',
     world: 'World',
+}
+
+// Level display name, translated at the point of use. The English defaults
+// stay in LEVEL_LABELS above.
+function levelLabel(type) {
+    return t(`c_shell_components.cosmic_address_picker.level_${type}`, LEVEL_LABELS[type] ?? type)
 }
 
 const LEVEL_ORDER = [
@@ -66,7 +75,7 @@ async function loadDefaultPath() {
                 : await fetchObservableRoots()
             builtLevels.push({
                 type: node.type,
-                label: LEVEL_LABELS[node.type] ?? node.type,
+                label: levelLabel(node.type),
                 options,
                 selectedId: node.id,
             })
@@ -74,7 +83,7 @@ async function loadDefaultPath() {
         levels.value = builtLevels
         emitSelection()
     } catch (e) {
-        error.value = e.message || 'Failed to load cosmic address'
+        error.value = e.message || t('c_shell_components.cosmic_address_picker.load_failed', 'Failed to load cosmic address')
     } finally {
         loadingPath.value = false
     }
@@ -103,7 +112,7 @@ async function onLevelChange(levelIndex, newId) {
         const firstEnabled = options.find(o => o.enabled) ?? options[0]
         truncated.push({
             type: childType,
-            label: LEVEL_LABELS[childType] ?? childType,
+            label: levelLabel(childType),
             options,
             selectedId: firstEnabled.id,
         })
@@ -140,9 +149,9 @@ watch(() => props.modelValue, (v) => {
 
 <template>
     <div class="space-y-3">
-        <div class="text-xs text-gray-400 pl-1">Multiverse ▸</div>
+        <div class="text-xs text-gray-400 pl-1">{{ t('c_shell_components.cosmic_address_picker.multiverse', 'Multiverse ▸') }}</div>
 
-        <div v-if="loadingPath" class="text-sm text-gray-400">Loading cosmic address…</div>
+        <div v-if="loadingPath" class="text-sm text-gray-400">{{ t('c_shell_components.cosmic_address_picker.loading', 'Loading cosmic address…') }}</div>
         <div v-else-if="error" class="text-sm text-red-400">{{ error }}</div>
 
         <div v-else class="space-y-2">
@@ -167,7 +176,7 @@ watch(() => props.modelValue, (v) => {
                         :value="opt.id"
                         :disabled="!opt.enabled"
                     >
-                        {{ labelFor(opt) }}{{ opt.enabled ? '' : ' — coming soon' }}
+                        {{ labelFor(opt) }}{{ opt.enabled ? '' : t('c_shell_components.cosmic_address_picker.coming_soon', ' — coming soon') }}
                     </option>
                 </select>
             </div>

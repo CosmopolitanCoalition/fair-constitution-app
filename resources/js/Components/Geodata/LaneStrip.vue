@@ -6,6 +6,9 @@
  * the operator asked for ("indent with the parent/meta and slices").
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({ it: { type: Object, required: true } })
 
@@ -19,8 +22,8 @@ const label = computed(() => {
     const it = props.it
     const iso = it.iso_code || ''
     const lvl = it.adm_level !== null && it.adm_level !== undefined ? ` L${it.adm_level}` : ''
-    const suffix = it.kind.endsWith('_range') ? ' ·slice'
-        : it.kind.endsWith('_decompose') ? ' ·decompose' : ''
+    const suffix = it.kind.endsWith('_range') ? t('c_shell_components.lane_strip.slice_suffix', ' ·slice')
+        : it.kind.endsWith('_decompose') ? t('c_shell_components.lane_strip.decompose_suffix', ' ·decompose') : ''
     return `${it.kind.replace(/_(iso|pair|global)$/, '')}·${iso}${lvl}${suffix}`
 })
 
