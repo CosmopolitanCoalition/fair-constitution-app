@@ -17099,6 +17099,10 @@
         {
           "date": "2026-09-15",
           "note": "MACHINE CHECKS COMPLETE 7:09 PM Eastern. Signed-in roster 152 URLs: 151 pass; the one non-pass is /rooms/board/{board} (403 for non-members), now an Open Question (boardroom-page-access). Guest roster 55 URLs: 55 pass. Every URL has a run file on box E; latest-status tally in storage/logs/a11y_full/FINAL_TALLY.txt; per-pass ledgers ledger.txt, ledger_p5.txt, ledger_p6.txt, ledger_guest*.txt; roster docs/audits/2026-09-15/A11Y_ROSTER.md (251 routes: 55 guest, 40 signed-in, 62 parameterised templates of which 56 resolved and 12 have no row on this box, 93 machine, 1 viewer-bound). Standard met: axe WCAG 2.1 A and AA at 1280 and 375, no horizontal overflow at 375, 45-step keyboard walk with focus ring and accessible name. Not done by ruling: the manual screen-reader review."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "RULING B received 7:15 PM Eastern (boardroom-page-access): a board of a public body (department Board of Governors, or a common good corporation) reads for every signed-in resident with join and floor still gated; a private organization's board keeps its 403. Lane fix-boardroom-read launched 7:18 PM; the boardroom URL is swept once it merges. Also fixed: the rubric Work tab rendered empty since the afternoon because three desk-created items carried evidence as a string (63d1b939); the validator now enforces list types (c4a395f8)."
         }
       ]
     }
