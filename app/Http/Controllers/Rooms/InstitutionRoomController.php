@@ -97,7 +97,13 @@ class InstitutionRoomController extends Controller
 
     public function board(Request $request, Board $board): Response
     {
-        $this->boards->assertMayJoin($request->user(), $board);
+        // A public body's board reads for every signed-in resident; a private
+        // organization's board keeps its members-only 403. Joining the call and
+        // the floor stay gated for a non-member through the POST endpoints.
+        $canJoin = $this->boards->allows($request->user(), $board);
+        if (! $this->boards->isPublic($board)) {
+            $this->boards->assertMayJoin($request->user(), $board);
+        }
         $seats = BoardSeat::query()->where('board_id', $board->id)->seated()->whereNotNull('holder_user_id')
             ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$board->chair_seat_id])
             ->orderBy('seat_no')->orderBy('id')->limit(self::ROSTER_LIMIT + 1)->get(['id', 'holder_user_id', 'seat_no']);
@@ -110,7 +116,7 @@ class InstitutionRoomController extends Controller
             ? '/organizations/'.$board->boardable_id.'/board-elections' : '/departments/'.$board->boardable_id;
 
         return $this->page($request, 'board', __('Board meeting'), $board->jurisdictionId(), $board->id, $room,
-            $rows, $seats->count() > self::ROSTER_LIMIT, $record, '/rooms/board/'.$board->id.'/call-token');
+            $rows, $seats->count() > self::ROSTER_LIMIT, $record, '/rooms/board/'.$board->id.'/call-token', $canJoin);
     }
 
     public function boardToken(Request $request, Board $board, LiveKitTokenService $tokens): JsonResponse
@@ -188,7 +194,7 @@ class InstitutionRoomController extends Controller
     }
 
     private function page(Request $request, string $variant, string $title, ?string $jurisdictionId, string $entityId,
-        ?MatrixRoom $room, array $rows, bool $truncated, string $record, ?string $tokenUrl = null): Response
+        ?MatrixRoom $room, array $rows, bool $truncated, string $record, ?string $tokenUrl = null, bool $canJoin = true): Response
     {
         $userIds = array_values(array_unique(array_filter(array_column($rows, 'user_id'))));
         $identities = $this->posting->matrixUserIdsFor($userIds);
@@ -222,6 +228,9 @@ class InstitutionRoomController extends Controller
         $roomHref = '/rooms/'.($variant === 'legislature' ? 'chamber' : $variant).'/'.$entityId;
         return Inertia::render('Rooms/Institution', [
             'title' => $title, 'variant' => $variant, 'private' => $tokenUrl !== null,
+            // A public body's board renders for a non-member with canJoin=false:
+            // the read-only notice shows, the compose form and call join hide.
+            'canJoin' => $canJoin,
             // A live, joinable call exists only when a valid room resolved.
             // False = the room page renders in a 'no live call' state (the
             // page still reads; joining stays gated on the POST endpoints).

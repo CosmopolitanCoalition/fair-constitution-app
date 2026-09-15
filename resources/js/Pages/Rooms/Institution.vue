@@ -18,10 +18,14 @@ const props = defineProps({
     messages: { type: Array, default: () => [] }, timelineAvailable: Boolean,
     voice: { type: Object, default: () => ({}) }, recordHref: String, roomHref: String, messagesHref: String,
     callAvailable: { type: Boolean, default: true },
+    canJoin: { type: Boolean, default: true },
 });
 const { t } = useI18n();
 const text = (key, fallback) => t('c_rooms.' + key, fallback);
-const canJoin = computed(() => props.voice.roomId && props.voice.myMxid && props.voice.myUserId);
+const voiceReady = computed(() => props.voice.roomId && props.voice.myMxid && props.voice.myUserId);
+// The server prop is an additional gate: a public body's board renders for a
+// non-member with canJoin=false, so the call join and compose form stay hidden.
+const mayJoin = computed(() => props.canJoin && Boolean(voiceReady.value));
 const compose = useForm({ body: '' });
 const floorForm = useForm({ action: '', handle: null });
 function floorAction(action, handle = null) {
@@ -40,7 +44,7 @@ const seating = computed(() => {
     return rows;
 });
 function send() {
-    if (!compose.body.trim() || !canJoin.value) return;
+    if (!compose.body.trim() || !mayJoin.value) return;
     compose.post(props.messagesHref, { preserveScroll: true, onSuccess: () => compose.reset('body') });
 }
 const senderName = sender => personLabel({ identity: sender, display_name: props.displayNames[sender] });
@@ -66,8 +70,9 @@ useLiveRoom({ keys: ['roster', 'rosterTruncated', 'displayNames', 'floorHolder',
         <p v-if="!voice.myUserId" class="room-note">{{ text('sign_in_to_join', 'You can explore this public room. Sign in to join its voice and video conversation.') }} <Link href="/login">{{ text('sign_in', 'Sign in') }}</Link></p>
         <p v-if="voice.myUserId" class="room-note"><Link href="/people">{{ text('edit_public_profile', 'Edit public profile') }}</Link> · {{ text('public_name_hint', 'Choose the public name other people see in rooms.') }}</p>
         <p v-if="private && !callAvailable" class="room-note" role="status">{{ text('institution.no_live_call', 'No call is live in this room right now.') }}</p>
+        <p v-if="canJoin === false" class="room-note" role="status">{{ text('institution.read_only_public_body', 'This is a public body. Its meeting is readable by every resident; joining the call and the floor belong to its seated members.') }}</p>
         <p v-if="!private && !voice.roomId" class="room-note" role="status">{{ text('room_unavailable_retry', 'The call room is not available yet. Its seats and official workspace remain available.') }} <a :href="roomHref">{{ text('retry_room', 'Retry room') }}</a></p>
-        <LiveRoom v-if="canJoin" :key="voice.roomId" :jurisdiction-id="voice.jurisdictionId || ''"
+        <LiveRoom v-if="mayJoin" :key="voice.roomId" :jurisdiction-id="voice.jurisdictionId || ''"
             :room="voice.roomId" :pseudonym="voice.myMxid" :subject-user-id="voice.myUserId"
             :token-requester="tokenRequester" :variant="variant" :roster="seating" :roster-url="rosterUrl"
             :floor-holder="floorHolder" :active-witness="activeWitness" :display-names="displayNames" />
@@ -105,7 +110,7 @@ useLiveRoom({ keys: ['roster', 'rosterTruncated', 'displayNames', 'floorHolder',
             <ol v-else class="room-messages">
                 <li v-for="message in messages" :key="message.id"><strong>{{ senderName(message.sender) }}</strong><p>{{ message.body }}</p></li>
             </ol>
-            <form v-if="canJoin" class="room-compose" @submit.prevent="send">
+            <form v-if="mayJoin" class="room-compose" @submit.prevent="send">
                 <label for="room-message">{{ text('discussion_message', 'Message to this room') }}</label>
                 <textarea id="room-message" v-model="compose.body" rows="3" maxlength="4000" required :aria-invalid="Boolean(compose.errors.body)" :aria-describedby="compose.errors.body ? 'room-message-error' : undefined" />
                 <p v-if="compose.errors.body" id="room-message-error" role="alert">{{ compose.errors.body }}</p>

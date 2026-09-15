@@ -49,6 +49,7 @@
   "hearing_intro": "Follow the hearing, see who has the floor, and read the public record.",
   "in_call": "In call",
   "institution.no_live_call": "No call is live in this room right now.",
+  "institution.read_only_public_body": "This is a public body. Its meeting is readable by every resident; joining the call and the floor belong to its seated members.",
   "institution_intro": "Watch the room, join the conversation, and follow its official record.",
   "invite_witness_aria": "Invite {name} to witness stand",
   "live_call": "Live call",
