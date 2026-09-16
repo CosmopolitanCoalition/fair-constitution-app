@@ -12821,7 +12821,8 @@
         {
           "label": "disposition",
           "href": "tests/js/i18nCoverage.test.mjs records 14 absent namespace files per conference locale as of 2026-09-14. translate_run.py exists but provider is unruled (rubric translation-first-pass-provider open)."
-        }
+        },
+        "21da1b03 glossary 52 x 75; f598c0ae cloud provider; 8451d268 runner --force"
       ],
       "history": [
         {
@@ -12879,6 +12880,10 @@
         {
           "date": "2026-09-15",
           "note": "OPERATOR RULING (7:00 PM Eastern): once a11y closes, l10n starts and runs language after language through the night (six conference locales, then pl, it, tr, then the rest of the 75). Translated catalogues are CODE: every imported language is committed and pushed to GitHub (unlike ingested geodata). Ollama with llama3.1:8b is started on box E for the pass."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Operator order (11:00 PM Eastern): expand the glossary, render it for every language, set up the Max machinery, run ONE full language, then decide on Pro or Max. DONE 21da1b03: 52 terms (14 drift terms added with contexts), 3,744 renderings, all 75 targets complete, script check clean, C8 unchanged (the 4 pre-existing Arabic Jurisdiction warnings). Cloud provider: gemma4:31b-cloud through the local daemon at 19 strings/s (f598c0ae reads the fenced JSON reply). Runner ready for Max: translate_run.py --locales all --provider ollama --model gemma4:31b-cloud --workers 10 --chunk 40 --force (8451d268 passes --force). RUNNING: the full Hindi pass with --force on the Free plan, one stream, log in the session scratchpad cloud_hi_full.log."
         }
       ]
     },
