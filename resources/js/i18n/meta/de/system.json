@@ -352,7 +352,7 @@
     "provider": "ollama"
   },
   "system_termsync.next_general_election_the_armed_clk_01_tim": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -421,7 +421,7 @@
     "provider": "ollama"
   },
   "system_termsync.zero_actions_live_here_by_design_every_num": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

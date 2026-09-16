@@ -166,6 +166,7 @@
   "session_console.kind_type_a": "Tip A · əhaliyə mütənasib",
   "session_console.kind_type_b": "Tip B · hər seçici üçün bir",
   "session_console.last_balloting": "son səsvermə bağlandı {outcome} — uğursuz səsvermə heç vaxt avtomatik təkrarlanmır; yeni səsvermə bülleteni açın (WF-LEG-02)",
+  "session_console.minutes_hint": "İctimai qeyd üçün bağlıdır; kvorumu olan sessiyanın dayandırılması görüşdən CLK-02 elementini yenidən aktivləşdirir — təsdiq yenidən aktivləşdirmə müddətini göstərir.",
   "session_console.minutes_label": "Protokollar",
   "session_console.minutes_sealed": "protokollar möhürlənib ·",
   "session_console.motion_adjourn": "vaxtından əvvəl bitir",

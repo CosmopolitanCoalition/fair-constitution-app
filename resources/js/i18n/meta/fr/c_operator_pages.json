@@ -960,202 +960,202 @@
     "provider": "ollama"
   },
   "identity.no_mesh_id_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.not_linked": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.not_minted": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.nothing_else": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.off": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.on": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.operator": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.public": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.public_key": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.public_key_label": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.secret_note": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.server_id": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.signin_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.signin_btn": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.signin_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.status": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.status_unknown": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.subject_note": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.sweep_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.sweep_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.this_node": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.travel_intro_after": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.travel_intro_before": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.travel_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.two_id_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.two_id_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.two_id_strong": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.unnamed_device": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.username": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.wall_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.wall_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.wall_strong": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.what_att_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.what_att_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.what_att_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.your_account": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.your_identity": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "identity.your_identity_intro": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_kit.audit_chain": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_kit.card_case_major": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },

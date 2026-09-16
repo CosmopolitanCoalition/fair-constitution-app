@@ -3200,202 +3200,202 @@
     "provider": "ollama"
   },
   "education_organizations_board_elections.s2_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_board_elections.s3_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_board_elections.s3_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_cgc_detail.learn": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_cgc_detail.s1_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_cgc_detail.s1_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_cgc_detail.s2_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_cgc_detail.s2_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_cgc_detail.s3_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_cgc_detail.s3_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_cgc_detail.s4_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_cgc_detail.s4_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_cgc_detail.why": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_co_determination.learn": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_co_determination.s1_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_co_determination.s1_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_co_determination.s2_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_co_determination.s2_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_co_determination.s3_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_co_determination.s3_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_co_determination.why": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.learn": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.s1_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.s1_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.s2_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.s2_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.s3_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.s3_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.s4_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.s4_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.s5_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.s5_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_detail.why": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_registry.learn": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_registry.s1_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_registry.s1_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_registry.s2_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_registry.s2_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_registry.s3_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "education_organizations_org_registry.s3_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },

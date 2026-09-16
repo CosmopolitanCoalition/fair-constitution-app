@@ -114,6 +114,7 @@
   "legislature_committeedetail.no_meeting_scheduled": "Keine Sitzung geplant.",
   "legislature_committeedetail.no_testimony_recorded_yet": "Noch keine Zeugenaussagen aufgezeichnet.",
   "legislature_committeedetail.none": "— keine —",
+  "legislature_committeedetail.not_yet_seated_placements_arrive_with_the_": "Noch nicht besetzt — die Zuweisungen erfolgen mit dem F-SPK-005 Zuweisungslauf auf der Seite der Ausschüsse.",
   "legislature_committeedetail.refer_to_floor_f_chr_003": "Ins Plenum überweisen (F-CHR-003)",
   "legislature_committeedetail.report_body": "Berichtstext",
   "legislature_committeedetail.report_filed": "Bericht eingereicht {fmt}",

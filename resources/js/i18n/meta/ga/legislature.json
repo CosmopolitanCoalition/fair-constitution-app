@@ -269,7 +269,7 @@
     "provider": "ollama"
   },
   "legislature_chamber.forming_seats_fill_at_certification_wf_ele": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

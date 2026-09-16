@@ -120,6 +120,7 @@
   "advocate_console.granted_line": "myönnetty {date} · {name}",
   "advocate_console.intro": "Asiakirjasi, hakemuksesi, todisteesi ja muistiosi — kaikki lähettämäsi päätyy tapauksen julkiseen pöytäkirjaan. Edustusoikeus on asiakkaidesi perustuslaillinen oikeus; rekisteröinti pitää asianajajakunnan innokkaana ja pätevänä.",
   "advocate_console.jud_none": "Hallintoalueellasi ei ole vielä muodostunut tuomioistuinta — sellainen ilmestyy, kun lainsäädäntöelin luo sen (F-LEG-017).",
+  "advocate_console.jud_operating": "toimii hallintoalueella {jurisdiction} ({type}).",
   "advocate_console.loading_cases": "Ladataan tapauksia…",
   "advocate_console.loading_filing_cases": "Ladataan tämän hakemuksen tapauksia…",
   "advocate_console.met": "Täytetty",

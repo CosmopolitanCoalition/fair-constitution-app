@@ -687,7 +687,7 @@
     "provider": "ollama"
   },
   "operator_operations.livekit_public_browser_url": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

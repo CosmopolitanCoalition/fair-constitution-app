@@ -4154,7 +4154,7 @@
     "provider": "ollama"
   },
   "org_detail.worker_reg_after": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Ethi — source content likely dropped (22/49 chars, floor 0.45)",
     "provider": "ollama"
   },

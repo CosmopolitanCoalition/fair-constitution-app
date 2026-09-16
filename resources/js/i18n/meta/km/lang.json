@@ -4000,202 +4000,202 @@
     "provider": "ollama"
   },
   "Governor nominated (F-EXE-001) — the dossier is published and the F-LEG-020 consent vote is open in the legislature (majority of all serving).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Governor nominated. The dossier is public and the creating legislature’s consent vote is open below.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Governor seating requires its recorded consent vote.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Governor seats": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Grading is server-side; a pass files the completion on the record and the answer key never reaches a browser. Retakes unlimited — the check teaches, it never filters · K2_ENGINE_PLAN §2/§3.5": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Grant application submitted against :line.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Grant decisions are acts of the ADMINISTERING executive's seated members.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Granted [:capability] — channel enabled, grant minted.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Granting [:capability] in a jurisdiction with a seated government requires that government's supermajority consent (Meter B) — it has not been reached.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Granting [:capability] in bootstrap mode requires the operator board's attestation (Meter A) — the scaling-consent threshold has not been reached.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Grouping not found.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Guides": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Halls of Governance": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Halls of governance": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Halted by operator (terminated stuck query)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Halted by operator after :done/:total scopes": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Halted by operator.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Halted by operator: :done/:total scopes complete, :created districts": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Handshake complete — :name is trust_established.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Have you formed a fixed opinion about this case from coverage or conversation?": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Have you served on a jury or panel in a related case?": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Hearing Order": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Hearing ordered — arguments are open on the record (F-JDG-011 · Art. IV §4).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Help request": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Holder": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "How a place wakes up": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "IP dedications belong to Common Good Corporations — this organization is not a CGC.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Identity Verification Submission": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Identity verification": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Identity verification strengthens election integrity — never a voting requirement · Art. I; Art. II §2": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Illegal bill transition from [:status] (ESM-07).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Illegal election phase move :from → :to (ESM-03).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Imminent harm": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Impeachment/Censure/Expulsion Presiding": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Implementation rules & reports to executive + legislature · Art. III §4 · CLK-09": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "In deliberation — no filings accepted; await judgement": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "In session": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Independent admin office · removal by supermajority · Art. II §2; Art. III §3; Art. IV §4": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Independent election board — politically neutral · Art. II §2": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Individual Endorsement": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },

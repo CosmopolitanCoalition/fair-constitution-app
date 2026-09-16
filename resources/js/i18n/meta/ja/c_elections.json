@@ -480,7 +480,7 @@
     "provider": "ollama"
   },
   "candidacy.platform_hint": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

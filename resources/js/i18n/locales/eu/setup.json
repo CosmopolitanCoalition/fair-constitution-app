@@ -180,6 +180,7 @@
   "setup_step2_mapdata.gbhumanitarian_humanitarian_use": "gbHumanitarian — erabilera humanitarioa",
   "setup_step2_mapdata.gbopen_open_license_recommended": "gbOpen — lizentzia irekia, gomendatua",
   "setup_step2_mapdata.heads_up_the_protomaps_planet_build_is_100": "Oharra: Protomaps planetaren eraikuntza ~100 GB-koa da eta deskargatzeko denbora asko behar du. Lortu soilik mundu osoaren oinarri-mapa nahi baduzu.",
+  "setup_step2_mapdata.if_your_map_files_live_somewhere_else_on_t": "Zure mapa-fitxategiak ordenagailu honen beste leku batean badaude, sartu karpeta horra hemen. .env fitxategiko ARCHIVE_PATH-en idatzia da, kontainerrak /archive berriro muntatu dezan. Windows-en, erabili zure hostiaren bidea (adib. D:\\fair-constitution-map-files).",
   "setup_step2_mapdata.ingest_a_specific_container_path_an_altern": "Ingestatu kontainer-bide zehatz bat — snapshot alternatiboa edo /archive-ko azpikarpeta bat. (Zure ordenagailuko beste karpeta batera zuzentzeko, erabili goiztagoko \"Karpeta lokal batean zuzendu\" aukera).",
   "setup_step2_mapdata.ingest_whatever_is_detected_above_at_the_c": "Ingestatu goizago detektatutako guztia kontainer-bide {sources}-etan (zure ARCHIVE_PATH karpetatik mapatuta). Bide azkarrena — sarea gabe.",
   "setup_step2_mapdata.jurisdiction_boundaries_geoboundariesgithu": "Jurisdikzio-mugaak — geoBoundariesgithub.com/wmgeolab/geoBoundaries (CC BY 4.0)",

@@ -150,6 +150,7 @@
   "countback.branch_found": "ענף: נמצא מנצח",
   "countback.catalog_alias": "כינוי קטלוג: F-LEG-030 · קטלוג תהליכי עבודה (סטיית מספור)",
   "countback.cert_auto": "ההסמכה מתבצעת באופן אוטומטי לאחר הספירה החוזרת",
+  "countback.cert_cite": "זמין עבור R-08 חבר דירקטוריון בחירות · Art. II §2 (תהליך בחירות שקוף)",
   "countback.cert_form": "הסמכת תוצאות הבחירות",
   "countback.certified_badge": "{name} מאושר · הושב באמצעות שבועה F-LEG-001",
   "countback.certifies": "מאשר את {name}",

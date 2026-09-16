@@ -14,6 +14,7 @@
   "accessibility.focus_label": "Fokus ikusgarria.",
   "accessibility.i18n_body": "Layout guztiek CSS propietate logikoak erabiltzen dituzte, beraz eskritura eskuineko-ezkerrekoa ispilu-kopia zuzen egiteko (egiaztatzeko, Demo kontroluetan aldatu zuzenak); hizkuntza-aldatzailea goiko headerrean dago orri guztietan; testu-zabaltze %35-ko pseudo-locale bat QA toolchain-en parte da.",
   "accessibility.i18n_label": "Nazioartezarizazioa.",
+  "accessibility.intro": "Gure guztien ordezkaritza interfaze bat erabiltzea dakar, guztiek maneiatu dezaten: gaitasuna, hizkuntza, idazkera-norbitartea, gailua eta konexioa gaindituz. Deklarazio honek mockup webgunea bermatzen du eta ekoizpen-bertsioak hurpatuko duen irisgarritasun-kontratua erregistratzen du.",
   "accessibility.keyboard_body": "Interakzio guztiek pointerik gabe funtzionatzen dute: skip-linka da orri bakoitzean lehen elementu fokuzatua, header-menuak disclosure widget natiboak dira (Escape-k itxiltzen ditu), boto-txartela ranking-arekin botoi-botonekin erabiltzen da drag-only ordenatzearen ordez, eta flow-walkthrough-ak botoi eta esteka arruntak dira.",
   "accessibility.keyboard_label": "Tecladoa.",
   "accessibility.limit_copy": "Orriaren testua ingelesez dator; locale-aldatzaileak aplikazio-chromea bakarrik itzultzen du. Production build-ak string guztiak ICU MessageFormat katalogo baten bidez externalizatzen ditu nazioartezarizazio-planaren arabera.",

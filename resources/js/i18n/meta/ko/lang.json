@@ -280,12 +280,12 @@
     "provider": "ollama"
   },
   ":p committee seat(s) ÷ :m serving member(s) = :base placement(s) each": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":p committee seat(s) ÷ :m serving member(s) = :base placement(s) each + :extras extra to the highest normalized vote share (ledger #q2)": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -324,12 +324,12 @@
     "provider": "ollama"
   },
   ":size judges": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":size judges + jury": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1414,7 +1414,7 @@
     "provider": "ollama"
   },
   "Art. I (Freedom of Assembly) — granting confers R-07": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3329,7 +3329,7 @@
     "provider": "ollama"
   },
   "Emergency powers exist for natural disaster or actual invasion only — cause :cause is rejected pre-vote (economic, political, or public-order rationales are not causes).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3562,7 +3562,7 @@
     "provider": "ollama"
   },
   "F-ADV-001 names the client by registered name or email — \":client\" did not resolve to a resident.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3647,7 +3647,7 @@
     "provider": "ollama"
   },
   "F-EXE-001 names an existing nominee.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3681,7 +3681,7 @@
     "provider": "ollama"
   },
   "F-EXE-004 findings publish on an OPEN investigation.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3729,12 +3729,12 @@
     "provider": "ollama"
   },
   "F-IND-014 targets an unknown department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-014 targets an unknown or inactive organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3744,7 +3744,7 @@
     "provider": "ollama"
   },
   "F-IND-015 names the court (judiciary_id) to register with.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3789,7 +3789,7 @@
     "provider": "ollama"
   },
   "F-JDG-004 names the challenge it finds on (challenge_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3917,7 +3917,7 @@
     "provider": "ollama"
   },
   "F-ORG-005 targets an unknown transfer.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -4051,7 +4051,7 @@
     "provider": "ollama"
   },
   "Findings published — :code closed with no finding; the record stands.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -4102,7 +4102,7 @@
     "provider": "ollama"
   },
   "Full court — all :size judges": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6713,7 +6713,7 @@
     "provider": "ollama"
   },
   "Special election scheduled — ranked window opens :date · scheduling order issued (F-ELB-001) · WF-ELE-04.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

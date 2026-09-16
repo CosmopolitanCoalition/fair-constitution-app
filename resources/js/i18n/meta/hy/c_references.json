@@ -640,202 +640,202 @@
     "provider": "ollama"
   },
   "department.board_not_formed": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.board_not_formed_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.board_of_governors": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.cgc_public_domain": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.charter_oversight": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.consent_vote_eyebrow": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.dossier_hint": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.dossier_label": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.executive_actions": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.filing": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.gov_worker_line": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.grounds_hint": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.grounds_label": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.intro": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.investigative_power": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.kind_chief_executive": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.kind_defense": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.kind_justice": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.kind_other": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.kind_state": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.kind_treasury": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.last_filed": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.next_due": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.no_cgcs": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.no_nominations": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.no_removals": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.no_reporting_interval": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.no_seated_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.no_seated_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.nom_consented": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.nom_ended": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.nom_nominated": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.nom_rejected": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.nom_seated": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.nominate_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.nominate_submit": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.nomination_pipeline": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.nomination_reopened": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.nominee_hint": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department.nominee_label": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },

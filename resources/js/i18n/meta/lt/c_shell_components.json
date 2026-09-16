@@ -480,202 +480,202 @@
     "provider": "ollama"
   },
   "dev_playtest_panels.door_simworld": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_playtest_panels.summary_assume": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_playtest_panels.summary_chamber": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_playtest_panels.summary_scenarios": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_playtest_panels.summary_time": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.badge_done": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.badge_failed": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.badge_queued": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.badge_running": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.err_queue": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.intro": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.lights": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.live_output": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.queueing": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.run_output": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.seed_it": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_scenario_presets.unbacked_summary": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "emergency_banner.active": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "emergency_banner.judicial_review": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "emergency_banner.open_dashboard": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "emergency_banner.title": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.accept_flag": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.action_accept_flag": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.action_merge_chain": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.action_prune": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.action_recompute_population": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.action_reimport_boundaries": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.action_reparent": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.action_synthesize_anchor": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.applied": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.cat_displaced_geometry": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.cat_dual_coverage": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.cat_mis_anchored_cluster": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.cat_national_delta_gt5": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.cat_orphaned_rows": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.cat_raster_coverage": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.cat_same_space_chain": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.cat_stray_synthetic": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.detected": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "geodata_flag_queue.health_after": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },

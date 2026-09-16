@@ -228,7 +228,7 @@
     "provider": "ollama"
   },
   ":name is not a childless leaf giant at its parent's scope (:childcount children) — manual line-drawing applies only to the case composite cannot: a giant with no children.": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (73/171 chars, floor 0.45)",
     "provider": "ollama"
   },
@@ -1585,7 +1585,7 @@
     "provider": "ollama"
   },
   "Art. II §3 (Judicial Role) · own-case presiding blocked in code": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (22/63 chars, floor 0.45)",
     "provider": "ollama"
   },

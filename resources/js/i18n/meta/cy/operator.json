@@ -12,7 +12,7 @@
     "provider": "ollama"
   },
   "operator_console.answerable_to_the_government_below_a_seate": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },
@@ -733,7 +733,7 @@
     "provider": "ollama"
   },
   "operator_operations.zone_token_stored": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

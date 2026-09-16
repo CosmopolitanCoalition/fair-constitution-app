@@ -1955,7 +1955,7 @@
     "provider": "ollama"
   },
   "refer_to_wf_leg_17_ebc2fd96": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2004,7 +2004,7 @@
     "provider": "ollama"
   },
   "registration_voting_per_wf_ele_01_11ef6563": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2130,7 +2130,7 @@
     "provider": "ollama"
   },
   "run_wf_ele_01_steps_3_8_scoped_to_vacanc_45543d57": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

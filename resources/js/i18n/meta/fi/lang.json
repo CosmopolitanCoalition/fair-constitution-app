@@ -5082,7 +5082,7 @@
     "provider": "ollama"
   },
   "One election and its races per legislature; committees to K(S) and departments to D(P) as system acts.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6832,7 +6832,7 @@
     "provider": "ollama"
   },
   "The conversion process has no resolvable F-LEG-015 act payload.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -7641,12 +7641,12 @@
     "provider": "ollama"
   },
   "Unknown F-LEG-027 branch [:branch].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Unknown F-LEG-027 branch.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

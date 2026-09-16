@@ -297,7 +297,7 @@
     "provider": "ollama"
   },
   ":seats seats is outside the constitutional band [:hard_floor, :hard_ceiling] — above :hard_ceiling the body must be subdivided.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6542,7 +6542,7 @@
     "provider": "ollama"
   },
   "Special election scheduled — ranked window opens :date · scheduling order issued (F-ELB-001) · WF-ELE-04.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

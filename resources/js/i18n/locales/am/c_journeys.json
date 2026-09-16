@@ -1,4 +1,5 @@
 {
+  "become-a-resident.earn": "የተመዘገቡበት ማንኛውም ቦታ እንደ አዋቂ ተቀባይነት ያገኙዎታል",
   "become-a-resident.step.0.label": "ይመዝገቡ",
   "become-a-resident.step.0.what": "አዲስ ሰው በፕላትፎርሙ ላይ አካውንት ይከፍታል።",
   "become-a-resident.step.0.you": "አካውንት ለመክፈት ስምዎን እና ኢሜልዎን ያስገቡ።",
@@ -175,6 +176,7 @@
   "form-a-group.your_part": "ይህንን የሚያደርጉት እርስዎ ናቸው — ቡድኑን ይጀምሩ፣ ጎረቤቶቻችሁን ይጋብዙ እና የመጀመሪያውን ስብሰባ ይጠሩ",
   "generic.arc": "ከታች ያለውን ቅስት ይከተሉ",
   "generic.arc_rooms": "ከታች ያለውን ቅስት ይከተሉ — ከጋለሪው ይመልከቱ፣ ወይም ነዋሪ በሆኑበት ቦታ ላይ ንግግር ያድርጉ",
+  "mutual-aid.earn": "የቡድን ስብሰባው እንደሚያውቅ ሰው ይቀበልዎታል",
   "mutual-aid.step.0.label": "ጥያቄ መለጠፍ",
   "mutual-aid.step.0.what": "አንድ ሰው በግልጽ ገበያ ላይ የርዳታ ፍላጎትን ይዘረዝራል።",
   "mutual-aid.step.0.you": "ግልጽ ገበያውን ይክፈቱ እና የሚፈልጉትን ነገር ዝርዝር ይለጥፉ።",

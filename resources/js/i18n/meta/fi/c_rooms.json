@@ -160,7 +160,7 @@
     "provider": "ollama"
   },
   "floor_announcement": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -309,7 +309,7 @@
     "provider": "ollama"
   },
   "recognize_aria": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -326,7 +326,7 @@
     "provider": "ollama"
   },
   "recognized_name": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

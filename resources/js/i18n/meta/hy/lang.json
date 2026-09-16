@@ -1485,7 +1485,7 @@
     "provider": "ollama"
   },
   "Art. II §2 (Publish Public Records) · adjourning re-arms CLK-02": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3952,7 +3952,7 @@
     "provider": "ollama"
   },
   "Filing accepted for review — a docket number is assigned. The court will classify justiciability and severity, then assign a panel with conflict screening (F-IND-017 → F-JDG-001 · Art. IV §4).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

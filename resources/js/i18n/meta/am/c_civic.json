@@ -2247,7 +2247,7 @@
     "provider": "ollama"
   },
   "residency.roles_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

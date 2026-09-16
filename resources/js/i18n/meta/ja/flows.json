@@ -1280,7 +1280,7 @@
     "provider": "ollama"
   },
   "investigation_record_findings_can_feed_w_0592d2bc": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1951,7 +1951,7 @@
     "provider": "ollama"
   },
   "refer_to_wf_leg_17_ebc2fd96": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2057,7 +2057,7 @@
     "provider": "ollama"
   },
   "repeated_failure_i_adm_referral_1a0cb7b3": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

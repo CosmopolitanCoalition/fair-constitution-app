@@ -149,6 +149,7 @@
   "civic_petitiondetail.all_petitions": "← Eskaera guztiak",
   "civic_petitiondetail.audited_count_frozen_at_the_threshold_chec": "auditatutako zenbaketa geldirituta dago ondozorumen-egiaztapenean",
   "civic_petitiondetail.completed_by_the_stored_as_utc": "Osatu egin du {completed_at} {board_name}-ek · UTC gisa gordetua.",
+  "civic_petitiondetail.constitutional_review_awaiting_judiciary_p": "Konstituzionala berrikuspen · botere judiziala zain (Planifikatua · E fasea). Etaparen honeko eskaerak berrikuspena egon arte gelditu egiten dira; uxite-bidea konstituzionala da, ez da gainditu diezala.",
   "civic_petitiondetail.constitutionality_review": "Konstituzionaltasun berbitzea",
   "civic_petitiondetail.created_constitutional_review_validated_on": "Sortua → … → Konstituzio-Berbitzea → Balidatua → Boto-Txartelan · Art. II §6",
   "civic_petitiondetail.independent_audit_art_ii_6_clk_17": "auditoria independentea · Art. II §6 · CLK-17",

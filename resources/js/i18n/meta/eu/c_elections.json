@@ -36,7 +36,7 @@
     "provider": "ollama"
   },
   "board.cert_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -133,7 +133,7 @@
     "provider": "ollama"
   },
   "board.district_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1426,7 +1426,7 @@
     "provider": "ollama"
   },
   "results.cert_pending": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -192,6 +192,7 @@
   "session_console.publishing": "Julkaistaan…",
   "session_console.q_met": "täyttynyt",
   "session_console.q_not_met": "ei täyttynyt",
+  "session_console.quorum_failed_body": "Vaadi läsnäoloa ja julkaise laskenta uudelleen jäsenten saapuessa; tai keskeytä ja määritä uusi aika CLK-02 aikaikkunan sisällä. Toistuva epäonnistuminen ohjataan hallintotoimistoon.",
   "session_console.quorum_failed_note": "Art. II §2 · 90 päivän kello on edelleen voimassa — päätösvaltaisuuden puute ei nollaa sitä",
   "session_console.quorum_failed_title": "Päätösvaltaisuus ei täyttynyt — WF-LEG-20.",
   "session_console.quorum_kind_label": "Tämän lajin päätösvaltaisuus — {kind}",

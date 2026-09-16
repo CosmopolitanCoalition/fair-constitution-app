@@ -119,6 +119,7 @@
   "candidacy.office_option": "{label} · {seats} 議席",
   "candidacy.open_profile": "公開プロフィールを開く",
   "candidacy.page_title": "出馬する — {name}",
+  "candidacy.platform_hint": "公開。自己管理。 F-CAN-001 を通じていつでも編集可能。",
   "candidacy.platform_label": "プラットフォーム声明（任意）",
   "candidacy.pool_title": "検証済み — あなたは承認プールに入っています。",
   "candidacy.recorded_ground": "記録された根拠: {reason} · Art. I",

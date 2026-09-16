@@ -1487,7 +1487,7 @@
     "provider": "ollama"
   },
   "Art. II §2 (Publish Public Records) · adjourning re-arms CLK-02": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3614,7 +3614,7 @@
     "provider": "ollama"
   },
   "F-IND-006 requires the claim_id of the residency claim being confirmed.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

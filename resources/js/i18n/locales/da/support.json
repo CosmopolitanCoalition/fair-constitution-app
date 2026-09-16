@@ -1,4 +1,5 @@
 {
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Adfærds- og juridiske rapporter sendes til gennemgang. Indsendelse her fjerner ikke noget — fjernelse af indhold følger Forfatningens undtagelser (F-SOC-003 mekanismen), aldrig denne formular.",
   "support_report.file_a_report": "Indsend en rapport",
   "support_report.file_report": "Indsend rapport",
   "support_report.filed_from": "Indsendt fra: {ref}",

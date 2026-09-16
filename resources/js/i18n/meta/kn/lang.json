@@ -3060,7 +3060,7 @@
     "provider": "ollama"
   },
   "Disbursement :amount would exceed the award (:disbursed of :total already disbursed).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9238,7 +9238,7 @@
     "provider": "ollama"
   },
   "validation.required_unless": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

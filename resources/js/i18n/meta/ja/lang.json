@@ -1160,7 +1160,7 @@
     "provider": "ollama"
   },
   "An at-large race may not carry :seats seats (max :max) — above the maximum, subdivision into separate voter pools is mandatory.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1185,7 +1185,7 @@
     "provider": "ollama"
   },
   "An executive-committee race elects at least 5 seats (got :seats).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1198,7 +1198,7 @@
     "provider": "ollama"
   },
   "An open :kind election already exists for this board.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1275,7 +1275,7 @@
     "provider": "ollama"
   },
   "Application accepted (F-ORG-001) — R-24 now derives from the active membership.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1764,7 +1764,7 @@
     "provider": "ollama"
   },
   "Art. III §4 — triggers the F-LEG-020 consent vote (peg-quorum majority of all serving)": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1829,7 +1829,7 @@
     "provider": "ollama"
   },
   "Art. III §6 — worker track; also fired system-side by CLK-13": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1906,7 +1906,7 @@
     "provider": "ollama"
   },
   "Art. IV §4; Art. I — advocate registration; confers R-21, keeps the bar zealous and competent": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -6018,7 +6018,7 @@
     "provider": "ollama"
   },
   "Renewal — extension of :days day(s)": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6776,7 +6776,7 @@
     "provider": "ollama"
   },
   "The blade search budget was exhausted for this scope at :path — cut it by hand.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6841,7 +6841,7 @@
     "provider": "ollama"
   },
   "The conversion process has no resolvable F-LEG-015 act payload.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -7102,7 +7102,7 @@
     "provider": "ollama"
   },
   "The renewal window opens :opensAt (the final :windowDays days before expiry) — a renewal vote this early would pre-commit a future chamber.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8981,97 +8981,97 @@
     "provider": "ollama"
   },
   "validation.gte.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.gte.file": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.gte.numeric": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.gte.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.hex_color": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.image": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.in": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.in_array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.in_array_keys": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.integer": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.ip": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.ipv4": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.ipv6": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.json": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.list": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.lowercase": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.lt.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.lt.file": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.lt.numeric": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

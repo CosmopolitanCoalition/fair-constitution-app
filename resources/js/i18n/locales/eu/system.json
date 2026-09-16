@@ -25,6 +25,7 @@
   "system_auditchain.latest_entries": "Sarrera berrienak",
   "system_auditchain.latest_first_stored_as_utc_shown_as_utc": "Berrienak lehenik · UTC-n gordetuta, UTC-n erakutsita.",
   "system_auditchain.page_of_entr": "{current_page} página / {last_page} · {total} sarr{entries}",
+  "system_auditchain.recomputes_all_link_hashes_against_the_hea": "{count} esteka-hash guztiak berrecalcilatu ditu buruaren aurrean.",
   "system_auditchain.rejections_are_appended_too": "Ukoak ere gehituta daude",
   "system_auditchain.the_chain_is_empty_no_filings_yet": "Katea hutsik dago — orquestraturik ez da ezer orain.",
   "system_auditchain.wf_sys_04_the_constitutional_engine_interc": "WF-SYS-04 — konstituzionaleko motorrak trantsizio guztiak interceptatzen ditu commit-etik aurretik; onartuak hemen gehitzen dira, baliogabeak beren aipatzearekin baztertzen dira eta uko hori ere gehitzen da. Boto-txartel eta egoitzaren identitateak inoiz ez dira testu garbian idazten — konpromisoak eta egun-zenbaketari bakarrik.",

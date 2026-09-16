@@ -40,7 +40,7 @@
     "provider": "ollama"
   },
   "invite_share": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

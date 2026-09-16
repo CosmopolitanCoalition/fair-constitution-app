@@ -103,6 +103,7 @@
   "system_termsync.the_lockstep_every_term_bearing_elected_ro": "Synkroniseringen — varje mandatbärande vald roll",
   "system_termsync.vacancies_fit_inside_the_lockstep_they_nev": "Lediga platser ryms inom synkroniseringen; de flyttar den aldrig — återräkning och sedan extraval inom 90–180 dagar · CLK-04",
   "system_termsync.what_the_engine_refuses_to_do": "Vad motorn vägrar att göra",
+  "system_termsync.zero_actions_live_here_by_design_every_num": "Inga åtgärder finns här av design — varje nummer renderas från termregistret och de aktiverade CLK-01 timers; synkroniseringen är det som flyttar varje lopp samtidigt (WF-SYS-01 → WF-ELE-01/08/09).",
   "system_translations.best_covered_language": "bäst täckta språk",
   "system_translations.by_language": "Efter språk",
   "system_translations.by_namespace": "Efter namnrymd",

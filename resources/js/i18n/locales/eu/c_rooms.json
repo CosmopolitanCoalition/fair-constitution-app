@@ -88,6 +88,7 @@
   "room_navigation": "Gelako nabigazioa",
   "room_open": "Gela irekita jarraitzen du.",
   "room_unavailable_retry": "Dei-gela oraindik eskuragarri ez da. Bere eserlekuak eta lan-espazio ofiziala eskuragarri izaten dira.",
+  "roster_preview": "Ikusi honek eserleku es przypatu {count} arte erakusten ditu. Ireki lan-espazio ofiziala kide guztien zerrenda ikusteko. Beste deitzaileak sartzen joan ahala agertuko dira.",
   "screen": "pantaila",
   "screen_share": "Pantaila partekatzea",
   "seating_hint": "Eserlekuek esegitu rolak erakusten dituzte. Dei-insignia batek konektatuta dagoen partekidea markatzen du.",

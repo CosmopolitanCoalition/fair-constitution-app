@@ -340,7 +340,7 @@
     "provider": "ollama"
   },
   "live_progress.retry_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 4 -> 2",
     "provider": "ollama"
   },

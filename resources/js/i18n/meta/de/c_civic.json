@@ -1209,7 +1209,7 @@
     "provider": "ollama"
   },
   "petition_detail.review_stub_advanced": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2286,7 +2286,7 @@
     "provider": "ollama"
   },
   "residency.simulate_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

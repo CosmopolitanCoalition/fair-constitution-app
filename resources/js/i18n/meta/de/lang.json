@@ -6829,7 +6829,7 @@
     "provider": "ollama"
   },
   "The conversion process has no resolvable F-LEG-015 act payload.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -7673,7 +7673,7 @@
     "provider": "ollama"
   },
   "Unknown F-ORG-009 action [:action] — propose or consent.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

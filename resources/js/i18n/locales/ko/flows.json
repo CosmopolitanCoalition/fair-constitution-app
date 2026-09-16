@@ -526,6 +526,7 @@
   "schedule_judicial_elections_synced_to_te_95b7b6e1": "임기에 맞춰 사법부 선거 일정 수립; 경주당 판사 5명 이상",
   "schedule_special_election_inside_90_180__e71bf195": "90~180일 기간(CLK-04) 내에 특별 선거 일정 수립",
   "seat_filled_by_whole_legislature_rcv_wit_e0aae6bf": "파벌 비율을 위반하지 않고 입법부 전체 RCV로 의석 충원",
+  "seat_r_18_governors_politically_neutral__eb4b200d": "의석 R-18 이사, 정치적 중립, 공무원 임기 (CLK-09)",
   "seat_refilled_by_countback_else_special__5ad85e49": "재집계로 의석 재충원, 그렇지 않으면 90~180일 내 특별 선거 실시; 위원회 비례성 재확인",
   "seat_refilled_by_nomination_confirmation_c454e0c8": "지명 및 인준(임명) 또는 재집계 → 특별 선거(선출)로 의석 재충원",
   "seats_max_clk_07_wf_ele_06_subdivision_291ba988": "의석 > 최대치(CLK-07) → WF-ELE-06 세분화",

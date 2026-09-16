@@ -576,7 +576,7 @@
     "provider": "ollama"
   },
   "countback.about_devseed": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

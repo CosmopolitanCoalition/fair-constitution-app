@@ -213,6 +213,7 @@
   "department_card.oversees": "eftirlit með:",
   "department_card.report_due_soon": "skýrsla fylgir {date}",
   "department_card.report_next": "næsta skýrsla {date}",
+  "department_card.report_overdue": "skýrsla skammast · skyldi vera afhent {date}",
   "department_card.status_chartered": "Staðfest",
   "department_card.status_consented": "Samþykkt",
   "department_card.status_dissolved": "Leyst upp",

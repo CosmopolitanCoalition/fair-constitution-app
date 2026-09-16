@@ -429,7 +429,7 @@
     "provider": "ollama"
   },
   "judiciary_casedocket.the_case_lifecycle_wf_jud_03_carries_every": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -568,6 +568,7 @@
   "residency.sim_network": "Simuleringen misslyckades — nätverksfel.",
   "residency.sim_ok": "Simulerade {days} dag(ar) — {qualifying} kvalificerade.",
   "residency.simulate_30": "Simulera 30 dagars incheckningar",
+  "residency.simulate_cite": "filer 30 verkliga F-IND-005 poster i det öppna kravet",
   "residency.simulating": "Simulerar…",
   "residency.sits_inside": ". Den ligger inom:",
   "residency.tick_box": "Klicka i rutan för att fortsätta.",

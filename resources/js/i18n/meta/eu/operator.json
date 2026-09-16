@@ -924,7 +924,7 @@
     "provider": "ollama"
   },
   "operator_roles.you_are_the_founding_operator_there_is_no_": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },

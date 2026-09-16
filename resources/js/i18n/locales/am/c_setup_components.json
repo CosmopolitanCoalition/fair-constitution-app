@@ -84,6 +84,7 @@
   "live_progress.resume_title": "የቆመውን የETL ንዑስ ሂደት ቀጥል (SIGCONT)",
   "live_progress.resuming": "በመቀጠል ላይ...",
   "live_progress.retry": "ድጋሚ ሞክር",
+  "live_progress.retry_title": "ይህንን አገር በድጋሚ ያስጀምሩ። መሠረታዊ ችግሩን ካስተካከሉ (ለምሳሌ የተበላሸ ፋይል መልሶ ካቋቋሙ) ይጠቅማል።",
   "live_progress.retrying": "በድጋሚ በመሞከር ላይ...",
   "live_progress.run_completed": "ሂደቱ ተጠናቋል።",
   "live_progress.run_failed": "ሂደቱ አልተሳካም (መውጫ {code})።",

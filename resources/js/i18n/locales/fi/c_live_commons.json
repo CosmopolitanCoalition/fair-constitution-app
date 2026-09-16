@@ -9,6 +9,7 @@
   "halls_intro": " Voit tallentaa oman viestisi todistuksena, kun sinulla on vaadittu asuinpaikan asema.",
   "intro": "Lue tämän paikan julkinen keskustelu. Kirjaudu sisään puhuaksesi tai liittyäksesi puheluun, asuitpa täällä tai olit vierailulla.",
   "invite_friend": "Kutsu ystävä",
+  "invite_share": "Jaa linkki tähän {space}-kohteeseen ja sen suoraan puheluun — he voivat rekisteröityä ja päätyä suoraan tänne.",
   "invite_title": "Kutsu joku mukaan",
   "message_label": "Viesti",
   "no_messages": "Ei vielä viestejä.",

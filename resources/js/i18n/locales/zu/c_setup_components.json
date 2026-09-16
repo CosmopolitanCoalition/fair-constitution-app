@@ -180,6 +180,7 @@
   "row_detail_panel.delta": "I-Delta",
   "row_detail_panel.found_at": "Kutholwe ku-",
   "row_detail_panel.incl_at_zero": "(kuhlanganiswe ne-{n} enezinhlalo ezi-0)",
+  "row_detail_panel.inferred_territory_iso": "ISO yendawo ecaciswe",
   "row_detail_panel.km": "km",
   "row_detail_panel.km2_overlap": "ukubambana kwe-km²",
   "row_detail_panel.label_area_km2": "Indawo km²",

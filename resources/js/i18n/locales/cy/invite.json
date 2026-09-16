@@ -1,1 +1,22 @@
-{}
+{
+  "invite_landing.an_invite_carries_no_power_nobody_gains_a_": "Nid oes pwer gan wahodrediad — nid oes neb yn ennill pleidlediad, sedd, na manteis trwy eich gwahodd chi. Dyma ddrws yn unig.",
+  "invite_landing.browse_everything_every_place_on_earth_eve": "Prysyn everything — pob lle ar y Ddaear, pob cofnod, pob etholiad, pob cyfraith.",
+  "invite_landing.create_an_account": "Creu cyfrif",
+  "invite_landing.either_way_you_ll_land_right_where_this_li": "Yn unrhyw gyflymder, byddwch yn cyrraedd lle y mae'r ddolen hon yn pwyntio — mae'r cy Destination eisoes wedi'i cofio.",
+  "invite_landing.explore_first": "Archwilio yn gyntaf",
+  "invite_landing.is_a_private_room_they_saved_you_a_seat_cr": "Mae {destinationName} yn ystafell breifat — maent wedi chadw sedd i chi. Creu cyfrif a byddwch i mewn.",
+  "invite_landing.join_anyway": "Ymuno beth bynnag",
+  "invite_landing.log_in": "Log in",
+  "invite_landing.look_around_first": "Edrych o gwmpas yn gyntaf",
+  "invite_landing.sign_up_join": "Enroll a ymuno",
+  "invite_landing.step_in": "Cerdded i mewn",
+  "invite_landing.step_in_and_see_what_this_is_is_already_op": "Cerdded i mewn a gweld beth yw hyn — mae {destinationName} eisoes yn agored. Nid oes angen cyfrif i wylio.",
+  "invite_landing.that_link_is_no_longer_valid_but_the_door_": "Nid yw'r ddolen hon yn gyweildod mwyach — ond mae'r drws yn dal i fod yn agored. Gall unrhyw un ymuno.",
+  "invite_landing.this_invite_link_has_expired": "Mae'r ddolen wahodrediad hon wedi diffod",
+  "invite_landing.watch_any_public_room_every_hearing_meetin": "Gwylio unrhyw ystafell gyhoeddus — mae pob clywed, cyfarfod, a pleidlediad yn digwydd yn agored. Mae'r glaseleg bob amser yn amser am fod yn amsereg.",
+  "invite_landing.what_you_can_do_right_now": "Beth gallwch chi ei wneud nawr",
+  "invite_landing.when_you_want_a_voice_to_speak_on_the_reco": "Pan fyddwch eisiau llais — i siarad ar y cofnod, pleidleisio, neu ymgeisio am swydd — creu cyfrif a dweud lle rydych chi'n byw. Mae preswylfa yn y gofyniad unig.",
+  "invite_landing.where_this_leads": "Lle rydyma hwn yn arwain",
+  "invite_landing.world_of_statecraft": "Byd o Wladwriaeth",
+  "invite_landing.you_re_invited": "Rydych chi'n cael eich gwahodd"
+}

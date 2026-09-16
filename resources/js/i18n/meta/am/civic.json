@@ -622,7 +622,7 @@
     "provider": "ollama"
   },
   "civic_petitiondetail.petition_signature_signatures_stay_open_du": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -751,7 +751,7 @@
     "provider": "ollama"
   },
   "civic_petitions.the_sign_toggles_use_petition_signature_re": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

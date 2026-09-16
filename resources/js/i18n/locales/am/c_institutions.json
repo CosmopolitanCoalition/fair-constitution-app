@@ -1036,6 +1036,7 @@
   "org_detail.withdrawing": "በማንሳት ላይ…",
   "org_detail.worker_banner_title": "እንደ ሠራተኛ ተመዝግበዋል።",
   "org_detail.worker_citation": "የተመዘገቡ ሠራተኞች ለድርጅቱ የሠራተኞች ውክልና ብዛት ይቆጠራሉ።",
+  "org_detail.worker_reg_after": "። በድርጅቱ የጋራ ፊርማ ላይ ይነቃቃል።",
   "org_detail.worker_reg_before": "የሠራተኛ ምዝገባዎ",
   "org_detail.worker_rep_link": "የሠራተኞች ውክልና እንዴት እንደሚወሰን →",
   "org_detail.worker_since": "ከ {at} ጀምሮ",

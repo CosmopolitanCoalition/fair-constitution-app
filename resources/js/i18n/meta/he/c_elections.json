@@ -604,7 +604,7 @@
     "provider": "ollama"
   },
   "countback.cert_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

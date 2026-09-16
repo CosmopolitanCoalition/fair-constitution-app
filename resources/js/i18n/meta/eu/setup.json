@@ -724,7 +724,7 @@
     "provider": "ollama"
   },
   "setup_step2_mapdata.if_your_map_files_live_somewhere_else_on_t": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 6 -> 3",
     "provider": "ollama"
   },

@@ -2915,7 +2915,7 @@
     "provider": "ollama"
   },
   "DNS & certificates": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3972,7 +3972,7 @@
     "provider": "ollama"
   },
   "GPS Residency Ping": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -5118,7 +5118,7 @@
     "provider": "ollama"
   },
   "Only a CGC can be sold to private ownership.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

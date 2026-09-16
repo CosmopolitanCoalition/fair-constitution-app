@@ -1213,7 +1213,7 @@
     "provider": "ollama"
   },
   "petition_detail.review_stub_advanced": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1655,7 +1655,7 @@
     "provider": "ollama"
   },
   "reach.verified_of": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1696,7 +1696,7 @@
     "provider": "ollama"
   },
   "relocation.away_banner_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -2294,7 +2294,7 @@
     "provider": "ollama"
   },
   "residency.simulate_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

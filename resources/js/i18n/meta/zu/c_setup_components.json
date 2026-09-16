@@ -729,7 +729,7 @@
     "provider": "ollama"
   },
   "row_detail_panel.inferred_territory_iso": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

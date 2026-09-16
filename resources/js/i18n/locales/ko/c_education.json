@@ -320,6 +320,7 @@
   "education_education_material_manager.learn": "저작 기관의 보관함: 모든 교육 트랙과 그 모듈들, 그리고 각 모듈의 상태, 수정 이력, 최종 게시자 정보가 포함됩니다.",
   "education_education_material_manager.s1_detail": "라이브 모듈은 교육 게이트를 활성화하지만, 초안은 그렇지 않습니다.",
   "education_education_material_manager.s1_do": "트랙과 모듈 읽기",
+  "education_education_material_manager.s2_detail": "파일을 게시합니다 F-EDU-002. 수정 시 모듈의 수정 버전이 증가하며 키는 유지됩니다.",
   "education_education_material_manager.s2_do": "모듈 게시 또는 수정",
   "education_education_material_manager.s3_detail": "모듈 행에는 제목, 표면, 상태가 포함됩니다. 레슨 본문은 K-2 소스에서 작성되며, 여기서는 작성하지 않습니다.",
   "education_education_material_manager.s3_do": "레슨 텍스트의 위치를 확인하세요",

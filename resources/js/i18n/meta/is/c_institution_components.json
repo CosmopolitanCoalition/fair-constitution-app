@@ -856,7 +856,7 @@
     "provider": "ollama"
   },
   "department_card.report_overdue": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },

@@ -260,12 +260,12 @@
     "provider": "ollama"
   },
   ":p committee seat(s) ÷ :m serving member(s) = :base placement(s) each": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":p committee seat(s) ÷ :m serving member(s) = :base placement(s) each + :extras extra to the highest normalized vote share (ledger #q2)": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -515,7 +515,7 @@
     "provider": "ollama"
   },
   "A detached part holds :seats seats of population — above the ceiling :ceiling; cut it by hand.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1489,7 +1489,7 @@
     "provider": "ollama"
   },
   "Art. II §2 (Publish Public Records) · adjourning re-arms CLK-02": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -4971,7 +4971,7 @@
     "provider": "ollama"
   },
   "No single straight cut can serve :s seats — one cut makes exactly two districts, which together hold :lo–:hi seats (band [:floor, :ceiling] each). Use the autoseed for a full multi-cut plan.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9002,7 +9002,7 @@
     "provider": "ollama"
   },
   "validation.gte.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9015,7 +9015,7 @@
     "provider": "ollama"
   },
   "validation.in": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9069,7 +9069,7 @@
     "provider": "ollama"
   },
   "validation.lt.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9087,7 +9087,7 @@
     "provider": "ollama"
   },
   "validation.lte.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9109,7 +9109,7 @@
     "provider": "ollama"
   },
   "validation.max.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

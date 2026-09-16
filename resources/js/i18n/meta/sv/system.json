@@ -421,7 +421,7 @@
     "provider": "ollama"
   },
   "system_termsync.zero_actions_live_here_by_design_every_num": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

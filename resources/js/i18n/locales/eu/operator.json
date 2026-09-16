@@ -230,6 +230,7 @@
   "operator_roles.threshold": "Ataria: {threshold}",
   "operator_roles.waiting_on_the_dual_meter_see_the_pending_": "Dual-neurgailuaren zain — ikusi beheko arau-zerrenda.",
   "operator_roles.who": "Nor: {who}",
+  "operator_roles.you_are_the_founding_operator_there_is_no_": "Fundatzaile-operadorea zara. Erantzuteko sare-estrukturaik ez dago eta gobernuik ez da instalatu, beraz, rol guztiak zuzen aktiba ditzakezu —gobernatu kanalak barne—. Zure mundua fundatu eta gobernu bat instalatu bezain, gobernatu kanalak bide bikoitzeko konsentimendu-sistemara itzuliko dira geroagoko edozein aldaketarako.",
   "operator_roles.your_duty": "Zure betebehara: {duty}",
   "operator_versioning.a_and_b_are_two_legs_of_one_seat_the_opera": "A eta B eserleku baten bi zizil dira — operadore-administrazio-kontseiluak attestatzen du gobernuik ez dagoen bitartean soilik; gobernu bat eserlekuan sartzen denの一 momentuan, bere gehiengo kualifikatuak ordezkatzen du kontseilua. C konfiantza ezarritako kide guztiak dira toki eragin-jasotzeko etxeko kopia dutenak (unanimitatea; pasatzen da kide hori ez dagoenean).",
   "operator_versioning.a_divergent_version_stops_the_sync_rather_": "Bertsio divergent batek sinkronizazioa gelditzea eragiten du, arau desberdinak isilki fusionatzeko ordez. Beste aldeak bertsio-igapena onartu behar du — beheko neurgailu berten bidez — bere fluxua berriro hasi aurretik.",

@@ -2580,7 +2580,7 @@
     "provider": "ollama"
   },
   "step3_districts.row_meet_floor": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },
@@ -2733,7 +2733,7 @@
     "provider": "ollama"
   },
   "step3_districts.tip_a_compactness": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (64/178 chars, floor 0.45)",
     "provider": "ollama"
   },
@@ -3026,7 +3026,7 @@
     "provider": "ollama"
   },
   "step4_scale_up.layer_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

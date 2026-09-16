@@ -1486,7 +1486,7 @@
     "provider": "ollama"
   },
   "Art. II §2 (Publish Public Records) · adjourning re-arms CLK-02": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3540,7 +3540,7 @@
     "provider": "ollama"
   },
   "F-BOG-001 is filed by a seated board member — system filings name no seat.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3554,7 +3554,7 @@
     "provider": "ollama"
   },
   "F-BOG-002 is filed by a seated board member — system filings name no seat.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3568,7 +3568,7 @@
     "provider": "ollama"
   },
   "F-CHR-002 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3653,7 +3653,7 @@
     "provider": "ollama"
   },
   "F-IND-005 is filed by the resident — system filing is not defined.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

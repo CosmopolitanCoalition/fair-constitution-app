@@ -167,6 +167,7 @@
   "operator_operations.expires_expired_days_left": "{fqdn}iphela {fmtDate}· IPHELELE· kusala izinsuku {days_left}",
   "operator_operations.installed_certificates": "Izitifiketi ezifakiwe",
   "operator_operations.instant_tier_knobs_are_edited_in_place_app": "Izinhlabathi ze-Instant-tier zihlelwa lapho zikhona (zifakwa esicelweni esilandelayo). Ukuxhumana kwe-LiveKit kwe-Restart-tier kufakwa ngomphathi womphakathi ongenhla. Ukuzungeza izimfihlo akukabi ukuxhunywa okuhleliwe — kuvimbwe wukuhlolwa kwezinzalo zezimfihlo; zungeza ngokusebenzisa i-matrix:setup okwamanje.",
+  "operator_operations.livekit_public_browser_url": "i-URL yomphakathi ye-LiveKit (isipheki)",
   "operator_operations.no_dns_credential_stored_set_one_write_onl": "Ayikho imfihlo ye-DNS egcinwe. Faka eyodwa (ukubhala kuphela) ekonsoleni yo-mfelandawonye.",
   "operator_operations.none_installed_under_the_tls_path": "Ayikho efakiwe ngaphansi komzila we-TLS.",
   "operator_operations.not_setconfigureddev_default_rotate": "ayikafakwanga/ayikayilungiswa/i-dev default — zungeza",

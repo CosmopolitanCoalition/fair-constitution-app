@@ -292,7 +292,7 @@
     "provider": "ollama"
   },
   ":seated of :serving serving members seated": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -5761,202 +5761,202 @@
     "provider": "ollama"
   },
   "Public-Square Removal (carve-out)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Publishing another person’s private, identifying data against their will (doxxing).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Putting yourself on the map is not wired up yet. When it is, you will appear as a single approximate, nameless pixel — and never before you ask.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Queued — waiting for worker": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Quorum Count Publication": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Quorum NOT met — WF-LEG-20: compel attendance (F-SPK-008), then re-count or adjourn & reschedule.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Quorum is counted in an open session.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Quorum met — published to the public record (F-SPK-003).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Race": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Race [:id] has no complete tabulation — certification requires every race counted.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Race generation is blocked pending subdivision — :reasons.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Race generation is blocked pending subdivision.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Ranked ballot": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Ranked voting opens": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Ranked window closes": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Ranking filed (F-LEG-008) — the ballot closes when every serving member has cast.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Ranking filed (F-LEG-011).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Re-grounded :n chain break — signed by :signer. Run 'Verify the full chain' to confirm.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Re-grounded :n chain breaks — signed by :signer. Run 'Verify the full chain' to confirm.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Reach": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Reach = verified residents ÷ population estimate. A gauge, never a lever — it changes no vote, no seat, no right. NOT the Art. VI §3 legitimacy verdict (that is the allegiance/restoration test — see RestorationService) · Preamble; Art. I; Art. II §1": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Read-write petition denied.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Read-write petition not found.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Read-write petition sent to the host (state: :state) — its government decides by supermajority (Art. V §7). A mirror stays authoritative for nothing until authority flips.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Rebuilding a lost government": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Recognize the next speaker": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Reconciliation is operator-triggered.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Record :id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Records publish with translations · WF-SYS-03": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Records the window that was ALREADY running when the renewal was filed. History, not a deadline.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Recount/Audit Order": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Recurring labor contract": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Redline proposed (F-IND-020). The other party accepts, rejects, or counters.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Redline resolved (F-IND-020). An accepted change voids the signatures — the parties re-sign the changed text.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Referendum Act Modification Vote": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Referendum Delegation Vote": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Referendum Vote": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Referendum ballot committed — your participation is recorded; your choice is sealed.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Referendum delegation": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Referendum question": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
@@ -6905,7 +6905,7 @@
     "provider": "ollama"
   },
   "The discussion message could not be sent. Please try again.": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

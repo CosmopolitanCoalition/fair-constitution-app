@@ -601,17 +601,17 @@
     "provider": "ollama"
   },
   "continues_in_wf_ele_10_eb95627a": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "continues_in_wf_exe_05_bc6efbe1": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "continues_in_wf_jur_06_27c472c3": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -621,12 +621,12 @@
     "provider": "ollama"
   },
   "continues_in_wf_org_04_ec02c8c9": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "continues_in_wf_sys_03_717a943c": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2133,7 +2133,7 @@
     "provider": "ollama"
   },
   "run_wf_ele_01_steps_3_8_scoped_to_vacanc_45543d57": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

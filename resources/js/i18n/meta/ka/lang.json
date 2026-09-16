@@ -1484,7 +1484,7 @@
     "provider": "ollama"
   },
   "Art. II §2 (Publish Public Records) · adjourning re-arms CLK-02": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2424,7 +2424,7 @@
     "provider": "ollama"
   },
   "Chair ballot rankings must name seated members of this committee (R-12 requires R-11).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

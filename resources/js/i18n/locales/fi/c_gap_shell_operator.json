@@ -1,5 +1,6 @@
 {
   "app_footer.accessibility": "Saavutettavuus",
+  "app_footer.instance_line": "Instanssi: {host} · määräävä {authoritativeFor} alueella",
   "app_footer.report_issue": "Ilmoita ongelmasta",
   "app_footer.verified": "varmennettu",
   "app_shell.guest_after": "— puhu, äänestä ja asetu ehdokkaaksi, kun asuinpaikkasi on vahvistettu.",

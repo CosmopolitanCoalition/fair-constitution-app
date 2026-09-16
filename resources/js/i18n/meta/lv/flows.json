@@ -1136,7 +1136,7 @@
     "provider": "ollama"
   },
   "general_agenda_bills_motions_appointment_a41c49bb": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

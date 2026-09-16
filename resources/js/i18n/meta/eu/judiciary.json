@@ -320,202 +320,202 @@
     "provider": "ollama"
   },
   "judiciary_casedocket.available_to_2": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.case_kind": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.case_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.cases_on_this_docket": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.civil_criminal_case_filing_f_ind_017_f_jdg": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.claimed_scale": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.claimed_severity": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.clear_filters": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.confirm_residency_to_file": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.conflict_screening_before_a_panel_is_fixed": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.e_g_okafor_v_crown_ridge_llc": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.every_case_filed_in_this_court_from_local_": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.file_a_case": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.filing_states_a_claimed_scale_which_jurisd": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.filter_cases": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.judiciary_home_constitutional_challenges": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.no_cases_match_the_current_filters": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.no_cases_on_this_docket_anyone_jurisdictio": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.of_cases_shown": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.open_cases": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.open_cases_with_kind_court_panel_severity_": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.other_ways_cases_arrive": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.panel_assignment_with_conflict_screening_f": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.panels_of_at_least_3_odd_scaled_to_severit": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.reference_cards_the_filing_instruments_tha": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.search_cases": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.statement_of_claim": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.the_case_lifecycle_wf_jud_03_carries_every": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.the_court_reclassifies_severity_at_accepta": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.the_docket_is_public_to_read_filing_a_case": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.the_filing_was_not_accepted": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.the_jurisdiction_whose_law_the_case_arises": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.walk_a_case_through_the_full_lifecycle": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.what_happened_and_what_remedy_you_seek": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_casedocket.what_the_court_does_next": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_constitutionalchallenge.any_inhabitant_can_challenge_a_law_that_un": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_constitutionalchallenge.any_inhabitant_may_file_no_standing_gateke": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_constitutionalchallenge.asserted_contradiction": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_constitutionalchallenge.confirm_a_residency_to_file_a_challenge": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "judiciary_constitutionalchallenge.constitutional_challenge_tracker": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },

@@ -1284,7 +1284,7 @@
     "provider": "ollama"
   },
   "education_education_material_manager.s2_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

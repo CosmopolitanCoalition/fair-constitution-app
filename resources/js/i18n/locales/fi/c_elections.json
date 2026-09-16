@@ -143,6 +143,7 @@
   "candidacy.withdrawn_body": "Vetäytyminen on pysyvä julkinen rekisteri.",
   "candidacy.withdrawn_cite": "F-CAN-003 · lopullinen ESM-06-tila",
   "candidacy.withdrawn_title": "Ehdokkuus peruttu.",
+  "countback.about_devseed": "Vaiheen B avoimet paikat on luotu kehittäjäsiemenillä (php artisan vacancy:declare). F-LEG-036 declaration-lomake tulee Vaiheen C puhemiehen työkalujen mukana.",
   "countback.about_machine": "Yksikön tilakone: avoin paikka. Yläpuolella oleva palkki seuraa reaaliaikaista rekisteriä.",
   "countback.active_branch": "aktiivinen haara",
   "countback.branch_exhausted": "Haara: äänestysliput loppu",

@@ -1761,7 +1761,7 @@
     "provider": "ollama"
   },
   "legislature_sessionconsole.compel_attendance_then_re_publish_the_coun": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

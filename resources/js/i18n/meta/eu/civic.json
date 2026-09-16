@@ -600,7 +600,7 @@
     "provider": "ollama"
   },
   "civic_petitiondetail.constitutional_review_awaiting_judiciary_p": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (53/161 chars, floor 0.45)",
     "provider": "ollama"
   },

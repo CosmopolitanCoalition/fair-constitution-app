@@ -84,7 +84,7 @@
     "provider": "ollama"
   },
   ":count eligible jurisdictionally associated residents of :jurisdiction": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -317,7 +317,7 @@
     "provider": "ollama"
   },
   ":time · shown in :tz · stored as UTC": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1602,202 +1602,202 @@
     "provider": "ollama"
   },
   "Art. II §4 (chair/alternate — whole-legislature RCV)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §4 (committee agenda)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §4 (committee creation — supermajority act)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §4 (committees by supermajority)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §4 (majority of all committee members)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §4 (meeting call)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §4 (report → public record)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §4 · enabled only after the committee vote passes": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §4 · faction-independent (every member ranks every committee)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §5 · creates the vacancy record → triggers countback": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §5 · special election 90–180 d · CLK-04": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §6": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §6 (Creation of Laws by Petition)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §6 (independent audit) · CLK-17": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §6 (petitions invalidated if unconstitutional) · Planned · Phase E": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §6 · CLK-17 (petition at threshold)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §6 · CLK-19 (population-supermajority acts shielded)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §6 — revocable until the audited count freezes": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §6 — threshold derived from the act type, never editable": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §7 (Judicial Review) — available at any time, by any inhabitant": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §7 caps emergency powers at 90 days; reaching that expiry is a journey.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §7 — disaster or invasion only · ≤ 90 days, validated pre-vote": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §7 — fresh supermajority, fresh ≤ 90-day maximum": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §8 · prereq: chamber seats > 9": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §8 — appeal a decided/sentenced judgement; a party files, the parent court (or the same court en banc) hears it; criminal appeals affirm or vacate only": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §8 — sentencing order; criminal outcome carries the double-jeopardy flag": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §9 · Art. III §2–6 · Art. IV §2–3": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. II §9 — department creation is an ordinary-majority act": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §1–3 — scope validated pre-issuance; rejections go on the public record": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §2 — delegation by act; members remain seated legislators": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §3 · Art. VII — dual supermajority (own chamber + constituent jurisdictions)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §3; Art. IV §4; Art. II §3 — removal parity, supermajority of all serving": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §4 (Powers and Oversight) — the board adopts, amends, or declines": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §4 — consent = peg-quorum majority of all serving": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §4 — full and equal investigative power over overseen departments": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §4 — good-faith competence/ethics finding; grounds published": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §4 — nomination dossier; governors are politically neutral": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §4 — removal by ordinary majority of all serving (hiring and firing)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §4 — reports to executive + legislature, published to public record": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §4 — rules implement, they cannot exceed, the charter and enabling acts": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
@@ -2178,7 +2178,7 @@
     "provider": "ollama"
   },
   "Board seats are stood for from the organization's board-elections page — the worker or owner class decides eligibility there, not the open right to stand for public office (Art. III §6).": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },
@@ -2271,7 +2271,7 @@
     "provider": "ollama"
   },
   "CGC public-domain dedications are irreversible — no reorganization or sale may reclaim or privatize dedicated intellectual property (offending key: :key).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3105,7 +3105,7 @@
     "provider": "ollama"
   },
   "Disbursement :amount would exceed the award (:disbursed of :total already disbursed).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3302,7 +3302,7 @@
     "provider": "ollama"
   },
   "Emergency power — :label (expires :date)": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3535,7 +3535,7 @@
     "provider": "ollama"
   },
   "F-ADV-001 names the client by registered name or email — \":client\" did not resolve to a resident.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -4704,7 +4704,7 @@
     "provider": "ollama"
   },
   "Money and thing move together, or not at all · Art. III §5": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },
@@ -5013,202 +5013,202 @@
     "provider": "ollama"
   },
   "No such role-grant request.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "No unacknowledged chain breaks — the chain is grounded.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "No vacant governor seat exists on this institution's current board.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "No vacant owner-elected seats — nothing to elect.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "No vacant worker-elected seats — nothing to elect.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Node identity": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Nominating": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Nomination dossier · F-EXE-001": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Nomination proposal filed. The nominating body’s vote is now open.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Nominations are filed by seated members of this organization’s overseeing executive.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Nominee": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Nonprofit; no ownership stakes — the board governs per its charter.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Not a districtable leaf giant at this scope": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Not a receipt hash — receipts are 64 hexadecimal characters.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Not a role-grant proposal.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Not found": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Not found — check for typos; hashes are 64 characters.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Nothing remains to draw — the whole area is already districted.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Oath of Office / Seating Acceptance": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Oath of office / seating acceptance": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Oath taken — you are seated (F-LEG-001 · Art. II §1). The public record carries the entry.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Off-topic flooding": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Offer accepted. Mark the request complete after the help has been provided.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Offer accepted. Your agreement is ready for the organization’s countersignature.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Offer recorded. The applicant must explicitly accept these terms.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Offer sent privately to the requester.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Offer withdrawn. If it was the selected offer, the request is open again.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Offered (F-IND-021). Your shares are listed at a fixed price — a buyer takes the whole offer, money and units moving together or not at all.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Office alteration applies to an ELECTED executive office (Art. III §2).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Once a government seats for the scope, its supermajority consent supersedes the operator board — operators can no longer attest on its behalf.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "One election and its races per legislature; committees to K(S) and departments to D(P) as system acts.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "One ledger row per legislature (its seats, layer and cost). Resumable, chunked, top-down by layer.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "One live signature per person per petition — the existing signature stands (revocable while gathering).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "One or more jurisdictions are invalid or do not belong to the scope": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "One person, one profile — candidacy and office are tabs, never separate identities; a pseudonym is a first-class civic life · Art. I; Art. II §2": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "One person’s speech cannot erase another’s Art. I privacy — this protects a right, it does not police an opinion.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "One process to peerage — a node that can get a cert and take clients is a full, equal peer · authority attaches to a place, never a node": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "One registry, no faction layer · Art. I · Art. III §5–6": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Only a CGC can be sold to private ownership.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Only a currently seated member of this legislature may sponsor a bill.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
@@ -6788,7 +6788,7 @@
     "provider": "ollama"
   },
   "The :lane lane is not in a resolvable tie state for the Speaker's vote.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7689,7 +7689,7 @@
     "provider": "ollama"
   },
   "Two doors: amendable settings by valid act within hardened bounds; the hardened layer only by a release passing every constitutional check · Art. VII": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },
@@ -9301,7 +9301,7 @@
     "provider": "ollama"
   },
   "validation.prohibited_unless": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9334,7 +9334,7 @@
     "provider": "ollama"
   },
   "validation.required_unless": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9351,12 +9351,12 @@
     "provider": "ollama"
   },
   "validation.required_without_all": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.same": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

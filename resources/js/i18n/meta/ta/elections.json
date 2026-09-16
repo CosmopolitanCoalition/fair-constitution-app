@@ -513,7 +513,7 @@
     "provider": "ollama"
   },
   "elections_candidateprofile.the_org_s_agent_decides_via_f_org_002_a_gr": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

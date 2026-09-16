@@ -1488,7 +1488,7 @@
     "provider": "ollama"
   },
   "Art. II §2 (Publish Public Records) · adjourning re-arms CLK-02": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1830,7 +1830,7 @@
     "provider": "ollama"
   },
   "Art. III §6 — worker track; also fired system-side by CLK-13": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3459,7 +3459,7 @@
     "provider": "ollama"
   },
   "Executive of :place": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3721,12 +3721,12 @@
     "provider": "ollama"
   },
   "F-LEG-004 casts on whole-chamber votes; committee-stage votes take F-LEG-005.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-005 casts on committee votes; floor votes take F-LEG-004.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -4036,7 +4036,7 @@
     "provider": "ollama"
   },
   "Grant application submitted against :line.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -5966,7 +5966,7 @@
     "provider": "ollama"
   },
   "Rejected pre-vote: :what of :days day(s) exceeds the :ceiling-day constitutional ceiling (resolved emergency_powers_max_days = :maxDays; hardened maximum 90 · CLK-03).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6027,7 +6027,7 @@
     "provider": "ollama"
   },
   "Renewal — extension of :days day(s)": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7162,7 +7162,7 @@
   },
   "The superseded rule does not belong to this department.": {
     "status": "review",
-    "reason": "suspiciously short for Ethi — source content likely dropped (22/55 chars, floor 0.45)",
+    "reason": "suspiciously short for Ethi — source content likely dropped (23/55 chars, floor 0.45)",
     "provider": "ollama"
   },
   "The system (bootstrap board)": {
@@ -9320,7 +9320,7 @@
     "provider": "ollama"
   },
   "validation.uppercase": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9330,7 +9330,7 @@
     "provider": "ollama"
   },
   "validation.uuid": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

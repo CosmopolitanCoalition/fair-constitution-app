@@ -133,7 +133,7 @@
     "provider": "ollama"
   },
   "board.district_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

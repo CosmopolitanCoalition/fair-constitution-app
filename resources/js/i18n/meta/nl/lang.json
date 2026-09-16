@@ -7637,12 +7637,12 @@
     "provider": "ollama"
   },
   "Unknown F-LEG-027 branch [:branch].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Unknown F-LEG-027 branch.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -7672,7 +7672,7 @@
     "provider": "ollama"
   },
   "Unknown F-ORG-009 action [:action] — propose or consent.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

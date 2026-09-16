@@ -320,7 +320,7 @@
     "provider": "ollama"
   },
   "dev_executiveorgkit.org_codetscale_workerseats_is_the_engine_s": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -450,7 +450,7 @@
     "provider": "ollama"
   },
   "dev_judiciarykit.fe_e1_harness_the_phase_e_judiciary_compon": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

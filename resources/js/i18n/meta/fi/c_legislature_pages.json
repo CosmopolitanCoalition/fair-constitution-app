@@ -508,7 +508,7 @@
     "provider": "ollama"
   },
   "committee_detail.roster_empty": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2111,7 +2111,7 @@
     "provider": "ollama"
   },
   "emergency_powers.about": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2208,7 +2208,7 @@
     "provider": "ollama"
   },
   "emergency_powers.meter_label": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

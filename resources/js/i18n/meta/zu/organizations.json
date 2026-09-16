@@ -184,7 +184,7 @@
     "provider": "ollama"
   },
   "organizations_cgcdetail.a_cgc_is_subject_to_the_same_regulation_as": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

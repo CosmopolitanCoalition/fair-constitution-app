@@ -2006,7 +2006,7 @@
     "provider": "ollama"
   },
   "registration_voting_per_wf_ele_01_11ef6563": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

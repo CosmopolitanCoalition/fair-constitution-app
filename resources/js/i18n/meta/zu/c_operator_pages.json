@@ -148,7 +148,7 @@
     "provider": "ollama"
   },
   "dns.how_2": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2248,7 +2248,7 @@
     "provider": "ollama"
   },
   "operations.applyable_public_url": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2617,7 +2617,7 @@
     "provider": "ollama"
   },
   "roles.mesh_channel.voice.sfu.label": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

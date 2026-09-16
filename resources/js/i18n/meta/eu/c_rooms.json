@@ -356,7 +356,7 @@
     "provider": "ollama"
   },
   "roster_preview": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

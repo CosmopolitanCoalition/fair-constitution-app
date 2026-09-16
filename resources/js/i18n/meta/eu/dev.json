@@ -640,202 +640,202 @@
     "provider": "ollama"
   },
   "dev_legislaturekit.f_spk_002_1_outstanding_emergency_powers_2": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.fe_c1_harness_the_phase_c_legislature_comp": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.gathering_below_threshold": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.gold_ring_speaker_politically_neutral_vote": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.groupbykind_bicameral_surfaces": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.highlight_roster_hover_sync": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.items_are_id_name_chips_rankedballot_maps_": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.keep_focus_on_the_moved_item_s_control_and": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.lawdiff_server_computed_segments_law_diff_": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.legislature_seatmap_port_of_chambersvg_sen": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.legislature_votetally_pure_renderer_of_cha": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.member_votes_are_public_the_opposite_of_ba": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.mockup_record_4_4_speaker_broke_the_tie_f_": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.motion_esm_08_current_voted": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.none": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.nothing_on_this_page_touches_the_database_": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.petition_esm_10_current_signature_audit": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.quinn_avery": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.rank_every_committee_the_assignment_algori": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.ranklist_removable_false_committee_prefere": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.ranklist_removable_true_chips_electoral_ca": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.renders_nothing_when_empty_shared_prop_app": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.rita_alvarez": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.seatmap_41_seat_bicameral_san_marino_shape": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.seatmap_9_seat_unicameral_mockup_chamber": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.segments_rendered_verbatim_what_citizens_s": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.signaturemeter_petition_thresholds_clk_17": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.state_machines_fe_c0_config_entries_displa": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.submitted_locked_read_only": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.threshold_reached": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.tied_awaiting_the_speaker": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.tied_broken_adopted_5_4": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.two_active_powers_one_under_judicial_revie": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.two_per_kind_blocks_peg_quorum_meter_thres": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.votecastlist_published_positions": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.votecastlist_tie_break_record_grouped_kind": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.votetally_bicameral_dual_agreement_san_mar": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.votetally_casting_cluster_emit_only": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.votetally_committee_majority_2_of_3_all_me": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "dev_legislaturekit.votetally_tie_speaker_tie_break_9_serving_": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
