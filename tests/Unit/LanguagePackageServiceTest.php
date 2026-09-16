@@ -97,6 +97,86 @@ class LanguagePackageServiceTest extends TestCase
         $this->assertSame(['ui/auth.json', 'ui/civic.json', 'php/en.json'], array_keys($files));
     }
 
+    public function test_it_builds_the_export_command_and_zip_path(): void
+    {
+        $svc = $this->svc();
+        $cmd = $svc->exportCommand('es', 'run-1');
+
+        $this->assertSame('python3', $cmd[0]);
+        $this->assertStringEndsWith('scripts/i18n/export_master.py', str_replace('\\', '/', $cmd[1]));
+        $this->assertContains('--locale', $cmd);
+        $this->assertContains('es', $cmd);
+        $this->assertContains('--out', $cmd);
+
+        $out = $cmd[array_search('--out', $cmd, true) + 1];
+        $this->assertStringEndsWith('run-1/export', str_replace('\\', '/', $out));
+
+        $zip = $svc->packageZipPath('run-1', 'es');
+        $this->assertStringEndsWith('run-1/es-package.zip', str_replace('\\', '/', $zip));
+    }
+
+    public function test_the_import_command_names_the_locale(): void
+    {
+        $cmd = $this->svc()->importCommand('/store/run-1/import', true, 'hi');
+        $this->assertSame(['--locale', 'hi', '--dry-run'], array_slice($cmd, -3));
+        $this->assertStringEndsWith('scripts/i18n/import_translated.py', str_replace('\\', '/', $cmd[1]));
+
+        $bare = $this->svc()->importCommand('/store/run-1/import', false);
+        $this->assertNotContains('--locale', $bare);
+        $this->assertNotContains('--dry-run', $bare);
+    }
+
+    public function test_it_parses_a_dry_run_report(): void
+    {
+        $stdout = <<<'TXT'
+import 2 file(s)  [DRY RUN]
+  ui/auth.json: 2 accepted, 7 unchanged, 1 rejected  (es/auth)
+
+  rejections:
+    es/auth  auth_login.title: dropped placeholder {name}
+
+  files 1   accepted 2   rejected 1   unchanged 7   [DRY RUN - nothing written]
+TXT;
+
+        $report = $this->svc()->parseDryRunReport($stdout);
+
+        $this->assertSame(2, $report['accepted']);
+        $this->assertSame(1, $report['rejected']);
+        $this->assertSame(7, $report['unchanged']);
+        $this->assertSame(1, $report['files']);
+        $this->assertCount(1, $report['rejections']);
+        $this->assertSame('es', $report['rejections'][0]['locale']);
+        $this->assertSame('auth', $report['rejections'][0]['namespace']);
+        $this->assertSame('auth_login.title', $report['rejections'][0]['key']);
+        $this->assertSame('dropped placeholder {name}', $report['rejections'][0]['reason']);
+    }
+
+    public function test_it_refuses_a_non_target_locale(): void
+    {
+        $this->assertTrue($this->svc()->isTargetLocale('es'));
+        $this->assertFalse($this->svc()->isTargetLocale('xx'));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->svc()->exportCommand('xx', 'run-1');
+    }
+
+    public function test_it_refuses_a_path_outside_the_store(): void
+    {
+        $svc = $this->svc();
+
+        // A run id inside the store resolves.
+        $this->assertStringEndsWith('/run-1', str_replace('\\', '/', $svc->runDir('run-1')));
+
+        $this->expectException(InvalidArgumentException::class);
+        $svc->pathWithin('../../etc/passwd');
+    }
+
+    public function test_a_traversal_run_id_is_refused(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->svc()->runDir('../evil');
+    }
+
     public function test_a_stale_run_is_an_in_flight_record_nobody_updated(): void
     {
         $svc = $this->svc();

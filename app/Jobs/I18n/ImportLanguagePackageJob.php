@@ -60,7 +60,7 @@ class ImportLanguagePackageJob implements ShouldQueue
         ]);
 
         try {
-            $cmd = $packages->importCommand($target, dryRun: ! $this->confirm);
+            $cmd = $packages->importCommand($target, dryRun: ! $this->confirm, locale: $this->locale);
             $process = new Process($cmd, base_path());
             $process->setTimeout(self::PROCESS_TIMEOUT_SECONDS);
             $process->run();

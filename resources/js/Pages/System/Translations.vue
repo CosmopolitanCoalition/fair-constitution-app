@@ -660,7 +660,7 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
         <Card v-if="viewer.isOperator" :title="t('c_system.translations.pkg_title', 'Language packages')"
               :eyebrow="t('c_system.translations.pkg_eyebrow', 'operator')">
             <p class="gloss">
-                {{ t('c_system.translations.pkg_intro', 'Every package you export is English. Pick the language a translator will produce and the zip holds the English strings that language still lacks, with surface context and the glossary. Translate anywhere, then import the result under that language. Every action runs as a queued job, never in the page.') }}
+                {{ t('c_system.translations.pkg_intro', 'One layout for every language, English included: README.txt, ui/<namespace>.json and php/<code>.json, every file complete. A target package carries the translation the app holds or the English where it holds none; the English master is the source itself. Translate anywhere, then import the zip under its language. Every action runs as a queued job, never in the page.') }}
             </p>
             <p v-if="pkgSource" class="muted" data-no-i18n>
                 {{ t('c_system.translations.pkg_state_line', 'In the app now: English (the source, {keys} strings in {files} files), {present} machine drafts in progress, {absent} registered languages with no strings yet.', { named: {
@@ -679,7 +679,7 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
                 <!-- EXPORT -->
                 <div class="pkg-panel">
                     <h3>{{ t('c_system.translations.pkg_export_title', 'Export English strings') }}</h3>
-                    <p class="gloss">{{ t('c_system.translations.pkg_export_hint', 'Pick the language the translation is for. The zip holds the English strings that language still lacks. Or export the English master: every source string, no target.') }}</p>
+                    <p class="gloss">{{ t('c_system.translations.pkg_export_hint', 'Pick the language. The zip holds that language’s complete catalogues: translated where it is, English where it is not, with a README of counts and rules. Or export the English master, the source itself.') }}</p>
                     <label class="pkg-label">
                         {{ t('c_system.translations.pkg_export_select', 'Export for') }}
                         <select v-model="exportLocale" class="pkg-input">
@@ -701,7 +701,7 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
                 <!-- IMPORT -->
                 <div class="pkg-panel">
                     <h3>{{ t('c_system.translations.pkg_import_title', 'Import a translation') }}</h3>
-                    <p class="gloss">{{ t('c_system.translations.pkg_import_hint', 'Upload a translated zip or a single JSON file and name its language. The server checks it first and shows what it would accept before anything is written. English is never imported.') }}</p>
+                    <p class="gloss">{{ t('c_system.translations.pkg_import_hint', 'Upload the translated zip, or one file from it, and name its language. The server checks it first and shows what it would accept, what it would skip as unchanged, and what it rejects, before anything is written. English is never imported.') }}</p>
                     <label class="pkg-label">
                         {{ t('c_system.translations.pkg_import_locale', 'Translated into') }}
                         <select v-model="importLocale" class="pkg-input">
@@ -745,7 +745,7 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
                                 : r.status === 'failed' || r.stale ? 'danger'
                                 : r.status === 'dry_run_ready' ? 'warning' : 'info'">{{ r.stale ? t('c_system.translations.pkg_stale', 'stalled, no worker') : r.status }}</StatusBadge>
                             <span v-if="r.report" class="gloss" data-no-i18n>
-                                · {{ t('c_system.translations.pkg_dry_report', '{accepted} accepted, {rejected} rejected', { named: { accepted: r.report.accepted, rejected: r.report.rejected } }) }}
+                                · {{ t('c_system.translations.pkg_dry_report', '{accepted} accepted, {unchanged} unchanged, {rejected} rejected', { named: { accepted: r.report.accepted, unchanged: r.report.unchanged ?? 0, rejected: r.report.rejected } }) }}
                             </span>
                             <span v-if="r.status === 'failed' && r.error" class="gloss pkg-error" data-no-i18n>· {{ r.error }}</span>
                         </td>

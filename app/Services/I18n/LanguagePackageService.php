@@ -25,13 +25,13 @@ use Illuminate\Support\Str;
  * (locales.generated.js / config('locales') rows with target: true). A row
  * that is display-only is not opened for a machine draft.
  *
- * THE SOURCE (operator observation 2026-09-15: "only one language is actually
- * in the system"). English is the source catalogue, never a package target:
- * every target package is English strings addressed to one language. The
- * English MASTER is the SAME export for locale en: the target is the source,
- * so every translatable key is written, in the one layout every package has
- * (operator order 2026-09-15: one hierarchy, English included). Import
- * refuses the source: English is edited in code, never imported.
+ * THE PACKAGE (operator order 2026-09-15: one hierarchy for every language,
+ * English included). A zip holds <code>/README.txt, ui/<namespace>.json and
+ * php/<code>.json, every file COMPLETE: every English key, with the
+ * translation the app holds or the English source. The English master is the
+ * same export for locale en, so it reconstitutes the catalogues line for
+ * line. Import reads the same tree back, addressed to its language; English
+ * itself is never imported.
  */
 class LanguagePackageService
 {
@@ -261,15 +261,20 @@ class LanguagePackageService
     }
 
     /**
-     * The import command: python3 import_translated.py <target> [--dry-run].
-     * The target is a file or a directory of translated export files.
+     * The import command: python3 import_translated.py <target> --locale <code>
+     * [--dry-run]. The target is a package tree (unzipped) or one file from it;
+     * the locale is the language the operator named on the card.
      *
      * @return list<string>
      */
-    public function importCommand(string $target, bool $dryRun): array
+    public function importCommand(string $target, bool $dryRun, ?string $locale = null): array
     {
         $cmd = ['python3', base_path(self::IMPORT_SCRIPT), $target];
 
+        if ($locale !== null && $locale !== '') {
+            $cmd[] = '--locale';
+            $cmd[] = $locale;
+        }
         if ($dryRun) {
             $cmd[] = '--dry-run';
         }
@@ -284,21 +289,23 @@ class LanguagePackageService
      * prints a summary line "files N   accepted N   rejected N" and, for each
      * refused string, a line "    <locale>/<ns>  <key>: <reason>".
      *
-     * @return array{accepted:int, rejected:int, files:int,
+     * @return array{accepted:int, rejected:int, unchanged:int, files:int,
      *               rejections: list<array{locale:string, namespace:string, key:string, reason:string}>}
      */
     public function parseDryRunReport(string $stdout): array
     {
         $accepted = 0;
         $rejected = 0;
+        $unchanged = 0;
         $files = 0;
         $rejections = [];
 
         foreach (preg_split('/\r?\n/', $stdout) ?: [] as $line) {
-            if (preg_match('/\bfiles\s+(\d+)\s+accepted\s+(\d+)\s+rejected\s+(\d+)/', $line, $m)) {
+            if (preg_match('/\bfiles\s+(\d+)\s+accepted\s+(\d+)\s+rejected\s+(\d+)(?:\s+unchanged\s+(\d+))?/', $line, $m)) {
                 $files = (int) $m[1];
                 $accepted = (int) $m[2];
                 $rejected = (int) $m[3];
+                $unchanged = (int) ($m[4] ?? 0);
 
                 continue;
             }
@@ -316,6 +323,7 @@ class LanguagePackageService
         return [
             'accepted' => $accepted,
             'rejected' => $rejected,
+            'unchanged' => $unchanged,
             'files' => $files,
             'rejections' => $rejections,
         ];

@@ -103,19 +103,30 @@ class Wiring_w0446_language_packagesTest extends TestCase
     public function test_every_language_package_has_one_layout_english_included(): void
     {
         // Operator order 2026-09-15: the English master and a target package
-        // share one hierarchy. One export door, no staging copy, no README tree.
+        // share one hierarchy. One export door (the script), no staging copy in PHP.
         $export = $this->read('app/Jobs/I18n/ExportLanguagePackageJob.php');
         $this->assertStringNotContainsString('stageSourceMaster', $export);
         $this->assertStringNotContainsString('isSourceLocale', $export, 'the export job never branches on the locale');
         $this->assertSame(1, substr_count($export, '$packages->exportCommand('));
 
         $svc = $this->read('app/Services/I18n/LanguagePackageService.php');
-        $this->assertStringNotContainsString('README', $svc);
         $this->assertStringNotContainsString('stageSourceMaster', $svc);
+        $this->assertStringNotContainsString('file_put_contents($dir', $svc, 'PHP never writes package files; the script does');
 
+        // The tree: README.txt, ui/<namespace>.json, php/<code>.json, every file complete.
         $py = $this->read('scripts/i18n/export_master.py');
         $this->assertStringContainsString('SOURCE_LOCALE = "en"', $py);
-        $this->assertStringContainsString('source=(locale == SOURCE_LOCALE)', $py);
+        $this->assertStringContainsString('out_dir / "ui" / f"{ns}.json"', $py);
+        $this->assertStringContainsString('out_dir / "php" / f"{locale}.json"', $py);
+        $this->assertStringContainsString('"README.txt"', $py);
+        $this->assertStringNotContainsString('--chunk', $py, 'chunk files are retired');
+
+        // The importer reads the same tree and names the locale the operator chose.
+        $imp = $this->read('scripts/i18n/import_translated.py');
+        $this->assertStringContainsString('if parent == "ui":', $imp);
+        $this->assertStringContainsString('if parent == "php":', $imp);
+        $job = $this->read('app/Jobs/I18n/ImportLanguagePackageJob.php');
+        $this->assertStringContainsString('locale: $this->locale', $job);
     }
 
     public function test_the_import_job_writes_one_audit_entry(): void

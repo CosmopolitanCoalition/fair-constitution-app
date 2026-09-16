@@ -6,14 +6,20 @@ the accepted strings into the locale catalogs, under the same QA the machine
 pass uses.
 
 WHAT IT ACCEPTS
-  A file (or directory of files) in the export_master.py shape: a "_meta" block
-  naming the locale and namespace, and a "strings" map of key -> translated
-  value.
+  The package tree export_master.py writes (operator order 2026-09-15, one
+  layout for every language): ui/<namespace>.json and php/<code>.json, each a
+  plain key -> text map, complete. The whole tree, or any one file from it,
+  with --locale naming the language (php/<code>.json also carries it in its
+  name). The retired chunk shape (a "_meta" block plus a "strings" map) is
+  still read, so an old file imports too.
+
+WHAT IT SKIPS, per string, counted as unchanged (not an error):
+  - a value identical to the English source: the translator left it, or it is
+    a citation / ID token / placeholder-only line that is copied verbatim
 
 WHAT IT REFUSES, per string, and reports with a reason:
   - a key that does not exist in the English namespace
   - a locked or human-reviewed string (status lives in the meta tree)
-  - a value identical to the English source (untranslated)
   - a value that fails placeholder / ID token / citation parity (the same QA
     the machine pass runs)
   - a value vue-i18n cannot compile
@@ -29,13 +35,13 @@ state: an already-written translation passes the identical-to-English and QA
 gates again and is rewritten unchanged.
 
 Usage:
-  python3 scripts/i18n/import_translated.py storage/app/i18n-export/es
-  python3 scripts/i18n/import_translated.py translated_auth.json --dry-run
-  python3 scripts/i18n/import_translated.py some_dir --locale es
+  python3 scripts/i18n/import_translated.py storage/app/i18n-export/hi --locale hi
+  python3 scripts/i18n/import_translated.py hi/ui/auth.json --locale hi --dry-run
   python3 scripts/i18n/import_translated.py --self-test
 
 Options:
-  --locale CODE     force the locale (default: read from each file's _meta)
+  --locale CODE     the language the files are translated into (required for
+                    ui/ files; php/<code>.json and the retired _meta shape carry it)
   --dry-run         validate and report; write nothing
   --i18n-dir DIR    i18n root to write into (default resources/js/i18n)
   --self-test       run the built-in fixture test and exit
@@ -85,16 +91,19 @@ def compiles_vue_i18n(text: str) -> bool:
     return True
 
 
+UNCHANGED = "unchanged"  # not a rejection: the value is still the English source
+
+
 def _validate(key: str, value: str, en: dict, meta: dict, script: str) -> str | None:
-    """Return a rejection reason, or None when the string is admissible."""
+    """Return a rejection reason, UNCHANGED for a value still in English, or None when admissible."""
     if key not in en:
         return "key not in the English namespace"
-    if meta.get(key, {}).get("status") in tc.PROTECTED_STATUS:
-        return f"locked or human-reviewed ({meta[key]['status']})"
     if not isinstance(value, str) or not value.strip():
         return "empty value"
     if _norm(value) == _norm(en[key]):
-        return "identical to the English source"
+        return UNCHANGED
+    if meta.get(key, {}).get("status") in tc.PROTECTED_STATUS:
+        return f"locked or human-reviewed ({meta[key]['status']})"
     reason = tc.qa(en[key], value, script)
     if reason:
         return reason
@@ -124,27 +133,43 @@ def gather_files(target: Path) -> list[Path]:
     return [target]
 
 
+def identify(path: Path, payload, force_locale: str | None) -> tuple[str | None, str | None, dict | None, str | None]:
+    """
+    (locale, namespace, strings, problem) for one file. The package tree:
+    ui/<ns>.json (locale from --locale) and php/<code>.json (locale from the
+    file name unless forced). The retired chunk shape carries both in _meta.
+    """
+    if not isinstance(payload, dict):
+        return None, None, None, "not a JSON object"
+    if isinstance(payload.get("strings"), dict) and isinstance(payload.get("_meta"), dict):
+        m = payload["_meta"]
+        return force_locale or m.get("locale"), m.get("namespace"), payload["strings"], None
+    parent = path.parent.name
+    if parent == "ui":
+        return force_locale, path.stem, payload, (None if force_locale else "pass --locale for a ui/ file")
+    if parent == "php":
+        return force_locale or path.stem, tc.LANG_NS, payload, None
+    return None, None, None, "not a package file (expected ui/<namespace>.json or php/<code>.json)"
+
+
 def import_files(paths: list[Path], locales_dir: Path, meta_dir: Path, registry_js: Path,
                  force_locale: str | None, dry_run: bool, lang_dir: Path | None = None) -> dict:
     reg = read_registry(registry_js)
-    totals = {"accepted": 0, "rejected": 0, "files": 0, "rejections": []}
+    totals = {"accepted": 0, "rejected": 0, "unchanged": 0, "files": 0, "rejections": []}
 
-    # Group edits per (locale, namespace) so each catalog is read and written once.
+    # One file per (locale, namespace): each catalog is read and written once.
     for path in paths:
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
             print(f"  skip {path.name}: not readable JSON ({exc})")
             continue
-        meta_block = payload.get("_meta", {})
-        strings = payload.get("strings", {})
-        if not isinstance(strings, dict):
-            print(f"  skip {path.name}: no 'strings' object")
+        locale, ns, strings, problem = identify(path, payload, force_locale)
+        if problem or not locale or not ns:
+            print(f"  skip {path.name}: {problem or 'locale and namespace unknown'}")
             continue
-        locale = force_locale or meta_block.get("locale")
-        ns = meta_block.get("namespace")
-        if not locale or not ns:
-            print(f"  skip {path.name}: _meta must carry locale and namespace")
+        if locale == "en":
+            print(f"  skip {path.name}: English is the source, never imported")
             continue
         totals["files"] += 1
 
@@ -159,8 +184,13 @@ def import_files(paths: list[Path], locales_dir: Path, meta_dir: Path, registry_
         meta = tc.load(meta_path)
 
         accepted = 0
+        unchanged = 0
         for key, value in strings.items():
             reason = _validate(key, value, en, meta, script)
+            if reason is UNCHANGED:
+                unchanged += 1
+                totals["unchanged"] += 1
+                continue
             if reason:
                 totals["rejected"] += 1
                 totals["rejections"].append((locale, ns, key, reason))
@@ -172,8 +202,8 @@ def import_files(paths: list[Path], locales_dir: Path, meta_dir: Path, registry_
             accepted += 1
             totals["accepted"] += 1
 
-        print(f"  {path.name}: {accepted} accepted, "
-              f"{len(strings) - accepted} rejected  ({locale}/{ns})")
+        print(f"  {path.parent.name}/{path.name}: {accepted} accepted, {unchanged} unchanged, "
+              f"{len(strings) - accepted - unchanged} rejected  ({locale}/{ns})")
         if accepted and not dry_run:
             _ordered_dump(tgt_path, en, target)
             _meta_dump(meta_path, meta)
@@ -187,7 +217,7 @@ def report(totals: dict, dry_run: bool) -> None:
         for locale, ns, key, reason in totals["rejections"]:
             print(f"    {locale}/{ns}  {key}: {reason}")
     print(f"\n  files {totals['files']}   accepted {totals['accepted']}   "
-          f"rejected {totals['rejected']}"
+          f"rejected {totals['rejected']}   unchanged {totals['unchanged']}"
           + ("   [DRY RUN - nothing written]" if dry_run else ""))
     if totals["accepted"] and not dry_run:
         print("\n  re-run node scripts/i18n/check.mjs (C5 compiles) and "
@@ -221,6 +251,7 @@ def self_test() -> int:
             "auth_login.log_in": "Log in",
             "auth_login.welcome": "Welcome back, {name}.",
             "auth_login.locked_term": "Residency",
+            "auth_login.cite_only": "Art. II §2",
         }, ensure_ascii=False), encoding="utf-8")
         (loc / "es" / "auth.json").write_text(json.dumps({
             "auth_login.locked_term": "Residency",
@@ -241,104 +272,105 @@ def self_test() -> int:
         lang.mkdir(parents=True)
         (lang / "en.json").write_text(json.dumps({
             "Log in": "Log in",
+            "Art. II §2": "Art. II §2",
         }, ensure_ascii=False), encoding="utf-8")
-        (lang / "es.json").write_text(json.dumps({}, ensure_ascii=False), encoding="utf-8")
 
-        # 1) export the fixture, 2) stub-translate the values, 3) import.
+        # 1) export the package tree, 2) translate some values in place, 3) import the tree.
         out = tmp / "out"
         em.export_locale("es", loc, meta, i18n / "glossary" / "term-base.json",
-                         i18n / "locales.generated.js", tmp / "nojs", out, chunk=250,
-                         lang_dir=lang)
-        exp = out / "es" / "auth.json"
-        check("export produced a file for import", exp.exists())
+                         i18n / "locales.generated.js", tmp / "nojs", out, lang_dir=lang)
+        ui = out / "es" / "ui" / "auth.json"
+        php = out / "es" / "php" / "es.json"
+        check("export produced the tree", ui.exists() and php.exists() and (out / "es" / "README.txt").exists())
 
-        payload = json.loads(exp.read_text(encoding="utf-8"))
-        # A good translation of each exported string (keeps the placeholder).
-        good = {
-            "auth_login.log_in": "Iniciar sesión",
-            "auth_login.welcome": "Bienvenido de nuevo, {name}.",
-        }
-        payload["strings"] = {k: good[k] for k in payload["strings"] if k in good}
-        exp.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        tree = json.loads(ui.read_text(encoding="utf-8"))
+        tree["auth_login.log_in"] = "Iniciar sesión"
+        tree["auth_login.welcome"] = "Bienvenido de nuevo, {name}."
+        # locked_term and cite_only stay English: copied verbatim, never written.
+        ui.write_text(json.dumps(tree, ensure_ascii=False), encoding="utf-8")
+        ptree = json.loads(php.read_text(encoding="utf-8"))
+        ptree["Log in"] = "Iniciar sesión"
+        php.write_text(json.dumps(ptree, ensure_ascii=False), encoding="utf-8")
 
-        totals = import_files([exp], loc, meta, i18n / "locales.generated.js", None, False,
+        totals = import_files(gather_files(out / "es"), loc, meta, i18n / "locales.generated.js", "es", False,
                               lang_dir=lang)
-        check("both good strings accepted", totals["accepted"] == 2, str(totals))
+        check("two files imported", totals["files"] == 2, str(totals))
+        check("three translations accepted", totals["accepted"] == 3, str(totals))
+        check("English-left values counted unchanged, not rejected",
+              totals["unchanged"] == 3 and totals["rejected"] == 0, str(totals))
         tgt = json.loads((loc / "es" / "auth.json").read_text(encoding="utf-8"))
         check("catalog carries the translation", tgt.get("auth_login.log_in") == "Iniciar sesión")
         check("catalog preserves English key order",
               list(tgt.keys())[:2] == ["auth_login.log_in", "auth_login.welcome"], str(list(tgt.keys())))
+        check("untranslated key not written", "auth_login.cite_only" not in tgt)
         mtgt = json.loads((meta / "es" / "auth.json").read_text(encoding="utf-8"))
         check("meta marks the AI first pass",
               mtgt.get("auth_login.log_in", {}).get("provider") == "ai-first-pass", str(mtgt.get("auth_login.log_in")))
         check("meta records the source file name",
-              mtgt.get("auth_login.log_in", {}).get("source") == exp.name)
+              mtgt.get("auth_login.log_in", {}).get("source") == "auth.json")
         check("meta leaves the locked string untouched",
               mtgt.get("auth_login.locked_term", {}).get("status") == "locked")
+        ltgt = json.loads((lang / "es.json").read_text(encoding="utf-8"))
+        check("php/es.json lands in lang/es.json", ltgt.get("Log in") == "Iniciar sesión", str(ltgt))
+        check("no lang catalog leaked into locales/es", not (loc / "es" / "lang.json").exists())
 
-        # idempotent: a second import of the same file changes nothing.
+        # idempotent: a second import of the same tree changes nothing.
         before = (loc / "es" / "auth.json").read_text(encoding="utf-8")
-        import_files([exp], loc, meta, i18n / "locales.generated.js", None, False, lang_dir=lang)
+        import_files(gather_files(out / "es"), loc, meta, i18n / "locales.generated.js", "es", False, lang_dir=lang)
         after = (loc / "es" / "auth.json").read_text(encoding="utf-8")
         check("second import is idempotent", before == after)
 
-        # the Laravel lang namespace round-trips into lang/<locale>.json, not
-        # into locales/<locale>/. Export produced a lang chunk; translate it and
-        # import it back with the same lang_dir.
-        lexp = out / "es" / "lang.json"
-        check("export produced a lang chunk", lexp.exists())
-        lpayload = json.loads(lexp.read_text(encoding="utf-8"))
-        lpayload["strings"] = {"Log in": "Iniciar sesión"}
-        lexp.write_text(json.dumps(lpayload, ensure_ascii=False), encoding="utf-8")
-        lt = import_files([lexp], loc, meta, i18n / "locales.generated.js", None, False,
-                          lang_dir=lang)
-        check("lang string accepted", lt["accepted"] == 1, str(lt))
-        ltgt = json.loads((lang / "es.json").read_text(encoding="utf-8"))
-        check("lang/<locale>.json carries the translation",
-              ltgt.get("Log in") == "Iniciar sesión", str(ltgt))
-        check("no lang catalog leaked into locales/es",
-              not (loc / "es" / "lang.json").exists())
+        # a single ui/ file without --locale is refused, not guessed.
+        t1 = import_files([ui], loc, meta, i18n / "locales.generated.js", None, True, lang_dir=lang)
+        check("ui file without --locale is skipped", t1["files"] == 0, str(t1))
+        # php/<code>.json carries its locale in the name.
+        t1b = import_files([php], loc, meta, i18n / "locales.generated.js", None, True, lang_dir=lang)
+        check("php file names its own locale", t1b["files"] == 1 and t1b["accepted"] == 1, str(t1b))
+        # the English master is never imported.
+        (out / "en" / "ui").mkdir(parents=True)
+        (out / "en" / "ui" / "auth.json").write_text("{}", encoding="utf-8")
+        t1c = import_files([out / "en" / "ui" / "auth.json"], loc, meta, i18n / "locales.generated.js", "en", True, lang_dir=lang)
+        check("English is refused as an import target", t1c["files"] == 0, str(t1c))
 
-        # rejected-placeholder case: a value that drops the {name} token.
-        bad = tmp / "bad.json"
-        bad.write_text(json.dumps({
-            "_meta": {"locale": "es", "namespace": "auth"},
-            "strings": {"auth_login.welcome": "Bienvenido de nuevo."},
-        }, ensure_ascii=False), encoding="utf-8")
-        t2 = import_files([bad], loc, meta, i18n / "locales.generated.js", None, True)
+        # rejected-placeholder case: a value that drops the {name} token (tree file).
+        bad_dir = tmp / "bad" / "ui"
+        bad_dir.mkdir(parents=True)
+        (bad_dir / "auth.json").write_text(json.dumps({"auth_login.welcome": "Bienvenido de nuevo."}, ensure_ascii=False), encoding="utf-8")
+        t2 = import_files([bad_dir / "auth.json"], loc, meta, i18n / "locales.generated.js", "es", True)
         check("dropped placeholder is rejected", t2["accepted"] == 0 and t2["rejected"] == 1, str(t2))
         check("rejection names the placeholder reason",
               any("placeholder" in r[3] for r in t2["rejections"]), str(t2["rejections"]))
 
-        # locked-string case: a value aimed at a locked key is refused.
-        lk = tmp / "locked.json"
-        lk.write_text(json.dumps({
-            "_meta": {"locale": "es", "namespace": "auth"},
-            "strings": {"auth_login.locked_term": "Residencia"},
-        }, ensure_ascii=False), encoding="utf-8")
-        t3 = import_files([lk], loc, meta, i18n / "locales.generated.js", None, True)
+        # locked-string case: a changed value aimed at a locked key is refused.
+        lk_dir = tmp / "locked" / "ui"
+        lk_dir.mkdir(parents=True)
+        (lk_dir / "auth.json").write_text(json.dumps({"auth_login.locked_term": "Residencia"}, ensure_ascii=False), encoding="utf-8")
+        t3 = import_files([lk_dir / "auth.json"], loc, meta, i18n / "locales.generated.js", "es", True)
         check("locked string is refused", t3["accepted"] == 0 and t3["rejected"] == 1, str(t3))
         check("rejection names the locked reason",
               any("locked" in r[3] for r in t3["rejections"]), str(t3["rejections"]))
 
         # unknown-key case.
-        uk = tmp / "unknown.json"
-        uk.write_text(json.dumps({
-            "_meta": {"locale": "es", "namespace": "auth"},
-            "strings": {"auth_login.nope": "Nada"},
-        }, ensure_ascii=False), encoding="utf-8")
-        t4 = import_files([uk], loc, meta, i18n / "locales.generated.js", None, True)
+        uk_dir = tmp / "unknown" / "ui"
+        uk_dir.mkdir(parents=True)
+        (uk_dir / "auth.json").write_text(json.dumps({"auth_login.nope": "Nada"}, ensure_ascii=False), encoding="utf-8")
+        t4 = import_files([uk_dir / "auth.json"], loc, meta, i18n / "locales.generated.js", "es", True)
         check("unknown key is refused", t4["accepted"] == 0 and t4["rejected"] == 1, str(t4))
 
-        # identical-to-English case.
-        idf = tmp / "ident.json"
-        idf.write_text(json.dumps({
+        # the retired chunk shape still imports.
+        old = tmp / "old.json"
+        old.write_text(json.dumps({
             "_meta": {"locale": "es", "namespace": "auth"},
-            "strings": {"auth_login.log_in": "Log in"},
+            "strings": {"auth_login.log_in": "Iniciar sesión", "auth_login.cite_only": "Art. II §2"},
         }, ensure_ascii=False), encoding="utf-8")
-        t5 = import_files([idf], loc, meta, i18n / "locales.generated.js", None, True)
-        check("identical-to-English is refused",
-              t5["accepted"] == 0 and any("identical" in r[3] for r in t5["rejections"]), str(t5))
+        t5 = import_files([old], loc, meta, i18n / "locales.generated.js", None, True)
+        check("retired chunk shape accepted", t5["accepted"] == 1 and t5["unchanged"] == 1 and t5["rejected"] == 0, str(t5))
+
+        # a stray file is skipped with a reason, never guessed.
+        stray = tmp / "stray.json"
+        stray.write_text("{}", encoding="utf-8")
+        t6 = import_files([stray], loc, meta, i18n / "locales.generated.js", "es", True)
+        check("stray file skipped", t6["files"] == 0, str(t6))
 
         # compile guard: a stray brace is refused.
         check("stray brace does not compile", not compiles_vue_i18n("Hola {name"))
@@ -358,8 +390,8 @@ def main() -> int:
     if "--self-test" in sys.argv:
         return self_test()
     ap = argparse.ArgumentParser(description="Import translated export files into the catalogs.")
-    ap.add_argument("target", help="a translated export file, or a directory of them")
-    ap.add_argument("--locale")
+    ap.add_argument("target", help="a language package tree, or one file from it")
+    ap.add_argument("--locale", help="the language the files are translated into")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--i18n-dir")
     ap.add_argument("--lang-dir")
