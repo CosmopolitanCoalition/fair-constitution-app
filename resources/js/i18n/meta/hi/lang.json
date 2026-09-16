@@ -7592,8 +7592,9 @@
     "provider": "ollama"
   },
   "Two doors: amendable settings by valid act within hardened bounds; the hardened layer only by a release passing every constitutional check · Art. VII": {
-    "status": "machine",
-    "provider": "ollama"
+    "status": "review",
+    "provider": "ollama",
+    "reason": "citation altered"
   },
   "Type B Panels": {
     "status": "machine",

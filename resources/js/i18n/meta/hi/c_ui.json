@@ -1,18 +1,18 @@
 {
   "ui_citationline.as_implemented": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "ui_formchip.catalog": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "ui_lawdiff.law_text_changes": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "ui_plannedbanner.planned_a_preview": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   }
 }

@@ -1,42 +1,42 @@
 {
   "cosmicaddresspicker.loading_cosmic_address": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "cosmicaddresspicker.multiverse": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "schemaupdatebanner.apply_updates": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "schemaupdatebanner.required_apply_before_starting_an_etl_run": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "setupstepper.build_districts": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "setupstepper.confirm_seat_institutions": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "setupstepper.constitutional_defaults": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "setupstepper.cosmic_address": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "setupstepper.map_data": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "setupstepper.setup_progress": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   }
 }

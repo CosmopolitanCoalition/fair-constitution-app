@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "ग्रह",
+  "adm_chip.level_1": "देश",
+  "adm_chip.level_2": "राज्य / प्रांत",
+  "adm_chip.level_3": "काउंटी",
+  "adm_chip.level_4": "नगरपालिका",
+  "adm_chip.level_5": "टाउनशिप",
+  "adm_chip.level_6": "पड़ोस",
+  "citation_line.as_implemented": "जैसा लागू किया गया",
+  "data_table.caption_scrollable": "{caption} (स्क्रॉल करने योग्य)",
+  "data_table.scrollable_table": "स्क्रॉल करने योग्य तालिका",
+  "history_pager.first_page": "पहला पेज",
+  "history_pager.load_error": "यह पेज लोड नहीं हो सका। फिर से प्रयास करें।",
+  "history_pager.loading": "रिकॉर्ड लोड हो रहे हैं…",
+  "history_pager.next": "अगला",
+  "history_pager.previous": "पिछला"
+}
