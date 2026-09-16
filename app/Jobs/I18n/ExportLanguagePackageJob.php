@@ -15,9 +15,8 @@ use Symfony\Component\Process\Process;
  *
  * Runs scripts/i18n/export_master.py --locale <code> --out <run>/export in the
  * container (python3), then zips the chunk files into <run>/<code>-package.zip.
- * For the source locale (en) no script runs: the English catalogues are copied
- * as they stand (LanguagePackageService::stageSourceMaster) and zipped as the
- * English master.
+ * The English master (locale en) goes through the same script and lands in
+ * the same layout: one hierarchy for every language (operator order 2026-09-15).
  * The board's card polls the run record and offers the zip once the state is
  * ready. The script NEVER runs inside the web request — only here.
  *
@@ -61,25 +60,21 @@ class ExportLanguagePackageJob implements ShouldQueue
         ]);
 
         try {
-            if ($packages->isSourceLocale($this->locale)) {
-                $packages->stageSourceMaster($this->run);
-            } else {
-                $cmd = $packages->exportCommand($this->locale, $this->run);
-                $packages->ensureDir($packages->exportDir($this->run));
+            $cmd = $packages->exportCommand($this->locale, $this->run);
+            $packages->ensureDir($packages->exportDir($this->run));
 
-                $process = new Process($cmd, base_path());
-                $process->setTimeout(self::PROCESS_TIMEOUT_SECONDS);
-                $process->run();
+            $process = new Process($cmd, base_path());
+            $process->setTimeout(self::PROCESS_TIMEOUT_SECONDS);
+            $process->run();
 
-                if (! $process->isSuccessful()) {
-                    $packages->writeRun($this->run, [
-                        'status' => 'failed',
-                        'error' => trim($process->getErrorOutput() ?: $process->getOutput()),
-                        'finished_at' => now()->toIso8601String(),
-                    ]);
+            if (! $process->isSuccessful()) {
+                $packages->writeRun($this->run, [
+                    'status' => 'failed',
+                    'error' => trim($process->getErrorOutput() ?: $process->getOutput()),
+                    'finished_at' => now()->toIso8601String(),
+                ]);
 
-                    return;
-                }
+                return;
             }
 
             $zipPath = $packages->packageZipPath($this->run, $this->locale);

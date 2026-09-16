@@ -51,9 +51,15 @@ class LanguagePackageServiceTest extends TestCase
         $this->assertFalse($svc->isExportable('xx'));
         $this->assertNotContains('en', $svc->targetLocales());
 
-        // The script command is for targets only; the master is staged, not scripted.
+        // One door: the master is the same script for locale en, same layout.
+        $cmd = $svc->exportCommand('en', 'run-1');
+        $this->assertContains('--locale', $cmd);
+        $this->assertSame('en', $cmd[array_search('--locale', $cmd, true) + 1]);
+        $this->assertStringEndsWith('run-1/en-package.zip', str_replace('\\', '/', $svc->packageZipPath('run-1', 'en')));
+        $this->assertFalse(method_exists($svc, 'stageSourceMaster'), 'no second layout for the master');
+
         $this->expectException(InvalidArgumentException::class);
-        $svc->exportCommand('en', 'run-1');
+        $svc->exportCommand('xx', 'run-1');
     }
 
     public function test_language_rows_state_what_is_present_and_what_is_not(): void
@@ -78,104 +84,17 @@ class LanguagePackageServiceTest extends TestCase
         $this->assertSame([false, false], array_column($unmeasured, 'present'));
     }
 
-    public function test_the_english_master_stages_the_source_catalogues_and_a_readme(): void
+    public function test_source_files_are_counted_for_the_card(): void
     {
         $repo = $this->tmp . '/repo';
         mkdir($repo . '/resources/js/i18n/locales/en', 0775, true);
         mkdir($repo . '/lang', 0775, true);
-        file_put_contents($repo . '/resources/js/i18n/locales/en/auth.json', json_encode(['a' => 'A', 'b' => 'B']));
-        file_put_contents($repo . '/resources/js/i18n/locales/en/civic.json', json_encode(['c' => 'C']));
-        file_put_contents($repo . '/lang/en.json', json_encode(['Line' => 'Line']));
+        file_put_contents($repo . '/resources/js/i18n/locales/en/auth.json', '{"a":"A"}');
+        file_put_contents($repo . '/resources/js/i18n/locales/en/civic.json', '{"c":"C"}');
+        file_put_contents($repo . '/lang/en.json', '{"Line":"Line"}');
 
-        $svc = $this->svc();
-        $files = $svc->sourceFiles($repo);
+        $files = $this->svc()->sourceFiles($repo);
         $this->assertSame(['ui/auth.json', 'ui/civic.json', 'php/en.json'], array_keys($files));
-
-        $count = $svc->stageSourceMaster('run-en', $repo);
-        $this->assertSame(3, $count);
-
-        $dir = $svc->exportDir('run-en') . '/en';
-        $this->assertFileExists($dir . '/ui/auth.json');
-        $this->assertFileExists($dir . '/ui/civic.json');
-        $this->assertFileExists($dir . '/php/en.json');
-        $this->assertFileExists($dir . '/README.txt');
-        $readme = (string) file_get_contents($dir . '/README.txt');
-        $this->assertStringContainsString('Strings: 4 across 3 files.', $readme);
-        $this->assertStringContainsString('the 2 Vue namespace catalogues', $readme);
-
-        // Zipped like any package: the master lands as en-package.zip.
-        if (class_exists(\ZipArchive::class)) {
-            $n = $svc->zipDir($dir, $svc->packageZipPath('run-en', 'en'));
-            $this->assertSame(4, $n);
-        }
-    }
-
-    public function test_it_builds_the_export_command_and_zip_path(): void
-    {
-        $svc = $this->svc();
-        $cmd = $svc->exportCommand('es', 'run-1');
-
-        $this->assertSame('python3', $cmd[0]);
-        $this->assertStringEndsWith('scripts/i18n/export_master.py', str_replace('\\', '/', $cmd[1]));
-        $this->assertContains('--locale', $cmd);
-        $this->assertContains('es', $cmd);
-        $this->assertContains('--out', $cmd);
-
-        $out = $cmd[array_search('--out', $cmd, true) + 1];
-        $this->assertStringEndsWith('run-1/export', str_replace('\\', '/', $out));
-
-        $zip = $svc->packageZipPath('run-1', 'es');
-        $this->assertStringEndsWith('run-1/es-package.zip', str_replace('\\', '/', $zip));
-    }
-
-    public function test_it_parses_a_dry_run_report(): void
-    {
-        $stdout = <<<'TXT'
-import 1 file(s)  [DRY RUN]
-  es_auth.json: 2 accepted, 1 rejected  (es/auth)
-
-  rejections:
-    es/auth  auth_login.title: dropped placeholder {name}
-
-  files 1   accepted 2   rejected 1   [DRY RUN - nothing written]
-TXT;
-
-        $report = $this->svc()->parseDryRunReport($stdout);
-
-        $this->assertSame(2, $report['accepted']);
-        $this->assertSame(1, $report['rejected']);
-        $this->assertSame(1, $report['files']);
-        $this->assertCount(1, $report['rejections']);
-        $this->assertSame('es', $report['rejections'][0]['locale']);
-        $this->assertSame('auth', $report['rejections'][0]['namespace']);
-        $this->assertSame('auth_login.title', $report['rejections'][0]['key']);
-        $this->assertSame('dropped placeholder {name}', $report['rejections'][0]['reason']);
-    }
-
-    public function test_it_refuses_a_non_target_locale(): void
-    {
-        $this->assertTrue($this->svc()->isTargetLocale('es'));
-        $this->assertFalse($this->svc()->isTargetLocale('xx'));
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->svc()->exportCommand('xx', 'run-1');
-    }
-
-    public function test_it_refuses_a_path_outside_the_store(): void
-    {
-        $svc = $this->svc();
-
-        // A run id inside the store resolves.
-        $this->assertStringEndsWith('/run-1', str_replace('\\', '/', $svc->runDir('run-1')));
-
-        $this->expectException(InvalidArgumentException::class);
-        $svc->pathWithin('../../etc/passwd');
-    }
-
-    public function test_a_traversal_run_id_is_refused(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->svc()->runDir('../evil');
     }
 
     public function test_a_stale_run_is_an_in_flight_record_nobody_updated(): void

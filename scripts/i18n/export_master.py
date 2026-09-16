@@ -25,6 +25,7 @@ ordinary machine pass, which copies them through unchanged.
 
 Usage:
   python3 scripts/i18n/export_master.py --locale es
+  python3 scripts/i18n/export_master.py --locale en      # the English master: every string
   python3 scripts/i18n/export_master.py --locale all
   python3 scripts/i18n/export_master.py --locale fr --namespace auth --out /tmp/x
   python3 scripts/i18n/export_master.py --self-test
@@ -56,6 +57,12 @@ import translate_catalog as tc  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_I18N = ROOT / "resources" / "js" / "i18n"
+
+# The source locale. Exporting it yields the ENGLISH MASTER: the target IS the
+# source, so every translatable key counts as still-English and every one is
+# written, in exactly the layout every language package uses (operator order
+# 2026-09-15: one hierarchy for every language, English included).
+SOURCE_LOCALE = "en"
 DEFAULT_OUT = ROOT / "storage" / "app" / "i18n-export"
 
 # The settled conference locales (CLAUDE.md, i18nCoverage.test.mjs).
@@ -205,12 +212,28 @@ def used_by(ns: str, meta_en_dir: Path, js_root: Path) -> list[str]:
     return sorted(files)
 
 
-def build_instructions(language: str, native: str, direction: str) -> str:
+def build_instructions(language: str, native: str, direction: str, source: bool = False) -> str:
     """A complete prompt for any AI. Self-contained, no repo knowledge assumed."""
+    if source:
+        head = [
+            "This is the English SOURCE package of the Cosmopolitan Governance App: every "
+            "translatable user-interface string, in the same file layout every language "
+            "package uses.",
+            'Translate only the values in the "strings" object into the language you were '
+            "asked for, and import the result under that language. Rules, all mandatory:",
+        ]
+        glossary_line = ('6. Use the settled glossary in "_meta.glossary". When an English term there '
+                         "appears, use its rendering in your target language.")
+    else:
+        head = [
+            f"You are translating user-interface strings for the Cosmopolitan "
+            f"Governance App into {language} ({native}).",
+            'Translate only the values in the "strings" object. Rules, all mandatory:',
+        ]
+        glossary_line = ('6. Use the settled glossary in "_meta.glossary". When an English term there appears, '
+                         f"use its {language} rendering.")
     lines = [
-        f"You are translating user-interface strings for the Cosmopolitan "
-        f"Governance App into {language} ({native}).",
-        'Translate only the values in the "strings" object. Rules, all mandatory:',
+        *head,
         "1. Keep every key exactly as written. Do not add, remove, reorder, or rename keys.",
         "2. Keep every {placeholder} token unchanged. Same name, same braces.",
         "3. Never translate ID tokens such as F-LEG-017, R-09, WF-SYS-03, or CLK-06. "
@@ -219,13 +242,12 @@ def build_instructions(language: str, native: str, direction: str) -> str:
         "Copy them verbatim.",
         "5. Keep HTML tags, markdown, and vue-i18n syntax unchanged. The pipe | separates "
         "plural forms, @:key links a message, and {'{'} escapes a literal brace.",
-        '6. Use the settled glossary in "_meta.glossary". When an English term there appears, '
-        f"use its {language} rendering.",
+        glossary_line,
         "7. Keep the tone plain, precise, and non-bureaucratic. Short sentences.",
         '8. Return only a JSON object of the same shape: {"strings": {key: value, ...}}. '
         "No prose. No code fences.",
     ]
-    if direction == "rtl":
+    if direction == "rtl" and not source:
         lines.append(f"9. {language} is written right-to-left. Return natural "
                      f"right-to-left text; do not reorder the placeholders.")
     return "\n".join(lines)
@@ -278,7 +300,8 @@ def export_locale(locale: str, locales_dir: Path, meta_dir: Path, glossary_file:
             surface = f"Strings for the {ns} namespace."
             print(f"  note: no NAMESPACE_CONTEXT entry for [{ns}] - using a generic line")
         refs = used_by(ns, meta_en_dir, js_root)
-        instructions = build_instructions(row["name"], row["endonym"], row["dir"])
+        instructions = build_instructions(row["name"], row["endonym"], row["dir"],
+                                          source=(locale == SOURCE_LOCALE))
 
         parts = [keys[i:i + chunk] for i in range(0, len(keys), chunk)]
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -415,6 +438,25 @@ def self_test() -> int:
         check("_meta string_count matches", m.get("string_count") == len(strings))
         check("_meta used_by carries the manifest file",
               "Pages/Auth/Login.vue" in m.get("used_by", []), str(m.get("used_by")))
+
+        # THE ENGLISH MASTER: same door, same layout, every translatable key,
+        # including the ones a target already holds; the prompt names it as the source.
+        out_en = tmp / "out-en"
+        export_locale("en", loc, meta, i18n / "glossary" / "term-base.json",
+                      i18n / "locales.generated.js", tmp / "nojs", out_en, chunk=250,
+                      lang_dir=lang)
+        fe = out_en / "en" / "auth.json"
+        check("master chunk written in the package layout", fe.exists())
+        epayload = json.loads(fe.read_text(encoding="utf-8")) if fe.exists() else {}
+        estrings = epayload.get("strings", {})
+        check("master carries the key a target already holds", "auth_login.done" in estrings, str(list(estrings)))
+        check("master carries the absent key", "auth_login.log_in" in estrings)
+        check("master still drops the pure citation", "auth_login.cite_only" not in estrings)
+        check("master names itself the source", "SOURCE" in (epayload.get("_meta", {}).get("instructions") or ""))
+        check("master lang chunk beside the JS namespaces", (out_en / "en" / "lang.json").exists())
+        check("master and target share one layout",
+              sorted(p.name for p in (out_en / "en").iterdir()) == sorted(p.name for p in (out / "es").iterdir()),
+              f"{sorted(p.name for p in (out_en / 'en').iterdir())} vs {sorted(p.name for p in (out / 'es').iterdir())}")
 
         # the Laravel lang namespace exports beside the JS namespaces.
         lf = out / "es" / "lang.json"

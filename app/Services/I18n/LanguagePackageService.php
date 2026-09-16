@@ -27,16 +27,18 @@ use Illuminate\Support\Str;
  *
  * THE SOURCE (operator observation 2026-09-15: "only one language is actually
  * in the system"). English is the source catalogue, never a package target:
- * every target package is English strings addressed to one language, and the
- * English MASTER export zips the source catalogues themselves. Import refuses
- * the source: English is edited in code, never imported.
+ * every target package is English strings addressed to one language. The
+ * English MASTER is the SAME export for locale en: the target is the source,
+ * so every translatable key is written, in the one layout every package has
+ * (operator order 2026-09-15: one hierarchy, English included). Import
+ * refuses the source: English is edited in code, never imported.
  */
 class LanguagePackageService
 {
-    /** The source catalogue's locale. Exportable as a master, never a package target. */
+    /** The source catalogue's locale. Exportable as the master, never a package target. */
     public const SOURCE_LOCALE = 'en';
 
-    /** The source catalogues, relative to the repo root: the UI namespaces and the PHP lines. */
+    /** The source catalogues, relative to the repo root: the UI namespaces and the PHP lines (counted for the card). */
     private const SOURCE_UI_DIR = 'resources/js/i18n/locales/en';
     private const SOURCE_PHP_FILE = 'lang/en.json';
 
@@ -212,9 +214,10 @@ class LanguagePackageService
 
     /**
      * The source catalogues on disk: every English UI namespace file and the
-     * PHP line file, keyed by the path they take inside the master zip.
+     * PHP line file. The card counts them; nothing copies them (the master is
+     * an export like any other).
      *
-     * @return array<string, string> zip path => absolute file path
+     * @return array<string, string> label => absolute file path
      */
     public function sourceFiles(?string $repoRoot = null): array
     {
@@ -234,59 +237,20 @@ class LanguagePackageService
         return $files;
     }
 
-    /**
-     * Stage the English master under <run>/export/en: the source catalogues
-     * copied as they stand plus a README that states the layout and counts.
-     * Returns the number of catalogue files staged. The export job zips the
-     * directory afterwards exactly like a target package.
-     */
-    public function stageSourceMaster(string $run, ?string $repoRoot = null): int
-    {
-        $dir = $this->exportDir($run) . '/' . self::SOURCE_LOCALE;
-        $files = $this->sourceFiles($repoRoot);
-        if ($files === []) {
-            throw new \RuntimeException('no English source catalogues found under ' . self::SOURCE_UI_DIR);
-        }
-
-        $keys = 0;
-        foreach ($files as $rel => $abs) {
-            $dest = $dir . '/' . $rel;
-            $this->ensureDir(dirname($dest));
-            copy($abs, $dest);
-            $decoded = json_decode((string) file_get_contents($abs), true);
-            $keys += is_array($decoded) ? count($decoded) : 0;
-        }
-
-        $ui = count(array_filter(array_keys($files), fn (string $k): bool => str_starts_with($k, 'ui/')));
-        file_put_contents($dir . '/README.txt', implode("\n", [
-            'CGA English master (the source catalogue, not a translation).',
-            '',
-            'ui/<namespace>.json  the ' . $ui . ' Vue namespace catalogues (vue-i18n keys => English)',
-            'php/en.json          the Laravel __() lines (English line => English line)',
-            '',
-            'Strings: ' . $keys . ' across ' . count($files) . ' files.',
-            'Placeholders {name}, :name, ID tokens and citations must be kept verbatim in any translation.',
-            'A translated copy comes back through Import on /system/translations, addressed to its own language.',
-            '',
-        ]));
-
-        return count($files);
-    }
 
     // ── Commands (built here, run in the queued jobs) ─────────────────────────
 
     /**
      * The export command: python3 export_master.py --locale <code>
-     * --out <run>/export. Refuses a non-target locale before returning.
+     * --out <run>/export. One door for every language: the source locale
+     * yields the English master in the same layout. Refuses anything that is
+     * neither the source nor a registry target before returning.
      *
      * @return list<string>
      */
     public function exportCommand(string $locale, string $run): array
     {
-        if ($this->isSourceLocale($locale)) {
-            throw new InvalidArgumentException('the English master is staged from the source catalogues, never exported by script');
-        }
-        $this->assertTargetLocale($locale);
+        $this->assertExportable($locale);
 
         return [
             'python3',

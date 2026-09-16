@@ -100,6 +100,24 @@ class Wiring_w0446_language_packagesTest extends TestCase
         $this->assertStringNotContainsString('read_text(encoding="utf-8", errors="ignore")', $py);
     }
 
+    public function test_every_language_package_has_one_layout_english_included(): void
+    {
+        // Operator order 2026-09-15: the English master and a target package
+        // share one hierarchy. One export door, no staging copy, no README tree.
+        $export = $this->read('app/Jobs/I18n/ExportLanguagePackageJob.php');
+        $this->assertStringNotContainsString('stageSourceMaster', $export);
+        $this->assertStringNotContainsString('isSourceLocale', $export, 'the export job never branches on the locale');
+        $this->assertSame(1, substr_count($export, '$packages->exportCommand('));
+
+        $svc = $this->read('app/Services/I18n/LanguagePackageService.php');
+        $this->assertStringNotContainsString('README', $svc);
+        $this->assertStringNotContainsString('stageSourceMaster', $svc);
+
+        $py = $this->read('scripts/i18n/export_master.py');
+        $this->assertStringContainsString('SOURCE_LOCALE = "en"', $py);
+        $this->assertStringContainsString('source=(locale == SOURCE_LOCALE)', $py);
+    }
+
     public function test_the_import_job_writes_one_audit_entry(): void
     {
         $import = $this->read('app/Jobs/I18n/ImportLanguagePackageJob.php');
