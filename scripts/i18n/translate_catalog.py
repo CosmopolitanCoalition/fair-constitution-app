@@ -508,7 +508,10 @@ class OllamaProvider(Provider):
             # it between separate requests otherwise, so every chunk pays the
             # cold-load cost again.
             "keep_alive": "10m",
-            "options": {"temperature": 0.2},
+            # A generation cap: a runaway reply (Welsh, 2026-09-16, one request
+            # held a lane 15 minutes to the timeout) ends within the budget of
+            # about 150 tokens per string instead of running to the timeout.
+            "options": {"temperature": 0.2, "num_predict": 150 * len(texts) + 200},
             "messages": [
                 {"role": "system", "content": self._system(target)},
                 {"role": "user", "content": json.dumps(texts, ensure_ascii=False)},
