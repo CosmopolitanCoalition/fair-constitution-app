@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Вашият избор за председател на управителния съвет",
   "board_roster": "Членове на управителния съвет и датите на техните текущи мандати",
   "board_strip.cell_vacant": "— вакантно",
-  "board_strip.chair_suffix": "(съвместно избран председател)",
+  "board_strip.chair_suffix": " (съвместно избран председател)",
   "board_strip.class_governor": "Назначен член на управителния съвет",
   "board_strip.class_owner_elected": "Избран от собствениците",
   "board_strip.class_worker_elected": "Избран от работниците",

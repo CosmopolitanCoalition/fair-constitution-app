@@ -473,7 +473,7 @@
   "districts.tip_district": "নির্বাচনী এলাকা: {seats} আসন",
   "districts.tip_expand": "উপ-নির্বাচনী এলাকা দেখতে সাইডবারে প্রসারিত করুন",
   "districts.tip_fractional": "আংশিক: {n}",
-  "districts.tip_members_suffix": "· {n} সদস্য",
+  "districts.tip_members_suffix": " · {n} সদস্য",
   "districts.tip_pop": "জনসংখ্যা: {n}",
   "districts.tip_unassigned": "অনির্ধারিত — কম্পোজিটেবল",
   "districts.toast_autoseed_complete": "অটো-সিড সম্পন্ন",

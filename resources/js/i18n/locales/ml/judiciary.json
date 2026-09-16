@@ -67,6 +67,7 @@
   "judiciary_casedetail.stated_reason": "വ്യക്തമായ കാരണം",
   "judiciary_casedetail.submitted_by": "സമർപ്പിച്ചത്",
   "judiciary_casedetail.the_bench_is_seated_when_the_court_accepts": "കോടതി കേസ് സ്വീകരിക്കുകയും തീവ്രത തരംതിരിക്കുകയും ചെയ്യുമ്പോൾ ബെഞ്ച് രൂപീകരിക്കും (F-JDG-001). താൽപ്പര്യ സംഘർഷമുള്ള ജഡ്ജിമാരെ ഒഴിവാക്കി തിരഞ്ഞെടുപ്പ് വീണ്ടും നടത്തും.",
+  "judiciary_casedetail.the_case_lifecycle_is_wf_jud_03_jury_panel": "കേസിന്റെ ജീവിതചക്രം WF-JUD-03 ആണ്; ജൂറി പാനലിംഗ് WF-JUD-04 ആണ്; ഭരണഘടനാപരമായ കണ്ടെത്തൽ WF-JUD-05 ലേക്ക് ശാഖ branching ചെയ്യുന്നു. പ്രധാന ഭരണഘടനാ ചോദ്യങ്ങൾ തീവ്രത അടിസ്ഥാനമാക്കിയുള്ള പാനലിന് പകരം പൂർണ്ണ കോടതിയാണ് കൈകാര്യം ചെയ്യുന്നത് (CLK-16, ഹാർഡൻഡ്). കേസ് സ്റ്റേറ്റ് മെഷീൻ മുകളിൽ തത്സമയം കാണിക്കുന്നു.",
   "judiciary_casedetail.the_court_action_was_rejected": "കോടതി നടപടി നിരസിച്ചു.",
   "judiciary_casedetail.the_court_advances_the_append_only_record_": "എഞ്ചിൻ വഴി ഫയൽ ചെയ്തുകൊണ്ട് കോടതി റെക്കോർഡുകൾ പുതുക്കുന്നു — ഓരോ നടപടിയും അത് നിയമപരമായി അനുവദനീയമായ ഘട്ടത്തിൽ മാത്രമേ സ്വീകരിക്കൂ (എഞ്ചിൻ ആണ് അതിർത്തി). Art. IV §4.",
   "judiciary_casedetail.the_court_s_classification_drives_the_pane": "കോടതിയുടെ തരംതിരിവാണ് പാനൽ വലിപ്പത്തെ തീരുമാനിക്കുന്നത് — ഫയൽ ചെയ്തയാളുടെ അവകാശവാദമല്ല.",

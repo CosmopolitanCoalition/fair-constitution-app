@@ -125,6 +125,7 @@
   "civic_myrecord.one_person_one_profile_profile_v2_contract": "တစ်ဦးလျှင် ပရိုဖိုင်တစ်ခု (profile-v2 စာချုပ်)။ Record တက်ဘ်သည် သင်တင်သွင်းထားသော အချက်အလက်များကိုသာ စစ်ထုတ်ထားသည့် ဖြည့်စွက်ရုံသာရသော စာရင်းစစ်မှတ်တမ်း (WF-SYS-03/04) ဖြစ်သည်၊ Settings တက်ဘ်သည် F-IND-002 ကို ဖွဲ့စည်းပုံအခြေခံဥပဒေ အင်ဂျင်မှတစ်ဆင့် တင်သွင်းသဖြင့် ပြောင်းလဲမှုနှင့် ၎င်း၏ မှတ်တမ်းသည် အတူတကွ မှတ်တမ်းတင်သည်။ ကိုယ်စားလှယ်လောင်းဖြစ်မှုသည် ဤပရိုဖိုင်၏ တက်ဘ်တစ်ခုသာဖြစ်ပြီး သီးခြားမည်သူမည်ဝါဖြစ်မှု မဟုတ်ပါ။",
   "civic_myrecord.one_verified_residency_associations_at_eve": "အတည်ပြုပြီးသော နေထိုင်မှုတစ်ခု → အဆင့်တိုင်းရှိ အသင်းအဖွဲ့များ · Art. I",
   "civic_myrecord.open_the_election": "ရွေးကောက်ပွဲကို ဖွင့်ပါ",
+  "civic_myrecord.page_of_entr": "စာမျက်နှာ {current_page}၊ စုစုပေါင်း {last_page} စာမျက်နှာ · {total} ခု {entries}",
   "civic_myrecord.participation_is_public_ballot_choices_are": "ပါဝင်မှုသည် အများပြည်သူသိရှိနိုင်သည်၊ မဲလက်မှတ် ရွေးချယ်မှုများသည် လျှို့ဝှက်သည် · Art. II §2",
   "civic_myrecord.private_like_a_ballot_only_you_can_read_it": "သီးသန့် — မဲလက်မှတ်ကဲ့သို့ပင် သင်တစ်ဦးတည်းသာ ဖတ်ရှုနိုင်သည်။",
   "civic_myrecord.profile_sections": "ပရိုဖိုင် အပိုင်းများ",

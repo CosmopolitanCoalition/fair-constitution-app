@@ -79,8 +79,8 @@
   "oversight.removal_title": "Izinhlelo zokususa",
   "oversight.seat_label": "Isihlalo {seat}",
   "oversight.seat_vacated": "isihlalo sishiywe",
-  "oversight.speaker_owncase_suffix": "(Usomlomo — icala lakhe lidinga ohlala esihlalweni sokuphetha)",
-  "oversight.speaker_suffix": "(Usomlomo)",
+  "oversight.speaker_owncase_suffix": " (Usomlomo — icala lakhe lidinga ohlala esihlalweni sokuphetha)",
+  "oversight.speaker_suffix": " (Usomlomo)",
   "oversight.special_election": "ukhetho olukhethekile {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — ukuphatha icala lakho kuvimbelwe kukodi",
   "oversight.spk_form_name": "Ukuphatha ukuSusa ebunzimeni/Ukulahlwa/Ukuqashwa",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Izihlalo ezingenamuntu",
   "oversight.vacancy_countback_link": "isihlalo esingenamuntu {status} — ikhasi lokubala kabusha →",
   "oversight.vacancy_state_aria": "Umeshini wesimo sesihlalo esingenamuntu",
-  "oversight.you_suffix": "(wena)",
+  "oversight.you_suffix": " (wena)",
   "referendums.about": "Isihlangu se-CLK-19 yisivimbi sokuhlola, hhayi isikhathi: ifayili le-F-LEG-034 elibhekiswe esinqumweni seningi elikhethekile lomphakathi liyanقwa ngaphambi kokuvota ngokucashunwa, nokunanqwa kwayo kufika eketshini lokucwaninga. Isihlangu siyakhululwa lapho ukhetho olulandelayo jikelele luqinisekiswa — izinqumo zenhlolovo zilungiswa ngokuhamba endleleni ejwayelekile.",
   "referendums.act_ordinary": "Isinqumo esijwayelekile — ikilasi leningi",
   "referendums.act_setting_change": "Isinqumo sokushintsha izilungiselelo — ikilasi leningi",
@@ -245,6 +245,7 @@
   "type_b_districts.contig_no": "✗ Akuxhumani",
   "type_b_districts.contig_not_computed": "Ukuxhumana akukabi kubalwa",
   "type_b_districts.contig_short": "Ukuxhumana {a}/{b}",
+  "type_b_districts.contig_tooltip": "Ukuxhumana kuthathwa ukuthi kuphukile kuphela lapho kwakungenzeka ekuqaleni. Izinto ezingenzi eki geographic azifakwe. Lokhu kufaka izindawo zegunya zezilanda ezingenalo ibhodi lomhlaba nanye, amalungu azungezwe ngokuphelele izindawo zegunya ezinkulu kakhulu ukuba zihlanganiswe ngaphandle kokwephula isilinganiso somthethosisekelo, kanye nezifunda zonye, ezingalokothi zingahambisani nomthethosisekelo. Okufanayo kusetshenziswa emaqenjini ahlukile ngokufanayo angakwazi ukufika esilinganisweni esiphansi somthethosisekelo.",
   "type_b_districts.contig_unknown": "? Ukuxhumana",
   "type_b_districts.contig_yes": "✓ Kuxhumana",
   "type_b_districts.contiguous_label": "Kuxhumana:",
@@ -369,7 +370,7 @@
   "type_b_districts.over_rep": "Ukumela okweqile:",
   "type_b_districts.overcount": "Ukubala okweqile",
   "type_b_districts.pan_mode": "Imode ye-Pan",
-  "type_b_districts.parts_suffix": "= iziqila {total}",
+  "type_b_districts.parts_suffix": " = iziqila {total}",
   "type_b_districts.pe_bad": "Kubi (>10%):",
   "type_b_districts.pe_district_count": "({n} izifunda)",
   "type_b_districts.pe_good": "Kuhle (≤5%):",
@@ -492,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Ukuhlukahluka kwezombusazwe okulinganayo",
   "type_b_districts.vertex_snap_unavailable": "Ukuhambisana kwamaphuzu akusebenzi — ilayibrari yokudweba ishintshile ngaphansi kwale thuluzi.",
   "type_b_districts.view_leg_districts": "Buka Izifunda Zesishayamthetho →",
-  "type_b_districts.wizard_paused": "Isizuzi siphumule."
+  "type_b_districts.wizard_paused": " Isizuzi siphumule."
 }

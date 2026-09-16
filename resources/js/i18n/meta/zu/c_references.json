@@ -792,7 +792,7 @@
     "provider": "ollama"
   },
   "department.nominee_hint": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

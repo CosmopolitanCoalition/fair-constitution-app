@@ -1323,7 +1323,7 @@
     "provider": "ollama"
   },
   "civic_residency.searches_jurisdiction_names_e_g_serravalle": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 4 -> 2",
     "provider": "ollama"
   },

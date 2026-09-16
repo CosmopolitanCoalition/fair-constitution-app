@@ -79,8 +79,8 @@
   "oversight.removal_title": "നീക്കം ചെയ്യൽ നടപടികൾ",
   "oversight.seat_label": "സീറ്റ് {seat}",
   "oversight.seat_vacated": "സീറ്റ് ഒഴിവായി",
-  "oversight.speaker_owncase_suffix": "(സ്പീക്കർ — സ്വന്തം കേസിന് നിയുക്തനായ ഒരു അധ്യക്ഷൻ ആവശ്യമാണ്)",
-  "oversight.speaker_suffix": "(സ്പീക്കർ)",
+  "oversight.speaker_owncase_suffix": " (സ്പീക്കർ — സ്വന്തം കേസിന് നിയുക്തനായ ഒരു അധ്യക്ഷൻ ആവശ്യമാണ്)",
+  "oversight.speaker_suffix": " (സ്പീക്കർ)",
   "oversight.special_election": "പ്രത്യേക തിരഞ്ഞെടുപ്പ് {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — സ്വന്തം കേസിൽ അധ്യക്ഷനായിരിക്കൽ കോഡിൽ തടഞ്ഞിരിക്കുന്നു",
   "oversight.spk_form_name": "പദവി നീക്കം/കുറ്റപ്പെടുത്തൽ/പുറത്താക്കൽ നടപടികളിലെ അധ്യക്ഷൻ",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "ഒഴിവുകൾ",
   "oversight.vacancy_countback_link": "ഒഴിവ് {status} — പുനർവോട്ടെണ്ണൽ പേജ് →",
   "oversight.vacancy_state_aria": "ഒഴിവ് സ്റ്റേറ്റ് മെഷീൻ",
-  "oversight.you_suffix": "(നിങ്ങൾ)",
+  "oversight.you_suffix": " (നിങ്ങൾ)",
   "referendums.about": "CLK-19 ഷീൽഡ് ഒരു വാലിഡേറ്റർ ഗേറ്റാണ്, ടൈമറല്ല: ജനസംഖ്യയുടെ പ്രത്യേക ഭൂരിപക്ഷത്തോടെയുള്ള ഒരു തീരുമാനത്തിനെതിരെയുള്ള F-LEG-034 ഫയലിംഗ് വോട്ടിന് മുൻപേ നിരസിക്കപ്പെടും, ഈ നിരസിക്കൽ ഓഡിറ്റ് ചെയിനിൽ രേഖപ്പെടുത്തും. അടുത്ത പൊതു തിരഞ്ഞെടുപ്പ് സാക്ഷ്യപ്പെടുത്തുമ്പോൾ ഷീൽഡ് നീങ്ങും — ഹിതപരിശോധന തീരുമാനങ്ങൾ പിന്നീട് സാധാരണ രീതിയിൽ ഭേദഗതി ചെയ്യാം.",
   "referendums.act_ordinary": "സാധാരണ തീരുമാനം — ഭൂരിപക്ഷ വിഭാഗം",
   "referendums.act_setting_change": "ക്രമീകരണ മാറ്റ തീരുമാനം — ഭൂരിപക്ഷ വിഭാഗം",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "അമിത പ്രാതിനിധ്യം:",
   "type_b_districts.overcount": "അമിത എണ്ണൽ",
   "type_b_districts.pan_mode": "പാൻ മോഡ്",
-  "type_b_districts.parts_suffix": "= {total} ഭാഗങ്ങൾ",
+  "type_b_districts.parts_suffix": " = {total} ഭാഗങ്ങൾ",
   "type_b_districts.pe_bad": "മോശം (>10%):",
   "type_b_districts.pe_district_count": "({n} മണ്ഡലങ്ങൾ)",
   "type_b_districts.pe_good": "നല്ലത് (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "ഏകീകൃത രാഷ്ട്രീയ വൈവിധ്യം",
   "type_b_districts.vertex_snap_unavailable": "Vertex snapping ലഭ്യമല്ല — ഈ ടൂളിന്റെ ഡ്രോയിംഗ് ലൈബ്രറിയിൽ മാറ്റം വന്നു.",
   "type_b_districts.view_leg_districts": "നിയമനിർമ്മാണ മണ്ഡലങ്ങൾ കാണുക →",
-  "type_b_districts.wizard_paused": "വിസാർഡ് താൽക്കാലികമായി നിർത്തി."
+  "type_b_districts.wizard_paused": " വിസാർഡ് താൽക്കാലികമായി നിർത്തി."
 }

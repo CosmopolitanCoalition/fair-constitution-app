@@ -292,7 +292,7 @@
     "provider": "ollama"
   },
   ":seated of :serving serving members seated": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6763,7 +6763,7 @@
     "provider": "ollama"
   },
   "The bill has no committee — direct-to-floor bills move by motion, not F-CHR-003.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

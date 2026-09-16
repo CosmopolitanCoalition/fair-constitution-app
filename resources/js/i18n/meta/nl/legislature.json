@@ -1220,7 +1220,7 @@
     "provider": "ollama"
   },
   "legislature_emergencypowers.all_validation_runs_pre_vote_the_closed_ca": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1697,7 +1697,7 @@
     "provider": "ollama"
   },
   "legislature_referendums.the_clk_19_shield_is_a_validator_gate_not_": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

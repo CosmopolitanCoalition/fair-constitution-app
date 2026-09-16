@@ -268,7 +268,7 @@
   "audit_chain.missing": "Գրառում #{seq}-ը չի գտնվել այս նմուշում: Հաջորդականության համարները կարող են ունենալ բացեր:",
   "audit_chain.nav_label": "Աուդիտի պատմության նավիգացիա",
   "audit_chain.newer": "Ավելի նոր գրառումներ",
-  "audit_chain.newest_first": "Ամենանորը սկզբում ·",
+  "audit_chain.newest_first": "Ամենանորը սկզբում · ",
   "audit_chain.no_entries_yet": "Գրառումներ դեռ չկան",
   "audit_chain.older": "Ավելի հին գրառումներ",
   "audit_chain.open_receipt": "Բացել անդորրագիրը",

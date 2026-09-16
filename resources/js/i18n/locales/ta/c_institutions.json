@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "தொடர்புடைய எந்தவொரு குடியிருப்பாளரும் வழக்கறிஞராகப் பதிவு செய்யலாம், ஆனால் உங்கள் அதிகார எல்லையில் முதலில் ஒரு நீதிமன்றம் இருக்க வேண்டும் — சட்டமன்றம் ஒன்றை உருவாக்கும்போது (F-LEG-017) நீதிமன்றங்கள் உருவாகும்.",
   "advocate_console.no_judiciary_title": "உங்கள் சங்கத் தொடரில் இன்னும் நீதித்துறை இல்லை.",
   "advocate_console.no_matching_page": "இந்தப் பக்கத்தில் பொருந்தும் வழக்குகள் எதுவுமில்லை. வேறு தலைப்பு அல்லது கோப்பு எண்ணை முயற்சிக்கவும்.",
-  "advocate_console.not_seated_suffix": "(இன்னும் இருக்கை கிடைக்கவில்லை)",
+  "advocate_console.not_seated_suffix": " (இன்னும் இருக்கை கிடைக்கவில்லை)",
   "advocate_console.not_yet": "இன்னும் இல்லை",
   "advocate_console.open_case": "வழக்கைத் திறக்க →",
   "advocate_console.open_case_short": "வழக்கைத் திற",

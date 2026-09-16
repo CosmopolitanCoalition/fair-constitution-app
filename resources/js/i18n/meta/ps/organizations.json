@@ -404,7 +404,7 @@
     "provider": "ollama"
   },
   "organizations_codetermination.the_headcount_at_which_worker_seats_reach_": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

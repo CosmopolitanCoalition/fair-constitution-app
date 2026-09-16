@@ -215,6 +215,7 @@
   "operator_roles.run_a_step_from_here": "இங்கிருந்து ஒரு படிநிலையை இயக்கு",
   "operator_roles.scope_optional_jurisdiction_id": "வரம்பு (விருப்பமான அதிகார எல்லை ஐடி)",
   "operator_roles.self_a_self_asserted_channel_governed_a_go": "self என்பது சுய-உறுதிப்படுத்தப்பட்ட சேனல் · governed என்பது நிர்வகிக்கப்பட்ட சேனல்",
+  "operator_roles.self_asserted_mesh_member_mirror_etl_estab": "சுயமாக உறுதிப்படுத்தப்பட்டது (mesh.member · பிரதிபலிப்பு நகல் · etl): establishActive — ஒரே கிளிக்கில், தடைகள் இல்லை.",
   "operator_roles.self_asserted_one_click_no_gate": "சுய-உறுதிப்படுத்தப்பட்டது — ஒரே கிளிக்கில், தடைகள் இல்லை",
   "operator_roles.self_asserted_vs_governed_a_self_asserted_": "சுய-உறுதிப்படுத்தப்பட்டது மற்றும் நிர்வகிக்கப்பட்டது. சுய-உறுதிப்படுத்தப்பட்ட சேனல் உங்களைத் தவிர வேறு யாரையும் பாதிக்காது, எனவே அதை இயக்குவது உங்கள் விருப்பம். நிர்வகிக்கப்பட்ட சேனல் மற்றவர்கள் மீதான கடமையை வழங்குகிறது அல்லது ஒரு சக உறுப்பினரின் மண்டலத்தின் கீழ் ஒரு பெயரை எழுதுகிறது — எனவே இது கோரப்படும், உரிமை கோரப்படாது, மற்றும் கீழே உள்ள இரட்டை-மீட்டரால் அங்கீகரிக்கப்படும்.",
   "operator_roles.supersedes_a": "{id}{name}A-வை மீறுகிறது",

@@ -471,7 +471,7 @@
   "districts.tip_district": "Vaalipiiri: {seats} paikkaa",
   "districts.tip_expand": "Laajenna sivupalkissa nähdäksesi alipiirit",
   "districts.tip_fractional": "Murtoluku: {n}",
-  "districts.tip_members_suffix": "· {n} jäsentä",
+  "districts.tip_members_suffix": " · {n} jäsentä",
   "districts.tip_pop": "Väkiluku: {n}",
   "districts.tip_unassigned": "Määrittelemätön — yhdistettävissä",
   "districts.toast_autoseed_complete": "Automaattinen alustus valmis",

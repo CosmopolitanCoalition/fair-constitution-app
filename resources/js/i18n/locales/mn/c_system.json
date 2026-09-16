@@ -268,7 +268,7 @@
   "audit_chain.missing": "Энэхүү instance-д #{seq} дугаартай бичлэг олдсонгүй. Дарааллын дугаар алгаснаас хамаарч болно.",
   "audit_chain.nav_label": "Аудитын түүхийн навигаци",
   "audit_chain.newer": "Шинэ бичлэгүүд",
-  "audit_chain.newest_first": "Хамгийн сүүлийнх түрүүлж ·",
+  "audit_chain.newest_first": "Хамгийн сүүлийнх түрүүлж · ",
   "audit_chain.no_entries_yet": "Одоогоор бичлэг алга",
   "audit_chain.older": "Хуучин бичлэгүүд",
   "audit_chain.open_receipt": "Баримтыг нээх",

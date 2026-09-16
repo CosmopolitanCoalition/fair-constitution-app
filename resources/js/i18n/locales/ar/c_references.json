@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "اختيارك لرئيس المجلس",
   "board_roster": "أعضاء مجلس الإدارة وتواريخ ولايتهم الحالية",
   "board_strip.cell_vacant": "— شاغر",
-  "board_strip.chair_suffix": "(رئيس منتخب مشترك)",
+  "board_strip.chair_suffix": " (رئيس منتخب مشترك)",
   "board_strip.class_governor": "عضو مجلس إدارة معين",
   "board_strip.class_owner_elected": "منتخب من الملاك",
   "board_strip.class_worker_elected": "منتخب من العمال",

@@ -572,7 +572,7 @@
     "provider": "ollama"
   },
   "setup_exportbackuppanel.build_a_portable_tar_gz_snapshot_of_this_i": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (130/356 chars, floor 0.45)",
     "provider": "ollama"
   },

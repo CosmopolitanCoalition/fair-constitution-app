@@ -268,7 +268,7 @@
   "audit_chain.missing": "Записот #{seq} не беше пронајден на оваа инстанца. Броевите на секвенцата можат да имаат празнини.",
   "audit_chain.nav_label": "Навигација низ ревизорскиот дневник",
   "audit_chain.newer": "Понови записи",
-  "audit_chain.newest_first": "Најнови први ·",
+  "audit_chain.newest_first": "Најнови први · ",
   "audit_chain.no_entries_yet": "Уште нема записи",
   "audit_chain.older": "Постари записи",
   "audit_chain.open_receipt": "Отвори потврда",

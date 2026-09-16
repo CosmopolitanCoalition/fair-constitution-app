@@ -820,7 +820,7 @@
     "provider": "ollama"
   },
   "organizations_transfersconversions.ownership_transfers_only_by_mutual_consent": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

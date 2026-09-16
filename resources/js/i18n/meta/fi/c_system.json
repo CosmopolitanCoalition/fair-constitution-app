@@ -2296,7 +2296,7 @@
     "provider": "ollama"
   },
   "translation_review.unworded": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

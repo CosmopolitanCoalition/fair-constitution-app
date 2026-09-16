@@ -53,6 +53,7 @@
   "system_publicrecords.cursor_pagination_the_record_is_append_onl": "kursori-sivutus — tietue on vain lisättävä; sivut eivät koskaan siirry",
   "system_publicrecords.entered_verbatim_into_the_immutable_public": "syötetty sanasta sanaan muuttumattomaan julkiseen rekisteriin · WF-SYS-03 · sinetöity tarkastusketjuun tallennushetkellä",
   "system_publicrecords.entries_on_the_record": "merkinnät rekisterissä",
+  "system_publicrecords.every_statement_bill_vote_and_explanation_": "Jokainen hallintoalueesi esitys, lakiesitys, ääni ja selitys — julkaistu heti tallennushetkellä, kenen tahansa luettavissa ja koskemattomana. Tämä on pinta, jota perustuslaki kutsuu nimellä \"julkiset ja helposti saatavilla olevat rekisterit\".",
   "system_publicrecords.filter_the_public_record": "Suodata julkinen rekisteri",
   "system_publicrecords.general_record_no_attachment": "Yleinen tietue (ei liitettä)",
   "system_publicrecords.machine_translation_pipeline_planned_phase": "konekäännösprosessi · Suunnitteilla · Vaihe F",

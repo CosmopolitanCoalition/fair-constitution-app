@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "任何关联居民均可注册为辩护人，但您的辖区必须先存在法院 — 法院在立法机构创建时 (F-LEG-017) 成立。",
   "advocate_console.no_judiciary_title": "您的关联链中尚无司法机构。",
   "advocate_console.no_matching_page": "此页没有匹配的案件。请尝试其他标题或案卷号。",
-  "advocate_console.not_seated_suffix": "(尚未就席)",
+  "advocate_console.not_seated_suffix": " (尚未就席)",
   "advocate_console.not_yet": "尚未",
   "advocate_console.open_case": "打开案件 →",
   "advocate_console.open_case_short": "打开案件",

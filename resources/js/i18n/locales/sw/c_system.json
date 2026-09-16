@@ -268,7 +268,7 @@
   "audit_chain.missing": "Ingizo #{seq} haikupatikana kwenye mfumo huu. Namba za mfuatano zinaweza kuwa na mapengo.",
   "audit_chain.nav_label": "Urambazaji wa kumbukumbu ya ukaguzi",
   "audit_chain.newer": "Ingizo mpya zaidi",
-  "audit_chain.newest_first": "Mpya zaidi kwanza ·",
+  "audit_chain.newest_first": "Mpya zaidi kwanza · ",
   "audit_chain.no_entries_yet": "Hakuna ingizo bado",
   "audit_chain.older": "Ingizo za zamani",
   "audit_chain.open_receipt": "Fungua risiti",

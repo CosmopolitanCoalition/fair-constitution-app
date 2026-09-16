@@ -473,7 +473,7 @@
   "districts.tip_district": "Jimbo: viti {seats}",
   "districts.tip_expand": "Panua kwenye upande ili kuona vijimbo",
   "districts.tip_fractional": "Sehemu: {n}",
-  "districts.tip_members_suffix": "· wanachama {n}",
+  "districts.tip_members_suffix": " · wanachama {n}",
   "districts.tip_pop": "Idadi: {n}",
   "districts.tip_unassigned": "Haijakubaliwa — inaweza kuunganishwa",
   "districts.toast_autoseed_complete": "Uwekaji mbegu wa kiotomatiki umekamilika",

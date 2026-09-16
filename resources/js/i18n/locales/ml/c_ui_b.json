@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "ചേർത്തത്:",
+  "law_diff.added": "ചേർത്തത്: ",
   "law_diff.label": "നിയമത്തിലെ മാറ്റങ്ങൾ",
-  "law_diff.removed": "നീക്കം ചെയ്തത്:",
+  "law_diff.removed": "നീക്കം ചെയ്തത്: ",
   "planned_banner.default_body": "ലോകത്തിന്റെ ഈ ഭാഗം നിർമ്മാണത്തിന് മുൻപേ രൂപകൽപ്പന ചെയ്തതാണ്. ഇവിടെ ഒന്നും നിലവിൽ സജീവമല്ല, യഥാർത്ഥ പണവും എവിടെയുമില്ല.",
   "planned_banner.title": "ആസൂത്രണം ചെയ്തു — ഒരു മുൻകൂർ കാഴ്ച.",
   "selection_identity.aria_org": "{name}-ന്റെ സംഘടന രേഖ, റഫറൻസ് {id}",

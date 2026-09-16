@@ -47,6 +47,7 @@
   "executive_actions.the_executive_proposes_the_department_boar": "A végrehajtó hatalom javasolja; a részleg igazgatótanácsa elfogadja, módosítja vagy elutasítja — a javaslatok nem kerülhetik ki az igazgatótanácsot · Art. III §4.",
   "executive_actions.the_legislature_appropriates_by_act_the_ex": "A törvényhozás határozattal rendelkezik az összegről; a végrehajtó hatalom adminisztrálja. A támogatások soha nem haladják túl a sor fennmaradó egyenlegét, és minden támogatás és kifizetés hozzáadódik az auditlánchoz · WF-SYS-04.",
   "executive_actions.the_legislature_has_appropriated_no_funds_": "A törvényhozás nem rendelkezett összeggel — a rendelkezés egy határozat. Törvényjavaslat megnyitása →",
+  "executive_actions.the_live_instrument_the_order_executes_a_d": "A hatályos eszköz, amely alapján a rendelkezés végrehajtása történik — egy delegációs/alapító határozat vagy egy aktív rendkívüli jogkör. A rendelkezés nem lépheti túl azt.",
   "executive_actions.the_order_may_name_a_department_this_execu": "A rendelkezés nevezhet egy olyan részleget, amelyet ez a végrehajtó felügyel.",
   "executive_actions.the_order_never_took_effect_the_rejected_a": "{constitutionError} A rendelkezés soha nem lépett életbe; az elutasított kísérlet szerepel a nyilvános nyilvántartásban — lásd a regiszter tetejét alább.",
   "executive_actions.the_order_was_not_issued": "A rendelkezést nem adták ki.",

@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "täitevvõimu valimised",
+  "election_kind.general": "üldvalimised",
+  "election_kind.judicial": "kohtuvõimu valimised",
+  "election_kind.org_board_owner": "juhatuse valimised (omaniku kohad)",
+  "election_kind.org_board_worker": "juhatuse valimised (tööliste kohad)",
+  "election_kind.referendum": "rahvahääletus",
+  "election_kind.restoration": "taastamise valimised",
+  "election_kind.special": "erivalimised"
+}

@@ -268,7 +268,7 @@
   "audit_chain.missing": "ఈ ఇన్‌స్టాన్స్‌లో ఎంట్రీ #{seq} కనుగొనబడలేదు. సీక్వెన్స్ నంబర్లలో ఖాళీలు ఉండవచ్చు.",
   "audit_chain.nav_label": "ఆడిట్ చరిత్ర నావిగేషన్",
   "audit_chain.newer": "కొత్త ఎంట్రీలు",
-  "audit_chain.newest_first": "అతికొత్తవి మొదట ·",
+  "audit_chain.newest_first": "అతికొత్తవి మొదట · ",
   "audit_chain.no_entries_yet": "ఇంకా ఎంట్రీలు లేవు",
   "audit_chain.older": "పాత ఎంట్రీలు",
   "audit_chain.open_receipt": "రసీదు తెరవండి",

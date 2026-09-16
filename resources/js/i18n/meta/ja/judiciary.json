@@ -668,7 +668,7 @@
     "provider": "ollama"
   },
   "judiciary_home.supermajority_of_legislature_supermajority": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

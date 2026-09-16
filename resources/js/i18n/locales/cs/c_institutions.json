@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Registrace advokáta je otevřena pro každého přidruženého obyvatele, ale ve vaší jurisdikci musí nejprve existovat soud — soudy vznikají, když je vytvoří zákonodárný sbor (F-LEG-017).",
   "advocate_console.no_judiciary_title": "Ve vašem řetězci přidružení zatím není žádná soudní moc.",
   "advocate_console.no_matching_page": "Na této stránce nejsou žádné odpovídající případy. Zkuste jiný název nebo číslo spisu.",
-  "advocate_console.not_seated_suffix": "(zatím neobsazeno)",
+  "advocate_console.not_seated_suffix": " (zatím neobsazeno)",
   "advocate_console.not_yet": "Ještě ne",
   "advocate_console.open_case": "Otevřít případ →",
   "advocate_console.open_case_short": "Otevřít případ",

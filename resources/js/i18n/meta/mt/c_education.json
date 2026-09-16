@@ -1644,7 +1644,7 @@
     "provider": "ollama"
   },
   "education_executive_executive_home.why": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -3401,7 +3401,7 @@
     "provider": "ollama"
   },
   "education_rooms_directory.s2_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (47/154 chars, floor 0.45)",
     "provider": "ollama"
   },

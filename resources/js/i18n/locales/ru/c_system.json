@@ -268,7 +268,7 @@
   "audit_chain.missing": "Запись №{seq} не найдена в этом экземпляре. В порядковых номерах могут быть пропуски.",
   "audit_chain.nav_label": "Навигация по журналу аудита",
   "audit_chain.newer": "Более новые записи",
-  "audit_chain.newest_first": "Сначала новые ·",
+  "audit_chain.newest_first": "Сначала новые · ",
   "audit_chain.no_entries_yet": "Записей пока нет",
   "audit_chain.older": "Более старые записи",
   "audit_chain.open_receipt": "Открыть квитанцию",

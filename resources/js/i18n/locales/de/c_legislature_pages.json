@@ -472,7 +472,7 @@
   "districts.tip_district": "Wahlkreis: {seats} Sitze",
   "districts.tip_expand": "In der Seitenleiste erweitern, um Unterwahlkreise zu sehen",
   "districts.tip_fractional": "Bruchteilig: {n}",
-  "districts.tip_members_suffix": "· {n} Mitglieder",
+  "districts.tip_members_suffix": " · {n} Mitglieder",
   "districts.tip_pop": "Bev: {n}",
   "districts.tip_unassigned": "Nicht zugewiesen — kombinierbar",
   "districts.toast_autoseed_complete": "Automatische Generierung abgeschlossen",

@@ -119,8 +119,8 @@
   "oversight.removal_title": "Procedimenti di rimozione",
   "oversight.seat_label": "Seggio {seat}",
   "oversight.seat_vacated": "seggio vacante",
-  "oversight.speaker_owncase_suffix": "(presidente dell'assemblea — il proprio caso richiede un presidente designato)",
-  "oversight.speaker_suffix": "(presidente dell'assemblea)",
+  "oversight.speaker_owncase_suffix": " (presidente dell'assemblea — il proprio caso richiede un presidente designato)",
+  "oversight.speaker_suffix": " (presidente dell'assemblea)",
   "oversight.special_election": "elezione speciale {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — presidenza per caso proprio bloccata nel codice",
   "oversight.spk_form_name": "Presidenza per Impeachment/ Censura/ Espulsione",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Seggi vacanti",
   "oversight.vacancy_countback_link": "seggio vacante {status} — pagina riconteggio retroattivo →",
   "oversight.vacancy_state_aria": "Macchina a stati dei seggi vacanti",
-  "oversight.you_suffix": "(tu)",
+  "oversight.you_suffix": " (tu)",
   "referendums.about": "Lo scudo CLK-19 è un gate di validazione, non un timer: un deposito F-LEG-034 contro un atto a maggioranza qualificata della popolazione viene respinto prima del voto con la citazione, e il respingimento stesso finisce nel registro di audit. Lo scudo si rilascia alla certificazione della successiva elezione generale — gli atti di referendum vengono quindi emendati tramite il percorso ordinario.",
   "referendums.act_ordinary": "Atto ordinario — classe maggioranza",
   "referendums.act_setting_change": "Atto di modifica impostazioni — classe maggioranza",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Sovrarappresentazione:",
   "type_b_districts.overcount": "Sovraconto",
   "type_b_districts.pan_mode": "Modalità Pan",
-  "type_b_districts.parts_suffix": "= {total} parti",
+  "type_b_districts.parts_suffix": " = {total} parti",
   "type_b_districts.pe_bad": "Scarso (>10%):",
   "type_b_districts.pe_district_count": "({n} collegi)",
   "type_b_districts.pe_good": "Buono (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Diversità politica uniforme",
   "type_b_districts.vertex_snap_unavailable": "Snapping dei vertici non disponibile: la libreria di disegno è stata modificata.",
   "type_b_districts.view_leg_districts": "Visualizza collegi dell'assemblea legislativa →",
-  "type_b_districts.wizard_paused": "Wizard in pausa."
+  "type_b_districts.wizard_paused": " Wizard in pausa."
 }

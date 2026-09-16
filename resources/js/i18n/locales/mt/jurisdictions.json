@@ -79,6 +79,7 @@
   "jurisdictions_federation.why_we_want_to_mirror": "għaliex ridna nkunnu kopja mera",
   "jurisdictions_federation.you_pursue_read_write_afterward": "Int {joinForm} tistabbilixxa qris-kitba wara.",
   "jurisdictions_federation.you_will_become_a_read_only_mirror_of_pull": "Int tkun kopja mera ta' qris-kitba ta' {joinForm}, billi tiġbed ir-rekords pubbliku tiegħu (scoped għal {joinForm2}).",
+  "jurisdictions_federation.zone_configured": "{domain}żona {zone_id}ikkonfigurat",
   "jurisdictions_index.adm_0_world": "ADM 0 — Dinja",
   "jurisdictions_index.adm_1_country": "ADM 1 — Pajis",
   "jurisdictions_index.adm_2_state_province": "ADM 2 — Stat / Provvinċja",

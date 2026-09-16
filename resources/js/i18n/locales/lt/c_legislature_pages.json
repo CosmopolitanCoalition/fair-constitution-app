@@ -473,7 +473,7 @@
   "districts.tip_district": "Apygarda: {seats} vietos",
   "districts.tip_expand": "Išplėskite šoninėje juostoje, kad pamatytumėte subapygardas",
   "districts.tip_fractional": "Dalinė: {n}",
-  "districts.tip_members_suffix": "· {n} nariai",
+  "districts.tip_members_suffix": " · {n} nariai",
   "districts.tip_pop": "Gyv.: {n}",
   "districts.tip_unassigned": "Nepriskirta — suderinama",
   "districts.toast_autoseed_complete": "Automatinis sėjinimas baigtas",

@@ -79,8 +79,8 @@
   "oversight.removal_title": "Postupci uklanjanja",
   "oversight.seat_label": "Mjesto {seat}",
   "oversight.seat_vacated": "mjesto je upražnjeno",
-  "oversight.speaker_owncase_suffix": "(predsjednik doma — sopstveni slučaj zahtijeva imenovanog predsjedavajućeg)",
-  "oversight.speaker_suffix": "(predsjednik doma)",
+  "oversight.speaker_owncase_suffix": " (predsjednik doma — sopstveni slučaj zahtijeva imenovanog predsjedavajućeg)",
+  "oversight.speaker_suffix": " (predsjednik doma)",
   "oversight.special_election": "specijalni izbori {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — predsjedavanje u sopstvenom slučaju blokirano u kodu",
   "oversight.spk_form_name": "Predsjedavanje: opoziv/prekor/izbacivanje",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Upražnjena mjesta",
   "oversight.vacancy_countback_link": "upražnjeno mjesto {status} — stranica za naknadno prebrojavanje →",
   "oversight.vacancy_state_aria": "Automat za stanje upražnjenih mjesta",
-  "oversight.you_suffix": "(vi)",
+  "oversight.you_suffix": " (vi)",
   "referendums.about": "Štit CLK-19 je validator, a ne tajmer: F-LEG-034 podnesak protiv akta koji zahtijeva kvalifikovanu većinu stanovništva odbija se prije glasanja uz navođenje razloga, a samo odbijanje se zapisuje u revizijski dnevnik. Štit se ukida kada se potvrde sljedeći opći izbori — referendumski akti se tada mijenjaju putem redovnog postupka.",
   "referendums.act_ordinary": "Redovni akt — klasa većine",
   "referendums.act_setting_change": "Akt o promjeni postavki — klasa većine",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Prepredstavljenost:",
   "type_b_districts.overcount": "Prebrojavanje",
   "type_b_districts.pan_mode": "Pan režim",
-  "type_b_districts.parts_suffix": "= {total} dijelova",
+  "type_b_districts.parts_suffix": " = {total} dijelova",
   "type_b_districts.pe_bad": "Loše (>10%):",
   "type_b_districts.pe_district_count": "({n} izbornih jedinica)",
   "type_b_districts.pe_good": "Dobro (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Uniformna politička raznolikost",
   "type_b_districts.vertex_snap_unavailable": "Pripajanje vrhunaca nije dostupno — biblioteka za crtanje je promijenjena u ovom alatu.",
   "type_b_districts.view_leg_districts": "Pogledaj izborne jedinice →",
-  "type_b_districts.wizard_paused": "Čarobnjak je pauziran."
+  "type_b_districts.wizard_paused": " Čarobnjak je pauziran."
 }

@@ -404,7 +404,7 @@
     "provider": "ollama"
   },
   "person_profile.grants_r07": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

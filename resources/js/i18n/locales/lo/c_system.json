@@ -268,7 +268,7 @@
   "audit_chain.missing": "ບໍ່ພົບລາຍການ #{seq} ໃນ instance ນີ້. ໝາຍເລກລຳດັບອາດມີຊ່ອງວ່າງ.",
   "audit_chain.nav_label": "ການນຳທາງປະຫວັດການກວດສອບ",
   "audit_chain.newer": "ລາຍການທີ່ໃໝ່ກວ່າ",
-  "audit_chain.newest_first": "ໃໝ່ສຸດກ່ອນ ·",
+  "audit_chain.newest_first": "ໃໝ່ສຸດກ່ອນ · ",
   "audit_chain.no_entries_yet": "ຍັງບໍ່ມີລາຍການ",
   "audit_chain.older": "ລາຍການທີ່ເກົ່າກວ່າ",
   "audit_chain.open_receipt": "ເປີດໃບຮັບເງິນ",

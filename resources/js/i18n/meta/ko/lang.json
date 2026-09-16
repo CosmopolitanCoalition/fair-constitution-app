@@ -352,7 +352,7 @@
     "provider": "ollama"
   },
   "A 'single' race elects exactly one seat (got :seats) — the individual-executive exception.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -533,7 +533,7 @@
     "provider": "ollama"
   },
   "A delegated executive committee has at least 5 members (got :memberCount).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -741,12 +741,12 @@
     "provider": "ollama"
   },
   "A panel sits an ODD number of judges (got :size).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "A panel sits at least three (3) judges (got :size).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -4069,7 +4069,7 @@
     "provider": "ollama"
   },
   "First worker seat at the CLK-13 minimum · parity at the CLK-14 threshold · Art. III §6": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -4805,7 +4805,7 @@
     "provider": "ollama"
   },
   "Modification filed (F-LEG-034) for :act — same-term change to a referendum act runs at chamber supermajority (Art. II §6 · WF-LEG-19).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9180,12 +9180,12 @@
     "provider": "ollama"
   },
   "validation.gte.file": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.gte.numeric": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9250,12 +9250,12 @@
     "provider": "ollama"
   },
   "validation.lt.file": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.lt.numeric": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9270,12 +9270,12 @@
     "provider": "ollama"
   },
   "validation.lte.file": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.lte.numeric": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9294,7 +9294,7 @@
     "provider": "ollama"
   },
   "validation.max.file": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9327,7 +9327,7 @@
     "provider": "ollama"
   },
   "validation.min.file": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

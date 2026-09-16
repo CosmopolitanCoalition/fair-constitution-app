@@ -119,8 +119,8 @@
   "oversight.removal_title": "Процедури усунення",
   "oversight.seat_label": "Місце {seat}",
   "oversight.seat_vacated": "місце звільнилося",
-  "oversight.speaker_owncase_suffix": "(Голова палати — власна справа потребує призначеного головуючого)",
-  "oversight.speaker_suffix": "(Голова палати)",
+  "oversight.speaker_owncase_suffix": " (Голова палати — власна справа потребує призначеного головуючого)",
+  "oversight.speaker_suffix": " (Голова палати)",
   "oversight.special_election": "спеціальні вибори {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — головування у власній справі заблоковано в коді",
   "oversight.spk_form_name": "Головуючий при імпічменті/догані/виключенні",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Вакантні місця",
   "oversight.vacancy_countback_link": "вакантне місце {status} — сторінка зворотного перерахунку →",
   "oversight.vacancy_state_aria": "Автомат станів вакантних місць",
-  "oversight.you_suffix": "(ви)",
+  "oversight.you_suffix": " (ви)",
   "referendums.about": "Захист CLK-19 є валідатором, а не таймером: подання F-LEG-034 проти акта, прийнятого кваліфікованою більшістю населення, відхиляється до голосування з посиланням, і саме відхилення потрапляє до журналу аудиту. Захист знімається після підтвердження наступних загальних виборів — тоді акти референдуму вносяться через звичайний шлях.",
   "referendums.act_ordinary": "Звичайний акт — клас більшості",
   "referendums.act_setting_change": "Акт зміни налаштувань — клас більшості",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Перепредставлення:",
   "type_b_districts.overcount": "Перерахунок",
   "type_b_districts.pan_mode": "Режим Pan",
-  "type_b_districts.parts_suffix": "= {total} частин",
+  "type_b_districts.parts_suffix": " = {total} частин",
   "type_b_districts.pe_bad": "Погано (>10%):",
   "type_b_districts.pe_district_count": "({n} округів)",
   "type_b_districts.pe_good": "Добре (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Рівномірна політична різноманітність",
   "type_b_districts.vertex_snap_unavailable": "Прив'язка до вершин недоступна — бібліотека малювання була змінена в цьому інструменті.",
   "type_b_districts.view_leg_districts": "Переглянути законодавчі округи →",
-  "type_b_districts.wizard_paused": "Майстер призупинено."
+  "type_b_districts.wizard_paused": " Майстер призупинено."
 }

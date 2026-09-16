@@ -1948,7 +1948,7 @@
     "provider": "ollama"
   },
   "step2_map_data.source_folder_desc": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -3029,7 +3029,7 @@
     "provider": "ollama"
   },
   "step4_scale_up.ledger_summary": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },
@@ -3458,7 +3458,7 @@
     "provider": "ollama"
   },
   "step5_simulate.layer_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

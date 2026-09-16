@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Lựa chọn chủ tịch hội đồng quản trị của bạn",
   "board_roster": "Thành viên hội đồng quản trị và ngày nhiệm kỳ hiện tại",
   "board_strip.cell_vacant": "— trống",
-  "board_strip.chair_suffix": "(chủ tịch được bầu chung)",
+  "board_strip.chair_suffix": " (chủ tịch được bầu chung)",
   "board_strip.class_governor": "Thành viên hội đồng được bổ nhiệm",
   "board_strip.class_owner_elected": "Do chủ sở hữu bầu",
   "board_strip.class_worker_elected": "Do công nhân bầu",

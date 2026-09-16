@@ -304,7 +304,7 @@
     "provider": "ollama"
   },
   "dev_executiveorgkit.no_stakes_table_the_board_of_governors_sta": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

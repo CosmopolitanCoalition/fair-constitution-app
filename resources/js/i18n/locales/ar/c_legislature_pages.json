@@ -473,7 +473,7 @@
   "districts.tip_district": "الدائرة الانتخابية: {seats} مقاعد",
   "districts.tip_expand": "توسع في الشريط الجانبي لرؤية الدوائر الفرعية",
   "districts.tip_fractional": "كسري: {n}",
-  "districts.tip_members_suffix": "· {n} أعضاء",
+  "districts.tip_members_suffix": " · {n} أعضاء",
   "districts.tip_pop": "السكان: {n}",
   "districts.tip_unassigned": "غير معين — قابل للتركيب",
   "districts.toast_autoseed_complete": "اكتمل التوزيع التلقائي",

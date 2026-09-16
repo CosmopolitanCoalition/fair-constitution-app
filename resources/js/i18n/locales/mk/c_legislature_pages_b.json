@@ -79,8 +79,8 @@
   "oversight.removal_title": "Постапки за отстранување",
   "oversight.seat_label": "Место {seat}",
   "oversight.seat_vacated": "местото е празно",
-  "oversight.speaker_owncase_suffix": "(претседател на домот — сопствениот случај бара назначен претседавач)",
-  "oversight.speaker_suffix": "(претседател на домот)",
+  "oversight.speaker_owncase_suffix": " (претседател на домот — сопствениот случај бара назначен претседавач)",
+  "oversight.speaker_suffix": " (претседател на домот)",
   "oversight.special_election": "специјални избори {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — претседавање во сопствен случај е блокирано во кодот",
   "oversight.spk_form_name": "Претседавање при импичмент/цензура/исклучување",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Празни места",
   "oversight.vacancy_countback_link": "празно место {status} — страница за повторно броење →",
   "oversight.vacancy_state_aria": "Автомат за состојби на празни места",
-  "oversight.you_suffix": "(вие)",
+  "oversight.you_suffix": " (вие)",
   "referendums.about": "Штитот CLK-19 е валидаторска порта, не тајмер: поднесувањето на F-LEG-034 против акт со квалификувано мнозинство на населението се одбива пред гласањето со цитат, а самото одбивање се запишува во ревизорскиот дневник. Штитот се ослободува кога ќе се сертифицираат следните општи избори — референдумските актови тогаш се amending преку вообичаениот пат.",
   "referendums.act_ordinary": "Вообичаен акт — класа на мнозинство",
   "referendums.act_setting_change": "Акт за промена на поставки — класа на мнозинство",
@@ -182,6 +182,7 @@
   "session_record.vote_pages": "Страници со објавени гласања",
   "type_b_districts.accept_plan": "Прифати план",
   "type_b_districts.accept_replace": "Прифати и замени {n}",
+  "type_b_districts.accept_retires": "Прифаќањето го повлекува постојниот нацртан изборна единица{s} на ова ниво {n}.",
   "type_b_districts.accepting_needs_draft": "Прифаќањето го уредува нацртот на планот — одберете или креирајте еден со [+] до селекторот за МАПА.",
   "type_b_districts.adding_count": "Додавање ({n}):",
   "type_b_districts.all_assigned": "Сите комбинирани јурисдикции се доделени ✓",
@@ -369,7 +370,7 @@
   "type_b_districts.over_rep": "Претставеност:",
   "type_b_districts.overcount": "Пребројување",
   "type_b_districts.pan_mode": "Pan режим",
-  "type_b_districts.parts_suffix": "= {total} делови",
+  "type_b_districts.parts_suffix": " = {total} делови",
   "type_b_districts.pe_bad": "Лошо (>10%):",
   "type_b_districts.pe_district_count": "({n} изборни единици)",
   "type_b_districts.pe_good": "Добро (≤5%):",
@@ -492,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Униформна политичка разновидност",
   "type_b_districts.vertex_snap_unavailable": "Прилепвање на темене не е достапно — библиотеката за цртање се промени под оваа алатка.",
   "type_b_districts.view_leg_districts": "Преглед на изборни единици →",
-  "type_b_districts.wizard_paused": "Чаровејакот е паузиран."
+  "type_b_districts.wizard_paused": " Чаровејакот е паузиран."
 }

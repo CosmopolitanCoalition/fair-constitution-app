@@ -268,7 +268,7 @@
   "audit_chain.missing": "Intrarea #{seq} nu a fost găsită pe această instanță. Numerele de secvență pot avea lacune.",
   "audit_chain.nav_label": "Navigare jurnal de audit",
   "audit_chain.newer": "Intrări mai noi",
-  "audit_chain.newest_first": "Cele mai noi primele ·",
+  "audit_chain.newest_first": "Cele mai noi primele · ",
   "audit_chain.no_entries_yet": "Nu există încă intrări",
   "audit_chain.older": "Intrări mai vechi",
   "audit_chain.open_receipt": "Deschide chitanța",

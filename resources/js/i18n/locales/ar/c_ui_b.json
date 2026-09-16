@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "تمت إضافة:",
+  "law_diff.added": "تمت إضافة: ",
   "law_diff.label": "تغييرات نص القانون",
-  "law_diff.removed": "تمت إزالة:",
+  "law_diff.removed": "تمت إزالة: ",
   "planned_banner.default_body": "تم تصميم هذا الجزء من العالم قبل البناء. لا يوجد شيء مفعل هنا، ولا توجد أموال حقيقية في أي مكان.",
   "planned_banner.title": "مخطط — معاينة.",
   "selection_identity.aria_org": "سجل المنظمة لـ {name}، المرجع {id}",

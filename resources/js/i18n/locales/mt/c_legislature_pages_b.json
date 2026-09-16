@@ -119,8 +119,8 @@
   "oversight.removal_title": "Proċeduri ta' tneħħija",
   "oversight.seat_label": "Siġġu {seat}",
   "oversight.seat_vacated": "siġġu vakanti",
-  "oversight.speaker_owncase_suffix": "(Speaker — każ proprja teħtieġ presidenza ddisinjata)",
-  "oversight.speaker_suffix": "(Speaker)",
+  "oversight.speaker_owncase_suffix": " (Speaker — każ proprja teħtieġ presidenza ddisinjata)",
+  "oversight.speaker_suffix": " (Speaker)",
   "oversight.special_election": "elezzjoni speċjali {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — presidenza ta' każ proprja mblokkata fil-kodu",
   "oversight.spk_form_name": "Presidenza ta' Impeachment/Ċensura/Espulsjoni",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Postijiet vakanti",
   "oversight.vacancy_countback_link": "post vakanti {status} — paġna ta' għadd mill-ġdid →",
   "oversight.vacancy_state_aria": "Makina tal-istat ta' post vakanti",
-  "oversight.you_suffix": "(inti)",
+  "oversight.you_suffix": " (inti)",
   "referendums.about": "L-iskud CLK-19 huwa brama ta' validazzjoni, mhux timer: marka F-LEG-034 kontra att ta' maġġoranza kwalifikata tal-popolazzjoni hija rrifjutata qabel il-vot b'ċitazzjoni, u r-rifjut stess jintuża fir-reġistru tal-verifika. L-iskud jinħaħħar meta l-elezzjoni ġenerali li jmiss tiċċertifika — l-atti tar-referendum imbagħad jemendaw permezz tal-triq ordinarja.",
   "referendums.act_ordinary": "Att ordinarju — klassi ta' maġġoranza",
   "referendums.act_setting_change": "Att ta' bidla tas-settings — klassi ta' maġġoranza",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Repreżentazzjoni eċċessiva:",
   "type_b_districts.overcount": "Għadd eċċessiv",
   "type_b_districts.pan_mode": "Mod Pan",
-  "type_b_districts.parts_suffix": "= {total} partijiet",
+  "type_b_districts.parts_suffix": " = {total} partijiet",
   "type_b_districts.pe_bad": "Hażin (>10%):",
   "type_b_districts.pe_district_count": "({n} distretti)",
   "type_b_districts.pe_good": "Tajjeb (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Diversità Politika Uniformi",
   "type_b_districts.vertex_snap_unavailable": "Is-snapping tal-vertiċi mhux disponibbli — il-librerija tat-ttraccijar inkisbet mibdula taħt dan l-għodwa.",
   "type_b_districts.view_leg_districts": "Ara Distretti Leġiżlattivi →",
-  "type_b_districts.wizard_paused": "Wizard iqif."
+  "type_b_districts.wizard_paused": " Wizard iqif."
 }

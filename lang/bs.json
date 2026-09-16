@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Pratite na /vacancies/:id.",
+  " Track it at /vacancies/:id.": " Pratite na /vacancies/:id.",
   "% of jurisdiction population · CLK-17": "% stanovništva jurisdikcije · CLK-17",
   "+:count more candidate with first-preference support": "+:count kandidat više sa podrškom prvog izbora",
   "+:count more candidates with first-preference support": "+:count kandidata više sa podrškom prvog izbora",
@@ -866,6 +866,7 @@
   "Executive orders cannot touch the :targetdomain — elections, courts, and legislatures run identically under any executive instrument, emergency powers included.": "Izvršni nalozi ne mogu uticati na :targetdomain — izbori, sudovi i zakonodavna tijela funkcionišu identično pod bilo kojim izvršnim instrumentom, uključujući vanredna ovlaštenja.",
   "Executive seats": "Mjesta u izvršnoj vlasti",
   "Executive structure": "Struktura izvršne vlasti",
+  "Executive, court (the bench law), election board and its system member, public square and halls, public treasury. Set-based batches.": "Izvršna vlast, sud (sudsko pravo), izborni odbor i njegovi članovi sistema, javni trg i dvorane, javna blagajna. Grupe zasnovane na skupovima.",
   "Executive-removal proceedings run against SEATED members of this jurisdiction's executive.": "Postupci uklanjanja iz izvršne vlasti vode se protiv članova koji zauzimaju mjesta u izvršnoj vlasti ove jurisdikcije.",
   "Explore civic roles": "Istražite građanske uloge",
   "F-ADV-001 is filed ON BEHALF OF a client — name filed_on_behalf_of_user_id.": "F-ADV-001 je podneseno U IME klijenta — ime podneseno_u_ime_korisnik_id.",
@@ -2024,7 +2025,7 @@
   "You left the room.": "Napustili ste prostoriju.",
   "You sit on more than one court — showing one; switch from the court page.": "Sjedite u više od jednog suda — prikazan jedan; promijenite na stranici suda.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Sjedite u više od jednog upravnog odbora odjela — prikazan jedan; odaberite drugi na stranici odjela.",
-  "You: ": "Vi:",
+  "You: ": "Vi: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Vaš račun, vaši akti — kontra strane su računi, nikada ljudi · Art. I",
   "Your chair ranking has been recorded.": "Vaš rang predsjedavajućeg je zabilježen.",
   "Your client retains you; the retainer is recorded with the filing.": "Klijent vas zadržava; zadržavanje je zabilježeno uz podnesak.",

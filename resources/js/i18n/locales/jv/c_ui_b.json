@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "ditambahake:",
+  "law_diff.added": "ditambahake: ",
   "law_diff.label": "owahan teks undang-undang",
-  "law_diff.removed": "dibusak:",
+  "law_diff.removed": "dibusak: ",
   "planned_banner.default_body": "Bagéan donya iki dirancang sadurunge pembangunan. Durung ana sing aktif, lan ora ana dhuwit nyata ing kene.",
   "planned_banner.title": "Direncanaake — pratinjau.",
   "selection_identity.aria_org": "cathetan organisasi kanggo {name}, referensi {id}",

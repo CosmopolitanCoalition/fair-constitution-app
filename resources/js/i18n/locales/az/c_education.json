@@ -990,6 +990,7 @@
   "education_system_audit_chain.s3_detail": "Səsvermə bülleteninin məzmunu heç vaxt zəncirlənmir. İştirak qeyd edilir; necə səs verdiyiniz isə qeyd edilmir.",
   "education_system_audit_chain.s3_do": "Orada nələrin olmadığını qeyd edin",
   "education_system_audit_chain.why": "Müdaxilənin sübutu, müdaxilənin qarşısının alınması yox. Heç kim keçmişin dəyişdirilə bilməyəcəyini iddia etmir — iddia ondan ibarətdir ki, onu dəyişdirmək gizli qala bilməz.",
+  "education_system_clocks.learn": "Dünyanı hərəkətə gətirən planlaşdırılmış yoxlamalar — heç kim xahiş etmədən prosesi başladan hər bir interval, son tarix, müddət və hədd. Saatlar vəziyyəti saxlamır; onlar digər şeyləri hərəkət etdirir.",
   "education_system_clocks.s1_detail": "İyirmi bir saat, hər birinin müəyyən edilmiş ritmi və təsiri var.",
   "education_system_clocks.s1_do": "Hər bir saatın nə etdiyini oxuyun",
   "education_system_clocks.s2_detail": "Fövqəladə səlahiyyətlər saatı heç bir aktla doxsan gündən artıq uzadıla bilməz.",

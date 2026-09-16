@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Ваш вибір голови правління",
   "board_roster": "Члени правління та терміни їхніх повноважень",
   "board_strip.cell_vacant": "— вакантне",
-  "board_strip.chair_suffix": "(спільно обраний голова)",
+  "board_strip.chair_suffix": " (спільно обраний голова)",
   "board_strip.class_governor": "Призначений член правління",
   "board_strip.class_owner_elected": "Обраний власниками",
   "board_strip.class_worker_elected": "Обраний працівниками",

@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "hozzáadva:",
+  "law_diff.added": "hozzáadva: ",
   "law_diff.label": "Törvény szövegének módosításai",
-  "law_diff.removed": "eltávolítva:",
+  "law_diff.removed": "eltávolítva: ",
   "planned_banner.default_body": "A világ ezen része a build előtt lett tervezve. Itt még semmi sincs aktív, és sehol nincs valódi pénz.",
   "planned_banner.title": "Tervezett — egy előnézet.",
   "selection_identity.aria_org": "Szervezet nyilvántartása: {name}, hivatkozás {id}",

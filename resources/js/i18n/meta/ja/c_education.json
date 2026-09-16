@@ -1284,7 +1284,7 @@
     "provider": "ollama"
   },
   "education_education_material_manager.s2_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1357,7 +1357,7 @@
     "provider": "ollama"
   },
   "education_elections_candidacy_registration.s3_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1758,7 +1758,7 @@
     "provider": "ollama"
   },
   "education_judiciary_advocate_console.s1_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3299,7 +3299,7 @@
     "provider": "ollama"
   },
   "education_organizations_org_detail.s2_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

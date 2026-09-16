@@ -104,7 +104,7 @@
     "provider": "ollama"
   },
   "system_auditchain.recomputes_all_link_hashes_against_the_hea": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

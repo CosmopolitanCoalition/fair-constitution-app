@@ -328,7 +328,7 @@
     "provider": "ollama"
   },
   "disintermediation.chain_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

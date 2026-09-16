@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "El registre d'advocats està obert a qualsevol resident associat, però primer ha d'existir un tribunal a la vostra jurisdicció; els tribunals es formen quan una assemblea legislativa en crea un (F-LEG-017).",
   "advocate_console.no_judiciary_title": "Encara no hi ha cap poder judicial a la vostra cadena d'associació.",
   "advocate_console.no_matching_page": "No hi ha casos coincidents en aquesta pàgina. Proveu un altre títol o número de recurs.",
-  "advocate_console.not_seated_suffix": "(encara no instal·lat)",
+  "advocate_console.not_seated_suffix": " (encara no instal·lat)",
   "advocate_console.not_yet": "Encara no",
   "advocate_console.open_case": "Obrir cas →",
   "advocate_console.open_case_short": "Obrir cas",

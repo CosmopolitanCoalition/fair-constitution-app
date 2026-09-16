@@ -119,8 +119,8 @@
   "oversight.removal_title": "Chetlatish ishlari",
   "oversight.seat_label": "O'rin {seat}",
   "oversight.seat_vacated": "o'rin bo'shadi",
-  "oversight.speaker_owncase_suffix": "(Palata raisi — shaxsiy ish uchun maxsus rais talab qilinadi)",
-  "oversight.speaker_suffix": "(Palata raisi)",
+  "oversight.speaker_owncase_suffix": " (Palata raisi — shaxsiy ish uchun maxsus rais talab qilinadi)",
+  "oversight.speaker_suffix": " (Palata raisi)",
   "oversight.special_election": "maxsus saylov {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — kodda shaxsiy ishga raislik qilish bloklangan",
   "oversight.spk_form_name": "Impeachment/Senga ayblov/Haydash raisligi",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Bo'sh o'rinlar",
   "oversight.vacancy_countback_link": "bo'sh o'rin {status} — qayta sanash sahifasi →",
   "oversight.vacancy_state_aria": "Bo'sh o'rinlar holati mashinasi",
-  "oversight.you_suffix": "(siz)",
+  "oversight.you_suffix": " (siz)",
   "referendums.about": "CLK-19 qalqoni validator darvozasi bo'lib, taymer emas: aholi malakali ko'pchilik qaroriga qarshi F-LEG-034 arizasi ovozlashuvdan oldin havola bilan rad etiladi va rad etishning o'zi audit zanjiriga tushadi. Qalqon keyingi umumiy saylov tasdiqlanganda ochiladi — referendum qarorlari keyin oddiy yo'l bilan o'zgartiriladi.",
   "referendums.act_ordinary": "Oddiy qaror — ko'pchilik klassi",
   "referendums.act_setting_change": "Sozlamalarni o'zgartirish qarori — ko'pchilik klassi",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Haddan ortiq:",
   "type_b_districts.overcount": "Ortiqcha sanash",
   "type_b_districts.pan_mode": "Pan rejimi",
-  "type_b_districts.parts_suffix": "= {total} qism",
+  "type_b_districts.parts_suffix": " = {total} qism",
   "type_b_districts.pe_bad": "Yomon (>10%):",
   "type_b_districts.pe_district_count": "({n} okruglar)",
   "type_b_districts.pe_good": "Yaxshi (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Yagona siyosiy xilma-xillik",
   "type_b_districts.vertex_snap_unavailable": "Nuqtalarni bog'lash imkoniyati yo'q — chizish kutubxonasi o'zgardi.",
   "type_b_districts.view_leg_districts": "Qonunchilik okruglarini ko'rish →",
-  "type_b_districts.wizard_paused": "Kutuvchi to'xtatildi."
+  "type_b_districts.wizard_paused": " Kutuvchi to'xtatildi."
 }

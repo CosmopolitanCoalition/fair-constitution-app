@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "अधिवक्ता दर्ता कुनै पनि सम्बन्धित बासिन्दाका लागि खुला छ, तर पहिले तपाईंको अधिकारक्षेत्रमा अदालत हुनुपर्छ — जब व्यवस्थापिकाले एक अदालत बनाउँछ (F-LEG-017), तब अदालतहरू बन्छन्।",
   "advocate_console.no_judiciary_title": "तपाईंको संघ शृङ्खलामा अहिलेसम्म कुनै न्यायपालिका छैन।",
   "advocate_console.no_matching_page": "यस पृष्ठमा कुनै मिल्ने केसहरू छैनन्। अर्को शीर्षक वा डकेट नम्बर प्रयास गर्नुहोस्।",
-  "advocate_console.not_seated_suffix": "(अझै सिट पाएको छैन)",
+  "advocate_console.not_seated_suffix": " (अझै सिट पाएको छैन)",
   "advocate_console.not_yet": "अझै छैन",
   "advocate_console.open_case": "केस खोल्नुहोस् →",
   "advocate_console.open_case_short": "केस खोल्नुहोस्",

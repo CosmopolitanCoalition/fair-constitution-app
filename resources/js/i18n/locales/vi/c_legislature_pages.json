@@ -473,7 +473,7 @@
   "districts.tip_district": "Khu vực bầu cử: {seats} ghế",
   "districts.tip_expand": "Mở rộng ở thanh bên để xem các khu vực bầu cử con",
   "districts.tip_fractional": "Phân số: {n}",
-  "districts.tip_members_suffix": "· {n} thành viên",
+  "districts.tip_members_suffix": " · {n} thành viên",
   "districts.tip_pop": "Dân số: {n}",
   "districts.tip_unassigned": "Chưa phân bổ — có thể hợp nhất",
   "districts.toast_autoseed_complete": "Tự động khởi tạo hoàn tất",

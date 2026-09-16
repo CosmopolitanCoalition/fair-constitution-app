@@ -473,7 +473,7 @@
   "districts.tip_district": "Округ: {seats} місць",
   "districts.tip_expand": "Розгорніть у бічній панелі, щоб побачити під-округи",
   "districts.tip_fractional": "Дробовий: {n}",
-  "districts.tip_members_suffix": "· {n} членів",
+  "districts.tip_members_suffix": " · {n} членів",
   "districts.tip_pop": "Нас: {n}",
   "districts.tip_unassigned": "Непризначено — можна об'єднати",
   "districts.toast_autoseed_complete": "Автозаповнення завершено",

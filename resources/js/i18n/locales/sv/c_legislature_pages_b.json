@@ -119,8 +119,8 @@
   "oversight.removal_title": "Avsättningsförfaranden",
   "oversight.seat_label": "Plats {seat}",
   "oversight.seat_vacated": "platsen vakant",
-  "oversight.speaker_owncase_suffix": "(talman — eget ärende kräver en utsedd ordförande)",
-  "oversight.speaker_suffix": "(talman)",
+  "oversight.speaker_owncase_suffix": " (talman — eget ärende kräver en utsedd ordförande)",
+  "oversight.speaker_suffix": " (talman)",
   "oversight.special_election": "extra val {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — ordförandeskap i eget ärende blockerat i kod",
   "oversight.spk_form_name": "Ordförandeskap vid riksrätt/censur/avsättning",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Lediga platser",
   "oversight.vacancy_countback_link": "ledig plats {status} — sida för återräkning →",
   "oversight.vacancy_state_aria": "Tillståndsmaskin för lediga platser",
-  "oversight.you_suffix": "(du)",
+  "oversight.you_suffix": " (du)",
   "referendums.act_ordinary": "Ordinarie beslut — majoritetsklass",
   "referendums.act_setting_change": "Beslut om inställningsändring — majoritetsklass",
   "referendums.act_supermajority": "Beslut av kvalificerad majoritetsklass",
@@ -409,7 +409,7 @@
   "type_b_districts.over_rep": "Överrep:",
   "type_b_districts.overcount": "Överräkning",
   "type_b_districts.pan_mode": "Pan-läge",
-  "type_b_districts.parts_suffix": "= {total} delar",
+  "type_b_districts.parts_suffix": " = {total} delar",
   "type_b_districts.pe_bad": "Dåligt (>10%):",
   "type_b_districts.pe_district_count": "({n} valkretsar)",
   "type_b_districts.pe_good": "Bra (≤5%):",
@@ -531,5 +531,5 @@
   "type_b_districts.uniform_diversity": "Enhetlig politisk mångfald",
   "type_b_districts.vertex_snap_unavailable": "Vertex-snapping ej tillgängligt — ritbiblioteket ändrades under det här verktyget.",
   "type_b_districts.view_leg_districts": "Visa lagstiftande valkretsar →",
-  "type_b_districts.wizard_paused": "Guiden pausad."
+  "type_b_districts.wizard_paused": " Guiden pausad."
 }

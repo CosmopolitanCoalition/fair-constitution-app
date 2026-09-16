@@ -1271,7 +1271,7 @@
     "provider": "ollama"
   },
   "elections_vacancycountback.opens_wf_ele_04_forms_f_elb_001_f_ind_011_": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

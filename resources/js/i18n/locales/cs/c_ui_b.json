@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "přidáno:",
+  "law_diff.added": "přidáno: ",
   "law_diff.label": "Změny textu zákona",
-  "law_diff.removed": "odebráno:",
+  "law_diff.removed": "odebráno: ",
   "planned_banner.default_body": "Tato část světa je navržena před samotnou stavbou. Nic zde není v provozu a nikde nejsou skutečné peníze.",
   "planned_banner.title": "Plánováno — náhled.",
   "selection_identity.aria_org": "Záznam organizace pro {name}, reference {id}",

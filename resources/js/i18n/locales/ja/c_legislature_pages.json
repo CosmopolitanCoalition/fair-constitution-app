@@ -472,7 +472,7 @@
   "districts.tip_district": "選挙区: {seats} 議席",
   "districts.tip_expand": "サイドバーで展開して下位選挙区を表示",
   "districts.tip_fractional": "端数: {n}",
-  "districts.tip_members_suffix": "· {n} 名",
+  "districts.tip_members_suffix": " · {n} 名",
   "districts.tip_pop": "人口: {n}",
   "districts.tip_unassigned": "未割り当て — 統合可能",
   "districts.toast_autoseed_complete": "自動シード完了",

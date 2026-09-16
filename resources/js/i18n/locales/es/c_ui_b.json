@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "agregado:",
+  "law_diff.added": "agregado: ",
   "law_diff.label": "Cambios en el texto de la Ley",
-  "law_diff.removed": "eliminado:",
+  "law_diff.removed": "eliminado: ",
   "planned_banner.default_body": "Esta parte del mundo se diseña antes de la construcción. Nada aquí está activo aún, y no hay dinero real en ninguna parte.",
   "planned_banner.title": "Planificado — una vista previa.",
   "selection_identity.aria_org": "Registro de la Organización para {name}, referencia {id}",

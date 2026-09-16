@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "қосылды:",
+  "law_diff.added": "қосылды: ",
   "law_diff.label": "Заң мәтініндегі өзгерістер",
-  "law_diff.removed": "жойылды:",
+  "law_diff.removed": "жойылды: ",
   "planned_banner.default_body": "Әлемнің бұл бөлігі құрылыстан бұрын жобаланған. Мұнда әлі ештеңе іске қосылмаған және ешқандай нақты ақша жоқ.",
   "planned_banner.title": "Жоспарланған — алдын ала қарау.",
   "selection_identity.aria_org": "{name} үшін ұйым жазбасы, сілтеме {id}",

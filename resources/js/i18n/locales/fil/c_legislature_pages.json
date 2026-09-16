@@ -473,7 +473,7 @@
   "districts.tip_district": "Distrito: {seats} puwesto",
   "districts.tip_expand": "I-expand sa sidebar para makita ang mga sub-distrito",
   "districts.tip_fractional": "Fractional: {n}",
-  "districts.tip_members_suffix": "· {n} miyembro",
+  "districts.tip_members_suffix": " · {n} miyembro",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "Hindi nakatalaga — compositable",
   "districts.toast_autoseed_complete": "Tapos na ang auto-seed",

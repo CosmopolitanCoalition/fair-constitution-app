@@ -45,6 +45,7 @@
   "hands_raised": "Paceltas rokas",
   "hearing": "Komitejas sēde",
   "hearing_adjourned": "Sēde ir beigusies. Publiskais ieraksts ir aizvēgts; neoficiālā diskusija un zvans joprojām ir pieejami.",
+  "hearing_call_hint": "Pievienojieties augšējam sēdes zvanam. Jūsu kamera vai avatars parādīsies jums piešķirtajā pozīcijā. Izmantojiet zāles plašākai jurisdikcijas sarunai.",
   "hearing_intro": "Sekojiet sēdei, redziet, kurš runā, un lasiet publisko ierakstu.",
   "in_call": "Zvanā",
   "institution.no_live_call": "Šobrīd šajā telpā zvans nav aktīvs.",

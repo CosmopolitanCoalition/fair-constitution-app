@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Zgjedhja juaj për kryesuesin e bordit",
   "board_roster": "Anëtarët e bordit dhe datat e mandatit të tyre aktual",
   "board_strip.cell_vacant": "— vakant",
-  "board_strip.chair_suffix": "(kryesues i zgjedhur së bashku)",
+  "board_strip.chair_suffix": " (kryesues i zgjedhur së bashku)",
   "board_strip.class_governor": "Anëtar bordi i emëruar",
   "board_strip.class_owner_elected": "I zgjedhur nga pronari",
   "board_strip.class_worker_elected": "I zgjedhur nga punëtorët",

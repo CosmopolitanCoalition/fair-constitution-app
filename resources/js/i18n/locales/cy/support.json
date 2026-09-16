@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Routir adroddiadau ymgyddeg a chyfreithiol ar gyfer adolygu. Nid yw fylio yma yn cael ei dynnu — mae removal cynnwys yn dilyn y carve-outs cyfansoddiadol (yr offer F-SOC-003), nid y ffurf hon.",
+  "support_report.file_a_report": "Fylio adroddiad",
+  "support_report.file_report": "Fylio adroddiad",
+  "support_report.filed_from": "Fylwyd o: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Mae geiriau syml yn ddigon. Cynnwys beth roeddech chi'n ei ddisgwyl a beth a welwyd yn lle hynny.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Mae adroddiadau yn cyrraedd blwch mewnbas cefnogaeth yr operator ac yn cael eu routio yn ôl categori. Nid yw'r mewnbas hwn yn golygu na thynnu cynnwys ei hun.",
+  "support_report.what_happened": "Beth ddigwyddodd?",
+  "support_report.what_kind_of_report_is_this": "Pa fath o adroddiad yw hwn?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Mae angen i chi fod wedi melin i mewn i fylio adroddiad — mewnbwyngwch a dewch yn ôl i'r dudalen hon."
+}

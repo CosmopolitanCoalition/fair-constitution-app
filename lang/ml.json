@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "/vacancies/:id-ൽ ഇത് ട്രാക്ക് ചെയ്യുക.",
+  " Track it at /vacancies/:id.": " /vacancies/:id-ൽ ഇത് ട്രാക്ക് ചെയ്യുക.",
   "% of jurisdiction population · CLK-17": "അധികാരപരിധിയിലെ ജനസംഖ്യയുടെ % CLK-17",
   "+:count more candidate with first-preference support": "ആദ്യ മുൻഗണന പിന്തുണയുള്ള കൂടുതൽ :count സ്ഥാനാർത്ഥി",
   "+:count more candidates with first-preference support": "ആദ്യ മുൻഗണന പിന്തുണയുള്ള കൂടുതൽ :count സ്ഥാനാർത്ഥികൾ",
@@ -2010,7 +2010,7 @@
   "You left the room.": "നിങ്ങൾ മുറി വിട്ടുപോയി.",
   "You sit on more than one court — showing one; switch from the court page.": "നിങ്ങൾ ഒന്നിലധികം കോടതികളിൽ അംഗമാണ് — ഒന്ന് കാണിക്കുന്നു; കോടതി പേജിൽ നിന്ന് മാറ്റുക.",
   "You sit on more than one department board — showing one; pick another from its department page.": "നിങ്ങൾ ഒന്നിലധികം ഡിപ്പാർട്ട്‌മെന്റ് ബോർഡുകളിൽ അംഗമാണ് — ഒന്ന് കാണിക്കുന്നു; ഡിപ്പാർട്ട്‌മെന്റ് പേജിൽ നിന്ന് മറ്റൊന്ന് തിരഞ്ഞെടുക്കുക.",
-  "You: ": "നിങ്ങൾ:",
+  "You: ": "നിങ്ങൾ: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "നിങ്ങളുടെ അക്കൗണ്ട്, നിങ്ങളുടെ തീരുമാനങ്ങൾ — കൗണ്ടർപാർട്ടികൾ അക്കൗണ്ടുകളാണ്, വ്യക്തികളല്ല · Art. I",
   "Your chair ranking has been recorded.": "നിങ്ങളുടെ ചെയർ റാങ്കിംഗ് രേഖപ്പെടുത്തി.",
   "Your client retains you; the retainer is recorded with the filing.": "നിങ്ങളുടെ ക്ലയന്റ് നിങ്ങളെ നിലനിർത്തുന്നു; റിറ്റെയ്നർ ഫയലിംഗിനൊപ്പം രേഖപ്പെടുത്തിയിട്ടുണ്ട്.",

@@ -268,7 +268,7 @@
   "audit_chain.missing": "Gelin #{seq} laguma helin nuqulkan. Lambarrada isku-xigga ah waxaa laga yaabaa inay jiraan meelo bannaan.",
   "audit_chain.nav_label": "Kala-socodka taariikhda hanti-dhowrka",
   "audit_chain.newer": "Gelinno cusub",
-  "audit_chain.newest_first": "Kuwa ugu cusub marka hore ·",
+  "audit_chain.newest_first": "Kuwa ugu cusub marka hore · ",
   "audit_chain.no_entries_yet": "Wali ma jiraan gelinno",
   "audit_chain.older": "Gelinno hore",
   "audit_chain.open_receipt": "Fura rasiidka",

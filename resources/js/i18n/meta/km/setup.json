@@ -956,7 +956,7 @@
     "provider": "ollama"
   },
   "setup_step3_districts.review": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Uchaguzi wako wa mwenyekiti wa bodi",
   "board_roster": "Wajumbe wa bodi na tarehe za muda wao wa sasa",
   "board_strip.cell_vacant": "— nafasi wazi",
-  "board_strip.chair_suffix": "(mwenyekiti aliyechaguliwa kwa pamoja)",
+  "board_strip.chair_suffix": " (mwenyekiti aliyechaguliwa kwa pamoja)",
   "board_strip.class_governor": "Mjumbe wa bodi aliyeteuliwa",
   "board_strip.class_owner_elected": "Aliyechaguliwa na mmiliki",
   "board_strip.class_worker_elected": "Aliyechaguliwa na mfanyakazi",

@@ -1520,7 +1520,7 @@
     "provider": "ollama"
   },
   "seat_map.legend": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

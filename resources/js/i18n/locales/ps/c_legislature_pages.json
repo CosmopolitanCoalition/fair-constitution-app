@@ -473,7 +473,7 @@
   "districts.tip_district": "ټاکنیزه حوزه: {seats} څوکۍ",
   "districts.tip_expand": "د فرعي حوزو لیدو لپاره په اړخنیه پانګه (sidebar) کې پراخه کړئ",
   "districts.tip_fractional": "کسري: {n}",
-  "districts.tip_members_suffix": "· {n} غړي",
+  "districts.tip_members_suffix": " · {n} غړي",
   "districts.tip_pop": "جمعیت: {n}",
   "districts.tip_unassigned": "ناثابته — ترکیب وړ",
   "districts.toast_autoseed_complete": "اتوماتیک وېش بشپړ شو",

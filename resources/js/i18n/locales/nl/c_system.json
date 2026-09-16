@@ -268,7 +268,7 @@
   "audit_chain.missing": "Vermelding #{seq} is niet gevonden op deze instantie. Volgnummers kunnen gaten bevatten.",
   "audit_chain.nav_label": "Navigatie auditgeschiedenis",
   "audit_chain.newer": "Nieuwere vermeldingen",
-  "audit_chain.newest_first": "Nieuwste eerst ·",
+  "audit_chain.newest_first": "Nieuwste eerst · ",
   "audit_chain.no_entries_yet": "Nog geen vermeldingen",
   "audit_chain.older": "Oudere vermeldingen",
   "audit_chain.open_receipt": "Bewijs openen",

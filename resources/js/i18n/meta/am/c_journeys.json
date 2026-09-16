@@ -1,7 +1,7 @@
 {
   "become-a-resident.earn": {
     "status": "review",
-    "reason": "suspiciously short for Ethi — source content likely dropped (34/83 chars, floor 0.45)",
+    "reason": "suspiciously short for Ethi — source content likely dropped (32/83 chars, floor 0.45)",
     "provider": "ollama"
   },
   "become-a-resident.step.0.label": {
@@ -85,7 +85,7 @@
     "provider": "ollama"
   },
   "bill.earn": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Ethi — source content likely dropped (29/69 chars, floor 0.45)",
     "provider": "ollama"
   },
@@ -711,7 +711,7 @@
   },
   "mutual-aid.earn": {
     "status": "review",
-    "reason": "suspiciously short for Ethi — source content likely dropped (28/63 chars, floor 0.45)",
+    "reason": "suspiciously short for Ethi — source content likely dropped (25/63 chars, floor 0.45)",
     "provider": "ollama"
   },
   "mutual-aid.step.0.label": {
@@ -755,7 +755,7 @@
     "provider": "ollama"
   },
   "mutual-aid.step.3.what": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Ethi — source content likely dropped (20/49 chars, floor 0.45)",
     "provider": "ollama"
   },

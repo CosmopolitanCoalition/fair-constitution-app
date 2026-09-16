@@ -268,7 +268,7 @@
   "audit_chain.missing": "La entrada #{seq} no se encontró en esta instancia. Los números de secuencia pueden tener huecos.",
   "audit_chain.nav_label": "Navegación del registro de auditoría",
   "audit_chain.newer": "Entradas más recientes",
-  "audit_chain.newest_first": "Más recientes primero ·",
+  "audit_chain.newest_first": "Más recientes primero · ",
   "audit_chain.no_entries_yet": "Aún no hay entradas",
   "audit_chain.older": "Entradas más antiguas",
   "audit_chain.open_receipt": "Abrir recibo",

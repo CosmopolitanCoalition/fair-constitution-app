@@ -268,7 +268,7 @@
   "audit_chain.missing": "Oppføring #{seq} ble ikke funnet i denne instansen. Sekvensnumre kan ha hull.",
   "audit_chain.nav_label": "Navigasjon i revisjonslogg",
   "audit_chain.newer": "Nyere oppføringer",
-  "audit_chain.newest_first": "Nyeste først ·",
+  "audit_chain.newest_first": "Nyeste først · ",
   "audit_chain.no_entries_yet": "Ingen oppføringer ennå",
   "audit_chain.older": "Eldre oppføringer",
   "audit_chain.open_receipt": "Åpne kvittering",

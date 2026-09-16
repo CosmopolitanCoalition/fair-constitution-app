@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "வாரியத் தலைவர் குறித்த உங்கள் தேர்வு",
   "board_roster": "வாரிய உறுப்பினர்கள் மற்றும் அவர்களின் தற்போதைய பதவிக்கால தேதிகள்",
   "board_strip.cell_vacant": "— காலி",
-  "board_strip.chair_suffix": "(கூட்டுத் தேர்ந்தெடுக்கப்பட்ட தலைவர்)",
+  "board_strip.chair_suffix": " (கூட்டுத் தேர்ந்தெடுக்கப்பட்ட தலைவர்)",
   "board_strip.class_governor": "நியமிக்கப்பட்ட வாரிய உறுப்பினர்",
   "board_strip.class_owner_elected": "உரிமையாளர்களால் தேர்ந்தெடுக்கப்பட்டவர்",
   "board_strip.class_worker_elected": "தொழிலாளர்களால் தேர்ந்தெடுக்கப்பட்டவர்",

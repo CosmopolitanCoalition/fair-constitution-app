@@ -1812,7 +1812,7 @@
     "provider": "ollama"
   },
   "co_determination.about": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (15/222 chars, floor 0.45)",
     "provider": "ollama"
   },

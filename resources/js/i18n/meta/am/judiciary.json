@@ -542,7 +542,7 @@
     "provider": "ollama"
   },
   "judiciary_home.an_independent_court_serving_this_jurisdic": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },
@@ -563,7 +563,7 @@
     "provider": "ollama"
   },
   "judiciary_home.confirmation_needs_the_same_threshold_the_": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -588,7 +588,7 @@
     "provider": "ollama"
   },
   "judiciary_home.converting_this_appointed_court_to_a_direc": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -637,12 +637,12 @@
     "provider": "ollama"
   },
   "judiciary_home.no_creation_act_on_record_this_judiciary_i": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },
   "judiciary_home.no_direct_constituent_jurisdiction_holds_a": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },

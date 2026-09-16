@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "ເພີ່ມ:",
+  "law_diff.added": "ເພີ່ມ: ",
   "law_diff.label": "ການປ່ຽນແປງເນື້ອໃນກົດໝາຍ",
-  "law_diff.removed": "ລຶບອອກ:",
+  "law_diff.removed": "ລຶບອອກ: ",
   "planned_banner.default_body": "ພາກສ່ວນນີ້ຂອງໂລກຖືກອອກແບບໄວ້ກ່ອນການສ້າງ. ຍັງບໍ່ມີສິ່ງໃດທີ່ໃຊ້ງານໄດ້ຈິງ, ແລະ ບໍ່ມີເງິນຈິງຢູ່ໃນນີ້.",
   "planned_banner.title": "ວາງແຜນໄວ້ — ການເບິ່ງລ່ວງໜ້າ.",
   "selection_identity.aria_org": "ບັນທຶກອົງການສຳລັບ {name}, ເອກະສານອ້າງອີງ {id}",

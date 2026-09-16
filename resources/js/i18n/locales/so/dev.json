@@ -140,6 +140,7 @@
   "dev_judiciarykit.the_exit_criterion_render_lawdiff_shows_th": "bandhigga shuruudda bixitaanka: LawDiff wuxuu muujinayaa nooca sixid garsoor (tirtir/ku dar) + xiriirka taariikhda la ilaaliyay (version_no vs prior_version_no)",
   "dev_judiciarykit.the_three_challenge_resolution_terminals_a": "Seddexda goobood ee xallinta caqabadaha (waxaa wax ka beddelay golaha sharci-dejinta {'|'} burinta diidmada {'|'} sixid garsoor la dabaqay) waa kuwo iska soo horjeeda — sixid garsoor la dabaqay → xirid waa shuruudda bixitaanka. Xaaladda 'racfaan' ee kiisku waxay dib ugu soo noqonaysaa guddiga weyn (surface dib loo dhigay).",
   "dev_judiciarykit.where": "Halkaan: {location}",
+  "dev_legislaturekit.3_rings_12_20_9_dynamic_viewbox_32_type_a_": "3 goobo (12/20/9) · viewBox firfircoon · 32 nooc A + 9 nooc B (goob gudaha ah oo buluug ah, mid kasta castello) · kursi 17 waa bannaan · Art. V §3",
   "dev_legislaturekit.agendastrip_constitutional_order_locked_sl": "Xariiqda Ajandaha — nidaamka dastuuriga ah, boosaska xiran 1–2",
   "dev_legislaturekit.aisha_diop": "Aisha Diop",
   "dev_legislaturekit.all_clear_variant_the_locked_slots_render_": "nooca wax walba hagaagsan yihiin — boosaska xiran waxay muujinayaan xaaladooda madhan ee runta ah",

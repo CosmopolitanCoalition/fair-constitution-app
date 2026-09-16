@@ -16,6 +16,7 @@
   "mis_anchored_cluster.why": "Ez az elcsuszott geometria csoportosított formája: nem egyetlen eltévedt sor, hanem egy egész készlet, amely rossz helyre van rögzítve. A gyakorlatban leginkább a koloniális rendszerek adminisztratív öröksége tör elő — tengerentúli departmentek és szigetcsoportok, amelyeket egy szárazföldi szülő irányít.",
   "national_delta_gt5.label": "Attribúciós különbség",
   "national_delta_gt5.measures": "Olyan szülő, amelynek saját lakossága több mint 5%-kal eltér gyermekeinek összegétől.",
+  "national_delta_gt5.reading": "Egy térkép-egészség trendvonal, nem egy hibalistaság. Felbecsülhetetlen volt a választókerület-lejelölési problémák diagnosztizálásához; naponta figyelje, hogy növekszik-e.",
   "national_delta_gt5.remedy": "Nincs automatikus művelet — csak rámutat, melyik réteget kell vizsgálni.",
   "national_delta_gt5.why": "Minden szintet függetlenül attribúálják a rasterről, így a szülőnek és a gyermekeknek majdnem ugyanarra az összegre kell jutniuk. A különbség azt jelenti, hogy a gyermekréteg átfedi önmagát vagy lyukakat hagy a szülőhöz képest — ez a torzítás később egyenlőtlen választókerületi lakossággal jelentkezik.",
   "nature.informational.hint": "Figyelendő statisztika, nem törlendő hiba.",

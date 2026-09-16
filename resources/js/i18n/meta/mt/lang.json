@@ -1168,7 +1168,7 @@
     "provider": "ollama"
   },
   "An elected executive committee has at least 5 members (Art. III §2 floors the committee model at 5; there is no ceiling).": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },
@@ -3349,7 +3349,7 @@
     "provider": "ollama"
   },
   "Every elected member takes the oath; the seat flips elected → seated.": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (17/69 chars, floor 0.45)",
     "provider": "ollama"
   },

@@ -320,7 +320,7 @@
     "provider": "ollama"
   },
   ":yes of :serving serving": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6689,7 +6689,7 @@
     "provider": "ollama"
   },
   "The :field is a short list label / statute citation, not a payload.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6882,7 +6882,7 @@
     "provider": "ollama"
   },
   "The drawn district holds :pop people (:fractional of the local quota :quota) — :seats seats, outside the resolved band [:floor, :ceiling]. Redraw it larger or smaller.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

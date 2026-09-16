@@ -40,7 +40,7 @@
     "provider": "ollama"
   },
   "legislature_seatmap.gold_ring_speaker_dashed_vacant_blue_ring_": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

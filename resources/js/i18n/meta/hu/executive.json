@@ -192,7 +192,7 @@
     "provider": "ollama"
   },
   "executive_actions.the_live_instrument_the_order_executes_a_d": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (46/124 chars, floor 0.45)",
     "provider": "ollama"
   },

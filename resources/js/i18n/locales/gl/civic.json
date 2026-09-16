@@ -289,6 +289,7 @@
   "civic_residency.or_search_by_place_name": "Ou busca polo nome do lugar",
   "civic_residency.periodic_location_check_in_for_residency_p": "Verificación periódica de localización para o restablecemento do patrón de residencia. dispoñible para R-01 Individual · engádese ao rexistro de sinais de residencia · Art. I; Art. V §1",
   "civic_residency.pings_are_encrypted_at_rest": "Os sinais están cifrados en repouso.",
+  "civic_residency.qualifying_ping_day_recorded_inside_this_b": "{qualifyingDays} día de ping de cualificación {qualifyingDays2} rexistrado dentro deste límite. As localizacións individuais dos pings son privadas e nunca se debuxan.",
   "civic_residency.record_ping": "Rexistrar sinal",
   "civic_residency.redeclaring_supersedes_your_open_claim_and": "A nova declaración substitúe a túa reclamación aberta e reinicia o seguimento de sinais dentro do novo límite — os días cualificados non se transferen (a contención debe probarse de novo).",
   "civic_residency.residency_verification_confirmation": "Confirmación de verificación de residencia",

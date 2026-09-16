@@ -268,7 +268,7 @@
   "audit_chain.missing": "Запис #{seq} не беше намерен в този екземпляр. Номерите на последователността могат да имат пропуски.",
   "audit_chain.nav_label": "Навигация в одитното история",
   "audit_chain.newer": "По-нови записи",
-  "audit_chain.newest_first": "Най-новите първи ·",
+  "audit_chain.newest_first": "Най-новите първи · ",
   "audit_chain.no_entries_yet": "Все още няма записи",
   "audit_chain.older": "По-стари записи",
   "audit_chain.open_receipt": "Отвори разписка",

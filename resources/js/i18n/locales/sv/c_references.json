@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Ditt val av styrelseordförande",
   "board_roster": "Styrelseledamöter och deras nuvarande mandatperioder",
   "board_strip.cell_vacant": "— ledig plats",
-  "board_strip.chair_suffix": "(gemensamt vald ordförande)",
+  "board_strip.chair_suffix": " (gemensamt vald ordförande)",
   "board_strip.class_governor": "Utnämnd styrelseledamot",
   "board_strip.class_owner_elected": "Ägarvald",
   "board_strip.class_worker_elected": "Arbetarvald",

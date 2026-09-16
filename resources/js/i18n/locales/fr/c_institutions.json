@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "L'inscription d'avocat est ouverte à tout résident associé, mais un tribunal doit d'abord exister dans votre collectivité — les tribunaux se forment lorsqu'une assemblée législative en crée un (F-LEG-017).",
   "advocate_console.no_judiciary_title": "Aucun pouvoir judiciaire dans votre chaîne d'association pour le moment.",
   "advocate_console.no_matching_page": "Aucune affaire correspondante sur cette page. Essayez un autre titre ou numéro de dossier.",
-  "advocate_console.not_seated_suffix": "(pas encore installé)",
+  "advocate_console.not_seated_suffix": " (pas encore installé)",
   "advocate_console.not_yet": "Pas encore",
   "advocate_console.open_case": "Ouvrir l'affaire →",
   "advocate_console.open_case_short": "Ouvrir l'affaire",

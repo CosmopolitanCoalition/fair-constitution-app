@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Nabigazioa eta ikaskuntza",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Ikasgai osoak Planned · 7. fasea Arazo bat saldarazi",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Pantaila honen atzean dagoen mekanismoa",
+  "shellv2_menunav.all_screens_the_full_map": "Pantaila guztiak — mapa osoa",
+  "shellv2_menunav.requires_planned": "{label} {label2} Beharra {prereq} {label3} Planned",
+  "shellv2_tourbar.guided_tour": "Bidagida",
+  "shellv2_tourbar.guided_tour_step_of": "Bidagida · {stepNumber}. urratsa {total}tik{title}{blurb}"
+}

@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Uni /vacancies/:id manzili orqali kuzating.",
+  " Track it at /vacancies/:id.": " Uni /vacancies/:id manzili orqali kuzating.",
   "% of jurisdiction population · CLK-17": "yurisdiksiya aholisining CLK-17 % qismi",
   "+:count more candidate with first-preference support": "birinchi darajali qo'llab-quvvatlovga ega yana +:count ta nomzod",
   "+:count more candidates with first-preference support": "birinchi darajali qo'llab-quvvatlovga ega yana +:count ta nomzodlar",
@@ -2018,7 +2018,7 @@
   "You left the room.": "Siz xonadan chiqdingiz.",
   "You sit on more than one court — showing one; switch from the court page.": "Siz birdan ortiq sudga a'zosiz — bittasi ko'rsatilmoqda; sud sahifasidan almashtiring.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Siz birdan ortiq departament boshqaruvida ishtirok etasiz — bittasi ko'rsatilmoqda; departament sahifasidan boshqasini tanlang.",
-  "You: ": "Siz:",
+  "You: ": "Siz: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Sizning hisobingiz, sizning qarorlaringiz — qarshi tomonlar hisoblardir, hech qachon shaxslar emas · Art. I",
   "Your chair ranking has been recorded.": "Sizning raislik reytingingiz qayd etildi.",
   "Your client retains you; the retainer is recorded with the filing.": "Mijoz sizni saqlab qoldi; saqlash sharti ariza bilan birga qayd etildi.",

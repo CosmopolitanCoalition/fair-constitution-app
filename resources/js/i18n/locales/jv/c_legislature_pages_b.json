@@ -79,8 +79,8 @@
   "oversight.removal_title": "Proses pemecatan",
   "oversight.seat_label": "Kursi {seat}",
   "oversight.seat_vacated": "kursi dikosongake",
-  "oversight.speaker_owncase_suffix": "(Ketua dewan — kasus dhewe butuh pimpinan sing ditunjuk)",
-  "oversight.speaker_suffix": "(Ketua dewan)",
+  "oversight.speaker_owncase_suffix": " (Ketua dewan — kasus dhewe butuh pimpinan sing ditunjuk)",
+  "oversight.speaker_suffix": " (Ketua dewan)",
   "oversight.special_election": "pemilihan khusus {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — pimpinan kasus dhewe diblokir ing kode",
   "oversight.spk_form_name": "Pimpinan Pemakzulan/Sanksi/Pengusiran",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Kursi kosong",
   "oversight.vacancy_countback_link": "kursi kosong {status} — kaca pengetungan ulang →",
   "oversight.vacancy_state_aria": "Mesin status kursi kosong",
-  "oversight.you_suffix": "(sampeyan)",
+  "oversight.you_suffix": " (sampeyan)",
   "referendums.about": "Tameng CLK-19 yaiku gerbang validator, dudu timer: pengajuan F-LEG-034 nglawan putusan supermayoritas warga ditolak sadurunge voting kanthi sitasi, lan penolakan kasebut mlebu ing rantai log audit. Tameng iki ucul nalika pemilihan umum sabanjure sah — putusan referendum banjur diowahi liwat jalur biasa.",
   "referendums.act_ordinary": "Putusan biasa — kelas mayoritas",
   "referendums.act_setting_change": "Putusan owah-owahan setelan — kelas mayoritas",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Kelebihan wakil:",
   "type_b_districts.overcount": "Kelebihan itungan",
   "type_b_districts.pan_mode": "Mode pan",
-  "type_b_districts.parts_suffix": "= {total} bagean",
+  "type_b_districts.parts_suffix": " = {total} bagean",
   "type_b_districts.pe_bad": "Ala (>10%):",
   "type_b_districts.pe_district_count": "({n} dhaerah pemilihan)",
   "type_b_districts.pe_good": "Apik (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Keragaman Politik Seragam",
   "type_b_districts.vertex_snap_unavailable": "Vertex snapping ora kasedhiya — pustaka gambar owah ing njero piranti iki.",
   "type_b_districts.view_leg_districts": "Deleng Dhaerah Pemilihan Legislatif →",
-  "type_b_districts.wizard_paused": "Wizard mandheg."
+  "type_b_districts.wizard_paused": " Wizard mandheg."
 }

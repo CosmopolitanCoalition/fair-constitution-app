@@ -79,8 +79,8 @@
   "oversight.removal_title": "Proceedings removal",
   "oversight.seat_label": "Suíochán {seat}",
   "oversight.seat_vacated": "suíochán folúnta",
-  "oversight.speaker_owncase_suffix": "(Ceann Comhairle — teastaíonn presiding designated don chás féin)",
-  "oversight.speaker_suffix": "(Ceann Comhairle)",
+  "oversight.speaker_owncase_suffix": " (Ceann Comhairle — teastaíonn presiding designated don chás féin)",
+  "oversight.speaker_suffix": " (Ceann Comhairle)",
   "oversight.special_election": "toghchán speisialta {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — cosctheacht ar presiding i gcás féin sa chód",
   "oversight.spk_form_name": "Presiding ar Impeachment/Censure/Expulsion",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Folúntais",
   "oversight.vacancy_countback_link": "folúntas {status} — leathanach athchomhaireamh siar →",
   "oversight.vacancy_state_aria": "Inneall staid folúntais",
-  "oversight.you_suffix": "(tú)",
+  "oversight.you_suffix": " (tú)",
   "referendums.about": "Is gáte validators é an scáthán CLK-19, ní thaimer é: diúltaítear fíleáil F-LEG-034 i gcoinne cinneadh sár-thromlach daon scoops roimh an vót le cur i ngleic, agus tugtar an diúltú sin féin ar an loga iniúchta. Scaoileann an scáthán nuair a dheantar certáil ar an gceann tighchán ginearálta chéad eile — leathnaítear cinneacha reifreann ansin trí an bealach ordinary.",
   "referendums.act_ordinary": "Cinneadh ordinary — rannca tromlach",
   "referendums.act_setting_change": "Cinneadh athrú socruithe — rannca tromlach",
@@ -277,6 +277,7 @@
   "type_b_districts.done": "Réite",
   "type_b_districts.drag": "Tarraing",
   "type_b_districts.draw_controls_bar": "Tá na rialaitheann líníochta sa bhár ag bun an scáileáin.",
+  "type_b_districts.draw_needs_board": "Ag tarraingt comhaamraí F-ELB-008 — teastaíonn ball den bhord toghcháin atá sa suíochán (R-08).",
   "type_b_districts.draw_needs_draft": "Ag líníocht comhadán [0] — teastaíonn ball súithe den bhord toghcháin ([1]).",
   "type_b_districts.drawing_needed_above": "Tá an drawing ag déanamhna edits ar phlean dréacht — roghnaigh nó cruthaigh ceann leis an [+] in aice leis an roghnaí MAP thuas.",
   "type_b_districts.drawn_deleted": "Ceantar darbna scaoilte",
@@ -369,7 +370,7 @@
   "type_b_districts.over_rep": "Over-rep:",
   "type_b_districts.overcount": "Overcount",
   "type_b_districts.pan_mode": "Mód pan",
-  "type_b_districts.parts_suffix": "= {total} cuid",
+  "type_b_districts.parts_suffix": " = {total} cuid",
   "type_b_districts.pe_bad": "Drochpháirt (>10%):",
   "type_b_districts.pe_district_count": "({n} ceantar)",
   "type_b_districts.pe_good": "Maith (≤5%):",
@@ -492,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Éagsúlacht Pholaitiúil Aonfhormaire",
   "type_b_districts.vertex_snap_unavailable": "Níl snapáil vhéirs úsáidte — athraigh an leabharlann tarraingte faoi tholas an uirlis seo.",
   "type_b_districts.view_leg_districts": "Feach Ceantair Reachtacha →",
-  "type_b_districts.wizard_paused": "Cuiradh an Wizard ar stop."
+  "type_b_districts.wizard_paused": " Cuiradh an Wizard ar stop."
 }

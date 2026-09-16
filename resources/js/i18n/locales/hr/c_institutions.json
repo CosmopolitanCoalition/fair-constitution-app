@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Registracija odvjetnika otvorena je za svakog povezanog stanovnika, ali prvo u vašoj jurisdikciji mora postojati sud — sudovi se formiraju kada ih zakonodavno tijelo stvori (F-LEG-017).",
   "advocate_console.no_judiciary_title": "U vašem lancu povezanosti još nema sudbene vlasti.",
   "advocate_console.no_matching_page": "Na ovoj stranici nema podudarnih predmeta. Pokušajte s drugim naslovom ili brojem spisa.",
-  "advocate_console.not_seated_suffix": "(još nije zauzeto mjesto)",
+  "advocate_console.not_seated_suffix": " (još nije zauzeto mjesto)",
   "advocate_console.not_yet": "Još ne",
   "advocate_console.open_case": "Otvori predmet →",
   "advocate_console.open_case_short": "Otvori predmet",

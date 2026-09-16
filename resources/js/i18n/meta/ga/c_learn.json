@@ -332,7 +332,7 @@
     "provider": "ollama"
   },
   "q.executive_basics.q2.b": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (8/47 chars, floor 0.45)",
     "provider": "ollama"
   },

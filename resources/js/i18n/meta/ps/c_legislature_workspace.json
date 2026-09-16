@@ -1192,7 +1192,7 @@
     "provider": "ollama"
   },
   "speaker_tools.find_speaker": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

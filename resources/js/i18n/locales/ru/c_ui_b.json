@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "добавлено:",
+  "law_diff.added": "добавлено: ",
   "law_diff.label": "Изменения в тексте закона",
-  "law_diff.removed": "удалено:",
+  "law_diff.removed": "удалено: ",
   "planned_banner.default_body": "Эта часть мира спроектирована до начала сборки. Здесь еще ничего не работает, и реальные деньги отсутствуют.",
   "planned_banner.title": "Запланировано — предварительный просмотр.",
   "selection_identity.aria_org": "Запись организации для {name}, ссылка {id}",

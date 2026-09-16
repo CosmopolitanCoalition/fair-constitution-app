@@ -473,7 +473,7 @@
   "districts.tip_district": "தொகுதி: {seats} இருக்கைகள்",
   "districts.tip_expand": "துணைத் தொகுதிகளைக் காண பக்கவாட்டுப் பட்டியில் விரிவுபடுத்துங்கள்",
   "districts.tip_fractional": "பின்னங்கள்: {n}",
-  "districts.tip_members_suffix": "· {n} உறுப்பினர்கள்",
+  "districts.tip_members_suffix": " · {n} உறுப்பினர்கள்",
   "districts.tip_pop": "மக்கள் தொகை: {n}",
   "districts.tip_unassigned": "ஒதுக்கப்படாதது — ஒருங்கிணைக்கக்கூடியது",
   "districts.toast_autoseed_complete": "தானாக விதைத்தல் நிறைவடைந்தது",

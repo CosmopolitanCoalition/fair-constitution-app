@@ -4,7 +4,7 @@
     "provider": "ollama"
   },
   "electoral_approveswitch.withdraw_approval_for": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

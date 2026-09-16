@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "ការចុះឈ្មោះជាមេធាវីត្រូវបានបើកសម្រាប់អ្នករស់នៅដែលពាក់ព័ន្ធទាំងអស់ ប៉ុន្តែត្រូវតែមានតុលាការនៅក្នុងដែនសមត្ថកិច្ចរបស់អ្នកជាមុនសិន — តុលាការត្រូវបានបង្កើតឡើង នៅពេលដែលអង្គនីតិប្បញ្ញត្តិបង្កើតវា (F-LEG-017)។",
   "advocate_console.no_judiciary_title": "មិនទាន់មានអង្គតុលាការនៅក្នុងខ្សែសង្វាក់សមាគមរបស់អ្នកទេ។",
   "advocate_console.no_matching_page": "គ្មានសំណុំរឿងដែលត្រូវគ្នានៅលើទំព័រនេះទេ។ សូមសាកល្បងចំណងជើង ឬលេខបញ្ជីផ្សេងទៀត។",
-  "advocate_console.not_seated_suffix": "(មិនទាន់កាន់តំណែង)",
+  "advocate_console.not_seated_suffix": " (មិនទាន់កាន់តំណែង)",
   "advocate_console.not_yet": "មិនទាន់ទេ",
   "advocate_console.open_case": "បើកសំណុំរឿង →",
   "advocate_console.open_case_short": "បើកសំណុំរឿង",

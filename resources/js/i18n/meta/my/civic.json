@@ -504,7 +504,7 @@
     "provider": "ollama"
   },
   "civic_myrecord.page_of_entr": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

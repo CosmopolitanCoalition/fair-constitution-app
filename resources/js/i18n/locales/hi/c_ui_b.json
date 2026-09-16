@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "जोड़ा गया:",
+  "law_diff.added": "जोड़ा गया: ",
   "law_diff.label": "कानून के पाठ में बदलाव",
-  "law_diff.removed": "हटाया गया:",
+  "law_diff.removed": "हटाया गया: ",
   "planned_banner.default_body": "दुनिया का यह हिस्सा निर्माण से पहले डिज़ाइन किया गया है। यहाँ अभी कुछ भी लाइव नहीं है, और कहीं भी असली पैसा नहीं है।",
   "planned_banner.title": "नियोजित — एक पूर्वावलोकन।",
   "selection_identity.aria_org": "{name} के लिए संगठन रिकॉर्ड, संदर्भ {id}",

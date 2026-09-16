@@ -56,7 +56,7 @@
     "provider": "ollama"
   },
   "geodata_geodataflagqueue.showing_the_most_severe_of_flags_filter_by": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

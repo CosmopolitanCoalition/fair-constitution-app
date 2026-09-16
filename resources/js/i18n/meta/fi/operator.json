@@ -492,7 +492,7 @@
     "provider": "ollama"
   },
   "operator_mesh.for_every_jurisdiction_one_box_s_record_is": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -669,7 +669,7 @@
     "provider": "ollama"
   },
   "operator_operations.expires_expired_days_left": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

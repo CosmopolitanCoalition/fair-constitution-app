@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "การลงทะเบียนทนายความเปิดสำหรับผู้อยู่อาศัยที่เกี่ยวข้องทุกคน แต่ต้องมีศาลในเขตอำนาจของคุณก่อน — ศาลจะจัดตั้งขึ้นเมื่อสภานิติบัญญัติจัดตั้งขึ้น (F-LEG-017)",
   "advocate_console.no_judiciary_title": "ยังไม่มีฝ่ายตุลาการในสายการเชื่อมโยงของคุณ",
   "advocate_console.no_matching_page": "ไม่มีคดีที่ตรงกันในหน้านี้ โปรดลองใช้ชื่อหรือเลขคดีอื่น",
-  "advocate_console.not_seated_suffix": "(ยังไม่เข้าดำรงตำแหน่ง)",
+  "advocate_console.not_seated_suffix": " (ยังไม่เข้าดำรงตำแหน่ง)",
   "advocate_console.not_yet": "ยังไม่",
   "advocate_console.open_case": "เปิดคดี →",
   "advocate_console.open_case_short": "เปิดคดี",

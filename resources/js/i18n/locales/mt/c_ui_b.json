@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "żidut:",
+  "law_diff.added": "żidut: ",
   "law_diff.label": "Bidli fit-test tal-liġi",
-  "law_diff.removed": "immiżi:",
+  "law_diff.removed": "immiżi: ",
   "planned_banner.default_body": "Din il-parti tad-dinja hija ddisinjata qabel il-bniya. Xejn hawn hu live għadu, u m'hemm l-ebda flus reali.",
   "planned_banner.title": "Ippjanat — preview.",
   "selection_identity.aria_org": "Rekord ta' organizzazzjoni għal {name}, referenza {id}",

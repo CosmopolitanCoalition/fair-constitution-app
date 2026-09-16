@@ -126,6 +126,7 @@
   "elections_candidateprofile.seats_top_advance_clk_21": "{label} · {seats} mandátum · a legjobb {finalist_count} továbbjut · CLK-21",
   "elections_candidateprofile.see_the_race_standings": "Race állása megtekintése",
   "elections_candidateprofile.select_an_organization": "— válasszon egy szervezetet —",
+  "elections_candidateprofile.the_org_s_agent_decides_via_f_org_002_a_gr": "A szervezet ügynöke F-ORG-002 úton dönt; egy támogatás nyilvános, és R-07 jogot biztosít.",
   "elections_candidateprofile.this_cannot_be_undone_withdrawal_is_a_perm": "Ez visszafordíthatatlan. A visszavonás marad nyilvános nyilvántartásban.",
   "elections_candidateprofile.votes_in_office": "Hivatalos szavazatok",
   "elections_candidateprofile.voting_records_arrive_with_the_legislature": "A szavazási nyilvántartások a törvényhozási folyamattal érkeznek (C szakasz).",

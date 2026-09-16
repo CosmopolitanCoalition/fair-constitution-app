@@ -328,7 +328,7 @@
     "provider": "ollama"
   },
   "material_edit.preview": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

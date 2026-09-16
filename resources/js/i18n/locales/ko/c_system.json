@@ -268,7 +268,7 @@
   "audit_chain.missing": "이 인스턴스에서 항목 #{seq}을 찾을 수 없습니다. 시퀀스 번호에 공백이 있을 수 있습니다.",
   "audit_chain.nav_label": "감사 로그 탐색",
   "audit_chain.newer": "더 최신 항목",
-  "audit_chain.newest_first": "최신순 ·",
+  "audit_chain.newest_first": "최신순 · ",
   "audit_chain.no_entries_yet": "아직 항목 없음",
   "audit_chain.older": "더 오래된 항목",
   "audit_chain.open_receipt": "영수증 열기",

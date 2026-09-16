@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "afegit:",
+  "law_diff.added": "afegit: ",
   "law_diff.label": "Canvis en el text de la llei",
-  "law_diff.removed": "eliminat:",
+  "law_diff.removed": "eliminat: ",
   "planned_banner.default_body": "Aquesta part del món s'ha dissenyat abans de la construcció. Res d'aquí està actiu encara, i no hi ha diners reals enlloc.",
   "planned_banner.title": "Planificat — una vista prèvia.",
   "selection_identity.aria_org": "Registre de l'organització per a {name}, referència {id}",

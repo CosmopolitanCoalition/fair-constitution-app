@@ -473,7 +473,7 @@
   "districts.tip_district": "ເຂດເລືອກຕັ້ງ: {seats} ບ່ອນນັ່ງ",
   "districts.tip_expand": "ຂະຫຍາຍໃນແຖບດ້ານຂ້າງເພື່ອເບິ່ງເຂດຍ່ອຍ",
   "districts.tip_fractional": "ສ່ວນເສດ: {n}",
-  "districts.tip_members_suffix": "· {n} ສະມາຊິກ",
+  "districts.tip_members_suffix": " · {n} ສະມາຊິກ",
   "districts.tip_pop": "ປະຊາກອນ: {n}",
   "districts.tip_unassigned": "ບໍ່ໄດ້ມອບໝາຍ — ສາມາດລວມໄດ້",
   "districts.toast_autoseed_complete": "ກຳນົດຄ່າອັດຕະໂນມັດສຳເລັດ",

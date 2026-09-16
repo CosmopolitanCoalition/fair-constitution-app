@@ -79,6 +79,7 @@
   "jurisdictions_federation.why_we_want_to_mirror": "por que queremos ser unha réplica",
   "jurisdictions_federation.you_pursue_read_write_afterward": "Ti {joinForm} buscarás a lectura-escritura despois.",
   "jurisdictions_federation.you_will_become_a_read_only_mirror_of_pull": "Converterásnes nunha réplica de lectura de {joinForm}, descargando os seus rexistros públicos (con alcance {joinForm2}).",
+  "jurisdictions_federation.zone_configured": "{domain}zona {zone_id}configurada",
   "jurisdictions_index.adm_0_world": "ADM 0 — Mundo",
   "jurisdictions_index.adm_1_country": "ADM 1 — País",
   "jurisdictions_index.adm_2_state_province": "ADM 2 — Estado / Provincia",

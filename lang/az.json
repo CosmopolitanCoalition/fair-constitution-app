@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Onu /vacancies/:id ünvanında izləyin.",
+  " Track it at /vacancies/:id.": " Onu /vacancies/:id ünvanında izləyin.",
   "% of jurisdiction population · CLK-17": "yurisdiksiya əhalisinin % CLK-17",
   "+:count more candidate with first-preference support": "birinci üstünlük dəstəyi olan +:count namizəd",
   "+:count more candidates with first-preference support": "birinci üstünlük dəstəyi olan +:count namizəd",
@@ -2012,6 +2012,7 @@
   "Worker-seat election result certified.": "İşçi kürsüsü seçkisinin nəticəsi təsdiqləndi.",
   "World": "Dünya",
   "You": "Siz",
+  "You can answer only your own jury screening (R-22 of this summons).": "Siz yalnız öz andlı iclasçılar seçiminə (R-22 çağırışına) cavab verə bilərsiniz.",
   "You can only hand on a thing you hold.": "Siz yalnız sahib olduğunuz şeyi ötürə bilərsiniz.",
   "You have no account in this world yet — one opens with confirmed residency.": "Sizin hələ bu dünyada hesabınız yoxdur — təsdiqlənmiş yaşayışla hesab açılır.",
   "You have no active jury summons — jurors are drawn per case from the residency pool (F-JDG-002).": "Sizin aktiv andlı iclasçı çağırışınız yoxdur — iclasçılar hər iş üzrə yaşayış hovuzundan seçilir (F-JDG-002).",
@@ -2022,7 +2023,7 @@
   "You left the room.": "Siz otağı tərk etdiniz.",
   "You sit on more than one court — showing one; switch from the court page.": "Siz birdən çox məhkəmədəsiniz — biri göstərilir; məhkəmə səhifəsindən dəyişin.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Siz birdən çox departament idarə heyətindəsiniz — biri göstərilir; departament səhifəsindən digərini seçin.",
-  "You: ": "Siz:",
+  "You: ": "Siz: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Sizin hesabınız, sizin aktlarınız — qarşı tərəflər hesablardır, heç vaxt insanlar deyil · Art. I",
   "Your chair ranking has been recorded.": "Sədr reytinginiz qeyd edildi.",
   "Your client retains you; the retainer is recorded with the filing.": "Müştəriniz sizi vəkil kimi saxlayır; vəkalət sənədi qeydiyyatla birlikdə qeyd edilir.",

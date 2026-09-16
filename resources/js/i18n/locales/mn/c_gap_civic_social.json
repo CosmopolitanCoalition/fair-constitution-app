@@ -50,6 +50,7 @@
   "person_profile.following_count": "{count} дагаж байна",
   "person_profile.frozen_cutoff": "эцсийн шатны хязгаарт хөлдөөсөн",
   "person_profile.full_race_rank": "сонгуулийн ерөнхий эрэмбэ",
+  "person_profile.grants_r07": " · R-07 олгох",
   "person_profile.handle_hint": "3–64 тэмдэгт: a–z, 0–9, зураас эсвэл доогуур зураас. Таны {'@'}хаяг.",
   "person_profile.handle_label": "Хэрэглэгчийн нэр",
   "person_profile.handle_placeholder": "жишээ нь: jordan-r",

@@ -465,6 +465,7 @@
   "legislature_sessionconsole.round": "റൗണ്ട് {round} — {action}{round2}",
   "legislature_sessionconsole.round_record_protected_counting_engine": "റൗണ്ട് റെക്കോർഡ് (പ്രൊട്ടക്റ്റഡ് കൗണ്ടിംഗ് എൻജിൻ)",
   "legislature_sessionconsole.sealed_to_the_public_record_adjourning_a_q": "പൊതു രേഖയിലേക്ക് സീൽ ചെയ്തു; കോറം പൂർത്തിയായ സെഷൻ മാറ്റിവെക്കുന്നത് മീറ്റിംഗിൽ നിന്ന് CLK-02 പുനഃസ്ഥാപിക്കുന്നു — സ്ഥിരീകരണത്തിൽ പുനഃസ്ഥാപിച്ച സമയപരിധി കാണാം.",
+  "legislature_sessionconsole.session_due_in_day_by_discretion_can_never": "{days_left} ദിവസത്തിനുള്ളിൽ {dueBanner} സെഷൻ നടക്കും ( {due_at}-നകം) — വിവേചനാധികാരത്തിന് \"സെഷൻ ഇല്ല\" എന്ന് തീരുമാനിക്കാൻ കഴിയില്ല; ഷെഡ്യൂളർ അത് നിർബന്ധമാക്കുന്നു. CLK-02 · WF-SYS-02 · Art. II §2",
   "legislature_sessionconsole.sessions_are_called_by_the_chamber_s_speak": "ചേംബറിലെ സ്പീക്കർ (അല്ലെങ്കിൽ CLK-02 പ്രകാരം സിസ്റ്റം) ആണ് സെഷനുകൾ വിളിക്കുന്നത്.",
   "legislature_sessionconsole.slots_1_2_locked_outstanding_emergency_pow": "സ്ലോട്ട് 1–2 ലോക്ക് ചെയ്തു: ആദ്യം അടിയന്തര അധികാരങ്ങൾ, രണ്ടാമത് ഭരണഘടനാപരമായ കാര്യങ്ങൾ — ഇവയുടെ ക്രമം മാറ്റാനോ നീക്കം ചെയ്യാനോ കഴിയില്ല · Art. II §2; §7 · ഹാർഡൻഡ്",
   "legislature_sessionconsole.speaker_election_the_first_order_of_the_fi": "സ്പീക്കർ തിരഞ്ഞെടുപ്പ് — ആദ്യ സെഷനിലെ ആദ്യ ക്രമം",

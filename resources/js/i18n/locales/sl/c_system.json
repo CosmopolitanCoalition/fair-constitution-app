@@ -268,7 +268,7 @@
   "audit_chain.missing": "Vnos #{seq} na tej instanci ni bil najden. Zaporedne številke imajo lahko vrzeli.",
   "audit_chain.nav_label": "Navigacija po revizijskem dnevniku",
   "audit_chain.newer": "Novejši vnosi",
-  "audit_chain.newest_first": "Najnovejši najprej ·",
+  "audit_chain.newest_first": "Najnovejši najprej · ",
   "audit_chain.no_entries_yet": "Še ni vnosov",
   "audit_chain.older": "Starejši vnosi",
   "audit_chain.open_receipt": "Odpri potrdilo",

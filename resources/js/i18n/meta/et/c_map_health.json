@@ -1,0 +1,186 @@
+{
+  "displaced_geometry.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "displaced_geometry.measures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "displaced_geometry.reading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "displaced_geometry.remedy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "displaced_geometry.why": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dual_coverage.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dual_coverage.measures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dual_coverage.reading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dual_coverage.remedy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dual_coverage.why": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mis_anchored_cluster.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mis_anchored_cluster.measures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mis_anchored_cluster.reading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mis_anchored_cluster.remedy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mis_anchored_cluster.why": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "national_delta_gt5.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "national_delta_gt5.measures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "national_delta_gt5.reading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "national_delta_gt5.remedy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "national_delta_gt5.why": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nature.informational.hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nature.informational.text": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nature.reality.hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nature.reality.text": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nature.structural.hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nature.structural.text": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "orphaned_rows.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "orphaned_rows.measures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "orphaned_rows.reading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "orphaned_rows.remedy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "orphaned_rows.why": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "raster_coverage.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "raster_coverage.measures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "raster_coverage.reading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "raster_coverage.remedy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "raster_coverage.why": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "same_space_chain.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "same_space_chain.measures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "same_space_chain.reading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "same_space_chain.remedy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "same_space_chain.why": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stray_synthetic.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stray_synthetic.measures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stray_synthetic.reading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stray_synthetic.remedy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stray_synthetic.why": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

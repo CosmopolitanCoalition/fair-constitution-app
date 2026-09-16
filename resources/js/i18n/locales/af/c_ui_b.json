@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "bygevoeg:",
+  "law_diff.added": "bygevoeg: ",
   "law_diff.label": "Veranderings aan wetstekste",
-  "law_diff.removed": "verwyder:",
+  "law_diff.removed": "verwyder: ",
   "planned_banner.default_body": "Hierdie deel van die wêreld is ontwerp voor die bouproses. Niks hier is nog aktief nie, en geen regte geld is enigeens betrokke nie.",
   "planned_banner.title": "Beplan — 'n vooruitskou.",
   "selection_identity.aria_org": "Organisasie-rekord vir {name}, verwysing {id}",

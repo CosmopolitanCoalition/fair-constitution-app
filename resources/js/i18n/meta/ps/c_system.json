@@ -1448,7 +1448,7 @@
     "provider": "ollama"
   },
   "constitutional_questions.intro_b": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

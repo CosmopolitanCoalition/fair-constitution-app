@@ -60,6 +60,7 @@
   "jurisdictions_federation.read_write_petitions": "Petycje o dostęp do zapisu",
   "jurisdictions_federation.request_read_write_authority": "Zażądaj uprawnień do zapisu",
   "jurisdictions_federation.role_board_capability_channels": "Rada roli — kanały możliwości",
+  "jurisdictions_federation.scope_by_leg": "{capability}zakres {scope} · przez {requested_by} · ustawodawstwo: {consent_leg}",
   "jurisdictions_federation.server_id": "ID serwera",
   "jurisdictions_federation.server_id_or_url": "server_id lub url",
   "jurisdictions_federation.sign_in_as_operator_to_discover_handshake_": "Zaloguj się jako operator, aby odkrywać, nawiązywać połączenia i skanować peery — lub użyj terminala: php artisan mesh:gates, mesh:doctor <peer>.",

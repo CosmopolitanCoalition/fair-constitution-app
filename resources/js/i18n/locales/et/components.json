@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Laaditakse kosmilist aadressi…",
+  "cosmicaddresspicker.multiverse": "Multiversum ▸",
+  "schemaupdatebanner.apply_updates": "Rakenda uuendused",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Kohustuslik: {pendingLabel} — rakenda enne ETL-i käivitamist.",
+  "setupstepper.build_districts": "Loo ringkonnad",
+  "setupstepper.confirm_seat_institutions": "Kinnita ja määra asutuste kohad",
+  "setupstepper.constitutional_defaults": "Põhiseaduse vaikevärvid",
+  "setupstepper.cosmic_address": "Kosmiline aadress",
+  "setupstepper.map_data": "Kaardandatud andmed",
+  "setupstepper.setup_progress": "Seadistamise edenemine"
+}

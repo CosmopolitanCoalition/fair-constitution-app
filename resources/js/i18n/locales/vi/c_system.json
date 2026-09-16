@@ -268,7 +268,7 @@
   "audit_chain.missing": "Không tìm thấy mục #{seq} trên phiên bản này. Số thứ tự có thể có khoảng trống.",
   "audit_chain.nav_label": "Điều hướng nhật ký kiểm toán",
   "audit_chain.newer": "Các mục mới hơn",
-  "audit_chain.newest_first": "Mới nhất trước ·",
+  "audit_chain.newest_first": "Mới nhất trước · ",
   "audit_chain.no_entries_yet": "Chưa có mục nào",
   "audit_chain.older": "Các mục cũ hơn",
   "audit_chain.open_receipt": "Mở biên lai",

@@ -79,8 +79,8 @@
   "oversight.removal_title": "Verwijderingsprocedures",
   "oversight.seat_label": "Zetel {seat}",
   "oversight.seat_vacated": "zetel vrijgekomen",
-  "oversight.speaker_owncase_suffix": "(Voorzitter van de kamer — eigen zaak vereist een aangewezen voorzitter)",
-  "oversight.speaker_suffix": "(Voorzitter van de kamer)",
+  "oversight.speaker_owncase_suffix": " (Voorzitter van de kamer — eigen zaak vereist een aangewezen voorzitter)",
+  "oversight.speaker_suffix": " (Voorzitter van de kamer)",
   "oversight.special_election": "bijzondere verkiezing {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — voorzitting bij eigen zaak geblokkeerd in code",
   "oversight.spk_form_name": "Voorzitterschap bij afzetting/berisping/uitstoting",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Vacatures",
   "oversight.vacancy_countback_link": "vacature {status} — pagina terugtelling →",
   "oversight.vacancy_state_aria": "Toestandsmachine vacatures",
-  "oversight.you_suffix": "(u)",
+  "oversight.you_suffix": " (u)",
   "referendums.act_ordinary": "Gewoon besluit — meerderheidsklasse",
   "referendums.act_setting_change": "Instellingswijzigingsbesluit — meerderheidsklasse",
   "referendums.act_supermajority": "Besluit met gekwalificeerde meerderheid",
@@ -369,7 +369,7 @@
   "type_b_districts.over_rep": "Over-rep:",
   "type_b_districts.overcount": "Overtelling",
   "type_b_districts.pan_mode": "Pan-modus",
-  "type_b_districts.parts_suffix": "= {total} delen",
+  "type_b_districts.parts_suffix": " = {total} delen",
   "type_b_districts.pe_bad": "Slecht (>10%):",
   "type_b_districts.pe_district_count": "({n} kiesdistricten)",
   "type_b_districts.pe_good": "Goed (≤5%):",
@@ -492,5 +492,5 @@
   "type_b_districts.uniform_diversity": "Uniforme Politieke Diversiteit",
   "type_b_districts.vertex_snap_unavailable": "Vertex snapping niet beschikbaar — de tekenbibliotheek is gewijzigd onder dit hulpmiddel.",
   "type_b_districts.view_leg_districts": "Bekijk kiesdistricten →",
-  "type_b_districts.wizard_paused": "Wizard gepauzeerd."
+  "type_b_districts.wizard_paused": " Wizard gepauzeerd."
 }

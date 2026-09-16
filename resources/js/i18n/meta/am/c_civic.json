@@ -1713,7 +1713,7 @@
     "provider": "ollama"
   },
   "relocation.detect_empty_b": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },
@@ -2288,7 +2288,7 @@
     "provider": "ollama"
   },
   "residency.simulate_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

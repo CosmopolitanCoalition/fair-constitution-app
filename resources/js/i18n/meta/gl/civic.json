@@ -1160,7 +1160,7 @@
     "provider": "ollama"
   },
   "civic_residency.qualifying_ping_day_recorded_inside_this_b": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

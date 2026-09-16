@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "La vostra elecció de president del consell d'administració",
   "board_roster": "Membres del consell d'administració i les dates del seu mandat actual",
   "board_strip.cell_vacant": "— vacant",
-  "board_strip.chair_suffix": "(president elegit conjuntament)",
+  "board_strip.chair_suffix": " (president elegit conjuntament)",
   "board_strip.class_governor": "Governador designat",
   "board_strip.class_owner_elected": "Elegit pels propietaris",
   "board_strip.class_worker_elected": "Elegit pels treballadors",

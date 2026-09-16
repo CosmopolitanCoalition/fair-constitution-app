@@ -165,6 +165,7 @@
   "register.tz_hint": "Datoer vises i din tidssone · lagres som UTC.",
   "register.tz_label": "Tidssone",
   "report.about": "Hver rapport tilhører ett av seks emner, og hver rutes til ett sted — operatørene, oversettelsesstøtte, moderering og juridisk avdeling, eller produktkøen. Inntaket ruter en forespørsel; det redigerer eller fjerner aldri innhold selv.",
+  "report.abuse_note": "Rapporter om misbruk og ulovlig innhold sendes til modererings- og juridisk team, ikke til supportkøen. Innsending her sletter ingenting — fjerning av innhold følger Forfatningens unntak (maskineriet i F-SOC-003), aldri dette skjemaet.",
   "report.body_hint": "Enkle ord er fint. Inkluder hva du forventet og hva du så i stedet.",
   "report.body_label": "Hva skjedde?",
   "report.category_label": "Hva slags rapport er dette?",

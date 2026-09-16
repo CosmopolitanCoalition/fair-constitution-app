@@ -508,7 +508,7 @@
     "provider": "ollama"
   },
   "witness_position_note": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 0",
     "provider": "ollama"
   },

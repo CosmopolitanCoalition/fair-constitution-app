@@ -473,7 +473,7 @@
   "districts.tip_district": "മണ്ഡലം: {seats} സീറ്റുകൾ",
   "districts.tip_expand": "ഉപ-മണ്ഡലങ്ങൾ കാണുന്നതിനായി സൈഡ്ബാറിൽ വിപുലീകരിക്കുക",
   "districts.tip_fractional": "ഭിന്നസംഖ്യ: {n}",
-  "districts.tip_members_suffix": "· {n} അംഗങ്ങൾ",
+  "districts.tip_members_suffix": " · {n} അംഗങ്ങൾ",
   "districts.tip_pop": "ജനസംഖ്യ: {n}",
   "districts.tip_unassigned": "നിയമിക്കാത്തത് — സംയോജിപ്പിക്കാവുന്നത്",
   "districts.toast_autoseed_complete": "ഓട്ടോ-സീഡ് പൂർത്തിയായി",

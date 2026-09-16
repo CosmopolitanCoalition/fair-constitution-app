@@ -292,7 +292,7 @@
     "provider": "ollama"
   },
   ":seated of :serving serving members seated": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -5949,7 +5949,7 @@
     "provider": "ollama"
   },
   "Rejected pre-vote: :what of :days day(s) exceeds the :ceiling-day constitutional ceiling (resolved emergency_powers_max_days = :maxDays; hardened maximum 90 · CLK-03).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

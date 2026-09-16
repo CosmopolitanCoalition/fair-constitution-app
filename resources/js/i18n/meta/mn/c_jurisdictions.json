@@ -452,7 +452,7 @@
     "provider": "ollama"
   },
   "disintermediation.proposing_1": {
-    "status": "review",
+    "status": "machine",
     "reason": "empty",
     "provider": "ollama"
   },

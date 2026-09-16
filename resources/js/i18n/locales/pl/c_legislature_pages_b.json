@@ -119,8 +119,8 @@
   "oversight.removal_title": "Postępowania o usunięcie",
   "oversight.seat_label": "Mandat {seat}",
   "oversight.seat_vacated": "mandat zwolniony",
-  "oversight.speaker_owncase_suffix": "(marszałek — sprawa własna wymaga wyznaczonego przewodniczącego)",
-  "oversight.speaker_suffix": "(marszałek)",
+  "oversight.speaker_owncase_suffix": " (marszałek — sprawa własna wymaga wyznaczonego przewodniczącego)",
+  "oversight.speaker_suffix": " (marszałek)",
   "oversight.special_election": "wybory nadzwyczajne {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — przewodniczenie w sprawie własnej zablokowane w kodzie",
   "oversight.spk_form_name": "Przewodniczenie: Impeachment/Nagana/Usunięcie",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Wakaty",
   "oversight.vacancy_countback_link": "wakat {status} — strona ponownego liczenia →",
   "oversight.vacancy_state_aria": "Maszyna stanów wakatu",
-  "oversight.you_suffix": "(ty)",
+  "oversight.you_suffix": " (ty)",
   "referendums.about": "Tarcza CLK-19 jest bramką walidacyjną, a nie licznikiem: zgłoszenie F-LEG-034 przeciwko uchwale przyjętej większością kwalifikowaną mieszkańców jest odrzucane przed głosowaniem wraz z przytoczeniem, a samo odrzucenie trafia do dziennika audytu. Tarcza zostaje zniesiona po certyfikacji następnych wyborów generalnych — uchwały referendalne są wtedy zmieniane zwykłą ścieżką.",
   "referendums.act_ordinary": "Uchwała zwykła — klasa większości",
   "referendums.act_setting_change": "Uchwała zmiany ustawień — klasa większości",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Nadreprezentacja:",
   "type_b_districts.overcount": "Nadliczbowość",
   "type_b_districts.pan_mode": "Tryb Pan",
-  "type_b_districts.parts_suffix": "= {total} części",
+  "type_b_districts.parts_suffix": " = {total} części",
   "type_b_districts.pe_bad": "Słabe (>10%):",
   "type_b_districts.pe_district_count": "({n} okręgów)",
   "type_b_districts.pe_good": "Dobre (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Jednolita różnorodność polityczna",
   "type_b_districts.vertex_snap_unavailable": "Przyciąganie do wierzchołków niedostępne — biblioteka rysowania została zmieniona w tym narzędziu.",
   "type_b_districts.view_leg_districts": "Wyświetl okręgi wyborcze →",
-  "type_b_districts.wizard_paused": "Kreator wstrzymany."
+  "type_b_districts.wizard_paused": " Kreator wstrzymany."
 }

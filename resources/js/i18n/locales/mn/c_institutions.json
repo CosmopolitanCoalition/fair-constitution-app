@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Өмгөөлөгчийн бүртгэл холбогдох бүх оршин суугчдад нээлттэй, гэвч эхлээд таны харьяалалд шүүх байх ёстой — хууль тогтоох байгууллага үүсгэснээр (F-LEG-017) шүүхүүд байгуулагддаг.",
   "advocate_console.no_judiciary_title": "Таны холбооны сүлжээнд шүүх засаглал хараахан байхгүй байна.",
   "advocate_console.no_matching_page": "Энэ хуудсан дээр тохирох хэрэг алга. Өөр гарчиг эсвэл хэргийн дугаар туршаарай.",
-  "advocate_console.not_seated_suffix": "(суудал эзлээгүй)",
+  "advocate_console.not_seated_suffix": " (суудал эзлээгүй)",
   "advocate_console.not_yet": "Хараахан үгүй",
   "advocate_console.open_case": "Хэргийг нээх →",
   "advocate_console.open_case_short": "Хэргийг нээх",

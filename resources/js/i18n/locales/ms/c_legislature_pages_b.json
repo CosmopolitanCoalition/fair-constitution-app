@@ -79,8 +79,8 @@
   "oversight.removal_title": "Prosiding pemecatan",
   "oversight.seat_label": "Kerusi {seat}",
   "oversight.seat_vacated": "kerusi dikosongkan",
-  "oversight.speaker_owncase_suffix": "(Yang di-Pertua — kes sendiri memerlukan pengerusi yang dilantik)",
-  "oversight.speaker_suffix": "(Yang di-Pertua)",
+  "oversight.speaker_owncase_suffix": " (Yang di-Pertua — kes sendiri memerlukan pengerusi yang dilantik)",
+  "oversight.speaker_suffix": " (Yang di-Pertua)",
   "oversight.special_election": "pilihan raya khas {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — pengerusi kes sendiri disekat dalam kod",
   "oversight.spk_form_name": "Pengerusi Pemecatan/Teguran/Pengusiran",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Kekosongan",
   "oversight.vacancy_countback_link": "kekosongan {status} — halaman kiraan semula →",
   "oversight.vacancy_state_aria": "Mesin keadaan kekosongan",
-  "oversight.you_suffix": "(anda)",
+  "oversight.you_suffix": " (anda)",
   "referendums.about": "Perisai CLK-19 adalah pintu pengesah, bukan pemasa: pemfailan F-LEG-034 terhadap keputusan majoriti besar penduduk ditolak sebelum undian dengan petikan, dan penolakan itu sendiri direkodkan dalam rantaian log audit. Perisai dilepaskan apabila pilihan raya umum seterusnya disahkan — keputusan referendum kemudian dipinda melalui laluan biasa.",
   "referendums.act_ordinary": "Keputusan biasa — kelas majoriti",
   "referendums.act_setting_change": "Keputusan perubahan tetapan — kelas majoriti",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Lebih wakil:",
   "type_b_districts.overcount": "Kiraan lebih",
   "type_b_districts.pan_mode": "Mod Pan",
-  "type_b_districts.parts_suffix": "= {total} bahagian",
+  "type_b_districts.parts_suffix": " = {total} bahagian",
   "type_b_districts.pe_bad": "Buruk (>10%):",
   "type_b_districts.pe_district_count": "({n} kawasan pilihan raya)",
   "type_b_districts.pe_good": "Baik (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Kepelbagaian Politik Seragam",
   "type_b_districts.vertex_snap_unavailable": "Penapisan vertex tidak tersedia — perpustakaan lukisan telah berubah di bawah alat ini.",
   "type_b_districts.view_leg_districts": "Lihat Kawasan Pilihan Raya Perundangan →",
-  "type_b_districts.wizard_paused": "Wizard dijeda."
+  "type_b_districts.wizard_paused": " Wizard dijeda."
 }

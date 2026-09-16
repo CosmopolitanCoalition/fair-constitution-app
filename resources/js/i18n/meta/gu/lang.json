@@ -1964,7 +1964,7 @@
     "provider": "ollama"
   },
   "Assignment run complete (F-SPK-005) — :placements placement(s), :contests contested seat(s) resolved by normalized vote share (ledger #q2).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

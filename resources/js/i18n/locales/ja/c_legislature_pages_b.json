@@ -79,8 +79,8 @@
   "oversight.removal_title": "解任手続き",
   "oversight.seat_label": "議席 {seat}",
   "oversight.seat_vacated": "議席が空いた",
-  "oversight.speaker_owncase_suffix": "(議長 — 当事者となる場合は指定の司会者が必要)",
-  "oversight.speaker_suffix": "(議長)",
+  "oversight.speaker_owncase_suffix": " (議長 — 当事者となる場合は指定の司会者が必要)",
+  "oversight.speaker_suffix": " (議長)",
   "oversight.special_election": "特別選挙 {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — コードにより当事者の司会を禁止",
   "oversight.spk_form_name": "弾劾/非難/除名における司会",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "欠員",
   "oversight.vacancy_countback_link": "欠員 {status} — 再集計ページ →",
   "oversight.vacancy_state_aria": "欠員ステートマシン",
-  "oversight.you_suffix": "(あなた)",
+  "oversight.you_suffix": " (あなた)",
   "referendums.about": "CLK-19 シールドはバリデータゲートであり、タイマーではありません。住民の特別多数による議決に対する F-LEG-034 の提出は、引用と共に投票前に拒否され、その拒否自体が監査ログに記録されます。シールドは次の総選挙の認定時に解除され、住民投票による議決はその後、通常の手順で修正されます。",
   "referendums.act_ordinary": "通常議決 — 過半数クラス",
   "referendums.act_setting_change": "設定変更議決 — 過半数クラス",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "過剰代表:",
   "type_b_districts.overcount": "過剰集計",
   "type_b_districts.pan_mode": "パンモード",
-  "type_b_districts.parts_suffix": "= {total} パーツ",
+  "type_b_districts.parts_suffix": " = {total} パーツ",
   "type_b_districts.pe_bad": "不良 (>10%):",
   "type_b_districts.pe_district_count": "({n} 選挙区)",
   "type_b_districts.pe_good": "良好 (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "一様な政治的多様性",
   "type_b_districts.vertex_snap_unavailable": "頂点スナップは利用できません — このツールの基盤となる描画ライブラリが変更されました。",
   "type_b_districts.view_leg_districts": "立法府の選挙区を表示 →",
-  "type_b_districts.wizard_paused": "ウィザードを一時停止しました。"
+  "type_b_districts.wizard_paused": " ウィザードを一時停止しました。"
 }

@@ -132,7 +132,7 @@
   "advocate_console.no_judiciary_body": "변호인 등록은 연계된 모든 주민에게 열려 있지만, 관할구역에 법원이 먼저 존재해야 합니다. 법원은 입법부가 생성할 때(F-LEG-017) 구성됩니다.",
   "advocate_console.no_judiciary_title": "연계 체인에 아직 사법부가 없습니다.",
   "advocate_console.no_matching_page": "이 페이지에 일치하는 사건이 없습니다. 다른 제목이나 사건 번호를 입력하세요.",
-  "advocate_console.not_seated_suffix": "(아직 의석 미확보)",
+  "advocate_console.not_seated_suffix": " (아직 의석 미확보)",
   "advocate_console.not_yet": "아직 아님",
   "advocate_console.open_case": "사건 열기 →",
   "advocate_console.open_case_short": "사건 열기",

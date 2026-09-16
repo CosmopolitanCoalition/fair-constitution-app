@@ -268,7 +268,7 @@
   "audit_chain.missing": "এই ইনস্ট্যান্সে এন্ট্রি #{seq} পাওয়া যায়নি। সিকোয়েন্স নম্বরে গ্যাপ থাকতে পারে।",
   "audit_chain.nav_label": "নিরীক্ষা ইতিহাস নেভিগেশন",
   "audit_chain.newer": "নতুন এন্ট্রি",
-  "audit_chain.newest_first": "নতুনগুলো আগে ·",
+  "audit_chain.newest_first": "নতুনগুলো আগে · ",
   "audit_chain.no_entries_yet": "এখনো কোনো এন্ট্রি নেই",
   "audit_chain.older": "পুরানো এন্ট্রি",
   "audit_chain.open_receipt": "রিসিট খুলুন",

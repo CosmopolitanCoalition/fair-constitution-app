@@ -473,7 +473,7 @@
   "districts.tip_district": "حوزه انتخابیه: {seats} کرسی",
   "districts.tip_expand": "برای مشاهده زیر-حوزه‌ها در نوار کناری گسترش دهید",
   "districts.tip_fractional": "کسری: {n}",
-  "districts.tip_members_suffix": "· {n} عضو",
+  "districts.tip_members_suffix": " · {n} عضو",
   "districts.tip_pop": "جمعیت: {n}",
   "districts.tip_unassigned": "تخصیص نیافته — قابل ترکیب",
   "districts.toast_autoseed_complete": "مقداردهی خودکار تکمیل شد",

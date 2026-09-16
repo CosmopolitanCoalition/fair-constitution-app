@@ -268,7 +268,7 @@
   "audit_chain.missing": "ဤ instance တွင် စာရင်းသွင်းမှု #{seq} ကို မတွေ့ရှိပါ။ အစီအစဉ်နံပါတ်များတွင် လွတ်သွားမှုများ ရှိနိုင်ပါသည်။",
   "audit_chain.nav_label": "စာရင်းစစ်မှတ်တမ်း လမ်းညွှန်",
   "audit_chain.newer": "ပိုသစ်သော စာရင်းသွင်းမှုများ",
-  "audit_chain.newest_first": "အသစ်ဆုံးကို အရင်ပြမည် ·",
+  "audit_chain.newest_first": "အသစ်ဆုံးကို အရင်ပြမည် · ",
   "audit_chain.no_entries_yet": "စာရင်းသွင်းမှုများ မရှိသေးပါ",
   "audit_chain.older": "ပိုဟောင်းသော စာရင်းသွင်းမှုများ",
   "audit_chain.open_receipt": "ပြေစာဖွင့်ရန်",

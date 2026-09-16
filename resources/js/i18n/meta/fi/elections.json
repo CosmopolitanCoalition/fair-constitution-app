@@ -560,7 +560,7 @@
     "provider": "ollama"
   },
   "elections_electiondetail.certified_by_f_elb_004_winners_granted_rol": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -589,7 +589,7 @@
     "provider": "ollama"
   },
   "elections_electiondetail.issued_by": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -610,7 +610,7 @@
     "provider": "ollama"
   },
   "elections_electiondetail.no_races_exist_yet_race_generation_is_pend": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1095,7 +1095,7 @@
     "provider": "ollama"
   },
   "elections_results.every_one_of_the_fills_in_this_single_coun": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

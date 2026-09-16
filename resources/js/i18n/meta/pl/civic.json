@@ -420,7 +420,7 @@
     "provider": "ollama"
   },
   "civic_myrecord.association_record_entr": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

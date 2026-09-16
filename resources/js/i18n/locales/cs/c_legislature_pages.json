@@ -473,7 +473,7 @@
   "districts.tip_district": "Obvod: {seats} křesel",
   "districts.tip_expand": "Rozbalte v bočním panelu pro zobrazení podobvodů",
   "districts.tip_fractional": "Zlomek: {n}",
-  "districts.tip_members_suffix": "· {n} členů",
+  "districts.tip_members_suffix": " · {n} členů",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "Nepřiřazeno — kombinovatelné",
   "districts.toast_autoseed_complete": "Automatické osazení dokončeno",

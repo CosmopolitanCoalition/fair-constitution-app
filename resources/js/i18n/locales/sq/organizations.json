@@ -4,6 +4,7 @@
   "organizations_boardelections.board_elections_reuse_the_public_election_": "Zgjedhjet e bordit përdorin motorin e zgjedhjeve publike nga fillimi në fund — garat për pronarët dhe punëtorët mbajnë një electorate_type (pronarë / punëtorë) dhe kryejnë të njëjtin numërim të mbrojtur STV. Kryesuesi është vota e vetme e brendshme e bordit: një fletë votimi me zgjedhje të renditur e gjithë bordit të ulur, e fituar me një shumicë të të gjithë vendeve të ulura.",
   "organizations_boardelections.chair_elected_jointly_by_the_entire_board_": "Kryesuesi zgjidhet përbashkët nga i gjithë Bordi · Art. III §6",
   "organizations_boardelections.chair_seated_as_joint_chair_public_record_": "kryesues: {winner} — i ulur si kryesues i përbashkët · certifikim i llojit të regjistrit publik",
+  "organizations_boardelections.co_determination_provisions_a_board_on_the": "dispozitat e bashëvendosjes e një bordi në pistën e pronarëve fillimisht (F-ORG-003); pista e punëtorëve dhe vendet e tyre shfaqen sapo organizata kalon pragun e vendit të parë (CLK-13). Forma e administrimit të pistës së pronarëve më poshtë e rregullon këtë.",
   "organizations_boardelections.composition_changed_a_fresh_joint_chair_el": "Përbërja ndryshoi — kërkohet një zgjedhje e re e kryesuesit të përbashkët përpara se bordi të veprojë.",
   "organizations_boardelections.composition_invalid_a_worker_track_electio": "Përbërja e pavlefshme — kërkohet një zgjedhje në pistën e punëtorëve përpara se bordi të veprojë",
   "organizations_boardelections.droop_quota": "Kuota Droop {ownerTrack}",

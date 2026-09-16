@@ -664,7 +664,7 @@
     "provider": "ollama"
   },
   "report.abuse_note": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "El registro de Defensor está abierto a cualquier Residente asociado, pero primero debe existir un tribunal en su Jurisdicción; los tribunales se forman cuando una Legislatura crea uno (F-LEG-017).",
   "advocate_console.no_judiciary_title": "Aún no hay Poder judicial en su cadena de asociación.",
   "advocate_console.no_matching_page": "No hay casos coincidentes en esta página. Pruebe con otro título o número de expediente.",
-  "advocate_console.not_seated_suffix": "(aún no ha tomado posesión)",
+  "advocate_console.not_seated_suffix": " (aún no ha tomado posesión)",
   "advocate_console.not_yet": "Aún no",
   "advocate_console.open_case": "Abrir caso →",
   "advocate_console.open_case_short": "Abrir caso",

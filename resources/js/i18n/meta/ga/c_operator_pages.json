@@ -420,7 +420,7 @@
     "provider": "ollama"
   },
   "electoral_kit.gloss_keyboard": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 0",
     "provider": "ollama"
   },
@@ -3173,7 +3173,7 @@
     "provider": "ollama"
   },
   "sim_console.smoke_hint": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 0",
     "provider": "ollama"
   },

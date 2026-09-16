@@ -828,7 +828,7 @@
     "provider": "ollama"
   },
   "setup_step2_mapdata.the_etl_reads_from_the_container_path_whic": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },

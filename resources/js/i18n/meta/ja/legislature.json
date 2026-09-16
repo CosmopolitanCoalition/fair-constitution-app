@@ -500,7 +500,7 @@
     "provider": "ollama"
   },
   "legislature_committeedetail.the_committee_decides_by_majority_of_all_i": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -581,7 +581,7 @@
     "provider": "ollama"
   },
   "legislature_committees.locked_an_f_spk_005_run_snapshots_all_inpu": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1222,7 +1222,7 @@
     "provider": "ollama"
   },
   "legislature_emergencypowers.all_validation_runs_pre_vote_the_closed_ca": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -268,7 +268,7 @@
   "audit_chain.missing": "Id-dħul #{seq} ma sabux f'din l-istanza. In-numri tas-sekwenza jistgħu jkollhom lakuni.",
   "audit_chain.nav_label": "Navigazzjoni tas-storja tal-verifika",
   "audit_chain.newer": "Dħul aktar ġodid",
-  "audit_chain.newest_first": "L-aktar ġodid l-ewwel ·",
+  "audit_chain.newest_first": "L-aktar ġodid l-ewwel · ",
   "audit_chain.no_entries_yet": "Xejn dħul għaddej",
   "audit_chain.older": "Dħul aktar qodma",
   "audit_chain.open_receipt": "Iftaħ risipewżi",

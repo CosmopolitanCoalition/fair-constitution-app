@@ -79,8 +79,8 @@
   "oversight.removal_title": "Procedementos de destitución",
   "oversight.seat_label": "Escano {seat}",
   "oversight.seat_vacated": "escano vacante",
-  "oversight.speaker_owncase_suffix": "(presidente da cámara — o seu propio caso require un presidente designado)",
-  "oversight.speaker_suffix": "(presidente da cámara)",
+  "oversight.speaker_owncase_suffix": " (presidente da cámara — o seu propio caso require un presidente designado)",
+  "oversight.speaker_suffix": " (presidente da cámara)",
   "oversight.special_election": "elección especial {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — presidencia de caso propio bloqueada no código",
   "oversight.spk_form_name": "Presidencia de Impeachment/Censura/Expulsión",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Vacantes",
   "oversight.vacancy_countback_link": "vacante {status} — páxina de reconto retroactivo →",
   "oversight.vacancy_state_aria": "Máquina de estados de vacantes",
-  "oversight.you_suffix": "(ti)",
+  "oversight.you_suffix": " (ti)",
   "referendums.about": "O escudo CLK-19 é unha porta de validación, non un temporizador: unha petición F-LEG-034 contra un acto de maioría cualificada da poboación é rexeitada antes da votación coa citación, e a propia rexeitacion queda rexistrada na cadea de auditoría. O escudo libérase cando se certifica a seguinte elección xeral; os actos de referendo eméndanse entón pola vía ordinaria.",
   "referendums.act_ordinary": "Acto ordinario — clase de maioría",
   "referendums.act_setting_change": "Acto de cambio de configuración — clase de maioría",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Sobre-rep:",
   "type_b_districts.overcount": "Sobreconteo",
   "type_b_districts.pan_mode": "Modo Pan",
-  "type_b_districts.parts_suffix": "= {total} partes",
+  "type_b_districts.parts_suffix": " = {total} partes",
   "type_b_districts.pe_bad": "Malo (>10%):",
   "type_b_districts.pe_district_count": "({n} distritos)",
   "type_b_districts.pe_good": "Bo (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Diversidade Política Uniforme",
   "type_b_districts.vertex_snap_unavailable": "Aজajuste de vértices non dispoñible — a biblioteca de debuxo cambiou baixo esta ferramenta.",
   "type_b_districts.view_leg_districts": "Ver distritos lexislativos →",
-  "type_b_districts.wizard_paused": "Asistente pausado."
+  "type_b_districts.wizard_paused": " Asistente pausado."
 }

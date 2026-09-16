@@ -1700,7 +1700,7 @@
     "provider": "ollama"
   },
   "coverage.dead_tour_help": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

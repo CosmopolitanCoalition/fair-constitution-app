@@ -79,8 +79,8 @@
   "oversight.removal_title": "Proceduri de revocare",
   "oversight.seat_label": "Loc {seat}",
   "oversight.seat_vacated": "loc vacantat",
-  "oversight.speaker_owncase_suffix": "(președintele adunării — cazul propriu necesită un președinte desemnat)",
-  "oversight.speaker_suffix": "(președintele adunării)",
+  "oversight.speaker_owncase_suffix": " (președintele adunării — cazul propriu necesită un președinte desemnat)",
+  "oversight.speaker_suffix": " (președintele adunării)",
   "oversight.special_election": "alegeri speciale {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — președinția în caz propriu blocată în cod",
   "oversight.spk_form_name": "Președinție pentru Impeachment/Cenzură/Excludere",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Locuri vacante",
   "oversight.vacancy_countback_link": "loc vacant {status} — pagină de renumărare retroactivă →",
   "oversight.vacancy_state_aria": "Mașină a stărilor pentru locuri vacante",
-  "oversight.you_suffix": "(tu)",
+  "oversight.you_suffix": " (tu)",
   "referendums.about": "Scutul CLK-19 este o poartă de validare, nu un temporizator: o depunere F-LEG-034 împotriva unui act cu majoritate calificată a populației este respinsă înainte de vot cu citarea, iar respingerea însăși ajunge în jurnalul de audit. Scutul se eliberează când următoarele alegeri generale sunt certificate — actele de referendum sunt apoi modificate prin calea obișnuită.",
   "referendums.act_ordinary": "Act obișnuit — clasa de majoritate",
   "referendums.act_setting_change": "Act de modificare a setărilor — clasa de majoritate",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Supra-rep:",
   "type_b_districts.overcount": "Supra-numărare",
   "type_b_districts.pan_mode": "Mod Pan",
-  "type_b_districts.parts_suffix": "= {total} părți",
+  "type_b_districts.parts_suffix": " = {total} părți",
   "type_b_districts.pe_bad": "Rău (>10%):",
   "type_b_districts.pe_district_count": "({n} circumscripții)",
   "type_b_districts.pe_good": "Bun (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Diversitate Politică Uniformă",
   "type_b_districts.vertex_snap_unavailable": "Atragerea vertexurilor indisponibilă — biblioteca de desenare s-a modificat sub acest instrument.",
   "type_b_districts.view_leg_districts": "Vezi circumscripțiile legislative →",
-  "type_b_districts.wizard_paused": "Wizard suspendat."
+  "type_b_districts.wizard_paused": " Wizard suspendat."
 }

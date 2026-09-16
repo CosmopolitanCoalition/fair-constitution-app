@@ -1,5 +1,6 @@
 {
   "electoral_approveswitch.approval_phase_is_closed": "Az jóváhagyási szakasz lezárult",
+  "electoral_approveswitch.withdraw_approval_for": "Vonja vissza a jóváhagyást a következőnek:",
   "electoral_ballotreceipt.receipt_copied": "Nyugtviszonlet másolata",
   "electoral_ballotreceipt.self_audit_in_the_public_count_record": "Önellenőrzés a nyilvános szavazatszámláló nyilvántartásban",
   "electoral_ballotreceipt.this_receipt_is_shown_once_copy_it_now_it_": "Ez a nyugtviszonlet csak egyszer látható. Másolja ki most — később Ön vagy bárki más már nem fogja tudni lekérni.",

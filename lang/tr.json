@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "/vacancies/:id adresinden takip edin.",
+  " Track it at /vacancies/:id.": " /vacancies/:id adresinden takip edin.",
   "% of jurisdiction population · CLK-17": "yetki alanı nüfusunun %CLK-17'i",
   "+:count more candidate with first-preference support": "birinci tercih desteğine sahip +:count aday daha",
   "+:count more candidates with first-preference support": "birinci tercih desteğine sahip +:count aday daha",
@@ -2025,7 +2025,7 @@
   "You left the room.": "Odadan ayrıldınız.",
   "You sit on more than one court — showing one; switch from the court page.": "Birden fazla mahkemede görevlisiniz — biri gösteriliyor; mahkeme sayfasından değiştirin.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Birden fazla departman yönetim kurulunda görevlisiniz — biri gösteriliyor; departman sayfasından başka birini seçin.",
-  "You: ": "Siz:",
+  "You: ": "Siz: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Hesabınız, kararlarınız — karşı taraflar hesaplardır, asla kişiler değildir · Art. I",
   "Your chair ranking has been recorded.": "Başkanlık sıralamanız kaydedildi.",
   "Your client retains you; the retainer is recorded with the filing.": "Müvekkiliniz sizi tuttu; tutma işlemi dosyalama ile kaydedildi.",

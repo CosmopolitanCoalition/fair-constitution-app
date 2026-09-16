@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "hinzugefügt:",
+  "law_diff.added": "hinzugefügt: ",
   "law_diff.label": "Änderungen am Gesetzestext",
-  "law_diff.removed": "entfernt:",
+  "law_diff.removed": "entfernt: ",
   "planned_banner.default_body": "Dieser Teil der Welt wurde vor dem Aufbau entworfen. Hier ist noch nichts live, und es gibt kein echtes Geld.",
   "planned_banner.title": "Geplant — eine Vorschau.",
   "selection_identity.aria_org": "Organisationseintrag für {name}, Referenz {id}",

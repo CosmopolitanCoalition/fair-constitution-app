@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Sledite temu na /vacancies/:id.",
+  " Track it at /vacancies/:id.": " Sledite temu na /vacancies/:id.",
   "% of jurisdiction population · CLK-17": "% prebivalstva jurisdikcije · CLK-17",
   "+:count more candidate with first-preference support": "+:count kandidat s podporo prve preference",
   "+:count more candidates with first-preference support": "+:count kandidati s podporo prve preference",
@@ -79,6 +79,7 @@
   ":status grouping": ":status skupina",
   ":status grouping · :when": ":status skupina · :when",
   ":time · shown in :tz · stored as UTC": ":time · prikazano v :tz · shranjeno kot UTC",
+  ":yes of :serving serving": ":yes od :serving mandata",
   "A 'single' race elects exactly one seat (got :seats) — the individual-executive exception.": "Pri 'enostni' volitvi se izvoli točno en sedež (dobljeno :seats) — izjema za posameznika iz izvršilne oblasti.",
   "A :field must be a list SOURCE / statute citation only — never a hash, locator, or URL (republishable harm).": ":field mora biti samo seznam VIROV / citat zakona — nikoli ne sme biti hash, lokator ali URL (tveganje ponovnega objavljanja škode).",
   "A :kind appeal is recorded as :allowed — a criminal appeal may only affirm or vacate, never order a re-trial.": "Priloga :kind je zabeležena kot :allowed — kazenska priloga lahko le potrdi ali razveljavi, nikoli pa ne naroči ponovnega sojenja.",
@@ -2024,7 +2025,7 @@
   "You left the room.": "Zapustili ste prostor.",
   "You sit on more than one court — showing one; switch from the court page.": "Sidite v več kot enem sodišču — prikazan je eden; zamenjajte na strani sodišča.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Sidite v več kot enem upravnem odboru oddelka — prikazan je eden; izberite drugega na strani oddelka.",
-  "You: ": "Vi:",
+  "You: ": "Vi: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Vaš račun, vaši akti — nasprotne stranke so računi, nikoli osebe · Art. I",
   "Your chair ranking has been recorded.": "Vaš rang predsedujočega je bil zabeležen.",
   "Your client retains you; the retainer is recorded with the filing.": "Stranka vas zadržuje; zadržek je zabeležen s predajo dokumentov.",

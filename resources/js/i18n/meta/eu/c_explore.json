@@ -1,0 +1,214 @@
+{
+  "browse_places": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "chair.description": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "chair.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "choose_place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "choose_role": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "demo_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "display_checks": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election-board.description": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election-board.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "forming": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "host_controls": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "impersonating": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "impersonating_really": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "instant": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judge.description": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judge.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "learn_role": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislator.description": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislator.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.bills": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.board": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.chamber": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.committees": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.court": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.districts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.docket": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.halls": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.market": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.operator": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.operator-roles": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.organizations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.places": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.rooms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.session": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.speaker": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link.wallet": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operator.description": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operator.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "perspective_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "place_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "place_prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "resident.description": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "resident.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "room_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "room_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "speaker.description": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "speaker.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "worker.description": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "worker.title": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

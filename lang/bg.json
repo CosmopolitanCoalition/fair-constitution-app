@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Проследете го на /vacancies/:id.",
+  " Track it at /vacancies/:id.": " Проследете го на /vacancies/:id.",
   "% of jurisdiction population · CLK-17": "% от населението на юрисдикцията · CLK-17",
   "+:count more candidate with first-preference support": "+:count още кандидат с първостепенна подкрепа",
   "+:count more candidates with first-preference support": "+:count още кандидати с първостепенна подкрепа",
@@ -2025,7 +2025,7 @@
   "You left the room.": "Напуснахте стаята.",
   "You sit on more than one court — showing one; switch from the court page.": "Заседате в повече от един съд — показва се един; сменете го от страницата на съда.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Заседате в повече от един управителен съвет на отдел — показва се един; изберете друг от страницата на отдела.",
-  "You: ": "Вие:",
+  "You: ": "Вие: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Вашият акаунт, вашите актове — контрагентите са акаунти, никога хора · Art. I",
   "Your chair ranking has been recorded.": "Ранкингът ви като председател е записан.",
   "Your client retains you; the retainer is recorded with the filing.": "Клиентът ви ви задържа; задържането е записано при подаването.",

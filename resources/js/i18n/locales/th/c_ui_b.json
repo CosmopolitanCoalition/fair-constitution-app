@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "เพิ่ม:",
+  "law_diff.added": "เพิ่ม: ",
   "law_diff.label": "การเปลี่ยนแปลงข้อความกฎหมาย",
-  "law_diff.removed": "ลบ:",
+  "law_diff.removed": "ลบ: ",
   "planned_banner.default_body": "พื้นที่ส่วนนี้ของโลกถูกออกแบบไว้ก่อนการสร้าง ยังไม่มีส่วนใดใช้งานจริง และไม่มีการใช้เงินจริงในขณะนี้",
   "planned_banner.title": "วางแผนแล้ว — ตัวอย่าง",
   "selection_identity.aria_org": "บันทึกองค์กรสำหรับ {name}, อ้างอิง {id}",

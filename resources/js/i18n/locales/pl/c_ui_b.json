@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "dodano:",
+  "law_diff.added": "dodano: ",
   "law_diff.label": "Zmiany w tekście ustawy",
-  "law_diff.removed": "usunięto:",
+  "law_diff.removed": "usunięto: ",
   "planned_banner.default_body": "Ta część świata została zaprojektowana przed budową. Nic tutaj nie jest jeszcze aktywne i nie ma tu prawdziwych pieniędzy.",
   "planned_banner.title": "Planowane — podgląd.",
   "selection_identity.aria_org": "Rejestr organizacji dla {name}, referencja {id}",

@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Регистрација адвоката је отворена за сваког повезаног становника, али прво мора постојати суд у вашој јурисдикцији — судови се формирају када их законодавно тело створи (F-LEG-017).",
   "advocate_console.no_judiciary_title": "У вашем ланцу повезаности још увек нема судске власти.",
   "advocate_console.no_matching_page": "Нема одговарајућих случајева на овој страници. Пробајте други наслов или број предмета.",
-  "advocate_console.not_seated_suffix": "(место још није заузето)",
+  "advocate_console.not_seated_suffix": " (место још није заузето)",
   "advocate_console.not_yet": "Још увек не",
   "advocate_console.open_case": "Отвори случај →",
   "advocate_console.open_case_short": "Отвори случај",

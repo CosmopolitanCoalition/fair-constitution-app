@@ -79,8 +79,8 @@
   "oversight.removal_title": "Procedurat e largimit",
   "oversight.seat_label": "Vendi {seat}",
   "oversight.seat_vacated": "vendi u vakantua",
-  "oversight.speaker_owncase_suffix": "(kryetar i kuvendit — rasti i vetes kërkon një kryesues të caktuar)",
-  "oversight.speaker_suffix": "(kryetar i kuvendit)",
+  "oversight.speaker_owncase_suffix": " (kryetar i kuvendit — rasti i vetes kërkon një kryesues të caktuar)",
+  "oversight.speaker_suffix": " (kryetar i kuvendit)",
   "oversight.special_election": "zgjedhje të veçanta {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — kryesimi i rastit të vetes i bllokuar në kod",
   "oversight.spk_form_name": "Kryesimi i procedurës së Impeachment/Qortimit/Dëbimit",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Vende vakante",
   "oversight.vacancy_countback_link": "vend vakant {status} — faqja e rinumërimut →",
   "oversight.vacancy_state_aria": "Makina e gjendjes së vakancës",
-  "oversight.you_suffix": "(ju)",
+  "oversight.you_suffix": " (ju)",
   "referendums.about": "Mbrojtja CLK-19 është një portë validimi, jo një timer: një aplikim F-LEG-034 kundër një akti me shumicë të cilësuar të popullsisë refuzohet para votimit me citimin përkatës, dhe refuzimi vetë regjistrohet në zinxhirin e auditimit. Mbrojtja shkëputet kur certifikohen zgjedhjet e ardhshme të përgjithshme — aktet e referendumit pastaj ndryshojnë përmes rrugës së zakonshme.",
   "referendums.act_ordinary": "Akt i zakonshëm — klasa e shumicës",
   "referendums.act_setting_change": "Akt për ndryshim cilësimesh — klasa e shumicës",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Mbi-përfaqësim:",
   "type_b_districts.overcount": "Mbinumërim",
   "type_b_districts.pan_mode": "Modaliteti Pan",
-  "type_b_districts.parts_suffix": "= {total} pjesë",
+  "type_b_districts.parts_suffix": " = {total} pjesë",
   "type_b_districts.pe_bad": "Keq (>10%):",
   "type_b_districts.pe_district_count": "({n} zona zgjedhore)",
   "type_b_districts.pe_good": "Mirë (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Diversitet Politik Uniform",
   "type_b_districts.vertex_snap_unavailable": "Shtrëngimi i vertex-eve nuk është i disponueshëm — libraria e vizatimit ndryshoi nën këtë mjet.",
   "type_b_districts.view_leg_districts": "Shiko Zonat Zgjedhore Legjislative →",
-  "type_b_districts.wizard_paused": "Wizard i ndërprerë."
+  "type_b_districts.wizard_paused": " Wizard i ndërprerë."
 }

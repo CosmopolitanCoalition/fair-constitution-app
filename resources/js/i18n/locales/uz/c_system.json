@@ -268,7 +268,7 @@
   "audit_chain.missing": "Ushbu instansiyada #{seq} yozuv topilmadi. Ketma-ketlik raqamlarida bo'shliqlar bo'lishi mumkin.",
   "audit_chain.nav_label": "Audit tarixi navigatsiyasi",
   "audit_chain.newer": "Yangiroq yozuvlar",
-  "audit_chain.newest_first": "Eng yangilari birinchi ·",
+  "audit_chain.newest_first": "Eng yangilari birinchi · ",
   "audit_chain.no_entries_yet": "Hali yozuvlar yo'q",
   "audit_chain.older": "Eskiroq yozuvlar",
   "audit_chain.open_receipt": "Kvitansiyani ochish",

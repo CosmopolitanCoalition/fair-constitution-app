@@ -79,8 +79,8 @@
   "oversight.removal_title": "Διαδικασίες απομάκρυνσης",
   "oversight.seat_label": "Έδρα {seat}",
   "oversight.seat_vacated": "έδρα κενώθηκε",
-  "oversight.speaker_owncase_suffix": "(Πρόεδρος του σώματος — η δική του υπόθεση απαιτεί ορισμένο προεδρείο)",
-  "oversight.speaker_suffix": "(Πρόεδρος του σώματος)",
+  "oversight.speaker_owncase_suffix": " (Πρόεδρος του σώματος — η δική του υπόθεση απαιτεί ορισμένο προεδρείο)",
+  "oversight.speaker_suffix": " (Πρόεδρος του σώματος)",
   "oversight.special_election": "ειδικές εκλογές {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — η προεδρία σε δική του υπόθεση αποκλείεται από τον κώδικα",
   "oversight.spk_form_name": "Προεδρία σε Ε劾ιασμό/Αποδοξίωση/Αποβολή",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Κενές έδρες",
   "oversight.vacancy_countback_link": "κενή έδρα {status} — σελίδα αναδρομικής καταμέτρησης →",
   "oversight.vacancy_state_aria": "Μηχανή κατάστασης κενών εδρών",
-  "oversight.you_suffix": "(εσείς)",
+  "oversight.you_suffix": " (εσείς)",
   "referendums.about": "Η ασπίδα CLK-19 είναι πύλη επικύρωσης, όχι χρονόμετρο: μια υποβολή F-LEG-034 κατά μιας πράξης με ενισχυμένη πλειοψηφία πληθυσμού απορρίπτεται πριν από την ψηφοφορία με την αναφορά, και η ίδια η απόρριψη καταγράφεται στην αλυσίδα ελέγχου. Η ασπίδα απελευθερώνεται όταν επικυρωθούν οι επόμενες γενικές εκλογές — οι πράξεις δημοψηφίσματος τροποποιούνται τότε μέσω της τακτικής οδού.",
   "referendums.act_ordinary": "Τακτική πράξη — κατηγορία πλειοψηφίας",
   "referendums.act_setting_change": "Πράξη αλλαγής ρυθμίσεων — κατηγορία πλειοψηφίας",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Υπερ-εκπροσώπηση:",
   "type_b_districts.overcount": "Υπερκαταμέτρηση",
   "type_b_districts.pan_mode": "Λειτουργία Pan",
-  "type_b_districts.parts_suffix": "= {total} μέρη",
+  "type_b_districts.parts_suffix": " = {total} μέρη",
   "type_b_districts.pe_bad": "Κακό (>10%):",
   "type_b_districts.pe_district_count": "({n} περιφέρειες)",
   "type_b_districts.pe_good": "Καλό (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Ομοιόμορφη Πολιτική Πλουραλιστική",
   "type_b_districts.vertex_snap_unavailable": "Η προσαρμογή κορυφής δεν είναι διαθέσιμη — η βιβλιοθήκη σχεδίασης άλλαξε κάτω από αυτό το εργαλείο.",
   "type_b_districts.view_leg_districts": "Προβολή Νομοθετικών Περιφερειών →",
-  "type_b_districts.wizard_paused": "Ο οδηγός σταμάτησε."
+  "type_b_districts.wizard_paused": " Ο οδηγός σταμάτησε."
 }

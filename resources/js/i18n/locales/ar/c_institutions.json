@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "التسجيل كمحامٍ متاح لأي مقيم مرتبط، ولكن يجب أن تكون هناك محكمة في ولايتك القضائية أولاً — تُشكل المحاكم عندما تنشئها هيئة تشريعية (F-LEG-017).",
   "advocate_console.no_judiciary_title": "لا توجد سلطة قضائية في سلسلة ارتباطك بعد.",
   "advocate_console.no_matching_page": "لا توجد قضايا مطابقة في هذه الصفحة. جرب عنواناً آخر أو رقم سجل آخر.",
-  "advocate_console.not_seated_suffix": "(لم يشغل المقعد بعد)",
+  "advocate_console.not_seated_suffix": " (لم يشغل المقعد بعد)",
   "advocate_console.not_yet": "ليس بعد",
   "advocate_console.open_case": "فتح القضية ←",
   "advocate_console.open_case_short": "فتح القضية",

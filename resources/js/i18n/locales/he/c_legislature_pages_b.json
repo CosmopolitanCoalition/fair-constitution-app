@@ -119,8 +119,8 @@
   "oversight.removal_title": "הליכי הדחה",
   "oversight.seat_label": "מושב {seat}",
   "oversight.seat_vacated": "המושב פונה",
-  "oversight.speaker_owncase_suffix": "(יושב ראש הבית — מקרה אישי דורש מנהל מונה)",
-  "oversight.speaker_suffix": "(יושב ראש הבית)",
+  "oversight.speaker_owncase_suffix": " (יושב ראש הבית — מקרה אישי דורש מנהל מונה)",
+  "oversight.speaker_suffix": " (יושב ראש הבית)",
   "oversight.special_election": "בחירות מיוחדות {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — ניהול מקרה אישי חסום בקוד",
   "oversight.spk_form_name": "ניהול הליך הדחה/נזיפה/סילוק",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "מושבים פנויים",
   "oversight.vacancy_countback_link": "מושב פנוי {status} — דף ספירה חוזרת ←",
   "oversight.vacancy_state_aria": "מכונת מצבים של מושב פנוי",
-  "oversight.you_suffix": "(אתה)",
+  "oversight.you_suffix": " (אתה)",
   "referendums.about": "מגן ה-CLK-19 הוא שער אימות, לא טיימר: הגשה של F-LEG-034 נגד החלטה ברוב מיוחס של האוכלוסייה נדחית לפני ההצבעה עם הציטוט, והדחייה עצמה נרשמת ביומן הביקורת. המגן משתחרר כאשר הבחירות הכלליות הבאות מאושרות — החלטות של משאל עם מתוקנות אז במסלול הרגיל.",
   "referendums.act_ordinary": "החלטה רגילה — קטגוריית רוב",
   "referendums.act_setting_change": "החלטה לשינוי הגדרות — קטגוריית רוב",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "ייצוג יתר:",
   "type_b_districts.overcount": "ספירה יתרה",
   "type_b_districts.pan_mode": "מצב פאן",
-  "type_b_districts.parts_suffix": "= {total} חלקים",
+  "type_b_districts.parts_suffix": " = {total} חלקים",
   "type_b_districts.pe_bad": "גרוע (>10%):",
   "type_b_districts.pe_district_count": "({n} מחוזות בחירה)",
   "type_b_districts.pe_good": "טוב (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "גיוון פוליטי אחיד",
   "type_b_districts.vertex_snap_unavailable": "הצמדה לקודקוד לא זמינה — ספריית השרטוט השתנתה מתחת לכלי זה.",
   "type_b_districts.view_leg_districts": "הצג מחוזות בחירה חקיקתית ←",
-  "type_b_districts.wizard_paused": "האשף הופסק."
+  "type_b_districts.wizard_paused": " האשף הופסק."
 }

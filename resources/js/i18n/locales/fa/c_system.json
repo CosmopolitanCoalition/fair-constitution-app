@@ -268,7 +268,7 @@
   "audit_chain.missing": "ورودی #{seq} در این نمونه یافت نشد. شماره‌های توالی ممکن است دارای فاصله باشند.",
   "audit_chain.nav_label": "ناوبری تاریخچه ممیزی",
   "audit_chain.newer": "ورودی‌های جدیدتر",
-  "audit_chain.newest_first": "ابتدا جدیدترین ·",
+  "audit_chain.newest_first": "ابتدا جدیدترین · ",
   "audit_chain.no_entries_yet": "هنوز ورودی وجود ندارد",
   "audit_chain.older": "ورودی‌های قدیمی‌تر",
   "audit_chain.open_receipt": "باز کردن رسید",

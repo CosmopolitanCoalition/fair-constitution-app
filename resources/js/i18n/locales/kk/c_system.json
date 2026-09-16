@@ -268,7 +268,7 @@
   "audit_chain.missing": "Бұл инстанста #{seq} жазбасы табылмады. Реттік нөмірлерде бос орындар болуы мүмкін.",
   "audit_chain.nav_label": "Аудит журналы бойынша навигация",
   "audit_chain.newer": "Жаңарақ жазбалар",
-  "audit_chain.newest_first": "Алдымен ең жаңалары ·",
+  "audit_chain.newest_first": "Алдымен ең жаңалары · ",
   "audit_chain.no_entries_yet": "Әлі жазбалар жоқ",
   "audit_chain.older": "Ескірек жазбалар",
   "audit_chain.open_receipt": "Түбірді ашу",

@@ -980,7 +980,7 @@
     "provider": "ollama"
   },
   "legislature_districts.measures_how_evenly_each_district_s_popula": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },

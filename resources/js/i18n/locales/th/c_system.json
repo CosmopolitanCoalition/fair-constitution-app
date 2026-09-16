@@ -268,7 +268,7 @@
   "audit_chain.missing": "ไม่พบรายการ #{seq} ในอินสแตนซ์นี้ หมายเลขลำดับอาจมีช่องว่าง",
   "audit_chain.nav_label": "การนำทางบันทึกการตรวจสอบ",
   "audit_chain.newer": "รายการที่ใหม่กว่า",
-  "audit_chain.newest_first": "ใหม่สุดก่อน ·",
+  "audit_chain.newest_first": "ใหม่สุดก่อน · ",
   "audit_chain.no_entries_yet": "ยังไม่มีรายการ",
   "audit_chain.older": "รายการที่เก่ากว่า",
   "audit_chain.open_receipt": "เปิดใบเสร็จ",

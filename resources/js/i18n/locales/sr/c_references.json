@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Ваш избор за председавајуће управног одбора",
   "board_roster": "Чланови управног одбора и датуми њихових тренутних мандата",
   "board_strip.cell_vacant": "— упражњено",
-  "board_strip.chair_suffix": "(заједнички изабран председавајући)",
+  "board_strip.chair_suffix": " (заједнички изабран председавајући)",
   "board_strip.class_governor": "Именовани члан управног одбора",
   "board_strip.class_owner_elected": "Изабран од стране власника",
   "board_strip.class_worker_elected": "Изабран од стране радника",

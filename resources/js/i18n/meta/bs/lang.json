@@ -3468,7 +3468,7 @@
     "provider": "ollama"
   },
   "Executive, court (the bench law), election board and its system member, public square and halls, public treasury. Set-based batches.": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 0",
     "provider": "ollama"
   },

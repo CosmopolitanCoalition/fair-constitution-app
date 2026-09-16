@@ -1140,7 +1140,7 @@
     "provider": "ollama"
   },
   "federation.review_2": {
-    "status": "review",
+    "status": "machine",
     "reason": "empty",
     "provider": "ollama"
   },
@@ -1233,7 +1233,7 @@
     "provider": "ollama"
   },
   "federation.step2_pub_1": {
-    "status": "review",
+    "status": "machine",
     "reason": "empty",
     "provider": "ollama"
   },

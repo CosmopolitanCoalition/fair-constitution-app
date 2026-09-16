@@ -740,7 +740,7 @@
     "provider": "ollama"
   },
   "education_economy_help.s2_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -757,7 +757,7 @@
     "provider": "ollama"
   },
   "education_economy_help.s4_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -770,7 +770,7 @@
     "provider": "ollama"
   },
   "education_economy_help_detail.s1_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -1719,7 +1719,7 @@
     "provider": "ollama"
   },
   "education_groups_detail.s4_do": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Ethi — source content likely dropped (23/54 chars, floor 0.45)",
     "provider": "ollama"
   },

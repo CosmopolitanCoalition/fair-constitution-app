@@ -1184,7 +1184,7 @@
     "provider": "ollama"
   },
   "type_b_districts.contig_tooltip": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (97/470 chars, floor 0.45)",
     "provider": "ollama"
   },

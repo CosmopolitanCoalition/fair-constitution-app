@@ -119,8 +119,8 @@
   "oversight.removal_title": "ತೆಗೆದುಹಾಕುವ ಪ್ರಕ್ರಿಯೆಗಳು",
   "oversight.seat_label": "ಸ್ಥಾನ {seat}",
   "oversight.seat_vacated": "ಸ್ಥಾನ ಖಾಲಿಯಾಗಿದೆ",
-  "oversight.speaker_owncase_suffix": "(ಸಭಾಧ್ಯಕ್ಷ — ಸ್ವಂತ ಪ್ರಕರಣಕ್ಕೆ ನಿಯೋಜಿತ ಅಧ್ಯಕ್ಷತೆ ಅಗತ್ಯ)",
-  "oversight.speaker_suffix": "(ಸಭಾಧ್ಯಕ್ಷ)",
+  "oversight.speaker_owncase_suffix": " (ಸಭಾಧ್ಯಕ್ಷ — ಸ್ವಂತ ಪ್ರಕರಣಕ್ಕೆ ನಿಯೋಜಿತ ಅಧ್ಯಕ್ಷತೆ ಅಗತ್ಯ)",
+  "oversight.speaker_suffix": " (ಸಭಾಧ್ಯಕ್ಷ)",
   "oversight.special_election": "ವಿಶೇಷ ಚುನಾವಣೆ {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — ಕೋಡ್‌ನಲ್ಲಿ ಸ್ವಂತ-ಪ್ರಕರಣದ ಅಧ್ಯಕ್ಷತೆಯನ್ನು ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ",
   "oversight.spk_form_name": "ಮಹಾಭಿಯೋಗ/ಗಣನೆ/ బహిಷ್ಕಾರದ ಅಧ್ಯಕ್ಷತೆ",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "ಖಾಲಿ ಸ್ಥಾನಗಳು",
   "oversight.vacancy_countback_link": "ಖಾಲಿ ಸ್ಥಾನ {status} — ಮರುಎಣಿಕೆ ಪುಟ →",
   "oversight.vacancy_state_aria": "ಖಾಲಿ ಸ್ಥಾನದ ಸ್ಥಿತಿ ಯಂತ್ರ",
-  "oversight.you_suffix": "(ನೀವು)",
+  "oversight.you_suffix": " (ನೀವು)",
   "referendums.about": "CLK-19 ಶೀಲ್ಡ್ ಒಂದು ವ್ಯಾಲಿಡೇಟರ್ ಗೇಟ್ ಆಗಿದೆ, ಟೈಮರ್ ಅಲ್ಲ: ಜನಸಂಖ್ಯೆಯ ವಿಶೇಷ ಬಹುಮತದ ನಿರ್ಣಯದ ವಿರುದ್ಧದ F-LEG-034 ಸಲ್ಲಿಕೆಯನ್ನು ಉಲ್ಲೇಖದೊಂದಿಗೆ ಮತದಾನದ ಮೊದಲೇ ತಿರಸ್ಕರಿಸಲಾಗುತ್ತದೆ ಮತ್ತು ಆ ತಿರಸ್ಕಾರವು ಲೆಕ್ಕಪರಿಶೋಧನಾ ಚೈನ್‌ಗೆ ಸೇರುತ್ತದೆ. ಮುಂದಿನ ಸಾಮಾನ್ಯ ಚುನಾವಣೆ ಪ್ರಮಾಣೀಕರಿಸಿದಾಗ ಶೀಲ್ಡ್ ಬಿಡುಗಡೆಯಾಗುತ್ತದೆ — ನಂತರ ಜನಮತಸಂಗ್ರಹ ನಿರ್ಣಯಗಳು ಸಾಮಾನ್ಯ ಮಾರ್ಗದ ಮೂಲಕ ತಿದ್ದುಪಡಿಗೊಳ್ಳುತ್ತವೆ.",
   "referendums.act_ordinary": "ಸಾಮಾನ್ಯ ನಿರ್ಣಯ — ಬಹುಮತ ವರ್ಗ",
   "referendums.act_setting_change": "ಸೆಟ್ಟಿಂಗ್-ಬದಲಾವಣೆ ನಿರ್ಣಯ — ಬಹುಮತ ವರ್ಗ",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "ಹೆಚ್ಚಿನ ಪ್ರಾತಿನಿಧ್ಯ:",
   "type_b_districts.overcount": "ಹೆಚ್ಚಿನ ಎಣಿಕೆ",
   "type_b_districts.pan_mode": "ಪ್ಯಾನ್ ಮೋಡ್",
-  "type_b_districts.parts_suffix": "= {total} ಭಾಗಗಳು",
+  "type_b_districts.parts_suffix": " = {total} ಭಾಗಗಳು",
   "type_b_districts.pe_bad": "ಕಳಪೆ (>10%):",
   "type_b_districts.pe_district_count": "({n} ಕ್ಷೇತ್ರಗಳು)",
   "type_b_districts.pe_good": "ಉತ್ತಮ (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "ಏಕರೂಪದ ರಾಜಕೀಯ ವೈವಿಧ್ಯತೆ",
   "type_b_districts.vertex_snap_unavailable": "ವರ್ಟೆಕ್ಸ್ ಸ್ನ್ಯಾಪಿಂಗ್ ಲಭ್ಯವಿಲ್ಲ — ಈ ಉಪಕರಣದ ಅಡಿಯಲ್ಲಿ ಡ್ರಾಯಿಂಗ್ ಲೈಬ್ರರಿ ಬದಲಾಗಿದೆ.",
   "type_b_districts.view_leg_districts": "ಶಾಸಕಾಂಗ ಕ್ಷೇತ್ರಗಳನ್ನು ವೀಕ್ಷಿಸಿ →",
-  "type_b_districts.wizard_paused": "ವಿಜಾರ್ಡ್ ವಿರಾಮಗೊಂಡಿದೆ."
+  "type_b_districts.wizard_paused": " ವಿಜಾರ್ಡ್ ವಿರಾಮಗೊಂಡಿದೆ."
 }

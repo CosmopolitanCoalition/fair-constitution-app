@@ -152,6 +152,7 @@
   "review_issues_section.source_primary": "ዋና ራስተር",
   "review_issues_section.source_territory_fallback": "የግዛት fallback",
   "review_issues_section.sovereign_territories_title": "ሉዓላዊ-ግዛት ዕጩዎች",
+  "review_issues_section.sovereign_territories_why": "የሕዝብ ብዛት=0 የሆኑ እና በሉዓላዊ አገር iso_code (ለምሳሌ USA) የተለዩ የቆዳ ክልል ረድፎች፤ ይህም የሆነው የክልሉ የራሱ WorldPop raster ስላልተጫነ ነው። የPhase K የቆዳ ክልል-raster አማራጭ ከተተገበረ፣ ከሚቀጥለው አዲስ ETL በኋላ ይህ ቁጥር ወደ ~0 ዝቅ ማለት አለበት — የቀሩት ዝርዝሮች ለምርመራ እዚህ ይታያሉ።",
   "review_issues_section.strategy_buffered": "Buffered (110ሜ ቶለራንስ)",
   "review_issues_section.strategy_direct": "Direct (ወላጅ በደረጃ-1 ዝቅ ያለ)",
   "review_issues_section.strategy_orphan_or_pre_jk": "ወላጅ የሌለው / ከ-JK በፊት",

@@ -268,7 +268,7 @@
   "audit_chain.missing": "या इन्स्टन्सवर नोंद #{seq} सापडली नाही. अनुक्रम क्रमांकांमध्ये गॅप असू शकतात.",
   "audit_chain.nav_label": "ऑडिट इतिहास नेव्हिगेशन",
   "audit_chain.newer": "नवीन नोंदी",
-  "audit_chain.newest_first": "सर्वात नवीन प्रथम ·",
+  "audit_chain.newest_first": "सर्वात नवीन प्रथम · ",
   "audit_chain.no_entries_yet": "अद्याप कोणतीही नोंद नाही",
   "audit_chain.older": "जुन्या नोंदी",
   "audit_chain.open_receipt": "पावती उघडा",

@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "dodano:",
+  "law_diff.added": "dodano: ",
   "law_diff.label": "Izmjene teksta zakona",
-  "law_diff.removed": "uklonjeno:",
+  "law_diff.removed": "uklonjeno: ",
   "planned_banner.default_body": "Ovaj dio svijeta je dizajniran prije izgradnje. Ništa ovdje još nije aktivno i nema pravog novca.",
   "planned_banner.title": "Planirano — pregled.",
   "selection_identity.aria_org": "Zapis organizacije za {name}, referenca {id}",

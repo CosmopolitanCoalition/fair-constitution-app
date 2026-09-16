@@ -119,8 +119,8 @@
   "oversight.removal_title": "Алып тастау процедуралары",
   "oversight.seat_label": "Орын {seat}",
   "oversight.seat_vacated": "орын босатылды",
-  "oversight.speaker_owncase_suffix": "(Палата төрағасы — жеке ісі үшін арнайы төраға қажет)",
-  "oversight.speaker_suffix": "(Палата төрағасы)",
+  "oversight.speaker_owncase_suffix": " (Палата төрағасы — жеке ісі үшін арнайы төраға қажет)",
+  "oversight.speaker_suffix": " (Палата төрағасы)",
   "oversight.special_election": "арнайы сайлау {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — кодта жеке ісі бойынша төрағалық ету бұғатталған",
   "oversight.spk_form_name": "Импичмент/Сөгіс/Шығару төрағалығы",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Бос орындар",
   "oversight.vacancy_countback_link": "бос орын {status} — қайта санау беті →",
   "oversight.vacancy_state_aria": "Бос орын күйінің автоматты жүйесі",
-  "oversight.you_suffix": "(сіз)",
+  "oversight.you_suffix": " (сіз)",
   "referendums.about": "CLK-19 қалқаны — бұл валидатор шлюзі, таймер емес: халықтың білікті көпшілігімен қабылданған шешімге қарсы F-LEG-034 өтініші сілтемемен бірге дауыс беру алдында қабылдамайды, ал бас тарту туралы мәлімет аудит журналына түседі. Қалқан келесі жалпы сайлау сертификатталғанда алынады — референдум шешімдері содан кейін әдеттегі жолмен өзгертіледі.",
   "referendums.act_ordinary": "Әдеттегі шешім — көпшілік класы",
   "referendums.act_setting_change": "Баптауларды өзгерту шешімі — көпшілік класы",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Артық өкілдік:",
   "type_b_districts.overcount": "Артық санау",
   "type_b_districts.pan_mode": "Pan режимі",
-  "type_b_districts.parts_suffix": "= {total} бөлік",
+  "type_b_districts.parts_suffix": " = {total} бөлік",
   "type_b_districts.pe_bad": "Нашар (>10%):",
   "type_b_districts.pe_district_count": "({n} сайлау округі)",
   "type_b_districts.pe_good": "Жақсы (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Біркелкі саяси әртүрлілік",
   "type_b_districts.vertex_snap_unavailable": "Төбелерді бекіту қолжетімді емес — құралдың сызу кітапханасы өзгертілді.",
   "type_b_districts.view_leg_districts": "Заң шығару округтерін көру →",
-  "type_b_districts.wizard_paused": "Wizard тоқтатылды."
+  "type_b_districts.wizard_paused": " Wizard тоқтатылды."
 }

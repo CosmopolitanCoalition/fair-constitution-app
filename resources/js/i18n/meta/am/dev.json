@@ -92,7 +92,7 @@
     "provider": "ollama"
   },
   "dev_electoralkit.keyboard_pass_buttons_keep_focus_on_the_mo": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -289,7 +289,7 @@
     "provider": "ollama"
   },
   "dev_executiveorgkit.fe_d1_harness_the_phase_d_executive_organi": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },

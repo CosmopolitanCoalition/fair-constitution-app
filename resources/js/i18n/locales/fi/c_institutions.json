@@ -132,7 +132,7 @@
   "advocate_console.no_judiciary_body": "Asianajajan rekisteröinti on avoin kaikille liitetyille asukkaille, mutta hallintoalueellasi on ensin oltava tuomioistuin — tuomioistuimet muodostuvat, kun lainsäädäntöelin luo sellaisen (F-LEG-017).",
   "advocate_console.no_judiciary_title": "Yhdistyksesi ketjussa ei ole vielä tuomiovaltaa.",
   "advocate_console.no_matching_page": "Tältä sivulta ei löytynyt vastaavia tapauksia. Kokeile toista otsikkoa tai asianumeroa.",
-  "advocate_console.not_seated_suffix": "(ei vielä asetettu)",
+  "advocate_console.not_seated_suffix": " (ei vielä asetettu)",
   "advocate_console.not_yet": "Ei vielä",
   "advocate_console.open_case": "Avaa tapaus →",
   "advocate_console.open_case_short": "Avaa tapaus",

@@ -473,7 +473,7 @@
   "districts.tip_district": "ოლქი: {seats} ადგილი",
   "districts.tip_expand": "გაშალეთ გვერდითა პანელში ქვე-ოლქების სანახავად",
   "districts.tip_fractional": "წილადი: {n}",
-  "districts.tip_members_suffix": "· {n} წევრი",
+  "districts.tip_members_suffix": " · {n} წევრი",
   "districts.tip_pop": "მოსახლეობა: {n}",
   "districts.tip_unassigned": "დაუნიშნებელი — კომპოზიტური",
   "districts.toast_autoseed_complete": "ავტომატური განაწილება დასრულებულია",

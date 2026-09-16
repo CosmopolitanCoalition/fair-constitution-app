@@ -119,8 +119,8 @@
   "oversight.removal_title": "Proses pemberhentian",
   "oversight.seat_label": "Kursi {seat}",
   "oversight.seat_vacated": "kursi dikosongkan",
-  "oversight.speaker_owncase_suffix": "(Ketua dewan — kasus pribadi memerlukan pemimpin yang ditunjuk)",
-  "oversight.speaker_suffix": "(Ketua dewan)",
+  "oversight.speaker_owncase_suffix": " (Ketua dewan — kasus pribadi memerlukan pemimpin yang ditunjuk)",
+  "oversight.speaker_suffix": " (Ketua dewan)",
   "oversight.special_election": "pemilihan khusus {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — kepemimpinan kasus pribadi diblokir dalam kode",
   "oversight.spk_form_name": "Pemimipin Pemakzulan/Sanksi/Pengeluaran",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Kursi Kosong",
   "oversight.vacancy_countback_link": "kursi kosong {status} — halaman penghitungan ulang →",
   "oversight.vacancy_state_aria": "Mesin status kursi kosong",
-  "oversight.you_suffix": "(Anda)",
+  "oversight.you_suffix": " (Anda)",
   "referendums.about": "Perisai CLK-19 adalah gerbang validator, bukan pengatur waktu: pengajuan F-LEG-034 terhadap keputusan supermayoritas penduduk ditolak sebelum pemungutan suara dengan kutipan, dan penolakan itu sendiri masuk ke rantai log audit. Perisai dilepas saat pemilihan umum berikutnya tersertifikasi — keputusan referendum kemudian diamandemen melalui jalur biasa.",
   "referendums.act_ordinary": "Keputusan biasa — kelas mayoritas",
   "referendums.act_setting_change": "Keputusan perubahan pengaturan — kelas mayoritas",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Kelebihan wakil:",
   "type_b_districts.overcount": "Kelebihan hitung",
   "type_b_districts.pan_mode": "Mode Pan",
-  "type_b_districts.parts_suffix": "= {total} bagian",
+  "type_b_districts.parts_suffix": " = {total} bagian",
   "type_b_districts.pe_bad": "Buruk (>10%):",
   "type_b_districts.pe_district_count": "({n} daerah pemilihan)",
   "type_b_districts.pe_good": "Baik (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Keberagaman Politik Seragam",
   "type_b_districts.vertex_snap_unavailable": "Snapping vertex tidak tersedia — pustaka gambar berubah di bawah alat ini.",
   "type_b_districts.view_leg_districts": "Lihat Daerah Pemilihan Legislatif →",
-  "type_b_districts.wizard_paused": "Wizard dijeda."
+  "type_b_districts.wizard_paused": " Wizard dijeda."
 }

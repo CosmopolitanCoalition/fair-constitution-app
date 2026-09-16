@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "la kordhiyay:",
+  "law_diff.added": "la kordhiyay: ",
   "law_diff.label": "Isbeddellada qoraalka sharciga",
-  "law_diff.removed": "la saaray:",
+  "law_diff.removed": "la saaray: ",
   "planned_banner.default_body": "Qaybtan adduunka waxaa loo nashqadeeyay ka hor dhismaha. Waxba halkan kama jiraan hadda, lacag dhab ahna meelna kuma jirto.",
   "planned_banner.title": "Qorshaysan — aragti hordhac ah.",
   "selection_identity.aria_org": "Diiwaanka ururka ee {name}, tixraaca {id}",

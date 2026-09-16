@@ -268,7 +268,7 @@
   "audit_chain.missing": "Færslan #{seq} fannst ekki á þessum aðstæðum. Röðunarnúmer geta haft glup.",
   "audit_chain.nav_label": "Siglingar í endurskoðunarsögu",
   "audit_chain.newer": "Nýjari færslur",
-  "audit_chain.newest_first": "Nýjastu fyrst ·",
+  "audit_chain.newest_first": "Nýjastu fyrst · ",
   "audit_chain.no_entries_yet": "Engar færslur enn",
   "audit_chain.older": "Eldri færslur",
   "audit_chain.open_receipt": "Opna kvittun",

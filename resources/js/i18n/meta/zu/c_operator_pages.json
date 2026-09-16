@@ -153,7 +153,7 @@
     "provider": "ollama"
   },
   "dns.how_3": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

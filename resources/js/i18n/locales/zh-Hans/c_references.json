@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "您选择的理事会主席",
   "board_roster": "理事会成员及其当前任期日期",
   "board_strip.cell_vacant": "— 空缺",
-  "board_strip.chair_suffix": "(共同选举主席)",
+  "board_strip.chair_suffix": " (共同选举主席)",
   "board_strip.class_governor": "任命理事",
   "board_strip.class_owner_elected": "所有者选举",
   "board_strip.class_worker_elected": "工人选举",

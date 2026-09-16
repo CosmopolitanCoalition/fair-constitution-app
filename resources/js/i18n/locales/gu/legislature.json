@@ -244,6 +244,7 @@
   "legislature_districts.map_quality": "નકશાની ગુણવત્તા⛔ {hardFlagCount}⚠",
   "legislature_districts.mass_operation_in_progress_waiting_for_fir": "મોટી પ્રક્રિયા ચાલુ છે — પ્રથમ અપડેટની રાહ જોઈ રહ્યા છીએ…",
   "legislature_districts.may_be_slow_for_large_legislatures": "⚠ મોટી વિધાનસભા માટે ધીમું હોઈ શકે છે",
+  "legislature_districts.measures_how_evenly_each_district_s_popula": "દરેક મતવિસ્તારની બેઠક દીઠ વસ્તી \"એક વ્યક્તિ, એક મત\" ના આદર્શ ધોરણ સાથે કેટલી સુસંગત છે તેનું માપન કરે છે. ઓછું વિચલન એટલે દરેક મતનું મૂલ્ય વધુ સમાન છે. (આ નકશામાં તમામ પેટા-રાષ્ટ્રીય મતવિસ્તારોનો સમાવેશ થાય છે.)",
   "legislature_districts.measures_whether_the_district_s_outer_boun": "કન્વેક્સ હલ રેશિયોનો ઉપયોગ કરીને માપે છે કે મતવિસ્તારની બહારની સીમા સંકુચિત છે કે અનિયમિત: મતવિસ્તારનું ક્ષેત્રફળ તેના કન્વેક્સ હલના ક્ષેત્રફળ વડે ભાગતા (1.0 = સંપૂર્ણ કન્વેક્સ).",
   "legislature_districts.measuring": "માપન કરી રહ્યા છીએ…",
   "legislature_districts.moderate_0_50_0_70_pop": "■મધ્યમ (0.50–0.70):{count} ({pct}%){formatPop} વસ્તી ({pct2})",

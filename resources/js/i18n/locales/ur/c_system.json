@@ -268,7 +268,7 @@
   "audit_chain.missing": "اس انسٹی 것에 اندراج #{seq} نہیں ملا۔ ترتیب کے نمبروں میں وقفہ ہو سکتا ہے۔",
   "audit_chain.nav_label": "آڈٹ لاگ نیویگیشن",
   "audit_chain.newer": "نئے اندراجات",
-  "audit_chain.newest_first": "سب سے نیا پہلے ·",
+  "audit_chain.newest_first": "سب سے نیا پہلے · ",
   "audit_chain.no_entries_yet": "ابھی تک کوئی اندراج نہیں",
   "audit_chain.older": "پرانے اندراجات",
   "audit_chain.open_receipt": "رسید کھولیں",

@@ -392,7 +392,7 @@
     "provider": "ollama"
   },
   "committee_detail.meetings_called": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1029,7 +1029,7 @@
     "provider": "ollama"
   },
   "districts.contiguity_tip": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (97/470 chars, floor 0.45)",
     "provider": "ollama"
   },

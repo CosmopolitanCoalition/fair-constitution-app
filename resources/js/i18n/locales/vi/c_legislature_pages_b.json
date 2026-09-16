@@ -79,8 +79,8 @@
   "oversight.removal_title": "Thủ tục bãi nhiệm",
   "oversight.seat_label": "Ghế {seat}",
   "oversight.seat_vacated": "ghế đã bỏ trống",
-  "oversight.speaker_owncase_suffix": "(Chủ tịch viện — vụ việc của chính mình yêu cầu người chủ trì được chỉ định)",
-  "oversight.speaker_suffix": "(Chủ tịch viện)",
+  "oversight.speaker_owncase_suffix": " (Chủ tịch viện — vụ việc của chính mình yêu cầu người chủ trì được chỉ định)",
+  "oversight.speaker_suffix": " (Chủ tịch viện)",
   "oversight.special_election": "bầu cử đặc biệt {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — việc chủ trì vụ việc của chính mình bị chặn trong mã",
   "oversight.spk_form_name": "Chủ trì Luận tội/Khiển trách/Truất quyền",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Ghế trống",
   "oversight.vacancy_countback_link": "ghế trống {status} — trang kiểm phiếu lại →",
   "oversight.vacancy_state_aria": "Máy trạng thái ghế trống",
-  "oversight.you_suffix": "(bạn)",
+  "oversight.you_suffix": " (bạn)",
   "referendums.about": "Khiên CLK-19 là một cổng xác thực, không phải bộ hẹn giờ: một hồ sơ F-LEG-034 chống lại quyết định theo đa số đặc biệt của cư dân sẽ bị từ chối trước khi bỏ phiếu kèm theo trích dẫn, và việc từ chối này sẽ được ghi vào nhật ký kiểm toán. Khiên sẽ mở khi cuộc bầu cử tổng quát tiếp theo được chứng thực — các quyết định trưng cầu dân ý sau đó sẽ được sửa đổi thông qua quy trình thông thường.",
   "referendums.act_ordinary": "Quyết định thông thường — loại đa số",
   "referendums.act_setting_change": "Quyết định thay đổi thiết lập — loại đa số",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Đại diện quá mức:",
   "type_b_districts.overcount": "Đếm dư",
   "type_b_districts.pan_mode": "Chế độ Pan",
-  "type_b_districts.parts_suffix": "= {total} phần",
+  "type_b_districts.parts_suffix": " = {total} phần",
   "type_b_districts.pe_bad": "Kém (>10%):",
   "type_b_districts.pe_district_count": "({n} khu vực bầu cử)",
   "type_b_districts.pe_good": "Tốt (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Đa dạng Chính trị Đồng nhất",
   "type_b_districts.vertex_snap_unavailable": "Không thể khớp đỉnh — thư viện vẽ đã thay đổi bên dưới công cụ này.",
   "type_b_districts.view_leg_districts": "Xem Khu vực Bầu cử Lập pháp →",
-  "type_b_districts.wizard_paused": "Trình hướng dẫn đã tạm dừng."
+  "type_b_districts.wizard_paused": " Trình hướng dẫn đã tạm dừng."
 }

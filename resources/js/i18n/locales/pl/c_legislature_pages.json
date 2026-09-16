@@ -473,7 +473,7 @@
   "districts.tip_district": "Okręg: {seats} mandatów",
   "districts.tip_expand": "Rozwiń w pasku bocznym, aby zobaczyć podokręgi",
   "districts.tip_fractional": "Ułamkowe: {n}",
-  "districts.tip_members_suffix": "· {n} członków",
+  "districts.tip_members_suffix": " · {n} członków",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "Nieprzypisane — możliwe do złożenia",
   "districts.toast_autoseed_complete": "Automatyczne wyznaczanie zakończone",

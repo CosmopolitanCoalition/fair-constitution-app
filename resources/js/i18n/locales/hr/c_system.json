@@ -268,7 +268,7 @@
   "audit_chain.missing": "Unos #{seq} nije pronađen na ovoj instanci. Redni brojevi mogu imati praznine.",
   "audit_chain.nav_label": "Navigacija revizijskim dnevnikom",
   "audit_chain.newer": "Noviji unosi",
-  "audit_chain.newest_first": "Najnoviji prvi ·",
+  "audit_chain.newest_first": "Najnoviji prvi · ",
   "audit_chain.no_entries_yet": "Još nema unosa",
   "audit_chain.older": "Stariji unosi",
   "audit_chain.open_receipt": "Otvori potvrdu",

@@ -1016,7 +1016,7 @@
     "provider": "ollama"
   },
   "federation.no_peers": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Avukat kaydı tüm ilişkili sakinlere açıktır, ancak önce yetki alanınızda bir mahkeme olmalıdır — mahkemeler, bir yasama organı oluşturduğunda kurulur (F-LEG-017).",
   "advocate_console.no_judiciary_title": "İlişki zincirinizde henüz bir yargı yok.",
   "advocate_console.no_matching_page": "Bu sayfada eşleşen dava yok. Başka bir başlık veya dosya numarası deneyin.",
-  "advocate_console.not_seated_suffix": "(henüz sandalyesi dolmadı)",
+  "advocate_console.not_seated_suffix": " (henüz sandalyesi dolmadı)",
   "advocate_console.not_yet": "Henüz değil",
   "advocate_console.open_case": "Davayı aç →",
   "advocate_console.open_case_short": "Davayı aç",

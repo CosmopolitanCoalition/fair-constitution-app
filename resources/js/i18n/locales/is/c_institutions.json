@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Skráning lögmanna er opin fyrir hvern tengdan íbúa, en dómstóll verður að vera til í þínu lögsagnarumdæmi fyrst — dómstólar stofnast þegar löggjafarþing stofnar einn (F-LEG-017).",
   "advocate_console.no_judiciary_title": "Engt dómsvald í tengslakeðju þinni enn.",
   "advocate_console.no_matching_page": "Engin viðeigandi mál á þessari síðu. Reyndu annan titil eða málsnúmer.",
-  "advocate_console.not_seated_suffix": "(ekki enn setur)",
+  "advocate_console.not_seated_suffix": " (ekki enn setur)",
   "advocate_console.not_yet": "Ekki enn",
   "advocate_console.open_case": "Opna mál →",
   "advocate_console.open_case_short": "Opna mál",

@@ -119,8 +119,8 @@
   "oversight.removal_title": "Abwahlverfahren",
   "oversight.seat_label": "Sitz {seat}",
   "oversight.seat_vacated": "Sitz geräumt",
-  "oversight.speaker_owncase_suffix": "(Präsident der Kammer — eigener Fall erfordert einen benannten Vorsitzenden)",
-  "oversight.speaker_suffix": "(Präsident der Kammer)",
+  "oversight.speaker_owncase_suffix": " (Präsident der Kammer — eigener Fall erfordert einen benannten Vorsitzenden)",
+  "oversight.speaker_suffix": " (Präsident der Kammer)",
   "oversight.special_election": "Sonderwahl {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — Vorsitz im eigenen Fall im Code gesperrt",
   "oversight.spk_form_name": "Vorsitz bei Amtsenthebung/Rüge/Ausschluss",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Vakanzen",
   "oversight.vacancy_countback_link": "Vakanz {status} — Seite zur Rückzählung →",
   "oversight.vacancy_state_aria": "Zustandsautomat für Vakanzen",
-  "oversight.you_suffix": "(Sie)",
+  "oversight.you_suffix": " (Sie)",
   "referendums.act_ordinary": "Ordentlicher Beschluss — Mehrheitsklasse",
   "referendums.act_setting_change": "Einstellungsänderungs-Beschluss — Mehrheitsklasse",
   "referendums.act_supermajority": "Beschluss der qualifizierten Mehrheitsklasse",
@@ -409,7 +409,7 @@
   "type_b_districts.over_rep": "Überrepr.:",
   "type_b_districts.overcount": "Überzählung",
   "type_b_districts.pan_mode": "Pan-Modus",
-  "type_b_districts.parts_suffix": "= {total} Teile",
+  "type_b_districts.parts_suffix": " = {total} Teile",
   "type_b_districts.pe_bad": "Schlecht (>10%):",
   "type_b_districts.pe_district_count": "({n} Wahlkreise)",
   "type_b_districts.pe_good": "Gut (≤5%):",
@@ -532,5 +532,5 @@
   "type_b_districts.uniform_diversity": "Einheitliche politische Diversität",
   "type_b_districts.vertex_snap_unavailable": "Vertex-Snapping nicht verfügbar — die Zeichenbibliothek unter diesem Tool wurde geändert.",
   "type_b_districts.view_leg_districts": "Wahlkreise anzeigen →",
-  "type_b_districts.wizard_paused": "Assistent pausiert."
+  "type_b_districts.wizard_paused": " Assistent pausiert."
 }

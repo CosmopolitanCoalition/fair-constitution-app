@@ -184,7 +184,7 @@
     "provider": "ollama"
   },
   "hearing_call_hint": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

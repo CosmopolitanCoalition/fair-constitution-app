@@ -119,8 +119,8 @@
   "oversight.removal_title": "हटाने की कार्यवाही",
   "oversight.seat_label": "सीट {seat}",
   "oversight.seat_vacated": "सीट खाली हुई",
-  "oversight.speaker_owncase_suffix": "(अध्यक्ष — अपने स्वयं के मामले के लिए एक नामित पीठासीन अधिकारी की आवश्यकता होती है)",
-  "oversight.speaker_suffix": "(अध्यक्ष)",
+  "oversight.speaker_owncase_suffix": " (अध्यक्ष — अपने स्वयं के मामले के लिए एक नामित पीठासीन अधिकारी की आवश्यकता होती है)",
+  "oversight.speaker_suffix": " (अध्यक्ष)",
   "oversight.special_election": "विशेष चुनाव {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — कोड में स्वयं-मामले की अध्यक्षता ब्लॉक की गई है",
   "oversight.spk_form_name": "महाभियोग/निंदा/निष्कासन अध्यक्षता",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "रिक्तियां",
   "oversight.vacancy_countback_link": "रिक्ति {status} — काउंटबैक पेज →",
   "oversight.vacancy_state_aria": "रिक्ति स्टेट मशीन",
-  "oversight.you_suffix": "(आप)",
+  "oversight.you_suffix": " (आप)",
   "referendums.about": "CLK-19 शील्ड एक वैलिडेटर गेट है, टाइमर नहीं: जनसंख्या-विशेष बहुमत अधिनियम के खिलाफ F-LEG-034 फाइलिंग को उद्धरण के साथ वोट से पहले खारिज कर दिया जाता है, और अस्वीकृति स्वयं लेखापरीक्षा लॉग पर दर्ज होती है। शील्ड तब हटती है जब अगला आम चुनाव प्रमाणित होता है — जनमत-संग्रह अधिनियम तब सामान्य मार्ग के माध्यम से संशोधित होते हैं।",
   "referendums.act_ordinary": "सामान्य अधिनियम — बहुमत वर्ग",
   "referendums.act_setting_change": "सेटिंग-परिवर्तन अधिनियम — बहुमत वर्ग",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "अति-प्रतिनिधित्व:",
   "type_b_districts.overcount": "अति-गणना",
   "type_b_districts.pan_mode": "पैन मोड",
-  "type_b_districts.parts_suffix": "= {total} भाग",
+  "type_b_districts.parts_suffix": " = {total} भाग",
   "type_b_districts.pe_bad": "खराब (>10%):",
   "type_b_districts.pe_district_count": "({n} निर्वाचन क्षेत्र)",
   "type_b_districts.pe_good": "अच्छा (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "समान राजनीतिक विविधता",
   "type_b_districts.vertex_snap_unavailable": "वर्टेक्स स्नैपिंग अनुपलब्ध है — इस टूल के नीचे ड्राइंग लाइब्रेरी बदल गई है।",
   "type_b_districts.view_leg_districts": "विधायी निर्वाचन क्षेत्र देखें →",
-  "type_b_districts.wizard_paused": "विज़ार्ड रुका हुआ है।"
+  "type_b_districts.wizard_paused": " विज़ार्ड रुका हुआ है।"
 }

@@ -119,8 +119,8 @@
   "oversight.removal_title": "Kənarlaşdırma prosesləri",
   "oversight.seat_label": "Kürsü {seat}",
   "oversight.seat_vacated": "kürsü boşaldıldı",
-  "oversight.speaker_owncase_suffix": "(Spiker — öz işi üçün təyin edilmiş sədrlik tələb olunur)",
-  "oversight.speaker_suffix": "(Spiker)",
+  "oversight.speaker_owncase_suffix": " (Spiker — öz işi üçün təyin edilmiş sədrlik tələb olunur)",
+  "oversight.speaker_suffix": " (Spiker)",
   "oversight.special_election": "xüsusi seçki {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — kodda öz işinə sədrlik etmək bloklanıb",
   "oversight.spk_form_name": "İmpicment/Tanıdılma/Xaric edilmə sədrliyi",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Vakansiyalar",
   "oversight.vacancy_countback_link": "vakansiya {status} — təkrar sayım səhifəsi →",
   "oversight.vacancy_state_aria": "Vakansiya vəziyyət maşını",
-  "oversight.you_suffix": "(siz)",
+  "oversight.you_suffix": " (siz)",
   "referendums.about": "CLK-19 qalxanı validator qapısıdır, taymer deyil: əhalinin kvalifikasiyalı çoxluğu ilə qəbul edilmiş akta qarşı F-LEG-034 müraciəti səsvermədən əvvəl istinadla rədd edilir və rədd edilmənin özü audit jurnalına düşür. Qalxan növbəti ümumi seçki təsdiqləndikdə açılır — referendum aktları bundan sonra adi yolla dəyişdirilir.",
   "referendums.act_ordinary": "Adi akt — çoxluq sinfi",
   "referendums.act_setting_change": "Tənzimləmə dəyişikliyi aktı — çoxluq sinfi",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Həddindən artıq təmsil:",
   "type_b_districts.overcount": "Artıq sayım",
   "type_b_districts.pan_mode": "Pan rejimi",
-  "type_b_districts.parts_suffix": "= {total} hissə",
+  "type_b_districts.parts_suffix": " = {total} hissə",
   "type_b_districts.pe_bad": "Pis (>10%):",
   "type_b_districts.pe_district_count": "({n} dairə)",
   "type_b_districts.pe_good": "Yaxşı (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Vahid Siyasi Müxtəliflik",
   "type_b_districts.vertex_snap_unavailable": "Təpə nöqtəsinə yapışdırma mövcud deyil — bu alətin altındakı çəkmə kitabxanası dəyişdirildi.",
   "type_b_districts.view_leg_districts": "Qanunvericilik Dairələrinə Bax →",
-  "type_b_districts.wizard_paused": "Köməkçi dayandırıldı."
+  "type_b_districts.wizard_paused": " Köməkçi dayandırıldı."
 }

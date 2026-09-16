@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "انتخاب شما برای رئیس هیئت مدیره",
   "board_roster": "اعضای هیئت مدیره و تاریخ‌های دوره فعلی آن‌ها",
   "board_strip.cell_vacant": "— خالی",
-  "board_strip.chair_suffix": "(رئیس منتخب مشترک)",
+  "board_strip.chair_suffix": " (رئیس منتخب مشترک)",
   "board_strip.class_governor": "عضو هیئت مدیره منصوب شده",
   "board_strip.class_owner_elected": "منتخب مالکان",
   "board_strip.class_worker_elected": "منتخب کارکنان",

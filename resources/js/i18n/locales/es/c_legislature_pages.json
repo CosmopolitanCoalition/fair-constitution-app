@@ -473,7 +473,7 @@
   "districts.tip_district": "Distrito: {seats} escaños",
   "districts.tip_expand": "Expanda en la barra lateral para ver los subdistritos",
   "districts.tip_fractional": "Fraccional: {n}",
-  "districts.tip_members_suffix": "· {n} miembros",
+  "districts.tip_members_suffix": " · {n} miembros",
   "districts.tip_pop": "Pob: {n}",
   "districts.tip_unassigned": "No asignado; composible",
   "districts.toast_autoseed_complete": "Siembra automática completada",

@@ -492,7 +492,7 @@
     "provider": "ollama"
   },
   "civic_myrecord.one_person_one_profile_profile_v2_contract": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

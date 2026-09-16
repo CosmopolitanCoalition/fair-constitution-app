@@ -473,7 +473,7 @@
   "districts.tip_district": "Circonscription : {seats} sièges",
   "districts.tip_expand": "Développer dans la barre latérale pour voir les sous-circonscriptions",
   "districts.tip_fractional": "Fractionnaire : {n}",
-  "districts.tip_members_suffix": "· {n} membres",
+  "districts.tip_members_suffix": " · {n} membres",
   "districts.tip_pop": "Pop : {n}",
   "districts.tip_unassigned": "Non assigné — composable",
   "districts.toast_autoseed_complete": "Initialisation automatique terminée",

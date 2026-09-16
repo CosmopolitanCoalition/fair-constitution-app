@@ -473,7 +473,7 @@
   "districts.tip_district": "Daérah pamilihan: {seats} korsi",
   "districts.tip_expand": "Ékspansikeun dina sidebar pikeun ningali sub-daérah",
   "districts.tip_fractional": "Fraksional: {n}",
-  "districts.tip_members_suffix": "· {n} anggota",
+  "districts.tip_members_suffix": " · {n} anggota",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "Teu ditugaskeun — tiasa digabungkeun",
   "districts.toast_autoseed_complete": "Auto-seed réngsé",

@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Ваш выбор председателя правления",
   "board_roster": "Члены правления и даты их текущих сроков",
   "board_strip.cell_vacant": "— вакантно",
-  "board_strip.chair_suffix": "(совместно избранный председатель)",
+  "board_strip.chair_suffix": " (совместно избранный председатель)",
   "board_strip.class_governor": "Назначенный член правления",
   "board_strip.class_owner_elected": "Избранный владельцами",
   "board_strip.class_worker_elected": "Избранный рабочими",

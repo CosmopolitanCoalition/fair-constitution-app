@@ -268,7 +268,7 @@
   "audit_chain.missing": "រកមិនឃើញធាតុ #{seq} នៅក្នុង instance នេះទេ។ លេខលំដាប់អាចមានចន្លោះ។",
   "audit_chain.nav_label": "ការរុករកប្រវត្តិសវនកម្ម",
   "audit_chain.newer": "ធាតុថ្មីជាង",
-  "audit_chain.newest_first": "ថ្មីបំផុតមុន ·",
+  "audit_chain.newest_first": "ថ្មីបំផុតមុន · ",
   "audit_chain.no_entries_yet": "មិនទាន់មានធាតុនៅឡើយ",
   "audit_chain.older": "ធាតុចាស់ជាង",
   "audit_chain.open_receipt": "បើកបង្កាន់ដៃ",

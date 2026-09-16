@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "botere exekutiboko hauteskundea",
+  "election_kind.general": "hauteskundea orokorra",
+  "election_kind.judicial": "botere judizialako hauteskundea",
+  "election_kind.org_board_owner": "administrazio-kontseiluko hauteskundea (jabeen eserlekuak)",
+  "election_kind.org_board_worker": "administrazio-kontseiluko hauteskundea (langileen eserlekuak)",
+  "election_kind.referendum": "erreferenduma",
+  "election_kind.restoration": "leheneratze-hauteskundea",
+  "election_kind.special": "hauteskundea berezia"
+}

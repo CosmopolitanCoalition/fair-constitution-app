@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "O registro de advogado está aberto a qualquer residente associado, mas um tribunal deve existir em sua jurisdição primeiro — tribunais são formados quando uma assembleia legislativa cria um (F-LEG-017).",
   "advocate_console.no_judiciary_title": "Nenhum judiciário em sua cadeia de associação ainda.",
   "advocate_console.no_matching_page": "Nenhum caso correspondente nesta página. Tente outro título ou número de processo.",
-  "advocate_console.not_seated_suffix": "(ainda não assumiu o assento)",
+  "advocate_console.not_seated_suffix": " (ainda não assumiu o assento)",
   "advocate_console.not_yet": "Ainda não",
   "advocate_console.open_case": "Abrir caso →",
   "advocate_console.open_case_short": "Abrir caso",

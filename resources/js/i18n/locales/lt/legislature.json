@@ -308,6 +308,7 @@
   "legislature_emergencypowers.auto_expiry_at_the_declared_duration_no_ac": "Automatinis galiojimo pabaiga paskirtą trukmę pasibaigus – veiksmas nereikalingas, pratęsimo be naujos kvalifikuotos daugumos nėra.",
   "legislature_emergencypowers.auto_expiry_publishes_a_full_audit_record_": "Automatinio galiojimo pabaiga paskelbia visą audito žurnalą – niekas tyliai nepereinama į kitą laikotarpį.",
   "legislature_emergencypowers.available_at_any_time_by_any_inhabitant_fi": "priejengama bet kuriuo metu bet kuriam gyventojui · dokumentai teikiami teisminė valdžia (Suplanuota · E fazė) · Art. II §7 · WF-JUD-06",
+  "legislature_emergencypowers.cannot_disrupt_elections_sessions_courts_o": "negalima trukdyti rinkimams, sesijoms, teismams ar bet kokiam civiliams procesams — įgyvendinama kodu · Art. II §7",
   "legislature_emergencypowers.cause_the_only_two_the_engine_accepts": "Priežas — tik dvi variantai, kuriuos priima sistema",
   "legislature_emergencypowers.civic_process_protection_elections_session": "Civilių procesų apsauga: rinkimai, sesijos, teismai ir kiekvienas civilias procesas negali būti sutrukdyti — įdiegtas kode.",
   "legislature_emergencypowers.clk_03_countdown": "CLK-03 atskaitinė laiko rodiklis",

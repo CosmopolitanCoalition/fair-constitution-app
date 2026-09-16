@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Регистрацията на адвокат е отворена за всеки свързан жител, но първо трябва да съществува съд във вашата юрисдикция — съдилищата се създават, когато законодателен орган създаде такъв (F-LEG-017).",
   "advocate_console.no_judiciary_title": "Все още няма съдебна власт във вашата верига от асоциации.",
   "advocate_console.no_matching_page": "Няма съответстващи дела на тази страница. Опитайте с друго заглавие или номер на дело.",
-  "advocate_console.not_seated_suffix": "(още не е назначен)",
+  "advocate_console.not_seated_suffix": " (още не е назначен)",
   "advocate_console.not_yet": "Още не",
   "advocate_console.open_case": "Отвори дело →",
   "advocate_console.open_case_short": "Отвори дело",

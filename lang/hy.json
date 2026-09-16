@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Հետևեք /vacancies/:id հասցեում:",
+  " Track it at /vacancies/:id.": " Հետևեք /vacancies/:id հասցեում:",
   "% of jurisdiction population · CLK-17": "իրավասության տարածքի բնակչության CLK-17 %",
   "+:count more candidate with first-preference support": "+:count թեկնածու՝ առաջնային նախընտրության աջակցությամբ",
   "+:count more candidates with first-preference support": "+:count թեկնածուներ՝ առաջնային նախընտրության աջակցությամբ",
@@ -1938,7 +1938,7 @@
   "You left the room.": "Դուք լքեցիք սենյակը։",
   "You sit on more than one court — showing one; switch from the court page.": "Դուք անդամ եք ավելի քան մեկ դատարանի. ցուցադրվում է մեկը, փոխեք դատարանի էջից։",
   "You sit on more than one department board — showing one; pick another from its department page.": "Դուք անդամ եք ավելի քան մեկ දෙպարտամենտի խորհրդի. ցուցադրվում է մեկը, ընտրեք մեկ ուրիշը դեպարտամենտի էջից։",
-  "You: ": "Դուք՝",
+  "You: ": "Դուք՝ ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Ձեր հաշիվը, ձեր որոշումները. հակակողմերը հաշիվներ են, ոչ թե մարդիկ · Art. I",
   "Your chair ranking has been recorded.": "Ձեր նախագահողի վարկանիշը գրանցվել է։",
   "Your client retains you; the retainer is recorded with the filing.": "Ձեր հաճախորդը վարձել է ձեզ. վարձակալությունը գրանցվում է ներկայացման հետ։",
@@ -2226,6 +2226,7 @@
   "validation.required_without_all": ":attribute դաշտը պարտադիր է, երբ :values-երից ոչ մեկը առկա չէ:",
   "validation.same": ":attribute դաշտը պետք է համապատասխանի :other-ին:",
   "validation.size.array": ":attribute դաշտը պետք է պարունակի :size տարր:",
+  "validation.size.file": ":attribute դաշտը պետք է լինի :size կիլոբայտ:",
   "validation.size.numeric": ":attribute դաշտը պետք է լինի :size:",
   "validation.size.string": ":attribute դաշտը պետք է լինի :size նիշ:",
   "validation.starts_with": ":attribute դաշտը պետք է սկսվի հետևյալներից մեկով՝ :values:",

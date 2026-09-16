@@ -1540,7 +1540,7 @@
     "provider": "ollama"
   },
   "legislature_oversight.removal_parity_legislators_executives_and_": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

@@ -268,7 +268,7 @@
   "audit_chain.missing": "在此实例中未找到条目 #{seq}。序列号可能存在间隙。",
   "audit_chain.nav_label": "审计日志导航",
   "audit_chain.newer": "更新的条目",
-  "audit_chain.newest_first": "最新优先 ·",
+  "audit_chain.newest_first": "最新优先 · ",
   "audit_chain.no_entries_yet": "尚无条目",
   "audit_chain.older": "较旧的条目",
   "audit_chain.open_receipt": "打开收据",

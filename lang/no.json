@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Spor det på /vacancies/:id.",
+  " Track it at /vacancies/:id.": " Spor det på /vacancies/:id.",
   "% of jurisdiction population · CLK-17": "% av jurisdiksjonens befolkning · CLK-17",
   "+:count more candidate with first-preference support": "+:count flere kandidater med førstepreferanse-støtte",
   "+:count more candidates with first-preference support": "+:count flere kandidater med førstepreferanse-støtte",
@@ -1718,6 +1718,7 @@
   "The discussion message could not be sent. Please try again.": "Diskusjonsmeldingen kunne ikke sendes. Vennligst prøv igjen.",
   "The district mapper": "Kretskartleggeren",
   "The districts are not built yet. Wait for the map run to finish, or activate the root map in the mapper.": "Kretsene er ikke bygget ennå. Vent til kartkjøringen er ferdig, eller aktiver rotkartet i kartleggeren.",
+  "The drawn district extends outside :name's boundary.": "Den tegne kretsen strekker seg utenfor grensen til :name.",
   "The drawn district holds :pop people (:fractional of the local quota :quota) — :seats seats, outside the resolved band [:floor, :ceiling]. Redraw it larger or smaller.": "Den tegnede kretsen har :pop personer (:fractional av den lokale kvoten :quota) — :seats seter, utenfor det fastsatte intervallet [:floor, :ceiling]. Tegn den større eller mindre.",
   "The drawn district overlaps a district already drawn in this plan — voter pools may not overlap.": "Den tegnede kretsen overlapper en krets som allerede er tegnet i denne planen — velgergrupper kan ikke overlappe.",
   "The drawn polygon is empty or invalid": "Den tegnede polygonen er tom eller ugyldig",
@@ -2011,7 +2012,7 @@
   "You left the room.": "Du forlot rommet.",
   "You sit on more than one court — showing one; switch from the court page.": "Du sitter i mer enn én domstol — viser én; bytt fra domstolsiden.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Du sitter i mer enn ett avdelingsstyre — viser ett; velg et annet fra avdelingssiden.",
-  "You: ": "Du:",
+  "You: ": "Du: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Din konto, dine vedtak — motparter er kontoer, aldri personer · Art. I",
   "Your chair ranking has been recorded.": "Din leder-rangering er registrert.",
   "Your client retains you; the retainer is recorded with the filing.": "Din klient beholder deg; beholderavtalen er registrert ved innsending.",

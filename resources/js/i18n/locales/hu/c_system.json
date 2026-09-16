@@ -268,7 +268,7 @@
   "audit_chain.missing": "A(z) #{seq} számú bejegyzés nem található ezen a példányon. A sorozatszámokban lehetnek résevek.",
   "audit_chain.nav_label": "Auditnapló navigáció",
   "audit_chain.newer": "Újabb bejegyzések",
-  "audit_chain.newest_first": "Legújabb előre ·",
+  "audit_chain.newest_first": "Legújabb előre · ",
   "audit_chain.no_entries_yet": "Még nincsenek bejegyzések",
   "audit_chain.older": "Régebbi bejegyzések",
   "audit_chain.open_receipt": "Bizonylat megnyitása",

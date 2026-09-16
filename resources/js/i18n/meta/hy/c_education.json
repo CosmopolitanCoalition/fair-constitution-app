@@ -3408,7 +3408,7 @@
     "provider": "ollama"
   },
   "education_rooms_directory.s3_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 0",
     "provider": "ollama"
   },

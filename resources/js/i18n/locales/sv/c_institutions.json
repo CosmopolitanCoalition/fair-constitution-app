@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Registrering som advokat är öppen för alla anslutna invånare, men en domstol måste först finnas i din jurisdiktion — domstolar bildas när en lagstiftande församling inrättar en (F-LEG-017).",
   "advocate_console.no_judiciary_title": "Ingen dömande makt i din anslutningskedja än.",
   "advocate_console.no_matching_page": "Inga matchande ärenden på denna sida. Prova en annan titel eller diarienummer.",
-  "advocate_console.not_seated_suffix": "(inte tillsatt än)",
+  "advocate_console.not_seated_suffix": " (inte tillsatt än)",
   "advocate_console.not_yet": "Inte än",
   "advocate_console.open_case": "Öppna ärende →",
   "advocate_console.open_case_short": "Öppna ärende",

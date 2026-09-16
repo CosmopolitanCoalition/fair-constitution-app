@@ -3212,7 +3212,7 @@
     "provider": "ollama"
   },
   "judiciary_home.conversion_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

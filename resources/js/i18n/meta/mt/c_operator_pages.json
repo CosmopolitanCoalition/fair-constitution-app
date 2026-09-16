@@ -2472,7 +2472,7 @@
     "provider": "ollama"
   },
   "roles.field_scope_hint": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (37/97 chars, floor 0.45)",
     "provider": "ollama"
   },

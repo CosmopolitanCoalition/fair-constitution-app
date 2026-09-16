@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "شامل کیا گیا:",
+  "law_diff.added": "شامل کیا گیا: ",
   "law_diff.label": "قانون کے متن میں تبدیلیاں",
-  "law_diff.removed": "ہٹایا گیا:",
+  "law_diff.removed": "ہٹایا گیا: ",
   "planned_banner.default_body": "دنیا کا یہ حصہ تعمیر سے پہلے ڈیزائن کیا گیا ہے۔ یہاں ابھی کچھ بھی فعال نہیں ہے، اور کہیں بھی حقیقی رقم موجود نہیں ہے۔",
   "planned_banner.title": "منصوبہ بند — ایک پیش نظارہ۔",
   "selection_identity.aria_org": "{name} کے لیے تنظیم کا ریکارڈ، حوالہ {id}",

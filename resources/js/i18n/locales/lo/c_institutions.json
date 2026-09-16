@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "ການລົງທະບຽນທະນາຍຄວາມເປີດໃຫ້ຜູ້ຢູ່ອາໄສທີ່ກ່ຽວຂ້ອງທຸກຄົນ, ແຕ່ຕ້ອງມີສານໃນເຂດອຳນາດຂອງທ່ານກ່ອນ — ສານຈະຖືກສ້າງຂຶ້ນເມື່ອສະພານິຕິບັນຍັດສ້າງຂຶ້ນ (F-LEG-017).",
   "advocate_console.no_judiciary_title": "ຍັງບໍ່ມີອຳນາດຕຸລາການໃນສາຍການຈັດຕັ້ງຂອງທ່ານ.",
   "advocate_console.no_matching_page": "ບໍ່ມີຄະດີທີ່ກົງກັນໃນໜ້ານີ້. ກະລຸນາລອງໃຊ້ຫົວຂໍ້ອື່ນ ຫຼື ເລກສຳນວນຄະດີ.",
-  "advocate_console.not_seated_suffix": "(ຍັງບໍ່ທັນດຳລົງຕຳແໜ່ງ)",
+  "advocate_console.not_seated_suffix": " (ຍັງບໍ່ທັນດຳລົງຕຳແໜ່ງ)",
   "advocate_console.not_yet": "ຍັງບໍ່ທັນ",
   "advocate_console.open_case": "ເປີດຄະດີ →",
   "advocate_console.open_case_short": "ເປີດຄະດີ",

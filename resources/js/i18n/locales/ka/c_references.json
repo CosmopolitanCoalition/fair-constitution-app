@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "თქვენი არჩევანი საბჭოს თავმჯდომარის პოზიციაზე",
   "board_roster": "საბჭოს წევრები და მათი მოქმედი ვადები",
   "board_strip.cell_vacant": "— ვაკანტური",
-  "board_strip.chair_suffix": "(ერთობლივად არჩეული თავმჯდომარე)",
+  "board_strip.chair_suffix": " (ერთობლივად არჩეული თავმჯდომარე)",
   "board_strip.class_governor": "დანიშნული გუბერნატორი",
   "board_strip.class_owner_elected": "მფლობელების მიერ არჩეული",
   "board_strip.class_worker_elected": "მუშაკთა მიერ არჩეული",

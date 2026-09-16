@@ -160,202 +160,202 @@
     "provider": "ollama"
   },
   "setup_operatorsetup.just_me_for_now_runs_on_this_computer_no_a": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.let_other_computers_people_connect": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.localhost_only_works_on_this_computer_use_": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.macos_linux": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.node_name_optional": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.operator_account_is_set": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.operator_setup": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.password_8_characters": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.prefer_the_full_console_open_the_operator_": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.roles_become_available_once_the_operator_a": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.running_a_node_carries_operator_roles_on_t": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.saved": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.set_a_reachable_node_address_above_first_o": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.set_the_address_peers_dial_to_reach_this_b": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.share_this_deployment": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.some_roles_still_need_setup_before_they_wo": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.the_address_changed_re_run_the_start_comma": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.use_this_browser_s_address": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.who_should_be_able_to_reach_this_node": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.your_name": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_operatorsetup.your_physical_operator_credentials_the_acc": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.1_day": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.1_election_cycle": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.1_hour": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.1_minute": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.1_second": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.1_week": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.1_year_real_time": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.30_days": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.a_friendly_label_for_this_install_shown_in": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.compressed_simulation_pick_seconds_per_sim": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.cosmic_address": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.e_g_earth_prime_midgard_starfall": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.elections_on_wall_clock_5_year_default_cyc": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.instance_name": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.let_s_set_your_cosmic_address_the_anchor_y": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.or_restore_from_a_backup": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.real_time": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.seconds_per_simulated_year": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "setup_step0_cosmicaddress.this_is_the_cosmopolitan_governance_app_a_": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },

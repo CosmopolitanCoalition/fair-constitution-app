@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Jejaki di /vacancies/:id.",
+  " Track it at /vacancies/:id.": " Jejaki di /vacancies/:id.",
   "% of jurisdiction population · CLK-17": "% penduduk bidang kuasa · CLK-17",
   "+:count more candidate with first-preference support": "+:count calon lagi dengan sokongan pilihan pertama",
   "+:count more candidates with first-preference support": "+:count calon lagi dengan sokongan pilihan pertama",
@@ -1538,6 +1538,7 @@
   "Rewind refused — halt the run first and wait for workers to park.": "Putar balik ditolak — hentikan larian dahulu dan tunggu pekerja berhenti.",
   "Right to stand — residency is the only requirement · Art. I · CLK-18": "Hak untuk bertanding — kediaman adalah satu-satunya syarat · Art. I · CLK-18",
   "Roles self-assert only during founding; use the operator console afterwards.": "Peranan ditegaskan sendiri hanya semasa pengasasan; gunakan konsol operator selepas itu.",
+  "Rule filed (F-BOG-001) — in force, published for comment. Rules implement; they cannot exceed the charter and enabling acts. An emergency-enabled rule expires with the power (CLK-03).": "Peraturan difailkan (F-BOG-001) — berkuat kuasa, diterbitkan untuk ulasan. Peraturan dilaksanakan; ia tidak boleh melebihi piagam dan keputusan pemboleh daya. Peraturan yang didayakan kecemasan tamat bersama kuasa (CLK-03).",
   "Rules of Order Adoption": "Penggunaan Peraturan Tatacara",
   "Rules of order adoption": "Penggunaan peraturan tatacara",
   "Rules/Ethics adoption requires a non-empty title and text.": "Penggunaan Peraturan/Etika memerlukan tajuk dan teks yang tidak kosong.",
@@ -2024,7 +2025,7 @@
   "You left the room.": "Anda telah meninggalkan bilik.",
   "You sit on more than one court — showing one; switch from the court page.": "Anda menganggotai lebih daripada satu mahkamah — menunjukkan satu; tukar dari halaman mahkamah.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Anda menganggotai lebih daripada satu lembaga jabatan — menunjukkan satu; pilih yang lain dari halaman jabatannya.",
-  "You: ": "Anda:",
+  "You: ": "Anda: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Akaun anda, tindakan anda — pihak lawan adalah akaun, bukan orang · Art. I",
   "Your chair ranking has been recorded.": "Kedudukan pengerusi anda telah direkodkan.",
   "Your client retains you; the retainer is recorded with the filing.": "Klien anda mengekalkan anda; bayaran pendahuluan direkodkan bersama pemfailan.",

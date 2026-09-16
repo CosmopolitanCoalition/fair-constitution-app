@@ -6876,7 +6876,7 @@
     "provider": "ollama"
   },
   "The drawn district extends outside :name's boundary.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

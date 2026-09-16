@@ -276,7 +276,7 @@
     "provider": "ollama"
   },
   "achievement.ach_jur_017": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -268,7 +268,7 @@
   "audit_chain.missing": "பதிவு #{seq} இந்த நிகழ்வில் காணப்படவில்லை. வரிசை எண்களில் இடைவெளிகள் இருக்கலாம்.",
   "audit_chain.nav_label": "தணிக்கைப் பதிவு வரலாறு வழிசெலுத்தல்",
   "audit_chain.newer": "புதிய பதிவுகள்",
-  "audit_chain.newest_first": "புதியவை முதலில் ·",
+  "audit_chain.newest_first": "புதியவை முதலில் · ",
   "audit_chain.no_entries_yet": "பதிவுகள் இன்னும் இல்லை",
   "audit_chain.older": "பழைய பதிவுகள்",
   "audit_chain.open_receipt": "ரசீதைத் திறக்கவும்",

@@ -1,0 +1,523 @@
+{
+  "act.an_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "act.arrive": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "act.between_governments": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "act.help": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "act.live_rooms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "act.organizations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "act.run_a_node": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "act.speak_gather": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "act.the_courts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "act.the_economy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "act.the_record": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "act.your_place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.0.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.0.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.1.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.1.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.10.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.10.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.11.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.11.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.12.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.12.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.13.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.13.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.14.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.14.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.15.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.15.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.16.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.16.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.17.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.17.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.18.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.18.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.19.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.19.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.2.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.2.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.20.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.20.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.21.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.21.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.22.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.22.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.23.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.23.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.24.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.24.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.25.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.25.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.26.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.26.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.27.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.27.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.28.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.28.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.29.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.29.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.3.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.3.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.30.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.30.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.31.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.31.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.32.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.32.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.33.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.33.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.34.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.34.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.35.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.35.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.36.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.36.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.37.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.37.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.38.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.38.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.39.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.39.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.4.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.4.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.40.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.40.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.41.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.41.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.42.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.42.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.43.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.43.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.44.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.44.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.45.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.45.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.46.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.46.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.47.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.47.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.48.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.48.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.49.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.49.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.5.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.5.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.50.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.50.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.51.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.51.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.52.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.52.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.53.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.53.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.54.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.54.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.55.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.55.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.56.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.56.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.57.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.57.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.58.blurb": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "ollama"
+  },
+  "stop.58.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.6.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.6.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.7.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.7.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.8.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.8.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.9.blurb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stop.9.title": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

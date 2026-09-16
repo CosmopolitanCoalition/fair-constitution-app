@@ -79,8 +79,8 @@
   "oversight.removal_title": "काढून टाकण्याची कार्यवाही",
   "oversight.seat_label": "जागा {seat}",
   "oversight.seat_vacated": "जागा रिक्त झाली",
-  "oversight.speaker_owncase_suffix": "(सभापती — स्वतःच्या प्रकरणासाठी नियुक्त अध्यक्ष आवश्यक)",
-  "oversight.speaker_suffix": "(सभापती)",
+  "oversight.speaker_owncase_suffix": " (सभापती — स्वतःच्या प्रकरणासाठी नियुक्त अध्यक्ष आवश्यक)",
+  "oversight.speaker_suffix": " (सभापती)",
   "oversight.special_election": "विशेष निवडणूक {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — कोडमध्ये स्वतःच्या प्रकरणाचे अध्यक्षपद रोखले आहे",
   "oversight.spk_form_name": "महाभियोग/निंदा/निष्कासन अध्यक्षपद",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "रिक्त जागा",
   "oversight.vacancy_countback_link": "रिक्त जागा {status} — पुनर्मोजणी पृष्ठ →",
   "oversight.vacancy_state_aria": "रिक्त जागा स्टेट मशीन",
-  "oversight.you_suffix": "(तुम्ही)",
+  "oversight.you_suffix": " (तुम्ही)",
   "referendums.about": "CLK-19 शील्ड हे व्हॅलिडेटर गेट आहे, टायमर नाही: लोकसंख्या-विशेष बहुमत निर्णयाविरुद्धची F-LEG-034 याचिका मतदानापूर्वीच संदर्भासह नाकारली जाते आणि हा नकार ऑडिट लॉगवर नोंदवला जातो. पुढील सार्वत्रिक निवडणूक प्रमाणित झाल्यावर शील्ड निघून जाते — त्यानंतर सार्वमत निर्णय सामान्य मार्गाने दुरुस्त केले जातात.",
   "referendums.act_ordinary": "सामान्य निर्णय — बहुमत वर्ग",
   "referendums.act_setting_change": "सेटिंग-बदल निर्णय — बहुमत वर्ग",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "अति-प्रतिनिधित्व:",
   "type_b_districts.overcount": "अति-गणना",
   "type_b_districts.pan_mode": "पॅन मोड",
-  "type_b_districts.parts_suffix": "= {total} भाग",
+  "type_b_districts.parts_suffix": " = {total} भाग",
   "type_b_districts.pe_bad": "वाईट (>10%):",
   "type_b_districts.pe_district_count": "({n} मतदारसंघ)",
   "type_b_districts.pe_good": "चांगले (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "एकसमान राजकीय विविधता",
   "type_b_districts.vertex_snap_unavailable": "व्हर्टेक्स स्नॅपिंग उपलब्ध नाही — या टूलच्या अंतर्गत ड्रॉइंग लायब्ररी बदलली आहे.",
   "type_b_districts.view_leg_districts": "विधायी मतदारसंघ पहा →",
-  "type_b_districts.wizard_paused": "विझार्ड थांबवला आहे."
+  "type_b_districts.wizard_paused": " विझार्ड थांबवला आहे."
 }

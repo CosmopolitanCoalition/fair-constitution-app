@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "lisatud: ",
+  "law_diff.label": "Seaduse teksti muudatused",
+  "law_diff.removed": "eemaldatud: ",
+  "planned_banner.default_body": "See maailma osa on kavandatud enne ehitust. Siin ei ole veel midagi aktiivset ega reaalse raha.",
+  "planned_banner.title": "Kavatsus — eelvaade.",
+  "selection_identity.aria_org": "Organisatsiooni andmed {name}, viide {id}",
+  "selection_identity.aria_profile": "Avalik profiil {name}, viide {id}",
+  "selection_identity.org_reference": "Organisatsiooni viide:",
+  "selection_identity.organization_record": "Organisatsiooni andmed",
+  "selection_identity.profile_reference": "Profiili viide:",
+  "selection_identity.public_profile": "Avalik profiil"
+}

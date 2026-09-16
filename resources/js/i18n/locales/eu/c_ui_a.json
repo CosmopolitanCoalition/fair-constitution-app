@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeta",
+  "adm_chip.level_1": "Herrialdea",
+  "adm_chip.level_2": "Estatu / Probintzia",
+  "adm_chip.level_3": "Herrialdea",
+  "adm_chip.level_4": "Udalerria",
+  "adm_chip.level_5": "Herria",
+  "adm_chip.level_6": "Auzoa",
+  "citation_line.as_implemented": "estruituratAkoa",
+  "data_table.caption_scrollable": "{caption} (iritsgarria)",
+  "data_table.scrollable_table": "Taula iritsgarria",
+  "history_pager.first_page": "Lehen orria",
+  "history_pager.load_error": "Orria ezin da kargatu. Saiatu berriro.",
+  "history_pager.loading": "Erregistroak kargatzen...",
+  "history_pager.next": "Hurregoa",
+  "history_pager.previous": "Aurrekoa"
+}

@@ -473,7 +473,7 @@
   "districts.tip_district": "निर्वाचन क्षेत्र: {seats} सीटें",
   "districts.tip_expand": "उप-निर्वाचन क्षेत्रों को देखने के लिए साइडबार में विस्तार करें",
   "districts.tip_fractional": "अंश: {n}",
-  "districts.tip_members_suffix": "· {n} सदस्य",
+  "districts.tip_members_suffix": " · {n} सदस्य",
   "districts.tip_pop": "जनसंख्या: {n}",
   "districts.tip_unassigned": "अनिर्धारित — संयोज्य",
   "districts.toast_autoseed_complete": "ऑटो-सीड पूर्ण",

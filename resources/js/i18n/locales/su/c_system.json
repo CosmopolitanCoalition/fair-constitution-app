@@ -268,7 +268,7 @@
   "audit_chain.missing": "Éntri #{seq} teu kapanggih dina instansi ieu. Nomer urutan bisa aya nu kosong.",
   "audit_chain.nav_label": "Navigasi log audit sajarah",
   "audit_chain.newer": "Éntri nu leuwih anyar",
-  "audit_chain.newest_first": "Nu panganyarna tiheula ·",
+  "audit_chain.newest_first": "Nu panganyarna tiheula · ",
   "audit_chain.no_entries_yet": "Tacan aya éntri",
   "audit_chain.older": "Éntri nu leuwih heubeul",
   "audit_chain.open_receipt": "Buka resi",

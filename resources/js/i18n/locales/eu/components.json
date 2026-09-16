@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Helbide kosmikoa kargatzen...",
+  "cosmicaddresspicker.multiverse": "Multibertsoa ▸",
+  "schemaupdatebanner.apply_updates": "egunerizazioak aplikatu",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Beharrezkoa: {pendingLabel} — ETL prozesua hasten baino lehen aplikatu.",
+  "setupstepper.build_districts": "Barrutuak eraiki",
+  "setupstepper.confirm_seat_institutions": "Konfirmatu eta eserlekuak eszari erakundeei",
+  "setupstepper.constitutional_defaults": "Konstituzioaren lehenetsak",
+  "setupstepper.cosmic_address": "Helbide Kosmikoa",
+  "setupstepper.map_data": "Datuen mapa",
+  "setupstepper.setup_progress": "Konfigurazioaren aurreraera"
+}

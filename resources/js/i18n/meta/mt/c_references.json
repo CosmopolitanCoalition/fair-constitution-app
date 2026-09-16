@@ -56,7 +56,7 @@
     "provider": "ollama"
   },
   "board_elections.cgc_no_board": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

@@ -79,8 +79,8 @@
   "oversight.removal_title": "Prosés panghapusan",
   "oversight.seat_label": "Korsi {seat}",
   "oversight.seat_vacated": "korsi dikosongkeun",
-  "oversight.speaker_owncase_suffix": "(Pupuhu déwan — kasus sorangan merlukeun pamingpin nu ditunjuk)",
-  "oversight.speaker_suffix": "(Pupuhu déwan)",
+  "oversight.speaker_owncase_suffix": " (Pupuhu déwan — kasus sorangan merlukeun pamingpin nu ditunjuk)",
+  "oversight.speaker_suffix": " (Pupuhu déwan)",
   "oversight.special_election": "pamilihan husus {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — pamingpin kasus sorangan dihalangan dina kode",
   "oversight.spk_form_name": "Pamingpin Impeachment/Sensure/Pengusiran",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Korsi Kosong",
   "oversight.vacancy_countback_link": "korsi kosong {status} — kaca ngitung deui →",
   "oversight.vacancy_state_aria": "Mesin kaayaan korsi kosong",
-  "oversight.you_suffix": "(anjeun)",
+  "oversight.you_suffix": " (anjeun)",
   "referendums.about": "Perisai CLK-19 téh panto validasi, lain timer: pengajuan F-LEG-034 ngalawan putusan supermayoritas populasi bakal ditolak sateuacan sora kalayan sitasi, sarta penolakan éta asup kana ranté log audit. Perisai dibuka nalika pamilihan umum saterusna disahkeun — putusan referendum saterusna dirobah ngaliwatan jalur biasa.",
   "referendums.act_ordinary": "Putusan biasa — kelas mayoritas",
   "referendums.act_setting_change": "Putusan parobahan setélan — kelas mayoritas",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Over-rep:",
   "type_b_districts.overcount": "Overcount",
   "type_b_districts.pan_mode": "Mode Pan",
-  "type_b_districts.parts_suffix": "= {total} bagian",
+  "type_b_districts.parts_suffix": " = {total} bagian",
   "type_b_districts.pe_bad": "Goréng (>10%):",
   "type_b_districts.pe_district_count": "({n} daérah pamilihan)",
   "type_b_districts.pe_good": "Alus (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Diversitas Politik Seragam",
   "type_b_districts.vertex_snap_unavailable": "Vertex snapping teu bisa dipaké — pustaka gambar robah dina alat ieu.",
   "type_b_districts.view_leg_districts": "Tingali Daérah Pamilihan Législatif →",
-  "type_b_districts.wizard_paused": "Wizard dijeda."
+  "type_b_districts.wizard_paused": " Wizard dijeda."
 }

@@ -384,6 +384,7 @@
   "legislature_oversight.proceeding_state_machine": "Proceduras statusa automāts",
   "legislature_oversight.publish_findings": "Publicēt secinājumus…",
   "legislature_oversight.publish_findings_2": "Publicēt secinājumus",
+  "legislature_oversight.removal_parity_legislators_executives_and_": "Noamēšanas līdzlīdzība: likumdevējus, izpildvaras pārstāvjus un tiesnešus noamē pēc viena standarta — visu esošo locekļu kvalificēta vairākuma. Palātas priekšsēdētājs vada procesu, izņemot gadījumos, kad lieta ir pret viņu (Art. II §3 · removal.presider, hardened).",
   "legislature_oversight.removal_proceedings": "Atkāpšanas proceduras",
   "legislature_oversight.seat": "Vieta {vacancy} — {member}",
   "legislature_oversight.seat_vacated": "vieta kļuvusi brīva",

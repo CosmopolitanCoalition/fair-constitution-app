@@ -1,21 +1,21 @@
 {
   "federation_syncprogress.joining_the_cluster": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "federation_syncprogress.of_left": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "federation_syncprogress.records_pagesimporting_the_foundation_into": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   }

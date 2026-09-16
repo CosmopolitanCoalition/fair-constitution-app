@@ -20,7 +20,7 @@
     "provider": "ollama"
   },
   "organizations_boardelections.co_determination_provisions_a_board_on_the": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

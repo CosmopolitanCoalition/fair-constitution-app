@@ -2024,12 +2024,12 @@
     "provider": "ollama"
   },
   "constitutional_challenge.about_entity": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "constitutional_challenge.about_workflows": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2130,7 +2130,7 @@
     "provider": "ollama"
   },
   "department_reporting.about_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -473,7 +473,7 @@
   "districts.tip_district": "Округ: {seats} мест",
   "districts.tip_expand": "Разверните в боковой панели, чтобы увидеть подокруга",
   "districts.tip_fractional": "Дробное: {n}",
-  "districts.tip_members_suffix": "· {n} членов",
+  "districts.tip_members_suffix": " · {n} членов",
   "districts.tip_pop": "Население: {n}",
   "districts.tip_unassigned": "Не назначено — комбинируемо",
   "districts.toast_autoseed_complete": "Автозаполнение завершено",

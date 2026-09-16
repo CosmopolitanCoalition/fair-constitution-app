@@ -1820,7 +1820,7 @@
     "provider": "ollama"
   },
   "restoration.def_body_2": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

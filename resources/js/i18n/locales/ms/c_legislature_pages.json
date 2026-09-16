@@ -473,7 +473,7 @@
   "districts.tip_district": "Kawasan pilihan raya: {seats} kerusi",
   "districts.tip_expand": "Kembangkan di bar sisi untuk melihat sub-kawasan",
   "districts.tip_fractional": "Pecahan: {n}",
-  "districts.tip_members_suffix": "· {n} ahli",
+  "districts.tip_members_suffix": " · {n} ahli",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "Tidak ditetapkan — boleh digabungkan",
   "districts.toast_autoseed_complete": "Semaian automatik selesai",

@@ -24,7 +24,7 @@
     "provider": "ollama"
   },
   "index.intro_b": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (3/129 chars, floor 0.45)",
     "provider": "ollama"
   },

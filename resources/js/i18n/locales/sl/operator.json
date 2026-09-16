@@ -70,6 +70,7 @@
   "operator_home.the_capability_channels_this_box_currently": "Kanali zmožnosti, ki jih ta škatla trenutno poganja — \"vloga\" škatle je prav ta nabor. Upravljani kanal je šel skozi dvojno potrditev soglasja; samodeklcirani kanal pa ga vklopite vi sami.",
   "operator_home.the_older_consoles_stay_reachable_while_th": "Stare konzole ostajajo dostopne, dokler kampanja ne dokaže enakost: Operacije (stara konzola) · Federacija (stara). Prijavljeni kot {operator}.",
   "operator_home.the_operator_console": "Operativna konzola",
+  "operator_home.the_operator_plane_s_front_door_is_this_bo": "Sprednja vrata operacijske ravni: ali je ta okvir pripravljen na povezavo z mrežo, katero od štirih imenovanih vlog izvaja in ena vrata do vsake operacijske površine. »Postani vrstnik« je en proces — vozel, ki lahko pridobi potrdilo in sprejme stranke, je polnopravni, enakopravni vrstnik; povišanje vloge je ločena, z zaupanjem omejena lestvica v razdelku Vloge in kanali.",
   "operator_home.the_readiness_rollup_and_the_mesh_controls": "Povzetek pripravljenosti in nadzori mreže so vidni samo prijavljenemu operaterju. Za igro tukaj nič ne potrebujete — igra poteka na državljanskih straneh.",
   "operator_home.this_node_holds_the_home_copy_of_place_aut": "Ta vozel hrani domačo kopijo {homeCopies} kraja{homeCopies2}. Avtoriteta je dejstvo o tem, kje se nahaja domača kopija kraja — nikoli rang vozla: vsak partner hrani isti zapis in domača kopija vsakega kraja odloča o njegovih zapisih.",
   "operator_home.versions_upgrades": "Različice in nadgradnje",

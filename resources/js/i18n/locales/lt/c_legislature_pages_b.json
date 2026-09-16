@@ -79,8 +79,8 @@
   "oversight.removal_title": "Pašalinimo procesai",
   "oversight.seat_label": "Vieta {seat}",
   "oversight.seat_vacated": "vieta palikta",
-  "oversight.speaker_owncase_suffix": "(rūmų pirmininkas — savo byloi reikia paskirto pirmininko)",
-  "oversight.speaker_suffix": "(rūmų pirmininkas)",
+  "oversight.speaker_owncase_suffix": " (rūmų pirmininkas — savo byloi reikia paskirto pirmininko)",
+  "oversight.speaker_suffix": " (rūmų pirmininkas)",
   "oversight.special_election": "specialūs rinkimai {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — savo byloje pirmininkavimas kodu užblokuotas",
   "oversight.spk_form_name": "Impeachmento/nuosprendimo/išmetimo pirmininkavimas",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Laisvos vietos",
   "oversight.vacancy_countback_link": "laisva vieta {status} — pakartotinio skaičiavimo puslapis →",
   "oversight.vacancy_state_aria": "Laisvų vietų būsenos mašina",
-  "oversight.you_suffix": "(jūs)",
+  "oversight.you_suffix": " (jūs)",
   "referendums.about": "CLK-19 skydas yra validavimo vartai, o ne laikmatis: F-LEG-034 prašymas dėl acto, kurį patvirtino gyventojų kvalifikuota dauguma, yra atmestas prieš balsavimą nurodant pagrindą, o pats atmetimas įrašomas į audito žurnalą. Skydas nuimamas, kai patvirtinami kiti bendrieji rinkimai — tada referendumo sprendimai pakeičiami ordinary keliu.",
   "referendums.act_ordinary": "Paprastas sprendimas — daugumos klasė",
   "referendums.act_setting_change": "Nustatymų keitimo sprendimas — daugumos klasė",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Perteklius:",
   "type_b_districts.overcount": "Perteklinis skaičiavimas",
   "type_b_districts.pan_mode": "Pan režimas",
-  "type_b_districts.parts_suffix": "= {total} dalių",
+  "type_b_districts.parts_suffix": " = {total} dalių",
   "type_b_districts.pe_bad": "Blogai (>10%):",
   "type_b_districts.pe_district_count": "({n} apygardų)",
   "type_b_districts.pe_good": "Gerai (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Vienoda politinė įvairovė",
   "type_b_districts.vertex_snap_unavailable": "Vertex snapping nepasiekiamas – įrankio biblioteka buvo pakeista.",
   "type_b_districts.view_leg_districts": "Peržiūrėti teisėkūros apygardas →",
-  "type_b_districts.wizard_paused": "Wizard sustabdytas."
+  "type_b_districts.wizard_paused": " Wizard sustabdytas."
 }

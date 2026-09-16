@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "imeongezwa:",
+  "law_diff.added": "imeongezwa: ",
   "law_diff.label": "Mabadiliko ya maandishi ya sheria",
-  "law_diff.removed": "imeondolewa:",
+  "law_diff.removed": "imeondolewa: ",
   "planned_banner.default_body": "Sehemu hii ya ulimwengu imeundwa kabla ya ujenzi. Hakuna kitu hapa kilicho hai, na hakuna pesa halisi popote.",
   "planned_banner.title": "Imepangwa — onyo.",
   "selection_identity.aria_org": "Rekodi ya shirika kwa {name}, rejea {id}",

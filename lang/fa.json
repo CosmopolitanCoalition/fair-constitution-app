@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "آن را در /vacancies/:id دنبال کنید.",
+  " Track it at /vacancies/:id.": " آن را در /vacancies/:id دنبال کنید.",
   "% of jurisdiction population · CLK-17": "درصد از جمعیت قلمرو · CLK-17",
   "+:count more candidate with first-preference support": "+:count نامزد بیشتر با حمایت اولویت اول",
   "+:count more candidates with first-preference support": "+:count نامزد بیشتر با حمایت اولویت اول",
@@ -1985,7 +1985,7 @@
   "You left the room.": "شما اتاق را ترک کردید.",
   "You sit on more than one court — showing one; switch from the court page.": "شما در بیش از یک دادگاه هستید — یکی نمایش داده می‌شود؛ از صفحه دادگاه تغییر دهید.",
   "You sit on more than one department board — showing one; pick another from its department page.": "شما در بیش از یک هیئت مدیره دپارتمان هستید — یکی نمایش داده می‌شود؛ دیگری را از صفحه دپارتمان انتخاب کنید.",
-  "You: ": "شما:",
+  "You: ": "شما: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "حساب شما، اقدامات شما — طرف‌های مقابل حساب‌ها هستند، نه هرگز افراد · Art. I",
   "Your chair ranking has been recorded.": "رتبه ریاست شما ثبت شد.",
   "Your client retains you; the retainer is recorded with the filing.": "موکل شما شما را به عنوان وکیل نگه داشته است؛ قرارداد وکالت با ثبت پرونده ثبت می‌شود.",

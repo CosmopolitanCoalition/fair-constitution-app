@@ -1,1 +1,6 @@
-{}
+{
+  "federation_syncprogress.joining_the_cluster": "הצטרפות לצבר",
+  "federation_syncprogress.of_left": "{fmtValue} מתוך {fmtValue2}~{fmtDuration} נותרו",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} רשומות · {fmtNum2} דפיםייבוא היסוד למסד הנתונים…יובאההמתנה…{fmtNum3}/שנייה",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "ניתן לעזוב דף זה — הסנכרון רץ ברקע ויחודש אם יופסק."
+}

@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "ადვოკატის რეგისტრაცია ღიაა ნებისმიერი ასოცირებული მცხოვრებლისთვის, თუმცა ჯერ თქვენს იურისდიქციაში სასამართლო უნდა არსებობდეს — სასამართლოები ჩამოყალიბდება, როდესაც საკანონმდებლო ორგანო ქმნის მათ (F-LEG-017).",
   "advocate_console.no_judiciary_title": "თქვენს ასოციაციების ჯაჭვში სასამართლო ხელისუფლება ჯერ არ არის.",
   "advocate_console.no_matching_page": "ამ გვერდზე შესაბამისი საქმეები არ არის. სცადეთ სხვა სათაური ან საქმის ნომერი.",
-  "advocate_console.not_seated_suffix": "(ჯერ არ არის დასიჯებული)",
+  "advocate_console.not_seated_suffix": " (ჯერ არ არის დასიჯებული)",
   "advocate_console.not_yet": "ჯერ არა",
   "advocate_console.open_case": "საქმის გახსნა →",
   "advocate_console.open_case_short": "საქმის გახსნა",

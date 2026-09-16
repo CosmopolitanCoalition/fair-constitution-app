@@ -119,8 +119,8 @@
   "oversight.removal_title": "Noņemšanas procesi",
   "oversight.seat_label": "Vieta {seat}",
   "oversight.seat_vacated": "vieta kļuvusi brīva",
-  "oversight.speaker_owncase_suffix": "(palātas priekšsēdētājs — savam lietas vešanai nepieciešams iecērtas tiesnesis)",
-  "oversight.speaker_suffix": "(palātas priekšsēdētājs)",
+  "oversight.speaker_owncase_suffix": " (palātas priekšsēdētājs — savam lietas vešanai nepieciešams iecērtas tiesnesis)",
+  "oversight.speaker_suffix": " (palātas priekšsēdētājs)",
   "oversight.special_election": "laiksnīgas vēlēšanas {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — koda līmenī bloķēta tiesu vadīšana savā lietā",
   "oversight.spk_form_name": "Impičments/pazīmēšana/izslēgšana — tiesu vadīšana",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Brīvas vietas",
   "oversight.vacancy_countback_link": "brīva vieta {status} — atkārtotas skaitīšanas lapa →",
   "oversight.vacancy_state_aria": "Brīvu vietu stāvokļu automāts",
-  "oversight.you_suffix": "(jūs)",
+  "oversight.you_suffix": " (jūs)",
   "referendums.about": "CLK-19 aizsardzība ir validēšanas slēga, nevis taimeris: F-LEG-034 iesniegums pret iedzīvotāju kvalificēta vairākuma lēmumu tiek noraidīts pirms balsošanas ar norādi, un pats noraidījums nonāk audita žurnālā. Aizsardzība beidzas, kad tiek apstiprinātas nākamās vispārējas vēlēšanas — referenduma lēmumi tad tiek grozīti par parastu ceļu.",
   "referendums.act_ordinary": "Parasts lēmums — vairākuma klase",
   "referendums.act_setting_change": "Iestatījumu maiņas lēmums — vairākuma klase",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Pār прадстаўība:",
   "type_b_districts.overcount": "Pārskaitīšana",
   "type_b_districts.pan_mode": "Pan režīms",
-  "type_b_districts.parts_suffix": "= {total} daļas",
+  "type_b_districts.parts_suffix": " = {total} daļas",
   "type_b_districts.pe_bad": "Slikti (>10%):",
   "type_b_districts.pe_district_count": "({n} apgabali)",
   "type_b_districts.pe_good": "Labi (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Vienmērīga politiskā diversitāte",
   "type_b_districts.vertex_snap_unavailable": "Vērtspunkta pielāgošana nav pieejama — rīka zīmēšanas bibliotēka ir mainījusies.",
   "type_b_districts.view_leg_districts": "Skatīt likumdošanas apgabalus →",
-  "type_b_districts.wizard_paused": "Wizards pauze."
+  "type_b_districts.wizard_paused": " Wizards pauze."
 }

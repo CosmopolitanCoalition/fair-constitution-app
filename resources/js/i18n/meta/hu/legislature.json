@@ -1804,7 +1804,7 @@
     "provider": "ollama"
   },
   "legislature_sessionconsole.opened_adjourned_quorum_of_serving_present": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

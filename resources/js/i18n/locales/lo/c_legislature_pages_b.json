@@ -119,8 +119,8 @@
   "oversight.removal_title": "ຂັ້ນຕອນການປົດຕຳແໜ່ງ",
   "oversight.seat_label": "ບ່ອນນັ່ງ {seat}",
   "oversight.seat_vacated": "ບ່ອນນັ່ງວ່າງລົງ",
-  "oversight.speaker_owncase_suffix": "(ປະທານສະພາ — ຄະດີຂອງຕົນເອງຕ້ອງມີຜູ້ດຳເນີນການທີ່ຖືກກຳນົດ)",
-  "oversight.speaker_suffix": "(ປະທານສະພາ)",
+  "oversight.speaker_owncase_suffix": " (ປະທານສະພາ — ຄະດີຂອງຕົນເອງຕ້ອງມີຜູ້ດຳເນີນການທີ່ຖືກກຳນົດ)",
+  "oversight.speaker_suffix": " (ປະທານສະພາ)",
   "oversight.special_election": "ການເລືອກຕັ້ງພິເສດ {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — ການເປັນປະທານໃນຄະດີຂອງຕົນເອງຖືກບລັອກໃນລະຫັດ",
   "oversight.spk_form_name": "ການດຳເນີນການກ່ຽວກັບການຖອດຖອນ/ການຕຳນິ/ການໄລ່ອອກ",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "ບ່ອນນັ່ງຫວ່າງ",
   "oversight.vacancy_countback_link": "ບ່ອນນັ່ງຫວ່າງ {status} — ໜ້າການນັບຄືນ →",
   "oversight.vacancy_state_aria": "ລະບົບຈັດການບ່ອນນັ່ງຫວ່າງ",
-  "oversight.you_suffix": "(ທ່ານ)",
+  "oversight.you_suffix": " (ທ່ານ)",
   "referendums.about": "ເກາະປ້ອງກັນ CLK-19 ແມ່ນປະຕູກວດສອບ, ບໍ່ແມ່ນຕົວຈັບເວລາ: ການຍື່ນ F-LEG-034 ຕໍ່ຕ້ານມະຕິທີ່ໄດ້ສຽງສ່ວນຫຼາຍພິເສດຂອງປະຊາກອນ ຈະຖືກປະຕິເສດກ່ອນການລົງຄະແນນ ພ້ອມກັບການອ້າງອີງ, ແລະ ການປະຕິເສດນັ້ນຈະຖືກບັນທຶກໄວ້ໃນບັນທຶກການກວດສອບ. ເກາະປ້ອງກັນຈະປົດລັອກເມື່ອການເລືອກຕັ້ງທົ່ວໄປຄັ້ງຕໍ່ໄປໄດ້ຮັບການຢັ້ງຢືນ — ຫຼັງຈາກນັ້ນ ມະຕິການລົງປະຊາມະຕິຈະຖືກແກ້ໄຂຜ່ານຂັ້ນຕອນປົກກະຕິ.",
   "referendums.act_ordinary": "ມະຕິປົກກະຕິ — ປະເພດສຽງສ່ວນຫຼາຍ",
   "referendums.act_setting_change": "ມະຕິປ່ຽນແປງການຕັ້ງຄ່າ — ປະເພດສຽງສ່ວນຫຼາຍ",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "ຕົວແທນເກີນ:",
   "type_b_districts.overcount": "ນັບເກີນ",
   "type_b_districts.pan_mode": "ໂໝດ Pan",
-  "type_b_districts.parts_suffix": "= {total} ສ່ວນ",
+  "type_b_districts.parts_suffix": " = {total} ສ່ວນ",
   "type_b_districts.pe_bad": "ບໍ່ດີ (>10%):",
   "type_b_districts.pe_district_count": "({n} ເຂດເລືອກຕັ້ງ)",
   "type_b_districts.pe_good": "ດີ (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "ຄວາມຫຼາກຫຼາຍທາງການເມືອງທີ່ເປັນເອກະພາບ",
   "type_b_districts.vertex_snap_unavailable": "ບໍ່ສາມາດໃຊ້ Vertex snapping ໄດ້ — ຫ້ອງສະໝຸດການຂີດແບ່ງໄດ້ປ່ຽນແປງພາຍໃຕ້ເຄື່ອງມືນີ້.",
   "type_b_districts.view_leg_districts": "ເບິ່ງເຂດເລືອກຕັ້ງນິຕິບັນຍັດ →",
-  "type_b_districts.wizard_paused": "ຢຸດການເຮັດວຽກຂອງ Wizard ໄວ້ຊົ່ວຄາວ."
+  "type_b_districts.wizard_paused": " ຢຸດການເຮັດວຽກຂອງ Wizard ໄວ້ຊົ່ວຄາວ."
 }

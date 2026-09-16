@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "එබූ:",
+  "law_diff.added": "එබූ: ",
   "law_diff.label": "නීති පෙළෙහි වෙනස්කම්",
-  "law_diff.removed": "ඉවත් කළ:",
+  "law_diff.removed": "ඉවත් කළ: ",
   "planned_banner.default_body": "ලෝකයේ මෙම කොටස නිර්මාණය කර ඇත්තේ ගොඩනැගීමට පෙරය. මෙහි කිසිවක් තවමත් සජීවී නැත, කිසිදු සැබෑ මුදලක් කොහේවත් නැත.",
   "planned_banner.title": "සැලසුම් කළ — පෙරදසුනක්.",
   "selection_identity.aria_org": "{name} සඳහා සංවිධානය වාර්තාව, යොමුව {id}",

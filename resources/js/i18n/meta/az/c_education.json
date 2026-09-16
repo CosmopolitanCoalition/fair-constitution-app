@@ -3964,7 +3964,7 @@
     "provider": "ollama"
   },
   "education_system_clocks.learn": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

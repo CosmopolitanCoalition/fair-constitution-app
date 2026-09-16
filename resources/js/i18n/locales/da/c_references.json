@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Dit valg af bestyrelsesformand",
   "board_roster": "Bestyrelsesmedlemmer og deres nuværende embedsperioder",
   "board_strip.cell_vacant": "— ledigt sæde",
-  "board_strip.chair_suffix": "(fællesvalgt formand)",
+  "board_strip.chair_suffix": " (fællesvalgt formand)",
   "board_strip.class_governor": "Udnævnt bestyrelsesmedlem",
   "board_strip.class_owner_elected": "Ejervalgt",
   "board_strip.class_worker_elected": "Arbejdervalgt",

@@ -268,7 +268,7 @@
   "audit_chain.missing": "ಈ ಇನ್ಸ್ಟನ್ಸಿನಲ್ಲಿ ನಮೂದು #{seq} ಕಂಡುಬಂದಿಲ್ಲ. ಸೀಕ್ವೆನ್ಸ್ ಸಂಖ್ಯೆಗಳಲ್ಲಿ ಅಂತರವಿರಬಹುದು.",
   "audit_chain.nav_label": "ಲೆಕ್ಕಪರಿಶೋಧನಾ ಇತಿಹಾಸದ ನ್ಯಾವಿಗೇಶನ್",
   "audit_chain.newer": "ಹೊಸ ನಮೂದುಗಳು",
-  "audit_chain.newest_first": "ಅತಿ ಹೊಸದು ಮೊದಲು ·",
+  "audit_chain.newest_first": "ಅತಿ ಹೊಸದು ಮೊದಲು · ",
   "audit_chain.no_entries_yet": "ಇನ್ನೂ ಯಾವುದೇ ನಮೂದುಗಳಿಲ್ಲ",
   "audit_chain.older": "ಹಳೆಯ ನಮೂದುಗಳು",
   "audit_chain.open_receipt": "ರಸೀದಿಯನ್ನು ತೆರೆಯಿರಿ",

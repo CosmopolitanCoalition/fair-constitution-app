@@ -473,7 +473,7 @@
   "districts.tip_district": "मतदारसंघ: {seats} जागा",
   "districts.tip_expand": "उप-मतदारसंघ पाहण्यासाठी साइडबारमध्ये विस्तारित करा",
   "districts.tip_fractional": "अपूर्णांक: {n}",
-  "districts.tip_members_suffix": "· {n} सदस्य",
+  "districts.tip_members_suffix": " · {n} सदस्य",
   "districts.tip_pop": "लोकसंख्या: {n}",
   "districts.tip_unassigned": "नियोजित नाही — संयोजित करण्यायोग्य",
   "districts.toast_autoseed_complete": "ऑटो-सीड पूर्ण झाले",

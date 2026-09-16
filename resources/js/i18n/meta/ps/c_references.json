@@ -256,7 +256,7 @@
     "provider": "ollama"
   },
   "board_elections.public_chair_ballot": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },

@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "додато:",
+  "law_diff.added": "додато: ",
   "law_diff.label": "Измене текста закона",
-  "law_diff.removed": "уклоњено:",
+  "law_diff.removed": "уклоњено: ",
   "planned_banner.default_body": "Овај део света је дизајниран пре изградње. Ништа овде још није активно и никакв стваран новац не постоји.",
   "planned_banner.title": "Планирано — преглед.",
   "selection_identity.aria_org": "Запис организације за {name}, референца {id}",

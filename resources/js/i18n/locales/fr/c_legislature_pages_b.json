@@ -119,8 +119,8 @@
   "oversight.removal_title": "Procédures de destitution",
   "oversight.seat_label": "Siège {seat}",
   "oversight.seat_vacated": "siège vacant",
-  "oversight.speaker_owncase_suffix": "(président de l'assemblée — son propre dossier nécessite un président désigné)",
-  "oversight.speaker_suffix": "(président de l'assemblée)",
+  "oversight.speaker_owncase_suffix": " (président de l'assemblée — son propre dossier nécessite un président désigné)",
+  "oversight.speaker_suffix": " (président de l'assemblée)",
   "oversight.special_election": "élection spéciale {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — présidence du propre dossier bloquée dans le code",
   "oversight.spk_form_name": "Présidence : Mise en accusation/Blâme/Expulsion",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Vacances",
   "oversight.vacancy_countback_link": "vacance {status} — page de recomptage rétroactif →",
   "oversight.vacancy_state_aria": "Machine à états des vacances",
-  "oversight.you_suffix": "(vous)",
+  "oversight.you_suffix": " (vous)",
   "referendums.about": "Le bouclier CLK-19 est une porte de validation, pas un minuteur : un dépôt F-LEG-034 contre un acte à majorité qualifiée de la population est rejeté avant le vote avec la citation, et le rejet lui-même est inscrit dans le journal d'audit. Le bouclier est levé lors de la certification de la prochaine élection générale — les actes de référendum sont alors modifiés via la voie ordinaire.",
   "referendums.act_ordinary": "Acte ordinaire — classe majorité",
   "referendums.act_setting_change": "Acte de changement de paramètre — classe majorité",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Sur-représentation :",
   "type_b_districts.overcount": "Surcomptage",
   "type_b_districts.pan_mode": "Mode Pan",
-  "type_b_districts.parts_suffix": "= {total} parties",
+  "type_b_districts.parts_suffix": " = {total} parties",
   "type_b_districts.pe_bad": "Mauvais (>10 %) :",
   "type_b_districts.pe_district_count": "({n} circonscriptions)",
   "type_b_districts.pe_good": "Bon (≤5 %) :",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Diversité politique uniforme",
   "type_b_districts.vertex_snap_unavailable": "L'accrochage des sommets est indisponible — la bibliothèque de dessin a été modifiée.",
   "type_b_districts.view_leg_districts": "Voir les circonscriptions de l'assemblée législative →",
-  "type_b_districts.wizard_paused": "Assistant en pause."
+  "type_b_districts.wizard_paused": " Assistant en pause."
 }

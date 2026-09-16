@@ -3692,7 +3692,7 @@
     "provider": "ollama"
   },
   "step5_simulate.verify_pending_note": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },

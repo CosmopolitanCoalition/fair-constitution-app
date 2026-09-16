@@ -2144,7 +2144,7 @@
     "provider": "ollama"
   },
   "residency.intro": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (60/180 chars, floor 0.45)",
     "provider": "ollama"
   },

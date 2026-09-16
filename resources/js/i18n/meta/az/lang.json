@@ -8062,7 +8062,7 @@
     "provider": "ollama"
   },
   "You can answer only your own jury screening (R-22 of this summons).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

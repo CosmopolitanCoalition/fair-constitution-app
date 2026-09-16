@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Ihre Wahl für den Vorsitzenden des Verwaltungsrats",
   "board_roster": "Verwaltungsratsmitglieder und ihre aktuellen Amtszeiten",
   "board_strip.cell_vacant": "— vakant",
-  "board_strip.chair_suffix": "(gemeinsam gewählter Vorsitzender)",
+  "board_strip.chair_suffix": " (gemeinsam gewählter Vorsitzender)",
   "board_strip.class_governor": "Ernanntes Verwaltungsratsmitglied",
   "board_strip.class_owner_elected": "Von Eigentümern gewählt",
   "board_strip.class_worker_elected": "Von Arbeitnehmern gewählt",

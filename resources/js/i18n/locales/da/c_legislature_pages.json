@@ -473,7 +473,7 @@
   "districts.tip_district": "Kreds: {seats} sæder",
   "districts.tip_expand": "Udvid i sidepanelet for at se underkredse",
   "districts.tip_fractional": "Fraktionel: {n}",
-  "districts.tip_members_suffix": "· {n} medlemmer",
+  "districts.tip_members_suffix": " · {n} medlemmer",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "Ikke tildelt — sammensættelig",
   "districts.toast_autoseed_complete": "Auto-initialisering fuldført",

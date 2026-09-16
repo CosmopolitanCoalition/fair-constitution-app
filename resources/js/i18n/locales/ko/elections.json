@@ -313,6 +313,7 @@
   "elections_vacancycountback.no_new_election_is_needed_yet_the_game_re_": "{vacancy} {vacancy2}. 아직 새로운 선거가 필요하지 않습니다. 공석이 된 위원을 후보자에서 제외하고 이전 선거의 투표용지를 다시 집계합니다 (\"공석 재집계\"). 유권자의 원래 선호도가 대체자를 결정하며, 해당 투표용지가 소진된 경우에만 보궐 선거를 실시합니다.",
   "elections_vacancycountback.no_winner_in_this_countback": "이 재집계에서 승자 없음",
   "elections_vacancycountback.not_taken": "수락되지 않음",
+  "elections_vacancycountback.opens_wf_ele_04_forms_f_elb_001_f_ind_011_": "WF-ELE-04 열기 · F-ELB-001, F-IND-011, F-IND-007, F-ELB-004 생성",
   "elections_vacancycountback.phase_b_vacancies_are_dev_seeded_the_f_leg": "단계 B 공석은 개발자 시드( )입니다. F-LEG-036 선언 양식 자체는 단계 C 의장 도구와 함께 제공됩니다.",
   "elections_vacancycountback.re_run_of_prior_ballots_with_the_vacated_m": "공석 위원을 제외한 이전 투표용지의 재실행 · Art. II §5 · 보편적 — 파벌 필터링 없음 · 드룹 쿼터 적용 STV — 강화됨",
   "elections_vacancycountback.re_run_source_the_prior_valid_ballots_droo": "재실행 소스: 이전 {election_label} — {rerun}개의 유효 투표용지, {seats} {rerun2}, 드룹 쿼터. 엔진이 공석이 된 위원을 제외하고 유권자의 다음 선호도부터 집계를 계속합니다. 재실행은 보편적으로 적용됩니다. 절차 어디에서도 파벌 필터링 없이 모든 이전 투표용지가 집계됩니다.",

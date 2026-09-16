@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeet",
+  "adm_chip.level_1": "Riik",
+  "adm_chip.level_2": "K regiun / provints",
+  "adm_chip.level_3": "Maakond",
+  "adm_chip.level_4": "Omavalitsus",
+  "adm_chip.level_5": "Vald",
+  "adm_chip.level_6": "Aasum",
+  "citation_line.as_implemented": "nagu rakendatud",
+  "data_table.caption_scrollable": "{caption} (keritav)",
+  "data_table.scrollable_table": "Keritav tabel",
+  "history_pager.first_page": "Esimene lehekülg",
+  "history_pager.load_error": "Seda lehekülge ei õnnestunud laadida. Proovi uuesti.",
+  "history_pager.loading": "Laaditakse kirjeid…",
+  "history_pager.next": "Järgmine",
+  "history_pager.previous": "Eelmine"
+}

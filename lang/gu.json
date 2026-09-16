@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "તેને /vacancies/:id પર ટ્રેક કરો.",
+  " Track it at /vacancies/:id.": " તેને /vacancies/:id પર ટ્રેક કરો.",
   "% of jurisdiction population · CLK-17": "અધિકારક્ષેત્રની વસ્તીના % · CLK-17",
   "+:count more candidate with first-preference support": "પ્રથમ-પસંદગીના સમર્થન સાથે વધુ +:count ઉમેદવાર",
   "+:count more candidates with first-preference support": "પ્રથમ-પસંદગીના સમર્થન સાથે વધુ +:count ઉમેદવારો",
@@ -490,6 +490,7 @@
   "Art. VII; \"unless otherwise amended\" clauses — out-of-range rejected pre-vote": "Art. VII; \"જો અન્યથા સુધારવામાં ન આવે તો\" કલમો — મત પહેલાં રેન્જ બહારના નકારવામાં આવ્યા",
   "Asset Registration / Transfer": "સંપત્તિ નોંધણી / ટ્રાન્સફર",
   "Assigned": "સોંપેલ",
+  "Assignment run complete (F-SPK-005) — :placements placement(s), :contests contested seat(s) resolved by normalized vote share (ledger #q2).": "અસાઇનમેન્ટ રન પૂર્ણ થયું (F-SPK-005) — :placements પ્લેસમેન્ટ, નોર્મલાઇઝ્ડ વોટ શેર દ્વારા :contests વિવાદિત બેઠકોનું નિરાકરણ (લેજર #q2).",
   "Association transfers with sustained residence · Art. V §1–2": "સતત નિવાસ સાથે એસોસિએશન ટ્રાન્સફર · Art. V §1–2",
   "At-large (type B) · :name": "એટ-લાર્જ (પ્રકાર B) · :name",
   "At-large · :name": "એટ-લાર્જ · :name",
@@ -2024,7 +2025,7 @@
   "You left the room.": "તમે રૂમ છોડી દીધો.",
   "You sit on more than one court — showing one; switch from the court page.": "તમે એક કરતા વધુ અદાલતમાં બેસો છો — એક બતાવી રહ્યું છે; અદાલત પેજ પરથી બદલો.",
   "You sit on more than one department board — showing one; pick another from its department page.": "તમે એક કરતા વધુ વિભાગીય બોર્ડ પર બેસો છો — એક બતાવી રહ્યું છે; તેના વિભાગીય પેજ પરથી બીજું પસંદ કરો.",
-  "You: ": "તમે:",
+  "You: ": "તમે: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "તમારું એકાઉન્ટ, તમારા નિર્ણયો — સામેના પક્ષો એકાઉન્ટ્સ હોય છે, ક્યારેય વ્યક્તિઓ નહીં · Art. I",
   "Your chair ranking has been recorded.": "તમારું અધ્યક્ષ રેન્કિંગ નોંધવામાં આવ્યું છે.",
   "Your client retains you; the retainer is recorded with the filing.": "તમારો ક્લાયન્ટ તમને રાખે છે; રીટેનર ફાઇલિંગ સાથે નોંધવામાં આવે છે.",

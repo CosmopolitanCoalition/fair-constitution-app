@@ -79,8 +79,8 @@
   "oversight.removal_title": "នីតិវិធីដកតំណែង",
   "oversight.seat_label": "អាសនៈ {seat}",
   "oversight.seat_vacated": "អាសនៈត្រូវបានទុកទំនេរ",
-  "oversight.speaker_owncase_suffix": "(ប្រធានសភា — ករណីផ្ទាល់ខ្លួនត្រូវការអ្នកដឹកនាំដែលបានកំណត់)",
-  "oversight.speaker_suffix": "(ប្រធានសភា)",
+  "oversight.speaker_owncase_suffix": " (ប្រធានសភា — ករណីផ្ទាល់ខ្លួនត្រូវការអ្នកដឹកនាំដែលបានកំណត់)",
+  "oversight.speaker_suffix": " (ប្រធានសភា)",
   "oversight.special_election": "ការបោះឆ្នោតពិសេស {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — ការដឹកនាំករណីផ្ទាល់ខ្លួនត្រូវបានរារាំងក្នុងកូដ",
   "oversight.spk_form_name": "ការដឹកនាំការដកតំណែង/ការស្តីបន្ទោស/ការបណ្តេញចេញ",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "អាសនៈទំនេរ",
   "oversight.vacancy_countback_link": "អាសនៈទំនេរ {status} — ទំព័រការរាប់ឡើងវិញ →",
   "oversight.vacancy_state_aria": "ម៉ាស៊ីនស្ថានភាពអាសនៈទំនេរ",
-  "oversight.you_suffix": "(អ្នក)",
+  "oversight.you_suffix": " (អ្នក)",
   "referendums.about": "ខែល CLK-19 គឺជាច្រកផ្ទៀងផ្ទាត់ មិនមែនជាឧបករណ៍កំណត់ពេលទេ៖ ការដាក់ពាក្យ F-LEG-034 ប្រឆាំងនឹងសេចក្តីសម្រេចដែលមានសំឡេងភាគច្រើនពិសេសនៃប្រជាជន នឹងត្រូវបដិសេធមុនពេលបោះឆ្នោតជាមួយនឹងការយោង ហើយការបដិសេធនោះនឹងត្រូវកត់ត្រាក្នុងខ្សែសង្វាក់កំណត់ហេតុសវនកម្ម។ ខែលនេះនឹងត្រូវដោះលែងនៅពេលការបោះឆ្នោតទូទៅបន្ទាប់ត្រូវបានបញ្ជាក់ — បន្ទាប់មកសេចក្តីសម្រេចប្រជាមតិនឹងត្រូវកែប្រែតាមរយៈផ្លូវធម្មតា។",
   "referendums.act_ordinary": "សេចក្តីសម្រេចធម្មតា — ថ្នាក់សំឡេងភាគច្រើន",
   "referendums.act_setting_change": "សេចក្តីសម្រេចផ្លាស់ប្តូរការកំណត់ — ថ្នាក់សំឡេងភាគច្រើន",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "តំណាងលើស៖",
   "type_b_districts.overcount": "ការរាប់លើស",
   "type_b_districts.pan_mode": "របៀប Pan",
-  "type_b_districts.parts_suffix": "= {total} ផ្នែក",
+  "type_b_districts.parts_suffix": " = {total} ផ្នែក",
   "type_b_districts.pe_bad": "មិនល្អ (>10%)៖",
   "type_b_districts.pe_district_count": "({n} មណ្ឌលបោះឆ្នោត)",
   "type_b_districts.pe_good": "ល្អ (≤5%)៖",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "ភាពចម្រុះនយោបាយឯកសណ្ឋាន",
   "type_b_districts.vertex_snap_unavailable": "មិនអាចប្រើ Vertex snapping បានទេ — បណ្ណាល័យគំនូសក្រោមឧបករណ៍នេះត្រូវបានផ្លាស់ប្តូរ។",
   "type_b_districts.view_leg_districts": "មើលមណ្ឌលបោះឆ្នោតនីតិប្បញ្ញត្តិ →",
-  "type_b_districts.wizard_paused": "ជំនួយការត្រូវបានផ្អាក។"
+  "type_b_districts.wizard_paused": " ជំនួយការត្រូវបានផ្អាក។"
 }

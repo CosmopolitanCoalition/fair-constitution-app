@@ -473,7 +473,7 @@
   "districts.tip_district": "Degmo doorasho: {seats} kursi",
   "districts.tip_expand": "Ku ballaari dhinaca si aad u aragto degmooyinka hoose",
   "districts.tip_fractional": "Jajab: {n}",
-  "districts.tip_members_suffix": "· {n} xubin",
+  "districts.tip_members_suffix": " · {n} xubin",
   "districts.tip_pop": "Dadka: {n}",
   "districts.tip_unassigned": "Lama qoondeyn — waa la isku dari karaa",
   "districts.toast_autoseed_complete": "Abuurista otomaatigga ah waa dhammaatay",

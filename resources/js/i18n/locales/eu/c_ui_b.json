@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "gehitu: ",
+  "law_diff.label": "Lege-testuaren aldaketak",
+  "law_diff.removed": "kendu: ",
+  "planned_banner.default_body": "Mundu zati hau eraikuntza aurretik diseinatuta dago. Ezer ez dago orain zuzenean, eta ez dago diru errealik inanten ere.",
+  "planned_banner.title": "Planifikatua — aurbekutxatzea.",
+  "selection_identity.aria_org": "{name} rako erakunde-erregistroa, erreferentzia {id}",
+  "selection_identity.aria_profile": "{name} rako profil publikoa, erreferentzia {id}",
+  "selection_identity.org_reference": "Erakunde-erreferentzia:",
+  "selection_identity.organization_record": "Erakunde-erregistroa",
+  "selection_identity.profile_reference": "Profil-erreferentzia:",
+  "selection_identity.public_profile": "Profil publikoa"
+}

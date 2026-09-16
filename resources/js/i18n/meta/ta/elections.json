@@ -132,7 +132,7 @@
     "provider": "ollama"
   },
   "elections_boardconsole.opens_wf_ele_05": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -79,6 +79,7 @@
   "jurisdictions_federation.why_we_want_to_mirror": "เหตุผลที่เราต้องการทำสำเนากระจก",
   "jurisdictions_federation.you_pursue_read_write_afterward": "คุณ {joinForm} ดำเนินการขอสิทธิ์อ่าน-เขียนในภายหลัง",
   "jurisdictions_federation.you_will_become_a_read_only_mirror_of_pull": "คุณจะกลายเป็นสำเนากระจกแบบอ่านอย่างเดียวของ {joinForm} โดยดึงบันทึกสาธารณะ (ตามขอบเขต {joinForm2})",
+  "jurisdictions_federation.zone_configured": "{domain}โซน {zone_id}ถูกกำหนดค่าแล้ว",
   "jurisdictions_index.adm_0_world": "ADM 0 — โลก",
   "jurisdictions_index.adm_1_country": "ADM 1 — ประเทศ",
   "jurisdictions_index.adm_2_state_province": "ADM 2 — รัฐ / จังหวัด",

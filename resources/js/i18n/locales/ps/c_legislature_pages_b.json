@@ -79,8 +79,8 @@
   "oversight.removal_title": "د لیرې کولو پروسیجې",
   "oversight.seat_label": "څوکۍ {seat}",
   "oversight.seat_vacated": "څوکۍ خاله شوه",
-  "oversight.speaker_owncase_suffix": "(د جرګې مشر — خپله قضیه یو ټاکل شوی ریاست ته اړتیا لري)",
-  "oversight.speaker_suffix": "(د جرګې مشر)",
+  "oversight.speaker_owncase_suffix": " (د جرګې مشر — خپله قضیه یو ټاکل شوی ریاست ته اړتیا لري)",
+  "oversight.speaker_suffix": " (د جرګې مشر)",
   "oversight.special_election": "ځانګړې ټاکنې {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — په کوډ کې د خپلې قضیې ریاست بند شوی",
   "oversight.spk_form_name": "د استعفې/سرزنش/تلا د ریاست",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "خالې څوکۍ",
   "oversight.vacancy_countback_link": "خالي څوکۍ {status} — د بیا شمېرنې پاڼه →",
   "oversight.vacancy_state_aria": "د خالي څوکۍ حالت ماشین",
-  "oversight.you_suffix": "(تاسو)",
+  "oversight.you_suffix": " (تاسو)",
   "referendums.about": "د CLK-19 ډالۍ یو تصدیقونکی دروازه ده، نه تایمر: د خلکو د ځانګړي اکثریت پرېکړې پر وړاندې یو F-LEG-034 غوښتنلیک د رایې ورکولو دمخه د استناد سره رد کیږي، او پخپله دا رد کېدل د تفتیش لړۍ ته ځي. ډالۍ هغه وخت خلاصېږي کله چې راتلونکې عامې ټاکنې تصدیق شي — بیا د ټولپوښتنې پرېکړې د عادي لارې له لارې ترمیم کیږي.",
   "referendums.act_ordinary": "عادي پرېکړه — د اکثریت کلاسی",
   "referendums.act_setting_change": "د ترتیب بدلون پرېکړه — د اکثریت کلاسی",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "زیات نمائیت:",
   "type_b_districts.overcount": "زیات شمېر",
   "type_b_districts.pan_mode": "پان موډ",
-  "type_b_districts.parts_suffix": "= {total} برخې",
+  "type_b_districts.parts_suffix": " = {total} برخې",
   "type_b_districts.pe_bad": "بد (>۱۰%):",
   "type_b_districts.pe_district_count": "({n} ټاکنیزه حوزه)",
   "type_b_districts.pe_good": "ښه (≤۵%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "یو ډول سیاسي تنوع",
   "type_b_districts.vertex_snap_unavailable": "د ورټیکس سنپینگ نشته — د رسم کتابتون په دې وسیله کې بدلی شوی دی.",
   "type_b_districts.view_leg_districts": "د مقننه قوه د حوزو لیدل →",
-  "type_b_districts.wizard_paused": "ویزارډ په نڅره ده."
+  "type_b_districts.wizard_paused": " ویزارډ په نڅره ده."
 }

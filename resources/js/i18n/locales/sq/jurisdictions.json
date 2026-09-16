@@ -79,6 +79,7 @@
   "jurisdictions_federation.why_we_want_to_mirror": "pse duam të bëjmë kopje pasqyrë",
   "jurisdictions_federation.you_pursue_read_write_afterward": "Ju {joinForm} kërkoni lexim-shkrim më pas.",
   "jurisdictions_federation.you_will_become_a_read_only_mirror_of_pull": "Ju do të bëheni një kopje pasqyrë vetëm për lexim e {joinForm}, duke tërhequr regjistrat e tij publikë (të kufizuar në {joinForm2}).",
+  "jurisdictions_federation.zone_configured": "{domain}zona {zone_id}e konfiguruar",
   "jurisdictions_index.adm_0_world": "ADM 0 — Botërore",
   "jurisdictions_index.adm_1_country": "ADM 1 — Shtet",
   "jurisdictions_index.adm_2_state_province": "ADM 2 — Shtet / Provincë",

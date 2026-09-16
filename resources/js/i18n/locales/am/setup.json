@@ -206,6 +206,7 @@
   "setup_step2_mapdata.running_cube_root_apportionment_across_the": "በአስተዳደር ክልል ዛፍ ውስጥ የኩብ-ሩት ድርሻን በማስላት ላይ…",
   "setup_step2_mapdata.skip_phase_2_population": "ደረጃ 2ን (የሕዝብ ብዛት) 飛ば",
   "setup_step2_mapdata.the_archive_mount_is_not_present_in_the_et": "የማህደር ማውንቱ {archive_mount} በETL ኮንቴይነር ውስጥ የለም። የራስዎን የፎልደር ቦታ ከታች ያስተካክሉ (ከዚያ እንደገና ያስጀምሩ)፣ ወይም መረጃውን ከኦፊሴላዊ ምንጮች ያውርዱ።",
+  "setup_step2_mapdata.the_etl_reads_from_the_container_path_whic": "ETL-ው የሚያነበው ከኮንቴይነር መንገድ {sources} ነው፤ ይህም በኮምፒውተርዎ ላይ ካለ ፎልደር (ARCHIVE_PATH) ጋር በ .env ፋይልዎ የተገናኘ ነው። ከታች ምንም ነገር ካልታየ፣ ማውጫው ባዶ ነው ወይም የተሳሳተ ፎልደር ላይ ነው — የራስዎን ፎልደር ያዘጋጁ ወይም መረጃውን ከታች ያውርዱ።",
   "setup_step2_mapdata.the_import_finished_open_the_jurisdiction_": "ማስገባት ተጠናቋል። ድንበሮችን፣ የሕዝብ ብዛትን፣ ራስተር ኦቨርሌዎችን፣ የሁለት-ግርማ relationships እና የተለዩ ልዩነቶችን ለመመርመር የአስተዳደር ክልል ተመልካቹን ይክፈቱ — ከዚያ የካርታ መረጃውን እዚያው ይቀበሉ (የፕላኔት ስፋት)። አንዴ ከተቀበሉ በኋላ ከታች 'ቀጥል' የሚለውን ይጫኑ — ይህም የድርሻ ስሌትን ያስጀምራል።",
   "setup_step2_mapdata.un_adjusted_not_un_matched_totals": "ያልተስተካከለ (ያልተዛመዱ አጠቃላይ ድምሮች አይደሉም)",
   "setup_step2_mapdata.unconstrained_full_extent": "ያልተገደበ — ሙሉ ስፋት",

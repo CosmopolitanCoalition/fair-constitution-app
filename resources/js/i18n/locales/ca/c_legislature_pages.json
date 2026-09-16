@@ -473,7 +473,7 @@
   "districts.tip_district": "Districte: {seats} escòs",
   "districts.tip_expand": "Amplieu a la barra lateral per veure els subdistrictes",
   "districts.tip_fractional": "Fraccionari: {n}",
-  "districts.tip_members_suffix": "· {n} membres",
+  "districts.tip_members_suffix": " · {n} membres",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "No assignat: composible",
   "districts.toast_autoseed_complete": "Sementació automàtica completada",

@@ -1484,7 +1484,7 @@
     "provider": "ollama"
   },
   "Art. II §2 (Publish Public Records) · adjourning re-arms CLK-02": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -6537,7 +6537,7 @@
     "provider": "ollama"
   },
   "Special election scheduled — ranked window opens :date · scheduling order issued (F-ELB-001) · WF-ELE-04.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

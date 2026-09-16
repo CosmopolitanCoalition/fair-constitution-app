@@ -297,6 +297,7 @@
   "civic_residency.residency_verified_you_are_associated_with": "居住资格已验证。您同时关联到每个包含您的辖区 — {length} 级别{associations}：",
   "civic_residency.resolving_the_smallest_containing_boundary": "正在解析最小包含边界…",
   "civic_residency.search_by_name_e_g_new_york_serravalle": "按名称搜索 — 例如：纽约、塞拉瓦莱…",
+  "civic_residency.searches_jurisdiction_names_e_g_serravalle": "搜索辖区名称（例如 Serravalle, New York）——而非街道地址；地址地理编码需要离线地理编码器，目前不在范围内。请声明您所在的最小边界。",
   "civic_residency.searching": "搜索中…",
   "civic_residency.selected_in": "已选：在 {parent_name} 中",
   "civic_residency.start_collecting_periodic_location_pings_t": "开始收集定期位置 ping 以建立我的居住资格模式。Ping 数据在存储时加密且绝不向任何人显示 — 仅派生的天数可见，原始位置在验证后清除。",

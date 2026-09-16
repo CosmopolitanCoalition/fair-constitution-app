@@ -584,7 +584,7 @@
     "provider": "ollama"
   },
   "civic_petitiondetail.advanced_past_the_review_hold_by_the_audit": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -945,7 +945,7 @@
     "provider": "ollama"
   },
   "civic_relocation.grace_period_the_new_claim_s_clk_05_thresh": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

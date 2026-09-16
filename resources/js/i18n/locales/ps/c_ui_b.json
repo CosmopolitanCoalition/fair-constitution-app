@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "زیات شوي:",
+  "law_diff.added": "زیات شوي: ",
   "law_diff.label": "د قانون د متن بدلونونه",
-  "law_diff.removed": "لیرې شوي:",
+  "law_diff.removed": "لیرې شوي: ",
   "planned_banner.default_body": "دا برخه د نړۍ له جوړونې وړاندې ډیزاین شوې ده. دلته تر اوسه هیڅ شی فعال نه دی، او هیڅ حقیقي پیسې نشته.",
   "planned_banner.title": "پلان شوی — یو پیش‌نمونش.",
   "selection_identity.aria_org": "د {name} لپاره د سازمان سابقه، ارجاع {id}",

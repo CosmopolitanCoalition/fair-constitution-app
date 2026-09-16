@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Votre choix de président du conseil d'administration",
   "board_roster": "Membres du conseil et dates de fin de mandat",
   "board_strip.cell_vacant": "— vacant",
-  "board_strip.chair_suffix": "(président élu conjointement)",
+  "board_strip.chair_suffix": " (président élu conjointement)",
   "board_strip.class_governor": "Gouverneur nommé",
   "board_strip.class_owner_elected": "Élu par les propriétaires",
   "board_strip.class_worker_elected": "Élu par les travailleurs",

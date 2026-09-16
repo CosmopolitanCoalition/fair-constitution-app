@@ -268,7 +268,7 @@
   "audit_chain.missing": "רשומה #{seq} לא נמצאה במופע זה. ייתכנו פערים במספרי הרצף.",
   "audit_chain.nav_label": "ניווט ביומן ביקורת",
   "audit_chain.newer": "רשומות חדשות יותר",
-  "audit_chain.newest_first": "החדש ביותר תחילה ·",
+  "audit_chain.newest_first": "החדש ביותר תחילה · ",
   "audit_chain.no_entries_yet": "אין עדיין רשומות",
   "audit_chain.older": "רשומות ישנות יותר",
   "audit_chain.open_receipt": "פתח קבלה",

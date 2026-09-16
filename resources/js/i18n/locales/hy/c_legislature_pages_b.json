@@ -79,8 +79,8 @@
   "oversight.removal_title": "Հեռացման վարույթներ",
   "oversight.seat_label": "Տեղ {seat}",
   "oversight.seat_vacated": "տեղը թափուր է",
-  "oversight.speaker_owncase_suffix": "(խորհրդի նախագահ — սեփական գործը պահանջում է նշանակված նախագահող)",
-  "oversight.speaker_suffix": "(խորհրդի նախագահ)",
+  "oversight.speaker_owncase_suffix": " (խորհրդի նախագահ — սեփական գործը պահանջում է նշանակված նախագահող)",
+  "oversight.speaker_suffix": " (խորհրդի նախագահ)",
   "oversight.special_election": "հատուկ ընտրություն {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — սեփական գործով նախագահելը արգելված է կոդում",
   "oversight.spk_form_name": "Իմպիչմենտ/Կշտամբություն/Հեռացում նախագահող",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Թափուր տեղեր",
   "oversight.vacancy_countback_link": "թափուր տեղ {status} — հետընթաց հաշվարկի էջ →",
   "oversight.vacancy_state_aria": "Թափուր տեղերի վիճակի մեքենա",
-  "oversight.you_suffix": "(դուք)",
+  "oversight.you_suffix": " (դուք)",
   "referendums.about": "CLK-19 պաշտպանությունը վալիդատորի արգելակ է, ոչ թե ժամանակաչափ. բնակչության որակյալ մեծամասնությամբ ընդունված որոշման դեմ ներկայացված F-LEG-034 խնդրագիրը մերժվում է նախքվեարտյան փուլում համապատասխան հղումով, իսկ մերժումն ինքնին գրանցվում է աուդիտի մատյանում: Պաշտպանությունը դադրում է գործել, երբ հաջորդ ընդհանուր ընտրությունները հաստատվում են. հանրաքվեի որոշումները այդժամ փոփոխվում են սովորական ընթացակարգով:",
   "referendums.act_ordinary": "Սովորական որոշում — մեծամասնության դաս",
   "referendums.act_setting_change": "Կարգավորումների փոփոխության որոշում — մեծամասնության դաս",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Գերներկայացվածություն.",
   "type_b_districts.overcount": "Գերհաշվարկ",
   "type_b_districts.pan_mode": "Pan ռեժիմ",
-  "type_b_districts.parts_suffix": "= {total} մաս",
+  "type_b_districts.parts_suffix": " = {total} մաս",
   "type_b_districts.pe_bad": "Վատ (>10%).",
   "type_b_districts.pe_district_count": "({n} ընտրատարածք)",
   "type_b_districts.pe_good": "Լավ (≤5%).",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Համասեռ քաղաքական բազմազանություն",
   "type_b_districts.vertex_snap_unavailable": "Գագաթների կցումը հասանելի չէ. գծագրման գրադարանը փոխվել է այս գործիքի տակ:",
   "type_b_districts.view_leg_districts": "Տես օրենսդրական ընտրատարածքները →",
-  "type_b_districts.wizard_paused": "Հրահանգիչը դադարեցված է:"
+  "type_b_districts.wizard_paused": " Հրահանգիչը դադարեցված է:"
 }

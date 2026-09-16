@@ -104,6 +104,7 @@
   "civic_myrecord.a_candidacy_is_not_a_separate_identity_it_": "Kandydowanie nie jest oddzielną tożsamością: jest to ten sam profil, przeniesiony na kartę do głosowania.",
   "civic_myrecord.active_jurisdictional_associations_at_ever": "Aktywne powiązania jurysdykcyjne na każdym poziomie zagnieżdżenia",
   "civic_myrecord.append_only_hash_chained_shown_in_your_tim": "Tylko do dopisywania · łańcuch skrótów · wyświetlane w Twojej strefie czasowej ({displayTimezone}) · przechowywane w UTC.",
+  "civic_myrecord.association_record_entr": "{associations} wpis w rejestrze{stats}{record_entries} organizacji{stats2}",
   "civic_myrecord.confirmed_on": "Potwierdzono dnia",
   "civic_myrecord.dates_are_shown_in_your_timezone_stored_as": "Daty są wyświetlane w Twojej strefie czasowej · przechowywane w UTC.",
   "civic_myrecord.days_confirmed": "Potwierdzone dni",

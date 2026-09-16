@@ -304,6 +304,7 @@
   "legislature_districts.uniform_political_diversity": "ወጥ የፖለቲካ ብዝሃነት",
   "legislature_districts.vertical_strips": "ቁልቁል መስመሮች",
   "legislature_emergencypowers.active_power_dashboard": "የንቁ ሥልጣን ዳሽቦርድ",
+  "legislature_emergencypowers.all_validation_runs_pre_vote_the_closed_ca": "ሁሉም የማረጋገጫ ሂደቶች ከድምፅ አሰጣጥ በፊት ይከናወናሉ፦ ዝግ የሆኑ የነክቶ-ምክንያት ዝርዝሮች፣ የ≤ 90 ቀናት የላይኛው ገደብ፣ የሥልጣን ክልል ማረጋገጫ እና የአሠራር መስፈርቶች ማንኛውም ድምፅ ከመሰጠቱ በፊት ውድቅ ይደረጋሉ — ውድቅ የተደረጉት ረድፎች ለኦፕሬተሩ የሚታዩ መዝገቦች ናቸው። የሥልጣን ረድፍ እና የ CLK-03 ቆጠራው የሚኖሩት በልዩ አብላጫ ድምፅ ሲጸድቅ ብቻ ነው።",
   "legislature_emergencypowers.auto_expiry_at_the_declared_duration_no_ac": "በተገለጸው የጊዜ ገደብ በራስ-ሰር ያበቃል — ምንም ዓይነት እርምጃ አያስፈልግም፣ አዲስ ልዩ አብላጫ ድምፅ ሳይኖር አይራዘምም።",
   "legislature_emergencypowers.auto_expiry_publishes_a_full_audit_record_": "በራስ-ሰር ሲያበቃ ሙሉ የኦዲት መዝገብ ያወጣል — ምንም ነገር በዝምታ አይሸጋገርም።",
   "legislature_emergencypowers.available_at_any_time_by_any_inhabitant_fi": "በማንኛውም ጊዜ በማንኛውም ነዋሪ ሊቀርብ ይችላል · አቤቱታው ለፍትሕ አካል ይላካል (የታቀደ · ምዕራፍ E) · Art. II §7 · WF-JUD-06",

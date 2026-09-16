@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "ychwanegwyd: ",
+  "law_diff.label": "Newryddion i destun cyfraith",
+  "law_diff.removed": "tynnu: ",
+  "planned_banner.default_body": "Mae rhan hon o'r byd wedi'i ddylunio cyn y build. Dim byd yma sy'n fyw eto, ac nid oes ariannau go iawn unrhymaeth.",
+  "planned_banner.title": "Cynllunedig — rhagolyg.",
+  "selection_identity.aria_org": "Cofnod sefydliad ar gyfer {name}, cyfeirnod {id}",
+  "selection_identity.aria_profile": "Proffil cyhoeddus ar gyfer {name}, cyfeirnod {id}",
+  "selection_identity.org_reference": "Cyfeirnod sefydliad:",
+  "selection_identity.organization_record": "Cofnod sefydliad",
+  "selection_identity.profile_reference": "Cyfeirnod proffil:",
+  "selection_identity.public_profile": "Proffil cyhoeddus"
+}

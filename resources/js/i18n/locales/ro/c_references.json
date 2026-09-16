@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Alegerea ta pentru președintele consiliului",
   "board_roster": "Membrii consiliului și datele actuale ale mandatului",
   "board_strip.cell_vacant": "— vacant",
-  "board_strip.chair_suffix": "(președinte ales comun)",
+  "board_strip.chair_suffix": " (președinte ales comun)",
   "board_strip.class_governor": "Membru al consiliului numit",
   "board_strip.class_owner_elected": "Ales de proprietari",
   "board_strip.class_worker_elected": "Ales de lucrători",

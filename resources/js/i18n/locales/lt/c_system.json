@@ -268,7 +268,7 @@
   "audit_chain.missing": "Įrašas #{seq} šiame egzempliujui nerastas. Sekos numeriai gali turėti prasypos.",
   "audit_chain.nav_label": "Audito žurnalo navigacija",
   "audit_chain.newer": "Naujesni įrašai",
-  "audit_chain.newest_first": "Naujausi pirmiausi ·",
+  "audit_chain.newest_first": "Naujausi pirmiausi · ",
   "audit_chain.no_entries_yet": "Įrašų dar nėra",
   "audit_chain.older": "Senesni įrašai",
   "audit_chain.open_receipt": "Atidaryti kvitą",

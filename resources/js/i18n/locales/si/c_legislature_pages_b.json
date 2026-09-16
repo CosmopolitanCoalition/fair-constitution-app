@@ -119,8 +119,8 @@
   "oversight.removal_title": "ඉවත් කිරීමේ ක්‍රියා පටිපාටි",
   "oversight.seat_label": "ආසනය {seat}",
   "oversight.seat_vacated": "ආසනය හිස් විය",
-  "oversight.speaker_owncase_suffix": "(කථානායක — තමාගේම නඩුවක් සඳහා නම් කරන ලද මෙහෙයවන්නෙකු අවශ්‍ය වේ)",
-  "oversight.speaker_suffix": "(කථානායක)",
+  "oversight.speaker_owncase_suffix": " (කථානායක — තමාගේම නඩුවක් සඳහා නම් කරන ලද මෙහෙයවන්නෙකු අවශ්‍ය වේ)",
+  "oversight.speaker_suffix": " (කථානායක)",
   "oversight.special_election": "විශේෂ මැතිවරණය {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — කේතය මගින් තමාගේම නඩුවක් මෙහෙයවීම අවහිර කර ඇත",
   "oversight.spk_form_name": "දෝෂාභියෝගය/අනුමත නොකිරීම/බැහැර කිරීම මෙහෙයවීම",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "පුරප්පාඩු",
   "oversight.vacancy_countback_link": "පුරප්පාඩුව {status} — නැවත ගණන් කිරීමේ පිටුව →",
   "oversight.vacancy_state_aria": "පුරප්පාඩු තත්ත්ව යන්ත්‍රය",
-  "oversight.you_suffix": "(ඔබ)",
+  "oversight.you_suffix": " (ඔබ)",
   "referendums.about": "CLK-19 පලිහ යනු වලංගික කිරීමේ දොරටුවකි, එය කාලගණකයක් නොවේ: ජනගහන-විශේෂ බහුතර තීරණයකට එරෙහිව F-LEG-034 ගොනු කිරීමක් ඡන්දයෙන් පෙර එම උපුටා ගැනීම සමඟ ප්‍රතික්ෂේප වන අතර, එම ප්‍රතික්ෂේප කිරීමම විගණන දාමයට ඇතුළත් වේ. මීළඟ සාමාන්‍ය මැතිවරණය සහතික වූ විට පලිහ ඉවත් වේ — එවිට ජනමත විචාරණ තීරණ සාමාන්‍ය මාර්ගය හරහා සංශෝධනය වේ.",
   "referendums.act_ordinary": "සාමාන්‍ය තීරණය — බහුතර පන්තිය",
   "referendums.act_setting_change": "සැකසුම් වෙනස් කිරීමේ තීරණය — බහුතර පන්තිය",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "අධි-නියෝජනය:",
   "type_b_districts.overcount": "අධි-ගණනය",
   "type_b_districts.pan_mode": "Pan මාදිලිය",
-  "type_b_districts.parts_suffix": "= {total} කොටස්",
+  "type_b_districts.parts_suffix": " = {total} කොටස්",
   "type_b_districts.pe_bad": "අහිතකර (>10%):",
   "type_b_districts.pe_district_count": "({n} මැතිවරණ කොට්ඨාස)",
   "type_b_districts.pe_good": "හිතකර (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "ඒකාකාර දේශපාලන විවිධත්වය",
   "type_b_districts.vertex_snap_unavailable": "Vertex snapping ලබා ගත නොහැක — මෙම මෙවලම යටතේ ඇති ඇඳීමේ පුස්තකාලය වෙනස් වී ඇත.",
   "type_b_districts.view_leg_districts": "ව්‍යවස්ථාදායක මැතිවරණ කොට්ඨාස බලන්න →",
-  "type_b_districts.wizard_paused": "Wizard නවතා ඇත."
+  "type_b_districts.wizard_paused": " Wizard නවතා ඇත."
 }

@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Vaša voľba predsedu správnej rady",
   "board_roster": "Členovia správnej rady a dátumy ich aktuálneho mandátu",
   "board_strip.cell_vacant": "— voľné",
-  "board_strip.chair_suffix": "(spoločne zvolený predseda)",
+  "board_strip.chair_suffix": " (spoločne zvolený predseda)",
   "board_strip.class_governor": "Vymenovaný člen správnej rady",
   "board_strip.class_owner_elected": "Volený majiteľmi",
   "board_strip.class_worker_elected": "Volený pracovníkmi",

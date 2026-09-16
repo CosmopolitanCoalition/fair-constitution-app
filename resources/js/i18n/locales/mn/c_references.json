@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Удирдах зөвлөлийн даргын сонголт",
   "board_roster": "Удирдах зөвлөлийн гишүүд болон тэдгээрийн хугацаа",
   "board_strip.cell_vacant": "— сул",
-  "board_strip.chair_suffix": "(хамтын сонгогдсон дарга)",
+  "board_strip.chair_suffix": " (хамтын сонгогдсон дарга)",
   "board_strip.class_governor": "Томилогдсон удирдах зөвлөлийн гишүүн",
   "board_strip.class_owner_elected": "Эзэмшигчдийн сонгосон",
   "board_strip.class_worker_elected": "Ажилчдын сонгосон",

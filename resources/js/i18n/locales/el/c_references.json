@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Η επιλογή σας για πρόεδρο του συμβουλίου",
   "board_roster": "Μέλη του συμβουλίου και οι τρέχουσες ημερομηνίες θητείας τους",
   "board_strip.cell_vacant": "— κενή",
-  "board_strip.chair_suffix": "(κοινο-εκλεγμένος πρόεδρος)",
+  "board_strip.chair_suffix": " (κοινο-εκλεγμένος πρόεδρος)",
   "board_strip.class_governor": "Διορισμένο μέλος του διοικητικού συμβουλίου",
   "board_strip.class_owner_elected": "Εκλεγμένο από ιδιοκτήτες",
   "board_strip.class_worker_elected": "Εκλεγμένο από εργαζόμενους",

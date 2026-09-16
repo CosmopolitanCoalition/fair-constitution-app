@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "थपिएको:",
+  "law_diff.added": "थपिएको: ",
   "law_diff.label": "कानुनको पाठमा परिवर्तनहरू",
-  "law_diff.removed": "हटाइएको:",
+  "law_diff.removed": "हटाइएको: ",
   "planned_banner.default_body": "विश्वको यो भाग निर्माणभन्दा अगाडि डिजाइन गरिएको हो। यहाँ केही पनि लाइभ छैन, र कतै पनि वास्तविक पैसा छैन।",
   "planned_banner.title": "योजना गरिएको — एक पूर्वावलोकन।",
   "selection_identity.aria_org": "{name} को लागि संस्था अभिलेख, सन्दर्भ {id}",

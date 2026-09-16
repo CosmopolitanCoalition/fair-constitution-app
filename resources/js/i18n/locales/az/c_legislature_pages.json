@@ -473,7 +473,7 @@
   "districts.tip_district": "Dairə: {seats} kürsü",
   "districts.tip_expand": "Alt dairələri görmək üçün yan paneldə genişləndirin",
   "districts.tip_fractional": "Kəsr: {n}",
-  "districts.tip_members_suffix": "· {n} üzv",
+  "districts.tip_members_suffix": " · {n} üzv",
   "districts.tip_pop": "Əhali: {n}",
   "districts.tip_unassigned": "Təyin edilməyib — birləşdirilə bilən",
   "districts.toast_autoseed_complete": "Avtomatik təyin etmə tamamlandı",

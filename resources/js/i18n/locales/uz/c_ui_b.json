@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "qo'shildi:",
+  "law_diff.added": "qo'shildi: ",
   "law_diff.label": "Qonun matni o'zgarishlari",
-  "law_diff.removed": "olib tashlandi:",
+  "law_diff.removed": "olib tashlandi: ",
   "planned_banner.default_body": "Dunyoning ushbu qismi qurilishdan oldin loyihalashtirilgan. Hali hech narsa ishga tushmagan va hech qayerda real mablag'lar yo'q.",
   "planned_banner.title": "Rejalashtirilgan — oldindan ko'rish.",
   "selection_identity.aria_org": "{name} uchun tashkilot yozuvi, havola {id}",

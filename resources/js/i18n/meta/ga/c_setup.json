@@ -600,7 +600,7 @@
     "provider": "ollama"
   },
   "setup_importbackuppanel.already_have_a_tar_gz_exported_from_anothe": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 6 -> 5",
     "provider": "ollama"
   },

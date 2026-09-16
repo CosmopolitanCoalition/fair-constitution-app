@@ -268,7 +268,7 @@
   "audit_chain.missing": "Entri #{seq} tidak ditemui pada instans ini. Nombor jujukan mungkin mempunyai jurang.",
   "audit_chain.nav_label": "Navigasi log audit",
   "audit_chain.newer": "Entri lebih baharu",
-  "audit_chain.newest_first": "Terbaharu dahulu ·",
+  "audit_chain.newest_first": "Terbaharu dahulu · ",
   "audit_chain.no_entries_yet": "Belum ada entri",
   "audit_chain.older": "Entri lebih lama",
   "audit_chain.open_receipt": "Buka resit",

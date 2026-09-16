@@ -1312,7 +1312,7 @@
     "provider": "ollama"
   },
   "type_b_districts.draw_needs_board": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

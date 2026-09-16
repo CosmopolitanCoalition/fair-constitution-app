@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planed",
+  "adm_chip.level_1": "Gwlad",
+  "adm_chip.level_2": "Gwladwriaeth / Tafod",
+  "adm_chip.level_3": "Sir",
+  "adm_chip.level_4": "Munisipalrity",
+  "adm_chip.level_5": "Tref",
+  "adm_chip.level_6": "Neighborhood",
+  "citation_line.as_implemented": "fel y caiffyrdod",
+  "data_table.caption_scrollable": "{caption} (gall cael cael ei rrolio)",
+  "data_table.scrollable_table": "Tabl rrolio",
+  "history_pager.first_page": "Tudalen gyntaf",
+  "history_pager.load_error": "Ni allwyd llwytho'r dudalen hon. Ceisiwch eto.",
+  "history_pager.loading": "Yn llwytho cofnodion…",
+  "history_pager.next": "Nesaf",
+  "history_pager.previous": "Blaenor"
+}

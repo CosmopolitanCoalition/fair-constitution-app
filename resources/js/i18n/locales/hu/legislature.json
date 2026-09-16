@@ -450,6 +450,7 @@
   "legislature_sessionconsole.no_motions_this_session": "Ezen az ülésen nincsenek indítványok.",
   "legislature_sessionconsole.no_session_has_ever_been_held_the_first_se": "Még egyetlen ülés sem tartott — az első ülés alapítja a törvényhozást (WF-LEG-01); lásd a kamra ellenőrző listáját.",
   "legislature_sessionconsole.open_the_speaker_balloting": "Nyissa meg a házelnök szavazását",
+  "legislature_sessionconsole.opened_adjourned_quorum_of_serving_present": "Megnyitva {fmt} · szüneteltetve {fmt2} · határozatképesség {session} ({present} a {serving_at_open} jelenlévőből; szükséges {quorum_required}).",
   "legislature_sessionconsole.opened_serving_at_open_stored_as_utc": "megnyitva {fmt} · szolgálatban lévő szám nyitáskor {serving_at_open} · UTC időpontban tárolva",
   "legislature_sessionconsole.opens_immediately_serving_quorum_snapshot_": "Azonnal nyit: szolgálatban lévők + határozatképesség pillanképe a védett funkciókon keresztül; a jelenléti sorok alapértelmeğinél hiányzóak, amíg a tagok regisztrálnak.",
   "legislature_sessionconsole.peg_quorum_of_majorities_compute_against_a": "határozatképesség rögzítése {quorum_required} z {serving_at_open} — a többség az összes szolgálatban lévő tag alapján számítódik, nem a jelen lévők alapján · Art. II §2",

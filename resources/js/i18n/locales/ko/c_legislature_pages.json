@@ -473,7 +473,7 @@
   "districts.tip_district": "선거구: {seats}석",
   "districts.tip_expand": "사이드바에서 확장하여 하위 선거구를 확인하십시오",
   "districts.tip_fractional": "소수점: {n}",
-  "districts.tip_members_suffix": "· {n}명",
+  "districts.tip_members_suffix": " · {n}명",
   "districts.tip_pop": "인구: {n}",
   "districts.tip_unassigned": "미할당 — 구성 가능",
   "districts.toast_autoseed_complete": "자동 시딩 완료",

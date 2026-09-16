@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "जोडले:",
+  "law_diff.added": "जोडले: ",
   "law_diff.label": "कायद्याच्या मजकुरातील बदल",
-  "law_diff.removed": "काढून टाकले:",
+  "law_diff.removed": "काढून टाकले: ",
   "planned_banner.default_body": "जगाचा हा भाग बांधकामापूर्वीच तयार केला आहे. येथे अजून काहीही थेट सुरू नाही आणि कुठेही प्रत्यक्ष पैसे नाहीत.",
   "planned_banner.title": "नियोजित — एक पूर्वावलोकन.",
   "selection_identity.aria_org": "{name} साठी संस्था नोंद, संदर्भ {id}",

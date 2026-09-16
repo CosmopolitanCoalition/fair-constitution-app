@@ -473,7 +473,7 @@
   "districts.tip_district": "Izborna jedinica: {seats} mjesta",
   "districts.tip_expand": "Proširite u bočnoj traci za prikaz pod-jedinica",
   "districts.tip_fractional": "Decimalno: {n}",
-  "districts.tip_members_suffix": "· {n} članova",
+  "districts.tip_members_suffix": " · {n} članova",
   "districts.tip_pop": "Stanovništvo: {n}",
   "districts.tip_unassigned": "Neodređeno — sastavljivo",
   "districts.toast_autoseed_complete": "Automatsko postavljanje završeno",

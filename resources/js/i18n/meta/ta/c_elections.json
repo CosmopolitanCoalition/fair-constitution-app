@@ -263,7 +263,7 @@
     "provider": "ollama"
   },
   "board.recount_opens_tail": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

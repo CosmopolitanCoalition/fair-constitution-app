@@ -79,8 +79,8 @@
   "oversight.removal_title": "Hannaannada xil-ka-qaadista",
   "oversight.seat_label": "Kursi {seat}",
   "oversight.seat_vacated": "kursigii waa bannaan yahay",
-  "oversight.speaker_owncase_suffix": "(Guddoomiyaha golaha — kiiska u gaarka ah wuxuu u baahan yahay qof loo magacaabay inuu hogo)",
-  "oversight.speaker_suffix": "(Guddoomiyaha golaha)",
+  "oversight.speaker_owncase_suffix": " (Guddoomiyaha golaha — kiiska u gaarka ah wuxuu u baahan yahay qof loo magacaabay inuu hogo)",
+  "oversight.speaker_suffix": " (Guddoomiyaha golaha)",
   "oversight.special_election": "doorasho gaar ah {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — hoggaaminta kiiska u gaarka ah waxaa laga xiray koodka",
   "oversight.spk_form_name": "Hoggaaminta Xil-ka-qaadista/Canaan-tirka/Cayrin-ka",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Kursiyada bannaan",
   "oversight.vacancy_countback_link": "kursi bannaan {status} — bogga dib u tirinta →",
   "oversight.vacancy_state_aria": "Mashiinka xaaladda kursiga bannaan",
-  "oversight.you_suffix": "(adiga)",
+  "oversight.you_suffix": " (adiga)",
   "referendums.about": "Gaashaanka CLK-19 waa albaab xaqiijin ah, ma aha saacad: gudbin F-LEG-034 ka dhan ah go'aan aqlabiyad gaar ah oo dadweynuhu gaareen waa la diidayaa codynta ka hor iyadoo tixraac la raacinayo, diidmadaasna waxay ku dhacaysaa silsiladda hanti-dhowrka. Gaashaanku wuxuu furmaa marka doorashada guud ee xigta la xaqiijiyo — go'aannada aftidu markaas waxay ku wax ka beddelaan waddada caadiga ah.",
   "referendums.act_ordinary": "Go'aan caadi ah — fasalka aqlabiyadda",
   "referendums.act_setting_change": "Go'aan beddelka habaynta — fasalka aqlabiyadda",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Wakiil xad-dhaaf ah:",
   "type_b_districts.overcount": "Tirin xad-dhaaf ah",
   "type_b_districts.pan_mode": "Habka guud",
-  "type_b_districts.parts_suffix": "= {total} qaybood",
+  "type_b_districts.parts_suffix": " = {total} qaybood",
   "type_b_districts.pe_bad": "Xun (>10%):",
   "type_b_districts.pe_district_count": "({n} degmo doorasho)",
   "type_b_districts.pe_good": "Wanaagsan (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Kala duwanaansho Siyaasadeed oo Midaysan",
   "type_b_districts.vertex_snap_unavailable": "Vertex snapping ma heli karo — maktabadda sawirka ayaa isbeddeshay qalabkan hoostiisa.",
   "type_b_districts.view_leg_districts": "Fiiri Degmooyinka Sharci-dejinta →",
-  "type_b_districts.wizard_paused": "Wizard waa la hakiyay."
+  "type_b_districts.wizard_paused": " Wizard waa la hakiyay."
 }

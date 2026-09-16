@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "pridané:",
+  "law_diff.added": "pridané: ",
   "law_diff.label": "Zmeny v texte zákona",
-  "law_diff.removed": "odstránené:",
+  "law_diff.removed": "odstránené: ",
   "planned_banner.default_body": "Táto časť sveta je navrhnutá pred samotnou výstavbou. Nič tu ešte nie je aktívne a nikde sa nenachádzajú skutočné peniaze.",
   "planned_banner.title": "Plánované — náhľad.",
   "selection_identity.aria_org": "Záznam organizácie pre {name}, referenca {id}",

@@ -67,6 +67,7 @@
   "judiciary_casedetail.stated_reason": "Megadott indok",
   "judiciary_casedetail.submitted_by": "Benyújtotta",
   "judiciary_casedetail.the_bench_is_seated_when_the_court_accepts": "A bírói szék feláll, amikor a bíróság elfogadja az ügyet és besorolja a súlyosságot (F-JDG-001). Az összeférhetetlen bírókat kizárják, és a sorsolást újraindítják.",
+  "judiciary_casedetail.the_case_lifecycle_is_wf_jud_03_jury_panel": "Az ügy életciklusai: WF-JUD-03; az esküdtszék összeállítása: WF-JUD-04; az alkotmányos bírósági megállapítás ágai: WF-JUD-05. A súlyos alkotmányos kérdéseket a teljes bíróság dönt a súlyozott panel helyett (CLK-16, rögzített). Az ügy állapotgépe fent élőben megjelenik.",
   "judiciary_casedetail.the_court_action_was_rejected": "A bírósági művelet elutasítva.",
   "judiciary_casedetail.the_court_advances_the_append_only_record_": "A bíróság a motoron keresztüli benyújtással bővíti a csak-hozzáadású nyilvántartást — minden művelet csak azon az állapotban kerül elfogadása, ahol törvényes (a motor a határozó vonal). Art. IV §4.",
   "judiciary_casedetail.the_court_s_classification_drives_the_pane": "A bíróság besorolása határozza meg a tanács méretét — nem a benyújtó állítása.",

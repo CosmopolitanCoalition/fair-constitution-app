@@ -79,8 +79,8 @@
   "oversight.removal_title": "Málsmeðferðir um fjarlægni",
   "oversight.seat_label": "Sæti {seat}",
   "oversight.seat_vacated": "sæti tómt",
-  "oversight.speaker_owncase_suffix": "(forseti þingsins — mál eigin persons krefst tiltekinnar stjórnunar)",
-  "oversight.speaker_suffix": "(forseti þingsins)",
+  "oversight.speaker_owncase_suffix": " (forseti þingsins — mál eigin persons krefst tiltekinnar stjórnunar)",
+  "oversight.speaker_suffix": " (forseti þingsins)",
   "oversight.special_election": "sérkosningar {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — stjórnun eigin mála blokkuð í kóða",
   "oversight.spk_form_name": "Stjórnun við ríkisréttarhöfðun/varning/útvíktun",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Autt sæti",
   "oversight.vacancy_countback_link": "autt sæti {status} — síða fyrir afturtalningu →",
   "oversight.vacancy_state_aria": "Ástandsvél fyrir autt sæti",
-  "oversight.you_suffix": "(þú)",
+  "oversight.you_suffix": " (þú)",
   "referendums.about": "Skjöldur CLK-19 er staðfestingargátt, ekki tímaskiptir: F-LEG-034 áskorun gegn ályktun með auknum meirihluta íbúa er hafnað fyrir atkvæðagreiðslu með tilvísun, og hafnan er skráður í endurskoðunarskrá. Skjöldurinn sleppir þegar næstu almennar kosningar eru staðfestar — þjóðaratkvæðagreiðslur breytast þá í lög með venjulegum leiðum.",
   "referendums.act_ordinary": "Venjuleg ályktun — meirihluti",
   "referendums.act_setting_change": "Ályktun um breytingu á stillingum — meirihluti",
@@ -182,6 +182,7 @@
   "session_record.vote_pages": "Síður með birttum atkvæðum",
   "type_b_districts.accept_plan": "Samþykkja áætlun",
   "type_b_districts.accept_replace": "Samþykkja og skipta út {n}",
+  "type_b_districts.accept_retires": "Með því að samþykka er núverandi teiknað kjördæmi {n} í þessu scope dregið til baka{s}.",
   "type_b_districts.accepting_needs_draft": "Með því að samþykkja er uppkast áætlunar breytt — veldu eða búðu til eina með [+] við kortavalinn.",
   "type_b_districts.adding_count": "Bæta við ({n}):",
   "type_b_districts.all_assigned": "Öll samsetningskennd lögsagnarumdæmi útoppuð ✓",
@@ -369,7 +370,7 @@
   "type_b_districts.over_rep": "Ofmikið framsetningarfár:",
   "type_b_districts.overcount": "Ofteljing",
   "type_b_districts.pan_mode": "Pan-hamur",
-  "type_b_districts.parts_suffix": "= {total} hlutar",
+  "type_b_districts.parts_suffix": " = {total} hlutar",
   "type_b_districts.pe_bad": "Vondt (>10%):",
   "type_b_districts.pe_district_count": "({n} kjördæmi)",
   "type_b_districts.pe_good": "Gott (≤5%):",
@@ -492,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Einstæð pólitísk fjölbreytni",
   "type_b_districts.vertex_snap_unavailable": "Hliðrun á toppum ekki í boði — teiknisbókasafnið breyttist undir þessu tóli.",
   "type_b_districts.view_leg_districts": "Sjá kjördæmi löggjafarþings →",
-  "type_b_districts.wizard_paused": "Visirinn stoppað."
+  "type_b_districts.wizard_paused": " Visirinn stoppað."
 }

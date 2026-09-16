@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Registrering av advokat er åpen for enhver tilknyttet innbygger, men en domstol må eksistere i din jurisdiksjon først — domstoler opprettes når en lovgivende forsamling oppretter en (F-LEG-017).",
   "advocate_console.no_judiciary_title": "Ingen dømmende makt i din tilknytningskjede ennå.",
   "advocate_console.no_matching_page": "Ingen samsvarende saker på denne siden. Prøv en annen tittel eller saksnummer.",
-  "advocate_console.not_seated_suffix": "(har ikke tiltrådt ennå)",
+  "advocate_console.not_seated_suffix": " (har ikke tiltrådt ennå)",
   "advocate_console.not_yet": "Ikke ennå",
   "advocate_console.open_case": "Åpne sak →",
   "advocate_console.open_case_short": "Åpne sak",

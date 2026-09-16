@@ -268,7 +268,7 @@
   "audit_chain.missing": "എൻട്രി #{seq} ഈ ഇൻസ്റ്റൻസിൽ കണ്ടെത്തിയില്ല. സീക്വൻസ് നമ്പറുകളിൽ വിടവുകൾ ഉണ്ടാകാം.",
   "audit_chain.nav_label": "ഓഡിറ്റ് ചരിത്ര നാവിഗേഷൻ",
   "audit_chain.newer": "പുതിയ എൻട്രികൾ",
-  "audit_chain.newest_first": "ഏറ്റവും പുതിയത് ആദ്യം ·",
+  "audit_chain.newest_first": "ഏറ്റവും പുതിയത് ആദ്യം · ",
   "audit_chain.no_entries_yet": "എൻട്രികൾ ഇതുവരെ ഇല്ല",
   "audit_chain.older": "പഴയ എൻട്രികൾ",
   "audit_chain.open_receipt": "രസീത് തുറക്കുക",

@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "YnglFileInput i'r clстер",
+  "federation_syncprogress.of_left": "{fmtValue} o {fmtValue2}~{fmtDuration} yn ôl",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} o gofnodion · {fmtNum2} o dudlennau. Mewnloadaeth y sylfaen i'r dybaz datalog… Mewnलोडwyd. aros… {fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Gallwch adael y dudalen hon — mae'r synchroedd yn rhedeg yn y cefndir ac yn aildechreu Rhoes ei rwystr."
+}

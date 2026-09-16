@@ -268,7 +268,7 @@
   "audit_chain.missing": "Bu instansiyada #{seq} nömrəli qeyd tapılmadı. Ardıcıllıq nömrələrində boşluqlar ola bilər.",
   "audit_chain.nav_label": "Audit tarixçəsi naviqasiyası",
   "audit_chain.newer": "Daha yeni qeydlər",
-  "audit_chain.newest_first": "Əvvəlcə ən yenilər ·",
+  "audit_chain.newest_first": "Əvvəlcə ən yenilər · ",
   "audit_chain.no_entries_yet": "Hələ qeydlər yoxdur",
   "audit_chain.older": "Daha köhnə qeydlər",
   "audit_chain.open_receipt": "Qəbzi aç",

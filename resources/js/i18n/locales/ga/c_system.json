@@ -268,7 +268,7 @@
   "audit_chain.missing": "Ní bhfuingear eintré #{seq} ar an instans seo. Is féidir go mbeadh bealga inúimhir seicheadáis.",
   "audit_chain.nav_label": "aireacht na staire iniúchta",
   "audit_chain.newer": "Eintréacha nua",
-  "audit_chain.newest_first": "Is déanaí ar dtús ·",
+  "audit_chain.newest_first": "Is déanaí ar dtús · ",
   "audit_chain.no_entries_yet": "Níl aon eintréacha fós",
   "audit_chain.older": "Eintréacha níos sine",
   "audit_chain.open_receipt": "Oscail receipt",

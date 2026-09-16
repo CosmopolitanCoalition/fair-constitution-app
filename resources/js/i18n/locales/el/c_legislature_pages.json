@@ -473,7 +473,7 @@
   "districts.tip_district": "Περιφέρεια: {seats} έδρες",
   "districts.tip_expand": "Αναπτύξτε στην πλευρική μπάρα για να δείτε τις υπο-περιφέρειες",
   "districts.tip_fractional": "Κλασματικό: {n}",
-  "districts.tip_members_suffix": "· {n} μέλη",
+  "districts.tip_members_suffix": " · {n} μέλη",
   "districts.tip_pop": "Πληθ: {n}",
   "districts.tip_unassigned": "Μη ανατεθειμένο — συνθέσιμο",
   "districts.toast_autoseed_complete": "Η αυτόματη σπορά ολοκληρώθηκε",

@@ -420,7 +420,7 @@
     "provider": "ollama"
   },
   "setup_step1_constants.default_of_defaults_5_00_art_ii_6": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

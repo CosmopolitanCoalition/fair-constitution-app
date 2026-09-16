@@ -473,7 +473,7 @@
   "districts.tip_district": "Okrug: {seats} o'rin",
   "districts.tip_expand": "Kichik okruglarni ko'rish uchun yon panelda kengaytiring",
   "districts.tip_fractional": "Kasr: {n}",
-  "districts.tip_members_suffix": "· {n} a'zo",
+  "districts.tip_members_suffix": " · {n} a'zo",
   "districts.tip_pop": "Aholi: {n}",
   "districts.tip_unassigned": "Taqsimlanmagan — birlashtirilishi mumkin",
   "districts.toast_autoseed_complete": "Avtomatik shakllantirish yakunlandi",

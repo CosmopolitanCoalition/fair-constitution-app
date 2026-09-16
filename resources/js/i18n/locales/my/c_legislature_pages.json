@@ -473,7 +473,7 @@
   "districts.tip_district": "မဲဆန္ဒနယ်- နေရာ {seats} ခု",
   "districts.tip_expand": "မဲဆန္ဒနယ်ခွဲများကိုကြည့်ရန် sidebar တွင် ချဲ့ပါ",
   "districts.tip_fractional": "အပိုင်းကိန်း- {n}",
-  "districts.tip_members_suffix": "· အဖွဲ့ဝင် {n} ဦး",
+  "districts.tip_members_suffix": " · အဖွဲ့ဝင် {n} ဦး",
   "districts.tip_pop": "လူဦးရေ- {n}",
   "districts.tip_unassigned": "သတ်မှတ်မထားပါ — ပေါင်းစပ်နိုင်သည်",
   "districts.toast_autoseed_complete": "အလိုအလျောက်အစပျိုးခြင်း ပြီးဆုံးသည်",

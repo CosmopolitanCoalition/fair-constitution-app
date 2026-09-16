@@ -473,7 +473,7 @@
   "districts.tip_district": "Distrik: {seats} setels",
   "districts.tip_expand": "Brei uit in die sybalk om sub-distrikte te sien",
   "districts.tip_fractional": "Fraksioneel: {n}",
-  "districts.tip_members_suffix": "· {n} lede",
+  "districts.tip_members_suffix": " · {n} lede",
   "districts.tip_pop": "Bevolking: {n}",
   "districts.tip_unassigned": "Nie toegewys nie — samestelbaar",
   "districts.toast_autoseed_complete": "Outomatiese saai voltooi",

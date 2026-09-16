@@ -320,7 +320,7 @@
     "provider": "ollama"
   },
   ":yes of :serving serving": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

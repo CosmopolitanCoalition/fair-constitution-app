@@ -896,7 +896,7 @@
     "provider": "ollama"
   },
   "education_economy_listing_detail.s4_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

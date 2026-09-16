@@ -72,7 +72,7 @@
     "provider": "ollama"
   },
   "dev_electoralkit.f_ind_007_receipt_shown_once_cryptographic": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

@@ -1,0 +1,5 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Klusterra joining",
+  "federation_syncprogress.of_left": "{fmtValue} {fmtValue2}~{fmtDuration} zabaldu",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Orrialde honek irtezi daiteke — sinkronizazioa atzealdeanra egiteko da eta etengapena izen badu, berriz hasten da."
+}

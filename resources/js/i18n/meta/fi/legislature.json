@@ -252,7 +252,7 @@
     "provider": "ollama"
   },
   "legislature_chamber.declared_via_countback_record": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

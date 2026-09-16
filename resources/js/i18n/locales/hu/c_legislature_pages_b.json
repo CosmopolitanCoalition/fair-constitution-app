@@ -58,6 +58,7 @@
   "institution_acts.proposals_heading": "Javaslatok és döntések",
   "institution_acts.read_proposed": "Olvassa el a javasolt határozatot",
   "institution_acts.view_executive": "Tekintse meg a joghatóságot felügyelő végrehajtót",
+  "oversight.about": "Egy eltávolítási vagy kiutasítási rendszer-fájl F-LEG-036 történik ugyanabban a tranzakcióban, mint a szavazás lezárása — a betöltetlen mandátum nyilvántartása, a visszaszámlálás és a hitelesítési vagy különválasztási szakág a B-fázis mechanizmusa, amelyek változatlanok. Ezen az oldalon zárul a ciklus.",
   "oversight.adm_hardened": "független · semleges nyilvántartó · Art. II §2",
   "oversight.adm_title": "Adminisztrációs iroda (I-ADM)",
   "oversight.awaiting_designation": "— várja a kijelölést (a kamra jelöli ki; a rendszer blokkolja az alanyt)",
@@ -118,8 +119,8 @@
   "oversight.removal_title": "Eltávolítási eljárások",
   "oversight.seat_label": "Mandátum {seat}",
   "oversight.seat_vacated": "mandátum üresült",
-  "oversight.speaker_owncase_suffix": "(házelnök — saját ügyben kijelölt elvezető szükséges)",
-  "oversight.speaker_suffix": "(házelnök)",
+  "oversight.speaker_owncase_suffix": " (házelnök — saját ügyben kijelölt elvezető szükséges)",
+  "oversight.speaker_suffix": " (házelnök)",
   "oversight.special_election": "különleges választás {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — saját ügyben vezetés kód szinten blokkolva",
   "oversight.spk_form_name": "Hivatalból való eltiltás/ítélet/kiutasítás elvezetője",
@@ -132,7 +133,7 @@
   "oversight.vacancies_title": "Betöltetlen mandátumok",
   "oversight.vacancy_countback_link": "betöltetlen mandátum {status} — visszaszámlálás oldala →",
   "oversight.vacancy_state_aria": "Betöltetlen mandátum állapotgépe",
-  "oversight.you_suffix": "(önmaga)",
+  "oversight.you_suffix": " (önmaga)",
   "referendums.about": "A CLK-19 pajzs egy validáló kapu, nem egy időzítő: egy F-LEG-034 benyújtása a lakossági minősített többséggel hozott határozat ellen szavazás előtt elutasítást kap a hivatkozással, és maga az elutasítás kerül az auditnaplóba. A pajzs akkor szűnik meg, amikor a következő általános választás hitelesít — a népszavazással hozott határozatok ekkor a szokásos úton módosítják a törvényt.",
   "referendums.act_ordinary": "Szokásos határozat — többségi osztály",
   "referendums.act_setting_change": "Beállításmódosító határozat — többségi osztály",
@@ -409,7 +410,7 @@
   "type_b_districts.over_rep": "Túlreprezentáció:",
   "type_b_districts.overcount": "Túlcszámlálás",
   "type_b_districts.pan_mode": "Pan mód",
-  "type_b_districts.parts_suffix": "= {total} rész",
+  "type_b_districts.parts_suffix": " = {total} rész",
   "type_b_districts.pe_bad": "Rossz (>10%):",
   "type_b_districts.pe_district_count": "({n} választókerület)",
   "type_b_districts.pe_good": "Jó (≤5%):",
@@ -532,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Egységes politikai diverzitás",
   "type_b_districts.vertex_snap_unavailable": "A csomópont-rögzítés nem elérhető — a rajzkönyvtár változott a eszköz alatt.",
   "type_b_districts.view_leg_districts": "Törvényhozási választókerületek megtekintése →",
-  "type_b_districts.wizard_paused": "Wizard szünetelt."
+  "type_b_districts.wizard_paused": " Wizard szünetelt."
 }

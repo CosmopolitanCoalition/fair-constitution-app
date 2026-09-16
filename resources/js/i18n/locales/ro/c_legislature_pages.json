@@ -473,7 +473,7 @@
   "districts.tip_district": "Circumscripție: {seats} locuri",
   "districts.tip_expand": "Extindeți în bara laterală pentru a vedea sub-circumscripțiile",
   "districts.tip_fractional": "Fracționar: {n}",
-  "districts.tip_members_suffix": "· {n} membri",
+  "districts.tip_members_suffix": " · {n} membri",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "Nealocat — compozitabil",
   "districts.toast_autoseed_complete": "Semanare automată completă",

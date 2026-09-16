@@ -144,7 +144,7 @@
     "provider": "ollama"
   },
   "actions.enabling_hint": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (46/124 chars, floor 0.45)",
     "provider": "ollama"
   },

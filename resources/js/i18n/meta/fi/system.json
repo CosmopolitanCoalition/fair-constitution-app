@@ -216,7 +216,7 @@
     "provider": "ollama"
   },
   "system_publicrecords.every_statement_bill_vote_and_explanation_": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

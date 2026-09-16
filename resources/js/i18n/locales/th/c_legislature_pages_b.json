@@ -119,8 +119,8 @@
   "oversight.removal_title": "กระบวนการถอดถอน",
   "oversight.seat_label": "ที่นั่ง {seat}",
   "oversight.seat_vacated": "ที่นั่งว่างลง",
-  "oversight.speaker_owncase_suffix": "(ประธานสภา — กรณีของตนเองต้องมีผู้ดำเนินการที่ได้รับมอบหมาย)",
-  "oversight.speaker_suffix": "(ประธานสภา)",
+  "oversight.speaker_owncase_suffix": " (ประธานสภา — กรณีของตนเองต้องมีผู้ดำเนินการที่ได้รับมอบหมาย)",
+  "oversight.speaker_suffix": " (ประธานสภา)",
   "oversight.special_election": "การเลือกตั้งพิเศษ {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — การดำเนินการในกรณีของตนเองถูกบล็อกในโค้ด",
   "oversight.spk_form_name": "การดำเนินการถอดถอน/ตำหนิ/ขับออก",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "ที่นั่งว่าง",
   "oversight.vacancy_countback_link": "ที่นั่งว่าง {status} — หน้าการนับย้อนกลับ →",
   "oversight.vacancy_state_aria": "สถานะการทำงานของที่นั่งว่าง",
-  "oversight.you_suffix": "(คุณ)",
+  "oversight.you_suffix": " (คุณ)",
   "referendums.about": "เกราะป้องกัน CLK-19 คือประตูตรวจสอบ ไม่ใช่ตัวจับเวลา: การยื่น F-LEG-034 ต่อมติเสียงข้างมากพิเศษของประชากรจะถูกปฏิเสธก่อนการลงคะแนนพร้อมการอ้างอิง และการปฏิเสธนั้นจะถูกบันทึกในบันทึกการตรวจสอบ เกราะป้องกันจะถูกปลดออกเมื่อการเลือกตั้งทั่วไปครั้งถัดไปได้รับการรับรอง — มติการลงประชามติจะถูกแก้ไขผ่านเส้นทางปกติ",
   "referendums.act_ordinary": "มติปกติ — ประเภทเสียงข้างมาก",
   "referendums.act_setting_change": "มติเปลี่ยนการตั้งค่า — ประเภทเสียงข้างมาก",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "ตัวแทนเกิน:",
   "type_b_districts.overcount": "นับเกิน",
   "type_b_districts.pan_mode": "โหมด Pan",
-  "type_b_districts.parts_suffix": "= {total} ส่วน",
+  "type_b_districts.parts_suffix": " = {total} ส่วน",
   "type_b_districts.pe_bad": "แย่ (>10%):",
   "type_b_districts.pe_district_count": "({n} เขตเลือกตั้ง)",
   "type_b_districts.pe_good": "ดี (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "ความหลากหลายทางการเมืองแบบสม่ำเสมอ",
   "type_b_districts.vertex_snap_unavailable": "ไม่สามารถใช้การยึดจุดยอดได้ — ไลบรารีการวาดภาพมีการเปลี่ยนแปลง",
   "type_b_districts.view_leg_districts": "ดูเขตเลือกตั้งนิติบัญญัติ →",
-  "type_b_districts.wizard_paused": "ตัวช่วยหยุดชั่วคราว"
+  "type_b_districts.wizard_paused": " ตัวช่วยหยุดชั่วคราว"
 }

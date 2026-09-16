@@ -204,6 +204,7 @@
   "organizations_transfersconversions.no_transfers_on_record": "No hi ha transferències registrades.",
   "organizations_transfersconversions.open_this_page_with_to_file_a_transfer_con": "Obre aquesta pàgina per presentar una sol·licitud de transferència, conversió o dissolució d'una organització específica.",
   "organizations_transfersconversions.ownership_transfers": "Transferències de propietat",
+  "organizations_transfersconversions.ownership_transfers_only_by_mutual_consent": "La propietat es transfereix només per consentiment mutu (, WF-ORG-06): l'actual propietari inicia el tràmit i el receptor accepta. Ambdós consentiments han de constar al registre; el sistema rebutja la completació si falta algun.",
   "organizations_transfersconversions.private_common_good_corporation": "Privada → corporació del bé comú",
   "organizations_transfersconversions.public_private_conversion": "Conversió pública ↔ privada",
   "organizations_transfersconversions.record": "registre →—",

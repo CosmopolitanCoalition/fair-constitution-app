@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "etholiad gweithrediaeth",
+  "election_kind.general": "etholiad cyffredin",
+  "election_kind.judicial": "etholiad barnwriaeth",
+  "election_kind.org_board_owner": "etholiad bwrdd (seddau perchennog)",
+  "election_kind.org_board_worker": "etholiad bwrdd (seddau gweithiwr)",
+  "election_kind.referendum": "refferendwm",
+  "election_kind.restoration": "etholiad adfer",
+  "election_kind.special": "etholiad arbennig"
+}

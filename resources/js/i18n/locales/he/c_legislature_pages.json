@@ -473,7 +473,7 @@
   "districts.tip_district": "מחוז בחירה: {seats} מושבים",
   "districts.tip_expand": "הרחב בסרגל הצד כדי לראות תתי-מחוזות",
   "districts.tip_fractional": "שברי: {n}",
-  "districts.tip_members_suffix": "· {n} חברים",
+  "districts.tip_members_suffix": " · {n} חברים",
   "districts.tip_pop": "אוכלוסייה: {n}",
   "districts.tip_unassigned": "לא משויך — ניתן להרכיב",
   "districts.toast_autoseed_complete": "זריעה אוטומטית הושלמה",

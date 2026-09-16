@@ -145,6 +145,7 @@
   "civic_myrecord.your_representatives": "Dina representanter",
   "civic_petitiondetail.a_citizen_drafted_law_at_scale_created_by_": "En medborgardraftad lag på skala {name}, skapad av {petition}. En petition kan stoppas på två sätt: en misslyckad granskning av underskrifter, eller en domstolens slutsats att det föreslagna lagförslaget är oförenligt med Författningen.",
   "civic_petitiondetail.adopted_across_the_scale_if_passed_act_typ": "antagen över hela skalan om den röstas igenom · beslutstyp: {act_type}",
+  "civic_petitiondetail.advanced_past_the_review_hold_by_the_audit": "Gick vidare efter granskningen av den reviderade Phase C-stubben — registrerad på kedjan med hänvisning till uppskov; den faktiska F-JDG-008 remissen hamnar hos dömande makt (Phase E).",
   "civic_petitiondetail.all_petitions": "← Alla petitioner",
   "civic_petitiondetail.audited_count_frozen_at_the_threshold_chec": "granskat antal låst vid tröskelkontrollen",
   "civic_petitiondetail.completed_by_the_stored_as_utc": "Slutförd {completed_at} av {board_name} · lagrad som UTC.",

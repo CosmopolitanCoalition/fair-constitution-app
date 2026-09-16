@@ -268,7 +268,7 @@
   "audit_chain.missing": "ჩანაწერი #{seq} ამ ინსტანციაზე ვერ მოიძებნა. მიმდევრობის ნომრებში შესაძლოა იყოს გამოტოვებები.",
   "audit_chain.nav_label": "აუდიტის ისტორიის ნავიგაცია",
   "audit_chain.newer": "უფრო ახალი ჩანაწერები",
-  "audit_chain.newest_first": "ჯერ უახლესები ·",
+  "audit_chain.newest_first": "ჯერ უახლესები · ",
   "audit_chain.no_entries_yet": "ჩანაწერები ჯერ არ არის",
   "audit_chain.older": "უფრო ძველი ჩანაწერები",
   "audit_chain.open_receipt": "ქვითრის გახსნა",

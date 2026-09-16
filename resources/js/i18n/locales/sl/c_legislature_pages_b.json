@@ -79,8 +79,8 @@
   "oversight.removal_title": "Postopki odstranitve",
   "oversight.seat_label": "Sedež {seat}",
   "oversight.seat_vacated": "sedež oproščen",
-  "oversight.speaker_owncase_suffix": "(predsednik zbora — lasten primer zahteva določenega predsedujočega)",
-  "oversight.speaker_suffix": "(predsednik zbora)",
+  "oversight.speaker_owncase_suffix": " (predsednik zbora — lasten primer zahteva določenega predsedujočega)",
+  "oversight.speaker_suffix": " (predsednik zbora)",
   "oversight.special_election": "izjemne volitve {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — predsedovanje lastnemu primeru je v kodi blokirano",
   "oversight.spk_form_name": "Predsedovanje pri razpisanju postopka odstranitve/opominu/izključitve",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Prosti sedeži",
   "oversight.vacancy_countback_link": "prosti sedež {status} — stran za naknadno preštevanje →",
   "oversight.vacancy_state_aria": "Strojni stanje prostih sedežev",
-  "oversight.you_suffix": "(vi)",
+  "oversight.you_suffix": " (vi)",
   "referendums.about": "Ščit CLK-19 je validator, ne časovnik: F-LEG-034 vložba proti aktu, ki ga je sprejela kvalificirana večina prebivalcev, je zavrnjena pred glasovanjem s citatom, zavrnitev pa se zabeleži v revizijski dnevnik. Ščit odprašče, ko se potrdijo naslednje splošne volitve — referendumske akte nato spremenijo po običajni poti.",
   "referendums.act_ordinary": "Običajen akt — razred večine",
   "referendums.act_setting_change": "Akt o spremembi nastavitev — razred večine",
@@ -302,6 +302,7 @@
   "type_b_districts.fill_timeout": "Čas za izpolnjevanje preostanka je potekel — poskusite znova.",
   "type_b_districts.filling": "Izpolnjevanje…",
   "type_b_districts.floor_exceptions": "Izjema za tla {n}{s} — decimalni vrednost < {floor}, zaokrožuje pod minimum brez preglasovanja",
+  "type_b_districts.floor_override_title": "Preglasovanje spodnje meje — delni sedeži se zaokružijo navzdol pod minimum brez preglasovanja",
   "type_b_districts.giant_title_clean": "Vsi podokraji zaključeni, brez težav",
   "type_b_districts.giant_title_full": "Dodeljenih sedežev {a}/{b}",
   "type_b_districts.giant_title_none": "Še ni podokrajev",
@@ -369,7 +370,7 @@
   "type_b_districts.over_rep": "Prepredstavljenost:",
   "type_b_districts.overcount": "Preštevanje",
   "type_b_districts.pan_mode": "Pan način",
-  "type_b_districts.parts_suffix": "= {total} delov",
+  "type_b_districts.parts_suffix": " = {total} delov",
   "type_b_districts.pe_bad": "Slabo (>10%):",
   "type_b_districts.pe_district_count": "({n} volilnih okrajev)",
   "type_b_districts.pe_good": "Dobro (≤5%):",
@@ -492,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Uniformna politična raznolikost",
   "type_b_districts.vertex_snap_unavailable": "Pridruževanje h robom ni na voljo — knjižnica za risanje se je pod orodjem spremenila.",
   "type_b_districts.view_leg_districts": "Poglej zakonodajne okraje →",
-  "type_b_districts.wizard_paused": "Čarovnik je ustavljen."
+  "type_b_districts.wizard_paused": " Čarovnik je ustavljen."
 }

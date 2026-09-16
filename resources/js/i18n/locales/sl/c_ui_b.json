@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "dodano:",
+  "law_diff.added": "dodano: ",
   "law_diff.label": "Spremembe besedila zakona",
-  "law_diff.removed": "odstranjeno:",
+  "law_diff.removed": "odstranjeno: ",
   "planned_banner.default_body": "Ta del sveta je zasnovan pred izgradnjo. Noben element še ni v dejstvu in nikjer ni pravega denarja.",
   "planned_banner.title": "Načrtovano — predogled.",
   "selection_identity.aria_org": "Zapis organizacije za {name}, referenca {id}",

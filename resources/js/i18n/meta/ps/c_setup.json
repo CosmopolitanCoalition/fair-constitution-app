@@ -552,7 +552,7 @@
     "provider": "ollama"
   },
   "setup_currentjurisdictioncard.no_job_running": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

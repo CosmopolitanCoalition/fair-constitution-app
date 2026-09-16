@@ -119,8 +119,8 @@
   "oversight.removal_title": "Mga proseso ng pagtanggal",
   "oversight.seat_label": "Puwesto {seat}",
   "oversight.seat_vacated": "bakante na ang puwesto",
-  "oversight.speaker_owncase_suffix": "(Ispiker — ang sariling kaso ay nangangailangan ng itinalagang namumuno)",
-  "oversight.speaker_suffix": "(Ispiker)",
+  "oversight.speaker_owncase_suffix": " (Ispiker — ang sariling kaso ay nangangailangan ng itinalagang namumuno)",
+  "oversight.speaker_suffix": " (Ispiker)",
   "oversight.special_election": "espesyal na halalan {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — ang pamumuno sa sariling kaso ay hinarang sa code",
   "oversight.spk_form_name": "Pamumuno sa Impeachment/Censure/Expulsion",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Mga bakanteng puwesto",
   "oversight.vacancy_countback_link": "bakanteng puwesto {status} — pahina ng muling pagbilang →",
   "oversight.vacancy_state_aria": "State machine ng bakanteng puwesto",
-  "oversight.you_suffix": "(ikaw)",
+  "oversight.you_suffix": " (ikaw)",
   "referendums.about": "Ang CLK-19 shield ay isang validator gate, hindi timer: ang isang F-LEG-034 filing laban sa isang population-supermajority act ay tinatanggihan bago ang botohan kasama ang sitasyon, at ang pagtanggi mismo ay mapupunta sa talaan ng awdit. Ang shield ay kumakawala kapag sertipikado na ang susunod na pangkalahatang halalan — ang mga referendum act ay mag-aamyenda pagkatapos sa ordinaryong landas.",
   "referendums.act_ordinary": "Ordinaryong pagpapasya — majority class",
   "referendums.act_setting_change": "Pagpapasya sa pagbabago ng setting — majority class",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Over-rep:",
   "type_b_districts.overcount": "Overcount",
   "type_b_districts.pan_mode": "Pan mode",
-  "type_b_districts.parts_suffix": "= {total} bahagi",
+  "type_b_districts.parts_suffix": " = {total} bahagi",
   "type_b_districts.pe_bad": "Masama (>10%):",
   "type_b_districts.pe_district_count": "({n} distrito)",
   "type_b_districts.pe_good": "Mabuti (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Uniform Political Diversity",
   "type_b_districts.vertex_snap_unavailable": "Hindi magagamit ang vertex snapping — nagbago ang drawing library sa ilalim ng tool na ito.",
   "type_b_districts.view_leg_districts": "Tingnan ang mga Distritong Lehislatibo →",
-  "type_b_districts.wizard_paused": "Naka-pause ang Wizard."
+  "type_b_districts.wizard_paused": " Naka-pause ang Wizard."
 }

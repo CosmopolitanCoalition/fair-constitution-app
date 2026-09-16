@@ -2040,7 +2040,7 @@
     "provider": "ollama"
   },
   "education_jurisdictions_disintermediation.learn": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -3493,7 +3493,7 @@
     "provider": "ollama"
   },
   "education_shared_atlas.why": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

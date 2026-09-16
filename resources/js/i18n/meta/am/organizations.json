@@ -496,7 +496,7 @@
     "provider": "ollama"
   },
   "organizations_orgdetail.confirm_your_residency_to_register_as_a_wo": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -593,7 +593,7 @@
     "provider": "ollama"
   },
   "organizations_orgdetail.this_profile_is_a_public_record_the_endors": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },
@@ -630,7 +630,7 @@
     "provider": "ollama"
   },
   "organizations_registry.any_associated_resident_may_register_one_a": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

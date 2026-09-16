@@ -644,6 +644,7 @@
   "education_legislature_committees.s1_do": "Katso valiokunnat ja niiden jäsenet",
   "education_legislature_committees.s2_detail": "Järjestät ne itse. Kukaan ei määritä paikkaasi.",
   "education_legislature_committees.s2_do": "Järjestä kaikki valiokunnat mieltymystesi mukaan",
+  "education_legislature_committees.s3_detail": "Nimitys on ryhmästä riippumaton. Sijoitukset noudattavat järjestyslukua ja jakautuvat tasaisesti jäsenten kesken — määrät eroavat korkeintaan yhdellä. Tasapelit ratkaistaan jäsenen hyväksi, jolla on suurin ääniosuus kiintiöiden normalisoinnin jälkeen.",
   "education_legislature_committees.s3_do": "Ymmärrä, miten paikat määräytyvät",
   "education_legislature_committees.why": "Tämä on mekanismi, joka pitää valiokunnat suhteellisina ilman puoluekerrosta. Usean organisaation tukemat ja kenenkään tukemattomat jäsenet käsitellään samalla tavalla — heillä ei ole ryhmää, johon heidät voitaisiin sijoittaa.",
   "education_legislature_districts.learn": "Itse kartta — miten lainsäädäntöelimen paikat jakautuvat maantieteellisesti.",

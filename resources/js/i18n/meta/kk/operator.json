@@ -232,7 +232,7 @@
     "provider": "ollama"
   },
   "operator_home.peers_sync_at_a_glance_trusted_of_peer_las": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

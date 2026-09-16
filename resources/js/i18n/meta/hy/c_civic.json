@@ -1801,7 +1801,7 @@
     "provider": "ollama"
   },
   "relocation.moving_note": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

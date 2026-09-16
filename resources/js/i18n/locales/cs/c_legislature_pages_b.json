@@ -119,8 +119,8 @@
   "oversight.removal_title": "Řízení o odstranění",
   "oversight.seat_label": "Křeslo {seat}",
   "oversight.seat_vacated": "křeslo uvolněno",
-  "oversight.speaker_owncase_suffix": "(předseda sněmovny — vlastní případ vyžaduje určeného předsedajícího)",
-  "oversight.speaker_suffix": "(předseda sněmovny)",
+  "oversight.speaker_owncase_suffix": " (předseda sněmovny — vlastní případ vyžaduje určeného předsedajícího)",
+  "oversight.speaker_suffix": " (předseda sněmovny)",
   "oversight.special_election": "mimořádné volby {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — předsedání ve vlastním případu je v kódu blokováno",
   "oversight.spk_form_name": "Předsedání u procesu odvolání/odsouzení/vyloučení",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Uvolněná křesla",
   "oversight.vacancy_countback_link": "uvolněné křeslo {status} — stránka zpětného sčítání →",
   "oversight.vacancy_state_aria": "Stavový automat uvolněných křesel",
-  "oversight.you_suffix": "(vy)",
+  "oversight.you_suffix": " (vy)",
   "referendums.about": "Štít CLK-19 je validační brána, nikoliv časovač: podání F-LEG-034 proti aktu s kvalifikovanou většinou obyvatel je zamítnuto před hlasováním s uvedením citace a samotné zamítnutí je zapsáno do auditního záznamu. Štít zaniká s potvrzením příštích obecných voleb — referendní akty se poté mění běžnou cestou.",
   "referendums.act_ordinary": "Běžný akt — třída většina",
   "referendums.act_setting_change": "Akt změny nastavení — třída většina",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Přeprezentování:",
   "type_b_districts.overcount": "Přepočet",
   "type_b_districts.pan_mode": "Režim Pan",
-  "type_b_districts.parts_suffix": "= {total} částí",
+  "type_b_districts.parts_suffix": " = {total} částí",
   "type_b_districts.pe_bad": "Špatně (>10 %):",
   "type_b_districts.pe_district_count": "({n} obvodů)",
   "type_b_districts.pe_good": "Dobře (≤5 %):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Jednotná politická diverzita",
   "type_b_districts.vertex_snap_unavailable": "Připojování k vrcholům není k dispozici — knihovna pro kreslení byla pod tímto nástrojem změněna.",
   "type_b_districts.view_leg_districts": "Zobrazit legislativní obvody →",
-  "type_b_districts.wizard_paused": "Průvodce pozastaven."
+  "type_b_districts.wizard_paused": " Průvodce pozastaven."
 }

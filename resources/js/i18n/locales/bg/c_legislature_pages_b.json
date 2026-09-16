@@ -79,8 +79,8 @@
   "oversight.removal_title": "Процедури за отстраняване",
   "oversight.seat_label": "Място {seat}",
   "oversight.seat_vacated": "мястото е освободено",
-  "oversight.speaker_owncase_suffix": "(председател на камарата — собственият случай изисква назначен председател)",
-  "oversight.speaker_suffix": "(председател на камарата)",
+  "oversight.speaker_owncase_suffix": " (председател на камарата — собственият случай изисква назначен председател)",
+  "oversight.speaker_suffix": " (председател на камарата)",
   "oversight.special_election": "извънредни избори {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — председателството при собствен случай е блокирано в кода",
   "oversight.spk_form_name": "Председателство при импичмънт/порицание/изгонване",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Вакантни места",
   "oversight.vacancy_countback_link": "вакантно място {status} — страница за обратно преброяване →",
   "oversight.vacancy_state_aria": "Автомат за състояние на вакантни места",
-  "oversight.you_suffix": "(вие)",
+  "oversight.you_suffix": " (вие)",
   "referendums.about": "Щитът CLK-19 е валидиращ механизъм, а не таймер: F-LEG-034 подадено срещу акт с квалифицирано мнозинство от населението се отхвърля преди гласуването с цитиране, а самото отхвърляне се записва в одитния дневник. Щитът се премахва при сертифициране на следващите общи избори — тогава актовете от референдум се променят по обичайния път.",
   "referendums.act_ordinary": "Обикновен акт — клас мнозинство",
   "referendums.act_setting_change": "Акт за промяна на настройки — клас мнозинство",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Свръхпредставителство:",
   "type_b_districts.overcount": "Свръхпреброяване",
   "type_b_districts.pan_mode": "Pan режим",
-  "type_b_districts.parts_suffix": "= {total} части",
+  "type_b_districts.parts_suffix": " = {total} части",
   "type_b_districts.pe_bad": "Лошо (>10%):",
   "type_b_districts.pe_district_count": "({n} района)",
   "type_b_districts.pe_good": "Добро (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Единно политическо разнообразие",
   "type_b_districts.vertex_snap_unavailable": "Прилепването на върховете е недостъпно — библиотеката за чертане беше променена.",
   "type_b_districts.view_leg_districts": "Виж законодателни райони →",
-  "type_b_districts.wizard_paused": "Същата е спряна."
+  "type_b_districts.wizard_paused": " Същата е спряна."
 }

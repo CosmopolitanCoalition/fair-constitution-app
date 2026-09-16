@@ -2368,7 +2368,7 @@
     "provider": "ollama"
   },
   "translations.code_c3": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

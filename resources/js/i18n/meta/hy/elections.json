@@ -827,7 +827,7 @@
     "provider": "ollama"
   },
   "elections_openballot.you_can_browse_this_race_approving_require": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

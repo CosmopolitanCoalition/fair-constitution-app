@@ -1356,7 +1356,7 @@
     "provider": "ollama"
   },
   "education_elections_candidacy_registration.s3_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

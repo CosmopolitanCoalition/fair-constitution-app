@@ -119,8 +119,8 @@
   "oversight.removal_title": "Verwyderingsprosesse",
   "oversight.seat_label": "Setel {seat}",
   "oversight.seat_vacated": "setel vakant gelaat",
-  "oversight.speaker_owncase_suffix": "(Speaker — eie saak vereis 'n aangewese voorsitter)",
-  "oversight.speaker_suffix": "(Speaker)",
+  "oversight.speaker_owncase_suffix": " (Speaker — eie saak vereis 'n aangewese voorsitter)",
+  "oversight.speaker_suffix": " (Speaker)",
   "oversight.special_election": "spesiale verkiesing {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — voorsitterskap van eie saak geblokkeer in kode",
   "oversight.spk_form_name": "Voorsitterskap van Verwydering/Sensuur/Uitsetting",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Vakatures",
   "oversight.vacancy_countback_link": "vakature {status} — terugtelling-bladsy →",
   "oversight.vacancy_state_aria": "Vakature-toestandmasjien",
-  "oversight.you_suffix": "(jy)",
+  "oversight.you_suffix": " (jy)",
   "referendums.act_ordinary": "Gewone besluit — meerderheidsklasse",
   "referendums.act_setting_change": "Instellingsveranderings-besluit — meerderheidsklasse",
   "referendums.act_supermajority": "Supermeerderheid-klas besluit",
@@ -409,7 +409,7 @@
   "type_b_districts.over_rep": "Oor-verteenwoordiging:",
   "type_b_districts.overcount": "Oortelling",
   "type_b_districts.pan_mode": "Pan-modus",
-  "type_b_districts.parts_suffix": "= {total} dele",
+  "type_b_districts.parts_suffix": " = {total} dele",
   "type_b_districts.pe_bad": "Sleg (>10%):",
   "type_b_districts.pe_district_count": "({n} distrikte)",
   "type_b_districts.pe_good": "Goed (≤5%):",
@@ -532,5 +532,5 @@
   "type_b_districts.uniform_diversity": "Uniforme Politieke Diversiteit",
   "type_b_districts.vertex_snap_unavailable": "Vertex-snapping nie beskikbaar nie — die tekenbiblioteek het onder hierdie instrument verander.",
   "type_b_districts.view_leg_districts": "Bekyk Wetgewende Distrikte →",
-  "type_b_districts.wizard_paused": "Wenasser gestaak."
+  "type_b_districts.wizard_paused": " Wenasser gestaak."
 }

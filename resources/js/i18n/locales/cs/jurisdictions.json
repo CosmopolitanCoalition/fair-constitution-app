@@ -79,6 +79,7 @@
   "jurisdictions_federation.why_we_want_to_mirror": "proč chceme zrcadlit",
   "jurisdictions_federation.you_pursue_read_write_afterward": "Poté budete {joinForm} žádat o právo zápisu.",
   "jurisdictions_federation.you_will_become_a_read_only_mirror_of_pull": "Stanete se zrcadlovou kopií {joinForm} pouze pro čtení a budete stahovat její veřejné záznamy (v rozsahu {joinForm2}).",
+  "jurisdictions_federation.zone_configured": "{domain}zóna {zone_id}konfigurována",
   "jurisdictions_index.adm_0_world": "ADM 0 — Svět",
   "jurisdictions_index.adm_1_country": "ADM 1 — Země",
   "jurisdictions_index.adm_2_state_province": "ADM 2 — stát / provincie",

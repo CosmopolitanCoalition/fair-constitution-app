@@ -1,4 +1,5 @@
 {
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "የሥነ-ምግባር እና የሕግ ሪፖርቶች ለግምገማ ይላካሉ። እዚህ ማቅረብ ምንም ነገር አያስወግድም — የይዘት ማስወገድ የሕገ መንግሥቱን ልዩ ድንጋጌዎች (F-SOC-003 ሥርዓት) ይከተላል እንጂ ይህንን ቅጽ አይጠቀምም።",
   "support_report.file_a_report": "ሪፖርት ያቅርቡ",
   "support_report.file_report": "ሪፖርት አቅርብ",
   "support_report.filed_from": "የቀረበው ከ: {ref}",

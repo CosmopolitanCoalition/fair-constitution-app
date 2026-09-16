@@ -1276,7 +1276,7 @@
     "provider": "ollama"
   },
   "market.find_item_label": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Ethi — source content likely dropped (17/41 chars, floor 0.45)",
     "provider": "ollama"
   },

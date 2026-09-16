@@ -268,7 +268,7 @@
   "audit_chain.missing": "الإدخال رقم {seq} غير موجود في هذه النسخة. قد تكون هناك فجوات في أرقام التسلسل.",
   "audit_chain.nav_label": "التنقل في سجل التدقيق",
   "audit_chain.newer": "إدخالات أحدث",
-  "audit_chain.newest_first": "الأحدث أولاً ·",
+  "audit_chain.newest_first": "الأحدث أولاً · ",
   "audit_chain.no_entries_yet": "لا توجد إدخالات بعد",
   "audit_chain.older": "إدخالات أقدم",
   "audit_chain.open_receipt": "فتح الإيصال",

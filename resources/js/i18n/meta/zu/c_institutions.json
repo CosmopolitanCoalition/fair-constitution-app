@@ -1760,7 +1760,7 @@
     "provider": "ollama"
   },
   "cgc_detail.same_regulation_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2093,7 +2093,7 @@
     "provider": "ollama"
   },
   "constitutional_challenge.intro": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (81/416 chars, floor 0.45)",
     "provider": "ollama"
   },
@@ -2918,7 +2918,7 @@
     "provider": "ollama"
   },
   "executive_home.about_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 1",
     "provider": "ollama"
   },
@@ -4499,7 +4499,7 @@
     "provider": "ollama"
   },
   "transfers_conversions.conversion_body_after": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

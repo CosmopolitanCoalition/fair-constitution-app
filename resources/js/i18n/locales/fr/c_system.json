@@ -268,7 +268,7 @@
   "audit_chain.missing": "L'entrée #{seq} n'a pas été trouvée sur cette instance. Les numéros de séquence peuvent présenter des lacunes.",
   "audit_chain.nav_label": "Navigation dans le journal d'audit",
   "audit_chain.newer": "Entrées plus récentes",
-  "audit_chain.newest_first": "Plus récent en premier ·",
+  "audit_chain.newest_first": "Plus récent en premier · ",
   "audit_chain.no_entries_yet": "Aucune entrée pour le moment",
   "audit_chain.older": "Entrées plus anciennes",
   "audit_chain.open_receipt": "Ouvrir le reçu",

@@ -473,7 +473,7 @@
   "districts.tip_district": "Zona zgjedhore: {seats} vende",
   "districts.tip_expand": "Zgjidhni në shiritin anësor për të parë nën-zonat",
   "districts.tip_fractional": "Fraksionare: {n}",
-  "districts.tip_members_suffix": "· {n} anëtarë",
+  "districts.tip_members_suffix": " · {n} anëtarë",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "E pa caktuar — e kompozueshme",
   "districts.toast_autoseed_complete": "Gjenerimi automatik u krye",

@@ -79,8 +79,8 @@
   "oversight.removal_title": "Производства по удалению",
   "oversight.seat_label": "Место {seat}",
   "oversight.seat_vacated": "место освобождено",
-  "oversight.speaker_owncase_suffix": "(председатель палаты — собственное дело требует назначенного председательствующего)",
-  "oversight.speaker_suffix": "(председатель палаты)",
+  "oversight.speaker_owncase_suffix": " (председатель палаты — собственное дело требует назначенного председательствующего)",
+  "oversight.speaker_suffix": " (председатель палаты)",
   "oversight.special_election": "специальные выборы {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — председательство по собственному делу заблокировано в коде",
   "oversight.spk_form_name": "Председательство при импичменте/порицании/исключении",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Вакантные места",
   "oversight.vacancy_countback_link": "вакантное место {status} — страница обратного пересчёта →",
   "oversight.vacancy_state_aria": "Автомат состояний вакансий",
-  "oversight.you_suffix": "(вы)",
+  "oversight.you_suffix": " (вы)",
   "referendums.about": "Защита CLK-19 является validating-шлюзом, а не таймером: подача F-LEG-034 против акта, принятого квалифицированным большинством населения, отклоняется до голосования с указанием причины, и само отклонение заносится в журнал аудита. Защита снимается после сертификации следующих общих выборов — тогда акты референдума вносятся по обычному пути.",
   "referendums.act_ordinary": "Обычный акт — класс большинства",
   "referendums.act_setting_change": "Акт об изменении настроек — класс большинства",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Перепредставленность:",
   "type_b_districts.overcount": "Избыточный подсчет",
   "type_b_districts.pan_mode": "Режим Pan",
-  "type_b_districts.parts_suffix": "= {total} частей",
+  "type_b_districts.parts_suffix": " = {total} частей",
   "type_b_districts.pe_bad": "Плохо (>10%):",
   "type_b_districts.pe_district_count": "({n} округов)",
   "type_b_districts.pe_good": "Хорошо (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Равномерное политическое разнообразие",
   "type_b_districts.vertex_snap_unavailable": "Привязка к вершинам недоступна — библиотека рисования была обновлена.",
   "type_b_districts.view_leg_districts": "Посмотреть законодательные округа →",
-  "type_b_districts.wizard_paused": "Мастер приостановлен."
+  "type_b_districts.wizard_paused": " Мастер приостановлен."
 }

@@ -79,8 +79,8 @@
   "oversight.removal_title": "دادرسی‌های برکناری",
   "oversight.seat_label": "کرسی {seat}",
   "oversight.seat_vacated": "کرسی خالی شد",
-  "oversight.speaker_owncase_suffix": "(رئیس مجلس — پرونده شخصی نیازمند رئیس تعیین‌شده است)",
-  "oversight.speaker_suffix": "(رئیس مجلس)",
+  "oversight.speaker_owncase_suffix": " (رئیس مجلس — پرونده شخصی نیازمند رئیس تعیین‌شده است)",
+  "oversight.speaker_suffix": " (رئیس مجلس)",
   "oversight.special_election": "انتخابات ویژه {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — ریاست پرونده شخصی در کد مسدود شده است",
   "oversight.spk_form_name": "ریاست استیضاح/توبیخ/اخراج",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "کرسی‌های خالی",
   "oversight.vacancy_countback_link": "کرسی خالی {status} — صفحه بازشماری معکوس ←",
   "oversight.vacancy_state_aria": "ماشین وضعیت کرسی خالی",
-  "oversight.you_suffix": "(شما)",
+  "oversight.you_suffix": " (شما)",
   "referendums.about": "سپر CLK-19 یک درگاه اعتبارسنجی است، نه یک تایمر: یک ثبت F-LEG-034 علیه مصوبه اکثریت ویژه جمعیت، پیش از رأی‌گیری با ذکر دلیل رد می‌شود و خودِ این رد شدن در زنجیره گزارش ممیزی ثبت می‌گردد. سپر زمانی آزاد می‌شود که انتخابات عمومی بعدی تأیید شود — مصوبات همه‌پرسی پس از آن از مسیر عادی اصلاح می‌شوند.",
   "referendums.act_ordinary": "مصوبه عادی — رده اکثریت",
   "referendums.act_setting_change": "مصوبه تغییر تنظیمات — رده اکثریت",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "بیش‌نمایندگی:",
   "type_b_districts.overcount": "بیش‌شماری",
   "type_b_districts.pan_mode": "حالت پان",
-  "type_b_districts.parts_suffix": "= {total} بخش",
+  "type_b_districts.parts_suffix": " = {total} بخش",
   "type_b_districts.pe_bad": "ضعیف (>۱۰٪):",
   "type_b_districts.pe_district_count": "({n} حوزه انتخابیه)",
   "type_b_districts.pe_good": "خوب (≤۵٪):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "تنوع سیاسی یکنواخت",
   "type_b_districts.vertex_snap_unavailable": "اتصال نقاط (Vertex snapping) در دسترس نیست — کتابخانه ترسیم در پس‌زمینه این ابزار تغییر کرده است.",
   "type_b_districts.view_leg_districts": "مشاهده حوزه‌های انتخابیه قوه مقننه ←",
-  "type_b_districts.wizard_paused": "جادوگر متوقف شد."
+  "type_b_districts.wizard_paused": " جادوگر متوقف شد."
 }

@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Реєстрація адвокатів відкрита для будь-якого пов'язаного мешканця, але спочатку у вашій юрисдикції має бути суд — суди створюються законодавчим органом (F-LEG-017).",
   "advocate_console.no_judiciary_title": "У вашому ланцюжку асоціацій ще немає судової влади.",
   "advocate_console.no_matching_page": "На цій сторінці немає відповідних справ. Спробуйте іншу назву або номер справи.",
-  "advocate_console.not_seated_suffix": "(ще не призначено)",
+  "advocate_console.not_seated_suffix": " (ще не призначено)",
   "advocate_console.not_yet": "Ще ні",
   "advocate_console.open_case": "Відкрити справу →",
   "advocate_console.open_case_short": "Відкрити справу",

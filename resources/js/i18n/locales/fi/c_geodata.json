@@ -13,6 +13,7 @@
   "geodata_geodataflagqueue.prune": "Karsi…",
   "geodata_geodataflagqueue.repairs_log": "Korjausloki",
   "geodata_geodataflagqueue.scan_running": "Skannaus käynnissä{scanStatus}…",
+  "geodata_geodataflagqueue.showing_the_most_severe_of_flags_filter_by": "Näytetään {length} vakavinta {flagsTotal} {statusFilter} -lipusta — suodata kategorian mukaan tai tyhjennä jono ja päivitä.",
   "geodata_geodatarepairmodal.accept_this_flag_as_is_the_condition_stays": "Hyväksy tämä lippu sellaisenaan: tila säilyy tiedoissa, ja se merkitään tarkistetuksi ja hyväksyttäväksi. Rivit eivät muutu.",
   "geodata_geodatarepairmodal.cascade_also_delete_the_whole_subtree_bene": "Kaskadi — poista myös koko sen alapuolinen alipuu. Ilman tätä rivin karsiminen, jolla on vielä aktiivisia lapsia, hylätään.",
   "geodata_geodatarepairmodal.chain_topmost_first_one_slug_per_line": "Ketju — ylin ensin (yksi tunniste per rivi)",

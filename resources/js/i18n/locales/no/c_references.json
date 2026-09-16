@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Ditt valg av styreleder",
   "board_roster": "Styremedlemmer og deres nåværende periode",
   "board_strip.cell_vacant": "— ledig",
-  "board_strip.chair_suffix": "(fellesvalgt leder)",
+  "board_strip.chair_suffix": " (fellesvalgt leder)",
   "board_strip.class_governor": "Oppnevnt styremedlem",
   "board_strip.class_owner_elected": "Eiervalgt",
   "board_strip.class_worker_elected": "Arbeidervalgt",

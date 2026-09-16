@@ -268,7 +268,7 @@
   "audit_chain.missing": "මෙම ඉන්ස්ටන්ස් එකෙහි ඇතුළත් කිරීම #{seq} හමු නොවීය. අනුක්‍රමික අංකවල හිඩැස් තිබිය හැක.",
   "audit_chain.nav_label": "විගණන ඉතිහාස සංචාලනය",
   "audit_chain.newer": "අලුත් ඇතුළත් කිරීම්",
-  "audit_chain.newest_first": "අලුත්ම ඒවා මුලින් ·",
+  "audit_chain.newest_first": "අලුත්ම ඒවා මුලින් · ",
   "audit_chain.no_entries_yet": "තවමත් ඇතුළත් කිරීම් නැත",
   "audit_chain.older": "පැරණි ඇතුළත් කිරීම්",
   "audit_chain.open_receipt": "රිසිට්පත විවෘත කරන්න",

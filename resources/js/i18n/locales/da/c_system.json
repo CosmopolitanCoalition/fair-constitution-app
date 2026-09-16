@@ -268,7 +268,7 @@
   "audit_chain.missing": "Indførelse #{seq} blev ikke fundet på denne instans. Sekvensnumre kan have huller.",
   "audit_chain.nav_label": "Navigation i revisionslog",
   "audit_chain.newer": "Nyere indførsler",
-  "audit_chain.newest_first": "Nyeste først ·",
+  "audit_chain.newest_first": "Nyeste først · ",
   "audit_chain.no_entries_yet": "Ingen indførsler endnu",
   "audit_chain.older": "Ældre indførsler",
   "audit_chain.open_receipt": "Åbn kvittering",

@@ -268,7 +268,7 @@
   "audit_chain.missing": "Ieraksts #{seq} šajā instancē netika atrasts. Secīvības numuriem var būt izlaides.",
   "audit_chain.nav_label": "Audita vēstures navigācija",
   "audit_chain.newer": "Jaunāki ieraksti",
-  "audit_chain.newest_first": "Jaunākie pirmie ·",
+  "audit_chain.newest_first": "Jaunākie pirmie · ",
   "audit_chain.no_entries_yet": "Ierakstu vēl nav",
   "audit_chain.older": "Vecāki ieraksti",
   "audit_chain.open_receipt": "Atvērt kvīts",

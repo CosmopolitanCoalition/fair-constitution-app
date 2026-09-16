@@ -2432,7 +2432,7 @@
     "provider": "ollama"
   },
   "step3_districts.pop_share": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

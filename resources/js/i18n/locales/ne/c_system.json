@@ -268,7 +268,7 @@
   "audit_chain.missing": "यस इन्स्ट्यान्समा प्रविष्टि #{seq} भेटिएन। सिक्वेन्स नम्बरहरूमा ग्याप हुन सक्छ।",
   "audit_chain.nav_label": "लेखापरीक्षण इतिहास नेभिगेसन",
   "audit_chain.newer": "नयाँ प्रविष्टिहरू",
-  "audit_chain.newest_first": "नयाँ पहिले ·",
+  "audit_chain.newest_first": "नयाँ पहिले · ",
   "audit_chain.no_entries_yet": "अहिलेसम्म कुनै प्रविष्टि छैन",
   "audit_chain.older": "पुराना प्रविष्टिहरू",
   "audit_chain.open_receipt": "रसिद खोल्नुहोस्",

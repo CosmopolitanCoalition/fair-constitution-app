@@ -119,8 +119,8 @@
   "oversight.removal_title": "除名程序",
   "oversight.seat_label": "席位 {seat}",
   "oversight.seat_vacated": "席位已空缺",
-  "oversight.speaker_owncase_suffix": "(议长 — 自身案件需要指定主持者)",
-  "oversight.speaker_suffix": "(议长)",
+  "oversight.speaker_owncase_suffix": " (议长 — 自身案件需要指定主持者)",
+  "oversight.speaker_suffix": " (议长)",
   "oversight.special_election": "特别选举 {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — 代码已拦截自身案件主持",
   "oversight.spk_form_name": "弹劾/谴责/开除主持",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "空缺",
   "oversight.vacancy_countback_link": "空缺 {status} — 回溯计票页面 →",
   "oversight.vacancy_state_aria": "空缺状态机",
-  "oversight.you_suffix": "(你)",
+  "oversight.you_suffix": " (你)",
   "referendums.about": "CLK-19 屏蔽是一个验证门，而非计时器：针对人口绝对多数法案的 F-LEG-034 提交将在投票前被引用并拒绝，且拒绝记录将进入审计链。屏蔽在下次大选认证时解除 — 届时公投法案通过普通路径修订。",
   "referendums.act_ordinary": "普通法案 — 多数类",
   "referendums.act_setting_change": "设置变更法案 — 多数类",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "过度代表：",
   "type_b_districts.overcount": "过度计数",
   "type_b_districts.pan_mode": "全选模式",
-  "type_b_districts.parts_suffix": "= {total} 部分",
+  "type_b_districts.parts_suffix": " = {total} 部分",
   "type_b_districts.pe_bad": "差 (>10%)：",
   "type_b_districts.pe_district_count": "({n} 选区)",
   "type_b_districts.pe_good": "好 (≤5%)：",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "统一政治多样性",
   "type_b_districts.vertex_snap_unavailable": "顶点吸附不可用 — 该工具底层的绘制库已更改。",
   "type_b_districts.view_leg_districts": "查看立法选区 →",
-  "type_b_districts.wizard_paused": "向导已暂停。"
+  "type_b_districts.wizard_paused": " 向导已暂停。"
 }

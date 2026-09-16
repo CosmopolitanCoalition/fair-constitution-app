@@ -17,6 +17,7 @@
   "dev_electoralkit.electoral_approveswitch_switch_revocable_n": "Electoral/ApproveSwitch · .switch · revocable, mai només color · Art. II §2",
   "dev_electoralkit.electoral_phasebanner_contexts_open_ballot": "Electoral/PhaseBanner · contextos papereta oberta / registre / perfil · vocabulari congelat aprovació {'|'} classificat {'|'} certificant",
   "dev_electoralkit.electoral_stvbar_stv_cand_family_gold_tick": "Electoral/StvBar · família .stv-cand · marca daurada = quòrum de Droop",
+  "dev_electoralkit.f_ind_007_receipt_shown_once_cryptographic": "F-IND-007 rebut · mostrat una vegada · separació criptogràfica de la identitat de l'elector i la papereta · Art. II §2",
   "dev_electoralkit.fe_b1_harness_the_8_electoral_components_r": "FE-B1 harness — els 8 components electorals renderitzats des de (mockup-extracted). Accés per a desenvolupadors; no és UI de producte.",
   "dev_electoralkit.finalist_roster_roster_row": "Llista de finalistes (.roster-row)",
   "dev_electoralkit.fixture_data_only": "Només dades de prova.",

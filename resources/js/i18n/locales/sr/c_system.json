@@ -268,7 +268,7 @@
   "audit_chain.missing": "Унос #{seq} није пронађен на овој инстанци. Редни бројеви могу имати празнине.",
   "audit_chain.nav_label": "Навигација кроз ревизорски дневник",
   "audit_chain.newer": "Новији уноси",
-  "audit_chain.newest_first": "Најновији први ·",
+  "audit_chain.newest_first": "Најновији први · ",
   "audit_chain.no_entries_yet": "Још нема уноса",
   "audit_chain.older": "Старији уноси",
   "audit_chain.open_receipt": "Отвори потврду",

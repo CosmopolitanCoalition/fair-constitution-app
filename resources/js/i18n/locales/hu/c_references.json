@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Az Ön választása az igazgatótanács elnökére",
   "board_roster": "Igazgatótanácsi tagok és jelenlegi tisztségidőjük",
   "board_strip.cell_vacant": "— betöltetlen",
-  "board_strip.chair_suffix": "(közösen választott elnök)",
+  "board_strip.chair_suffix": " (közösen választott elnök)",
   "board_strip.class_governor": "Kinevezett igazgatótanácsi tag",
   "board_strip.class_owner_elected": "Tulajdonosok által választott",
   "board_strip.class_worker_elected": "Munkások által választott",

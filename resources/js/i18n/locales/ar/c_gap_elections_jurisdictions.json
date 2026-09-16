@@ -7,6 +7,7 @@
   "home.all_places": "جميع الأماكن",
   "home.at_a_glance": "لمحة سريعة",
   "home.contains_many": "تحتوي على {n} أماكن أصغر.",
+  "home.contains_one": "تحتوي على {n} مكان أصغر.",
   "home.courts": "محاكم",
   "home.districts": "دوائر انتخابية",
   "home.districts_drawn": "تم رسم الدوائر، المقاعد لم تُملأ بعد",

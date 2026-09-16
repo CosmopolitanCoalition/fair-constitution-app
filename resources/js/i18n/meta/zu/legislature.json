@@ -1696,7 +1696,7 @@
     "provider": "ollama"
   },
   "legislature_referendums.the_clk_19_shield_is_a_validator_gate_not_": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1865,7 +1865,7 @@
     "provider": "ollama"
   },
   "legislature_sessionconsole.session_due_in_day_by_discretion_can_never": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

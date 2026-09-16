@@ -109,6 +109,7 @@
   "dev_judiciarykit.dockets_opinions_challenges_findings_and_p": "事件簿、意見書、異議申し立て、裁判所の認定、およびパネル割り当ては公的記録である (Art. II §2)。すべての司法府インターフェースは公開されており、アクションはエンジン422経由の派生ロールで制限される。ページ403は発生しない。唯一の非公開スペースは評議（裁判官の執務室 + 陪審室）であり、ロックされたカードとしてレンダリングされる。",
   "dev_judiciarykit.draw_integrity_the_seed_is_published_to_th": "抽選の整合性：シードは監査ログに公開される",
   "dev_judiciarykit.drawn": "選出済み：{drawn_at}",
+  "dev_judiciarykit.f_ind_016_filing_fields_render_here_on_the": "F-IND-016 の申請フィールドがライブサーフェス(R-03)に表示されます。",
   "dev_judiciarykit.full_faith_credit_public_acts_records_and_": "完全な信頼と信用 · 公開された議決、記録、および司法手続き · Art. V §2 · Art. II §2",
   "dev_judiciarykit.judiciary_art4section5tracker_the_exit_cri": "Judiciary/Art4Section5Tracker · 終了基準コンポーネント · 裁判所の認定 → 救済 → 期間 → 3つのパス → 直接的な法律編集 · すべてのしきい値と期日はエンジンのスナップショット · Art. IV §5 · CLK-11 · CLK-12",
   "dev_judiciarykit.judiciary_caselifecycle_the_case_esm_state": "Judiciary/CaseLifecycle · 事件ESM状態ストリップ + 10段階の順序付きライフサイクル · インタラクティブ = 開発/デモシミュレーション（製品ではOFF。レコードは追記のみ）",

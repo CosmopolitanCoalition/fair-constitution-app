@@ -79,8 +79,8 @@
   "oversight.removal_title": "অপসারণ প্রক্রিয়া",
   "oversight.seat_label": "আসন {seat}",
   "oversight.seat_vacated": "আসন শূন্য হয়েছে",
-  "oversight.speaker_owncase_suffix": "(স্পিকার — নিজস্ব মামলার জন্য একজন নির্ধারিত সভাপতির প্রয়োজন)",
-  "oversight.speaker_suffix": "(স্পিকার)",
+  "oversight.speaker_owncase_suffix": " (স্পিকার — নিজস্ব মামলার জন্য একজন নির্ধারিত সভাপতির প্রয়োজন)",
+  "oversight.speaker_suffix": " (স্পিকার)",
   "oversight.special_election": "বিশেষ নির্বাচন {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — কোডে নিজস্ব মামলার সভাপতিত্ব ব্লক করা হয়েছে",
   "oversight.spk_form_name": "ইমপিচমেন্ট/সেন্সর/বহিষ্কার সভাপতিত্ব",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "শূন্য আসন",
   "oversight.vacancy_countback_link": "শূন্য আসন {status} — পুনর্গণনা পৃষ্ঠা →",
   "oversight.vacancy_state_aria": "শূন্য আসন স্টেট মেশিন",
-  "oversight.you_suffix": "(আপনি)",
+  "oversight.you_suffix": " (আপনি)",
   "referendums.about": "CLK-19 শিল্ড একটি ভ্যালিডেটর গেট, টাইমার নয়: জনসংখ্যার বিশেষ সংখ্যাগরিষ্ঠতার সিদ্ধান্তের বিরুদ্ধে একটি F-LEG-034 আবেদন ভোটের আগেই উদ্ধৃতিসহ প্রত্যাখ্যাত হয়, এবং এই প্রত্যাখ্যানটি নিরীক্ষা লগে জমা হয়। পরবর্তী সাধারণ নির্বাচন প্রত্যয়িত হলে শিল্ডটি মুক্ত হয় — তখন গণভোটের সিদ্ধান্তগুলো সাধারণ পথে সংশোধন করা হয়।",
   "referendums.act_ordinary": "সাধারণ সিদ্ধান্ত — সংখ্যাগরিষ্ঠতা শ্রেণি",
   "referendums.act_setting_change": "সেটিং-পরিবর্তন সিদ্ধান্ত — সংখ্যাগরিষ্ঠতা শ্রেণি",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "অতিরিক্ত প্রতিনিধিত্ব:",
   "type_b_districts.overcount": "অতিরিক্ত গণনা",
   "type_b_districts.pan_mode": "প্যান মোড",
-  "type_b_districts.parts_suffix": "= {total} অংশ",
+  "type_b_districts.parts_suffix": " = {total} অংশ",
   "type_b_districts.pe_bad": "খারাপ (>১০%):",
   "type_b_districts.pe_district_count": "({n} নির্বাচনী এলাকা)",
   "type_b_districts.pe_good": "ভালো (≤৫%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "অভিন্ন রাজনৈতিক বৈচিত্র্য",
   "type_b_districts.vertex_snap_unavailable": "ভার্টেক্স স্ন্যাপিং অনুপলব্ধ — এই টুলের লাইব্রেরি পরিবর্তিত হয়েছে।",
   "type_b_districts.view_leg_districts": "আইনসভার নির্বাচনী এলাকা দেখুন →",
-  "type_b_districts.wizard_paused": "উইজার্ড স্থগিত।"
+  "type_b_districts.wizard_paused": " উইজার্ড স্থগিত।"
 }

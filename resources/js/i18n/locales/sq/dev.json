@@ -79,6 +79,7 @@
   "dev_executiveorgkit.nothing_on_this_page_touches_the_database_": "Asgjë në këtë faqe nuk prek bazën e të dhënave — regjistri i konvertimit të Shtetit të Nju Jorkut, shkalla e Bluefin Logistics dhe bordi i Punëve Publike & Shërbimeve Komunale janë elemente të mockup-eve të ngritura në JSON.",
   "dev_executiveorgkit.orderscopecard_the_order_register_issued_e": "OrderScopeCard — regjistri i urdhrave (i lëshuar / i mundësuar për emergjencë / i refuzuar)",
   "dev_executiveorgkit.org_boardstrip_the_two_clock_regimes_side_": "Org/BoardStrip · dy regjimet e orës krah për krah: anëtarët e bordit 2030-07-01 → 2040-07-01 (CLK-09) pranë vendeve të punëtorëve → 2035-11-01 (fundi i mandatit legjislativ · CLK-10) · kryesues i zgjedhur së bashku · Art. III §4, §6",
+  "dev_executiveorgkit.org_codetscale_workerseats_is_the_engine_s": "Org/CoDetScale · workerSeats është numri i MOTORIT; pragjet janë vlera CLK-13/14 të zgjidhura nga serveri (të ndryshueshme — kurrë të koduara në mënyrë fikse) · Art. III §6",
   "dev_executiveorgkit.organization_esm_18_current_active": "Organizatë (ESM-18) — aktuale: aktive",
   "dev_executiveorgkit.ownershippanel_cgc_variant_the_ledger_12_o": "OwnershipPanel — varianti CGC (karta rregulluese e pronarit të regjistrit-#12)",
   "dev_executiveorgkit.ownershippanel_equal_partnership_unanimity": "OwnershipPanel — partneritet i barabartë (rregulli i unanimitetit) + histori",

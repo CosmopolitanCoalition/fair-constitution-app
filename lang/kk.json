@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Оны /vacancies/:id бойынша бақылаңыз.",
+  " Track it at /vacancies/:id.": " Оны /vacancies/:id бойынша бақылаңыз.",
   "% of jurisdiction population · CLK-17": "юрисдикция халқының CLK-17%",
   "+:count more candidate with first-preference support": "бірінші басымдылық қолдауы бар тағы :count кандидат",
   "+:count more candidates with first-preference support": "бірінші басымдылық қолдауы бар тағы :count кандидаттар",
@@ -72,6 +72,7 @@
   ":place judiciary (forming)": ":place сот билігі (құрылуда)",
   ":place judiciary hears disputes (forming · Phase E)": ":place сот билігі дауларды қарайды (құрылуда · E кезеңі)",
   ":place legislature": ":place заң шығарушы органы",
+  ":seated of :serving serving members seated": ":serving қызмет ететін мүшенің :seated орыны толтырылды",
   ":seats seats is outside the constitutional band [:hard_floor, :hard_ceiling] — above :hard_ceiling the body must be subdivided.": ":seats орын Конституциялық шектен [:hard_floor, :hard_ceiling] тыс — :hard_ceiling көрсеткішінен жоғары болса, орган бөлінуі тиіс.",
   ":size judges": ":size судьясы",
   ":size judges + jury": ":size судьясы + алқабилер",
@@ -2024,7 +2025,7 @@
   "You left the room.": "Сіз бөлмеден шықтыңыз.",
   "You sit on more than one court — showing one; switch from the court page.": "Сіз бірнеше сотта отырасыз — біреуі көрсетілген; сот бетінен ауыстырыңыз.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Сіз бірнеше департамент басқармасында отырасыз — біреуі көрсетілген; департамент бетінен басқасын таңдаңыз.",
-  "You: ": "Сіз:",
+  "You: ": "Сіз: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Сіздің есептік жазбаңыз, сіздің шешімдеріңіз — қарсы тараптар тек есептік жазбалар, адамдар емес · Art. I",
   "Your chair ranking has been recorded.": "Төраға ретіндегі рейтингіңіз тіркелді.",
   "Your client retains you; the retainer is recorded with the filing.": "Клиент сізді адвокат ретінде қалдырды; жалдау келісімі өтініммен бірге тіркелді.",

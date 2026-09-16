@@ -56,7 +56,7 @@
     "provider": "ollama"
   },
   "organizations_boardelections.eligible_workers_active_f_ind_014_registra": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -362,7 +362,7 @@
     "provider": "ollama"
   },
   "organizations_codetermination.enacted_by_record": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

@@ -268,7 +268,7 @@
   "audit_chain.missing": "Inskrywing #{seq} is nie op hierdie instansie gevind nie. Volgordegetalle kan gapings hê.",
   "audit_chain.nav_label": "Navigasie van ouditgeskiedenis",
   "audit_chain.newer": "Nuwer inskrywings",
-  "audit_chain.newest_first": "Nuutste eerste ·",
+  "audit_chain.newest_first": "Nuutste eerste · ",
   "audit_chain.no_entries_yet": "Nog geen inskrywings nie",
   "audit_chain.older": "Ouer inskrywings",
   "audit_chain.open_receipt": "Maak kwitansie oop",

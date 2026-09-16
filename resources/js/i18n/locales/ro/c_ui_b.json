@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "adăugat:",
+  "law_diff.added": "adăugat: ",
   "law_diff.label": "Modificări text lege",
-  "law_diff.removed": "eliminat:",
+  "law_diff.removed": "eliminat: ",
   "planned_banner.default_body": "Această parte a lumii este proiectată înainte de construcție. Nimic de aici nu este activ încă și nu există bani reali nicăieri.",
   "planned_banner.title": "Planificat — o previzualizare.",
   "selection_identity.aria_org": "Registru organizație pentru {name}, referință {id}",

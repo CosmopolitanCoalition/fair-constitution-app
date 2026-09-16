@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "理事会委員長の選択",
   "board_roster": "理事会メンバーと現在の任期",
   "board_strip.cell_vacant": "— 欠員",
-  "board_strip.chair_suffix": "(共同選出委員長)",
+  "board_strip.chair_suffix": " (共同選出委員長)",
   "board_strip.class_governor": "任命された理事",
   "board_strip.class_owner_elected": "オーナー選出",
   "board_strip.class_worker_elected": "労働者選出",

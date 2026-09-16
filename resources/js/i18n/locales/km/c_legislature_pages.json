@@ -473,7 +473,7 @@
   "districts.tip_district": "មណ្ឌលបោះឆ្នោត៖ {seats} អាសនៈ",
   "districts.tip_expand": "ពង្រីកក្នុង sidebar ដើម្បីមើលមណ្ឌលបោះឆ្នោតរង",
   "districts.tip_fractional": "ប្រភាគ៖ {n}",
-  "districts.tip_members_suffix": "· សមាជិក {n} នាក់",
+  "districts.tip_members_suffix": " · សមាជិក {n} នាក់",
   "districts.tip_pop": "ចំនួនប្រជាជន៖ {n}",
   "districts.tip_unassigned": "មិនទាន់បានចាត់តាំង — អាចផ្គុំបាន",
   "districts.toast_autoseed_complete": "ការបញ្ចូលទិន្នន័យស្វ័យប្រវត្តិបានរួចរាល់",

@@ -268,7 +268,7 @@
   "audit_chain.missing": "Entri #{seq} ora ditemokake ing instansi iki. Nomer urutan bisa ana sing kosong.",
   "audit_chain.nav_label": "Navigasi riwayat audit",
   "audit_chain.newer": "Entri luwih anyar",
-  "audit_chain.newest_first": "Paling anyar dhisik ·",
+  "audit_chain.newest_first": "Paling anyar dhisik · ",
   "audit_chain.no_entries_yet": "Durung ana entri",
   "audit_chain.older": "Entri luwih lawas",
   "audit_chain.open_receipt": "Buka resi",

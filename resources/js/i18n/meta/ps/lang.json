@@ -500,7 +500,7 @@
     "provider": "ollama"
   },
   "A delegated executive committee has at least 5 members (got :memberCount).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7041,197 +7041,197 @@
     "provider": "ollama"
   },
   "The participant is on the witness stand. Testimony remains part of the formal case record.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The physical-law compliance floor is exercised on the OPERATOR plane (an active operator account authenticated by key-possession) — it is not a constitutional office and carries no role code; a forged or absent operator is refused.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The polygon lies entirely outside :name.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The power expired before the renewal vote closed (status: :status) — nothing rolls over silently; a new declaration is required.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The proper board retires the bootstrap board and takes custody of elections.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The public square": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The public square cannot be censored — a post may be removed ONLY under a logged carve-out (a judicial order, or protecting another's rights), never on viewpoint or discretion.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The ranked ballot requires a jurisdictional association inside this race — voting and candidacy unlock together at residency verification (Art. I). You can browse the open ballot.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The recorded bench slate was confirmed together.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The remainder is split into :parts pieces — draw those separately.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The removal vote opens only once a presider is designated (removal.presider, Art. II §3).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The renewal window opens :opensAt (the final :windowDays days before expiry) — a renewal vote this early would pre-commit a future chamber.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The renewed window, so a renewal can also be walked to its end.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The role-grant request is not open.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The room is updating its speaking queue. Please try again.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The root legislature": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The scope has no geometry.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The seated leg has not been opened.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The seed list for the post-game redraft — every \"as implemented\" marker resolves here": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The selected share recipient no longer exists.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The simulation run is not done yet. Let it finish before locking Step 5.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The speaking queue has been updated.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The speaking queue is full. Please try again after a speaker is recognized.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The spine. Every constitutional clock that is waiting to fire.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The standings or search have changed, or the page link expired. Showing the first page.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The superseded rule does not belong to this department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The system (bootstrap board)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The tie-breaking vote is the Speaker's own — never the system's.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The unavoidable legal minimum — a hash match or a named judicial order, never a discretionary content call.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The upgrade proposal is not open.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "There is no “remove for content” or “community-guidelines” action anywhere in the code — the carve-out map knows only the classes above. A removal that isn’t one of them cannot be invoked.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "There is nothing to agree — the constitutional_version is unchanged.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "These are the vital signs of a demonstration world, not a live civilization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This accused has already been prosecuted to a final verdict for this act — a criminal act cannot be prosecuted again.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This act was passed by population supermajority — the legislature cannot modify or repeal it until the next general election certifies; the protection lapses there (CLK-19).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This appointment page link is invalid. Return to the first page.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This bill has no discussion space yet — it opens when the bill is live in the halls.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This board call is not available.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This boardroom is for its current seated members.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
@@ -7436,7 +7436,7 @@
     "provider": "ollama"
   },
   "This organization carries no ownership structure — it accepts no membership class.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },

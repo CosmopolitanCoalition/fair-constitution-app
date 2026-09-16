@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Byd y Wladwriaeth",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Rheoliadau datblygu — nid rhan o'r cais",
+  "shell_devbar.impersonating": "{label} — Esbonio {name}",
+  "shell_devbar.residency_tool_civic_residency": "Offeryn preswylfa → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Adolygiad barnwriaethol yn pending · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Agor y bwrdd pwerau argyfwng"
+}

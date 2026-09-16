@@ -119,8 +119,8 @@
   "oversight.removal_title": "Erottamismenettelyt",
   "oversight.seat_label": "Paikka {seat}",
   "oversight.seat_vacated": "paikka vapautunut",
-  "oversight.speaker_owncase_suffix": "(puhemies — oma asia vaatii nimetyn puheenjohtajan)",
-  "oversight.speaker_suffix": "(puhemies)",
+  "oversight.speaker_owncase_suffix": " (puhemies — oma asia vaatii nimetyn puheenjohtajan)",
+  "oversight.speaker_suffix": " (puhemies)",
   "oversight.special_election": "erikaisvaalit {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — oman asian puheenjohtajuus estetty koodissa",
   "oversight.spk_form_name": "Virka syytteen/moitteen/erottamisen puheenjohtajuus",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Avoimet paikat",
   "oversight.vacancy_countback_link": "avoin paikka {status} — takaisinlaskentasivu →",
   "oversight.vacancy_state_aria": "Avoimen paikan tilakone",
-  "oversight.you_suffix": "(sinä)",
+  "oversight.you_suffix": " (sinä)",
   "referendums.act_ordinary": "Tavallinen päätös — enemmistöluokka",
   "referendums.act_setting_change": "Asetusmuutospäätös — enemmistöluokka",
   "referendums.act_supermajority": "Määräenemmistöluokan päätös",
@@ -409,7 +409,7 @@
   "type_b_districts.over_rep": "Yliedustus:",
   "type_b_districts.overcount": "Ylilaskenta",
   "type_b_districts.pan_mode": "Pan-tila",
-  "type_b_districts.parts_suffix": "= {total} osaa",
+  "type_b_districts.parts_suffix": " = {total} osaa",
   "type_b_districts.pe_bad": "Huono (>10%):",
   "type_b_districts.pe_district_count": "({n} vaalipiiriä)",
   "type_b_districts.pe_good": "Hyvä (≤5%):",
@@ -531,5 +531,5 @@
   "type_b_districts.uniform_diversity": "Yhtenäinen poliittinen monimuotoisuus",
   "type_b_districts.vertex_snap_unavailable": "Kärkipisteiden napsautus ei ole käytettävissä — piirtokirjasto on muuttunut tämän työkalun alla.",
   "type_b_districts.view_leg_districts": "Näytä lainsäädäntöelimen vaalipiirit →",
-  "type_b_districts.wizard_paused": "Velho keskeytetty."
+  "type_b_districts.wizard_paused": " Velho keskeytetty."
 }

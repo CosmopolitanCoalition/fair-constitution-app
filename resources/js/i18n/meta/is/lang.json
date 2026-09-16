@@ -4348,7 +4348,7 @@
     "provider": "ollama"
   },
   "Jury of peers · Art. IV §4 — no interference, no fees · Art. II §8": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

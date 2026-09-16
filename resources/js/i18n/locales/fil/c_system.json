@@ -268,7 +268,7 @@
   "audit_chain.missing": "Ang Entry #{seq} ay hindi nahanap sa instance na ito. Maaaring may mga puwang ang mga sequence number.",
   "audit_chain.nav_label": "Nabigasyon ng talaan ng awdit",
   "audit_chain.newer": "Mas bagong mga entry",
-  "audit_chain.newest_first": "Pinakabago muna ·",
+  "audit_chain.newest_first": "Pinakabago muna · ",
   "audit_chain.no_entries_yet": "Wala pang mga entry",
   "audit_chain.older": "Mas lumang mga entry",
   "audit_chain.open_receipt": "Buksan ang resibo",

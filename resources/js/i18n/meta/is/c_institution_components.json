@@ -857,7 +857,7 @@
   },
   "department_card.report_overdue": {
     "status": "review",
-    "reason": "placeholder mismatch",
+    "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "department_card.status_chartered": {

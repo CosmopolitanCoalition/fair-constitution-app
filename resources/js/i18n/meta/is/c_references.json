@@ -432,7 +432,7 @@
     "provider": "ollama"
   },
   "board_strip.invalid_banner": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

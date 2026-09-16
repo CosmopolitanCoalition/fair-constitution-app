@@ -107,6 +107,7 @@
   "organizations_codetermination.the_worker_track_and_the_joint_chair_elect": "Darbuotojų takelis ir bendrų pirmininkų rinkimai vyksta rinkimų mechanizmu — tvarkoma valdybos rinkimų puslapyje.",
   "organizations_codetermination.when_a_company_employs_or_more_people_its_": "Kai įmonėje dirba {clk13} arba daugiau žmonių, jos darbuotojai pradeda renkti vietas į valdybą. Pirma darbuotojo vieta atsiranda pasiekus šią ribą, o darbuotojų vietos auga lygiu tempu, kol pasiekia savininkų vietų skaičių esant {clk14} darbuotojams. Formaliai tai vadinama bendradarbiavimu. Tas pats mastas taikomas privačioms įmonėms, bendrojo gėrio korporacijoms ir vyriausybės skyriams.",
   "organizations_codetermination.worker_seats": "Darbuotojų vietos",
+  "organizations_orgdetail.a_candidate_requests_f_can_002_the_agent_g": "Kandidatas prašo (F-CAN-002); agentas sutinka (F-ORG-002), kas tampa viešu ir suteikia R-07 kandidatui. Frakcijų registracijos nėra — rekomendacijos yra polimorfinės eilutės · žurnalas #q1.",
   "organizations_orgdetail.a_contract_takes_effect_only_with_both_sig": "Sutartis įstoją galiojimo tik gavus abu parašus — mechanizmas atmeta galiojimą prieš tai.",
   "organizations_orgdetail.a_recurring_labor_contract_backs_the_regis": "Pasikartojančios darbo sutarties pagrindu vykdoma registracija; ji skaičiuojama į bendrą skaičių, kai organizacija pasirašo sutartį.",
   "organizations_orgdetail.a_stable_identifier_for_the_package_e_g_by": "Stabili identifikatoriaus reikšmė paketui (pvz., įstatai-2031).",

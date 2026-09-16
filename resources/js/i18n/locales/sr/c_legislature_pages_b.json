@@ -79,8 +79,8 @@
   "oversight.removal_title": "Поступци за уклањање",
   "oversight.seat_label": "Место {seat}",
   "oversight.seat_vacated": "место је упражњено",
-  "oversight.speaker_owncase_suffix": "(председник дома — сопствени случај захтева именованог председавајућег)",
-  "oversight.speaker_suffix": "(председник дома)",
+  "oversight.speaker_owncase_suffix": " (председник дома — сопствени случај захтева именованог председавајућег)",
+  "oversight.speaker_suffix": " (председник дома)",
   "oversight.special_election": "ванредни избори {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — председавање сопственим случајем блокирано у коду",
   "oversight.spk_form_name": "Председавање при расурање/прекорење/искључивање",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Упражњена места",
   "oversight.vacancy_countback_link": "упражњено место {status} — страница за накнадно пребројавање →",
   "oversight.vacancy_state_aria": "Машина стања упражњених места",
-  "oversight.you_suffix": "(ви)",
+  "oversight.you_suffix": " (ви)",
   "referendums.about": "Штит CLK-19 је валидациони прозор, а не тајмер: F-LEG-034 поднети против акта квалификоване већине становништва одбија се пре гласања уз навођење цитата, а само одбијање се уноси у ревизорски дневник. Штит се уклања када се потврде следећи општи избори — референдумски акти се тада мењају путем обичног процеса.",
   "referendums.act_ordinary": "Обичан акт — класа већине",
   "referendums.act_setting_change": "Акт о промени подешавања — класа већине",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Претставеност:",
   "type_b_districts.overcount": "Пребројавање",
   "type_b_districts.pan_mode": "Pan режим",
-  "type_b_districts.parts_suffix": "= {total} делова",
+  "type_b_districts.parts_suffix": " = {total} делова",
   "type_b_districts.pe_bad": "Лоше (>10%):",
   "type_b_districts.pe_district_count": "({n} изборних јединица)",
   "type_b_districts.pe_good": "Добро (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Уједначена политичка разноврсност",
   "type_b_districts.vertex_snap_unavailable": "Привлачење темену није доступно — библиотека за цртање је измењена у оквиру овог алата.",
   "type_b_districts.view_leg_districts": "Прикажи изборне јединице →",
-  "type_b_districts.wizard_paused": "Чобањ паузиран."
+  "type_b_districts.wizard_paused": " Чобањ паузиран."
 }

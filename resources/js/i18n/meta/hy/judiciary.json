@@ -45,7 +45,7 @@
     "provider": "ollama"
   },
   "judiciary_advocateconsole.panel": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

@@ -1412,7 +1412,7 @@
     "provider": "ollama"
   },
   "type_b_districts.floor_override_title": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (16/71 chars, floor 0.45)",
     "provider": "ollama"
   },

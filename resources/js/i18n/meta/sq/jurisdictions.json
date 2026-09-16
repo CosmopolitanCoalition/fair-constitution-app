@@ -320,7 +320,7 @@
     "provider": "ollama"
   },
   "jurisdictions_federation.zone_configured": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

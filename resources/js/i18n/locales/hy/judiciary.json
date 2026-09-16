@@ -9,6 +9,7 @@
   "judiciary_advocateconsole.new_filing": "Նոր ներկայացում",
   "judiciary_advocateconsole.no_judiciary_in_your_association_chain_yet": "Ձեր ասոցիացիայի շղթայում դեռևս չկա դատական իշխանություն:",
   "judiciary_advocateconsole.open_case": "Բաց գործ →",
+  "judiciary_advocateconsole.panel": "{title}{docket_no} · {kind} · {court} · պանել՝ {panel}",
   "judiciary_advocateconsole.qualifications_note_optional": "Նշում որակավորման մասին (ըստ ցանկության)",
   "judiciary_advocateconsole.recent_filings": "Վերջին ներկայացումները",
   "judiciary_advocateconsole.recorded_with_your_registration_the_bar_s_": "Գրանցված է ձեր գրանցման հետ. փաստաբանության իրազեկվածությունը փաստաբանության հատկությունն է, ոչ թե սահմանափակում ձեր հաճախորդի իրավունքի համար:",

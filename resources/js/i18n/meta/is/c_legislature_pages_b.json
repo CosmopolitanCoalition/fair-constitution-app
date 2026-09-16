@@ -932,7 +932,7 @@
     "provider": "ollama"
   },
   "type_b_districts.accept_retires": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

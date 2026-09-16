@@ -473,7 +473,7 @@
   "districts.tip_district": "Сайлау округі: {seats} орын",
   "districts.tip_expand": "Ішкі округтерді көру үшін бүйірлік панельді кеңейтіңіз",
   "districts.tip_fractional": "Бөлшек: {n}",
-  "districts.tip_members_suffix": "· {n} мүше",
+  "districts.tip_members_suffix": " · {n} мүше",
   "districts.tip_pop": "Халқы: {n}",
   "districts.tip_unassigned": "Тағайындалмаған — құрастыруға болады",
   "districts.toast_autoseed_complete": "Автоматты бөлу аяқталды",

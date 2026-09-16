@@ -473,7 +473,7 @@
   "districts.tip_district": "Kjördæmi: {seats} sæti",
   "districts.tip_expand": "Víkka í hliðarskjánum til að sjá undirdæmi",
   "districts.tip_fractional": "Brotið: {n}",
-  "districts.tip_members_suffix": "· {n} meðlimir",
+  "districts.tip_members_suffix": " · {n} meðlimir",
   "districts.tip_pop": "Íbúafjöldi: {n}",
   "districts.tip_unassigned": "Óútoppnað — samsetjanlegt",
   "districts.toast_autoseed_complete": "Sjálfvirkt sáð lokið",

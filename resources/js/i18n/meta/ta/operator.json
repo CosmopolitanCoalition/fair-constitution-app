@@ -864,7 +864,7 @@
     "provider": "ollama"
   },
   "operator_roles.self_asserted_mesh_member_mirror_etl_estab": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

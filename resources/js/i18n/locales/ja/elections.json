@@ -94,6 +94,7 @@
   "elections_candidateprofile.approvals_aggregate_updated_daily": "承認数 — 合計 · 毎日更新",
   "elections_candidateprofile.approvals_relative_to_the_finalist_line": "ファイナリストラインに対する承認状況",
   "elections_candidateprofile.ask_an_organization_for_its_endorsement_f_": "組織に推薦を依頼する — F-CAN-002",
+  "elections_candidateprofile.awaiting_board_validation_the_race_binding": "理事会の検証待ちです。F-ELB-002 が居住を検証すると、出馬の紐付け（およびそれに伴う順位）が表示されます。",
   "elections_candidateprofile.ballot_locked_at_the_finalist_cutoff_withd": "投票用紙はファイナリストの締め切りでロックされます — 辞退は締め切りです · CLK-21",
   "elections_candidateprofile.below_the_finalist_line_write_in_eligible": "ファイナリストライン以下 · 書き込み候補として資格あり",
   "elections_candidateprofile.civic_actions": "市民アクション",

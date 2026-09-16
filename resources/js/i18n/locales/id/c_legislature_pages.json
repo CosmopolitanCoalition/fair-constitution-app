@@ -473,7 +473,7 @@
   "districts.tip_district": "Daerah pemilihan: {seats} kursi",
   "districts.tip_expand": "Perluas di sidebar untuk melihat sub-daerah pemilihan",
   "districts.tip_fractional": "Fraksional: {n}",
-  "districts.tip_members_suffix": "· {n} anggota",
+  "districts.tip_members_suffix": " · {n} anggota",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "Tidak ditetapkan — dapat dikomposisikan",
   "districts.toast_autoseed_complete": "Tanam benih otomatis selesai",

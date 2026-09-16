@@ -96,7 +96,7 @@
     "provider": "ollama"
   },
   "setup_joinhost.your_lan_range_cidr": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

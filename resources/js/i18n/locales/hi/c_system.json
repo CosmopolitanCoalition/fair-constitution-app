@@ -268,7 +268,7 @@
   "audit_chain.missing": "इस इंस्टेंस पर प्रविष्टि #{seq} नहीं मिली। सीक्वेंस नंबर में अंतराल हो सकते हैं।",
   "audit_chain.nav_label": "लेखापरीक्षा लॉग नेविगेशन",
   "audit_chain.newer": "नई प्रविष्टियाँ",
-  "audit_chain.newest_first": "सबसे नया पहले ·",
+  "audit_chain.newest_first": "सबसे नया पहले · ",
   "audit_chain.no_entries_yet": "अभी तक कोई प्रविष्टि नहीं",
   "audit_chain.older": "पुरानी प्रविष्टियाँ",
   "audit_chain.open_receipt": "रसीद खोलें",

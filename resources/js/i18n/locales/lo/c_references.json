@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "ທາງເລືອກຂອງທ່ານສຳລັບປະທານຄະນະບໍລິຫານ",
   "board_roster": "ສະມາຊິກຄະນະບໍລິຫານ ແລະ ວັນໝົດກຳນົດວາລະປັດຈຸບັນ",
   "board_strip.cell_vacant": "— ຫວ່າງ",
-  "board_strip.chair_suffix": "(ປະທານທີ່ເລືອກຮ່ວມກັນ)",
+  "board_strip.chair_suffix": " (ປະທານທີ່ເລືອກຮ່ວມກັນ)",
   "board_strip.class_governor": "ສະມາຊິກຄະນະບໍລິຫານທີ່ຖືກແຕ່ງຕັ້ງ",
   "board_strip.class_owner_elected": "ເລືອກໂດຍເຈົ້າຂອງ",
   "board_strip.class_worker_elected": "ເລືອກໂດຍພະນັກງານ",

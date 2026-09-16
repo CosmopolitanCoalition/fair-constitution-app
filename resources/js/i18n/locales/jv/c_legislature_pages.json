@@ -473,7 +473,7 @@
   "districts.tip_district": "Dhaerah pemilihan: {seats} kursi",
   "districts.tip_expand": "Kembangake ing sidebar kanggo ndeleng sub-dhaerah pemilihan",
   "districts.tip_fractional": "Fraksional: {n}",
-  "districts.tip_members_suffix": "· {n} anggota",
+  "districts.tip_members_suffix": " · {n} anggota",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "Ora ditempatake — bisa digabung",
   "districts.toast_autoseed_complete": "Otomatis nyiapake rampung",

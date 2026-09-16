@@ -79,8 +79,8 @@
   "oversight.removal_title": "ရာထူးမှဖယ်ရှားရေး လုပ်ငန်းစဉ်များ",
   "oversight.seat_label": "နေရာ {seat}",
   "oversight.seat_vacated": "နေရာ လစ်လပ်သွားသည်",
-  "oversight.speaker_owncase_suffix": "(လွှတ်တော်ဥက္ကဋ္ဌ — မိမိကိုယ်တိုင်ပါဝင်သော အမှုအတွက် သတ်မှတ်ထားသော ဦးဆောင်သူ လိုအပ်သည်)",
-  "oversight.speaker_suffix": "(လွှတ်တော်ဥက္ကဋ္ဌ)",
+  "oversight.speaker_owncase_suffix": " (လွှတ်တော်ဥက္ကဋ္ဌ — မိမိကိုယ်တိုင်ပါဝင်သော အမှုအတွက် သတ်မှတ်ထားသော ဦးဆောင်သူ လိုအပ်သည်)",
+  "oversight.speaker_suffix": " (လွှတ်တော်ဥက္ကဋ္ဌ)",
   "oversight.special_election": "အထူးရွေးကောက်ပွဲ {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — မိမိကိုယ်တိုင်ပါဝင်သော အမှုတွင် ဦးဆောင်မှုကို ကုဒ်ဖြင့် ပိတ်ထားသည်",
   "oversight.spk_form_name": "စွပ်စွဲပြစ်တင်ခြင်း/ပြစ်တင်ရှုတ်ချခြင်း/နှင်ထုတ်ခြင်း ဦးဆောင်မှု",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "လစ်လပ်နေရာများ",
   "oversight.vacancy_countback_link": "လစ်လပ်နေရာ {status} — ပြန်လည်ရေတွက်ခြင်း စာမျက်နှာ →",
   "oversight.vacancy_state_aria": "လစ်လပ်နေရာ အခြေအနေထိန်းချုပ်စနစ်",
-  "oversight.you_suffix": "(သင်)",
+  "oversight.you_suffix": " (သင်)",
   "referendums.about": "CLK-19 အကာအကွယ်သည် အတည်ပြုစစ်ဆေးသည့် ဂိတ်တစ်ခုဖြစ်ပြီး အချိန်မှတ်နာရီမဟုတ်ပါ - လူဦးရေအထူးအများစု၏ ဆုံးဖြတ်ချက်အပေါ် F-LEG-034 တင်သွင်းမှုသည် မဲမပေးမီ ကိုးကားချက်နှင့်အတူ ပယ်ချခံရမည်ဖြစ်ပြီး၊ ပယ်ချမှုကိုယ်တိုင်သည် စာရင်းစစ်မှတ်တမ်းတွင် ရှိနေမည်ဖြစ်သည်။ နောက်တစ်ကြိမ် အထွေထွေရွေးကောက်ပွဲ အတည်ပြုပြီးသောအခါ အကာအကွယ်သည် ပျက်ပြယ်သွားမည်ဖြစ်ပြီး ဆန္ဒခံယူပွဲ ဆုံးဖြတ်ချက်များသည် သာမန်လမ်းကြောင်းမှတစ်ဆင့် ပြင်ဆင်နိုင်မည်ဖြစ်သည်။",
   "referendums.act_ordinary": "သာမန်ဆုံးဖြတ်ချက် — အများစုအဆင့်",
   "referendums.act_setting_change": "သတ်မှတ်ချက်ပြောင်းလဲမှု ဆုံးဖြတ်ချက် — အများစုအဆင့်",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "ပိုမိုကိုယ်စားပြုမှု-",
   "type_b_districts.overcount": "ပိုမိုရေတွက်မှု",
   "type_b_districts.pan_mode": "Pan မုဒ်",
-  "type_b_districts.parts_suffix": "= {total} ပိုင်း",
+  "type_b_districts.parts_suffix": " = {total} ပိုင်း",
   "type_b_districts.pe_bad": "မကောင်းပါ (>10%):",
   "type_b_districts.pe_district_count": "({n} မဲဆန္ဒနယ်များ)",
   "type_b_districts.pe_good": "ကောင်းသည် (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "တစ်ပြေးညီ နိုင်ငံရေးမတူကွဲပြားမှု",
   "type_b_districts.vertex_snap_unavailable": "Vertex snapping ကို အသုံးမပြုနိုင်ပါ — ဤကိရိယာ၏ ရေးဆွဲမှု library ပြောင်းလဲသွားပါသည်။",
   "type_b_districts.view_leg_districts": "ဥပဒေပြုမဲဆန္ဒနယ်များကို ကြည့်ရန် →",
-  "type_b_districts.wizard_paused": "Wizard ကို ခေတ္တရပ်နားထားသည်။"
+  "type_b_districts.wizard_paused": " Wizard ကို ခေတ္တရပ်နားထားသည်။"
 }

@@ -79,8 +79,8 @@
   "oversight.removal_title": "ہٹانے کی کارروائیاں",
   "oversight.seat_label": "نشست {seat}",
   "oversight.seat_vacated": "نشست خالی ہو گئی",
-  "oversight.speaker_owncase_suffix": "(اسپیکر — اپنے کیس کے لیے ایک مقررہ صدر کی ضرورت ہے)",
-  "oversight.speaker_suffix": "(اسپیکر)",
+  "oversight.speaker_owncase_suffix": " (اسپیکر — اپنے کیس کے لیے ایک مقررہ صدر کی ضرورت ہے)",
+  "oversight.speaker_suffix": " (اسپیکر)",
   "oversight.special_election": "خصوصی انتخاب {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — کوڈ میں اپنے کیس کی صدارت بلاک ہے",
   "oversight.spk_form_name": "عہدے سے ہٹانے/ملامت/نکالنے کی صدارت",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "خالی نشستیں",
   "oversight.vacancy_countback_link": "خالی نشست {status} — دوبارہ گنتی کا صفحہ →",
   "oversight.vacancy_state_aria": "خالی نشست اسٹیٹ مشین",
-  "oversight.you_suffix": "(آپ)",
+  "oversight.you_suffix": " (آپ)",
   "referendums.about": "CLK-19 شیلڈ ایک ویلیڈیٹر گیٹ ہے، ٹائمر نہیں: آبادی کی خصوصی اکثریت کے فیصلے کے خلاف F-LEG-034 فائلنگ ووٹ سے پہلے حوالہ کے ساتھ مسترد کر دی جاتی ہے، اور یہ مستردگی خود آڈٹ چین پر درج ہوتی ہے۔ شیلڈ تب ختم ہوتی ہے جب اگلا عام انتخاب تصدیق کرتا ہے — ریفرنڈم فیصلے پھر عام راستے سے ترمیم کرتے ہیں۔",
   "referendums.act_ordinary": "عام فیصلہ — اکثریت کی کلاس",
   "referendums.act_setting_change": "سیٹنگ تبدیلی کا فیصلہ — اکثریت کی کلاس",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "زیادہ نمائندگی:",
   "type_b_districts.overcount": "زیادہ گنتی",
   "type_b_districts.pan_mode": "پین موڈ",
-  "type_b_districts.parts_suffix": "= {total} حصے",
+  "type_b_districts.parts_suffix": " = {total} حصے",
   "type_b_districts.pe_bad": "خراب (>10%):",
   "type_b_districts.pe_district_count": "({n} حلقے)",
   "type_b_districts.pe_good": "اچھا (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "یکساں سیاسی تنوع",
   "type_b_districts.vertex_snap_unavailable": "ورٹیکس اسنیپنگ دستیاب نہیں ہے — اس ٹول کی ڈرائنگ لائبریری تبدیل ہو گئی ہے۔",
   "type_b_districts.view_leg_districts": "مقننہ کے حلقے دیکھیں →",
-  "type_b_districts.wizard_paused": "وزرڈ رک گیا ہے۔"
+  "type_b_districts.wizard_paused": " وزرڈ رک گیا ہے۔"
 }

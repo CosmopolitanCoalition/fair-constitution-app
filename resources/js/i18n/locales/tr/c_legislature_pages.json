@@ -473,7 +473,7 @@
   "districts.tip_district": "Seçim bölgesi: {seats} sandalye",
   "districts.tip_expand": "Alt seçim bölgelerini görmek için yan panelde genişletin",
   "districts.tip_fractional": "Kesirli: {n}",
-  "districts.tip_members_suffix": "· {n} üye",
+  "districts.tip_members_suffix": " · {n} üye",
   "districts.tip_pop": "Nüfus: {n}",
   "districts.tip_unassigned": "Atanmamış — birleştirilebilir",
   "districts.toast_autoseed_complete": "Otomatik tohumlama tamamlandı",

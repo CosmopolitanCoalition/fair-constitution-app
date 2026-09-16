@@ -294,7 +294,7 @@
     "provider": "ollama"
   },
   ":seated of :serving serving members seated": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9140,7 +9140,7 @@
     "provider": "ollama"
   },
   "validation.min.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

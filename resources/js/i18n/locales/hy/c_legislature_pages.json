@@ -473,7 +473,7 @@
   "districts.tip_district": "Ընտրատարածք՝ {seats} տեղ",
   "districts.tip_expand": "Ընդլայնեք կողային վահանակում՝ ենթատարածքները տեսնելու համար",
   "districts.tip_fractional": "Կոտորակային՝ {n}",
-  "districts.tip_members_suffix": "· {n} անդամ",
+  "districts.tip_members_suffix": " · {n} անդամ",
   "districts.tip_pop": "Բնակչություն՝ {n}",
   "districts.tip_unassigned": "Չնշանակված՝ համադրելի",
   "districts.toast_autoseed_complete": "Ավտոմատ լցումն ավարտված է",

@@ -292,7 +292,7 @@
     "provider": "ollama"
   },
   ":seated of :serving serving members seated": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1370,7 +1370,7 @@
     "provider": "ollama"
   },
   "Art. I (Freedom of Assembly) — granting confers R-07": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -4219,7 +4219,7 @@
     "provider": "ollama"
   },
   "Investigation :code is now investigating (I-ADM).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

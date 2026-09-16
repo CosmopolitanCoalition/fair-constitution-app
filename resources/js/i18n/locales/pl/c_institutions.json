@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Rejestracja adwokata jest otwarta dla każdego powiązanego mieszkańca, ale najpierw w Twojej jurysdykcji musi istnieć sąd — sądy powstają, gdy utworzy je zgromadzenie ustawodawcze (F-LEG-017).",
   "advocate_console.no_judiciary_title": "W Twoim łańcuchu powiązań nie ma jeszcze władzy sądowniczej.",
   "advocate_console.no_matching_page": "Na tej stronie nie ma pasujących spraw. Spróbuj innego tytułu lub numeru akt.",
-  "advocate_console.not_seated_suffix": "(jeszcze bez mandatu)",
+  "advocate_console.not_seated_suffix": " (jeszcze bez mandatu)",
   "advocate_console.not_yet": "Jeszcze nie",
   "advocate_console.open_case": "Otwórz sprawę →",
   "advocate_console.open_case_short": "Otwórz sprawę",

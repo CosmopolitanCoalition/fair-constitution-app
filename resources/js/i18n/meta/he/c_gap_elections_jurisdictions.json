@@ -32,7 +32,7 @@
     "provider": "ollama"
   },
   "home.contains_one": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

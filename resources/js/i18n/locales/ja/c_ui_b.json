@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "追加:",
+  "law_diff.added": "追加: ",
   "law_diff.label": "法律本文の変更",
-  "law_diff.removed": "削除:",
+  "law_diff.removed": "削除: ",
   "planned_banner.default_body": "この地域の設計は構築前に行われています。まだ何も稼働しておらず、実際の資金も存在しません。",
   "planned_banner.title": "計画中 — プレビュー。",
   "selection_identity.aria_org": "{name} の組織記録、参照 {id}",

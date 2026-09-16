@@ -100,6 +100,7 @@
   "organizations_codetermination.required_wf_org_04_wf_org_05": "ضروري · WF-ORG-04 → WF-ORG-05",
   "organizations_codetermination.template_default_founding_value": "د Template ډیفالټ · بنسټیز قیمت",
   "organizations_codetermination.the_active_worker_headcount_at_which_the_f": "د فعالو کارګرانو هغه شمېر چې په هغه کې لومړۍ د کارګرانو ټاکل شوې څوکۍ اړینه وي. په حدودو کې د بدلون وړ — دا {bounds_gloss}.",
+  "organizations_codetermination.the_headcount_at_which_worker_seats_reach_": "هغه شمېر چې په هغه کې د کارګرانو څوکۍ د مالکانو سره برابرېږي — ceiling. په محدودو چوکاټونو کې د تغیر وړ دی — دا {bounds_gloss}.",
   "organizations_codetermination.the_scale_applies_equally_every_board_one_": "کاله په برابره توګه تطبیق کیږي — هر بورډ، یو انجن",
   "organizations_codetermination.the_scale_binds_from_the_first_qualifying_": "کاله د لومړي وړ سازمان څخه تړلی کیږي — لومړی ځل چې د کارګمار د فعالو کارګرانو شمېر د CLK-13 کمترین حد ({clk13}) څخه تیره شي، د هغه سطر دلته ښکاره کیږي او لاندې ته بدلیږي → کاله · 1 څوکۍ له composition_valid=false او د کارګرانو ټاکنو سره. تر هغه وخته پورته پلټونکی په بشپړ ډول فعال دی.",
   "organizations_codetermination.the_scale_explorer": "کاله — پلټونکی",

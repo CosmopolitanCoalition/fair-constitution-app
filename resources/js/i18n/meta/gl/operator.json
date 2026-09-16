@@ -732,7 +732,7 @@
     "provider": "ollama"
   },
   "operator_operations.zone_token_stored": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

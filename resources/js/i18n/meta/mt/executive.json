@@ -657,7 +657,7 @@
   },
   "executive_home.elected_committee_pr_stv_winners_with_equa": {
     "status": "review",
-    "reason": "citation altered",
+    "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "executive_home.elected_principal_office": {

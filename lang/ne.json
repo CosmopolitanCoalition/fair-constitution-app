@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "यसलाई /vacancies/:id मा ट्र्याक गर्नुहोस्।",
+  " Track it at /vacancies/:id.": " यसलाई /vacancies/:id मा ट्र्याक गर्नुहोस्।",
   "% of jurisdiction population · CLK-17": "अधिकारक्षेत्रको जनसंख्याको CLK-17%",
   "+:count more candidate with first-preference support": "पहिलो प्राथमिकताको समर्थन भएका थप :count उम्मेदवार",
   "+:count more candidates with first-preference support": "पहिलो प्राथमिकताको समर्थन भएका थप :count उम्मेदवारहरू",
@@ -2025,7 +2025,7 @@
   "You left the room.": "तपाईं कोठाबाट बाहिर निस्कनुभयो।",
   "You sit on more than one court — showing one; switch from the court page.": "तपाईं एकभन्दा बढी अदालतमा हुनुहुन्छ — एउटा देखाइएको छ; अदालत पृष्ठबाट परिवर्तन गर्नुहोस्।",
   "You sit on more than one department board — showing one; pick another from its department page.": "तपाईं एकभन्दा बढी विभाग बोर्डमा हुनुहुन्छ — एउटा देखाइएको छ; विभाग पृष्ठबाट अर्को छान्नुहोस्।",
-  "You: ": "तपाईं:",
+  "You: ": "तपाईं: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "तपाईंको खाता, तपाईंका निर्णयहरू — प्रतिपक्षहरू खाताहरू हुन्, व्यक्तिहरू होइनन् · Art. I",
   "Your chair ranking has been recorded.": "तपाईंको अध्यक्ष वरीयता दर्ता गरिएको छ।",
   "Your client retains you; the retainer is recorded with the filing.": "तपाईंको ग्राहकले तपाईंलाई नियुक्त गरेको छ; नियुक्ति दर्तासँगै अभिलेख गरिएको छ।",

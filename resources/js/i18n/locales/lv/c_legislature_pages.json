@@ -473,7 +473,7 @@
   "districts.tip_district": "Apgabals: {seats} vietas",
   "districts.tip_expand": "Izvidiniet sānu joslā, lai redzētu apakšapgabalus",
   "districts.tip_fractional": "Daudzskaitļa: {n}",
-  "districts.tip_members_suffix": "· {n} locekļi",
+  "districts.tip_members_suffix": " · {n} locekļi",
   "districts.tip_pop": "Pop.: {n}",
   "districts.tip_unassigned": "Nepiešķirts — sastavāms",
   "districts.toast_autoseed_complete": "Automātiskā sēšana pabeigta",

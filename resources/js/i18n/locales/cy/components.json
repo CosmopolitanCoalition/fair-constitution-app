@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Yn llwytho cyfeiriad cosmig…",
+  "cosmicaddresspicker.multiverse": "Amluvers ▸",
+  "schemaupdatebanner.apply_updates": "Hefydwch diweddariadau",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Angenrheg: {pendingLabel} — gwelwch i gyd gymylu cyn cychwyn rhedeg ETL.",
+  "setupstepper.build_districts": "Adeiladu Dosbarths",
+  "setupstepper.confirm_seat_institutions": "Cadarnhau a Rhoi Seddau i Sefydliadau",
+  "setupstepper.constitutional_defaults": "Diffrydau Cyfansoddiad",
+  "setupstepper.cosmic_address": "Cyfeiriad Cosmig",
+  "setupstepper.map_data": "Data Map",
+  "setupstepper.setup_progress": "Dynnias setup"
+}

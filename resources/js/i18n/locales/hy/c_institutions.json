@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Փաստաբանի գրանցումը բաց է ցանկացած կապակցված բնակիչի համար, սակայն նախ պետք է ձեր իրավասության տարածքում գոյություն ունենա դատարան. դատարանները ձևավորվում են, երբ օրենսդիր մարմինը ստեղծում է մեկը (F-LEG-017):",
   "advocate_console.no_judiciary_title": "Ձեր կապակցված շղթայում դեռ չկա դատական իշխանություն:",
   "advocate_console.no_matching_page": "Այս էջում համընկնող գործեր չկան: Փորձեք այլ վերնագիր կամ գործի համար:",
-  "advocate_console.not_seated_suffix": "(դեռ չի զբաղեցրել տեղը)",
+  "advocate_console.not_seated_suffix": " (դեռ չի զբաղեցրել տեղը)",
   "advocate_console.not_yet": "Դեռ ոչ",
   "advocate_console.open_case": "Բացել գործը →",
   "advocate_console.open_case_short": "Բացել գործը",

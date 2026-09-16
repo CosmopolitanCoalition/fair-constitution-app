@@ -122,6 +122,7 @@
   "civic_myrecord.no_representatives_seated_yet_they_appear_": "Még nincsenek beültetett képviselők — itt jelennek meg, amint a lakóhelyed szerinti törvényhozás beül.",
   "civic_myrecord.none_yet_associations_at_every_nesting_lev": "Még nincsenek — minden beágyazási szinten lévő egyesületek itt jelennek meg, amint a lakóhely igazolódik. Jelentkezz lakosként a kezdéshez.",
   "civic_myrecord.nothing_here_yet_finish_your_first_journey": "Még nincs itt semmi — fejezd be az első utad, hogy egyet szerezhess.",
+  "civic_myrecord.one_person_one_profile_profile_v2_contract": "Egy személy, egy profil (profile-v2 szerződés). A Nyilvántartás fül a csak hozzáadással működő auditnapló (WF-SYS-03/04) csak olvasható részlete, amely a saját benyújtásaira szűrt; a Beállítások fül F-IND-002 úton küldi a kéréseket az alkotmányi rendszerbe, így a módosítás és a hozzá tartozó naplóbejegyzés egyszerre kerül rögzítésre. A jelöltség ezen profil egyik fülje — soha nem különálló identitás.",
   "civic_myrecord.one_verified_residency_associations_at_eve": "Egy igazolt lakóhely → egyesületek minden befoglaló szinten · Art. I",
   "civic_myrecord.open_the_election": "Nyiszd meg a választást",
   "civic_myrecord.page_of_entr": "Oldal {current_page} / {last_page} · {total} bejegyzé{entries}",

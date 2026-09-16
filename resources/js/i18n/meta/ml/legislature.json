@@ -1864,7 +1864,7 @@
     "provider": "ollama"
   },
   "legislature_sessionconsole.session_due_in_day_by_discretion_can_never": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

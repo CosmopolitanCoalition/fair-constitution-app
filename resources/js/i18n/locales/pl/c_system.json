@@ -268,7 +268,7 @@
   "audit_chain.missing": "Wpis #{seq} nie został znaleziony w tej instancji. Numery sekwencji mogą mieć luki.",
   "audit_chain.nav_label": "Nawigacja po dzienniku audytu",
   "audit_chain.newer": "Nowsze wpisy",
-  "audit_chain.newest_first": "Najnowsze najpierw ·",
+  "audit_chain.newest_first": "Najnowsze najpierw · ",
   "audit_chain.no_entries_yet": "Brak wpisów",
   "audit_chain.older": "Starsze wpisy",
   "audit_chain.open_receipt": "Otwórz potwierdzenie",

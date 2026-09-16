@@ -165,6 +165,7 @@
   "register.tz_hint": "Päivämäärät näytetään aikavyöhykkeelläsi · tallennettu UTC-muodossa.",
   "register.tz_label": "Aikavyöhyke",
   "report.about": "Jokainen raportti kuuluu yhteen kuudesta aiheesta, ja jokainen ohjautuu yhteen paikkaan: operaattoreille, käännöstuelle, moderointiin ja oikeudelliseen yksikköön tai tuotekehitysjonoonsa. Vastaanotto ohjaa pyynnön; se ei koskaan muokkaa tai poista sisältöä.",
+  "report.abuse_note": "Ilmoitukset väärinkäytöksistä ja laittomasta sisällöstä menevät moderaatio- ja lakitiimille, eivät tukijonoon. Tämän lomakkeen täyttäminen ei poista mitään – sisällön poistaminen tapahtuu perustuslain poikkeusten (F-SOC-003 koneisto) mukaisesti, ei tämän lomakkeen perusteella.",
   "report.body_hint": "Selkeät sanat riittävät. Kerro, mitä odotit ja mitä näit sen sijaan.",
   "report.body_label": "Mitä tapahtui?",
   "report.category_label": "Minkälainen raportti tämä on?",

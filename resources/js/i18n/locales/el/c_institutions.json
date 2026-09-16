@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "Η εγγραφή συνήγορου είναι ανοιχτή σε κάθε σχετικό κάτοικο, αλλά πρέπει πρώτα να υπάρχει δικαστήριο στη δικαιοδοσία σας — τα δικαστήρια δημιουργούνται όταν ένα νομοθετικό σώμα δημιουργήσει ένα (F-LEG-017).",
   "advocate_console.no_judiciary_title": "Δεν υπάρχει ακόμα δικαστική εξουσία στην αλυσίδα ένωσης σας.",
   "advocate_console.no_matching_page": "Δεν υπάρχουν αντίστοιχες υποθέσεις σε αυτή τη σελίδα. Δοκιμάστε άλλον τίτλο ή αριθμό μητρώου.",
-  "advocate_console.not_seated_suffix": "(δεν έχει αναλάβει ακόμα τα καθήκοντα)",
+  "advocate_console.not_seated_suffix": " (δεν έχει αναλάβει ακόμα τα καθήκοντα)",
   "advocate_console.not_yet": "Όχι ακόμα",
   "advocate_console.open_case": "Άνοιγμα υπόθεσης →",
   "advocate_console.open_case_short": "Άνοιγμα υπόθεσης",

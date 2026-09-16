@@ -548,7 +548,7 @@
     "provider": "ollama"
   },
   "elections_electiondetail.a_district_map_5_9_seats_each_must_be_acti": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },
@@ -1273,7 +1273,7 @@
     "provider": "ollama"
   },
   "elections_vacancycountback.phase_b_vacancies_are_dev_seeded_the_f_leg": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

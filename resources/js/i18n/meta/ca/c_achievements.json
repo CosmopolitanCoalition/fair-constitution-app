@@ -136,7 +136,7 @@
     "provider": "ollama"
   },
   "achievement.ach_exe_002": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

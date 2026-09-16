@@ -68,7 +68,7 @@
     "provider": "ollama"
   },
   "national_delta_gt5.reading": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (47/139 chars, floor 0.45)",
     "provider": "ollama"
   },

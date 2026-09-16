@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "تتبعها في /vacancies/:id.",
+  " Track it at /vacancies/:id.": " تتبعها في /vacancies/:id.",
   "% of jurisdiction population · CLK-17": "% من سكان الولاية القضائية · CLK-17",
   "+:count more candidate with first-preference support": "+:count مرشّح إضافي بدعم التفضيل الأول",
   "+:count more candidates with first-preference support": "+:count مرشّحين إضافيين بدعم التفضيل الأول",
@@ -72,6 +72,7 @@
   ":place judiciary (forming)": "السلطة القضائية لـ :place (قيد التشكيل)",
   ":place judiciary hears disputes (forming · Phase E)": "السلطة القضائية لـ :place تنظر في النزاعات (قيد التشكيل · المرحلة E)",
   ":place legislature": "الهيئة التشريعية لـ :place",
+  ":seated of :serving serving members seated": ":seated من :serving أعضاء شاغلين للمقاعد",
   ":seats seats is outside the constitutional band [:hard_floor, :hard_ceiling] — above :hard_ceiling the body must be subdivided.": ":seats مقاعد خارج النطاق الدستوري [:hard_floor, :hard_ceiling] — فوق :hard_ceiling يجب تقسيم الهيئة.",
   ":size judges": "قضاة :size",
   ":size judges + jury": "قضاة :size + هيئة محلّفين",
@@ -2024,7 +2025,7 @@
   "You left the room.": "غادرت الغرفة.",
   "You sit on more than one court — showing one; switch from the court page.": "تعمل في أكثر من محكمة واحدة — يتم عرض واحدة؛ بدّل من صفحة المحكمة.",
   "You sit on more than one department board — showing one; pick another from its department page.": "تعمل في أكثر من مجلس إدارة قسم واحد — يتم عرض واحد؛ اختر آخر من صفحة القسم.",
-  "You: ": "أنت:",
+  "You: ": "أنت: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "حسابك، أعمالك — الأطراف المقابلة هي حسابات، وليست أشخاصاً أبداً · Art. I",
   "Your chair ranking has been recorded.": "تم تسجيل ترتيب رئاستك.",
   "Your client retains you; the retainer is recorded with the filing.": "العميل يحتفظ بك؛ يتم تسجيل التعاقد مع تقديم الطلب.",

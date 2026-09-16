@@ -473,7 +473,7 @@
   "districts.tip_district": "Изборна јединица: {seats} места",
   "districts.tip_expand": "Проширите у бочној траци да видите под-јединице",
   "districts.tip_fractional": "Деоно: {n}",
-  "districts.tip_members_suffix": "· {n} чланова",
+  "districts.tip_members_suffix": " · {n} чланова",
   "districts.tip_pop": "Стан. бр: {n}",
   "districts.tip_unassigned": "Недодељено — композибилно",
   "districts.toast_autoseed_complete": "Аутоматско постављање завршено",

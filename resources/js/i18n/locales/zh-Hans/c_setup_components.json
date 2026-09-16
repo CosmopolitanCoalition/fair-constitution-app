@@ -84,6 +84,7 @@
   "live_progress.resume_title": "恢复暂停的 ETL 子进程 (SIGCONT)",
   "live_progress.resuming": "恢复中…",
   "live_progress.retry": "重试",
+  "live_progress.retry_title": "重新运行此国家。如果您修复了底层问题（例如恢复了损坏的文件），此操作将很有用。",
   "live_progress.retrying": "重试中…",
   "live_progress.run_completed": "运行完成。",
   "live_progress.run_failed": "运行失败 (退出码 {code})。",

@@ -973,7 +973,7 @@
     "provider": "ollama"
   },
   "settings_page.in_range_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

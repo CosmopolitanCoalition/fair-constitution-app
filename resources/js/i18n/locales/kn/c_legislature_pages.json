@@ -473,7 +473,7 @@
   "districts.tip_district": "ಕ್ಷೇತ್ರ: {seats} ಸ್ಥಾನಗಳು",
   "districts.tip_expand": "ಉಪ-ಕ್ಷೇತ್ರಗಳನ್ನು ನೋಡಲು ಸೈಡ್‌ಬಾರ್‌ನಲ್ಲಿ ವಿಸ್ತರಿಸಿ",
   "districts.tip_fractional": "ಭಿನ್ನರಾಶಿ: {n}",
-  "districts.tip_members_suffix": "· {n} ಸದಸ್ಯರು",
+  "districts.tip_members_suffix": " · {n} ಸದಸ್ಯರು",
   "districts.tip_pop": "ಜನಸಂಖ್ಯೆ: {n}",
   "districts.tip_unassigned": "ನಿಯೋಜಿಸದ — ಸಂಯೋಜಿಸಬಹುದಾದ",
   "districts.toast_autoseed_complete": "ಆಟೋ-ಸೀಡ್ ಪೂರ್ಣಗೊಂಡಿದೆ",

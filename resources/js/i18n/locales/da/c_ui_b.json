@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "tilføjet:",
+  "law_diff.added": "tilføjet: ",
   "law_diff.label": "Ændringer i lovtekst",
-  "law_diff.removed": "fjernet:",
+  "law_diff.removed": "fjernet: ",
   "planned_banner.default_body": "Denne del af verden er designet før opbygningen. Intet her er live endnu, og der er ingen rigtige penge involveret.",
   "planned_banner.title": "Planlagt — en forhåndsvisning.",
   "selection_identity.aria_org": "Organisationsoptegnelse for {name}, reference {id}",

@@ -1956,7 +1956,7 @@
     "provider": "ollama"
   },
   "refer_to_wf_leg_17_ebc2fd96": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2159,7 +2159,7 @@
     "provider": "ollama"
   },
   "seat_r_18_governors_politically_neutral__eb4b200d": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

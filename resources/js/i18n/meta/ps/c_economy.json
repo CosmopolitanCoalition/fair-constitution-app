@@ -1424,7 +1424,7 @@
     "provider": "ollama"
   },
   "market.register_item_in": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Stebėkite /vacancies/:id.",
+  " Track it at /vacancies/:id.": " Stebėkite /vacancies/:id.",
   "% of jurisdiction population · CLK-17": "% jurisdikcijos gyventojų · CLK-17",
   "+:count more candidate with first-preference support": "+:count daugiau kandidatų su pirmąsio pasirinkimo palaikymu",
   "+:count more candidates with first-preference support": "+:count daugiau kandidatų su pirmąsio pasirinkimo palaikymu",
@@ -2025,7 +2025,7 @@
   "You left the room.": "Išėjote iš kambario.",
   "You sit on more than one court — showing one; switch from the court page.": "Dirbate daugiau nei viename teisme — rodomas vienas; pakeiskite teismo puslapyje.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Dirbate daugiau nei vienoje departamentų valdyboje — rodoma viena; pasirinkite kitą departAMENTO puslapyje.",
-  "You: ": "Jūs:",
+  "You: ": "Jūs: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Jūsų paskyra, jūsų sprendimai — kontrahentai yra paskyros, ne žmonės · Art. I",
   "Your chair ranking has been recorded.": "Jūsų pirmininko reitingas įregistruotas.",
   "Your client retains you; the retainer is recorded with the filing.": "Klientas jus išlaiko; sutartis įregistruota kartu su dokumentais.",

@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "დაემატა:",
+  "law_diff.added": "დაემატა: ",
   "law_diff.label": "კანონის ტექსტის ცვლილებები",
-  "law_diff.removed": "წაშლილია:",
+  "law_diff.removed": "წაშლილია: ",
   "planned_banner.default_body": "სამყაროს ეს ნაწილი შექმნილია მშენებლობამდე. აქ ჯერ არაფერია აქტიური და რეალური ფული არსად არის.",
   "planned_banner.title": "დაგეგმილი — წინასწარი ნახვა.",
   "selection_identity.aria_org": "ორგანიზაციის ჩანაწერი {name}-სთვის, რეფერენსი {id}",

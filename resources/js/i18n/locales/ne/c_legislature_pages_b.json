@@ -79,8 +79,8 @@
   "oversight.removal_title": "हटाउने प्रक्रियाहरू",
   "oversight.seat_label": "सिट {seat}",
   "oversight.seat_vacated": "सिट खाली भएको",
-  "oversight.speaker_owncase_suffix": "(सभामुख — आफ्नै मुद्दाको लागि तोकिएको अध्यक्ष आवश्यक हुन्छ)",
-  "oversight.speaker_suffix": "(सभामुख)",
+  "oversight.speaker_owncase_suffix": " (सभामुख — आफ्नै मुद्दाको लागि तोकिएको अध्यक्ष आवश्यक हुन्छ)",
+  "oversight.speaker_suffix": " (सभामुख)",
   "oversight.special_election": "विशेष निर्वाचन {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — कोडमा आफ्नै मुद्दाको अध्यक्षता रोक्का गरिएको छ",
   "oversight.spk_form_name": "महाभियोग/भर्त्सना/निष्कासन अध्यक्षता",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "रिक्त सिटहरू",
   "oversight.vacancy_countback_link": "रिक्त सिट {status} — पुनर्गणना पृष्ठ →",
   "oversight.vacancy_state_aria": "रिक्त सिट स्टेट मेसिन",
-  "oversight.you_suffix": "(तपाईं)",
+  "oversight.you_suffix": " (तपाईं)",
   "referendums.about": "CLK-19 शिल्ड एक भ्यालिडेटर गेट हो, टाइमर होइन: जनसंख्या-विशेष बहुमत निर्णय विरुद्धको F-LEG-034 फाइलिङ भोटभन्दा पहिले नै उद्धरणसहित अस्वीकृत हुन्छ, र उक्त अस्वीकृति लेखापरीक्षण श्रृंखलामा दर्ता हुन्छ। अर्को आम निर्वाचन प्रमाणित भएपछि शिल्ड हट्छ — त्यसपछि जनमतसंग्रह निर्णयहरू साधारण प्रक्रियाबाट संशोधन हुन्छन्।",
   "referendums.act_ordinary": "साधारण निर्णय — बहुमत वर्ग",
   "referendums.act_setting_change": "सेटिङ-परिवर्तन निर्णय — बहुमत वर्ग",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "अति-प्रतिनिधित्व:",
   "type_b_districts.overcount": "अति-गणना",
   "type_b_districts.pan_mode": "प्यान मोड",
-  "type_b_districts.parts_suffix": "= {total} भागहरू",
+  "type_b_districts.parts_suffix": " = {total} भागहरू",
   "type_b_districts.pe_bad": "खराब (>१०%):",
   "type_b_districts.pe_district_count": "({n} निर्वाचन क्षेत्रहरू)",
   "type_b_districts.pe_good": "राम्रो (≤५%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "समान राजनीतिक विविधता",
   "type_b_districts.vertex_snap_unavailable": "भर्टेक्स स्नापिङ उपलब्ध छैन — यस उपकरणको ड्रइङ लाइब्रेरी परिवर्तन भएको छ।",
   "type_b_districts.view_leg_districts": "विधायी निर्वाचन क्षेत्रहरू हेर्नुहोस् →",
-  "type_b_districts.wizard_paused": "विजार्ड रोकिएको छ।"
+  "type_b_districts.wizard_paused": " विजार्ड रोकिएको छ।"
 }

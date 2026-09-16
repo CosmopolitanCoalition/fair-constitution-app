@@ -473,7 +473,7 @@
   "districts.tip_district": "Distrett: {seats} siġġijiet",
   "districts.tip_expand": "Espandi fis-sidebar biex tara s-sub-distretti",
   "districts.tip_fractional": "Frazzjonali: {n}",
-  "districts.tip_members_suffix": "· {n} membri",
+  "districts.tip_members_suffix": " · {n} membri",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "mhux assignat — compositable",
   "districts.toast_autoseed_complete": "Auto-seed lest",

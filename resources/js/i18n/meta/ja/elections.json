@@ -380,7 +380,7 @@
     "provider": "ollama"
   },
   "elections_candidateprofile.awaiting_board_validation_the_race_binding": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

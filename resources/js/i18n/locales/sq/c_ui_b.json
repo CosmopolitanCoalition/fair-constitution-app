@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "shtuar:",
+  "law_diff.added": "shtuar: ",
   "law_diff.label": "Ndryshimet në tekstin e ligjit",
-  "law_diff.removed": "hequr:",
+  "law_diff.removed": "hequr: ",
   "planned_banner.default_body": "Kjo pjesë e botës është projektuar përpara ndërtimit. Asgjë këtu nuk është aktive ende dhe nuk ka para reale askund",
   "planned_banner.title": "E planifikuar — një parapryesje.",
   "selection_identity.aria_org": "Regjistri i organizatës për {name}, referenca {id}",

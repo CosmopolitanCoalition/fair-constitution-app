@@ -166,6 +166,7 @@
   "judiciary_home.panel_sizing_is_a_hard_constraint_clk_16_a": "パネルサイズはハード制約です · CLK-16 · Art. IV §4",
   "judiciary_home.panels_of_at_least_3_odd_scaled_to_severit": "パネルは3名以上の奇数で、重大度に応じて調整されます。主要な憲法上の問題については全裁判所が担当します · Art. IV §4 · CLK-16 — 選出された裁判官（移行後の場合）は少なくとも {min_judges_per_race} 名のグループで出馬します · Art. IV §4 · CLK-15",
   "judiciary_home.severity_scaling_the_heavier_the_possible_": "重大度スケーリング：想定される結果が深刻であるほど、より多くの裁判官が審理する必要があります。パネルは常に奇数であるため、ケースが停滞することはありません。",
+  "judiciary_home.supermajority_of_legislature_supermajority": "立法府の特別多数 + 有権者の管轄区域の特別多数 · Art. IV §3 — 人種ごとに少なくとも {min_judges_per_race} のグループ · CLK-15 · Art. IV §4 — 任期の同期 · CLK-10",
   "judiciary_home.supermajority_two_thirds_of_all_serving_me": "特別多数：全現職議員の3分の2 — 出席者のみではなく、議席を持つ全員を対象にカウントされます (ceil(現職 × 2/3) · Art. VII)。",
   "judiciary_home.term_length_judicial_appointments": "任期 — 司法任命",
   "judiciary_home.term_sync_on_the_chamber_page": "議場ページでの任期同期 →",

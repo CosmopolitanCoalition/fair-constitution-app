@@ -2108,7 +2108,7 @@
     "provider": "ollama"
   },
   "emergency_powers.about": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2225,7 +2225,7 @@
     "provider": "ollama"
   },
   "emergency_powers.methods_placeholder": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 0",
     "provider": "ollama"
   },

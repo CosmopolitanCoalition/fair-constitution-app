@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Fylgistu með því á /vacancies/:id.",
+  " Track it at /vacancies/:id.": " Fylgistu með því á /vacancies/:id.",
   "% of jurisdiction population · CLK-17": "% af íbúum lögsagnarumdæmis · CLK-17",
   "+:count more candidate with first-preference support": "+:count frambjóðandi til viðbót með fyrsta kosti",
   "+:count more candidates with first-preference support": "+:count frambjóðendur til viðbót með fyrsta kosti",
@@ -1086,6 +1086,7 @@
   "Jurisdiction boundaries (geoBoundaries)": "Landamæri lögsagnarumdæmis (geoBoundaries)",
   "Juror view": "Sýn kviðdómaskilnings",
   "Jury Selection Order": "Skipun um val kviðdóms",
+  "Jury of peers · Art. IV §4 — no interference, no fees · Art. II §8": "Kviðdómur jafna þeirra · Art. IV §4 — engin truflun, engin gjaldgreiðsla · Art. II §8",
   "Jury selection": "Val kviðdóms",
   "Jury selection ordered — jurors drawn at random from the eligible pool; the selection seed is published to the audit chain (F-JDG-002 · Art. IV §4 · WF-JUD-04).": "Skipun um val kviðdóms — kviðdómarir eru dregnir tilviljáris úr hæfnihópi; valbeita er birt í endurskoðunarskrá (F-JDG-002 · Art. IV §4 · WF-JUD-04).",
   "Justice": "Réttlæti",
@@ -2024,7 +2025,7 @@
   "You left the room.": "Þú yfirgaf herbergið.",
   "You sit on more than one court — showing one; switch from the court page.": "Þú situr í meira en einum dómstóli — sýntur er einn; skiptu á síðu dómstólsins.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Þú situr í meira en einni stjórn innan ráðuneytis — sýnt er ein; veldu aðra á síðu ráðuneytisins.",
-  "You: ": "Þú:",
+  "You: ": "Þú: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Reikningur þinn, aðgerðir þínar — mótaðilar eru reikningar, aldrei einstaklingar · Art. I",
   "Your chair ranking has been recorded.": "Röðun þín sem formaður hefur verið skráð.",
   "Your client retains you; the retainer is recorded with the filing.": "Viðskiptavinur þinn heldur þér; vístuðningurinn er skráður með innsendingunni.",

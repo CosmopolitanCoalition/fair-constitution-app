@@ -292,7 +292,7 @@
     "provider": "ollama"
   },
   ":seated of :serving serving members seated": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1765,202 +1765,202 @@
     "provider": "ollama"
   },
   "Art. III §4 — triggers the F-LEG-020 consent vote (peg-quorum majority of all serving)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §4, §6 — owner track; the same PR-STV engine as public elections": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §5 (a settlement records a commercial one)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §5 (conversion provisions)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §5 (publication under the public-domain dedication)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §5 (revise an existing module by its key)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §5 (the Open Market)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §5 — public→private runs through the legislature; public-domain IP stays public": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §5 — removal by ordinary majority of all serving through the creating legislature": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §5 — the legislature creates; oversight assigned at creation": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §5 — the only path overriding owner consent; ordinary majority of all serving": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §6 (Work Councils) — THE co-determination headcount feed · CLK-13 / CLK-14": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §6 (a hire records a labor agreement)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §6 (filed on acceptance — the hire chain)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §6 — composition change re-triggers the joint chair election": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §6 — seated members jointly elect the board chair": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. III §6 — worker track; also fired system-side by CLK-13": {
     "status": "review",
-    "reason": "provider returned nothing",
+    "reason": "ID token altered",
     "provider": "ollama"
   },
   "Art. IV §2 — judicial nomination confirmed by a majority of all serving members": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §2 — judiciary creation by supermajority act of the legislature": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §3 — conversion to elected, dual supermajority (legislature + constituent jurisdictions)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — brief / argument; accepted until deliberation": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — case acceptance + conflict-screened panel; hardened": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — case acceptance + panel assignment with conflict screening; hardened": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — civil/criminal case filing": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — civil/criminal case filing; the court classifies justiciability + severity at acceptance": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — deliberation order; submits the case (heard → deliberation)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — dismissal order; not justiciable or withdrawn, with a stated reason": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — evidence submission": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — evidence submission; on the open docket": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — hearing order; opens arguments (paneled/jury_empaneled → heard)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — jury selection order; random draw, seed published to the audit chain": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — motion / evidence ruling; an appended follow-up with a written reason": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — motion filing": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — motion filing; stage-gated by the engine": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4 — the Jury Selection Order that created this summons": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §4; Art. I — advocate registration; confers R-21, keeps the bar zealous and competent": {
     "status": "review",
-    "reason": "provider returned nothing",
+    "reason": "ID token altered",
     "provider": "ollama"
   },
   "Art. IV §4–§5 — opinion / ruling, commentary on the law as written or edited; on an appeal case it carries the appellate outcome (IO-2)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §5 — constitutional challenge filing; any inhabitant, no standing gatekeeper": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §5 — constitutional challenge; any inhabitant, no standing gatekeeper": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "Art. IV §5 — constitutional finding (a contradiction in law)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
@@ -3347,7 +3347,7 @@
     "provider": "ollama"
   },
   "Endorsement withdrawn (F-ORG-002) — R-07 no longer derives from it; the organization may re-endorse at any time while the candidacy stands.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3538,7 +3538,7 @@
     "provider": "ollama"
   },
   "F-ADV-001 names the client by registered name or email — \":client\" did not resolve to a resident.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3553,7 +3553,7 @@
     "provider": "ollama"
   },
   "F-BOG-001 names a chartered department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3568,7 +3568,7 @@
     "provider": "ollama"
   },
   "F-BOG-002 names a chartered department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -6954,7 +6954,7 @@
     "provider": "ollama"
   },
   "The drawn district holds :pop people (:fractional of the local quota :quota) — :seats seats, outside the resolved band [:floor, :ceiling]. Redraw it larger or smaller.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7115,202 +7115,202 @@
     "provider": "ollama"
   },
   "The participant is on the witness stand. Testimony remains part of the formal case record.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The physical-law compliance floor is exercised on the OPERATOR plane (an active operator account authenticated by key-possession) — it is not a constitutional office and carries no role code; a forged or absent operator is refused.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The polygon lies entirely outside :name.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The power expired before the renewal vote closed (status: :status) — nothing rolls over silently; a new declaration is required.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The proper board retires the bootstrap board and takes custody of elections.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The public square": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The public square cannot be censored — a post may be removed ONLY under a logged carve-out (a judicial order, or protecting another's rights), never on viewpoint or discretion.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The ranked ballot requires a jurisdictional association inside this race — voting and candidacy unlock together at residency verification (Art. I). You can browse the open ballot.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The recorded bench slate was confirmed together.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The remainder is split into :parts pieces — draw those separately.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The removal vote opens only once a presider is designated (removal.presider, Art. II §3).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The renewal window opens :opensAt (the final :windowDays days before expiry) — a renewal vote this early would pre-commit a future chamber.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The renewed window, so a renewal can also be walked to its end.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The role-grant request is not open.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The room is updating its speaking queue. Please try again.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The root legislature": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The scope has no geometry.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The seated leg has not been opened.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The seed list for the post-game redraft — every \"as implemented\" marker resolves here": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The selected share recipient no longer exists.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The simulation run is not done yet. Let it finish before locking Step 5.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The speaking queue has been updated.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The speaking queue is full. Please try again after a speaker is recognized.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The spine. Every constitutional clock that is waiting to fire.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The standings or search have changed, or the page link expired. Showing the first page.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The superseded rule does not belong to this department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The system (bootstrap board)": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The tie-breaking vote is the Speaker's own — never the system's.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The unavoidable legal minimum — a hash match or a named judicial order, never a discretionary content call.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "The upgrade proposal is not open.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "There is no “remove for content” or “community-guidelines” action anywhere in the code — the carve-out map knows only the classes above. A removal that isn’t one of them cannot be invoked.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "There is nothing to agree — the constitutional_version is unchanged.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "These are the vital signs of a demonstration world, not a live civilization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This accused has already been prosecuted to a final verdict for this act — a criminal act cannot be prosecuted again.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This act was passed by population supermajority — the legislature cannot modify or repeal it until the next general election certifies; the protection lapses there (CLK-19).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This appointment page link is invalid. Return to the first page.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This bill has no discussion space yet — it opens when the bill is live in the halls.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This board call is not available.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This boardroom is for its current seated members.": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },
   "This box cannot mint the grant — :detail. An authority.grant holder for the scope mints + signs it (the grant is delivered to the grantee for cross-instance requests).": {
-    "status": "review",
+    "status": "machine",
     "reason": "provider returned nothing",
     "provider": "ollama"
   },

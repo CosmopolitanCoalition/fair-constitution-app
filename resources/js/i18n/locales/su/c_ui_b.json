@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "ditambahkeun:",
+  "law_diff.added": "ditambahkeun: ",
   "law_diff.label": "Parobahan téks undang-undang",
-  "law_diff.removed": "dihapus:",
+  "law_diff.removed": "dihapus: ",
   "planned_banner.default_body": "Bagian dunya ieu dirancang sateuacan pangwangunan. Teu aya nu aktif kénéh di dieu, sarta teu aya duit nyata di mana waé.",
   "planned_banner.title": "Dirancang — pratinjau.",
   "selection_identity.aria_org": "Catetan organisasi pikeun {name}, referensi {id}",

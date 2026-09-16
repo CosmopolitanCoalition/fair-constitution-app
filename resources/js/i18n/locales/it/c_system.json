@@ -268,7 +268,7 @@
   "audit_chain.missing": "La voce #{seq} non è stata trovata in questa istanza. I numeri di sequenza possono presentare lacune.",
   "audit_chain.nav_label": "Navigazione registro di audit",
   "audit_chain.newer": "Voci più recenti",
-  "audit_chain.newest_first": "Più recenti per primi ·",
+  "audit_chain.newest_first": "Più recenti per primi · ",
   "audit_chain.no_entries_yet": "Ancora nessuna voce",
   "audit_chain.older": "Voci più vecchie",
   "audit_chain.open_receipt": "Apri ricevuta",

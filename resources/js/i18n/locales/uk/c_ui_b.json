@@ -1,7 +1,7 @@
 {
-  "law_diff.added": "додано:",
+  "law_diff.added": "додано: ",
   "law_diff.label": "Зміни в тексті закону",
-  "law_diff.removed": "вилучено:",
+  "law_diff.removed": "вилучено: ",
   "planned_banner.default_body": "Ця частина світу спроєктована до початку розбудови. Тут ще нічого не працює, і реальні гроші відсутні.",
   "planned_banner.title": "Заплановано — попередній перегляд.",
   "selection_identity.aria_org": "Запис організації для {name}, посилання {id}",

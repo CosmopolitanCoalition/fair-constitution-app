@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "ตัวเลือกประธานคณะกรรมการบริหารของคุณ",
   "board_roster": "สมาชิกคณะกรรมการบริหารและวันที่สิ้นสุดวาระปัจจุบัน",
   "board_strip.cell_vacant": "— ว่าง",
-  "board_strip.chair_suffix": "(ประธานที่เลือกโดยร่วมกัน)",
+  "board_strip.chair_suffix": " (ประธานที่เลือกโดยร่วมกัน)",
   "board_strip.class_governor": "กรรมการบริหารที่ได้รับการแต่งตั้ง",
   "board_strip.class_owner_elected": "เลือกโดยเจ้าของ",
   "board_strip.class_worker_elected": "เลือกโดยคนงาน",

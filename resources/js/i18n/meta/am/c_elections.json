@@ -260,7 +260,7 @@
     "provider": "ollama"
   },
   "board.recount_opens_tail": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -826,7 +826,7 @@
   },
   "map.boundary_unavailable": {
     "status": "review",
-    "reason": "suspiciously short for Ethi — source content likely dropped (21/51 chars, floor 0.45)",
+    "reason": "suspiciously short for Ethi — source content likely dropped (22/51 chars, floor 0.45)",
     "provider": "ollama"
   },
   "map.tiles_unavailable": {

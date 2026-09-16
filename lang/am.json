@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "በ /vacancies/:id ይከታተሉት።",
+  " Track it at /vacancies/:id.": " በ /vacancies/:id ይከታተሉት።",
   "% of jurisdiction population · CLK-17": "የአስተዳደር ክልል የሕዝብ ብዛት % · CLK-17",
   "+:count more candidate with first-preference support": "የመጀመሪያ ምርጫ ድጋፍ ያላቸው ተጨማሪ :count ዕጩ",
   "+:count more candidates with first-preference support": "የመጀመሪያ ምርጫ ድጋፍ ያላቸው ተጨማሪ :count ዕጩዎች",
@@ -2003,7 +2003,7 @@
   "You left the room.": "ከክፍሉ ወጥተዋል።",
   "You sit on more than one court — showing one; switch from the court page.": "ከአንድ በላይ ፍርድ ቤት ውስጥ ተቀምጠዋል — አንዱ ይታያል፤ ከፍርድ ቤቱ ገጽ ይቀይሩ።",
   "You sit on more than one department board — showing one; pick another from its department page.": "ከአንድ በላይ የዲፓርትመንት ቦርድ ውስጥ ተቀምጠዋል — አንዱ ይታያል፤ ከዲፓርትመንቱ ገጽ ሌላውን ይምረጡ።",
-  "You: ": "እርስዎ:",
+  "You: ": "እርስዎ: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "የእርስዎ አካውንት፣ የእርስዎ ውሳኔዎች — ተቃራኒ ወገኖች አካውንቶች ናቸው እንጂ ሰዎች አይደሉም · Art. I",
   "Your chair ranking has been recorded.": "የሰብሳቢነት ደረጃዎ ተመዝግቧል።",
   "Your client retains you; the retainer is recorded with the filing.": "ደንበኛዎ ቀጥሮዎታል፤ የቅጥር ስምምነቱ ከምዝገባው ጋር ተመዝግቧል።",

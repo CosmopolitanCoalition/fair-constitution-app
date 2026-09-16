@@ -460,7 +460,7 @@
     "provider": "ollama"
   },
   "legislature_committeedetail.not_yet_seated_placements_arrive_with_the_": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1761,7 +1761,7 @@
     "provider": "ollama"
   },
   "legislature_sessionconsole.compel_attendance_then_re_publish_the_coun": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

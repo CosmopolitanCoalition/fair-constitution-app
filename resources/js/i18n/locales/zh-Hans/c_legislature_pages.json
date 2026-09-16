@@ -433,7 +433,7 @@
   "districts.tip_district": "选区：{seats} 个席位",
   "districts.tip_expand": "在侧边栏展开以查看子选区",
   "districts.tip_fractional": "分数：{n}",
-  "districts.tip_members_suffix": "· {n} 名成员",
+  "districts.tip_members_suffix": " · {n} 名成员",
   "districts.tip_pop": "人口：{n}",
   "districts.tip_unassigned": "未分配 — 可组合",
   "districts.toast_autoseed_complete": "自动播种完成",

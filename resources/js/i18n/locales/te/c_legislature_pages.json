@@ -473,7 +473,7 @@
   "districts.tip_district": "నియోజకవర్గం: {seats} స్థానాలు",
   "districts.tip_expand": "ఉప-నియోజకవర్గాలను చూడటానికి సైడ్‌బార్‌లో విస్తరించండి",
   "districts.tip_fractional": "భిన్నం: {n}",
-  "districts.tip_members_suffix": "· {n} సభ్యులు",
+  "districts.tip_members_suffix": " · {n} సభ్యులు",
   "districts.tip_pop": "జనాభా: {n}",
   "districts.tip_unassigned": "కేటాయించబడలేదు — కంపోజిటబుల్",
   "districts.toast_autoseed_complete": "ఆటో-సీడ్ పూర్తయింది",

@@ -1941,7 +1941,7 @@
     "provider": "ollama"
   },
   "education_judiciary_constitutional_challenge.s6_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3966,7 +3966,7 @@
     "provider": "ollama"
   },
   "education_system_clocks.learn": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

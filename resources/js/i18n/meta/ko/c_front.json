@@ -609,7 +609,7 @@
     "provider": "ollama"
   },
   "register.lifecycle_h": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Kore — source content likely dropped (10/41 chars, floor 0.25)",
     "provider": "ollama"
   },

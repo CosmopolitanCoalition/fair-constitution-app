@@ -473,7 +473,7 @@
   "districts.tip_district": "Тойрог: {seats} суудал",
   "districts.tip_expand": "Дэд тойргуудыг харахын тулд хажуу цэсэнд дэлгэнэ үзь",
   "districts.tip_fractional": "Бутархай: {n}",
-  "districts.tip_members_suffix": "· {n} гишүүн",
+  "districts.tip_members_suffix": " · {n} гишүүн",
   "districts.tip_pop": "Хүн ам: {n}",
   "districts.tip_unassigned": "Томилоогүй — нэгтгэх боломжтой",
   "districts.toast_autoseed_complete": "Автомат уртгал дууслаа",

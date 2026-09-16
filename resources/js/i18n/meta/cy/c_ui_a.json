@@ -1,0 +1,62 @@
+{
+  "adm_chip.level_0": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "adm_chip.level_1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "adm_chip.level_2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "adm_chip.level_3": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "adm_chip.level_4": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "adm_chip.level_5": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "adm_chip.level_6": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "citation_line.as_implemented": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "data_table.caption_scrollable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "data_table.scrollable_table": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "history_pager.first_page": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "history_pager.load_error": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "history_pager.loading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "history_pager.next": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "history_pager.previous": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

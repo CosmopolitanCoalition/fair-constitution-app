@@ -238,6 +238,7 @@
   "setup_step3_districts.no_root_legislature_found": "មិនឃើញមានអង្គនីតិប្បញ្ញត្តិឫស (root legislature) ទេ។",
   "setup_step3_districts.parents_sized": "ថ្នាក់មេត្រូវបានកំណត់ទំហំ",
   "setup_step3_districts.retry_all_review_items": "ព្យាយាមឡើងវិញនូវរាល់ធាតុពិនិត្យ",
+  "setup_step3_districts.review": "✓ {layerLabel} · {review} ពិនិត្យឡើងវិញ{shown} / {l}",
   "setup_step3_districts.review_items_above_link_straight_into_the_": "ធាតុត្រួតពិនិត្យខាងលើភ្ជាប់ផ្ទាល់ទៅកាន់ mapper នៃអង្គនីតិប្បញ្ញត្តិដែលរងផលប៉ះពាល់។",
   "setup_step3_districts.sbetween_claims": "{id}{claim_label} · {claim_secs}s ចន្លោះការទាមទារ",
   "setup_step3_districts.seats": "{name} · {summary} អាសនៈ",

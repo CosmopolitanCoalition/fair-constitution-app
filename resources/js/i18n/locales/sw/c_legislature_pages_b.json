@@ -79,8 +79,8 @@
   "oversight.removal_title": "Taratibu za kuondoa",
   "oversight.seat_label": "Kiti {seat}",
   "oversight.seat_vacated": "kiti kimeachwa wazi",
-  "oversight.speaker_owncase_suffix": "(Spika — kesi yake mwenyewe inahitaji msimamizi aliyeteuliwa)",
-  "oversight.speaker_suffix": "(Spika)",
+  "oversight.speaker_owncase_suffix": " (Spika — kesi yake mwenyewe inahitaji msimamizi aliyeteuliwa)",
+  "oversight.speaker_suffix": " (Spika)",
   "oversight.special_election": "uchaguzi maalum {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — usimamizi wa kesi ya mtu mwenyewe umezuiwa kwenye kanuni",
   "oversight.spk_form_name": "Usimamizi wa Kutoa Madaraka/Laana/Kufukuzwa",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Nafasi wazi",
   "oversight.vacancy_countback_link": "nafasi wazi {status} — ukurasa wa kuhesabu upya →",
   "oversight.vacancy_state_aria": "Mashine ya hali ya nafasi wazi",
-  "oversight.you_suffix": "(wewe)",
+  "oversight.you_suffix": " (wewe)",
   "referendums.about": "Kizuizi cha CLK-19 ni lango la uhakiki, si saa: ombi la F-LEG-034 dhidi ya uamuzi wa wingi maalum wa watu linakataliwa kabla ya kura pamoja na nukuu, na kukataliwa huko kunarekodiwa kwenye kumbukumbu ya ukaguzi. Kizuizi huondolewa wakati uchaguzi mkuu unaofuata unapothibitishwa — uamuzi wa kura ya maoni kisha hurekebishwa kupitia njia ya kawaida.",
   "referendums.act_ordinary": "Uamuzi wa kawaida — daraja la wingi",
   "referendums.act_setting_change": "Uamuzi wa mabadiliko ya mipangilio — daraja la wingi",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Uwakilishi wa ziada:",
   "type_b_districts.overcount": "Idadi ya ziada",
   "type_b_districts.pan_mode": "Hali ya pan",
-  "type_b_districts.parts_suffix": "= sehemu {total}",
+  "type_b_districts.parts_suffix": " = sehemu {total}",
   "type_b_districts.pe_bad": "Mbaya (>10%):",
   "type_b_districts.pe_district_count": "({n} jimbo)",
   "type_b_districts.pe_good": "Nzuri (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Anuwai ya Kisiasa ya Moja kwa Moja",
   "type_b_districts.vertex_snap_unavailable": "Kushikiza nukta haipatikani — maktaba ya kuchora imebadilika chini ya zana hii.",
   "type_b_districts.view_leg_districts": "Angalia Jimbo za Bunge →",
-  "type_b_districts.wizard_paused": "Msaidizi amesimama."
+  "type_b_districts.wizard_paused": " Msaidizi amesimama."
 }

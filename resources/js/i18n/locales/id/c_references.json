@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Pilihan Anda untuk ketua dewan",
   "board_roster": "Anggota dewan dan tanggal masa jabatan mereka saat ini",
   "board_strip.cell_vacant": "— kosong",
-  "board_strip.chair_suffix": "(ketua terpilih bersama)",
+  "board_strip.chair_suffix": " (ketua terpilih bersama)",
   "board_strip.class_governor": "Anggota dewan yang ditunjuk",
   "board_strip.class_owner_elected": "Dipilih pemilik",
   "board_strip.class_worker_elected": "Dipilih pekerja",

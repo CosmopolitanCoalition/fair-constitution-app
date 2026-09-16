@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Valintasi hallituksen puheenjohtajaksi",
   "board_roster": "Hallituksen jäsenet ja heidän nykyiset toimikausensa",
   "board_strip.cell_vacant": "— avoin paikka",
-  "board_strip.chair_suffix": "(yhteisesti valittu puheenjohtaja)",
+  "board_strip.chair_suffix": " (yhteisesti valittu puheenjohtaja)",
   "board_strip.class_governor": "Nimitetty hallituksen jäsen",
   "board_strip.class_owner_elected": "Omistajien valitsema",
   "board_strip.class_worker_elected": "Työntekijöiden valitsema",

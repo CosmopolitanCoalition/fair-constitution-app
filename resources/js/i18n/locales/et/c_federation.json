@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Klastriga liitumine",
+  "federation_syncprogress.of_left": "{fmtValue} / {fmtValue2}~{fmtDuration} alles",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} kirjet · {fmtNum2} lehte. Alustatakse vundamendi importimist andmebaasi…Importitud ootamine…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Seda lehte võib julgesti sulged — sünkronimine toimib taustal ja jätkub katkestuse korral."
+}

@@ -564,7 +564,7 @@
     "provider": "ollama"
   },
   "dev_legislaturekit.3_rings_12_20_9_dynamic_viewbox_32_type_a_": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

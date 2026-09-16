@@ -473,7 +473,7 @@
   "districts.tip_district": "Okraj: {seats} sedežev",
   "districts.tip_expand": "Razširite v stranemni vrstici za ogled podokrajev",
   "districts.tip_fractional": "Delno: {n}",
-  "districts.tip_members_suffix": "· {n} članov",
+  "districts.tip_members_suffix": " · {n} članov",
   "districts.tip_pop": "Štev. prebivalcev: {n}",
   "districts.tip_unassigned": "Neatvrdjeno — združljivo",
   "districts.toast_autoseed_complete": "Samodejno sejanje dokončano",

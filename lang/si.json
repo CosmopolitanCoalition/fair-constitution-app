@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "එය /vacancies/:id හි පරීක්ෂා කරන්න.",
+  " Track it at /vacancies/:id.": " එය /vacancies/:id හි පරීක්ෂා කරන්න.",
   "% of jurisdiction population · CLK-17": "අධිකරණ බල ප්‍රදේශයේ ජනගහනයෙන් % CLK-17",
   "+:count more candidate with first-preference support": "පළමු මනාපය හිමි වූ තවත් අපේක්ෂකයා :count ක්",
   "+:count more candidates with first-preference support": "පළමු මනාපය හිමි වූ තවත් අපේක්ෂකයින් :count ක්",
@@ -79,6 +79,7 @@
   ":status grouping": ":status සමූහකරණය",
   ":status grouping · :when": ":status සමූහකරණය · :when",
   ":time · shown in :tz · stored as UTC": ":time · :tz හි පෙන්වයි · UTC ලෙස ගබඩා කර ඇත",
+  ":yes of :serving serving": ":serving න් සේවය කරන :yes",
   "A 'single' race elects exactly one seat (got :seats) — the individual-executive exception.": "'තනි' තරඟයකින් තෝරාගනු ලබන්නේ එක් ආසනයක් පමණි (ලැබුණේ :seats) — මෙය පුද්ගල-විධායක ව්‍යතිරේකයකි.",
   "A :field must be a list SOURCE / statute citation only — never a hash, locator, or URL (republishable harm).": ":field එකක් ලැයිස්තු මූලාශ්‍රයක් / ව්‍යවස්ථාපිත උපුටා දැක්වීමක් පමණක් විය යුතුය — කිසිවිටෙකත් hash එකක්, locator එකක් හෝ URL එකක් නොවිය යුතුය (නැවත ප්‍රකාශයට පත් කිරීමේ හානිය).",
   "A :kind appeal is recorded as :allowed — a criminal appeal may only affirm or vacate, never order a re-trial.": ":kind අභියාචනයක් :allowed ලෙස වාර්තා වේ — අපරාධ අභියාචනයකදී තීරණය තහවුරු කිරීම හෝ අවලංගු කිරීම පමණක් කළ හැකි අතර, කිසිවිටෙකත් නැවත නඩු විභාගයක් නියම කළ නොහැක.",
@@ -2024,7 +2025,7 @@
   "You left the room.": "ඔබ කාමරයෙන් පිටව ගියේය.",
   "You sit on more than one court — showing one; switch from the court page.": "ඔබ උසාවි එකකට වඩා වැඩි ගණනක හිඳගනී — එකක් පෙන්වයි; උසාවි පිටුවෙන් මාරු වන්න.",
   "You sit on more than one department board — showing one; pick another from its department page.": "ඔබ දෙපාර්තමේන්තු මණ්ඩල එකකට වඩා වැඩි ගණනක හිඳගනී — එකක් පෙන්වයි; එහි දෙපාර්තමේන්තු පිටුවෙන් තවත් එකක් තෝරන්න.",
-  "You: ": "ඔබ:",
+  "You: ": "ඔබ: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "ඔබේ ගිණුම, ඔබේ තීරණ — ප්‍රතිපාර්ශවයන් ගිණුම් වේ, පුද්ගලයන් නොවේ · Art. I",
   "Your chair ranking has been recorded.": "ඔබේ සභාපති ශ්‍රේණිගත කිරීම වාර්තා කර ඇත.",
   "Your client retains you; the retainer is recorded with the filing.": "ඔබේ සේවාදායකයා ඔබව රඳවා ගනී; රඳවා ගැනීම ගොනු කිරීම සමඟ වාර්තා වේ.",

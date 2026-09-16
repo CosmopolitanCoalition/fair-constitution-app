@@ -473,7 +473,7 @@
   "districts.tip_district": "Район: {seats} места",
   "districts.tip_expand": "Разширете в страничната лента, за да видите подрайони",
   "districts.tip_fractional": "Дробно: {n}",
-  "districts.tip_members_suffix": "· {n} членове",
+  "districts.tip_members_suffix": " · {n} членове",
   "districts.tip_pop": "Население: {n}",
   "districts.tip_unassigned": "Неразпределено — комбинируемо",
   "districts.toast_autoseed_complete": "Автоматичното разпределение е завършено",

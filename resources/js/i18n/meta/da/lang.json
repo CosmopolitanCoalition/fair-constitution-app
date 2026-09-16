@@ -524,7 +524,7 @@
     "provider": "ollama"
   },
   "A district may not fragment :name's territory (the drawn shape cuts :cutcomponents separate landmasses and carries the cut territory in :fragmentpieces disconnected chunks — at most one connected cut fragment of one landmass is allowed).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6877,7 +6877,7 @@
     "provider": "ollama"
   },
   "The drawn district extends outside :name's boundary.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

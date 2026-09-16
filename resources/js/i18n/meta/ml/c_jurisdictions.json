@@ -1084,7 +1084,7 @@
     "provider": "ollama"
   },
   "federation.pending_scope": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

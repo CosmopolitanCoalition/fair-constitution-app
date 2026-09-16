@@ -508,7 +508,7 @@
     "provider": "ollama"
   },
   "identity_verification.status_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

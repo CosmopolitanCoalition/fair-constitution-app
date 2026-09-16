@@ -2472,7 +2472,7 @@
     "provider": "ollama"
   },
   "step3_districts.rewind_confirm": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 4 -> 2",
     "provider": "ollama"
   },

@@ -79,8 +79,8 @@
   "oversight.removal_title": "દૂર કરવાની કાર્યવાહી",
   "oversight.seat_label": "બેઠક {seat}",
   "oversight.seat_vacated": "બેઠક ખાલી થઈ",
-  "oversight.speaker_owncase_suffix": "(સ્પીકર — પોતાના કેસ માટે નિયુક્ત અધ્યક્ષની જરૂર છે)",
-  "oversight.speaker_suffix": "(સ્પીકર)",
+  "oversight.speaker_owncase_suffix": " (સ્પીકર — પોતાના કેસ માટે નિયુક્ત અધ્યક્ષની જરૂર છે)",
+  "oversight.speaker_suffix": " (સ્પીકર)",
   "oversight.special_election": "ખાસ ચૂંટણી {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — કોડમાં પોતાના કેસમાં અધ્યક્ષતા બ્લોક કરેલ છે",
   "oversight.spk_form_name": "મહાભિયોગ/નિંદા/બદલવા માટેની અધ્યક્ષતા",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "ખાલી બેઠકો",
   "oversight.vacancy_countback_link": "ખાલી બેઠક {status} — પુનઃગણતરી પેજ →",
   "oversight.vacancy_state_aria": "ખાલી બેઠક સ્ટેટ મશીન",
-  "oversight.you_suffix": "(તમે)",
+  "oversight.you_suffix": " (તમે)",
   "referendums.about": "CLK-19 શીલ્ડ એ વેલિડેટર ગેટ છે, ટાઈમર નથી: વસ્તી-વિશેષ બહુમતીના નિર્ણય સામે F-LEG-034 ફાઇલિંગને વોટિંગ પહેલાં સંદર્ભ સાથે નકારી કાઢવામાં આવે છે, અને નકારવાની પ્રક્રિયા પોતે ઑડિટ ચેઇન પર નોંધાય છે. જ્યારે આગામી સામાન્ય ચૂંટણી પ્રમાણિત થાય ત્યારે શીલ્ડ મુક્ત થાય છે — લોકમત નિર્ણયો પછી સામાન્ય માર્ગ દ્વારા સુધારવામાં આવે છે.",
   "referendums.act_ordinary": "સામાન્ય નિર્ણય — બહુમતી શ્રેણી",
   "referendums.act_setting_change": "સેટિંગ-ફેરફાર નિર્ણય — બહુમતી શ્રેણી",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "વધુ-પ્રતિનિધિત્વ:",
   "type_b_districts.overcount": "વધુ ગણતરી",
   "type_b_districts.pan_mode": "પેન મોડ",
-  "type_b_districts.parts_suffix": "= {total} ભાગો",
+  "type_b_districts.parts_suffix": " = {total} ભાગો",
   "type_b_districts.pe_bad": "ખરાબ (>10%):",
   "type_b_districts.pe_district_count": "({n} મતવિસ્તાર)",
   "type_b_districts.pe_good": "સારું (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "સમાન રાજકીય વિવિધતા",
   "type_b_districts.vertex_snap_unavailable": "વર્ટેક્સ સ્નેપિંગ ઉપલબ્ધ નથી — આ ટૂલની નીચે ડ્રોઇંગ લાઇબ્રેરી બદલાઈ ગઈ છે.",
   "type_b_districts.view_leg_districts": "વિધાયી મતવિસ્તારો જુઓ →",
-  "type_b_districts.wizard_paused": "વિઝાર્ડ અટકાવેલ છે."
+  "type_b_districts.wizard_paused": " વિઝાર્ડ અટકાવેલ છે."
 }

@@ -268,7 +268,7 @@
   "audit_chain.missing": "Entri #{seq} tidak ditemukan di instansi ini. Nomor urut bisa memiliki celah.",
   "audit_chain.nav_label": "Navigasi riwayat audit",
   "audit_chain.newer": "Entri yang lebih baru",
-  "audit_chain.newest_first": "Terbaru pertama ·",
+  "audit_chain.newest_first": "Terbaru pertama · ",
   "audit_chain.no_entries_yet": "Belum ada entri",
   "audit_chain.older": "Entri yang lebih lama",
   "audit_chain.open_receipt": "Buka tanda terima",

@@ -268,7 +268,7 @@
   "audit_chain.missing": "#{seq} numaralı girdi bu örnekte bulunamadı. Sıra numaralarında boşluklar olabilir.",
   "audit_chain.nav_label": "Denetim günlüğü gezintisi",
   "audit_chain.newer": "Daha yeni girdiler",
-  "audit_chain.newest_first": "En yeni önce ·",
+  "audit_chain.newest_first": "En yeni önce · ",
   "audit_chain.no_entries_yet": "Henüz girdi yok",
   "audit_chain.older": "Daha eski girdiler",
   "audit_chain.open_receipt": "Makbuzu aç",

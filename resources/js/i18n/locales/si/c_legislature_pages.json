@@ -473,7 +473,7 @@
   "districts.tip_district": "මැතිවරණ කොට්ඨාසය: ආසන {seats}",
   "districts.tip_expand": "උප-කොට්ඨාස බැලීමට අයින පුවරුවේ (sidebar) විස්තාරණය කරන්න",
   "districts.tip_fractional": "භාගික: {n}",
-  "districts.tip_members_suffix": "· සාමාජිකයන් {n}",
+  "districts.tip_members_suffix": " · සාමාජිකයන් {n}",
   "districts.tip_pop": "ජනගහනය: {n}",
   "districts.tip_unassigned": "වෙන් කර නැත — සංයුක්ත කළ හැක",
   "districts.toast_autoseed_complete": "ස්වයංක්‍රීය ඇතුළත් කිරීම අවසන්",

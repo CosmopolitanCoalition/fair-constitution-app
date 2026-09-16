@@ -1224,7 +1224,7 @@
     "provider": "ollama"
   },
   "step1_constants.game_mode_sandbox_blurb": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "ollama"
   },

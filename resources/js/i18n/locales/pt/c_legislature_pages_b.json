@@ -119,8 +119,8 @@
   "oversight.removal_title": "Processos de remoção",
   "oversight.seat_label": "Assento {seat}",
   "oversight.seat_vacated": "assento vago",
-  "oversight.speaker_owncase_suffix": "(presidente da assembleia — caso próprio requer um presidente designado)",
-  "oversight.speaker_suffix": "(presidente da assembleia)",
+  "oversight.speaker_owncase_suffix": " (presidente da assembleia — caso próprio requer um presidente designado)",
+  "oversight.speaker_suffix": " (presidente da assembleia)",
   "oversight.special_election": "eleição especial {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — presidência de caso próprio bloqueada no código",
   "oversight.spk_form_name": "Presidência de Impeachment/Censura/Expulsão",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "Vagas",
   "oversight.vacancy_countback_link": "vaga {status} — página de recontagem retroativa →",
   "oversight.vacancy_state_aria": "Máquina de estado de vagas",
-  "oversight.you_suffix": "(você)",
+  "oversight.you_suffix": " (você)",
   "referendums.about": "O escudo CLK-19 é um portão de validação, não um temporizador: um arquivamento F-LEG-034 contra um ato de maioria qualificada da população é rejeitado antes da votação com a citação, e a própria rejeição entra no registro de auditoria. O escudo é liberado quando a próxima eleição geral é certificada — atos de referendo então emendam pelo caminho comum.",
   "referendums.act_ordinary": "Ato ordinário — classe de maioria",
   "referendums.act_setting_change": "Ato de alteração de configuração — classe de maioria",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "Sobre-rep:",
   "type_b_districts.overcount": "Sobrecontagem",
   "type_b_districts.pan_mode": "Modo Pan",
-  "type_b_districts.parts_suffix": "= {total} partes",
+  "type_b_districts.parts_suffix": " = {total} partes",
   "type_b_districts.pe_bad": "Ruim (>10%):",
   "type_b_districts.pe_district_count": "({n} distritos)",
   "type_b_districts.pe_good": "Bom (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "Diversidade Política Uniforme",
   "type_b_districts.vertex_snap_unavailable": "Ajuste de vértice indisponível — a biblioteca de desenho foi alterada nesta ferramenta.",
   "type_b_districts.view_leg_districts": "Ver Distritos Legislativos →",
-  "type_b_districts.wizard_paused": "Assistente pausado."
+  "type_b_districts.wizard_paused": " Assistente pausado."
 }

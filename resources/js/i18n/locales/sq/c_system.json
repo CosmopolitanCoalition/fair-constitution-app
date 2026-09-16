@@ -268,7 +268,7 @@
   "audit_chain.missing": "Hyrja #{seq} nuk u gjet në këtë instancë. Numrat e sekuencës mund të kenë hapësira.",
   "audit_chain.nav_label": "Navigimi në historikun e auditimit",
   "audit_chain.newer": "Hyrje më të reja",
-  "audit_chain.newest_first": "Më e reja e para ·",
+  "audit_chain.newest_first": "Më e reja e para · ",
   "audit_chain.no_entries_yet": "Nuk ka ende hyrje",
   "audit_chain.older": "Hyrje më të vjetra",
   "audit_chain.open_receipt": "Hap dëshminë",

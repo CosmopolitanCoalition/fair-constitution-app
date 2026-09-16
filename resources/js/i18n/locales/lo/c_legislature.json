@@ -9,6 +9,7 @@
   "legislature_constituentconsentpanel.open_both_supermajorities_must_clear_each_": "ເປີດ — ສຽງສ່ວນຫຼາຍພິເສດທັງສອງຕ້ອງຜ່ານ, ແຕ່ລະອັນຖືກນັບແຍກກັນ",
   "legislature_constituentconsentpanel.own_supermajority": "{legislatureLabel}: ສຽງສ່ວນຫຼາຍພິເສດຂອງຕົນເອງ",
   "legislature_constituentconsentpanel.window_closes_stored_as_utc": "ໄລຍະເວລາປິດ {closes_at} · ບັນທຶກເປັນ UTC",
+  "legislature_seatmap.gold_ring_speaker_dashed_vacant_blue_ring_": "ວົງແຍກສີຄຳ = ປະທານສະພາ · ເສັ້ນປະ = ບ່ອນນັ່ງຫວ່າງ · ວົງແຍກສີຟ້າ = ປະເພດ B (ໜຶ່ງຄົນຕໍ່ຜູ້ລົງຄະແນນ) · Art. V §3",
   "legislature_votecastlist.counts_the_same_as_a_no_peg_quorum_art_ii_": "ນັບຄືກັບການລົງຄະແນນບໍ່ເຫັນດີ — ກຳນົດອົງປະຊຸມ (Art. II §2)",
   "legislature_votetally.art_ii_2": "Art. II §2",
   "legislature_votetally.each_kind_meets_its_own_peg_quorum_vacanci": "{PEG_GLOSS} ແຕ່ລະປະເພດຕ້ອງມີອົງປະຊຸມຕາມກຳນົດ — ບ່ອນນັ່ງຫວ່າງຍັງຄົງຢູ່ໃນຕົວຫານ.",

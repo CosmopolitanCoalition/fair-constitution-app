@@ -2916,7 +2916,7 @@
     "provider": "ollama"
   },
   "executive_home.about_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (137/399 chars, floor 0.45)",
     "provider": "ollama"
   },
@@ -3041,7 +3041,7 @@
     "provider": "ollama"
   },
   "executive_home.no_conversion": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },
@@ -3342,7 +3342,7 @@
     "provider": "ollama"
   },
   "judiciary_home.term_move": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

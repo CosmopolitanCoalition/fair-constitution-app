@@ -79,6 +79,7 @@
   "jurisdictions_federation.why_we_want_to_mirror": "چرا می‌خواهیم نسخه آینه‌ای باشیم",
   "jurisdictions_federation.you_pursue_read_write_afterward": "شما {joinForm} بعداً برای خواندن-نوشتن اقدام می‌کنید.",
   "jurisdictions_federation.you_will_become_a_read_only_mirror_of_pull": "شما به یک نسخه آینه‌ای فقط-خواندنی از {joinForm} تبدیل خواهید شد و سوابق عمومی آن (محدود به {joinForm2}) را فراخوانی می‌کنید.",
+  "jurisdictions_federation.zone_configured": "{domain}منطقه {zone_id}پیکربندی شد",
   "jurisdictions_index.adm_0_world": "ADM 0 — جهان",
   "jurisdictions_index.adm_1_country": "ADM 1 — کشور",
   "jurisdictions_index.adm_2_state_province": "ADM 2 — ایالت / استان",

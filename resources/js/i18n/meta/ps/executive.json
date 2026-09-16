@@ -456,7 +456,7 @@
     "provider": "ollama"
   },
   "executive_departmentreporting.rules_implement_they_cannot_exceed_the_cha": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "ollama"
   },

@@ -748,7 +748,7 @@
     "provider": "ollama"
   },
   "civic_petitions.the_sign_toggles_use_petition_signature_re": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

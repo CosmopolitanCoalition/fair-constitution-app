@@ -320,7 +320,7 @@
     "provider": "ollama"
   },
   "dev_executiveorgkit.org_codetscale_workerseats_is_the_engine_s": {
-    "status": "review",
+    "status": "machine",
     "reason": "citation altered",
     "provider": "ollama"
   },

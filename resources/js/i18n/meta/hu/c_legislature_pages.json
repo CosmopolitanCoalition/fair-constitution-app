@@ -1868,7 +1868,7 @@
     "provider": "ollama"
   },
   "districts.timed_out": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Latn — source content likely dropped (9/69 chars, floor 0.45)",
     "provider": "ollama"
   },

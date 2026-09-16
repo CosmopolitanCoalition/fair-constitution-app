@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "সংশ্লিষ্ট যেকোনো বাসিন্দার জন্য আইনজীবী নিবন্ধন খোলা আছে, তবে প্রথমে আপনার এখতিয়ারে একটি আদালত থাকতে হবে — আইনসভা একটি আদালত তৈরি করলে (F-LEG-017) তা গঠিত হয়।",
   "advocate_console.no_judiciary_title": "আপনার অ্যাসোসিয়েশন চেইনে এখনও কোনো বিচার বিভাগ নেই।",
   "advocate_console.no_matching_page": "এই পৃষ্ঠায় কোনো মিল থাকা মামলা নেই। অন্য শিরোনাম বা ডকেট নম্বর চেষ্টা করুন।",
-  "advocate_console.not_seated_suffix": "(এখনও আসন পায়নি)",
+  "advocate_console.not_seated_suffix": " (এখনও আসন পায়নি)",
   "advocate_console.not_yet": "এখনও নয়",
   "advocate_console.open_case": "মামলা খুলুন →",
   "advocate_console.open_case_short": "মামলা খুলুন",

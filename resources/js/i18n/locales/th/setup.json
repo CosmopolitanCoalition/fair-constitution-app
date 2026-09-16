@@ -238,6 +238,7 @@
   "setup_step3_districts.no_root_legislature_found": "ไม่พบสภานิติบัญญัติระดับราก",
   "setup_step3_districts.parents_sized": "กำหนดขนาดหน่วยหลักแล้ว",
   "setup_step3_districts.retry_all_review_items": "ลองใหม่สำหรับรายการตรวจสอบทั้งหมด",
+  "setup_step3_districts.review": "✓ {layerLabel} · {review} ตรวจสอบ{shown} / {l}",
   "setup_step3_districts.review_items_above_link_straight_into_the_": "รายการตรวจสอบด้านบนจะเชื่อมโยงไปยังตัวกำหนดแผนผังของสภานิติบัญญัติที่เกี่ยวข้องโดยตรง",
   "setup_step3_districts.sbetween_claims": "{id}{claim_label} · {claim_secs} ระหว่างการเรียกร้อง",
   "setup_step3_districts.seats": "{name} · {summary} ที่นั่ง",

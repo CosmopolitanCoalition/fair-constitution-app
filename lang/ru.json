@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "Отслеживайте по адресу /vacancies/:id.",
+  " Track it at /vacancies/:id.": " Отслеживайте по адресу /vacancies/:id.",
   "% of jurisdiction population · CLK-17": "% населения юрисдикции · CLK-17",
   "+:count more candidate with first-preference support": "+:count кандидат с поддержкой первого предпочтения",
   "+:count more candidates with first-preference support": "+:count кандидатов с поддержкой первого предпочтения",
@@ -2025,7 +2025,7 @@
   "You left the room.": "Вы покинули комнату.",
   "You sit on more than one court — showing one; switch from the court page.": "Вы состоите в нескольких судах — показан один; переключитесь на странице суда.",
   "You sit on more than one department board — showing one; pick another from its department page.": "Вы входите в правление нескольких департаментов — показано одно; выберите другое на странице департамента.",
-  "You: ": "Вы:",
+  "You: ": "Вы: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "Ваш аккаунт, ваши акты — контрагентами являются аккаунты, а не люди · Art. I",
   "Your chair ranking has been recorded.": "Ваш рейтинг председателя зафиксирован.",
   "Your client retains you; the retainer is recorded with the filing.": "Клиент нанимает вас; договор найма фиксируется при подаче документов.",

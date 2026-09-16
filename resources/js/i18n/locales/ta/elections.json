@@ -27,6 +27,7 @@
   "elections_boardconsole.of_valid": "{row2}-இல் {row} சரியானவை ({pct_valid}%) — {row3}",
   "elections_boardconsole.open_the_countback_view": "மறு எண்ணிக்கை காட்சியைத் திறக்கவும்",
   "elections_boardconsole.open_the_legislature_browser": "சட்டமன்ற உலாவித் திறக்கவும் →",
+  "elections_boardconsole.opens_wf_ele_05": "{row} · WF-ELE-05 அன்று திறக்கிறது",
   "elections_boardconsole.order_recount": "மறு எண்ணிக்கைக்கு உத்தரவிடவும்",
   "elections_boardconsole.pending_candidacy_registrations": "நிலுவையில் உள்ள வேட்பாளர் பதிவுகள்",
   "elections_boardconsole.petition_audits_due": "மனு தணிக்கைகள் நிலுவையில் உள்ளன",

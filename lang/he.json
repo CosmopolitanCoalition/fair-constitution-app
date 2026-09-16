@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "עקבו אחרי זה ב-/vacancies/:id.",
+  " Track it at /vacancies/:id.": " עקבו אחרי זה ב-/vacancies/:id.",
   "% of jurisdiction population · CLK-17": "% מאוכלוסיית תחום השיפוט · CLK-17",
   "+:count more candidate with first-preference support": "+:count מועמדים נוספים עם תמיכת העדפה ראשונה",
   "+:count more candidates with first-preference support": "+:count מועמדים נוספים עם תמיכת העדפה ראשונה",
@@ -2025,7 +2025,7 @@
   "You left the room.": "עזבת את החדר.",
   "You sit on more than one court — showing one; switch from the court page.": "אתה יושב ביותר מבית משפט אחד — מוצג אחד; החלף מדף בית המשפט.",
   "You sit on more than one department board — showing one; pick another from its department page.": "אתה יושב ביותר מדירקטוריון מחלקתי אחד — מוצג אחד; בחר אחר מדף המחלקה שלו.",
-  "You: ": "אתה:",
+  "You: ": "אתה: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "החשבון שלך, ההחלטות שלך — צדדים נגדיים הם חשבונות, לעולם לא אנשים · Art. I",
   "Your chair ranking has been recorded.": "דירוג היושב ראש שלך נרשם.",
   "Your client retains you; the retainer is recorded with the filing.": "הלקוח שלך שוכר אותך; שכר הטרחה נרשם עם ההגשה.",

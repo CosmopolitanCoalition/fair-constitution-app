@@ -25,6 +25,7 @@
   "system_auditchain.latest_entries": "နောက်ဆုံးမှတ်တမ်းများ",
   "system_auditchain.latest_first_stored_as_utc_shown_as_utc": "အသစ်ဆုံးမှစ၍ · UTC ဖြင့် သိမ်းဆည်းပြီး UTC ဖြင့် ပြသသည်",
   "system_auditchain.page_of_entr": "စာမျက်နှာ {current_page} / {last_page} · မှတ်တမ်း {total} ခု {entries}",
+  "system_auditchain.recomputes_all_link_hashes_against_the_hea": "{count} လင့်ခ်ဟက်ရှ်အားလုံးကို head နှင့် တိုက်ဆိုင်စစ်ဆေးပြီး ပြန်လည်တွက်ချက်သည်လေ။",
   "system_auditchain.rejections_are_appended_too": "ပယ်ချမှုများကိုလည်း နောက်ဆက်တွဲအဖြစ် ထည့်သွင်းသည်",
   "system_auditchain.the_chain_is_empty_no_filings_yet": "ကွင်းဆက်သည် အလွတ်ဖြစ်နေသည် — တင်ပြချက်များ မရှိသေးပါ",
   "system_auditchain.wf_sys_04_the_constitutional_engine_interc": "WF-SYS-04 — ဖွဲ့စည်းပုံအခြေခံဥပဒေ အင်ဂျင်သည် အကူးအပြောင်းတိုင်းကို commit မလုပ်မီ ကြားဖြတ်စစ်ဆေးသည်၊ လက်ခံသောအရာများကို ဤနေရာတွင် နောက်ဆက်တွဲထည့်သည်၊ မမှန်ကန်သောအရာများကို ကိုးကားချက်နှင့်အတူ ပယ်ချပြီး ပယ်ချမှုကိုလည်း နောက်ဆက်တွဲထည့်သည်၊ မဲလက်မှတ်နှင့် နေထိုင်မှုဆိုင်ရာ အထောက်အထားများကို ပွင့်လင်းစွာ မရေးသားဘဲ ကတိကဝတ်များနှင့် ရက်တွက်ချက်မှုများကိုသာ ရေးသားသည်",

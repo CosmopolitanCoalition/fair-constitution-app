@@ -134,7 +134,7 @@
   "advocate_console.no_judiciary_body": "ثبت‌نام وکیل برای هر ساکن مرتبط آزاد است، اما ابتدا باید دادگاهی در قلمرو شما وجود داشته باشد — دادگاه‌ها زمانی تشکیل می‌شوند که قوه مقننه یکی ایجاد کند (F-LEG-017).",
   "advocate_console.no_judiciary_title": "هنوز هیچ قوه قضاییه‌ای در زنجیره اتحادیه شما وجود ندارد.",
   "advocate_console.no_matching_page": "هیچ پرونده مشابهی در این صفحه نیست. عنوان یا شماره پرونده دیگری را امتحان کنید.",
-  "advocate_console.not_seated_suffix": "(هنوز متصدی نشده)",
+  "advocate_console.not_seated_suffix": " (هنوز متصدی نشده)",
   "advocate_console.not_yet": "هنوز نه",
   "advocate_console.open_case": "باز کردن پرونده ←",
   "advocate_console.open_case_short": "باز کردن پرونده",

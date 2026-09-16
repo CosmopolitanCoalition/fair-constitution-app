@@ -268,7 +268,7 @@
   "audit_chain.missing": "Eintrag #{seq} wurde in dieser Instanz nicht gefunden. Sequenznummern können Lücken aufweisen.",
   "audit_chain.nav_label": "Navigation im Prüfprotokoll",
   "audit_chain.newer": "Neuere Einträge",
-  "audit_chain.newest_first": "Neueste zuerst ·",
+  "audit_chain.newest_first": "Neueste zuerst · ",
   "audit_chain.no_entries_yet": "Noch keine Einträge",
   "audit_chain.older": "Ältere Einträge",
   "audit_chain.open_receipt": "Beleg öffnen",

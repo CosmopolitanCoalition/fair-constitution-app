@@ -268,7 +268,7 @@
   "audit_chain.missing": "આ ઇન્સ્ટન્સ પર એન્ટ્રી #{seq} મળી નથી. સીક્વન્સ નંબરોમાં ગેપ હોઈ શકે છે.",
   "audit_chain.nav_label": "ઑડિટ ઇતિહાસ નેવિગેશન",
   "audit_chain.newer": "નવી એન્ટ્રીઓ",
-  "audit_chain.newest_first": "નવીનતમ પહેલા ·",
+  "audit_chain.newest_first": "નવીનતમ પહેલા · ",
   "audit_chain.no_entries_yet": "હજુ સુધી કોઈ એન્ટ્રી નથી",
   "audit_chain.older": "જૂની એન્ટ્રીઓ",
   "audit_chain.open_receipt": "રસીદ ખોલો",

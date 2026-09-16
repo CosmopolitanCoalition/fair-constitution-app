@@ -79,6 +79,7 @@
   "jurisdictions_federation.why_we_want_to_mirror": "tại sao chúng tôi muốn tạo bản sao gương",
   "jurisdictions_federation.you_pursue_read_write_afterward": "Bạn {joinForm} sẽ theo đuổi quyền đọc-ghi sau đó.",
   "jurisdictions_federation.you_will_become_a_read_only_mirror_of_pull": "Bạn sẽ trở thành một bản sao gương chỉ đọc của {joinForm}, kéo các hồ sơ công khai của nó (phạm vi {joinForm2}).",
+  "jurisdictions_federation.zone_configured": "{domain}vùng {zone_id}đã cấu hình",
   "jurisdictions_index.adm_0_world": "ADM 0 — Thế giới",
   "jurisdictions_index.adm_1_country": "ADM 1 — Quốc gia",
   "jurisdictions_index.adm_2_state_province": "ADM 2 — Bang / Tỉnh",

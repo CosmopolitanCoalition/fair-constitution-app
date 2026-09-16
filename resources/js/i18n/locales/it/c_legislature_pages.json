@@ -473,7 +473,7 @@
   "districts.tip_district": "Collegio: {seats} seggi",
   "districts.tip_expand": "Espandi nella barra laterale per vedere i sotto-collegi",
   "districts.tip_fractional": "Frazionario: {n}",
-  "districts.tip_members_suffix": "· {n} membri",
+  "districts.tip_members_suffix": " · {n} membri",
   "districts.tip_pop": "Pop: {n}",
   "districts.tip_unassigned": "Non assegnato — componibile",
   "districts.toast_autoseed_complete": "Inizializzazione automatica completata",

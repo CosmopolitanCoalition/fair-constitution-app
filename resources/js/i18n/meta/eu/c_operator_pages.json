@@ -1,0 +1,3474 @@
+{
+  "dns.about_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.about_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.about_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.about_mid": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.budget_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.budget_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.certs_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_authority": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_broker": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_domain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_expires": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_for_peer": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_issued": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_name_issued": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_provider": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_source": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_state": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_status": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_write_token": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.col_zone": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.cred_domain_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.cred_domain_ph": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.cred_token_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.cred_token_ph": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.cred_zone_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.cred_zone_ph": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.ddns_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.ddns_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.default_ungated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.domains_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.drop_cred": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.drop_cred_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.forget": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.future_not_enforced": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.future_not_impl": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.how_1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.how_2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.how_3": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.how_4": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.how_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.ledger_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.ledger_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.no_authz": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.no_creds": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.no_creds_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.page_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.pername_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.pername_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.providers_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.routing_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.routing_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.set": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.signin_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.signin_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.signin_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.stat_installed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.stat_received": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.state_expired": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.state_expiring": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.state_valid": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.status_live": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.status_stub": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.token_not_set": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.token_set": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.wildcard_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dns.wildcard_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.active_approvals_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.add": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.add_write_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.agg_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.aggregate_daily": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.approval_banner_only": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.approval_phase_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.ballots_exhausted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.card_approveswitch": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.card_ballotreceipt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.card_candidaterow": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.card_countback": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.card_finalist_roster": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.card_phasebanner": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.card_stvbar": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.card_stvround": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.chip_no_pref": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.chip_quota": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.chip_removed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.cite_approveswitch": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.cite_ballotreceipt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.cite_countback": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.cite_phasebanner": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.cite_stvbar": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.cite_stvround": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.clear": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.countback_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.counting_rounds": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.droop_quota": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.droop_quota_28755": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.droop_quota_formula": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.fixture_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.fixture_data_only": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.frozen_cutoff": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.gloss_approveswitch": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.gloss_candidaterow": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.gloss_countback": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.gloss_keyboard": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.gloss_stvround": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.gloss_variants": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.guidance_complete": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.guidance_incomplete": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.intro_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.intro_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.live_aggregate": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.mid_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.n_ranked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.open_profile_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.phase_eq": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.post_commit_lock": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.quota_if_closed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.ranked_n": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.ranklist_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.referendum_committed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.roster_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.seats_one_count": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.valid_ballots": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.validated_nonfinalists": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.variants": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.winner_found": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.winner_found_named": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.withdrawn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.write_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral_kit.write_in_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.badge_detailed_true": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_boardstrip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_boardstrip_compact": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_boardstrip_invalid": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_codet_below": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_codet_explorer": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_codet_nondefault": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_codet_pins": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_codet_static": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_consent_billdetail": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_consent_constituent_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_consent_one_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_consent_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_consent_passed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_consent_required_verbatim": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_departmentcard": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_orderscopecard": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_ownership_cgc": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_ownership_partnership": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_ownership_stock": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_state_machines": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_stepper_pending": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.card_stepper_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_billdetail": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_boardstrip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_boardstrip_compact": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_boardstrip_compact_invalid": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_boardstrip_invalid": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_codet_explorer": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_codet_nondefault": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_codet_static": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_consent_passed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_departmentcard": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_one_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_order_detailed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_orderscopecard": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_ownership_cgc": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_state_machines": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.cite_stepper_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.eyebrow_department_board": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.eyebrow_executive_office": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.eyebrow_organization": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.fixture_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.fixture_data_only": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.gloss_state_machines": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.intro_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.intro_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.pin_broken": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.pin_broken_banner": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.pin_holds": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.table_region": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.th_actual": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.th_case": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.th_expected": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_org_kit.th_pin": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.account_created": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.att_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.att_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.att_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.att_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.attestation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.check_action": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.check_action_detail": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.check_attestation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.check_attestation_detail": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.check_subject": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.check_subject_detail": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.col_device": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.col_enrolled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.col_fingerprint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.col_state": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.copied": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.copied_announce": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.copy_public_key": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.copy_server_id": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.device_active": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.device_revoked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.devices": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.devices_caption": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.devices_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.enrol_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.enrol_lr_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.enrol_lr_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.enrol_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.enrol_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.federation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.fingerprint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.forwarded_aria": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.forwarded_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.forwarded_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.fsm_device_signs": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.fsm_expired": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.fsm_failclosed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.fsm_home_attests": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.fsm_nonhome_verifies": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.fsm_softdeleted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.fsm_ttl": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.key_generated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.keystone_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.keystone_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.keystone_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.last_login": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.lr_password": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.mesh_operator_id": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.no_devices_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.no_devices_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.no_mesh_id_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.no_mesh_id_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.not_linked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.not_minted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.nothing_else": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.off": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.on": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.operator": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.public": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.public_key": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.public_key_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.secret_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.server_id": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.signin_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.signin_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.signin_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.status": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.status_unknown": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.subject_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.sweep_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.sweep_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.this_node": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.travel_intro_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.travel_intro_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.travel_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.two_id_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.two_id_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.two_id_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.unnamed_device": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.username": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.wall_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.wall_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.wall_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.what_att_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.what_att_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.what_att_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.your_account": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.your_identity": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "identity.your_identity_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.audit_chain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_case_major": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_case_whitfield": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_conv_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_conv_passed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_juror_clean": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_juror_flagged": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_juror_readonly": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_juror_screening": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_panel_fullcourt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_panel_pending": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_panel_pins": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_panel_serious": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_public_read": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_state_machines": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_tracker_applied": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_tracker_empty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_tracker_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_tracker_overridden": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.card_tracker_verbatim": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.cite_case_major": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.cite_case_whitfield": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.cite_conv_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.cite_conv_passed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.cite_juror_readonly": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.cite_juror_screening": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.cite_panel_serious": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.cite_public_read": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.cite_state_machines": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.cite_tracker_applied": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.cite_tracker_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.eyebrow_case": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.eyebrow_challenge": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.file_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.fixture_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.fixture_data_only": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.gloss_state_machines": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.intro_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.intro_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.label_draw_integrity": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.label_drawn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.label_pool": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.label_report": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.label_where": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.pin_broken": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.pin_broken_banner": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.pin_holds": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.public_read_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.public_read_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.seed_published_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.stage6_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.stage6_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.table_region": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.th_case": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.th_full": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.th_pin": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_kit.th_size": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.badge_registered_too": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_agendastrip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_castlist_published": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_castlist_tiebreak": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_emergency": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_lawdiff": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_ranklist_fixed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_ranklist_removable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_seatmap_bi": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_seatmap_uni": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_sigmeter": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_state_machines": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_votetally_bicameral": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_votetally_casting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_votetally_committee": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_votetally_tie": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.card_votetally_uni": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.chip_agenda_editable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.chip_submitted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_agenda_allclear": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_agendastrip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_castlist_groupbykind": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_castlist_published": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_emergency": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_lawdiff": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_ranklist_fixed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_ranklist_removable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_seatmap_bi": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_seatmap_uni": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_sigmeter": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_state_machines": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_votetally_bicameral": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_votetally_casting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_votetally_tie": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.cite_votetally_uni": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.emergency_empty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.emergency_two_active": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.eyebrow_bi_committee": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.eyebrow_bi_majority_adopted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.eyebrow_bi_majority_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.eyebrow_bi_majority_pending": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.eyebrow_bi_super_adopted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.eyebrow_bi_super_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.eyebrow_bill": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.eyebrow_motion": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.eyebrow_petition": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.eyebrow_tied": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.eyebrow_tied_broken": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.fixture_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.fixture_data_only": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.gloss_agendastrip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.gloss_lawdiff": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.gloss_ranklist_fixed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.gloss_seatmap": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.highlight_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.intro_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.intro_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.none_option": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.sig_compact": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.sig_gathering": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_kit.sig_threshold_reached": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.about": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.any": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.append_only_public": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.at_a_glance": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.authority_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.authority_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.authority_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.becoming_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.becoming_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.becoming_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.behind": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.caught_up": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_at": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_direction": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_entry": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_heartbeat": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_peer": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_range": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_relation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_result": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_status": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_sync_seq": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_url": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.col_version": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.connections_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.differ_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.differ_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.federation_url": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.ffc_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.ffc_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.gates_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.gates_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.glance_known": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.glance_last_sync": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.glance_trusted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.inbound": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.ledger_lr_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.ledger_lr_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.moving_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.moving_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.moving_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.n_known": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.never": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.no_gates": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.no_peers_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.no_peers_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.no_sync": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.no_transports": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.open_controls": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.outbound": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.page_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.peer_border": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.peer_conflict": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.peer_departed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.peer_discovered": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.peer_handshake": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.peer_merged": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.peer_syncing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.peer_trust": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.peerage_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.peers_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.peers_caption": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.plane_off_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.plane_off_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.relation_host": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.relation_mirror": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.relation_sovereign": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.roles_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.signed_in_as": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.signin_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.signin_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.signin_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.stat_ledger": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.stat_met": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.stat_trust": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.step_export_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.step_export_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.step_flip_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.step_flip_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.step_repeer_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.step_repeer_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.sync_applied": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.sync_caption": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.sync_conflict": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.sync_non_auth": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.sync_tamper": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.this_box": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.transports_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.transports_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.transports_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.trust_lifecycle": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.unnamed_peer": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh.your_peers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.about_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.about_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.about_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.above_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.above_flip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.below_body_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.below_body_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.below_flip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.cap_carveout_rows": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.cap_legal_rows": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.carve_m1_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.carve_m1_who": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.carve_m2_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.carve_m2_who": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.carve_m3_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.carve_m3_who": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.carve_m4_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.carve_m4_who": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.carveouts_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.col_action": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.col_authority": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.col_basis": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.col_carveout": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.col_legal_basis": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.col_logged_q": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.col_on_box": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.col_physical": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.col_what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.col_when": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.col_who": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.flip_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.flip_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.judicial_attestation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.leg_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.legal_court_effect": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.legal_court_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.legal_csam_effect": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.legal_csam_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.legal_floor_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.legal_floor_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.legal_floor_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.legal_threat_effect": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.legal_threat_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.logged": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.never_logged": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.no_content_control": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.no_content_control_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.no_seated_gov": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.operator_relay": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.page_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.sealed_trail_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.signin_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.signin_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.signin_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.stat_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.system": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.trail_empty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.trail_empty_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "moderation.yours_alone": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.apply_applied": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.apply_applying": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.apply_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.apply_pending": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.apply_recreate": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.apply_restart_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.apply_restart_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.apply_restart_mid": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.apply_restart_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.apply_tiers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.applyable_node_ip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.applyable_public_url": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.capability_channels": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.cert_days_left": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.cert_expired": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.cert_expires": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.configured": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.dev_default": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.disabled_enable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.dns_credentials": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.enabled_disable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.footer_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.footer_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.grants_ready": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.h1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.head_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.installed_certs": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.no_dns_cred": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.none_tls": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.not_set": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.overridden": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.reset": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.runbook": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.save": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.secrets_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.signed_in_as": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.signin_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.signin_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.signin_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.subtitle": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.token_stored": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.unknown": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.waiting_supervisor_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.waiting_supervisor_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.zone": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.active_pill": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.and_word": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.applies": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.approval_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.attest_approve": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.attesting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.channels_caption": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.chip_governed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.chip_self": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.col_actions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.col_channel": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.col_consent": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.col_consent_leg": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.col_meters": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.col_on_node": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.col_opened": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.col_requested_by": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.col_what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.drop": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.dropping": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.establish": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.field_channel": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.field_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.field_scope_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.founding_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.founding_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.four_roles_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.four_roles_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.governed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.governed_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.governed_word": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.leg_operator": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.leg_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.legend_governed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.legend_self": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.life_approve": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.life_join": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.life_qualify": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.life_request": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.lifecycle_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.lifecycle_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.authority.grant.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.authority.grant.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.broker.dns.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.broker.dns.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.broker.tls.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.broker.tls.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.client.serve.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.client.serve.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.etl.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.etl.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.matrix.homeserver.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.matrix.homeserver.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.mesh.member.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.mesh.member.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.mirror.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.mirror.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.voice.sfu.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel.voice.sfu.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel_kind.governed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_channel_kind.self-asserted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.archivist.duty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.archivist.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.archivist.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.identity_broker.duty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.identity_broker.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.identity_broker.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.record_keeper.duty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.record_keeper.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.record_keeper.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.social_moderator.duty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.social_moderator.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.mesh_role.social_moderator.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_a_applies": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_a_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_a_threshold": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_a_who": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_b_applies": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_b_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_b_threshold": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_b_who": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_c_applies": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_c_chip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_c_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_c_threshold": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_c_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.meter_c_who": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.never_rank": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.nine_channels_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.nine_intro_1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.nine_intro_2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.nine_intro_3": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.no_pending": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.not_qualified": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.on_this_box": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.one_click_no_gate": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.optgroup_governed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.optgroup_self": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.over_place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.page_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.pending_caption": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.petition_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.plane_off_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.plane_off_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.probe_meter_c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.probing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.qualified": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.qualify": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.qualify_probe": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.recommended_first": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.refused": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.request": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.request_channel": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.return_setup": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.role_active": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.role_partial": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.run_step_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.run_step_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.scope_default": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.seated_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.self_asserted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.self_asserted_channels": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.self_asserted_word": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.self_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.self_vs_gov_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.self_vs_gov_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.sending": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.signed_in_grant": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.signin_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.signin_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.signin_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.stat_active": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.stat_awaiting_founding": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.stat_governed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.stat_open_requests": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.state_active": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.state_needs_setup": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.state_ready": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.state_stopped": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.state_waiting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.supersedes_a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.threshold": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.turn_channel_on": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.turn_on": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.turning_on": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.waiting_dual_meter": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.waiting_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.waiting_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.who": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.working": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles.your_duty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.ab_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.active_maps_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.active_residencies": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.awaiting_first_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.chamber": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.chamber_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.chambers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.chambers_with_members": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.cohorts_modelled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.draft": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.draft_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.draft_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.drive_the_run": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.electorate_modelled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.err_verb": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.err_verb_status": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.gap_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.h1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.halt_requested": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.halt_run": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.halting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.head_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.idle": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.instance_class": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.items": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.jurisdictions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.no_run_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.no_run_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.not_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.over_bound_body_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.over_bound_body_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.over_bound_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.paused": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.people_minted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.people_minted_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.places_with_chamber": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.population_modelled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.prod_warn_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.prod_warn_mid": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.refused_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.resume_run": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.resuming": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.seat_gap_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.seat_gap_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.smoke_all": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.smoke_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.smoke_limit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.stage": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.stages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.start_run": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.starting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.status": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.subtitle": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.unallotted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.unfillable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.updated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.workers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.workers_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.working_now": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sim_console.world_so_far": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.about": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.answerable_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.answerable_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.col_app_release": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.col_const_version": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.col_match": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.col_peer": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.col_status": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.consent_falls": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.const_version_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.derived": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.differs": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.failclosed_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.failclosed_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.for_place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.freeze_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.freeze_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.freeze_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.freeze_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.kind_app_release": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.kind_constitutional": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.kind_role_grant": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.kind_schema": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.leg_board": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.leg_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.match": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.match_unknown": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.meter_a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.meter_b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.meter_c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.meter_not_needed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.meter_passed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.meter_waiting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.meters_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.no_meters": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.no_peers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.no_proposals": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.node_runs_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.not_advertised": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.opened": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.peer_caption": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.peer_versions_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.peer_versions_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.pinned": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.plane_off_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.plane_off_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.proposals_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.proposals_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.proposed_by": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.screened_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.screened_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.signin_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.signin_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.signin_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.stat_app_release": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.stat_const_version": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.stat_schema_version": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.status_unknown": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning.three_kinds": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

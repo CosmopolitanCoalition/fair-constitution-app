@@ -79,8 +79,8 @@
   "oversight.removal_title": "Afsættelsesprocedurer",
   "oversight.seat_label": "Sæde {seat}",
   "oversight.seat_vacated": "sæde fratrådt",
-  "oversight.speaker_owncase_suffix": "(formand for forsamlingen — egen sag kræver en udpeget leder)",
-  "oversight.speaker_suffix": "(formand for forsamlingen)",
+  "oversight.speaker_owncase_suffix": " (formand for forsamlingen — egen sag kræver en udpeget leder)",
+  "oversight.speaker_suffix": " (formand for forsamlingen)",
   "oversight.special_election": "specialvalg {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — ledelse af egen sag blokeret i koden",
   "oversight.spk_form_name": "Ledelse af rigsretssag/censur/udelukkelse",
@@ -93,7 +93,7 @@
   "oversight.vacancies_title": "Ledige sæder",
   "oversight.vacancy_countback_link": "ledigt sæde {status} — side for tilbagetælling →",
   "oversight.vacancy_state_aria": "Tilstandsmaskine for ledige sæder",
-  "oversight.you_suffix": "(dig)",
+  "oversight.you_suffix": " (dig)",
   "referendums.about": "Beskyttelsen CLK-19 er en valideringsport, ikke en timer: en F-LEG-034 indsendelse mod en beslutning vedtaget med kvalificeret flertal af befolkningen afvises før afstemning med henvisning, og selve afvisningen lander i revisionsloggen. Beskyttelsen ophører, når det næste generalvalg certificeres — folkeafstemningsbeslutninger ændres derefter via den ordinære vej.",
   "referendums.act_ordinary": "Ordinær beslutning — flertalsklasse",
   "referendums.act_setting_change": "Beslutning om indstillingsændring — flertalsklasse",
@@ -370,7 +370,7 @@
   "type_b_districts.over_rep": "Overrepræsentation:",
   "type_b_districts.overcount": "Overoptælling",
   "type_b_districts.pan_mode": "Pan-tilstand",
-  "type_b_districts.parts_suffix": "= {total} dele",
+  "type_b_districts.parts_suffix": " = {total} dele",
   "type_b_districts.pe_bad": "Dårlig (>10%):",
   "type_b_districts.pe_district_count": "({n} kredse)",
   "type_b_districts.pe_good": "God (≤5%):",
@@ -493,5 +493,5 @@
   "type_b_districts.uniform_diversity": "Ensartet politisk mangfoldighed",
   "type_b_districts.vertex_snap_unavailable": "Vertex-snapping ikke tilgængelig — tegnebiblioteket blev ændret under dette værktøj.",
   "type_b_districts.view_leg_districts": "Vis lovgivningsmæssige kredse →",
-  "type_b_districts.wizard_paused": "Guide sat på pause."
+  "type_b_districts.wizard_paused": " Guide sat på pause."
 }

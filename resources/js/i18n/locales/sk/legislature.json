@@ -474,6 +474,7 @@
   "legislature_sessionconsole.the_session_machine_scheduled_open_adjourn": "Stroj na zasadnutia: naplánované → otvorené → odložené, s vetvou pre zlyhané kvórum (WF-LEG-20). Sčítanie kvóra predchádza všetkému; je to samotné zvolanie, nie bod programu.",
   "legislature_sessionconsole.the_speaker_presides_and_does_not_move_or_": "Predseda snemovne predsedá a nepodáva návrhy ani nehlasuje o záležitostiach — len rozhodujúci hlas pri rovnosti hlasov (F-SPK-004) · Art. II §3.",
   "legislature_sessionconsole.tie_breaking_vote": "Rozhodujúci hlas pri rovnosti hlasov",
+  "legislature_sessionconsole.until_the_chamber_elects_its_speaker_there": "Kým si snemovňa nevoli predsedu snemovne, neexistuje R-10: zasadnutia nemožno zvoliť a všeobecné konanie nemôže začať. Hlasovanie je voľba s preferenčným hlasovaním kvalifikovanou väčšinou VŠETKÝCH zvolených členov — nehlasujúci zostávajú v menovateľu. F-LEG-008 · Art. II §3 · WF-LEG-02",
   "legislature_sessionconsole.winner_seated_as_speaker_public_record_kin": "víťaz: {winner} — ustanovený ako predseda snemovne · certifikácia typu verejného záznamu",
   "legislature_sessionconsole.your_attendance_is_registered": "Vaša prítomnosť je registrovaná",
   "legislature_sessionconsole.your_ranking": "Vaše rankingy",

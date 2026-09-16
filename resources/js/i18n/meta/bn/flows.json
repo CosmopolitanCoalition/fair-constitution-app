@@ -1956,7 +1956,7 @@
     "provider": "ollama"
   },
   "refer_to_wf_leg_17_ebc2fd96": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -268,7 +268,7 @@
   "audit_chain.missing": "Post #{seq} hittades inte på den här instansen. Sekvensnummer kan ha luckor.",
   "audit_chain.nav_label": "Navigering i revisionslogg",
   "audit_chain.newer": "Nyare poster",
-  "audit_chain.newest_first": "Nyaste först ·",
+  "audit_chain.newest_first": "Nyaste först · ",
   "audit_chain.no_entries_yet": "Inga poster än",
   "audit_chain.older": "Äldre poster",
   "audit_chain.open_receipt": "Öppna kvitto",

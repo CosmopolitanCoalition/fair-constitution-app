@@ -473,7 +473,7 @@
   "districts.tip_district": "મતવિસ્તાર: {seats} બેઠકો",
   "districts.tip_expand": "પેટા-મતવિસ્તારો જોવા માટે સાઇડબારમાં વિસ્તૃત કરો",
   "districts.tip_fractional": "અંશિક: {n}",
-  "districts.tip_members_suffix": "· {n} સભ્યો",
+  "districts.tip_members_suffix": " · {n} સભ્યો",
   "districts.tip_pop": "વસ્તી: {n}",
   "districts.tip_unassigned": "નિયુક્ત નથી — સંયોજિત કરી શકાય તેવું",
   "districts.toast_autoseed_complete": "ઓટો-સીડ પૂર્ણ",

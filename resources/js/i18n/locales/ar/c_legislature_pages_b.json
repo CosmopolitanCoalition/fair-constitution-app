@@ -119,8 +119,8 @@
   "oversight.removal_title": "إجراءات العزل",
   "oversight.seat_label": "مقعد {seat}",
   "oversight.seat_vacated": "المقعد شاغر",
-  "oversight.speaker_owncase_suffix": "(رئيس المجلس — تتطلب قضيته الخاصة رئيساً معيناً)",
-  "oversight.speaker_suffix": "(رئيس المجلس)",
+  "oversight.speaker_owncase_suffix": " (رئيس المجلس — تتطلب قضيته الخاصة رئيساً معيناً)",
+  "oversight.speaker_suffix": " (رئيس المجلس)",
   "oversight.special_election": "انتخاب خاص {when} ({status})",
   "oversight.spk_form_citation": "Art. II §3 — رئاسة القضية الخاصة محظورة في الكود",
   "oversight.spk_form_name": "رئاسة جلسة عزل/توبيخ/طرد",
@@ -133,7 +133,7 @@
   "oversight.vacancies_title": "الشغورات",
   "oversight.vacancy_countback_link": "شغور {status} — صفحة إعادة الفرز ←",
   "oversight.vacancy_state_aria": "آلية حالة الشغور",
-  "oversight.you_suffix": "(أنت)",
+  "oversight.you_suffix": " (أنت)",
   "referendums.about": "درع CLK-19 هو بوابة تحقق وليس مؤقتاً: أي تقديم F-LEG-034 ضد تشريع بأغلبية عظمى سكانية يُرفض قبل التصويت مع ذكر المرجع، ويُسجل الرفض نفسه في سجل التدقيق. يُرفع الدرع عند اعتماد الانتخاب العام التالي — وعندها تُعدل تشريعات الاستفتاء عبر المسار العادي.",
   "referendums.act_ordinary": "تشريع عادي — فئة الأغلبية",
   "referendums.act_setting_change": "تشريع تغيير الإعدادات — فئة الأغلبية",
@@ -410,7 +410,7 @@
   "type_b_districts.over_rep": "تمثيل زائد:",
   "type_b_districts.overcount": "زيادة في العدد",
   "type_b_districts.pan_mode": "وضع Pan",
-  "type_b_districts.parts_suffix": "= {total} أجزاء",
+  "type_b_districts.parts_suffix": " = {total} أجزاء",
   "type_b_districts.pe_bad": "سيئ (>10%):",
   "type_b_districts.pe_district_count": "({n} دوائر انتخابية)",
   "type_b_districts.pe_good": "جيد (≤5%):",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "تنوع سياسي موحد",
   "type_b_districts.vertex_snap_unavailable": "خاصية جذب الرؤوس غير متاحة — تغيرت مكتبة الرسم التي تعتمد عليها هذه الأداة.",
   "type_b_districts.view_leg_districts": "عرض الدوائر الانتخابية →",
-  "type_b_districts.wizard_paused": "المعالج متوقف مؤقتاً."
+  "type_b_districts.wizard_paused": " المعالج متوقف مؤقتاً."
 }

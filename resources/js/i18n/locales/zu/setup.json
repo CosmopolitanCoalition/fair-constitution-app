@@ -23,6 +23,7 @@
   "setup_joinhost.request_sent_the_host_operator_must_approv": "Isicelo sithunyelwe — uphathi wohost kumele asivumele.",
   "setup_joinhost.syncing": "Kuvumelaniswa…",
   "setup_joinhost.this_node_s_mesh_id_give_it_to_the_host": "I-mesh id le nodi (inikeze uhost)",
+  "setup_joinhost.your_lan_range_cidr": "Ibhange le-LAN yakho (CIDR)",
   "setup_modefork.build_the_game_here_author_the_constitutio": "Yakha umdlalo lapha — bhala umthethosisekelo, faka imaphu, dweba izifunda, hlala ezikhungweni. Uba ngumdlalo osemthethweni, futhi amanye ama-nodi ayazihlanganisa nawe. Kunconywa kwenodi yokuqala kumfelandawonye.",
   "setup_modefork.connect_to_a_host_already_in_the_federatio": "Xhuma nohost osevele asemfelandawonyeni. Konke kuvumelaniswa — isisekelo semaphu, umthethosisekelo, nazo zonke izikhungo — futhi le nodi iba ikhophi yesibuko efundwa kuphela. Akukho ukwakha izikhungo; udlala imidlalo efanayo nalabo bonke abakwi-mesh.",
   "setup_modefork.how_should_this_node_join_the_game": "Le nodi kufanele ijoyine kanjani umdlalo?",

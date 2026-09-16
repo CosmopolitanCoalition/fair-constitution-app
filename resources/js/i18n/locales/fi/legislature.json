@@ -62,6 +62,7 @@
   "legislature_chamber.a_vacant_seat_is_simply_not_serving_an_abs": "Avoin paikka ei yksinkertaisesti ole istuva; poissa oleva jäsen lasketaan samaksi kuin ei-ääni. Kynnykset ratkaistaan suojattujen funktioiden kautta — kovetettu.",
   "legislature_chamber.browse_every_legislature_on_the_instance_f": "Selaa kaikkia instanssin lainsäädäntöelimiä lainsäädäntöelinten indeksistä.",
   "legislature_chamber.countback_first_the_voters_prior_ballots_d": "Ensin takaisinlaskenta (äänestäjien aiemmat äänestysliput ratkaisevat), erityisvaalit vain äänestyslippujen loppuessa · Art. II §5.",
+  "legislature_chamber.declared_via_countback_record": "ilmoitettu {vacancy} kautta · · takaisinlaskennan tietue →",
   "legislature_chamber.districts_maps_bills_session_console_setti": "Vaalipiirit & kartat → Lakiesitykset → Istunnon konsoli → Asetusrekisteri →",
   "legislature_chamber.first_sessions_constituting_the_chamber_wf": "Ensimmäiset istunnot — kamarin muodostaminen (WF-LEG-01)",
   "legislature_chamber.flips_your_seat_elected_seated_art_ii_1": "muuttaa paikkasi valituksi → istuvaksi · Art. II §1",

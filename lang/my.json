@@ -1,5 +1,5 @@
 {
-  " Track it at /vacancies/:id.": "/vacancies/:id တွင် ခြေရာခံပါ။",
+  " Track it at /vacancies/:id.": " /vacancies/:id တွင် ခြေရာခံပါ။",
   "% of jurisdiction population · CLK-17": "စီရင်ပိုင်ခွင့်နယ်မြေ လူဦးရေ၏ % CLK-17",
   "+:count more candidate with first-preference support": "ပထမဦးစားပေး ထောက်ခံမှုရရှိသော ကိုယ်စားလှယ်လောင်း :count ဦး ပိုရှိသည်",
   "+:count more candidates with first-preference support": "ပထမဦးစားပေး ထောက်ခံမှုရရှိသော ကိုယ်စားလှယ်လောင်း :count ဦး ပိုရှိသည်",
@@ -721,6 +721,7 @@
   "Create an elected executive": "ရွေးကောက်တင်မြှောက်ထားသော အုပ်ချုပ်ရေးအဖွဲ့တစ်ခု ဖန်တီးရန်",
   "Create your account": "အကောင့်ဖွင့်ပါ",
   "Creating": "ဖွင့်နေသည်",
+  "Creation of Laws by Petition · threshold % of population · CLK-17 · Art. II §6": "အသနားခံစာဖြင့် ဥပဒေများ ပြုလုပ်ခြင်း · လူဦးရေ၏ % သတ်မှတ်ချက် · CLK-17 · Art. II §6",
   "Criminal": "ရာဇဝတ်မှု",
   "Criminal complaint": "ရာဇဝတ်မှုတိုင်တန်းချက်",
   "Cultural Institution Recognition Vote": "ယဉ်ကျေးမှုအဖွဲ့အစည်း အသိအမှတ်ပြုမဲခွဲမှု",
@@ -2024,7 +2025,7 @@
   "You left the room.": "သင် အခန်းထဲမှ ထွက်သွားခဲ့သည်။",
   "You sit on more than one court — showing one; switch from the court page.": "သင်သည် တရားရုံးတစ်ခုထက်ပို၍ တာဝန်ယူထားသည် — တစ်ခုကို ပြသနေသည်၊ တရားရုံးစာမျက်နှာမှ ပြောင်းလဲပါ။",
   "You sit on more than one department board — showing one; pick another from its department page.": "သင်သည် ဌာနဘုတ်အဖွဲ့တစ်ခုထက်ပို၍ တာဝန်ယူထားသည် — တစ်ခုကို ပြသနေသည်၊ ဌာနစာမျက်နှာမှ အခြားတစ်ခုကို ရွေးချယ်ပါ။",
-  "You: ": "သင်:",
+  "You: ": "သင်: ",
   "Your account, your acts — counterparties are accounts, never people · Art. I": "သင့်အကောင့်၊ သင့်ဆုံးဖြတ်ချက်များ — တစ်ဖက်မှသည် အကောင့်များသာဖြစ်ပြီး လူပုဂ္ဂိုလ်များမဟုတ်ပါ · Art. I",
   "Your chair ranking has been recorded.": "သင့်၏ ဥက္ကဋ္ဌအဆင့်သတ်မှတ်ချက်ကို မှတ်တမ်းတင်ပြီးဖြစ်သည်။",
   "Your client retains you; the retainer is recorded with the filing.": "သင့်ကို အမှုသည်က ငှားရမ်းထားသည်၊ ငှားရမ်းမှုအား တင်သွင်းမှုနှင့်အတူ မှတ်တမ်းတင်ထားသည်။",

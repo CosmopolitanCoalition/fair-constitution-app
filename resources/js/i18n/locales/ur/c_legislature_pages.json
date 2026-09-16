@@ -473,7 +473,7 @@
   "districts.tip_district": "حلقہ: {seats} نشستیں",
   "districts.tip_expand": "ذیلی حلقے دیکھنے کے لیے سائیڈ بار میں پھیلائیں",
   "districts.tip_fractional": "کسری: {n}",
-  "districts.tip_members_suffix": "· {n} ارکان",
+  "districts.tip_members_suffix": " · {n} ارکان",
   "districts.tip_pop": "آبادی: {n}",
   "districts.tip_unassigned": "غیر مختص — قابلِ ترتیب",
   "districts.toast_autoseed_complete": "آٹو-سیڈ مکمل",

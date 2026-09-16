@@ -99,7 +99,7 @@
   "board_elections.your_chair_ranking": "Su elección de presidente de la junta directiva",
   "board_roster": "Miembros de la junta directiva y sus fechas de mandato actuales",
   "board_strip.cell_vacant": "— vacante",
-  "board_strip.chair_suffix": "(presidente elegido conjuntamente)",
+  "board_strip.chair_suffix": " (presidente elegido conjuntamente)",
   "board_strip.class_governor": "Gobernador designado",
   "board_strip.class_owner_elected": "Elegido por propietarios",
   "board_strip.class_worker_elected": "Elegido por trabajadores",
