@@ -17017,7 +17017,8 @@
         "app/Http/Controllers/System/TranslationPackageController.php, app/Jobs/I18n/ExportLanguagePackageJob.php, app/Jobs/I18n/ImportLanguagePackageJob.php, app/Services/I18n/LanguagePackageService.php",
         "tests/Unit/LanguagePackageServiceTest.php 9, tests/Feature/LanguagePackageRoutesTest.php 5, tests/Unit/Wiring_w0446_language_packagesTest.php 4 (18 tests, 108 assertions), tests/js/i18nWiring2_w0446_language_packages.test.mjs 7/7",
         "merged d3f08d42; needs docker restart fc_horizon (operator) before the jobs run; card not yet verified in the operator browser",
-        "faa36817: truthful picker (present vs no strings yet), English master export, import refuses the source"
+        "faa36817: truthful picker (present vs no strings yet), English master export, import refuses the source",
+        "b39715c2, 92cabd39, a01a0cba: long lane + escape hatch, one layout, named args; export_master --self-test 30 of 30; JS suite 511 tests 386 pass, 122 pre-existing failures unchanged"
       ],
       "sources": [
         {
@@ -17055,6 +17056,10 @@
         {
           "date": "2026-09-15",
           "note": "Operator observation (8:05 PM Eastern): only one language is actually in the system, so a picker of 75 exportable languages was confusing. Fixed faa36817: the status endpoint returns one row per target with its measured coverage (present, pct, missing from coverage.json) and the English source counts; the picker offers English master (en) first, then Machine drafts in the app (6 rows: ar es fr hi pt zh-Hans at 27 to 29 percent), then Registered, no strings yet (69 rows); the import picker never offers English; English master export stages the 73 English namespace files and lang/en.json with a README and zips them (no script); import refuses English and any non-target with 422 before a run is recorded. Pins: LanguagePackageServiceTest 9, LanguagePackageRoutesTest 5, Wiring_w0446 4 (18 tests, 108 assertions; the commit message says 111, the run says 108); JS pin 7 of 7."
+        },
+        {
+          "date": "2026-09-15",
+          "note": "Operator: the Hindi export stuck at exporting (8:10 PM Eastern), then the two zips had different hierarchies (8:40 PM). b39715c2: the export is JSON arithmetic (the per-namespace walk of resources/js is gone; Hindi 2.0 s, 91 files, 14,441 strings), both jobs ride the long lane (redis-long, long-running, job timeout 1800 s), failed() closes the run record, stale detection, Retry and Discard on the card. 92cabd39: one package layout for every language, the English master is export_master.py --locale en (124 files, 18,677 strings, 2.5 s). a01a0cba: named values under options.named at 231 call sites (the blank counts on the card). ACTION FOR THE OPERATOR: docker restart fc_horizon (the long-lane workers hold the previous job code), then Discard the English master run and Export it again."
         }
       ]
     },
