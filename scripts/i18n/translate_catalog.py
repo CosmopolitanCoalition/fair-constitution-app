@@ -138,8 +138,12 @@ PLACEHOLDER = re.compile(r"(?<!\{')\{([A-Za-z_$][\w$]*)\}")
 # Laravel replacement tokens in the lang namespace (lang/<locale>.json):
 # ":attribute", ":Attribute", ":min". A colon inside a word (https://, ::),
 # before a digit (10:30) or before a space ("Note: ...") is not a token.
-LARAVEL_TOKEN = re.compile(r"(?<![\w:]):[A-Za-z_]\w*")
-ID_TOKEN = re.compile(r"\b(?:R|WF|F|I|CLK)-[\dA-Z][\dA-Z-]*\b")
+# ASCII-only token bodies and boundaries: an inflecting language attaches its
+# case or particle straight to the token (Korean :count개, Armenian CLK-06-ը),
+# and \w or \b would swallow the suffix into the token and reject a correct
+# translation (714 ID and 252 Laravel rejections after the 2026-09-16 pass).
+LARAVEL_TOKEN = re.compile(r"(?<![A-Za-z0-9_:]):[A-Za-z_][A-Za-z0-9_]*")
+ID_TOKEN = re.compile(r"(?<![A-Za-z0-9])(?:R|WF|F|I|CLK)-[\dA-Z]+(?:-[\dA-Z]+)*(?![0-9A-Z])")
 # Citations carry section RANGES with an en-dash in this repo's copy
 # ("Art. V §1–2 · CLK-05"), and a regex that stops at §1 leaves "–2" exposed to
 # the model, which then "translates" it. Match the whole citation or none of it.
@@ -939,6 +943,11 @@ def self_test() -> int:
             return [t.upper() for t in texts]
     got = _Poison().translate_batch(["one", "two", "POISON here", "four"], "xx")
     check("a poisoned batch bisects to keep its good strings", got == ["ONE", "TWO", None, "FOUR"], str(got))
+    check("a Korean particle on an ID token is not an alteration", qa("Filed under F-LEG-017 today.", "오늘 F-LEG-017에 따라 제출되었습니다.", "Kore") is None)
+    check("a Korean counter on a Laravel token is not a mismatch", qa(":count seats are open", ":count개의 좌석이 열려 있습니다", "Kore") is None)
+    check("an Armenian case ending on an ID token is not an alteration", qa("See CLK-06 for the clock.", "Տես CLK-06-ը ժամացույցի համար։", "Armn") is None)
+    check("a changed ID token is still caught", qa("See CLK-06.", "Տես CLK-07-ը։", "Armn") == "ID token altered")
+    check("a dropped Laravel token is still caught", qa(":count seats", "좌석", "Kore") == "laravel token mismatch")
     m2, k2 = mask(cite)
     check("en-dash citation range masks whole",
           "§" not in m2 and unmask(m2, k2) == cite, m2)
