@@ -1142,6 +1142,8 @@ def main() -> int:
         print("\n  dry run — nothing written")
     else:
         print("\n  re-run scripts/i18n/check.mjs to see the coverage move")
+    if beat is not None:
+        beat.retire("done")   # a finished lane reads as done, never as a stall
     return 0
 
 
