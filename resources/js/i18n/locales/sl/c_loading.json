@@ -1,0 +1,8 @@
+{
+  "dismiss": "Zapri",
+  "failed": "Zahteve ni bilo mogoče izpolniti. Poskusite znova.",
+  "loading": "Nalaganje…",
+  "refresh": "Osvežite za nov poskus",
+  "slow": "Še vedno nalaga…",
+  "start_failed": "Strani ni bilo mogoče odpreti."
+}

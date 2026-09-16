@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "shtuar:",
+  "law_diff.label": "Ndryshimet në tekstin e ligjit",
+  "law_diff.removed": "hequr:",
+  "planned_banner.default_body": "Kjo pjesë e botës është projektuar përpara ndërtimit. Asgjë këtu nuk është aktive ende dhe nuk ka para reale askund",
+  "planned_banner.title": "E planifikuar — një parapryesje.",
+  "selection_identity.aria_org": "Regjistri i organizatës për {name}, referenca {id}",
+  "selection_identity.aria_profile": "Profili publik për {name}, referenca {id}",
+  "selection_identity.org_reference": "Referenca e organizatës:",
+  "selection_identity.organization_record": "Regjistri i organizatës",
+  "selection_identity.profile_reference": "Referenca e profilit:",
+  "selection_identity.public_profile": "Profili publik"
+}

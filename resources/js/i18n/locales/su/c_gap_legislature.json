@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "pamilihan éksekutif",
+  "election_kind.general": "pamilihan umum",
+  "election_kind.judicial": "pamilihan yudikatif",
+  "election_kind.org_board_owner": "pamilihan déwan (korsi nu gaduh)",
+  "election_kind.org_board_worker": "pamilihan déwan (korsi pagawé)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "pamilihan pamulihan",
+  "election_kind.special": "pamilihan husus"
+}

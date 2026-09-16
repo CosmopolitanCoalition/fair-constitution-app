@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "volitve izvršilne oblasti",
+  "election_kind.general": "splošne volitve",
+  "election_kind.judicial": "volitve sodne oblasti",
+  "election_kind.org_board_owner": "volitve upravnega odbora (sedeže lastnikov)",
+  "election_kind.org_board_worker": "volitve upravnega odbora (sedeže delavcev)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "volitve za obnovo",
+  "election_kind.special": "izjemne volitve"
+}

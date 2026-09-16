@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Ansluter till klustret",
+  "federation_syncprogress.of_left": "{fmtValue} av {fmtValue2}~{fmtDuration} kvar",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} poster · {fmtNum2} sidorImporterar grunden till databasen…Importeradväntar…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Du kan lämna den här sidan — synkroniseringen körs i bakgrunden och återupptas om den avbryts."
+}

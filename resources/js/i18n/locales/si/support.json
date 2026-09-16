@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "හැසිරීම් සහ නීතිමය වාර්තා සමාලෝචනය සඳහා යොමු කෙරේ. මෙහි වාර්තා කිරීමෙන් කිසිවක් ඉවත් නොවේ — අන්තර්ගතය ඉවත් කිරීම ව්‍යවස්ථාපිත ව්‍යතිරේකයන් (F-SOC-003 යාන්ත්‍රණය) අනුව සිදු වේ, මෙම පෝරමය මගින් නොවේ.",
+  "support_report.file_a_report": "වාර්තාවක් ඉදිරිපත් කරන්න",
+  "support_report.file_report": "වාර්තාව ඉදිරිපත් කරන්න",
+  "support_report.filed_from": "ඉදිරිපත් කළේ: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "සරල වචන ප්‍රමාණවත්ය. ඔබ අපේක්ෂා කළේ කුමක්ද සහ ඒ වෙනුවට ඔබ දුටු දේ ඇතුළත් කරන්න.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "වාර්තා ක්‍රියාකරුගේ සහාය ලැබෙන ලැබිම් පෙට්ටියට (inbox) ලැබෙන අතර ඒවා වර්ගීකරණය අනුව යොමු කෙරේ. මෙම පද්ධතිය මගින් අන්තර්ගතය සංස්කරණය කිරීම හෝ ඉවත් කිරීම සිදු නොවේ.",
+  "support_report.what_happened": "කුමක් සිදු වූයේද?",
+  "support_report.what_kind_of_report_is_this": "මෙය කුමන වර්ගයේ වාර්තාවක්ද?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "වාර්තාවක් ඉදිරිපත් කිරීමට ඔබ ඇතුළු වී සිටිය යුතුය — කරුණාකර ඇතුළු වී නැවත මෙම පිටුවට පැමිණෙන්න."
+}

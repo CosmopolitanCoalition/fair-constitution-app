@@ -1,0 +1,8 @@
+{
+  "dismiss": "Avfärda",
+  "failed": "Begäran kunde inte slutföras. Försök igen.",
+  "loading": "Laddar…",
+  "refresh": "Uppdatera för att försöka igen",
+  "slow": "Laddar fortfarande…",
+  "start_failed": "Sidan kunde inte öppnas."
+}

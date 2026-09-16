@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Loading cinwaanka koonka…",
+  "cosmicaddresspicker.multiverse": "Multiverse ▸",
+  "schemaupdatebanner.apply_updates": "Ku dabaq cusboonaysiinta",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Waa loo baahan yahay: {pendingLabel} — ku dabaq ka hor inta aan la bilaabin ETL run.",
+  "setupstepper.build_districts": "Dhis Degmooyinka Doorashada",
+  "setupstepper.confirm_seat_institutions": "Xaqiiji & Fadhiisi Hay'adaha",
+  "setupstepper.constitutional_defaults": "Caadiyadda Dastuurka",
+  "setupstepper.cosmic_address": "Cinwaanka Koonka",
+  "setupstepper.map_data": "Xogta Khariidadda",
+  "setupstepper.setup_progress": "Horumarka habaynta"
+}

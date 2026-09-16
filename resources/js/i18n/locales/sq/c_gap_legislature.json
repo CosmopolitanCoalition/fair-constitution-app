@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "zgjedhje ekzekutive",
+  "election_kind.general": "zgjedhje të përgjithshme",
+  "election_kind.judicial": "zgjedhje gjyqësore",
+  "election_kind.org_board_owner": "zgjedhje të bordit (vende pronarësh)",
+  "election_kind.org_board_worker": "zgjedhje të bordit (vende punëtorësh)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "zgjedhje për rivendosje",
+  "election_kind.special": "zgjedhje të jashtëzakonshme"
+}

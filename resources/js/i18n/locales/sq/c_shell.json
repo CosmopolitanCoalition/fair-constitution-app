@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Bota e Shtetqeverisjes",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Kontrollet e zhvilluesit — nuk janë pjesë e aplikacionit",
+  "shell_devbar.impersonating": "{label} — Po vepron në emër të {name}",
+  "shell_devbar.residency_tool_civic_residency": "Mjeti i vendbanimit → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Rishikim gjyqësor në pritje · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Hap panelin e kompetencave të emergjencës"
+}

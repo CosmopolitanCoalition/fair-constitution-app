@@ -1,0 +1,1111 @@
+{
+  "become-a-resident.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.4.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.4.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.4.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.5.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.5.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.step.5.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "become-a-resident.your_part": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.4.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.4.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.4.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.5.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.5.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.step.5.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.4.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.4.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.step.4.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-meeting.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.0.label": {
+    "status": "review",
+    "reason": "placeholder mismatch",
+    "provider": "ollama"
+  },
+  "budget.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.4.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.4.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.step.4.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "budget.your_part": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "class.gov-gov": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "class.gov-itself": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "class.gov-orgs-people": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "class.orgs-people": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "class.people": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.4.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.4.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.4.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.5.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.5.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.5.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.6.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.6.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.step.6.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee-session.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.4.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.4.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.4.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.5.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.5.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.5.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.6.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.6.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.6.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.7.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.7.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.7.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.8.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.8.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.step.8.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "court-case.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.4.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.4.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.4.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.5.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.5.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.5.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.6.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.6.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.step.6.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election.your_part": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.4.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.4.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.step.4.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form-a-group.your_part": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "generic.arc": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "generic.arc_rooms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mutual-aid.your_part": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.4.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.4.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.4.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.5.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.5.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.5.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.6.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.6.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.step.6.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition-to-referendum.your_part": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-service.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.4.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.4.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.step.4.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start-org.your_part": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend-and-tax.your_part": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.earn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.0.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.0.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.0.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.1.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.1.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.1.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.2.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.2.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.2.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.3.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.3.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.step.3.you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "two-governments.title": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

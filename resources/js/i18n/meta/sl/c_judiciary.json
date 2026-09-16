@@ -1,0 +1,238 @@
+{
+  "judiciary_art4section5tracker.a_severity_scaled_panel_of_the_writing": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.active_challenge": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.amendment_bill_in_committee": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.as_edited_by_the_judiciary": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.closed_resolved_on_another_path": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.constitutional_challenge_state_machine": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.due_within_days_of_the_finding_art_iv_5_op": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.enforcement_aligns_to_the_final_state_of_t": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.executives_enforce_the_outcome_whichever_p": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.filed_by_any_inhabitant_may_file_no_standi": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.finding_recommended_remedy": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.finding_remedy": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.heard_by": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.if_the_window_closes_with_neither_amendmen": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.is_edited_to_the_text_above_a_new_law_vers": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.judgement_overruled": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.law_challenged": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.legislative_window": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.no_constitutional_challenge_is_open_in_you": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.no_open_challenge": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.opinions_remain_commentary_on_the_law_as_w": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.override_votes_in_favor_of_all_serving": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.path_a": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.path_a_legislature_modifies_or_removes": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.path_b": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.path_b_supermajority_override_in_the_veto_": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.path_c": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.path_c_window_closes_judiciary_edits_the_l": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.pending_window_close": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.remedy_applied_directly": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.remedy_preview": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.right_to_challenge_art_iv_5": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.supermajority_of_all_serving_members_not_j": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.the_law_stands_as_written_the_finding_the_": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.the_legislature_has_days_to_modify_or_remo": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.the_legislature_modifies_or_removes_the_la": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.the_three_art_iv_5_resolution_paths": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.timeframe_days_veto_window_days": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_art4section5tracker.when_a_court_issues_a_finding_under_art_iv": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_caselifecycle.back_and_advance_move_through_the_sequence": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judiciary_caselifecycle.case_state_machine": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_caselifecycle.playable_walkthrough": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_jurorscreening.a_panel_judge_follows_up_on_the_answers_yo": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_jurorscreening.answer_honestly_screening_removes_conflict": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_jurorscreening.conflict_screening_questions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_jurorscreening.flagged_for_voir_dire_review": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_jurorscreening.no_conflicts_declared": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_jurorscreening.you_remain_in_the_panel_pool_empanelment_i": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary_paneltable.panel_assignment_and_conflict_screening_re": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

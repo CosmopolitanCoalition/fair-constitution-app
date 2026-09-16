@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "tillagd:",
+  "law_diff.label": "Ändringar i lagtext",
+  "law_diff.removed": "borttagen:",
+  "planned_banner.default_body": "Denna del av världen är utformad före bygget. Inget här är live ännu, och inga riktiga pengar finns någonstans.",
+  "planned_banner.title": "Planerad — en förhandsvisning.",
+  "selection_identity.aria_org": "Organisationshandling för {name}, referens {id}",
+  "selection_identity.aria_profile": "Offentlig profil för {name}, referens {id}",
+  "selection_identity.org_reference": "Organisationsreferens:",
+  "selection_identity.organization_record": "Organisationshandling",
+  "selection_identity.profile_reference": "Profilreferens:",
+  "selection_identity.public_profile": "Offentlig profil"
+}

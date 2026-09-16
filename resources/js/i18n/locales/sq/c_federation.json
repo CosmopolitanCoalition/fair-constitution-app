@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Bashkimi në grup",
+  "federation_syncprogress.of_left": "{fmtValue} nga {fmtValue2}~{fmtDuration} kanë mbetur",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} regjistra · {fmtNum2} faqeImportimi i themelit në bazën e të dhënave…Importuarpritje…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Mund ta lini këtë faqe — sinkronizimi kryhet në prapaskenë dhe rifillon nëse ndërpritet."
+}

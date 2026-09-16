@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "val av verkställande makt",
+  "election_kind.general": "allmänt val",
+  "election_kind.judicial": "val av dömande makt",
+  "election_kind.org_board_owner": "styrelseval (ägarnas platser)",
+  "election_kind.org_board_worker": "styrelseval (arbetarnas platser)",
+  "election_kind.referendum": "folkomröstning",
+  "election_kind.restoration": "val för återställande",
+  "election_kind.special": "extraval"
+}

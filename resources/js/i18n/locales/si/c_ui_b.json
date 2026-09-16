@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "එබූ:",
+  "law_diff.label": "නීති පෙළෙහි වෙනස්කම්",
+  "law_diff.removed": "ඉවත් කළ:",
+  "planned_banner.default_body": "ලෝකයේ මෙම කොටස නිර්මාණය කර ඇත්තේ ගොඩනැගීමට පෙරය. මෙහි කිසිවක් තවමත් සජීවී නැත, කිසිදු සැබෑ මුදලක් කොහේවත් නැත.",
+  "planned_banner.title": "සැලසුම් කළ — පෙරදසුනක්.",
+  "selection_identity.aria_org": "{name} සඳහා සංවිධානය වාර්තාව, යොමුව {id}",
+  "selection_identity.aria_profile": "{name} සඳහා පොදු පැතිකඩ, යොමුව {id}",
+  "selection_identity.org_reference": "සංවිධාන යොමුව:",
+  "selection_identity.organization_record": "සංවිධාන වාර්තාව",
+  "selection_identity.profile_reference": "පැතිකඩ යොමුව:",
+  "selection_identity.public_profile": "පොදු පැතිකඩ"
+}

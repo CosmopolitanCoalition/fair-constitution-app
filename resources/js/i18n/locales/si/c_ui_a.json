@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "ග්‍රහලෝකය",
+  "adm_chip.level_1": "රට",
+  "adm_chip.level_2": "පළාත / පළාත",
+  "adm_chip.level_3": "දිස්ත්‍රික්කය",
+  "adm_chip.level_4": "නගර සභාව",
+  "adm_chip.level_5": "ප්‍රාදේශීය සභාව",
+  "adm_chip.level_6": "අසල්වැසි ප්‍රදේශය",
+  "citation_line.as_implemented": "ක්‍රියාත්මක කර ඇති පරිදි",
+  "data_table.caption_scrollable": "{caption} (පියලි කළ හැකි)",
+  "data_table.scrollable_table": "පියලි කළ හැකි වගුව",
+  "history_pager.first_page": "පළමු පිටුව",
+  "history_pager.load_error": "මෙම පිටුව පූරණය කළ නොහැකි විය. නැවත උත්සාහ කරන්න.",
+  "history_pager.loading": "වාර්තා පූරණය වෙමින් පවතී…",
+  "history_pager.next": "ඊළඟ",
+  "history_pager.previous": "පෙර"
+}

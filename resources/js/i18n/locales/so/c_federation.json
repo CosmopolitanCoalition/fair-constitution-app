@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Ku biirista kooxda",
+  "federation_syncprogress.of_left": "{fmtValue} oo ka mid ah {fmtValue2}~{fmtDuration} ayaa haray",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} diiwaan · {fmtNum2} bog. Soo gelinaya aasaaska xogta… Soo galay sugaya…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Waad ka tegi kartaa boggan — isku-dhelijintu waxay ku shaqaynaysaa gadaal, waxayna dib u bilaabanaysaa haddii ay kala go'do."
+}

@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "under tröskelvärdet",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} nödbefogenheter utvidgar det delegerade omfånget endast inom det deklarerade området och under den angivna tiden · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "kan prövas av domstol · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Avvisad före utfärdande: {rejection_citation} Beslutet trädde aldrig i kraft; det avvisade försöket finns som offentlig handling."
+}

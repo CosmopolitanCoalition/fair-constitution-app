@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Država",
+  "adm_chip.level_2": "Država / Provinca",
+  "adm_chip.level_3": "Okraj",
+  "adm_chip.level_4": "Občina",
+  "adm_chip.level_5": "Naselje",
+  "adm_chip.level_6": "Soseska",
+  "citation_line.as_implemented": "kot je implementirano",
+  "data_table.caption_scrollable": "{caption} (s pomikanjem)",
+  "data_table.scrollable_table": "Tabela s pomikanjem",
+  "history_pager.first_page": "Prva stran",
+  "history_pager.load_error": "Te strani ni bilo mogoče naložiti. Poskusite znova.",
+  "history_pager.loading": "Nalaganje zapisov…",
+  "history_pager.next": "Naslednje",
+  "history_pager.previous": "Prejšnje"
+}

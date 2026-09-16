@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "ක්ලස්ටරයට සම්බන්ධ වෙමින්",
+  "federation_syncprogress.of_left": "{fmtValue} න් {fmtValue2}~{fmtDuration} ක් ඉතිරිව ඇත",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} වාර්තා · {fmtNum2} පිටු. පදනම දත්ත සමුදායට ඇතුළත් කරමින්…ඇතුළත් කළා. රැඳී සිටින්න…තත්පරයට {fmtNum3}",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "ඔබට මෙම පිටුවෙන් ඉවත් විය හැක — සමකාලීන කිරීම පසුබිමෙන් ක්‍රියාත්මක වන අතර බාධාවක් වූවහොත් නැවත ආරම්භ වේ."
+}

@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Shtet",
+  "adm_chip.level_2": "Shtet / Provincë",
+  "adm_chip.level_3": "Rreth",
+  "adm_chip.level_4": "Bashki",
+  "adm_chip.level_5": "Komunë",
+  "adm_chip.level_6": "Lagje",
+  "citation_line.as_implemented": "siç është implementuar",
+  "data_table.caption_scrollable": "{caption} (me shirit skrolimi)",
+  "data_table.scrollable_table": "Tabelë me shirit skrolimi",
+  "history_pager.first_page": "Faqja e parë",
+  "history_pager.load_error": "Kjo faqe nuk mund të ngarkohej. Provoni përsëri.",
+  "history_pager.loading": "Duke ngarkuar regjistrat…",
+  "history_pager.next": "Tjetra",
+  "history_pager.previous": "Para"
+}

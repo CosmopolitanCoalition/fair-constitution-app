@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Laddar kosmisk adress…",
+  "cosmicaddresspicker.multiverse": "Multiversum ▸",
+  "schemaupdatebanner.apply_updates": "Installera uppdateringar",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Krävs: {pendingLabel} — installera innan en ETL-körning startas.",
+  "setupstepper.build_districts": "Bygg valkretsar",
+  "setupstepper.confirm_seat_institutions": "Bekräfta & tillsätt institutioner",
+  "setupstepper.constitutional_defaults": "Författningens standardinställningar",
+  "setupstepper.cosmic_address": "Kosmisk adress",
+  "setupstepper.map_data": "Kartdata",
+  "setupstepper.setup_progress": "installationsförlopp"
+}

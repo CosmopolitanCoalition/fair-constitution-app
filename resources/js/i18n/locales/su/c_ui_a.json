@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planét",
+  "adm_chip.level_1": "Nagara",
+  "adm_chip.level_2": "Nagara Bagian / Propinsi",
+  "adm_chip.level_3": "Kabupatén",
+  "adm_chip.level_4": "Kotamadya",
+  "adm_chip.level_5": "Kacamatan",
+  "adm_chip.level_6": "Lingkungan",
+  "citation_line.as_implemented": "sakumaha nu diterapkeun",
+  "data_table.caption_scrollable": "{caption} (bisa digulung)",
+  "data_table.scrollable_table": "Tabél nu bisa digulung",
+  "history_pager.first_page": "Kaca munggaran",
+  "history_pager.load_error": "Kaca ieu teu bisa dibuka. Coba deui.",
+  "history_pager.loading": "Keur muka catetan…",
+  "history_pager.next": "Saterusna",
+  "history_pager.previous": "Saméméhna"
+}

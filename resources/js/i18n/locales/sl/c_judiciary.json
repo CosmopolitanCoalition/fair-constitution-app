@@ -1,0 +1,11 @@
+{
+  "judiciary_caselifecycle.case_state_machine": "Stanje postopka",
+  "judiciary_caselifecycle.playable_walkthrough": "Interaktivni vodič",
+  "judiciary_jurorscreening.a_panel_judge_follows_up_on_the_answers_yo": "Sodnik panela preveri odgovore, ki ste jih označili. Če se potrdi konflikt, ste brez kazni izpuščeni, žrejanje pa izbere nadomestilo.",
+  "judiciary_jurorscreening.answer_honestly_screening_removes_conflict": "Odgovorite iskreno — preverjanje odstrani konflikte interesov, nikoli pa mnenj, demografskih podatkov ali politike. Vaši odgovori gredo samo do sodnikov panela.",
+  "judiciary_jurorscreening.conflict_screening_questions": "Vprašanja za preverjanje konfliktov",
+  "judiciary_jurorscreening.flagged_for_voir_dire_review": "Označeno za preverjanje v okviru voir dire",
+  "judiciary_jurorscreening.no_conflicts_declared": "Konflikti niso prijavljeni",
+  "judiciary_jurorscreening.you_remain_in_the_panel_pool_empanelment_i": "Ostajate v bazi kandidatov za panel. Vključitev v panel se potrdi pri voir dire.",
+  "judiciary_paneltable.panel_assignment_and_conflict_screening_re": "Rezultati razporeditve v panel in preverjanja konfliktov"
+}

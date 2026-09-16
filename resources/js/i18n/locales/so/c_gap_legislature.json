@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "doorashada fulinta",
+  "election_kind.general": "doorashada guud",
+  "election_kind.judicial": "doorashada garsoorka",
+  "election_kind.org_board_owner": "doorashada guddiga maamulka (kursiga milkiilaha)",
+  "election_kind.org_board_worker": "doorashada guddiga maamulka (kursiga shaqaalaha)",
+  "election_kind.referendum": "afti",
+  "election_kind.restoration": "doorashada soo celinta",
+  "election_kind.special": "doorashada gaarka ah"
+}

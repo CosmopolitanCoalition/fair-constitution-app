@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Beteende- och juridiska rapporter skickas för granskning. Att anmäla här tar inte bort något — borttagning av innehåll följer Författningens undantag (maskineriet i F-SOC-003), aldrig detta formulär.",
+  "support_report.file_a_report": "Skicka en rapport",
+  "support_report.file_report": "Skicka rapport",
+  "support_report.filed_from": "Skickad från: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Enkla ord fungerar bra. Beskriv vad du förväntade dig och vad som hände istället.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Rapporter hamnar i operatörens supportinkorg och sorteras efter kategori. Detta intag redigerar eller tar aldrig bort innehåll i sig.",
+  "support_report.what_happened": "Vad hände?",
+  "support_report.what_kind_of_report_is_this": "Vilken typ av rapport är detta?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Du måste vara inloggad för att skicka en rapport — logga in och återvänd till denna sida."
+}

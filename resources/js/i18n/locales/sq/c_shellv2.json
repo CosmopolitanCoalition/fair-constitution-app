@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Navigimi dhe mësimi",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Mësime të plota të planifikuara · Raporti i Fazës 7 Raporto një problem",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Mekanizmi pas këtij ekrani",
+  "shellv2_menunav.all_screens_the_full_map": "Të gjithë ekranët — harta e plotë",
+  "shellv2_menunav.requires_planned": "{label} {label2} Kërkon {prereq} {label3} Planifikuar",
+  "shellv2_tourbar.guided_tour": "Tur i guiduar",
+  "shellv2_tourbar.guided_tour_step_of": "Tur i guiduar · hapi {stepNumber} nga {total}{title}{blurb}"
+}

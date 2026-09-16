@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Meere",
+  "adm_chip.level_1": "Dal",
+  "adm_chip.level_2": "Dawlad / Gobol",
+  "adm_chip.level_3": "Degmo",
+  "adm_chip.level_4": "Dawlad hoose",
+  "adm_chip.level_5": "Tuulo",
+  "adm_chip.level_6": "Xaafad",
+  "citation_line.as_implemented": "sida lagu hirgeliyay",
+  "data_table.caption_scrollable": "{caption} (la wareegi karo)",
+  "data_table.scrollable_table": "Jadwal la wareegi karo",
+  "history_pager.first_page": "Bogga koowaad",
+  "history_pager.load_error": "Boggan lama rari karo. Isku day mar kale.",
+  "history_pager.loading": "Records-ka ayaa la raryaa…",
+  "history_pager.next": "Xigta",
+  "history_pager.previous": "Hore"
+}

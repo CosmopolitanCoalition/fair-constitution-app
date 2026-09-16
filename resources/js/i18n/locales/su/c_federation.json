@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Gabung ka klustér",
+  "federation_syncprogress.of_left": "{fmtValue} tina {fmtValue2}~{fmtDuration} sésana",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} catetan · {fmtNum2} kacaNgimpor pondasi kana basis data…Diimporngantosan…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Anjeun tiasa ninggalkeun ieu kaca — sinkronisasi jalan di latar tukang sareng bakal diteruskeun upami kapegat."
+}

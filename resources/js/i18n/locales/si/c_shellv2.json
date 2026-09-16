@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "සංචාරණය සහ ඉගෙනීම",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "සම්පූර්ණ පාඩම් සැලසුම් කර ඇත · අදියර 7 ගැටලුවක් වාර්තා කරන්න",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "මෙම තිරය පිටුපස ඇති ක්‍රියාකාරීත්වය",
+  "shellv2_menunav.all_screens_the_full_map": "සියලුම තිර — සම්පූර්ණ සිතියම",
+  "shellv2_menunav.requires_planned": "{label} {label2} අවශ්‍ය වේ {prereq} {label3} සැලසුම් කර ඇත",
+  "shellv2_tourbar.guided_tour": "මඟ පෙන්වන සංචාරය",
+  "shellv2_tourbar.guided_tour_step_of": "මඟ පෙන්වන සංචාරය · පියවර {stepNumber} {total}{title}{blurb} න්"
+}

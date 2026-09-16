@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "සීමාවට වඩා අඩු",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} හදිසි බලතල මගින් පවරන ලද විෂය පථය පුළුල් වන්නේ ප්‍රකාශිත ප්‍රදේශය සහ කාලසීමාව තුළ පමණි · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "අධිකරණ සමාලෝචනයට යටත් කළ හැක · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "නිකුත් කිරීමට පෙර ප්‍රතික්ෂේප විය: {rejection_citation} නියෝගය කිසි විටෙක ක්‍රියාත්මක නොවීය; ප්‍රතික්ෂේප වූ උත්සාහය පොදු වාර්තාවේ ඇත."
+}

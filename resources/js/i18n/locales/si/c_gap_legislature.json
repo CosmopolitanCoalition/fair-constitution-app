@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "විධායක මැතිවරණය",
+  "election_kind.general": "සාමාන්‍ය මැතිවරණය",
+  "election_kind.judicial": "අධිකරණ මැතිවරණය",
+  "election_kind.org_board_owner": "මණ්ඩල මැතිවරණය (හිමිකරු ආසන)",
+  "election_kind.org_board_worker": "මණ්ඩල මැතිවරණය (සේවක ආසන)",
+  "election_kind.referendum": "ජනමත විචාරණය",
+  "election_kind.restoration": "ප්‍රතිෂ්ඨාපන මැතිවරණය",
+  "election_kind.special": "විශේෂ මැතිවරණය"
+}

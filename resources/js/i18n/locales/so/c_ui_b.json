@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "la kordhiyay:",
+  "law_diff.label": "Isbeddellada qoraalka sharciga",
+  "law_diff.removed": "la saaray:",
+  "planned_banner.default_body": "Qaybtan adduunka waxaa loo nashqadeeyay ka hor dhismaha. Waxba halkan kama jiraan hadda, lacag dhab ahna meelna kuma jirto.",
+  "planned_banner.title": "Qorshaysan — aragti hordhac ah.",
+  "selection_identity.aria_org": "Diiwaanka ururka ee {name}, tixraaca {id}",
+  "selection_identity.aria_profile": "Profile-ka dadweynaha ee {name}, tixraaca {id}",
+  "selection_identity.org_reference": "Tixraaca ururka:",
+  "selection_identity.organization_record": "Diiwaanka ururka",
+  "selection_identity.profile_reference": "Tixraaca profile-ka:",
+  "selection_identity.public_profile": "Profile-ka dadweynaha"
+}

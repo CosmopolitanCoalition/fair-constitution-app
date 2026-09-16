@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Poročila o vedenju in pravnih poročila so poslana na pregled. Oddaja tukaj ničesar ne izbriše — odstranjevanje vsebine poteka po ustavnih izjemkih (mehanizem F-SOC-003), nikoli preko tega obrazca.",
+  "support_report.file_a_report": "Oddaj poročilo",
+  "support_report.file_report": "Oddaj poročilo",
+  "support_report.filed_from": "Oddano iz: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Preproste besede so dovolj. Navedite, kaj ste pričakovali in kaj ste namesto tega videli.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Poročila pridejo v podporni nabiralnik operaterja in so razvrščena po kategorijah. Ta vnos vsebine sam ne ureja in ne odstranjuje.",
+  "support_report.what_happened": "Kaj se je zgodilo?",
+  "support_report.what_kind_of_report_is_this": "Kakšna vrsta poročila je to?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Za oddajo poročila se morate prijaviti — prijavite se in se vrnite na to stran."
+}

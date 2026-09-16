@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "විශ්වික ලිපිනය පූරණය වෙමින් පවතී…",
+  "cosmicaddresspicker.multiverse": "බහු විශ්වය ▸",
+  "schemaupdatebanner.apply_updates": "යාවත්කාලීන කිරීම් අදාළ කරන්න",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "අවශ්‍යයි: {pendingLabel} — ETL ක්‍රියාවලියක් ආරම්භ කිරීමට පෙර අදාළ කරන්න.",
+  "setupstepper.build_districts": "මැතිවරණ කොට්ඨාස ගොඩනඟන්න",
+  "setupstepper.confirm_seat_institutions": "තහවුරු කර ආයතනවල ආසන පවරන්න",
+  "setupstepper.constitutional_defaults": "ව්‍යවස්ථාදායක පෙරනිමි",
+  "setupstepper.cosmic_address": "විශ්වික ලිපිනය",
+  "setupstepper.map_data": "දත්ත සිතියම",
+  "setupstepper.setup_progress": "සකස් කිරීමේ ප්‍රගතිය"
+}

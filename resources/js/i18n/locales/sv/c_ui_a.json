@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Land",
+  "adm_chip.level_2": "Stat / Provins",
+  "adm_chip.level_3": "Län",
+  "adm_chip.level_4": "Kommun",
+  "adm_chip.level_5": "Torp",
+  "adm_chip.level_6": "Stadsdel",
+  "citation_line.as_implemented": "som implementerat",
+  "data_table.caption_scrollable": "{caption} (skrollbar)",
+  "data_table.scrollable_table": "Skrollbar tabell",
+  "history_pager.first_page": "Första sidan",
+  "history_pager.load_error": "Denna sida kunde inte laddas. Försök igen.",
+  "history_pager.loading": "Laddar poster…",
+  "history_pager.next": "Nästa",
+  "history_pager.previous": "Föregående"
+}

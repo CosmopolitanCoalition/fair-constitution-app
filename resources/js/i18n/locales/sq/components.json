@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Duke ngarkuar adresën kozmike…",
+  "cosmicaddresspicker.multiverse": "Multivers ▸",
+  "schemaupdatebanner.apply_updates": "Apliko përditësimet",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Kërkohet: {pendingLabel} — apliko para fillimit të një ekzekutimi ETL.",
+  "setupstepper.build_districts": "Krijo zonat zgjedhore",
+  "setupstepper.confirm_seat_institutions": "Konfirmo dhe cakto institucionet",
+  "setupstepper.constitutional_defaults": "Vlerat e parazgjedhura kushtetutore",
+  "setupstepper.cosmic_address": "Adresa Kozmike",
+  "setupstepper.map_data": "Të dhënat e hartës",
+  "setupstepper.setup_progress": "Progresi i konfigurimit"
+}
