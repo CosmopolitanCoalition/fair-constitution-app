@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "elezzjoni eżekuttiva",
+  "election_kind.general": "elezzjoni ġenerali",
+  "election_kind.judicial": "elezzjoni ġudikatura",
+  "election_kind.org_board_owner": "elezzjoni tal-bord (siġġijiet tas-sid)",
+  "election_kind.org_board_worker": "elezzjoni tal-bord (siġġijiet tal-ħaddiem)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "elezzjoni ta' restawr",
+  "election_kind.special": "elezzjoni speċjali"
+}

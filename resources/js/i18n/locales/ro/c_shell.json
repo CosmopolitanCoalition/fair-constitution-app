@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Lumea Guvernanței",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Controale dezvoltator — nu fac parte din aplicație",
+  "shell_devbar.impersonating": "{label} — Impersonarea lui {name}",
+  "shell_devbar.residency_tool_civic_residency": "Instrument de rezidență → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Revizuire judiciară în curs · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Deschide panoul de puteri de urgență"
+}

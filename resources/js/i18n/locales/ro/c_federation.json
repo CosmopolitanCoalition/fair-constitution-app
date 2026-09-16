@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Conectare la cluster",
+  "federation_syncprogress.of_left": "{fmtValue} din {fmtValue2}~{fmtDuration} rămase",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} înregistrări · {fmtNum2} paginiImportare fundație în baza de date…Importataștează…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Poți părăsi această pagină — sincronizarea rulează în fundal și reia dacă este întreruptă."
+}

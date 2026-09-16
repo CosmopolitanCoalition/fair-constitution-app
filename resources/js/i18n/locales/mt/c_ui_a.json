@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeta",
+  "adm_chip.level_1": "Pajs",
+  "adm_chip.level_2": "Istat / Provinċja",
+  "adm_chip.level_3": "Kontea",
+  "adm_chip.level_4": "Muniċipju",
+  "adm_chip.level_5": "Township",
+  "adm_chip.level_6": "Ħajja",
+  "citation_line.as_implemented": "kif implemimentat",
+  "data_table.caption_scrollable": "{caption} (skrollabbli)",
+  "data_table.scrollable_table": "Tabella skrollabbli",
+  "history_pager.first_page": "Aħna paġna",
+  "history_pager.load_error": "Din il-paġna ma setgħetx tiċċarika. Ipprova mill-ġdid.",
+  "history_pager.loading": "Qed iċċarika rekords…",
+  "history_pager.next": "Li jmiss",
+  "history_pager.previous": "Preċedenti"
+}

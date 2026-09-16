@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "စကြဝဠာလိပ်စာကို တင်နေသည်…",
+  "cosmicaddresspicker.multiverse": "စကြဝဠာအစုအဝေး ▸",
+  "schemaupdatebanner.apply_updates": "အပ်ဒိတ်များ ပြုလုပ်ရန်",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "လိုအပ်ချက်- {pendingLabel} — ETL လုပ်ငန်းစဉ်မစတင်မီ ပြုလုပ်ပါ။",
+  "setupstepper.build_districts": "မဲဆန္ဒနယ်များ တည်ဆောက်ရန်",
+  "setupstepper.confirm_seat_institutions": "အတည်ပြုပြီး အဖွဲ့အစည်းများကို နေရာချရန်",
+  "setupstepper.constitutional_defaults": "ဖွဲ့စည်းပုံအခြေခံဥပဒေ ပုံသေသတ်မှတ်ချက်များ",
+  "setupstepper.cosmic_address": "စကြဝဠာလိပ်စာ",
+  "setupstepper.map_data": "မြေပုံဒေတာ",
+  "setupstepper.setup_progress": "တပ်ဆင်မှုတိုးတက်မှု"
+}

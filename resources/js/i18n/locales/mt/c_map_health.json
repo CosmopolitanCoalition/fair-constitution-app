@@ -1,0 +1,8 @@
+{
+  "same_space_chain.why": "Ir-rilaxx tas-sors irreġistra post wieħed maraġġnyn f'żewġ livelli amministrattivi. iż-żewġ rigiġi huma l-istess art, għalhekk wieħed minnhom huwa kollikkatur minflok post distint biex jiġi ggvernatu.",
+  "stray_synthetic.label": "Sintetici strambi",
+  "stray_synthetic.measures": "Rigigi ta' pajjiżijiet li huma placeholders sintetizzati, minkejja li s-set ta' dejta tas-sors jibgħat fajl ta' fruntiera ADM0 reali għal dak il-pajjiż.",
+  "stray_synthetic.reading": "Istna żero. Kull dħul huwa worth acting on immedjatament — ir-riġa li jismi huwa placeholder għal dejta reali li teżisti fuq id-disk.",
+  "stray_synthetic.remedy": "Eseguti mill-ġdid l-importazzjoni tal-fruntiera skopjata għal dak il-pajjiż: l-importatur aġġrunna l-placeholder b'geometrija mibgħuta, imbagħad ir-reattribuzzjoni tistawr il-popolazzjoni tiegħu.",
+  "stray_synthetic.why": "Pajjiż placeholder jġorr geometrija u popolazzjoni derivata minflok dawk importati — kull rollup, numru ta' siġġu u mappa fuqu terita l-errore. L-importatur isintetizza riġa ta' pajjiż biss meta s-set ta' dejta tassew ma jibgħat xejn (Puerto Rico); wieħed li jidher fejn jeżisti fajl ifisser li race ta' importazzjoni sostitwiet dejta reali, id-difett li l-eżekuzzjoni taċ-ċertifikazzjoni fil-Filippini skopriet."
+}

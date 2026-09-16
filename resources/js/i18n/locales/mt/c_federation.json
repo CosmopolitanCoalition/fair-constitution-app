@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Qed jingħaqad mal-cluster",
+  "federation_syncprogress.of_left": "{fmtValue} minn {fmtValue2}~{fmtDuration} baqgħu",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} rekords · {fmtNum2} paġniQed jiġi mimportat il-fondament fid-database…Mimportatqed jistenna…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Tista' tħalli din il-paġna — is-sinkronizzazzjoni taħdem fil-background u tkompli jekk tkun imwaqqfa."
+}

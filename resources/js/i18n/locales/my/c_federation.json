@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "ကလပ်စတာသို့ ပူးပေါင်းနေသည်",
+  "federation_syncprogress.of_left": "{fmtValue2}~{fmtDuration} ထဲမှ {fmtValue} ခု ကျန်သည်",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} မှတ်တမ်းများ · {fmtNum2} စာမျက်နှာများ အခြေခံအချက်အလက်များကို ဒေတာဘေ့စ်သို့ ထည့်သွင်းနေသည်… ထည့်သွင်းပြီးသည် စောင့်ဆိုင်းနေသည်… {fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "ဤစာမျက်နှာမှ ထွက်သွားနိုင်သည် — စာရင်းညှိခြင်းကို နောက်ကွယ်တွင် လုပ်ဆောင်နေပြီး အနှောင့်အယှက်ဖြစ်ပါက ပြန်လည်စတင်မည်ဖြစ်သည်။"
+}

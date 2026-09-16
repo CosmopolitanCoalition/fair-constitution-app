@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Qed ikkungressa l-indirizz kosmi...",
+  "cosmicaddresspicker.multiverse": "Multiverżu ▸",
+  "schemaupdatebanner.apply_updates": "Applika aġġornamenti",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Meħtieġ: {pendingLabel} — applika qabel ma tibda eżekuzzjoni ETL.",
+  "setupstepper.build_districts": "Bni l-Distretti",
+  "setupstepper.confirm_seat_institutions": "Konferma u Poġġa l-Istituzzjonijiet",
+  "setupstepper.constitutional_defaults": "Definizjonijiet Kostituzzjonali",
+  "setupstepper.cosmic_address": "Indirizz Kosmi",
+  "setupstepper.map_data": "Data tal-Mappa",
+  "setupstepper.setup_progress": "Progress tas-setup"
+}

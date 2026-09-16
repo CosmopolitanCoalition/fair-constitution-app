@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "ဂြိုဟ်",
+  "adm_chip.level_1": "နိုင်ငံ",
+  "adm_chip.level_2": "ပြည်နယ် / တိုင်းဒေသကြီး",
+  "adm_chip.level_3": "ခရိုင်",
+  "adm_chip.level_4": "စည်ပင်သာယာရေးနယ်မြေ",
+  "adm_chip.level_5": "မြို့နယ်",
+  "adm_chip.level_6": "ရပ်ကွက်",
+  "citation_line.as_implemented": "အကောင်အထည်ဖော်ထားသည့်အတိုင်း",
+  "data_table.caption_scrollable": "{caption} (ဆွဲချကြည့်ရှုနိုင်သည်)",
+  "data_table.scrollable_table": "ဆွဲချကြည့်ရှုနိုင်သော ဇယား",
+  "history_pager.first_page": "ပထမစာမျက်နှာ",
+  "history_pager.load_error": "ဤစာမျက်နှာကို ဖွင့်၍မရပါ။ ထပ်မံကြိုးစားပါ။",
+  "history_pager.loading": "မှတ်တမ်းများကို တင်နေသည်…",
+  "history_pager.next": "ရှေ့သို့",
+  "history_pager.previous": "နောက်သို့"
+}

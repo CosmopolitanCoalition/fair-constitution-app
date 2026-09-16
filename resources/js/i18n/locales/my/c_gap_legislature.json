@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "အုပ်ချုပ်ရေးအဖွဲ့ ရွေးကောက်ပွဲ",
+  "election_kind.general": "အထွေထွေရွေးကောက်ပွဲ",
+  "election_kind.judicial": "တရားစီရင်ရေးအဖွဲ့ ရွေးကောက်ပွဲ",
+  "election_kind.org_board_owner": "ဘုတ်အဖွဲ့ရွေးကောက်ပွဲ (ပိုင်ရှင်နေရာများ)",
+  "election_kind.org_board_worker": "ဘုတ်အဖွဲ့ရွေးကောက်ပွဲ (အလုပ်သမားနေရာများ)",
+  "election_kind.referendum": "ဆန္ဒခံယူပွဲ",
+  "election_kind.restoration": "ပြန်လည်ထူထောင်ခြင်း ရွေးကောက်ပွဲ",
+  "election_kind.special": "အထူးရွေးကောက်ပွဲ"
+}

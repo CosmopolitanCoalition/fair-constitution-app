@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "ထည့်သွင်းခဲ့သည်-",
+  "law_diff.label": "ဥပဒေစာသား အပြောင်းအလဲများ",
+  "law_diff.removed": "ဖယ်ရှားခဲ့သည်-",
+  "planned_banner.default_body": "ဤကမ္ဘာ့အပိုင်းကို တည်ဆောက်မှုမတိုင်မီ ကြိုတင်ဒီဇိုင်းဆွဲထားခြင်းဖြစ်သည်။ ဤနေရာတွင် မည်သည့်အရာမှ လက်ရှိအခြေအနေတွင် မရှိသေးဘဲ၊ ငွေကြေးအစစ်အမှန်များလည်း မရှိပါ။",
+  "planned_banner.title": "စီစဉ်ထားသည် — ကြိုတင်ကြည့်ရှုမှု။",
+  "selection_identity.aria_org": "{name} အတွက် အဖွဲ့အစည်းမှတ်တမ်း၊ ရည်ညွှန်းချက် {id}",
+  "selection_identity.aria_profile": "{name} အတွက် အများပြည်သူပရိုဖိုင်၊ ရည်ညွှန်းချက် {id}",
+  "selection_identity.org_reference": "အဖွဲ့အစည်း ရည်ညွှန်းချက်-",
+  "selection_identity.organization_record": "အဖွဲ့အစည်းမှတ်တမ်း",
+  "selection_identity.profile_reference": "ပရိုဖိုင် ရည်ညွှန်းချက်-",
+  "selection_identity.public_profile": "အများပြည်သူပရိုဖိုင်"
+}

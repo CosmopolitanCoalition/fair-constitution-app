@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "eleição do executivo",
+  "election_kind.general": "eleição geral",
+  "election_kind.judicial": "eleição do judiciário",
+  "election_kind.org_board_owner": "eleição do conselho de administração (assentos de proprietários)",
+  "election_kind.org_board_worker": "eleição do conselho de administração (assentos de trabalhadores)",
+  "election_kind.referendum": "referendo",
+  "election_kind.restoration": "eleição de restauração",
+  "election_kind.special": "eleição especial"
+}

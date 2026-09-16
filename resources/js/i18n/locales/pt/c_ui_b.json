@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "adicionado:",
+  "law_diff.label": "Alterações no texto da lei",
+  "law_diff.removed": "removido:",
+  "planned_banner.default_body": "Esta parte do mundo foi projetada antes da construção. Nada aqui está ativo ainda, e não há dinheiro real em lugar nenhum.",
+  "planned_banner.title": "Planejado — uma prévia.",
+  "selection_identity.aria_org": "Registro da organização para {name}, referência {id}",
+  "selection_identity.aria_profile": "Perfil público para {name}, referência {id}",
+  "selection_identity.org_reference": "Referência da organização:",
+  "selection_identity.organization_record": "Registro da organização",
+  "selection_identity.profile_reference": "Referência do perfil:",
+  "selection_identity.public_profile": "Perfil público"
+}

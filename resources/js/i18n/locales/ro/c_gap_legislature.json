@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "alegeri pentru executiv",
+  "election_kind.general": "alegeri generale",
+  "election_kind.judicial": "alegeri pentru puterea judecătorească",
+  "election_kind.org_board_owner": "alegeri pentru consiliu de administrație (locuri pentru proprietari)",
+  "election_kind.org_board_worker": "alegeri pentru consiliu de administrație (locuri pentru lucrători)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "alegeri pentru restabilire",
+  "election_kind.special": "alegeri speciale"
+}

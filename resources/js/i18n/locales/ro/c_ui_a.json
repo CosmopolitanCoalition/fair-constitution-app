@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planetă",
+  "adm_chip.level_1": "Țară",
+  "adm_chip.level_2": "Stat / Provincie",
+  "adm_chip.level_3": "Județ",
+  "adm_chip.level_4": "Municipiu",
+  "adm_chip.level_5": "Comună",
+  "adm_chip.level_6": "Cartier",
+  "citation_line.as_implemented": "așa cum a fost implementat",
+  "data_table.caption_scrollable": "{caption} (derulabil)",
+  "data_table.scrollable_table": "Tabel derulabil",
+  "history_pager.first_page": "Prima pagină",
+  "history_pager.load_error": "Această pagină nu a putut fi încărcată. Încearcă din nou.",
+  "history_pager.loading": "Se încarcă înregistrările…",
+  "history_pager.next": "Următorul",
+  "history_pager.previous": "Anterior"
+}

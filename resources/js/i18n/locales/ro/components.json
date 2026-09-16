@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Se încarcă adresa cosmică…",
+  "cosmicaddresspicker.multiverse": "Multivers ▸",
+  "schemaupdatebanner.apply_updates": "Aplică actualizările",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Necesar: {pendingLabel} — aplică înainte de a începe o rulare ETL.",
+  "setupstepper.build_districts": "Construiește circumscripții",
+  "setupstepper.confirm_seat_institutions": "Confirmă și instalează instituțiile",
+  "setupstepper.constitutional_defaults": "Setări Constituție",
+  "setupstepper.cosmic_address": "Adresă cosmică",
+  "setupstepper.map_data": "Date hartă",
+  "setupstepper.setup_progress": "Progres configurare"
+}
