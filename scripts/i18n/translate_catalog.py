@@ -704,10 +704,8 @@ def dump(path: Path, obj: dict) -> None:
     ordered = {k: obj[k] for k in sorted(obj)}
     # LF on every host: the catalogues are LF in the repo, and a Windows host
     # must not write CRLF into them (2026-09-15 benchmark).
-    with open(path, "w", encoding="utf-8", newline="
-") as fh:
-        fh.write(json.dumps(ordered, ensure_ascii=False, indent=2) + "
-")
+    with open(path, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(json.dumps(ordered, ensure_ascii=False, indent=2) + "\n")
 
 
 def glossary_terms(locale: str) -> dict[str, str]:
