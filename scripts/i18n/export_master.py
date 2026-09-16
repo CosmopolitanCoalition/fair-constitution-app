@@ -219,8 +219,8 @@ def build_instructions(language: str, native: str, direction: str, source: bool 
             "file into the language you were asked for, and import the result under that "
             "language. Rules, all mandatory:",
         ]
-        glossary_line = ('6. Use the settled glossary in "_meta.glossary". When an English term there '
-                         "appears, use its rendering in your target language.")
+        glossary_line = ("6. Use the settled glossary (the GLOSSARY section of README.txt). When an English "
+                         "term there appears, use its rendering in your target language.")
     else:
         head = [
             f"You are translating user-interface strings for the Cosmopolitan "
@@ -228,8 +228,8 @@ def build_instructions(language: str, native: str, direction: str, source: bool 
             "Translate only the values (the right-hand side of every key) in each ui/ and php/ "
             "file. A value still in English is one this language does not have yet. Rules, all mandatory:",
         ]
-        glossary_line = ('6. Use the settled glossary in "_meta.glossary". When an English term there appears, '
-                         f"use its {language} rendering.")
+        glossary_line = ("6. Use the settled glossary (the GLOSSARY section of README.txt). When an English "
+                         f"term there appears, use its {language} rendering.")
     lines = [
         *head,
         "1. Keep every key exactly as written. Do not add, remove, reorder, or rename keys.",
