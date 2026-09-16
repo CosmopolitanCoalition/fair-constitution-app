@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Klasterə qoşulur",
+  "federation_syncprogress.of_left": "{fmtValue} qaldı {fmtValue2}~{fmtDuration}",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} qeyd · {fmtNum2} səhifəTəməli verilənlər bazasına idxal edilir…İdxal edildigözləyir…{fmtNum3}/san",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Bu səhifəni tərk edə bilərsiniz — sinxronizasiya arxa planda davam edir və kəsildikdə bərpa olunur."
+}

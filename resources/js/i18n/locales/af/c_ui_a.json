@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeet",
+  "adm_chip.level_1": "Land",
+  "adm_chip.level_2": "Staat / Provinsie",
+  "adm_chip.level_3": "Graafskap",
+  "adm_chip.level_4": "Munisipaliteit",
+  "adm_chip.level_5": "Gemeente",
+  "adm_chip.level_6": "Buurt",
+  "citation_line.as_implemented": "soos geïmplementeer",
+  "data_table.caption_scrollable": "{caption} (rolbaar)",
+  "data_table.scrollable_table": "Rolbare tabel",
+  "history_pager.first_page": "Eerste bladsy",
+  "history_pager.load_error": "Hierdie bladsy kon nie gelaai word nie. Probeer weer.",
+  "history_pager.loading": "Laai rekords…",
+  "history_pager.next": "Volgende",
+  "history_pager.previous": "Vorige"
+}

@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "přidáno:",
+  "law_diff.label": "Změny textu zákona",
+  "law_diff.removed": "odebráno:",
+  "planned_banner.default_body": "Tato část světa je navržena před samotnou stavbou. Nic zde není v provozu a nikde nejsou skutečné peníze.",
+  "planned_banner.title": "Plánováno — náhled.",
+  "selection_identity.aria_org": "Záznam organizace pro {name}, reference {id}",
+  "selection_identity.aria_profile": "Veřejní profil pro {name}, reference {id}",
+  "selection_identity.org_reference": "Reference organizace:",
+  "selection_identity.organization_record": "Záznam organizace",
+  "selection_identity.profile_reference": "Reference profilu:",
+  "selection_identity.public_profile": "Veřejný profil"
+}

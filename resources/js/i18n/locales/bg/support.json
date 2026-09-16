@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Докладите за поведение и правните доклади се насочват за преглед. Подаването тук не премахва нищо — премахването на съдържание следва конституционните изключения (механизма F-SOC-003), а не този формуляр.",
+  "support_report.file_a_report": "Подайте доклад",
+  "support_report.file_report": "Подаване на доклад",
+  "support_report.filed_from": "Подадено от: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Използвайте прости думи. Опишете какво очаквахте и какво видяхте вместо това.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Докладите попадат в пощата за поддръжка на оператора и се насочват по категории. Този прием не редактира и не премахва съдържание сам по себе си.",
+  "support_report.what_happened": "Какво се случи?",
+  "support_report.what_kind_of_report_is_this": "Какъв вид доклад е това?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Трябва да сте влезете в профила си, за да подадете доклад — влезте и се върнете на тази страница."
+}

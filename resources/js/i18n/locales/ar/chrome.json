@@ -1,8 +1,8 @@
 {
   "appshell.log_in": "تسجيل الدخول",
   "appshell.log_out": "تسجيل الخروج",
-  "appshell.pseudo_en_xa": "السوداء (en-XA)",
-  "appshell.roles_derived": "الأدوار (المستمدة): {roles}",
-  "appshell.these_proceedings_are_public_record_art_ii": "هذه الإجراءات هي سجل عام (Art. II §2). التسجيل للمشاركة  التحدث، التصويت، والترشح للمكتب بمجرد تأكيد إقامتك.",
-  "appshell.you_re_viewing_as_a_guest": "أنت تَنْظرُ كضيفِ"
+  "appshell.pseudo_en_xa": "الاسم المستعار (en-XA)",
+  "appshell.roles_derived": "الأدوار (المشتقة): {roles}",
+  "appshell.these_proceedings_are_public_record_art_ii": "هذه الإجراءات جزء من السجل العام (Art. II §2). سجل الآن للمشاركة — تحدث، وصوّت، وترشح للمناصب بمجرد تأكيد الإقامة الخاصة بك.",
+  "appshell.you_re_viewing_as_a_guest": "أنت تتصفح كضيف"
 }

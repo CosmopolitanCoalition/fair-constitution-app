@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Ölkə",
+  "adm_chip.level_2": "Ştat / Provinsiya",
+  "adm_chip.level_3": "Rayon",
+  "adm_chip.level_4": "Bələdiyyə",
+  "adm_chip.level_5": "Qəsəbə",
+  "adm_chip.level_6": "məhəllə",
+  "citation_line.as_implemented": "tətbiq edildiyi kimi",
+  "data_table.caption_scrollable": "{caption} (skroll etmək olar)",
+  "data_table.scrollable_table": "Skroll edilə bilən cədvəl",
+  "history_pager.first_page": "İlk səhifə",
+  "history_pager.load_error": "Bu səhifə yüklənilmədi. Yenidən cəhd edin.",
+  "history_pager.loading": "Qeydlər yüklənir…",
+  "history_pager.next": "Növbəti",
+  "history_pager.previous": "Əvvəlki"
+}

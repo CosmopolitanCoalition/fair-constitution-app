@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Присъединяване към клъстера",
+  "federation_syncprogress.of_left": "{fmtValue} от {fmtValue2}~{fmtDuration} остават",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} записа · {fmtNum2} странициИмпортиране на основата в базата данни…Импортираноочакване…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Можете да напуснете тази страница — синхронизацията работи във фонов режим и се възобновява при прекъсване."
+}

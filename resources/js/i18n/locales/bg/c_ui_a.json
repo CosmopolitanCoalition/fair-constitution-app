@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Планета",
+  "adm_chip.level_1": "Държава",
+  "adm_chip.level_2": "Щат / Провинция",
+  "adm_chip.level_3": "Окръг",
+  "adm_chip.level_4": "Община",
+  "adm_chip.level_5": "Градска община",
+  "adm_chip.level_6": "Квартал",
+  "citation_line.as_implemented": "както е внедрено",
+  "data_table.caption_scrollable": "{caption} (с възможност за скролване)",
+  "data_table.scrollable_table": "Таблица с възможност за скролване",
+  "history_pager.first_page": "Първа страница",
+  "history_pager.load_error": "Тази страница не можа да бъде заредена. Опитайте отново.",
+  "history_pager.loading": "Зареждане на записи…",
+  "history_pager.next": "Следваща",
+  "history_pager.previous": "Предишна"
+}

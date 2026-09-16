@@ -1,0 +1,350 @@
+{
+  "about_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "about_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "active_operator_many": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "active_operator_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "advanced": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "applies_now": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "capability_summary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "channels_caption": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "channels_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "channels_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cli_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cli_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "coaffected_peer_many": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "coaffected_peer_none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "coaffected_peer_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "col.channel": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "col.consent": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "col.state": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "col.what": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "consent_leg.operator": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "consent_leg.seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "gate.blocked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "gate.todo": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "kind.app_release": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "kind.constitutional_bump": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "kind.role_grant": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "kind.schema_bump": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "kind_governed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "kind_self_asserted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "manage_capabilities": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mesh_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "meter_c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "meter_c_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "meters_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "meters_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.dns": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.federation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.host": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.identity": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.mesh": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.moderation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.network": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.operations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.overview": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.roles": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.section": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.settings": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "nav.versioning": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "node_readiness": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "not_in_play": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "open_proposals": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "overview_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "proposals_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "proposals_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "proposals_mid": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "proposals_none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "readiness": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "readiness_checks": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "rollup.amber_none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "rollup.amber_some": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "rollup.green": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "rollup.red": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scope_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scope_none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "signed_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "signin_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "signin_cta": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "signin_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "state.established": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "state.lapsed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "state.needs_config": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "state.partial": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "state.qualifiable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "state.requested": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "supersedes_a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "task.mesh.note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "task.mesh.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "task.operations.note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "task.operations.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "task.roles.note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "task.roles.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "technical_details": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "versioning": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

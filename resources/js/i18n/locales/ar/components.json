@@ -1,11 +1,11 @@
 {
-  "cosmicaddresspicker.loading_cosmic_address": "تحميل العنوان الكوني...",
-  "cosmicaddresspicker.multiverse": "الكون المتعدد ▸",
+  "cosmicaddresspicker.loading_cosmic_address": "جاري تحميل العنوان الكوني...",
+  "cosmicaddresspicker.multiverse": "الأكوان المتعددة ▸",
   "schemaupdatebanner.apply_updates": "تطبيق التحديثات",
-  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "المطلوب: {pendingLabel}  تطبيق قبل بدء تشغيل ETL.",
-  "setupstepper.build_districts": "بناء المناطق",
-  "setupstepper.confirm_seat_institutions": "مؤسسات تأكيد ومقاعد",
-  "setupstepper.constitutional_defaults": "الإخفاقات الدستورية",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "مطلوب: {pendingLabel} — يرجى التطبيق قبل بدء تشغيل عملية ETL.",
+  "setupstepper.build_districts": "بناء الدوائر الانتخابية",
+  "setupstepper.confirm_seat_institutions": "تأكيد وتسكين المؤسسات",
+  "setupstepper.constitutional_defaults": "الإعدادات الدستورية الافتراضية",
   "setupstepper.cosmic_address": "العنوان الكوني",
   "setupstepper.map_data": "بيانات الخريطة",
   "setupstepper.setup_progress": "تقدم الإعداد"

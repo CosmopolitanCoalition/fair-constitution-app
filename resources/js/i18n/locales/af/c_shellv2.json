@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Navigasie en leer",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Volledige lesse Beplan · Fase 7 Rapporteer 'n probleem",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Die meganisme agter hierdie skerm",
+  "shellv2_menunav.all_screens_the_full_map": "Alle skerms — die volledige kaart",
+  "shellv2_menunav.requires_planned": "{label} {label2} Vereis {prereq} {label3} Beplan",
+  "shellv2_tourbar.guided_tour": "Begeleide toer",
+  "shellv2_tourbar.guided_tour_step_of": "Begeleide toer · stap {stepNumber} van {total}{title}{blurb}"
+}

@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Laai kosmiese adres…",
+  "cosmicaddresspicker.multiverse": "Multiversum ▸",
+  "schemaupdatebanner.apply_updates": "Pas opdaterings toe",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Vereiste: {pendingLabel} — pas toe voor 'n ETL-stap begin.",
+  "setupstepper.build_districts": "Bou Distrikte",
+  "setupstepper.confirm_seat_institutions": "Bevestig & Plaas Instellings",
+  "setupstepper.constitutional_defaults": "Grondwetlike Standaarde",
+  "setupstepper.cosmic_address": "Kosmiese Adres",
+  "setupstepper.map_data": "Kaartdata",
+  "setupstepper.setup_progress": "Opstellingvordering"
+}

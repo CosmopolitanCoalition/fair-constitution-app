@@ -1,0 +1,470 @@
+{
+  "candidacy_endorsements.also_candidate": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.aria_individual": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.aria_org": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.aria_selected": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.by_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.citation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.close": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.counts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.error_default": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.individual_pages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.individuals": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.loading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.no_individual": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.no_org": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.no_other": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.org_pages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.organizations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.other_by_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.other_public": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy_endorsements.web_pages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "invite_button.copied": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "invite_button.copy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "invite_button.creating": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "invite_button.default_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "invite_button.error_default": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "invite_button.invite_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "invite_button.share": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "invite_button.share_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.left_office": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.no_offices": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.no_start": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.open_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.pages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.scheduled_end": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.started": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.status_active": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.status_completed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.status_elected": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.status_left": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.status_removal_requested": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.status_removed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.status_retired": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.status_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.status_succeeded": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.status_term_ended": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.status_vacated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "office_history.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "signature_meter.compact_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "signature_meter.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "signature_meter.signatures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "signature_meter.threshold_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "signature_meter.threshold_reached": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stage_bars.empty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stage_bars.to_review": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.eta_left": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.imported": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.importing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.leave_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.lifecycle_done": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.lifecycle_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.lifecycle_idle": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.lifecycle_running": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.of": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.pages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.rate_per_sec": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.records": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.status_done": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.status_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.status_waiting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.status_working": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sync_progress.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.camera": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.camera_device": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.camera_off": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.camera_on": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.camera_turn_off": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.camera_turn_on": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.camera_updating": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.cancel_joining": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.connecting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.default_camera": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.default_microphone": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.default_speaker": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.device_camera": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.device_microphone": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.device_speaker": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.enable_room_audio": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.join_room": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.leave_call": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.mic_mute": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.mic_off": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.mic_on": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.mic_turn_on": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.mic_updating": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.microphone": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.microphone_device": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.screen_share": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.screen_stop": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.screen_updating": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.speaker": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.speaker_device": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.status_audio_blocked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.status_connected": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.status_connecting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.status_join": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.status_listening_only": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "voice_controls.status_reconnecting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "work_trade_nav.agreements": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "work_trade_nav.aria_nav": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "work_trade_nav.help": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "work_trade_nav.home": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "work_trade_nav.market": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "work_trade_nav.shares": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "work_trade_nav.wallet": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "work_trade_nav.work": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

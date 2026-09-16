@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "uitvoerende verkiesing",
+  "election_kind.general": "algemene verkiesing",
+  "election_kind.judicial": "regbankverkiesing",
+  "election_kind.org_board_owner": "raadverkiesing (eienaarsetel)",
+  "election_kind.org_board_worker": "raadverkiesing (werkersetel)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "herstelverkiesing",
+  "election_kind.special": "spesiale verkiesing"
+}

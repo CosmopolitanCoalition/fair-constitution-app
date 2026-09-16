@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "volby výkonné moci",
+  "election_kind.general": "obecné volby",
+  "election_kind.judicial": "volby soudní moci",
+  "election_kind.org_board_owner": "volby správní rady (křesla vlastníků)",
+  "election_kind.org_board_worker": "volby správní rady (křesla zaměstnanců)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "volby k obnovení",
+  "election_kind.special": "mimořádné volby"
+}

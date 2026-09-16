@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "ispod praga",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} vanredni metodi proširuju delegirani opseg samo unutar deklarisanog područja i trajanja · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "podložno sudskom preispitivanju · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Odbijeno prije izdavanja: {rejection_citation} Nalog nikada nije stupio na snagu; odbijeni pokušaj se nalazi u javnom zapisu."
+}

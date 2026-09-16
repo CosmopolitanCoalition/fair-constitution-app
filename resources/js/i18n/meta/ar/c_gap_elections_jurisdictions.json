@@ -1,0 +1,255 @@
+{
+  "csrf.session_refreshed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.act_bootstrapping": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.act_boundary_loaded": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.act_critical_population": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.act_self_governing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.all_places": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.at_a_glance": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.contains_many": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.contains_one": {
+    "status": "review",
+    "reason": "placeholder mismatch",
+    "provider": "ollama"
+  },
+  "home.courts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.districts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.districts_drawn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.districts_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.election_under_way": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.elections": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.executive": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.fact_boundary_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.fact_boundary_source": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.fact_code": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.fact_continent": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.fact_income_group": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.fact_languages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.fact_population_figures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.fact_un_region": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.forming": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.gov_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.intro_child": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.intro_root": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.its_parent": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.largest_inside": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.last_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.leaf_repr": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.legislature": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.live_rooms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.live_rooms_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.none_scheduled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.none_yet": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.open_map": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.people_count": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.people_live": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.people_live_year": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.petitions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.petitions_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.places_inside_n": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.places_inside_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.population_unmeasured": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.public_square": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.public_square_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.region_dataset": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.seated_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.stat_confirmed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.stat_no_legislature": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.stat_people": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.stat_places_inside": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.stat_reach_unmeasured": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.stat_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.take_part": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.the_boundary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.the_chamber": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.the_courts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.the_executive": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home.the_map": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

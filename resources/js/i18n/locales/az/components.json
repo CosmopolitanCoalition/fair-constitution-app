@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Kosmik ünvan yüklənir…",
+  "cosmicaddresspicker.multiverse": "Multikadrlı kainat ▸",
+  "schemaupdatebanner.apply_updates": "Yeniləmələri tətbiq et",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Tələb olunur: {pendingLabel} — ETL prosesini başlatmazdan əvvəl tətbiq edin.",
+  "setupstepper.build_districts": "Dairələri yarat",
+  "setupstepper.confirm_seat_institutions": "Təsdiqlə və Qurumları təyin et",
+  "setupstepper.constitutional_defaults": "Konstitusiya standartları",
+  "setupstepper.cosmic_address": "Kosmik Ünvan",
+  "setupstepper.map_data": "Xəritə Məlumatları",
+  "setupstepper.setup_progress": "Quraşdırma gedişatı"
+}

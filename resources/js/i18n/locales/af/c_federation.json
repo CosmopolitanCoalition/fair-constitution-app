@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Sluit aan by die kluster",
+  "federation_syncprogress.of_left": "{fmtValue} van {fmtValue2}~{fmtDuration} oor",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} rekords · {fmtNum2} bladsyeImporteer die fondament in die databasis…Geïmporteerwagtend…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Jy kan hierdie bladsy verlaat — die sinkronisasie loop in die agtergrond en hervat as dit onderbreek word."
+}

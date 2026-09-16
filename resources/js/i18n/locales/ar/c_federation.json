@@ -1,6 +1,6 @@
 {
-  "federation_syncprogress.joining_the_cluster": "الانضمام إلى المجموعة",
-  "federation_syncprogress.of_left": "{fmtValue} من {fmtValue2}~{fmtDuration} اليسار",
-  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} سجلات · {fmtNum2} الصفحاتاستيراد الأساس في قاعدة البيانات...استيراد البيانات...{fmtNum3}/s",
-  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "يمكنك ترك هذه الصفحة  يتم تشغيل التزامن في الخلفية ويتم استئنافها إذا تم التقاطع."
+  "federation_syncprogress.joining_the_cluster": "الانضمام إلى العنقود",
+  "federation_syncprogress.of_left": "متبقٍ {fmtValue} من {fmtValue2}~{fmtDuration}",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} سجلات · {fmtNum2} صفحاتاستيراد التأسيس إلى قاعدة البيانات…تم الاستيرادفي الانتظار…{fmtNum3}/ثانية",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "يمكنك مغادرة هذه الصفحة — تعمل المزامنة في الخلفية وتستأنف إذا انقطعت."
 }

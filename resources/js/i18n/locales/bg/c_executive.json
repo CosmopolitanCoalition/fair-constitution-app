@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "под прага",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} извънредните методи разширяват делегирания обхват само в обявената зона и за обявения период · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "подлежи на съдебен преглед · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Отхвърлено преди издаване: {rejection_citation} Заповедта никога не е влязла в сила; отхвърленият опит е в публичния регистър."
+}

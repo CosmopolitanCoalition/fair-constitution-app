@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "əlavə edildi:",
+  "law_diff.label": "Qanun mətnindəki dəyişikliklər",
+  "law_diff.removed": "silindi:",
+  "planned_banner.default_body": "Dünyanın bu hissəsi quruluşdan əvvəl layihələndirilib. Burada hələ heç nə aktiv deyil və heç bir real vəsait yoxdur.",
+  "planned_banner.title": "Planlaşdırılıb — ön baxış.",
+  "selection_identity.aria_org": "{name} üçün təşkilat qeydi, istinad {id}",
+  "selection_identity.aria_profile": "{name} üçün ictimai profil, istinad {id}",
+  "selection_identity.org_reference": "Təşkilat istinadı:",
+  "selection_identity.organization_record": "Təşkilat qeydi",
+  "selection_identity.profile_reference": "Profil istinadı:",
+  "selection_identity.public_profile": "İctimai profil"
+}

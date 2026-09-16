@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "كوكب",
+  "adm_chip.level_1": "دولة",
+  "adm_chip.level_2": "ولاية / مقاطعة",
+  "adm_chip.level_3": "مقاطعة",
+  "adm_chip.level_4": "بلدية",
+  "adm_chip.level_5": "بلدة",
+  "adm_chip.level_6": "حي",
+  "citation_line.as_implemented": "كما تم تنفيذه",
+  "data_table.caption_scrollable": "{caption} (قابل للتمرير)",
+  "data_table.scrollable_table": "جدول قابل للتمرير",
+  "history_pager.first_page": "الصفحة الأولى",
+  "history_pager.load_error": "تعذر تحميل هذه الصفحة. حاول مرة أخرى.",
+  "history_pager.loading": "جاري تحميل السجلات...",
+  "history_pager.next": "التالي",
+  "history_pager.previous": "السابق"
+}

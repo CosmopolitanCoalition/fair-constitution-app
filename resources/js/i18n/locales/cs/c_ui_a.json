@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeta",
+  "adm_chip.level_1": "Země",
+  "adm_chip.level_2": "Stát / Provincie",
+  "adm_chip.level_3": "Okres",
+  "adm_chip.level_4": "Obec",
+  "adm_chip.level_5": "Místní samospráva",
+  "adm_chip.level_6": "Čtvrť",
+  "citation_line.as_implemented": "jak bylo implementováno",
+  "data_table.caption_scrollable": "{caption} (posuvné)",
+  "data_table.scrollable_table": "Posuvná tabulka",
+  "history_pager.first_page": "První strana",
+  "history_pager.load_error": "Tuto stránku nešlo načíst. Zkuste to znovu.",
+  "history_pager.loading": "Načítání záznamů…",
+  "history_pager.next": "Další",
+  "history_pager.previous": "Předchozí"
+}

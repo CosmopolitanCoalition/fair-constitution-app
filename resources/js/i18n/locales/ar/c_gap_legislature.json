@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "انتخاب السلطة التنفيذية",
+  "election_kind.general": "انتخاب عام",
+  "election_kind.judicial": "انتخاب السلطة القضائية",
+  "election_kind.org_board_owner": "انتخاب مجلس الإدارة (مقاعد المالكين)",
+  "election_kind.org_board_worker": "انتخاب مجلس الإدارة (مقاعد العاملين)",
+  "election_kind.referendum": "استفتاء",
+  "election_kind.restoration": "انتخاب استعادة",
+  "election_kind.special": "انتخاب خاص"
+}

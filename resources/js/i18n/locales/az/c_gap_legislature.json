@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "icra hakimiyyəti seçkisi",
+  "election_kind.general": "ümumi seçki",
+  "election_kind.judicial": "məhkəmə hakimiyyəti seçkisi",
+  "election_kind.org_board_owner": "idarə heyəti seçkisi (sahib kürsüləri)",
+  "election_kind.org_board_worker": "idarə heyəti seçkisi (işçi kürsüləri)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "bərpa seçkisi",
+  "election_kind.special": "xüsusi seçki"
+}

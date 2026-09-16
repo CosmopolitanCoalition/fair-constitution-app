@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Zprávy o chování a právní zprávy jsou zasílány k revizi. Podání zde nic neodstraňuje — odstranění obsahu probíhá podle ústavních výjimek (mechanismu F-SOC-003), nikdy nikoliv tímto formulářem.",
+  "support_report.file_a_report": "Podat zprávu",
+  "support_report.file_report": "Podat zprávu",
+  "support_report.filed_from": "Podáno z: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Stačí jednoduchá slova. Uveďte, co jste očekávali a co jste viděli místo toho.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Zprávy dopadnou do schránky podpory operátora a jsou tříděny podle kategorií. Tento příjem sám o sobě obsah neupravuje ani neodstraňuje.",
+  "support_report.what_happened": "Co se stalo?",
+  "support_report.what_kind_of_report_is_this": "O jaký typ zprávy se jedná?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Pro podání zprávy se musíte přihlásit — přihlaste se a vraťte se na tuto stránku."
+}

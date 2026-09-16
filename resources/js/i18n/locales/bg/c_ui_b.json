@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "добавено:",
+  "law_diff.label": "Промени в текста на закона",
+  "law_diff.removed": "премахнато:",
+  "planned_banner.default_body": "Тази част от света е проектирана преди изграждането. Нищо тук не е активно и няма реални средства.",
+  "planned_banner.title": "Планирано — предварително преглед.",
+  "selection_identity.aria_org": "Регистър на организацията за {name}, референция {id}",
+  "selection_identity.aria_profile": "Публичен профил за {name}, референция {id}",
+  "selection_identity.org_reference": "Референция на организацията:",
+  "selection_identity.organization_record": "Регистър на организацията",
+  "selection_identity.profile_reference": "Референция на профила:",
+  "selection_identity.public_profile": "Публичен профил"
+}
