@@ -244,7 +244,20 @@ class Provider:
             masked.append(m)
             kepts.append(k)
         outs = self._run(masked, target)
-        return [None if o is None else unmask(o, k) for o, k in zip(outs, kepts)]
+        # Edge whitespace is part of the string: a join fragment like " and " or
+        # "Approving an adoption admits a " must keep its leading and trailing
+        # spaces or the joined sentence runs together (Hindi reviews 2026-09-15,
+        # twice in 300 strings). The model never sees this reliably; restore it.
+        fixed = []
+        for src, o, k in zip(texts, outs, kepts):
+            if o is None:
+                fixed.append(None)
+                continue
+            out = unmask(o, k)
+            lead = src[:len(src) - len(src.lstrip())]
+            trail = src[len(src.rstrip()):]
+            fixed.append(lead + out.strip() + trail)
+        return fixed
 
     def _run(self, texts: list[str], target: str) -> list[str | None]:
         raise NotImplementedError
@@ -898,6 +911,11 @@ def self_test() -> int:
     check("bare JSON reply parses", OllamaProvider.parse_t('{"t": ["एक"]}', 1) == ["एक"])
     check("wrong length is refused", OllamaProvider.parse_t('{"t": ["एक"]}', 2) is None)
     check("prose without JSON is refused", OllamaProvider.parse_t("no json here", 1) is None)
+    class _Echo(Provider):
+        name = "echo"
+        def _run(self, texts, target):
+            return [t.strip() for t in texts]
+    check("join fragment keeps its edge spaces", _Echo().translate_batch([" and ", "x "], "hi") == [" and ", "x "])
     m2, k2 = mask(cite)
     check("en-dash citation range masks whole",
           "§" not in m2 and unmask(m2, k2) == cite, m2)
