@@ -451,6 +451,28 @@ class OllamaProvider(Provider):
             "the SAME length and order as the input array. No prose."
         )
 
+    @staticmethod
+    def parse_t(content: str, n: int) -> list | None:
+        """
+        The {"t": [...]} array out of a chat reply, or None. Ollama's local
+        JSON mode returns the bare object; the cloud models (gemma4:31b-cloud,
+        2026-09-15) wrap it in a ```json fence despite format=json, which made
+        every batch "provider returned nothing". Take the outermost {...}.
+        """
+        if not isinstance(content, str):
+            return None
+        a, b = content.find("{"), content.rfind("}")
+        if a < 0 or b <= a:
+            return None
+        try:
+            obj = json.loads(content[a:b + 1])
+        except json.JSONDecodeError:
+            return None
+        arr = obj.get("t") if isinstance(obj, dict) else None
+        if isinstance(arr, list) and len(arr) == n:
+            return arr
+        return None
+
     def _post(self, payload: dict) -> dict | None:
         import urllib.error
         import urllib.request
@@ -482,13 +504,8 @@ class OllamaProvider(Provider):
         for attempt in range(self.retries):
             resp = self._post(payload_base)
             if resp is not None:
-                content = (resp.get("message") or {}).get("content", "")
-                try:
-                    obj = json.loads(content)
-                except json.JSONDecodeError:
-                    obj = None
-                arr = obj.get("t") if isinstance(obj, dict) else None
-                if isinstance(arr, list) and len(arr) == len(texts):
+                arr = self.parse_t((resp.get("message") or {}).get("content", ""), len(texts))
+                if arr is not None:
                     return [str(x) if x is not None else None for x in arr]
             # Backoff before a retry. A request that fails instantly is usually
             # the server loading the model under GPU pressure; an immediate
@@ -876,6 +893,11 @@ def self_test() -> int:
           qa(ar_src, "حقوقك ترتبط بإقامتك.") is not None)
 
     cite = "Art. V §1–2 · CLK-05"
+    fenced = 'Here you go:\n```json\n{"t": ["एक", "दो"]}\n```'
+    check("cloud reply in a code fence parses", OllamaProvider.parse_t(fenced, 2) == ["एक", "दो"])
+    check("bare JSON reply parses", OllamaProvider.parse_t('{"t": ["एक"]}', 1) == ["एक"])
+    check("wrong length is refused", OllamaProvider.parse_t('{"t": ["एक"]}', 2) is None)
+    check("prose without JSON is refused", OllamaProvider.parse_t("no json here", 1) is None)
     m2, k2 = mask(cite)
     check("en-dash citation range masks whole",
           "§" not in m2 and unmask(m2, k2) == cite, m2)

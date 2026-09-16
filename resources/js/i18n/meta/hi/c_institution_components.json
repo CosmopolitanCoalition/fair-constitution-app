@@ -798,5 +798,505 @@
   "constituent_consent_panel.result_no": {
     "status": "machine",
     "provider": "ollama"
+  },
+  "constituent_consent_panel.result_pending": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "constituent_consent_panel.result_yes": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "constituent_consent_panel.table_caption": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "constituent_consent_panel.window_closes": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.cgc_public_domain": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.codet_below": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.codet_below_cite": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.codet_parity": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.codet_parity_cite": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.codet_scaling": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.codet_scaling_cite": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.oversees": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.report_due_soon": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.report_next": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.report_overdue": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.status_chartered": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.status_consented": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.status_dissolved": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.status_governors_nominated": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.status_operating": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.status_oversight_assigned": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.status_rechartered": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.status_reporting": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "department_card.workers": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "finalist_line.aria": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "finalist_line.text": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.nominated_by": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.none_recorded": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.open_source_legislature": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.pager_label": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.participating_as": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.read_statement": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.role_preview": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.seat_label": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.seat_record": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.speaker_suffix": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.status_consented": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.status_nominated": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.status_rejected": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.status_withdrawn": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.term": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_confirmations.title": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.authorization_note": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.committee_intro": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.committee_pager": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.constituent_intro": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.decisions_title": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.designate_note": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.designate_preview": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.designate_summary": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.designated_committee": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.designation_statement_label": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.filing": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.find_by": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.find_by_name": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.find_by_reference": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.find_person": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.follow_confirmation": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.manage_committees": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.no_committees": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.no_matches": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.no_proposals": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.no_vacant_seats": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.nomination_proposal": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.nomination_statement_label": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.nominee_pager": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.proposal_adopted": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.proposal_failed": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.proposal_filed": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.proposal_open": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.proposal_rejected": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.proposals_pager": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.propose_designation_btn": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.propose_person_btn": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.propose_title": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.query_name": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.query_reference": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.read_statement": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.search_btn": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.search_failed": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.searching": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.seat_num": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.seat_preview": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.seats_pager": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.select_committee": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.select_person": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.select_seat": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.selected_committee": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.selected_name": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.selected_person": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.selected_person_label": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.selected_seat": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.selected_seat_num": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "judicial_nominations.vacant_seats": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "juror_screening.clean_body": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "juror_screening.clean_title": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "juror_screening.flagged_body": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "juror_screening.flagged_title": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "juror_screening.honesty": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "juror_screening.legend": {
+    "status": "machine",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
   }
 }
