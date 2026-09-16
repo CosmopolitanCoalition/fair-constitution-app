@@ -1,0 +1,8 @@
+{
+  "appshell.log_in": "लग-इन गर्नुहोस्",
+  "appshell.log_out": "लग-आउट गर्नुहोस्",
+  "appshell.pseudo_en_xa": "छद्म नाम (en-XA)",
+  "appshell.roles_derived": "भूमिकाहरू (व्युत्पन्न): {roles}",
+  "appshell.these_proceedings_are_public_record_art_ii": "यी कारबाहीहरू सार्वजनिक अभिलेख (Art. II §2) हुन्। सहभागी हुनका लागि साइन-अप गर्नुहोस् — तपाईंको बसोबास पुष्टि भएपछि बोल्नुहोस्, मतदान गर्नुहोस्, र पदका लागि उम्मेदवार बन्नुहोस्।",
+  "appshell.you_re_viewing_as_a_guest": "तपाईंले पाहुनाको रूपमा हेर्दै हुनुहुन्छ"
+}

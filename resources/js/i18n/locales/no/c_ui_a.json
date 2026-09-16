@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Land",
+  "adm_chip.level_2": "Stat / Provins",
+  "adm_chip.level_3": "Fylke",
+  "adm_chip.level_4": "Kommune",
+  "adm_chip.level_5": "Tettsted",
+  "adm_chip.level_6": "Nabolag",
+  "citation_line.as_implemented": "som implementert",
+  "data_table.caption_scrollable": "{caption} (rullbar)",
+  "data_table.scrollable_table": "Rullbar tabell",
+  "history_pager.first_page": "Første side",
+  "history_pager.load_error": "Denne siden kunne ikke lastes. Prøv igjen.",
+  "history_pager.loading": "Laster poster…",
+  "history_pager.next": "Neste",
+  "history_pager.previous": "Forrige"
+}

@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Төрийн засаглалын ертөнц",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Хөгжүүлэгчийн хяналт — программын хэсэг биш",
+  "shell_devbar.impersonating": "{label} — {name}-ийн нэрийн өмнөөс",
+  "shell_devbar.residency_tool_civic_residency": "Оршин суух хэрэгсэл → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Шүүх засаглалын хяналт хүлээгдэж байна · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Онц байдлын эрх мэдлийн хянах самбарыг нээх"
+}

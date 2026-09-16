@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Удирдамж ба суралцах",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Бүрэн хичээлүүд Төлөвлөсөн · 7-р шат Алдаа мэдээлэх",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Энэхүү дэлгэцийн бүтэц",
+  "shellv2_menunav.all_screens_the_full_map": "Бүх дэлгэц — бүрэн зураглал",
+  "shellv2_menunav.requires_planned": "{label} {label2} Шаардлага: {prereq} {label3} Төлөвлөсөн",
+  "shellv2_tourbar.guided_tour": "Удирдамж тур",
+  "shellv2_tourbar.guided_tour_step_of": "Удирдамж тур · {stepNumber} дэх алхам, нийт {total}{title}{blurb}"
+}

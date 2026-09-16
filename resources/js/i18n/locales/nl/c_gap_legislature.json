@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "verkiezing uitvoerende macht",
+  "election_kind.general": "algemene verkiezing",
+  "election_kind.judicial": "verkiezing rechterlijke macht",
+  "election_kind.org_board_owner": "bestuursverkiezing (eigenaarszetels)",
+  "election_kind.org_board_worker": "bestuursverkiezing (werknemerszetels)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "herstelverkiezing",
+  "election_kind.special": "bijzondere verkiezing"
+}

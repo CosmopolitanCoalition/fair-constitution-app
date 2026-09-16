@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "कार्यपालिका निर्वाचन",
+  "election_kind.general": "साधारण निर्वाचन",
+  "election_kind.judicial": "न्यायपालिका निर्वाचन",
+  "election_kind.org_board_owner": "बोर्ड निर्वाचन (मालिक सिट)",
+  "election_kind.org_board_worker": "बोर्ड निर्वाचन (कामदार सिट)",
+  "election_kind.referendum": "जनमतसंग्रह",
+  "election_kind.restoration": "पुनर्स्थापना निर्वाचन",
+  "election_kind.special": "विशेष निर्वाचन"
+}

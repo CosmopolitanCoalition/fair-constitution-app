@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Кластерт нэгдэж байна",
+  "federation_syncprogress.of_left": "{fmtValue} из бүхэн {fmtValue2}~{fmtDuration} үлдлээ",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} бүртгэл · {fmtNum2} хуудасСуурийг мэдээллийн санд импортлож байна…Импорт хийгдлээхүлээж байна…{fmtNum3}/с",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Та энэ хуудсаас гарж болно — синхрончлол арын горимд ажиллах бөгөөд тасалдсан тохиолдолд дахин сэргэнэ."
+}

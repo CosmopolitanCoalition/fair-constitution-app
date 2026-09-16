@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Ёс зүй болон хуулийн тайланг хяналтад шилжүүлнэ. Энд мэдээлэл өгөх нь юуг ч устгахгүй — агуулгыг устгах нь Үндсэн хуулийн заалтуудын (F-SOC-003 механизм) дагуу хийгдэнэ, энэ маягтаар хийгдэхгүй.",
+  "support_report.file_a_report": "Тайлан гаргах",
+  "support_report.file_report": "Тайлан гаргах",
+  "support_report.filed_from": "Илгээсэн: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Энгийн үгээр бичнэ үү. Та юу хүлээж байсан, харин бодит байдал дээр юу болсныг тусгана уу.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Тайлангууд операторын дэмжлэгийн хэсэгт очих бөгөөд ангиллаар нь хуваагдана. Энэхүү хүлээн авах процесс нь агуулгыг өөрчлөх эсвэл устгахгүй.",
+  "support_report.what_happened": "Юу болсон бэ?",
+  "support_report.what_kind_of_report_is_this": "Энэ нь ямар төрлийн тайлан бэ?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Тайлан гаргахын тулд нэвтрэх шаардлагатай — нэвтрээд энэ хуудсанд эргэж ирнэ үү."
+}

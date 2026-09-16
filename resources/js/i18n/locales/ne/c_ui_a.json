@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "ग्रह",
+  "adm_chip.level_1": "देश",
+  "adm_chip.level_2": "राज्य / प्रदेश",
+  "adm_chip.level_3": "काउन्टी",
+  "adm_chip.level_4": "नगरपालिका",
+  "adm_chip.level_5": "टाउनशिप",
+  "adm_chip.level_6": "छिमेक",
+  "citation_line.as_implemented": "लागू भए अनुसार",
+  "data_table.caption_scrollable": "{caption} (स्क्रोल गर्न सकिने)",
+  "data_table.scrollable_table": "स्क्रोल गर्न सकिने तालिका",
+  "history_pager.first_page": "पहिलो पृष्ठ",
+  "history_pager.load_error": "यो पृष्ठ लोड हुन सकेन। फेरि प्रयास गर्नुहोस्।",
+  "history_pager.loading": "अभिलेखहरू लोड हुँदैछ...",
+  "history_pager.next": "अर्को",
+  "history_pager.previous": "अघिल्लो"
+}

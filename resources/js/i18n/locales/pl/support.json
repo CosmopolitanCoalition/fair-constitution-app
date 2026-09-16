@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Raporty dotyczące zachowania i kwestii prawnych są kierowane do przeglądu. Złożenie raportu tutaj nic nie usuwa — usuwanie treści odbywa się zgodnie z wyjątkami konstytucyjnymi (mechanizm F-SOC-003), a nie za pomocą tego formularza.",
+  "support_report.file_a_report": "Złóż raport",
+  "support_report.file_report": "Zgłoś raport",
+  "support_report.filed_from": "Zgłoszono z: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Proste słowa są wystarczające. Opisz, czego oczekiwałeś i co zobaczyłeś zamiast tego.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Raporty trafiają do skrzynki wsparcia operatora i są kierowane według kategorii. Ten formularz nigdy sam nie edytuje ani nie usuwa treści.",
+  "support_report.what_happened": "Co się stało?",
+  "support_report.what_kind_of_report_is_this": "Jaki to rodzaj raportu?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Musisz być zalogowany, aby złożyć raport — zaloguj się i wróć do tej strony."
+}

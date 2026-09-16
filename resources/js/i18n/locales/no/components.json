@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Laster kosmisk adresse…",
+  "cosmicaddresspicker.multiverse": "Multivers ▸",
+  "schemaupdatebanner.apply_updates": "Bruk oppdateringer",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Krav: {pendingLabel} — bruk før start av ETL-kjøring.",
+  "setupstepper.build_districts": "Opprett kretser",
+  "setupstepper.confirm_seat_institutions": "Bekreft og tildel seter til institusjoner",
+  "setupstepper.constitutional_defaults": "Forfatningens standardinnstillinger",
+  "setupstepper.cosmic_address": "Kosmisk adresse",
+  "setupstepper.map_data": "Kartdata",
+  "setupstepper.setup_progress": "Fremdrift for oppsett"
+}

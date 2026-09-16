@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Гариг",
+  "adm_chip.level_1": "Улс",
+  "adm_chip.level_2": "Муж / Орон",
+  "adm_chip.level_3": "Сум / Хүрээ",
+  "adm_chip.level_4": "Хот / суурин",
+  "adm_chip.level_5": "Баг / хороо",
+  "adm_chip.level_6": "Хэсэг",
+  "citation_line.as_implemented": "хэрэгжүүлсэнээр",
+  "data_table.caption_scrollable": "{caption} (гүйлгэх боломжтой)",
+  "data_table.scrollable_table": "Гүйлгэх боломжтой хүснэгт",
+  "history_pager.first_page": "Эхний хуудас",
+  "history_pager.load_error": "Энэ хуудсыг ачаалж чадсангүй. Дахин оролдоно уу.",
+  "history_pager.loading": "Бүртгэл ачаалж байна...",
+  "history_pager.next": "Дараах",
+  "history_pager.previous": "Өмнөх"
+}

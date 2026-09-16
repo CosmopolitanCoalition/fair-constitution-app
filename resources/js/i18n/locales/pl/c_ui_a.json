@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeta",
+  "adm_chip.level_1": "Kraj",
+  "adm_chip.level_2": "Stan / Prowincja",
+  "adm_chip.level_3": "Hrabstwo",
+  "adm_chip.level_4": "Gmina",
+  "adm_chip.level_5": "Gmina wiejska",
+  "adm_chip.level_6": "Osiedle",
+  "citation_line.as_implemented": "zgodnie z wdrożeniem",
+  "data_table.caption_scrollable": "{caption} (przewijalne)",
+  "data_table.scrollable_table": "Przewijalna tabela",
+  "history_pager.first_page": "Pierwsza strona",
+  "history_pager.load_error": "Nie udało się załadować tej strony. Spróbuj ponownie.",
+  "history_pager.loading": "Ładowanie rekordów…",
+  "history_pager.next": "Następna",
+  "history_pager.previous": "Poprzednia"
+}

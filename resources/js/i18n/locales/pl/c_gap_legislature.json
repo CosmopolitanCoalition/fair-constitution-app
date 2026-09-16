@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "wybory władzy wykonawczej",
+  "election_kind.general": "wybory powszechne",
+  "election_kind.judicial": "wybory władzy sądowniczej",
+  "election_kind.org_board_owner": "wybory do rady (mandaty właścicielskie)",
+  "election_kind.org_board_worker": "wybory do rady (mandaty pracownicze)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "wybory przywrócenia",
+  "election_kind.special": "wybory nadzwyczajne"
+}

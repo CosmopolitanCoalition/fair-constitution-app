@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeet",
+  "adm_chip.level_1": "Land",
+  "adm_chip.level_2": "Staat / Provincie",
+  "adm_chip.level_3": "County",
+  "adm_chip.level_4": "Gemeente",
+  "adm_chip.level_5": "Township",
+  "adm_chip.level_6": "Buurt",
+  "citation_line.as_implemented": "zoals geïmplementeerd",
+  "data_table.caption_scrollable": "{caption} (scrollbaar)",
+  "data_table.scrollable_table": "Scrollbare tabel",
+  "history_pager.first_page": "Eerste pagina",
+  "history_pager.load_error": "Deze pagina kon niet worden geladen. Probeer het opnieuw.",
+  "history_pager.loading": "Records laden…",
+  "history_pager.next": "Volgende",
+  "history_pager.previous": "Vorige"
+}

@@ -1,0 +1,8 @@
+{
+  "appshell.log_in": "Нэвтрэх",
+  "appshell.log_out": "Гарах",
+  "appshell.pseudo_en_xa": "Псевдоним (en-XA)",
+  "appshell.roles_derived": "Үүрэг (тооцоолсон): {roles}",
+  "appshell.these_proceedings_are_public_record_art_ii": "Эдгээр хэргийг олон нийтийн бүртгэлд (Art. II §2) тэмдэглэнэ. Оролцохын тулд бүртгүүлнэ үү. Оршин суух статус баталгаажсаны дараа та мэдэлгээ илгээх, санал өгөх, албан тушаалд нэр дэвших боломжтой.",
+  "appshell.you_re_viewing_as_a_guest": "Та зочин хэрэглэгчээр үзэж байна"
+}

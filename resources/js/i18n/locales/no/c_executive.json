@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "under terskelen",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} nødfullmakter utvider det delegerte omfanget kun innenfor det erklærte området og tidsrommet · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "kan prøves for domstolen · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Avvist før utstedelse: {rejection_citation} Ordren trådte aldri i kraft; det avviste forsøket er i det offentlige registeret."
+}

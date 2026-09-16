@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "valg av utøvende makt",
+  "election_kind.general": "generelt valg",
+  "election_kind.judicial": "valg av dømmende makt",
+  "election_kind.org_board_owner": "styrevalg (eierseter)",
+  "election_kind.org_board_worker": "styrevalg (arbeiderseter)",
+  "election_kind.referendum": "folkeavstemning",
+  "election_kind.restoration": "gjenopprettingsvalg",
+  "election_kind.special": "suppleringsvalg"
+}

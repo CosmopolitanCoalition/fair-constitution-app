@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Сансар огторгуйн хаягийг ачаалж байна…",
+  "cosmicaddresspicker.multiverse": "Олон ертөнц ▸",
+  "schemaupdatebanner.apply_updates": "Шинэчлэлтүүдийг хэрэгжүүлэх",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Шаардлагатай: {pendingLabel} — ETL ажиллагааг эхлүүлэхээс өмнө хэрэгжүүлнэ үү.",
+  "setupstepper.build_districts": "Тойргуудыг үүсгэх",
+  "setupstepper.confirm_seat_institutions": "Баталгаажуулах & Байгууллагуудыг суух",
+  "setupstepper.constitutional_defaults": "Үндсэн хуулийн анхны тохиргоо",
+  "setupstepper.cosmic_address": "Сансар огторгуйн хаяг",
+  "setupstepper.map_data": "Газрын зургийн өгөгдөл",
+  "setupstepper.setup_progress": "Тохиргооны явц"
+}

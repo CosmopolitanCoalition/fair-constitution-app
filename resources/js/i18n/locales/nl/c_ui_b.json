@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "toegevoegd:",
+  "law_diff.label": "Wijzigingen in wetstekst",
+  "law_diff.removed": "verwijderd:",
+  "planned_banner.default_body": "Dit deel van de wereld is ontworpen vóór de bouw. Niets hiervan is live, en er is nergens echt geld aanwezig.",
+  "planned_banner.title": "Gepland — een voorbeeld.",
+  "selection_identity.aria_org": "Organisatie-record voor {name}, referentie {id}",
+  "selection_identity.aria_profile": "Openbaar profiel voor {name}, referentie {id}",
+  "selection_identity.org_reference": "Organisatiereferentie:",
+  "selection_identity.organization_record": "Organisatie-record",
+  "selection_identity.profile_reference": "Profielreferentie:",
+  "selection_identity.public_profile": "Openbaar profiel"
+}

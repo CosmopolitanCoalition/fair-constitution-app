@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "lagt til:",
+  "law_diff.label": "Endringer i lovtekst",
+  "law_diff.removed": "fjernet:",
+  "planned_banner.default_body": "Denne delen av verden er designet før byggingen. Ingenting her er aktivt ennå, og det finnes ingen ekte penger noe sted.",
+  "planned_banner.title": "Planlagt — en forhåndsvisning.",
+  "selection_identity.aria_org": "Organisasjonsregister for {name}, referanse {id}",
+  "selection_identity.aria_profile": "Offentlig profil for {name}, referanse {id}",
+  "selection_identity.org_reference": "Organisasjonsreferanse:",
+  "selection_identity.organization_record": "Organisasjonsregister",
+  "selection_identity.profile_reference": "Profilreferanse:",
+  "selection_identity.public_profile": "Offentlig profil"
+}

@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "राज्यशिल्पको संसार",
+  "shell_devbar.dev_controls_not_part_of_the_application": "डेभ नियन्त्रणहरू — एप्लिकेसनको हिस्सा होइन",
+  "shell_devbar.impersonating": "{label} — {name} को रूपमा अभिनय गर्दै",
+  "shell_devbar.residency_tool_civic_residency": "बसोबास उपकरण → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "न्यायिक पुनरावलोकन बाँकी · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "संकटकालीन अधिकार ड्यासबोर्ड खोल्नुहोस्"
+}

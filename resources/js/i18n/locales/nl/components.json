@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Kosmisch adres laden…",
+  "cosmicaddresspicker.multiverse": "Multiversum ▸",
+  "schemaupdatebanner.apply_updates": "Updates toepassen",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Vereist: {pendingLabel} — toepassen voor het starten van een ETL-run.",
+  "setupstepper.build_districts": "Kiesdistricten bouwen",
+  "setupstepper.confirm_seat_institutions": "Bevestigen & Instellingen benoemen",
+  "setupstepper.constitutional_defaults": "Grondwettelijke standaardwaarden",
+  "setupstepper.cosmic_address": "Kosmisch adres",
+  "setupstepper.map_data": "Kaartgegevens",
+  "setupstepper.setup_progress": "Voortgang installatie"
+}

@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "आचरण र कानुनी रिपोर्टहरू समीक्षाका लागि पठाइन्छ। यहाँ रिपोर्ट गर्नुले केही पनि हटाउँदैन — सामग्री हटाउने प्रक्रिया संवैधानिक प्रावधानहरू (F-SOC-003 संयन्त्र) अनुसार हुन्छ, यो फारमबाट हुँदैन।",
+  "support_report.file_a_report": "रिपोर्ट दर्ता गर्नुहोस्",
+  "support_report.file_report": "रिपोर्ट दर्ता गर्नुहोस्",
+  "support_report.filed_from": "दर्ता गरिएको स्थान: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "साधारण शब्दहरू प्रयोग गर्नुहोस्। तपाईंले के अपेक्षा गर्नुभएको थियो र वास्तवमा के देख्नुभयो, त्यो उल्लेख गर्नुहोस्।",
+  "support_report.reports_land_in_the_operator_s_support_inb": "रिपोर्टहरू अपरेटरको सपोर्ट इनबक्समा जान्छन् र श्रेणी अनुसार पठाइन्छ। यो प्रक्रियाले आफैं सामग्री सम्पादन वा हटाउँदैन।",
+  "support_report.what_happened": "के भयो?",
+  "support_report.what_kind_of_report_is_this": "यो कस्तो प्रकारको रिपोर्ट हो?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "रिपोर्ट दर्ता गर्न तपाईं साइन-इन हुनुपर्छ — लग-इन गर्नुहोस् र यो पृष्ठमा फर्कनुहोस्।"
+}

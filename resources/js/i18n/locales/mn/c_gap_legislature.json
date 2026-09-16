@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "гүйцэтгэх засаглалын сонгууль",
+  "election_kind.general": "ерөнхий сонгууль",
+  "election_kind.judicial": "шүүх засаглалын сонгууль",
+  "election_kind.org_board_owner": "удирдах зөвлөлийн сонгууль (эзэмшигчийн суудал)",
+  "election_kind.org_board_worker": "удирдах зөвлөлийн сонгууль (ажилтны суудал)",
+  "election_kind.referendum": "бүх нийтийн санал асуулга",
+  "election_kind.restoration": "сэргээлтийн сонгууль",
+  "election_kind.special": "онцгой сонгууль"
+}

@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "poniżej progu",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} metody nadzwyczajne rozszerzają zakres delegacji tylko w obrębie zadeklarowanego obszaru i czasu trwania · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "podlegające kontroli sądowej · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Odrzucono przed wydaniem: {rejection_citation} Zarządzenie nie weszło w życie; odrzucona próba znajduje się w rejestrze publicznym."
+}

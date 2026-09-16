@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Kobler til klyngen",
+  "federation_syncprogress.of_left": "{fmtValue} av {fmtValue2}~{fmtDuration} igjen",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} poster · {fmtNum2} siderImporterer stiftelsen til databasen…Importertventer…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Du kan forlate denne siden — synkroniseringen kjører i bakgrunnen og gjenopptas hvis den blir avbrutt."
+}

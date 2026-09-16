@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Ładowanie adresu kosmicznego…",
+  "cosmicaddresspicker.multiverse": "Multiwersum ▸",
+  "schemaupdatebanner.apply_updates": "Zastosuj aktualizacje",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Wymagane: {pendingLabel} — zastosuj przed uruchomieniem procesu ETL.",
+  "setupstepper.build_districts": "Buduj okręgi",
+  "setupstepper.confirm_seat_institutions": "Potwierdź i przydziel mandaty instytucjom",
+  "setupstepper.constitutional_defaults": "Ustawienia domyślne Konstytucji",
+  "setupstepper.cosmic_address": "Adres kosmiczny",
+  "setupstepper.map_data": "Dane mapy",
+  "setupstepper.setup_progress": "Postęp konfiguracji"
+}

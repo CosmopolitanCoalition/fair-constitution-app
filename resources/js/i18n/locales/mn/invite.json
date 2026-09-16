@@ -1,0 +1,22 @@
+{
+  "invite_landing.an_invite_carries_no_power_nobody_gains_a_": "Урилга нь ямар нэгэн эрх олгохгүй — урилга илгээснээр хэн ч санал, суудал эсвэл давуу тал олж авдаггүй. Энэ бол зүгээр л нээлттэй хаалга юм.",
+  "invite_landing.browse_everything_every_place_on_earth_eve": "Бүгдийг үзэх — дэлхий дээрх бүх газар, бүртгэл, сонгууль, хуулийг харах.",
+  "invite_landing.create_an_account": "Бүртгэл үүсгэх",
+  "invite_landing.either_way_you_ll_land_right_where_this_li": "Аль ч тохиолдолд та энэ холбоосын заасан газарт очих болно — очих цэг нь аль хэдийн хадгалагдсан.",
+  "invite_landing.explore_first": "Эхлээд судлах",
+  "invite_landing.is_a_private_room_they_saved_you_a_seat_cr": "{destinationName} бол хувийн өрөө — тэд танд суудал хадгалсан байна. Бүртгэл үүсгээд нэвтрээрэй.",
+  "invite_landing.join_anyway": "Сонгож нэгдэх",
+  "invite_landing.log_in": "Нэвтрэх",
+  "invite_landing.look_around_first": "Эхлээд тоймлох",
+  "invite_landing.sign_up_join": "Бүртгүүлж нэгдэх",
+  "invite_landing.step_in": "Орох",
+  "invite_landing.step_in_and_see_what_this_is_is_already_op": "Ороод юу болохыг үзээрэй — {destinationName} аль хэдийн нээлттэй байна. Үзэхэд бүртгэл шаардлагагүй.",
+  "invite_landing.that_link_is_no_longer_valid_but_the_door_": "Энэ холбоос хүчингүй болсон — гэхдээ хаалга нээлттэй хэвээр байна. Хэн ч нэгдэж болно.",
+  "invite_landing.this_invite_link_has_expired": "Энэ урилгын холбоос хугацаа дууссан",
+  "invite_landing.watch_any_public_room_every_hearing_meetin": "Нийтийн өрөөг үзэх — бүх шүүх хурал, уулзалт, санал хуульчлан нээлттэй болно. Хэн ч үнэгүй сууж үзэж болно.",
+  "invite_landing.what_you_can_do_right_now": "Та одоо юу хийж чадах вэ",
+  "invite_landing.when_you_want_a_voice_to_speak_on_the_reco": "Та өөрийн дуу хоолойгоо илэрхийлэх, албан ёсны бүртгэлд мэдүүлэг өгөх, санал өгөх эсвэл нэр дэвших хүсэлтэй бол бүртгэл үүсгээд хаана амьдарч байгаагаа заагаарай. Оршин суух нь цорын ганц шаардлага юм.",
+  "invite_landing.where_this_leads": "Энэ хаашаа хөтлөх вэ",
+  "invite_landing.world_of_statecraft": "Төрийн засаглалын ертөнц",
+  "invite_landing.you_re_invited": "Танд урилга ирлээ"
+}

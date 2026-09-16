@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "нэмэгдсэн:",
+  "law_diff.label": "Хуулийн эх сурвалжийн өөрчлөлт",
+  "law_diff.removed": "хасагдсан:",
+  "planned_banner.default_body": "Энэхүү хэсэг нь бүтээгдэхүүнээс өмнө төлөвлөгдсөн загвар юм. Энд одоогоор идэвхтэй зүйл байхгүй бөгөөд бодит мөнгө ашиглагдаагүй.",
+  "planned_banner.title": "Төлөвлөгдсөн — урьдчилсан хараа.",
+  "selection_identity.aria_org": "{name} байгууллагын бүртгэл, лавлах {id}",
+  "selection_identity.aria_profile": "{name} хэрэглэгчийн нийтийн профайл, лавлах {id}",
+  "selection_identity.org_reference": "Байгууллагын лавлах:",
+  "selection_identity.organization_record": "Байгууллагын бүртгэл",
+  "selection_identity.profile_reference": "Профайлын лавлах:",
+  "selection_identity.public_profile": "Нийтийн профайл"
+}

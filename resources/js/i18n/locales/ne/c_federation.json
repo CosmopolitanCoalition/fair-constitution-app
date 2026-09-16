@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "क्लस्टरमा जोडदै",
+  "federation_syncprogress.of_left": "{fmtValue} बाट {fmtValue2}~{fmtDuration} बाँकी",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} अभिलेखहरू · {fmtNum2} पानाहरूडाटाबेसमा फाउन्डेशन आयात गर्दै…आयात गरियोप्रतीक्षा गर्दै…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "तपाईं यो पाना छोड्न सक्नुहुन्छ — सिङ्क पृष्ठभूमिमा चल्छ र अवरुद्ध भएमा पुनः सुरु हुन्छ।"
+}
