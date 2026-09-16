@@ -322,6 +322,17 @@ def derive() -> dict:
     if unknown:
         steps.append((f"no registry row yet: {unknown}", -len(unknown), len(registered)))
 
+    # Operator ruling 2026-09-16: a registered language is a translated one.
+    # The 46 codes the ETL source knows but no catalogue exists for are not
+    # registered here; the ETL keeps its own list for jurisdictions' official
+    # languages (scripts/etl/languages.py). Extending the product set means
+    # adding to TARGET and running the translation pass, never listing a code
+    # the app cannot render.
+    untranslated = sorted(registered - set(TARGET))
+    registered &= set(TARGET)
+    if untranslated:
+        steps.append((f"drop registered-but-untranslated (ruling 2026-09-16): {len(untranslated)} codes", -len(untranslated), len(registered)))
+
     display_only = (set(NO_MT_PAIR) & registered) - set(SOLE_OFFICIAL_EXEMPT) - set(TIER_1)
     translated = registered - display_only
 
