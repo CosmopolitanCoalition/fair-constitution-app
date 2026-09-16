@@ -761,7 +761,8 @@
   },
   "committees.register_empty": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "committees.register_title": {
     "status": "machine",

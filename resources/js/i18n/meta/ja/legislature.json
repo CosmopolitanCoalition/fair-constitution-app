@@ -1585,7 +1585,8 @@
   },
   "legislature_oversight.the_independent_administrative_office_enfo": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "legislature_oversight.vacancy_countback_page": {
     "status": "machine",

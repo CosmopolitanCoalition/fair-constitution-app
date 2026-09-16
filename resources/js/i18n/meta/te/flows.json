@@ -2545,7 +2545,8 @@
   },
   "voting_closes_instant_multi_winner_pr_st_c85aa4a3": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "whole_legislature_rcv_for_the_seat_s_7d6063e6": {
     "status": "machine",

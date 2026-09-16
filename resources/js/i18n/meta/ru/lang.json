@@ -1085,7 +1085,8 @@
   },
   "Amendable within hardened bounds · out-of-range rejected pre-vote · Art. VII": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "Amending [:key] requires a Supermajority of Constituent Jurisdictions to ALSO consent — it cannot be changed by a single legislature's supermajority alone (Art. IV §3).": {
     "status": "machine",
@@ -4341,7 +4342,8 @@
   },
   "Juror view": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "Jury Selection Order": {
     "status": "machine",

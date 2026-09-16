@@ -343,7 +343,8 @@
   "judiciary_casedetail.whichever_way_the_verdict_falls_the_outcom": {
     "status": "machine",
     "reason": "suspiciously short — source content likely dropped",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "judiciary_casedocket.available_to": {
     "status": "machine",

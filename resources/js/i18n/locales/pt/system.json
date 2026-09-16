@@ -93,7 +93,7 @@
   "system_termsync.no_active_lockstep_terms_on_record": "Não há mandatos sincronizados registados.",
   "system_termsync.no_election_can_be_skipped_or_delayed_by_o": "nenhuma eleição pode ser ignorada ou adiada por funcionários",
   "system_termsync.no_skip_delay_reschedule_api_exists_refusa": "não existe API de ignorar / adiar / reagendar — a recusa é estrutural, não de política",
-  "system_termsync.no_violation_has_ever_been_attempted_on_th": "Nenhuma violação foi tentada nesta instância — as tentativas seriam rejeitadas antes do commit e registadas aqui literalmente.",
+  "system_termsync.no_violation_has_ever_been_attempted_on_th": "Nenhuma violação foi tentada nesta instância — as tentativas seriam rejeitadas antes do commit e registradas aqui literalmente.",
   "system_termsync.on_the_chain": "na chain →",
   "system_termsync.one_clock_every_trigger": "Um relógio, cada gatilho",
   "system_termsync.open_successor_election": "{value} abrir eleição sucessora ({election_status}) →",

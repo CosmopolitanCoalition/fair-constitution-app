@@ -641,7 +641,8 @@
   },
   "operator_mesh.your_peers_known": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "operator_operations.apply_recreate": {
     "status": "machine",

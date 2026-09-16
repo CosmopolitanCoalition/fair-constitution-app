@@ -2181,7 +2181,8 @@
   },
   "Broker credential stored for :domain (encrypted on this box; it never federates). Qualify broker.tls once lego is installed.": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (skeptic)"
   },
   "Browse the world": {
     "status": "machine",
@@ -2613,7 +2614,8 @@
   },
   "Committee preferences recorded (F-LEG-010) — input to the assignment algorithm; re-submittable until a run consumes them.": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (skeptic)"
   },
   "Committee record": {
     "status": "machine",
@@ -5761,7 +5763,8 @@
   },
   "Public-Square Removal (carve-out)": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "Publishing another person’s private, identifying data against their will (doxxing).": {
     "status": "machine",
@@ -7313,7 +7316,8 @@
   },
   "This jurisdiction has a seated government — its supermajority consent (Meter B) supersedes the operator board; an operator cannot attest on its behalf.": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "This jurisdiction has no Type B chamber — a leaf has no constituents to group.": {
     "status": "machine",

@@ -473,7 +473,8 @@
   },
   "education_civic_public_square.s2_detail": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "education_civic_public_square.s2_do": {
     "status": "machine",
@@ -2480,7 +2481,8 @@
   },
   "education_legislature_bill_conversation.learn": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "education_legislature_bill_conversation.s1_detail": {
     "status": "machine",

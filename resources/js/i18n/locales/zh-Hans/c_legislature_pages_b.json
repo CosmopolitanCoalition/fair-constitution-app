@@ -418,7 +418,7 @@
   "type_b_districts.pe_tooltip": "衡量每个选区的每席位人口与理想的“一人一票”标准的匹配程度。偏差越低，每票权重越均衡。",
   "type_b_districts.pe_tooltip_note": "(包含此地图中所有次国家级选区。)",
   "type_b_districts.polygon": "✏️ 多边形",
-  "type_b_districts.polygon_instructions": "使用 ▢ 工具（左上角，缩放下方）绘制多边形。顶点将自动吸附到边界线和已绘制的选区边界 —— 按住 Alt 可禁用。",
+  "type_b_districts.polygon_instructions": "使用 ▢ 工具（左上角，缩放下方）绘制多边形。顶点将自动吸附到巨型辖区的轮廓和已绘制的选区边界 —— 按住 Alt 可禁用。",
   "type_b_districts.pop": "人口",
   "type_b_districts.pop_deviation_title": "人口与每席位理想配额的偏差",
   "type_b_districts.population_equality": "人口平等",

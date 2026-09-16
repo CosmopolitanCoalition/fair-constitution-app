@@ -3301,7 +3301,8 @@
   },
   "judiciary_home.panels_cite": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "judiciary_home.propose_creation": {
     "status": "machine",

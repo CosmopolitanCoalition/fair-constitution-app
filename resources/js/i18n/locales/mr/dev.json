@@ -146,7 +146,7 @@
   "dev_legislaturekit.all_clear_variant_the_locked_slots_render_": "ऑल-क्लियर व्हेरिएंट — लॉक केलेले स्लॉट्स त्यांच्या रिकाम्या स्थिती रेंडर करतात",
   "dev_legislaturekit.bicameral_committee_stage_per_kind_committ": "द्विगृही समिती टप्पा — प्रकारानुसार समिती बहुमत (q7 समिती आणि सभागृह दोन्ही ठिकाणी बंधनकारक)",
   "dev_legislaturekit.bicameral_majority_adopted_both_kinds_agre": "द्विगृही_बहुमत · स्वीकारले — दोन्ही प्रकार सहमत आहेत",
-  "dev_legislaturekit.bicameral_majority_failed_type_b_does_not_": "द्विगृही_बहुमत · अयशस्वी — प्रकार B सहमत नाही (अयशस्वी प्रकार नमूद केला आहे)",
+  "dev_legislaturekit.bicameral_majority_failed_type_b_does_not_": "bicameral_majority · अयशस्वी — प्रकार B सहमत नाही (अयशस्वी प्रकार नमूद केला आहे)",
   "dev_legislaturekit.bicameral_majority_pending_floor": "द्विगृही_बहुमत · प्रलंबित (सभागृह)",
   "dev_legislaturekit.bicameral_supermajority_adopted_22_of_32_6": "द्विगृही_विशेष बहुमत · स्वीकारले (32 पैकी 22 · 9 पैकी 6)",
   "dev_legislaturekit.bicameral_supermajority_failed_type_a_shor": "द्विगृही_विशेष बहुमत · अयशस्वी — प्रकार A ceil(32 × 2/3) पेक्षा कमी",

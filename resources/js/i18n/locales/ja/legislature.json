@@ -393,7 +393,7 @@
   "legislature_oversight.subject_serving_member": "対象 (現職メンバー)",
   "legislature_oversight.supermajority_of_all_serving_art_vii": "全現職の特別多数 · Art. VII",
   "legislature_oversight.the_docket_is_empty": "登録簿は空です。",
-  "legislature_oversight.the_independent_administrative_office_enfo": "独立した行政事務所が議事手続きと倫理規定を執行する。不正行為の訴えを受け付け、調査し、裁判所の認定を解任手続きに回す。また、議席が空いた際に欠員を宣言する。",
+  "legislature_oversight.the_independent_administrative_office_enfo": "独立した行政事務所が議事手続きと倫理規定を執行します。不正行為の申し立てを受け付け、調査し、調査結果を解任手続きに回します。また、議席が空いた際に欠員を宣言します。",
   "legislature_oversight.vacancy_countback_page": "欠員 {status} — 再集計ページ →",
   "legislature_oversight.vacancy_state_machine": "欠員ステートマシン",
   "legislature_referendums.blocked_this_term_passed_by_population_sup": "今期はブロック済み · 人口の特別多数により可決 · CLK-19 · 固定済み",

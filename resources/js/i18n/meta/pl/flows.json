@@ -1325,7 +1325,8 @@
   },
   "judicial_vacancy_handling_dd5306a6": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "judiciary_conversion_act_supermajority_302a4bd8": {
     "status": "machine",

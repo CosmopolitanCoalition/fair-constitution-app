@@ -1069,7 +1069,8 @@
   },
   "operator_versioning.peer_constitutional_versions_and_app_relea": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "operator_versioning.peer_versions": {
     "status": "machine",

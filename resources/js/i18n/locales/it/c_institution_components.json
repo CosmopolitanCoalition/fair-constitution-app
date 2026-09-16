@@ -431,7 +431,7 @@
   "vote_tally.left_committee": "{yes} sì su {serving} membri della commissione",
   "vote_tally.left_pending": "in sospeso — 0 su {serving} registrati",
   "vote_tally.peg_gloss": "Quorum fisso: il denominatore è ogni seggio occupato. Un membro assente conta come un no.",
-  "vote_tally.peg_quorum_note": "quorum fisso: {req} di {serving} titolari · Art. II §2",
+  "vote_tally.peg_quorum_note": "quorum fisso: {req} di {serving} in carica · Art. II §2",
   "vote_tally.published_hint": "Pubblicato con il tuo voto · Art. II §2",
   "vote_tally.quorum_label": "Quorum — presenti su tutti i titolari",
   "vote_tally.rcv_outcome": "Risultato RCV a maggioranza qualificata",

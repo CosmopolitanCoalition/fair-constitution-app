@@ -1701,7 +1701,8 @@
   },
   "legislature_referendums.the_legislature_can_put_any_issue_to_the_p": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "legislature_referendums.this_jurisdiction": {
     "status": "machine",

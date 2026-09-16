@@ -321,7 +321,8 @@
   },
   "q.executive_basics.q1.explain": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "q.executive_basics.q1.prompt": {
     "status": "machine",

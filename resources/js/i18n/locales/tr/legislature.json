@@ -424,7 +424,7 @@
   "legislature_referendums.shield_lapses_when_the_certifies": "· {election_label} onayladığında koruma sona erer",
   "legislature_referendums.the_binding_text_the_referendum_enacts_not": "Referandumun yürürlüğe koyduğu bağlayıcı metin — özet değildir.",
   "legislature_referendums.the_clk_19_shield_is_a_validator_gate_not_": "CLK-19 koruması bir zamanlayıcı değil, bir doğrulama kapısıdır: nüfus-nitelikli çoğunluk kararına karşı yapılan bir F-LEG-034 başvurusu, oylama öncesinde atıfla reddedilir ve reddin kendisi denetim günlüğüne kaydedilir. Koruma, bir sonraki genel seçim onaylandığında kalkar — referandum kararları daha sonra olağan yol ile değiştirilir.",
-  "legislature_referendums.the_legislature_can_put_any_issue_to_the_p": "Yasama organı, nitelikli çoğunlukla herhangi bir konuyu nüfusa sunabilir. Geçiş eşiği seçilmez — karar türüyle eşleşir: yasama organunun basit çoğunlukla geçirebileceği bir soru, nüfusun çoğunluğuyla çözülür; nitelikli çoğunluk gerektiren bir soru ise nüfusun nitelikli çoğunluğuyla çözülür.",
+  "legislature_referendums.the_legislature_can_put_any_issue_to_the_p": "Yasama organı, nitelikli çoğunlukla herhangi bir konuyu nüfusa sunabilir. Geçiş eşiği seçilmez — karar türüyle eşleşir: yasama organının basit çoğunlukla geçirebileceği bir soru, nüfusun çoğunluğuyla çözülür; nitelikli çoğunluk gerektiren bir soru ise nüfusun nitelikli çoğunluğuyla çözülür.",
   "legislature_referendums.this_jurisdiction": "bu yetki alanı",
   "legislature_referendums.this_term_chamber_supermajority_f_leg_034_": "bu dönem: meclis nitelikli çoğunluğu · F-LEG-034 · WF-LEG-19",
   "legislature_referendums.threshold_art_ii_6": "eşik: {THRESHOLD_LABELS} · Art. II §6",

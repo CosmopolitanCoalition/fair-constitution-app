@@ -373,7 +373,7 @@
   "results.elected_title": "Eleitos — {n} de {total} assentos",
   "results.formchip_cert": "Certificação dos resultados da eleição",
   "results.formchip_recount": "Ordem de recontagem/auditoria",
-  "results.intro": "Cada assento é preenchido nesta única contagem. Seu voto passa para sua próxima escolha quando seu favorito vence com folga ou é eliminado, portanto, nenhum voto é desperdiçado. Votos de escrita são contados como os finalistas, e o registro completo abaixo é público e auditável.",
+  "results.intro": "Cada assento é preenchido nesta única contagem. Seu voto passa para sua próxima escolha quando seu favorito vence com folga ou é eliminado, portanto, nenhum voto é desperdiçado. Os votos avulsos são contados exatamente como os dos finalistas, e o registro completo abaixo é público e auditável.",
   "results.mid_label": "Rodadas {a}–{b} — expanda qualquer rodada para ver as transferências de votos",
   "results.observers_caption": "Observadores registrados",
   "results.observing": "observando",

@@ -2153,7 +2153,8 @@
   },
   "Bought (F-IND-021). Units moved on the named ownership plane, money on the wallet ledger — in one act, both or neither. No overdraft.": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "Boundary changes pass by a two-thirds supermajority of the affected population · Art. V §2": {
     "status": "machine",

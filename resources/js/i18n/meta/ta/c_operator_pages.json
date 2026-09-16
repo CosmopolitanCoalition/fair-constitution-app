@@ -1261,7 +1261,8 @@
   },
   "judiciary_kit.intro_after": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "judiciary_kit.intro_before": {
     "status": "machine",

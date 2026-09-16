@@ -256,7 +256,7 @@
   "operator_versioning.not_needed": "gerekli değil",
   "operator_versioning.not_yet_advertised": "{value}henüz bildirilmedi",
   "operator_versioning.off_the_constitutional_plane_upgrading_the": "Anayasal düzlemin dışında. Yazılımı yükseltmek bir operatör düzlemi yeteneğidir, vatandaş ayrıcalığı değildir. Anayasal kuralların kendisi buradan asla düzenlenmez — bir sürüm değişikliği önerilir, filtrelenir ve ancak o zaman gücü elinde tutan kişilerce onaylanır.",
-  "operator_versioning.peer_constitutional_versions_and_app_relea": "Eş anayasal sürümleri ve uygulama sürümleri",
+  "operator_versioning.peer_constitutional_versions_and_app_relea": "Eş anayasal sürümler ve uygulama sürümleri",
   "operator_versioning.peer_versions": "Eş sürümleri",
   "operator_versioning.pinning_is_a_pure_function_of_the_contest_": "Sabitleme, yarışma kaydının saf bir fonksiyonudur; devam eden bir oyunu çözmek için manuel bir vetonun aşılması yoktur.",
   "operator_versioning.proposed_by_node_for_the_place_consent_fal": "düğüm {shortId} tarafından önerildi · {shortId2} yeri için · onay {legLabel} değerine düştü",

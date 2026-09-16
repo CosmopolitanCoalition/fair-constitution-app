@@ -196,7 +196,7 @@
   "identity.check_action_detail": "الجهاز وقع هذه الكتابة تحديداً (النموذج + الحمولة + الموضوع) — عدم الإنكار.",
   "identity.check_attestation": "إشهاد",
   "identity.check_attestation_detail": "المفتاح المثبت للجهة المصدرة يتحقق من اللقطة — يفشل عند انتهاء الصلاحية، أو الإلغاء، أو التغيير.",
-  "identity.check_subject": "الموضوع",
+  "identity.check_subject": "الشخص المعني",
   "identity.check_subject_detail": "يتم حل المستخدم المصدق عليه محلياً قبل أن يأذن المحرك.",
   "identity.col_device": "جهاز",
   "identity.col_enrolled": "مُسجّل",

@@ -99,7 +99,7 @@
   "material_manager.gloss": "লেসনের বর্ণনা K-2 সোর্সে (docs/plans/education/K2_CONTENT_*.md) থাকে। এই ফর্মটি শুধুমাত্র মডিউল রো লেখে। উত্তরপত্র এখানে থাকে না।",
   "material_manager.intro": "ট্রেনিং মডিউল প্রকাশ এবং সংশোধন করুন। লেসনের বর্ণনা K-2 সোর্সে লেখা হয়, এই ফর্মে নয়।",
   "material_manager.ip_label": "IP উৎস রেফারেন্স (ঐচ্ছিক)",
-  "material_manager.minutes_label": "মিনিট (ঐচ্ছিক)",
+  "material_manager.minutes_label": "কার্যবিবরণী (ঐচ্ছিক)",
   "material_manager.module_key_label": "মডিউল কি (key)",
   "material_manager.modules_h": "প্রকাশিত এবং খসড়া মডিউল",
   "material_manager.next_modules": "পরবর্তী মডিউল",

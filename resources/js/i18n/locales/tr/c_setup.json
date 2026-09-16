@@ -502,7 +502,7 @@
   "step2_map_data.wp_res_100m": "100m — hassas (daha büyük)",
   "step2_map_data.wp_res_1km": "1km — kaba (daha küçük)",
   "step2_map_data.wp_resolution": "Çözünürlük",
-  "step2_map_data.wp_unadjusted": "Ayarlanmamış (eşleşmeyen toplamlar değil)",
+  "step2_map_data.wp_unadjusted": "Ayarlanmamış (BM ile eşleştirilmiş toplamlar değil)",
   "step2_map_data.wp_var_constrained": "Kısıtlı — yapılaşmış alan maskeli",
   "step2_map_data.wp_var_unconstrained": "Kısıtlanmamış — tam kapsam",
   "step2_map_data.wp_variant": "Varyant",

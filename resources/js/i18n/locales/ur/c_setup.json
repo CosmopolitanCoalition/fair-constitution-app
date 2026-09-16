@@ -484,7 +484,7 @@
   "step2_map_data.section1_heading": "1. آپ کا نقشہ ڈیٹا اور ذریعہ",
   "step2_map_data.source_archive_desc": "کنٹینر راستے <code class=\"text-emerald-300\">{mount}</code> (آپ کے <code class=\"text-sky-300\">ARCHIVE_PATH</code> فولڈر سے منسلک) پر جو کچھ بھی اوپر ڈیٹیکٹ ہوا ہے اسے ان جسٹ کریں۔ تیز ترین راستہ — کوئی نیٹ ورک نہیں۔",
   "step2_map_data.source_archive_title": "مقامی آرکائیو (ڈیفالٹ)",
-  "step2_map_data.source_download_desc": "اوپن ڈیٹا سیٹس کو براہ راست ان کے آفیشل ریپوز سے حاصل کریں، پھر ان جسٹ کریں۔ <strong>تمام ممالک</strong> حاصل کرتا ہے — مکمل عالمی آرکائیو جسے ملٹی تھریڈڈ انجن ان جسٹ کرتا ہے۔",
+  "step2_map_data.source_download_desc": "اوپن ڈیٹا سیٹس کو براہ راست ان کے آفیشل ریپوز سے حاصل کریں، پھر درآمد کریں۔ <strong>تمام ممالک</strong> حاصل کرتا ہے — مکمل عالمی آرکائیو جسے ملٹی تھریڈڈ انجن درآمد کرتا ہے۔",
   "step2_map_data.source_download_title": "آفیشل ذرائع سے ڈاؤن لوڈ کریں",
   "step2_map_data.source_folder_desc": "ایک مخصوص <em>کنٹینر</em> راستہ ان جسٹ کریں — ایک متبادل اسنیپ شاٹ یا <code>/archive</code> کی سب ڈائریکٹری۔ (اپنے کمپیوٹر پر کسی دوسرے فولڈر کی نشاندہی کے لیے، اوپر \"مقامی فولڈر کی نشاندہی کریں\" استعمال کریں۔)",
   "step2_map_data.source_folder_title": "کسٹم فولڈر",

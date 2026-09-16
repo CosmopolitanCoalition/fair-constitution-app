@@ -645,7 +645,8 @@
   },
   "judiciary_home.nominated_by": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "judiciary_home.one_judiciary_row_per_jurisdiction_with_a_": {
     "status": "machine",

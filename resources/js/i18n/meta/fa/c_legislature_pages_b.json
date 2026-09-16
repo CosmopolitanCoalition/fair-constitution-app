@@ -1161,7 +1161,8 @@
   },
   "type_b_districts.confirm_undo": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "type_b_districts.constitutional_contiguity": {
     "status": "machine",
@@ -2177,6 +2178,7 @@
   },
   "type_b_districts.wizard_paused": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   }
 }

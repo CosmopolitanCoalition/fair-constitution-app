@@ -177,7 +177,7 @@
   "department.kind_chief_executive": "Yürütme Başkanı",
   "department.kind_defense": "Savunma",
   "department.kind_justice": "Adalet",
-  "department.kind_other": "Gümrük",
+  "department.kind_other": "Özel",
   "department.kind_state": "Devlet",
   "department.kind_treasury": "Hazine",
   "department.last_filed": "Son kayıt: {date} tarihinde {kind} raporu.",

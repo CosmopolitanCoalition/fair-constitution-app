@@ -279,7 +279,7 @@
   "type_b_districts.confirm_activate": "فعال‌سازی «{name}» به عنوان تخصیص رسمی؟",
   "type_b_districts.confirm_delete_drawn": "حذف حوزه ترسیم‌شده {name}؟ مساحت آن به باقی‌مانده باز می‌گردد.",
   "type_b_districts.confirm_disband": "تأیید انحلال",
-  "type_b_districts.confirm_undo": "لغو {label}؟ این کار حوزه {n} {s} را حذف می‌کند.",
+  "type_b_districts.confirm_undo": "لغو {label}؟ این کار {n} حوزه انتخابیه{s} را حذف می‌کند.",
   "type_b_districts.constitutional_contiguity": "پیوستگی قانون اساسی",
   "type_b_districts.constitutional_flags": "پرچم‌های قانون اساسی",
   "type_b_districts.contig_no": "✗ غیرپیوسته",
@@ -533,5 +533,5 @@
   "type_b_districts.uniform_diversity": "تنوع سیاسی یکنواخت",
   "type_b_districts.vertex_snap_unavailable": "اتصال نقاط (Vertex snapping) در دسترس نیست — کتابخانه ترسیم در پس‌زمینه این ابزار تغییر کرده است.",
   "type_b_districts.view_leg_districts": "مشاهده حوزه‌های انتخابیه قوه مقننه ←",
-  "type_b_districts.wizard_paused": " جادوگر متوقف شد."
+  "type_b_districts.wizard_paused": " دستیار متوقف شد."
 }

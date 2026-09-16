@@ -429,7 +429,8 @@
   },
   "oversight.publish_findings_open": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "oversight.published_casts": {
     "status": "machine",

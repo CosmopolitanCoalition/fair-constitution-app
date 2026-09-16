@@ -53,7 +53,8 @@
   },
   "board_elections.cgc_intro": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "board_elections.cgc_no_board": {
     "status": "machine",

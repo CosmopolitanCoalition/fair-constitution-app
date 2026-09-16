@@ -645,7 +645,8 @@
   },
   "journey.read_without_account": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "journey.reading_never_gates": {
     "status": "machine",

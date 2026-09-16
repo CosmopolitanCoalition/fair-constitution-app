@@ -155,7 +155,7 @@
   "executive_home.an_elected_executive_runs_in_lockstep_with": "Un ejecutivo electo se postula en sincronía con la elección legislativa — las dos elecciones comparten un mismo reloj, y ninguna puede omitirse o retrasarse.",
   "executive_home.chamber_record": "registro de la cámara →",
   "executive_home.conversion_adopted_on_the_chamber_supermaj": "Conversión adoptada solo por supermayoría de la cámara",
-  "executive_home.conversion_needs_the_chamber_s_own_superma": "La conversión requiere la supermayoría de la propia cámara — ceil(activos × 2/3) — Y una supermayoría de las jurisdicciones constituyentes, contadas cada una independientemente. Ambos medidores se resuelven a través de las funciones protegidas; nada en esta página se calcula en el cliente.",
+  "executive_home.conversion_needs_the_chamber_s_own_superma": "La conversion requiere la supermayoria de la propia camara — ceil(en funciones × 2/3) — Y una supermayoria de las jurisdicciones constituyentes, contadas cada una independientemente. Ambos medidores se resuelven a traves de las funciones protegidas; nada en esta pagina se calcula en el cliente.",
   "executive_home.conversion_to_elected_office_dual_supermaj": "Conversión a cargo electo — supermayoría dual",
   "executive_home.creation_act_delegation_by_the_legislature": "Acta de creación — delegación por la legislatura",
   "executive_home.delegated_by_default_converts_only_by_dual": "delegado por defecto · convierte solo por supermayoría dual · Art. III §2–3",

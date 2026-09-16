@@ -589,7 +589,8 @@
   },
   "dev_legislaturekit.bicameral_majority_failed_type_b_does_not_": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "dev_legislaturekit.bicameral_majority_pending_floor": {
     "status": "machine",

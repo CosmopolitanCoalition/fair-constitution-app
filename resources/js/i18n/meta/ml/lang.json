@@ -8700,7 +8700,8 @@
   },
   "sweep period · dual-door": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "system (dev declaration — F-LEG-036 arrives in Phase C)": {
     "status": "machine",

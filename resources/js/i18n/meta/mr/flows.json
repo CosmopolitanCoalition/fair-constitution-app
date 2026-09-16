@@ -2073,7 +2073,8 @@
   },
   "residency_verifications_change_counts_pr_53e8bcec": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "residency_verifications_continuously_upd_6746aff7": {
     "status": "machine",

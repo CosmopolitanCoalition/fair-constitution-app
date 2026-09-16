@@ -159,7 +159,7 @@
   "operator_mesh.what_this_box_still_needs_before_or_to_rem": "Lo que este equipo aún necesita para ser (o seguir siendo) un par pleno: un certificado, una identidad, una URL accesible. Cada restricción se comprueba en vivo; nada aquí es un rango, solo disponibilidad.",
   "operator_mesh.when_a_home_box_retires_or_its_government_": "Cuando un equipo principal se retira (o su gobierno elige un nuevo anfitrión), la autoridad se mueve en tres pasos verificados:",
   "operator_mesh.when_peers_carry_one_another_s_records_the": "Cuando los pares transportan los registros de otros, el libro de sincronización es el recibo. Cada fila es un envío o recepción, con su resultado y el rango de registros cubierto. Un resultado de \"autoridad disputada → resuelta\" significa que la disputa se resolvió a favor de la copia principal del lugar: el registro constitucional nunca se bifurca.",
-  "operator_mesh.your_peers_known": "Tus pares {length} conocidos",
+  "operator_mesh.your_peers_known": "Sus pares {length} conocidos",
   "operator_operations.apply_recreate": "Aplicar y recrear",
   "operator_operations.apply_restart_tier_changes_livekit_network": "Aplicar cambios de nivel de reinicio — redes de LiveKit",
   "operator_operations.apply_tiers": "Aplicar niveles",

@@ -3093,7 +3093,8 @@
   },
   "education_operator_moderation.s4_detail": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "education_operator_moderation.s4_do": {
     "status": "machine",

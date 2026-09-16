@@ -1517,7 +1517,8 @@
   },
   "legislature_kit.eyebrow_motion": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "legislature_kit.eyebrow_petition": {
     "status": "machine",

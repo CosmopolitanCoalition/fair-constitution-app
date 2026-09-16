@@ -141,7 +141,8 @@
   },
   "chamber_page.serving_members": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "chamber_page.speaker_neutral": {
     "status": "machine",

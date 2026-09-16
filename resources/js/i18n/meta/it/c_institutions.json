@@ -781,7 +781,8 @@
   },
   "case_detail.chambers_body": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "case_detail.chambers_locked": {
     "status": "machine",

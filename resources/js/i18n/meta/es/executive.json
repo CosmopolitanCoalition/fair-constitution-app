@@ -625,7 +625,8 @@
   },
   "executive_home.conversion_needs_the_chamber_s_own_superma": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (skeptic)"
   },
   "executive_home.conversion_to_elected_office_dual_supermaj": {
     "status": "machine",

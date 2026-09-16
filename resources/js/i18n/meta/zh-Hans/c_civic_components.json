@@ -5,7 +5,8 @@
   },
   "candidacy_endorsements.aria_individual": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "candidacy_endorsements.aria_org": {
     "status": "machine",

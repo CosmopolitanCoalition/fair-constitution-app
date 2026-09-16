@@ -3833,7 +3833,8 @@
   },
   "education_support_report.s4_detail": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "education_support_report.s4_do": {
     "status": "machine",

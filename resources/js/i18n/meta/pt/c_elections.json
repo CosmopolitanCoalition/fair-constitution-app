@@ -1497,7 +1497,8 @@
   },
   "results.intro": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "results.mid_label": {
     "status": "machine",

@@ -2117,7 +2117,8 @@
   },
   "legislature_speakertools.removal_presiding_f_spk_007": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "legislature_speakertools.speaker_cast": {
     "status": "machine",

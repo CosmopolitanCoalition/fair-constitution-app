@@ -646,7 +646,8 @@
   },
   "A list, never a score — achievements decorate, they never empower. No vote, seat, role or eligibility ever consults this page · Art. I; CI-1; PI-6": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "A listing needs a title.": {
     "status": "machine",

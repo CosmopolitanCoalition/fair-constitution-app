@@ -95,7 +95,7 @@
   "dev_clock_controls.plan_in": "{days} gün içinde:",
   "dev_clock_controls.plan_timers_due": "zamanlayıcı(lar)ın süresi doluyor.",
   "dev_clock_controls.preview": "Nelerin çalışacağını önizle",
-  "dev_clock_controls.preview_again": "Gün sayısı değişti — uygulamadan önce tekrar önizle.",
+  "dev_clock_controls.preview_again": "Gün sayısı değişti — uygulamadan önce tekrar önizleyin.",
   "dev_clock_controls.refused_by": ", {count} sorumluları tarafından reddedildi (reddetme gerçek bir anayasal sonuçtur)",
   "dev_clock_controls.rows_moved": "{count} satır taşındı",
   "dev_clock_controls.solo": "Solo — koordinasyon kurulacak demo eşleri yok.",

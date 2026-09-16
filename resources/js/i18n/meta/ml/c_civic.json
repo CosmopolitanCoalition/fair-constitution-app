@@ -141,7 +141,8 @@
   },
   "halls.filing_uses": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "halls.filing_uses_after": {
     "status": "machine",

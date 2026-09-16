@@ -1941,7 +1941,8 @@
   },
   "education_judiciary_constitutional_challenge.s6_detail": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "education_judiciary_constitutional_challenge.s6_do": {
     "status": "machine",
@@ -2969,7 +2970,8 @@
   },
   "education_operator_dns.s1_detail": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "education_operator_dns.s1_do": {
     "status": "machine",

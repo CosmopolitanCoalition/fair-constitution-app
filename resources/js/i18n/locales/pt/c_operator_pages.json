@@ -378,7 +378,7 @@
   "legislature_kit.eyebrow_bi_super_adopted": "bicameral_supermajority · adotado (22 de 32 · 6 de 9)",
   "legislature_kit.eyebrow_bi_super_failed": "bicameral_supermajority · falhou — tipo A abaixo de ceil(32 × 2/3)",
   "legislature_kit.eyebrow_bill": "projeto de lei (ESM-07) — atual: in_committee",
-  "legislature_kit.eyebrow_motion": "Moção (ESM-08) — atual: voted",
+  "legislature_kit.eyebrow_motion": "Moção (ESM-08) — atual: votado",
   "legislature_kit.eyebrow_petition": "petição (ESM-10) — atual: signature_audit",
   "legislature_kit.eyebrow_tied": "empatado — aguardando o presidente da assembleia",
   "legislature_kit.eyebrow_tied_broken": "tied_broken — adotado 5–4",

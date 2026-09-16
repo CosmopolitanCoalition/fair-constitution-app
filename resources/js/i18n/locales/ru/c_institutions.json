@@ -307,7 +307,7 @@
   "case_detail.stated_reason_label": "Указанная причина",
   "case_detail.statement_label": "Заявление (опционально)",
   "case_detail.summary_label": "Резюме (опционально)",
-  "case_detail.verdict_cite": "Вердикт фиксируется судьей, входящим в коллегию по этому делу — это действие судьи, а не форма. Обвинительный приговор исключает повторное преследование за то же преступление · Art. II §8 · Art. IV §4.",
+  "case_detail.verdict_cite": "Вердикт фиксируется судьей, входящим в коллегию по этому делу — это действие судьи, а не форма. Уголовный вердикт исключает повторное преследование за то же преступление · Art. II §8 · Art. IV §4.",
   "case_detail.verdict_dismissed": "Отклонено",
   "case_detail.verdict_for_petitioner": "В пользу заявителя",
   "case_detail.verdict_for_respondent": "В пользу ответчика",

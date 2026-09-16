@@ -1729,7 +1729,8 @@
   },
   "vote_tally.peg_quorum_note": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "vote_tally.published_hint": {
     "status": "machine",

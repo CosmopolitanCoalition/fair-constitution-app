@@ -1185,7 +1185,8 @@
   },
   "juror_screening.flagged_body": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "juror_screening.flagged_title": {
     "status": "machine",

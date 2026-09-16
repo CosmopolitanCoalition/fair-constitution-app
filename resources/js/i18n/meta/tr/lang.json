@@ -4613,7 +4613,8 @@
   },
   "Meter B — the seated government": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "Meter C — co-affected peers": {
     "status": "machine",

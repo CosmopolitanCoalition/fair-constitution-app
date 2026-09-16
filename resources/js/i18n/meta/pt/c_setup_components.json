@@ -449,7 +449,8 @@
   },
   "review_issues_section.adm_5": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "review_issues_section.adm_6": {
     "status": "machine",

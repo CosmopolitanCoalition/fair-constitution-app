@@ -401,7 +401,8 @@
   },
   "material_manager.minutes_label": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "material_manager.module_key_label": {
     "status": "machine",

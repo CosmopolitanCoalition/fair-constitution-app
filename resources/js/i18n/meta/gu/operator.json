@@ -345,7 +345,8 @@
   },
   "operator_identity.home_authority_attestsdevice_signs_the_wri": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "operator_identity.key_fingerprint": {
     "status": "machine",

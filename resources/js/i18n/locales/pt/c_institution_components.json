@@ -130,7 +130,7 @@
   "case_lifecycle.walkthrough_gloss": "Voltar e Avançar movem-se pela sequência — apenas simulação.",
   "cgc_governors.acting_as": "Atuando como {name}, membro do executivo supervisor.",
   "cgc_governors.clear_selection": "Limpar seleção",
-  "cgc_governors.creating_legislature": "Criando assembleia legislativa: {name}",
+  "cgc_governors.creating_legislature": "Assembleia legislativa criadora: {name}",
   "cgc_governors.dossier_hint": "Esta declaração será publicada com a nomeação.",
   "cgc_governors.dossier_label": "Dossiê de nomeação (opcional)",
   "cgc_governors.find_by": "Buscar por",

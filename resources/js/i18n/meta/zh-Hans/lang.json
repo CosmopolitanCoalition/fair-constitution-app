@@ -1294,7 +1294,8 @@
   },
   "Apply requested — the host supervisor will rewrite .env and recreate the service. Watch the status below.": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "Applying for work is done by a person — system filing is not defined.": {
     "status": "machine",

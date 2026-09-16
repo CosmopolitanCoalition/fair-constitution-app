@@ -29,7 +29,8 @@
   },
   "actions.appropriation_line_label": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "actions.appropriations_caption": {
     "status": "machine",

@@ -120,7 +120,7 @@
   "candidacy.open_profile": "打开您的公共资料",
   "candidacy.page_title": "参选 — {name}",
   "candidacy.platform_hint": "公开，自我管理，可通过 F-CAN-001 随时编辑。",
-  "candidacy.platform_label": "平台声明（可选）",
+  "candidacy.platform_label": "政纲声明（可选）",
   "candidacy.pool_title": "已验证 — 您在审批池中。",
   "candidacy.recorded_ground": "记录依据：{reason} · Art. I",
   "candidacy.registered_body": "理事会的验证 (F-ELB-002) 仅检查居住资格，不检查其他内容 — 这是唯一可能存在的检查。",

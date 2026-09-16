@@ -2421,7 +2421,8 @@
   },
   "step3_districts.phase_mapping_precompute": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "step3_districts.phase_queued": {
     "status": "machine",

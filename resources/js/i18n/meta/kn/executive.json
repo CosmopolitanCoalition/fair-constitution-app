@@ -753,7 +753,8 @@
   },
   "executive_home.the_executive_is_the_government_s_doing_ar": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "executive_home.the_office_is_in_a_transitional_state_see_": {
     "status": "machine",

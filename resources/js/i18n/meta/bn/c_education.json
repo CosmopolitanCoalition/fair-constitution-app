@@ -481,7 +481,8 @@
   },
   "education_civic_public_square.s3_detail": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "education_civic_public_square.s3_do": {
     "status": "machine",

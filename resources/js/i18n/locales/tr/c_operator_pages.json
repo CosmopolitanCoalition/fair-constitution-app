@@ -741,7 +741,7 @@
   "roles.turn_on": "Aç",
   "roles.turning_on": "Açılıyor…",
   "roles.waiting_dual_meter": "Çift sayaç bekleniyor — aşağıdaki bekleyen listesine bakın.",
-  "roles.waiting_intro": "Yönetilen bir kanal çift sayaçla onaylanır — yönetim kurulu üyeleri atanana kadar operatörler, atandığı andan itibaren ise yönetim kurulu; ayrıca bir eşin bölgesine giren az sayıdaki kanal için üçüncü bir sayaç kullanılır. Aşağıdaki sayaçlar canlı okumalardır; buradaki hiçbir şey oyları yeniden saymaz.",
+  "roles.waiting_intro": "Yönetilen bir kanal çift sayaçla onaylanır — bir hükümet görevde değilken operatörler, bir hükümet görevde olduğu anda ise görevdeki hükümet; ayrıca bir eşin bölgesine giren az sayıdaki kanal için üçüncü bir sayaç kullanılır. Aşağıdaki sayaçlar canlı okumalardır; buradaki hiçbir şey oyları yeniden saymaz.",
   "roles.waiting_title": "Onay bekleniyor",
   "roles.who": "Kim:",
   "roles.working": "Çalışıyor…",

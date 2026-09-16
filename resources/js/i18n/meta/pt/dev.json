@@ -526,7 +526,8 @@
   },
   "dev_judiciarykit.paneltable_serious_case_3_seated_1_recused": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "dev_judiciarykit.pool": {
     "status": "machine",

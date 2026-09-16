@@ -257,7 +257,8 @@
   },
   "system_publicrecords.sealed_into_the_audit_chain_at_commit": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "system_publicrecords.search_the_record": {
     "status": "machine",

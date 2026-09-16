@@ -77,7 +77,7 @@
   "judiciary_casedetail.the_selection_seed_publishes_to_the_audit_": "选择种子发布至审计链 —— 任何人均可验证抽取过程 · Art. IV §4。",
   "judiciary_casedetail.this_criminal_case_is_jury_entitled_the_ju": "本刑事案件有权要求陪审 —— 法官席位就位后随机抽取陪审团 (F-JDG-002)。选择种子发布至审计链。",
   "judiciary_casedetail.warrant_kind": "令状类型",
-  "judiciary_casedetail.whichever_way_the_verdict_falls_the_outcom": "无论裁定结果如何，结果记录均携带双重审判标志：被告不得因同一指控再次被起诉。该标志在提交文件时由机器强制执行。",
+  "judiciary_casedetail.whichever_way_the_verdict_falls_the_outcom": "无论裁定结果如何，结果记录均携带双重危险标志：被告不得因同一指控再次被起诉。该标志在提交文件时由机器强制执行。",
   "judiciary_casedocket.available_to": "对 {f} 开放 · {citation}",
   "judiciary_casedocket.available_to_2": "可用作 {surfaceForm} · {citation}",
   "judiciary_casedocket.case_kind": "案件类型",

@@ -1941,7 +1941,8 @@
   },
   "step2_map_data.source_download_desc": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "step2_map_data.source_download_title": {
     "status": "machine",

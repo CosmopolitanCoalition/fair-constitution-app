@@ -2182,7 +2182,8 @@
   },
   "Broker credential stored for :domain (encrypted on this box; it never federates). Qualify broker.tls once lego is installed.": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "Browse the world": {
     "status": "machine",

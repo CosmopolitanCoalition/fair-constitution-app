@@ -3165,7 +3165,8 @@
   },
   "wallet.search_failed": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "wallet.search_items": {
     "status": "machine",

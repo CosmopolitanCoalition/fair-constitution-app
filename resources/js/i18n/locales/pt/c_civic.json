@@ -321,7 +321,7 @@
   "petitions.creation_title": "Criação de petição (F-IND-009)",
   "petitions.declare_residency": "Declarar residência →",
   "petitions.frozen_title": "contagem auditada congelada na verificação de quórum",
-  "petitions.intro": "Qualquer pessoa que resida aqui pode redigir uma lei e colocá-la em votação. Atingindo o quórum de assinaturas, passando por uma verificação independente e por uma revisão de constitucionalidade, sua proposta irá para a próxima cédula de voto de toda a jurisdição.",
+  "petitions.intro": "Qualquer pessoa que resida aqui pode redigir uma lei e colocá-la em votação. Ao atingir o número mínimo de assinaturas, passar por uma verificação independente e por uma revisão de constitucionalidade, sua proposta irá para a próxima cédula de voto de toda a jurisdição.",
   "petitions.law_text_hint": "Escreva o texto vinculativo, não um resumo — é isso que os eleitores ratificam. O texto é revisado quanto à constitucionalidade antes de ser incluído na cédula de voto.",
   "petitions.law_text_label": "Texto da lei",
   "petitions.lifecycle_aria": "Máquina de estado da petição",

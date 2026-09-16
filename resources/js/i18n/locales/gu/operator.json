@@ -85,7 +85,7 @@
   "operator_identity.each_device_enrols_its_own_key_possession_": "દરેક ડિવાઇસ પોતાની કી નોંધે છે. ડિવાઇસ કીનો કબજો — ક્યારેય પાસવર્ડ નહીં — એ જ અન્ય સર્વરો ઓળખે છે.",
   "operator_identity.enrolment_publishes_a_device_s_public_key_": "નોંધણી ડિવાઇસની પબ્લિક કી પ્રકાશિત કરે છે; લિંકિંગ એ નવા બોક્સ પર પહેલેથી નોંધાયેલી કીનો કબજો સાબિત કરે છે. કોઈ પણ ગુપ્ત માહિતી ક્યારેય ડિવાઇસ છોડતી નથી.",
   "operator_identity.expiredalready_fail_closedsoft_deleted_for": "કદુ expired (મુદત પૂરી) already fail-closed (નિષ્ફળતા પર બંધ) soft-deleted (સોફ્ટ-ડિલીટ) ફોરેન્સિક્સ માટે",
-  "operator_identity.home_authority_attestsdevice_signs_the_wri": "હોમ ઓથોરિટી પ્રમાણિત કરે છે device લખાણ પર સહી કરે છે non-home એન્જિન ચકાસે છે ≤ 24h TTL · એક્સપાયરી સ્વીપ",
+  "operator_identity.home_authority_attestsdevice_signs_the_wri": "હોમ ઓથોરિટી પ્રમાણિત કરે છે ઉપકરણ લખાણ પર સહી કરે છે બિન-હોમ એન્જિન ચકાસે છે ≤ 24h TTL · એક્સપાયરી સ્વીપ",
   "operator_identity.key_fingerprint": "કી ફિંગરપ્રિન્ટ",
   "operator_identity.key_generated": "કી જનરેટ થઈ {fmtDate}",
   "operator_identity.last_login": "છેલ્લું લોગિન {fmtDateTime}",

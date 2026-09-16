@@ -63,7 +63,7 @@
   "system_publicrecords.public_records_vs_the_audit_chain": "Öffentliche Register vs. Audit-Kette",
   "system_publicrecords.record_keeping_cannot_be_suspended_under_e": "Die Registerführung kann nicht unter Notstandsbefugnissen ausgesetzt werden · nichts ist optional zu veröffentlichen · Art. II §2 · WF-SYS-03",
   "system_publicrecords.sealed_audit": "versiegelt · Audit",
-  "system_publicrecords.sealed_into_the_audit_chain_at_commit": "beim Commit in die Audit-Kette versiegelt",
+  "system_publicrecords.sealed_into_the_audit_chain_at_commit": "beim Commit in die Prüfkette versiegelt",
   "system_publicrecords.search_the_record": "Register durchsuchen",
   "system_publicrecords.search_title_or_author": "Titel oder Autor suchen",
   "system_publicrecords.statements_attach_to_the_bill_session_or_v": "Aussagen werden an den Gesetzentwurf, die Sitzung oder die Abstimmung angehängt, die sie erläutern — Leser sehen sie im Kontext.",

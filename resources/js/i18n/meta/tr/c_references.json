@@ -713,7 +713,8 @@
   },
   "department.kind_other": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "department.kind_state": {
     "status": "machine",

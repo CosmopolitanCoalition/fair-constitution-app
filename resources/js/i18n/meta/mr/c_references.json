@@ -109,7 +109,8 @@
   },
   "board_elections.elections_explained": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "board_elections.eligible_owners": {
     "status": "machine",

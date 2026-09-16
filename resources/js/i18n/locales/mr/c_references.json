@@ -26,7 +26,7 @@
   "board_elections.default_schedule": "ही संस्था अधिकारक्षेत्राचे निवडणूक वेळापत्रक वापरते.",
   "board_elections.droop_quota": "ड्रूप कोटा {quota}",
   "board_elections.election_in_flight": "निवडणूक सुरू आहे · {status}",
-  "board_elections.elections_explained": "मंडळ-जागा निवडणुका प्रमाणबद्ध रँक्ड-चॉइस मतदानाचा वापर करतात. सर्व नियुक्त मंडळ सदस्य अध्यक्षांच्या निवडीत भाग घेतात, ज्यांना संपूर्ण मंडळाचे बहुमत मिळणे आवश्यक आहे.",
+  "board_elections.elections_explained": "मंडळ-जागा निवडणुका प्रमाणबद्ध रँक्ड-चॉइस मतदानाचा वापर करतात. सर्व आसनस्थ मंडळ सदस्य अध्यक्षांच्या निवडीत भाग घेतात, ज्यांना संपूर्ण मंडळाचे बहुमत मिळणे आवश्यक आहे.",
   "board_elections.eligible_owners": "पात्र मालक किंवा सदस्य",
   "board_elections.eligible_workers": "पात्र कामगार",
   "board_elections.establish_board": "मंडळ स्थापन करा",

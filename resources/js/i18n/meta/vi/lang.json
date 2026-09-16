@@ -417,7 +417,8 @@
   },
   "A carve-out removal must cite its justifying order/case reference — a removal with no logged order is structurally impossible.": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "A case filing is a motion (F-ADV-002), evidence (F-ADV-003), or a brief (F-ADV-004).": {
     "status": "machine",

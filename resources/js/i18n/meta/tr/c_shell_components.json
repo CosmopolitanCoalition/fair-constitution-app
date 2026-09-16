@@ -385,7 +385,8 @@
   },
   "dev_clock_controls.preview_again": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "spotcheck 2026-09-16 (reader+skeptic)"
   },
   "dev_clock_controls.refused_by": {
     "status": "machine",

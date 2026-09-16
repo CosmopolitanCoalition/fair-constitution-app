@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T12:00:35.179Z",
+  "generated_at": "2026-09-16T12:22:41.872Z",
   "source_keys": 16504,
   "namespaces": 73,
   "locales": [
@@ -6595,7 +6595,7 @@
     }
   ],
   "failures": 8136,
-  "warnings": 126762,
+  "warnings": 126761,
   "failure_codes": {
     "C1-missing": 8009,
     "C4-idtoken": 77,

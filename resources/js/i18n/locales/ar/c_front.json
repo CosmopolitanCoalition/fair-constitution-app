@@ -192,7 +192,7 @@
   "ticket.page_title": "بلاغ {id}",
   "ticket.report_card": "البلاغ",
   "ticket.route_moderation_label": "الإشراف والقسم القانوني",
-  "ticket.route_moderation_text": "هذا البلاغ يمر عبر الإشراف والقسم القانوني — بعيداً عن قائمة الدعم الفني. هو لا يزيل شيئاً؛ إزالة المحتوى تتبع الاستثناءات الدستورية (F-SOC-003).",
+  "ticket.route_moderation_text": "هذا البلاغ يمر عبر الإشراف والأرضية القانونية — بعيداً عن قائمة الدعم الفني. هو لا يزيل شيئاً؛ إزالة المحتوى تتبع الاستثناءات الدستورية (F-SOC-003).",
   "ticket.route_translation_label": "قائمة مراجعة الترجمة",
   "ticket.route_translation_text": "تم التوجيه إلى دعم الترجمة.",
   "ticket.routed_to": "تم التوجيه إلى: {target}",
