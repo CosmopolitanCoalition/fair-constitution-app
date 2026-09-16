@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "নির্বাহী নির্বাচন",
+  "election_kind.general": "সাধারণ নির্বাচন",
+  "election_kind.judicial": "বিচার বিভাগীয় নির্বাচন",
+  "election_kind.org_board_owner": "বোর্ড নির্বাচন (মালিকের আসন)",
+  "election_kind.org_board_worker": "বোর্ড নির্বাচন (কর্মীর আসন)",
+  "election_kind.referendum": "গণভোট",
+  "election_kind.restoration": "পুনঃস্থাপন নির্বাচন",
+  "election_kind.special": "বিশেষ নির্বাচন"
+}

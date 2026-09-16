@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "ክላስተሩን እየተቀላቀለ ነው",
+  "federation_syncprogress.of_left": "{fmtValue} ከ {fmtValue2}~{fmtDuration} ቀርተዋል",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} መዝገቦች · {fmtNum2} ገጾች መሠረቱን ወደ ዳታቤዙ እየገባ ነው… ገብቷል በመጠባበቅ ላይ… {fmtNum3}/ሰከንድ",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "ይህንን ገጽ መተው ይችላሉ — ማመሳሰያው በስተጀርባ ይሠራል። ከተቋረጠም ይቀጥላል።"
+}

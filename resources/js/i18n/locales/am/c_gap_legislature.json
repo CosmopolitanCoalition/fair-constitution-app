@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "የአስፈጻሚ አካል ምርጫ",
+  "election_kind.general": "ጠቅላላ ምርጫ",
+  "election_kind.judicial": "የፍትሕ አካል ምርጫ",
+  "election_kind.org_board_owner": "የቦርድ ምርጫ (የባለቤት መቀመጫዎች)",
+  "election_kind.org_board_worker": "የቦርድ ምርጫ (የሠራተኛ መቀመጫዎች)",
+  "election_kind.referendum": "ሕዝበ ውሳኔ",
+  "election_kind.restoration": "የመልሶ ማቋቋም ምርጫ",
+  "election_kind.special": "ልዩ ምርጫ"
+}

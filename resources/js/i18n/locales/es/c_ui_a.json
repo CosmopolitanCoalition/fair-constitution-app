@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeta",
+  "adm_chip.level_1": "País",
+  "adm_chip.level_2": "Estado / Provincia",
+  "adm_chip.level_3": "Condado",
+  "adm_chip.level_4": "Municipio",
+  "adm_chip.level_5": "Municipio local",
+  "adm_chip.level_6": "Barrio",
+  "citation_line.as_implemented": "según se implementó",
+  "data_table.caption_scrollable": "{caption} (desplazable)",
+  "data_table.scrollable_table": "Tabla desplazable",
+  "history_pager.first_page": "Primera página",
+  "history_pager.load_error": "No se pudo cargar esta página. Inténtelo de nuevo.",
+  "history_pager.loading": "Cargando registros…",
+  "history_pager.next": "Siguiente",
+  "history_pager.previous": "Anterior"
+}

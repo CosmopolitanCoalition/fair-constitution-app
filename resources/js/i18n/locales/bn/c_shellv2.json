@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "নেভিগেশন এবং শিক্ষা",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "সম্পূর্ণ পাঠ পরিকল্পনা · পর্যায় ৭ সমস্যা রিপোর্ট করুন",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "এই স্ক্রিনের পেছনের কার্যপদ্ধতি",
+  "shellv2_menunav.all_screens_the_full_map": "সব স্ক্রিন — সম্পূর্ণ ম্যাপ",
+  "shellv2_menunav.requires_planned": "{label} {label2} প্রয়োজন {prereq} {label3} পরিকল্পিত",
+  "shellv2_tourbar.guided_tour": "গাইডযুক্ত সফর",
+  "shellv2_tourbar.guided_tour_step_of": "গাইডযুক্ত সফর · ধাপ {stepNumber} এর {total}{title}{blurb}"
+}

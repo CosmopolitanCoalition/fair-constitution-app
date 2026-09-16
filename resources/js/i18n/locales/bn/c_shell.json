@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "স্টেটক্রাফটের জগৎ",
+  "shell_devbar.dev_controls_not_part_of_the_application": "ডেভ কন্ট্রোল — অ্যাপ্লিকেশনের অংশ নয়",
+  "shell_devbar.impersonating": "{label} — {name}-এর ছদ্মবেশ ধারণ করা",
+  "shell_devbar.residency_tool_civic_residency": "বাসস্থান টুল → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "বিচার বিভাগীয় পর্যালোচনা pending · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "জরুরি ক্ষমতার ড্যাশবোর্ড খুলুন"
+}

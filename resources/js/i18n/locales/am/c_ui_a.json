@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "ፕላኔት",
+  "adm_chip.level_1": "ሀገር",
+  "adm_chip.level_2": "ክልል / ክፍለ ሀገር",
+  "adm_chip.level_3": "ካውንቲ",
+  "adm_chip.level_4": "ከተማ አስተዳደር",
+  "adm_chip.level_5": "ከተማ",
+  "adm_chip.level_6": "ሰፈር",
+  "citation_line.as_implemented": "እንደተተገበረ",
+  "data_table.caption_scrollable": "{caption} (ሊንሸራሸር የሚችል)",
+  "data_table.scrollable_table": "ሊንሸራሸር የሚችል ሰንጠረዥ",
+  "history_pager.first_page": "የመጀመሪያው ገጽ",
+  "history_pager.load_error": "ይህ ገጽ ሊጫን አልቻለም። እንደገና ይሞክሩ።",
+  "history_pager.loading": "መዝገቦች እየተጫኑ ነው…",
+  "history_pager.next": "ቀጣይ",
+  "history_pager.previous": "ቀዳሚ"
+}

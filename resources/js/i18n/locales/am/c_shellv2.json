@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "መቃኘት እና መማር",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "ሙሉ ትምህርቶች የታቀዱ · ምዕራፍ 7 ችግርን ሪፖርት ያድርጉ",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "ከዚህ ስክሪን በስተጀርባ ያለው አሠራር",
+  "shellv2_menunav.all_screens_the_full_map": "ሁሉም ስክሪኖች — ሙሉው ካርታ",
+  "shellv2_menunav.requires_planned": "{label} {label2} የሚፈልገው {prereq} {label3} የታቀደ",
+  "shellv2_tourbar.guided_tour": "መሪ ጉብኝት",
+  "shellv2_tourbar.guided_tour_step_of": "መሪ ጉብኝት · ደረጃ {stepNumber} ከ {total}{title}{blurb}"
+}

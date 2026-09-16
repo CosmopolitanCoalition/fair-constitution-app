@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "afegit:",
+  "law_diff.label": "Canvis en el text de la llei",
+  "law_diff.removed": "eliminat:",
+  "planned_banner.default_body": "Aquesta part del món s'ha dissenyat abans de la construcció. Res d'aquí està actiu encara, i no hi ha diners reals enlloc.",
+  "planned_banner.title": "Planificat — una vista prèvia.",
+  "selection_identity.aria_org": "Registre de l'organització per a {name}, referència {id}",
+  "selection_identity.aria_profile": "Perfil públic per a {name}, referència {id}",
+  "selection_identity.org_reference": "Referència de l'organització:",
+  "selection_identity.organization_record": "Registre de l'organització",
+  "selection_identity.profile_reference": "Referència del perfil:",
+  "selection_identity.public_profile": "Perfil públic"
+}

@@ -1,0 +1,10 @@
+{
+  "support_report.file_a_report": "ሪፖርት ያቅርቡ",
+  "support_report.file_report": "ሪፖርት አቅርብ",
+  "support_report.filed_from": "የቀረበው ከ: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "ቀላል ቃላትን ይጠቀሙ። የጠበቁትን እና በምትኩ ያዩትን ያካትቱ።",
+  "support_report.reports_land_in_the_operator_s_support_inb": "ሪፖርቶች ወደ ኦፕሬተሩ የድጋፍ የፖስታ ሳጥን ይላካሉ እና በዘርፍም ይከፋፈላሉ። ይህ የሪፖርት መቀበያ ራሱ ይዘቶችን አያርም ወይም አያስወግድም።",
+  "support_report.what_happened": "ምን ተከሰተ?",
+  "support_report.what_kind_of_report_is_this": "ይህ ምን ዓይነት ሪፖርት ነው?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "ሪፖርት ለማቅረብ መግባት አለብዎት — ይግቡ እና ወደዚህ ገጽ ይመለሱ።"
+}

@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "আচরণ এবং আইনি রিপোর্টগুলো পর্যালোচনার জন্য পাঠানো হয়। এখানে রিপোর্ট জমা দিলে কিছু মুছে যায় না — বিষয়বস্তু মুছে ফেলার প্রক্রিয়া সংবিধানের নির্দিষ্ট নিয়মের (F-SOC-003 প্রক্রিয়া) মাধ্যমে হয়, এই ফর্মের মাধ্যমে নয়।",
+  "support_report.file_a_report": "একটি রিপোর্ট জমা দিন",
+  "support_report.file_report": "রিপোর্ট জমা দিন",
+  "support_report.filed_from": "প্রেরিত স্থান: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "সহজ শব্দ ব্যবহার করুন। আপনি কী আশা করেছিলেন এবং পরিবর্তে কী দেখেছেন তা উল্লেখ করুন।",
+  "support_report.reports_land_in_the_operator_s_support_inb": "রিপোর্টগুলো অপারেটরের সাপোর্ট ইনবক্সে জমা হয় এবং বিভাগ অনুযায়ী পাঠানো হয়। এই প্রক্রিয়ায় নিজে থেকে কোনো বিষয়বস্তু সম্পাদনা বা মুছে ফেলা হয় না।",
+  "support_report.what_happened": "কী ঘটেছে?",
+  "support_report.what_kind_of_report_is_this": "এটি কী ধরনের রিপোর্ট?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "রিপোর্ট জমা দিতে আপনাকে সাইন-ইন করতে হবে — লগ-ইন করে এই পৃষ্ঠায় ফিরে আসুন।"
+}

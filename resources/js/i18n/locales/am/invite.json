@@ -1,0 +1,22 @@
+{
+  "invite_landing.an_invite_carries_no_power_nobody_gains_a_": "ግብዣ ምንም ሥልጣን የለውም — እናንተን በመጋበዝ ማንም የድምፅ፣ የመቀመጫ ወይም ሌላ ጥቅም አያገኝም። ይህ ዝም ብሎ መግቢያ በር ነው።",
+  "invite_landing.browse_everything_every_place_on_earth_eve": "ሁሉንም ይቃኙ — በምድር ላይ ያሉትን ቦታዎች ሁሉ፣ መዝገቦችን ሁሉ፣ ምርጫዎችን ሁሉ እና ሕጎችን ሁሉ ይመልከቱ።",
+  "invite_landing.create_an_account": "መለያ ይፍጠሩ",
+  "invite_landing.either_way_you_ll_land_right_where_this_li": "በሁለቱም መንገድ ይህ ሊንክ ወደሚያመለክተው ቦታ ይደርሳሉ — መድረሻው አስቀድሞ ተመዝግቧል።",
+  "invite_landing.explore_first": "መጀመሪያ ይቃኙ",
+  "invite_landing.is_a_private_room_they_saved_you_a_seat_cr": "{destinationName} የግል ክፍል ነው — መቀመጫ አዘጋጅተውልዎታል። መለያ ይፍጠሩና ይግቡ።",
+  "invite_landing.join_anyway": "ያም ሆነ ይህ ይቀላቀሉ",
+  "invite_landing.log_in": "ይግቡ",
+  "invite_landing.look_around_first": "መጀመሪያ ዙሪያውን ይመልከቱ",
+  "invite_landing.sign_up_join": "ይመዝገቡ እና ይቀላቀሉ",
+  "invite_landing.step_in": "ይግቡ",
+  "invite_landing.step_in_and_see_what_this_is_is_already_op": "ይግቡና ይህ ምን እንደሆነ ይመልከቱ — {destinationName} ቀድሞውኑ ክፍት ነው። ለመመልከት መለያ አያስፈልግዎትም።",
+  "invite_landing.that_link_is_no_longer_valid_but_the_door_": "ያ ሊንክ አሁን ዋጋ የለውም — ነገር ግን በሩ አሁንም ክፍት ነው። ማንኛውም ሰው ይቀላቀል ይችላል።",
+  "invite_landing.this_invite_link_has_expired": "ይህ የግብዣ ሊንክ ጊዜው አልፎታል",
+  "invite_landing.watch_any_public_room_every_hearing_meetin": "ማንኛውንም የሕዝብ ክፍል ይመልከቱ — ሁሉም የችሎት ቃለ-መጠይቆች፣ ስብሰባዎች እና ድምፅ አሰጣጦች በግልጽ ይከናወናሉ። የጎብኚዎች ቦታ ሁልጊዜ በነፃ ክፍት ነው።",
+  "invite_landing.what_you_can_do_right_now": "አሁን ማድረግ የሚችሉት",
+  "invite_landing.when_you_want_a_voice_to_speak_on_the_reco": "ድምፅ እንዲኖርዎት ሲፈልጉ — በሕዝብ መዝገብ ላይ ለመናገር፣ ድምፅ ለመስጠት ወይም ለሥልጣን ለመወዳደር — መለያ ይፍጠሩ እና የሚኖሩበትን ቦታ ይግለጹ። የሆነ ቦታ ነዋሪ መሆን ብቸኛው መስፈርት ነው።",
+  "invite_landing.where_this_leads": "ይህ ወዴት እንደሚመራ",
+  "invite_landing.world_of_statecraft": "የመንግሥት አሠራር ዓለም",
+  "invite_landing.you_re_invited": "ተጋብዘዋል"
+}

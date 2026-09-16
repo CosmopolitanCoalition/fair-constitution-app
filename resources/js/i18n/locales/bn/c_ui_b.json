@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "যুক্ত হয়েছে:",
+  "law_diff.label": "আইনের পাঠ্যের পরিবর্তন",
+  "law_diff.removed": "অপসারিত হয়েছে:",
+  "planned_banner.default_body": "পৃথিবীর এই অংশটি তৈরির আগেই নকশা করা হয়েছে। এখানে এখনও কোনো কিছু কার্যকর নয় এবং কোনো প্রকৃত অর্থ নেই।",
+  "planned_banner.title": "পরিকল্পিত — একটি প্রিভিউ।",
+  "selection_identity.aria_org": "{name}-এর জন্য সংগঠন রেকর্ড, রেফারেন্স {id}",
+  "selection_identity.aria_profile": "{name}-এর জন্য পাবলিক প্রোফাইল, রেফারেন্স {id}",
+  "selection_identity.org_reference": "সংগঠন রেফারেন্স:",
+  "selection_identity.organization_record": "সংগঠন রেকর্ড",
+  "selection_identity.profile_reference": "প্রোফাইল রেফারেন্স:",
+  "selection_identity.public_profile": "পাবলিক প্রোফাইল"
+}

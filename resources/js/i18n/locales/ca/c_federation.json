@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Unint-se al clúster",
+  "federation_syncprogress.of_left": "{fmtValue} de {fmtValue2}~{fmtDuration} restants",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} registres · {fmtNum2} pàginesImportant la fundació a la base de dades…Importatesperant…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Podeu deixar aquesta pàgina: la sincronització s'executa en segon pla i es represa si s'interromp."
+}

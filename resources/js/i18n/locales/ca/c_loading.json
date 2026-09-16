@@ -1,0 +1,8 @@
+{
+  "dismiss": "Tancar",
+  "failed": "No s'ha pogut completar la sol·licitud. Torneu-ho a intentar.",
+  "loading": "Carregant…",
+  "refresh": "Actualitza per tornar-ho a intentar",
+  "slow": "Encara carregant…",
+  "start_failed": "No s'ha pogut obrir la pàgina."
+}

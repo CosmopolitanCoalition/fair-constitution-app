@@ -1,0 +1,8 @@
+{
+  "dismiss": "Descartar",
+  "failed": "No se pudo completar la solicitud. Inténtelo de nuevo.",
+  "loading": "Cargando…",
+  "refresh": "Actualice para intentar de nuevo",
+  "slow": "Sigue cargando…",
+  "start_failed": "No se pudo abrir la página."
+}

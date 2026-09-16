@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeta",
+  "adm_chip.level_1": "País",
+  "adm_chip.level_2": "Estat / Província",
+  "adm_chip.level_3": "Comarca",
+  "adm_chip.level_4": "Municipi",
+  "adm_chip.level_5": "Municipali",
+  "adm_chip.level_6": "Barri",
+  "citation_line.as_implemented": "tal com s'ha implementat",
+  "data_table.caption_scrollable": "{caption} (desplaçable)",
+  "data_table.scrollable_table": "Taula desplaçable",
+  "history_pager.first_page": "Primera pàgina",
+  "history_pager.load_error": "No s'ha pogut carregar aquesta pàgina. Intentiu-ho de nou.",
+  "history_pager.loading": "Carregant registres…",
+  "history_pager.next": "Següent",
+  "history_pager.previous": "Anterior"
+}

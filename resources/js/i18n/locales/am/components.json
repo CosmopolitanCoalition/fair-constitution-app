@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "የኮስሚክ አድራሻ እየተጫነ ነው…",
+  "cosmicaddresspicker.multiverse": "መልቲቨርስ ▸",
+  "schemaupdatebanner.apply_updates": "ማሻሻያዎችን ተግብር",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "አስፈላጊ፡ {pendingLabel} — የETL ሂደት ከመጀመሩ በፊት ተግብር።",
+  "setupstepper.build_districts": "ወረዳዎችን መገንባት",
+  "setupstepper.confirm_seat_institutions": "ተቋማትን አረጋግጥ እና መቀመጫ ስጥ",
+  "setupstepper.constitutional_defaults": "የሕገ መንግሥት ነባር ቅንብሮች",
+  "setupstepper.cosmic_address": "የኮስሚክ አድራሻ",
+  "setupstepper.map_data": "የካርታ መረጃ",
+  "setupstepper.setup_progress": "የቅንብር ሂደት"
+}

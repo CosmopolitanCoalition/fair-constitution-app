@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "elecció de l'executiu",
+  "election_kind.general": "elecció general",
+  "election_kind.judicial": "elecció judicial",
+  "election_kind.org_board_owner": "elecció del consell d'administració (escots de propietari)",
+  "election_kind.org_board_worker": "elecció del consell d'administració (escots de treballador)",
+  "election_kind.referendum": "referèndum",
+  "election_kind.restoration": "elecció de restabliment",
+  "election_kind.special": "elecció especial"
+}

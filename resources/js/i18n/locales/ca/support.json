@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Els informes de conducta i legals s'envien per a revisió. Presentar una denúncia aquí no elimina res; l'eliminació de continguts segueix les excepcions constitucionals (el mecanisme F-SOC-003), mai aquest formulari.",
+  "support_report.file_a_report": "Presentar un informe",
+  "support_report.file_report": "Presentar informe",
+  "support_report.filed_from": "Presentat des de: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Pots escriure de forma senzilla. Inclou què esperaves i què vas veure en el seu lloc.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Els informes arriben a la bandeja d'entrada de suport de l'operador i es distribueixen per categoria. Aquesta recepció mai edita ni elimina continguts per si mateixa.",
+  "support_report.what_happened": "Què ha passat?",
+  "support_report.what_kind_of_report_is_this": "De quin tipus d'informe es tracta?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Hauries d'estar identificat per presentar un informe: inicia sessió i torna a aquesta pàgina."
+}

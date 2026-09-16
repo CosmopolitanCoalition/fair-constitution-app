@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "ተጨምሯል:",
+  "law_diff.label": "የሕግ ጽሑፍ ለውጦች",
+  "law_diff.removed": "ተሰርዟል:",
+  "planned_banner.default_body": "ይህ የዓለም ክፍል ከግንባታው በፊት የተነደፈ ነው። እስካሁን ምንም የቀጥታ ስራ የለም፣ እንዲሁም ምንም ዓይነት እውነተኛ ገንዘብ የለም።",
+  "planned_banner.title": "የታቀደ — ቅድመ እይታ።",
+  "selection_identity.aria_org": "የ{name} የድርጅት መዝገብ፣ ማጣቀሻ {id}",
+  "selection_identity.aria_profile": "የ{name} የሕዝብ ፕሮፋይል፣ ማጣቀሻ {id}",
+  "selection_identity.org_reference": "የድርጅት ማጣቀሻ:",
+  "selection_identity.organization_record": "የድርጅት መዝገብ",
+  "selection_identity.profile_reference": "የፕሮፋይል ማጣቀሻ:",
+  "selection_identity.public_profile": "የሕዝብ ፕሮፋይል"
+}

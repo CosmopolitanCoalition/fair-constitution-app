@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "গ্রহ",
+  "adm_chip.level_1": "দেশ",
+  "adm_chip.level_2": "রাজ্য / প্রদেশ",
+  "adm_chip.level_3": "কাউন্টি",
+  "adm_chip.level_4": "পৌরসভা",
+  "adm_chip.level_5": "টাউনশিপ",
+  "adm_chip.level_6": "পাড়া",
+  "citation_line.as_implemented": "বাস্তবায়িত যেমন",
+  "data_table.caption_scrollable": "{caption} (স্ক্রোলযোগ্য)",
+  "data_table.scrollable_table": "স্ক্রোলযোগ্য টেবিল",
+  "history_pager.first_page": "প্রথম পৃষ্ঠা",
+  "history_pager.load_error": "এই পৃষ্ঠাটি লোড করা যায়নি। আবার চেষ্টা করুন।",
+  "history_pager.loading": "রেকর্ড লোড হচ্ছে…",
+  "history_pager.next": "পরবর্তী",
+  "history_pager.previous": "পূর্ববর্তী"
+}

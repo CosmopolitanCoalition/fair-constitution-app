@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "কসমিক অ্যাড্রেস লোড হচ্ছে…",
+  "cosmicaddresspicker.multiverse": "মাল্টিভার্স ▸",
+  "schemaupdatebanner.apply_updates": "আপডেট প্রয়োগ করুন",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "প্রয়োজনীয়: {pendingLabel} — ETL রান শুরু করার আগে প্রয়োগ করুন।",
+  "setupstepper.build_districts": "নির্বাচনী এলাকা তৈরি করুন",
+  "setupstepper.confirm_seat_institutions": "নিশ্চিত করুন এবং প্রতিষ্ঠানগুলোর আসন বরাদ্দ করুন",
+  "setupstepper.constitutional_defaults": "সংবিধানিক ডিফল্ট",
+  "setupstepper.cosmic_address": "কসমিক অ্যাড্রেস",
+  "setupstepper.map_data": "ম্যাপ ডেটা",
+  "setupstepper.setup_progress": "সেটআপ প্রগ্রেস"
+}

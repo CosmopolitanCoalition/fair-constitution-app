@@ -1,20 +1,20 @@
 {
   "executive_departmentcard.below_threshold": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": {
     "status": "machine",
     "reason": "placeholder mismatch",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "executive_orderscopecard.judicially_reviewable_art_iv_5": {
     "status": "machine",
-    "provider": "nllb"
+    "provider": "ollama"
   },
   "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": {
     "status": "machine",
     "reason": "placeholder mismatch",
-    "provider": "nllb"
+    "provider": "ollama"
   }
 }

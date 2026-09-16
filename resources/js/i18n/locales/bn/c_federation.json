@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "ক্লাস্টারে যোগ করা হচ্ছে",
+  "federation_syncprogress.of_left": "{fmtValue} এর {fmtValue2}~{fmtDuration} বাকি",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} রেকর্ড · {fmtNum2} পৃষ্ঠাডেটাবেসে ফাউন্ডেশন ইমপোর্ট করা হচ্ছে…ইমপোর্ট করা হয়েছেঅপেক্ষা করুন…{fmtNum3}/সেকেন্ড",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "আপনি এই পৃষ্ঠাটি ছেড়ে যেতে পারেন — সিঙ্ক ব্যাকগ্রাউন্ডে চলবে এবং বাধাগ্রস্ত হলে পুনরায় শুরু হবে।"
+}

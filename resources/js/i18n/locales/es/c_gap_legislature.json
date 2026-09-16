@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "elección del Ejecutivo",
+  "election_kind.general": "elección general",
+  "election_kind.judicial": "elección del Poder judicial",
+  "election_kind.org_board_owner": "elección de la junta directiva (escaños de propietarios)",
+  "election_kind.org_board_worker": "elección de la junta directiva (escaños de trabajadores)",
+  "election_kind.referendum": "referéndum",
+  "election_kind.restoration": "elección de restauración",
+  "election_kind.special": "elección especial"
+}

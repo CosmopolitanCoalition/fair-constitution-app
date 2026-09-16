@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "የመንግሥት አያያዝ ዓለም",
+  "shell_devbar.dev_controls_not_part_of_the_application": "የልማት ቁጥጥሮች — የሥራ程序的 አካል አይደሉም",
+  "shell_devbar.impersonating": "{label} — {name}ን በመምሰል",
+  "shell_devbar.residency_tool_civic_residency": "የነዋሪነት መሣሪያ → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "የፍትሕ አካል ክለሳ በመጠባበቅ ላይ ነው · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "የአስቸኳይ ጊዜ ሥልጣን ዳሽቦርድን ክፈት"
+}
