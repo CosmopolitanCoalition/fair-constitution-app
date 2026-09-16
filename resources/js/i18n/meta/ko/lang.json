@@ -1,6 +1,6 @@
 {
   " Track it at /vacancies/:id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9,12 +9,12 @@
     "provider": "ollama"
   },
   "+:count more candidate with first-preference support": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "+:count more candidates with first-preference support": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -51,22 +51,22 @@
     "provider": "ollama"
   },
   ":canonicalformid is a protected civic process — emergency powers cannot touch it (offending key: :key). Elections, sessions, courts, residency, petitions, and records run identically under any emergency.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":canonicalformid is not declared as an emergency-enabled form — no undeclared handler may cite an emergency power as enabling authority.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":canonicalformid may never carry eligibility conditions beyond jurisdictional association (offending key: :key).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":canonicalformid may not carry a charge for filing (offending key: :offender). Individuals cannot be compelled to pay taxes, fees, liens, or costs to exercise their Civic Rights and Obligations.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -91,7 +91,7 @@
     "provider": "ollama"
   },
   ":count eligible jurisdictionally associated residents of :jurisdiction": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -112,22 +112,22 @@
     "provider": "ollama"
   },
   ":court — :jurors jurors + :alternates alternates will be empaneled": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":formId is filed by THIS committee's chair or alternate.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":formId is filed by the committee chair (or the alternate when the chair is absent).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":formId must be filed by a currently serving member of the committee's chamber.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -136,7 +136,7 @@
     "provider": "ollama"
   },
   ":formId requires a valid committee_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -153,17 +153,17 @@
     "provider": "ollama"
   },
   ":key = :value is outside the hardened range [:min, :max].": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":key requires a numeric value, got :value.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":key value :value is not permitted; allowed: :allowed.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -184,7 +184,7 @@
     "provider": "ollama"
   },
   ":label now holds the floor.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -237,17 +237,17 @@
     "provider": "ollama"
   },
   ":name has :frac fractional seats (≥ :threshold). Giant jurisdictions cannot be assigned to a district at this level — drill down instead.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":name has :frac fractional seats (≥ :threshold). Giant jurisdictions cannot be composited — drill down instead.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":name is not a childless leaf giant at its parent's scope (:childcount children) — manual line-drawing applies only to the case composite cannot: a giant with no children.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -314,12 +314,12 @@
     "provider": "ollama"
   },
   ":seated of :serving serving members seated": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":seats seats is outside the constitutional band [:hard_floor, :hard_ceiling] — above :hard_ceiling the body must be subdivided.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -342,12 +342,12 @@
     "provider": "ollama"
   },
   ":time · shown in :tz · stored as UTC": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   ":yes of :serving serving": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -357,17 +357,17 @@
     "provider": "ollama"
   },
   "A :field must be a list SOURCE / statute citation only — never a hash, locator, or URL (republishable harm).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "A :kind appeal is recorded as :allowed — a criminal appeal may only affirm or vacate, never order a re-trial.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "A :s-seat budget cannot be grouped into districts of :floor–:ceiling seats.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -388,7 +388,7 @@
     "provider": "ollama"
   },
   "A Type B race elects 1 to :tbmax seats (got :seats). The equal-representation ladder does not bind it to the 5 to 9 district band.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -546,7 +546,7 @@
     "provider": "ollama"
   },
   "A detached part holds :seats seats of population — above the ceiling :ceiling; cut it by hand.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -559,7 +559,7 @@
     "provider": "ollama"
   },
   "A district may not fragment :name's territory (the drawn shape cuts :cutcomponents separate landmasses and carries the cut territory in :fragmentpieces disconnected chunks — at most one connected cut fragment of one landmass is allowed).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -736,7 +736,7 @@
     "provider": "ollama"
   },
   "A panel of :size cannot exceed the :seatedjudges seated judges of the court.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -991,12 +991,12 @@
     "provider": "ollama"
   },
   "Act :act_number is :status — only an in-force or amended law can be challenged (there is nothing to remedy in a repealed or struck law).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "Act :act_number was passed by population supermajority — the legislature cannot modify or repeal it until the next general election certifies (the shield lapses there).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1133,7 +1133,7 @@
     "provider": "ollama"
   },
   "Amendment bill introduced (F-LEG-031) for :key — it takes effect only when the chamber enacts it at a peg-quorum floor vote. Track it on the amendments ledger.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1158,7 +1158,7 @@
     "provider": "ollama"
   },
   "An active court hears this petition's constitutional review — use F-JDG-008, never the Phase C stub (the stub survives only for forming-court jurisdictions).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1203,7 +1203,7 @@
     "provider": "ollama"
   },
   "An at-large race may not carry :seats seats (max :max) — above the maximum, subdivision into separate voter pools is mandatory.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1228,7 +1228,7 @@
     "provider": "ollama"
   },
   "An executive-committee race elects at least 5 seats (got :seats).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1317,7 +1317,7 @@
     "provider": "ollama"
   },
   "Application accepted (F-ORG-001) — R-24 now derives from the active membership.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1555,7 +1555,7 @@
     "provider": "ollama"
   },
   "Art. II §2 (endorsement request — the org's agent decides via F-ORG-002)": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1872,7 +1872,7 @@
     "provider": "ollama"
   },
   "Art. III §6 — worker track; also fired system-side by CLK-13": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2013,7 +2013,7 @@
     "provider": "ollama"
   },
   "Assignment run complete (F-SPK-005) — :placements placement(s), :contests contested seat(s) resolved by normalized vote share (ledger #q2).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -2070,7 +2070,7 @@
     "provider": "ollama"
   },
   "Autoseed complete: :count districts created": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -2087,7 +2087,7 @@
     "provider": "ollama"
   },
   "Award :amount exceeds the appropriation's remaining :remaining — awards never exceed the act.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -2228,12 +2228,12 @@
     "provider": "ollama"
   },
   "Broker credential removed for :domain.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "Broker credential stored for :domain (encrypted on this box; it never federates). Qualify broker.tls once lego is installed.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -2290,7 +2290,7 @@
     "provider": "ollama"
   },
   "CHAIN BROKEN at seq #:seq — the link does not recompute. Investigate immediately.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -2367,7 +2367,7 @@
     "provider": "ollama"
   },
   "Candidacy rejection knows a single permissible ground — no_residency_association. Ground :ground is unconstitutional (candidacy is an absolute right of residency).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -2481,7 +2481,7 @@
     "provider": "ollama"
   },
   "Chair balloting opened for :name — whole-legislature ranked-choice vote (F-LEG-011); candidates are the committee's seated members.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -2646,7 +2646,7 @@
     "provider": "ollama"
   },
   "Committee kind split :typeaseats + :typebseats must total the :seats seats.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -2707,12 +2707,12 @@
     "provider": "ollama"
   },
   "Compensation :compensation is below the recorded fair-market floor :floor — monopoly acquisition requires fair-market compensation to the prior owners.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "Complaint docketed as :code — intake is open to any resident; the docket is public (I-ADM).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -2725,7 +2725,7 @@
     "provider": "ollama"
   },
   "Composite fractional seats (:frac) ≥ :threshold — would round to > :ceiling, exceeding the constitutional district maximum of :max. Remove a jurisdiction.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3122,7 +3122,7 @@
     "provider": "ollama"
   },
   "Disbursement :amount would exceed the award (:disbursed of :total already disbursed).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3163,7 +3163,7 @@
     "provider": "ollama"
   },
   "Dissolution requires settled obligations — :openContracts contract(s) are still offered/active (end or void them first).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3176,7 +3176,7 @@
     "provider": "ollama"
   },
   "District :path collapsed to an empty geometry — cut it by hand.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3350,12 +3350,12 @@
     "provider": "ollama"
   },
   "Endorsement decided (F-ORG-002) — a grant is forced public and confers R-07 on the candidate.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Endorsement re-made (F-ORG-002) — forced public and confers R-07 on the candidate again.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3364,12 +3364,12 @@
     "provider": "ollama"
   },
   "Endorsement requested — the organization's agent decides via F-ORG-002.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Endorsement withdrawn (F-ORG-002) — R-07 no longer derives from it; the organization may re-endorse at any time while the candidacy stands.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3518,7 +3518,7 @@
     "provider": "ollama"
   },
   "Executive of :place": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3527,7 +3527,7 @@
     "provider": "ollama"
   },
   "Executive orders cannot touch the :targetdomain — elections, courts, and legislatures run identically under any executive instrument, emergency powers included.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3552,12 +3552,12 @@
     "provider": "ollama"
   },
   "F-ADV-001 is filed ON BEHALF OF a client — name filed_on_behalf_of_user_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ADV-001 is filed by a registered advocate.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3567,82 +3567,82 @@
     "provider": "ollama"
   },
   "F-BOG-001 is filed by a seated board member — system filings name no seat.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-BOG-001 is filed by a seated member of THIS department's board (R-18).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-BOG-001 names a chartered department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-BOG-002 is filed by a seated board member — system filings name no seat.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-BOG-002 is filed by a seated member of THIS department's board (R-18).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-BOG-002 names a chartered department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-002 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-003 requires a valid bill_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-005 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-006 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ELB-005 audits a petition at its threshold (status: :status).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ELB-008 requires a drawn polygon (geojson).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ELB-008 targets an unknown district map.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ELB-008 targets an unknown jurisdiction.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ELB-008 targets an unknown legislature.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-EXE-001 is filed by a seated principal of the OVERSEEING executive (R-14/15/16).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3652,7 +3652,7 @@
     "provider": "ollama"
   },
   "F-EXE-001 names the nominee.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3661,22 +3661,22 @@
     "provider": "ollama"
   },
   "F-EXE-002 is filed by a member of the OVERSEEING executive.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-EXE-002 names a chartered department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-EXE-003 is filed by a seated principal of the OVERSEEING executive (good-faith finding).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-EXE-003 names a board seat.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3690,22 +3690,22 @@
     "provider": "ollama"
   },
   "F-IND-003 is filed by the resident — system filing is not defined.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-005 is filed by the resident — system filing is not defined.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-006 is system-filed only.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-006 requires the claim_id of the residency claim being confirmed.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3714,17 +3714,17 @@
     "provider": "ollama"
   },
   "F-IND-012 requires a valid jurisdiction_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-013 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-014 names the employer.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3739,7 +3739,7 @@
     "provider": "ollama"
   },
   "F-IND-015 is filed by the registering resident.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3749,42 +3749,42 @@
     "provider": "ollama"
   },
   "F-IND-016 names the law it challenges (challenged_law_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-016 records the asserted contradiction (claim_text).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-017 is filed by the complaining resident or their advocate.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-023 names the recipient account.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-027 is filed by a party to the original case.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-027 requires a valid case_id (the original case).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-027 states the grounds — the contradiction in law or the error in the case (Art. II §8).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-003 names a title and the opinion body.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3794,57 +3794,57 @@
     "provider": "ollama"
   },
   "F-JDG-005 names the challenge it recommends a remedy for (challenge_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-006 names the challenge it remedies (challenge_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-007 names the power it reviews (reviewed_power_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-007 names the reviewing court (judiciary_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-008 names the petition it reviews (petition_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-008 names the reviewing court (judiciary_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-009 names the sentence terms.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-010 names the warrant kind (arrest/search/seizure).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-004 casts on whole-chamber votes; committee-stage votes take F-LEG-005.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-005 casts on committee votes; floor votes take F-LEG-004.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-011 requires a valid committee_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3857,62 +3857,62 @@
     "provider": "ollama"
   },
   "F-LEG-022 requires a valid proceeding_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-026 targets a private organization (a CGC cannot be acquired).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-027 targets a Common Good Corporation.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-034 modifies referendum-passed acts only — other laws amend through the bill path.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-034 names the referendum act it modifies (law_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-034 targets an unknown law.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-035 names the challenge it overrides (challenge_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-036 requires a valid member_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-001 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-003 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-004 targets an unknown board.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-005 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3922,27 +3922,27 @@
     "provider": "ollama"
   },
   "F-ORG-006 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-007 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-008 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-009 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-011 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3951,12 +3951,12 @@
     "provider": "ollama"
   },
   "F-SPK-004 requires a valid vote_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-SPK-006 requires a valid session_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3969,7 +3969,7 @@
     "provider": "ollama"
   },
   "F-SPK-007 requires a valid proceeding_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -4034,7 +4034,7 @@
     "provider": "ollama"
   },
   "Finalist cutoff must fall at least :approvalMinDays days after the approval phase opens.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -4056,7 +4056,7 @@
     "provider": "ollama"
   },
   "Findings published — :code referred to a removal proceeding (F-SPK-007 designates the presider next).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -4175,7 +4175,7 @@
     "provider": "ollama"
   },
   "Grant application submitted against :line.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -4228,7 +4228,7 @@
     "provider": "ollama"
   },
   "Handshake complete — :name is trust_established.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -4353,12 +4353,12 @@
     "provider": "ollama"
   },
   "Investigation :code is already past intake (:status).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "Investigation :code is now investigating (I-ADM).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -4739,7 +4739,7 @@
     "provider": "ollama"
   },
   "Membership application filed (F-IND-013 · WF-ORG-03) — R-24 derives on the organization's acceptance.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -4748,7 +4748,7 @@
     "provider": "ollama"
   },
   "Membership class [:kind] does not match the organization's structure (:structure accepts [:expected]).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -4978,7 +4978,7 @@
     "provider": "ollama"
   },
   "No enabled channel :capability to drop.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -5111,7 +5111,7 @@
     "provider": "ollama"
   },
   "No single straight cut can serve :s seats — one cut makes exactly two districts, which together hold :lo–:hi seats (band [:floor, :ceiling] each). Use the autoseed for a full multi-cut plan.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -5756,7 +5756,7 @@
     "provider": "ollama"
   },
   "Ping recorded — :count qualifying day(s).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -5837,7 +5837,7 @@
     "provider": "ollama"
   },
   "Probe: :reached/:total transport(s) reached :target.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -5866,7 +5866,7 @@
     "provider": "ollama"
   },
   "Projected composite fractional seats (:frac) ≥ :threshold — would round to > :ceiling, exceeding the constitutional district maximum of :max.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6115,7 +6115,7 @@
     "provider": "ollama"
   },
   "Rejected pre-vote: :what of :days day(s) exceeds the :ceiling-day constitutional ceiling (resolved emergency_powers_max_days = :maxDays; hardened maximum 90 · CLK-03).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6176,7 +6176,7 @@
     "provider": "ollama"
   },
   "Renewal — extension of :days day(s)": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6225,7 +6225,7 @@
     "provider": "ollama"
   },
   "Reset :key to its default.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6242,7 +6242,7 @@
     "provider": "ollama"
   },
   "Residency claim [:id] has :days qualifying day(s); the resolved threshold is :threshold.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6287,7 +6287,7 @@
     "provider": "ollama"
   },
   "Restoration tier :tier cannot be entered from tier :current — the cascade runs in order (constituents → encompassing → individuals).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6548,12 +6548,12 @@
     "provider": "ollama"
   },
   "Session :session_no cannot adjourn from [:status].": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "Session :session_no cannot open from status [:status].": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6570,7 +6570,7 @@
     "provider": "ollama"
   },
   "Session adjourned — minutes sealed to the public record (F-SPK-009). CLK-02 re-armed: next meeting due by :due.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6619,7 +6619,7 @@
     "provider": "ollama"
   },
   "Shares issued: :units units to :name. Public ownership is recorded; no payment was made.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6628,7 +6628,7 @@
     "provider": "ollama"
   },
   "Signature audit complete (F-ELB-005) — :valid of :checked valid (:pct%): :verdict": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6746,7 +6746,7 @@
     "provider": "ollama"
   },
   "Starting autoseed for :scope": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6791,7 +6791,7 @@
     "provider": "ollama"
   },
   "Supermajority fraction :numerator/:denominator must lie in (1/2, 1] — it can never produce a threshold below majority + 1.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6868,7 +6868,7 @@
     "provider": "ollama"
   },
   "The :field is a short list label / statute citation, not a payload.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6897,7 +6897,7 @@
     "provider": "ollama"
   },
   "The Speaker votes only on ties — the vote stands :yes yes / :no no, which is not a tie.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6942,12 +6942,12 @@
     "provider": "ollama"
   },
   "The bill has no committee — direct-to-floor bills move by motion, not F-CHR-003.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "The blade search budget was exhausted for this scope at :path — cut it by hand.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7060,12 +7060,12 @@
     "provider": "ollama"
   },
   "The drawn district extends outside :name's boundary.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "The drawn district holds :pop people (:fractional of the local quota :quota) — :seats seats, outside the resolved band [:floor, :ceiling]. Redraw it larger or smaller.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7262,7 +7262,7 @@
     "provider": "ollama"
   },
   "The remainder is split into :parts pieces — draw those separately.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7271,7 +7271,7 @@
     "provider": "ollama"
   },
   "The renewal window opens :opensAt (the final :windowDays days before expiry) — a renewal vote this early would pre-commit a future chamber.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7676,12 +7676,12 @@
     "provider": "ollama"
   },
   "This scope already holds :count drawn district — accept with replace, or clear them first.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "This scope already holds :count drawn districts — accept with replace, or clear them first.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7746,7 +7746,7 @@
     "provider": "ollama"
   },
   "Track it at /civic/petitions/:id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8131,7 +8131,7 @@
     "provider": "ollama"
   },
   "Vote :id is not open (status: :status).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8392,7 +8392,7 @@
     "provider": "ollama"
   },
   "a leaf place; represented in :parent": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8441,7 +8441,7 @@
     "provider": "ollama"
   },
   "auth.throttle": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8478,7 +8478,7 @@
     "provider": "ollama"
   },
   "cause: :cause · duration :days day(s) · methods stated": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8567,7 +8567,7 @@
     "provider": "ollama"
   },
   "every court of :court and its constituent counties": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8580,7 +8580,7 @@
     "provider": "ollama"
   },
   "filed via :form": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8885,7 +8885,7 @@
     "provider": "ollama"
   },
   "system (dev declaration — F-LEG-036 arrives in Phase C)": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -8970,7 +8970,7 @@
     "provider": "ollama"
   },
   "validation.accepted_if": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9019,22 +9019,22 @@
     "provider": "ollama"
   },
   "validation.between.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.between.file": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.between.numeric": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.between.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9063,7 +9063,7 @@
     "provider": "ollama"
   },
   "validation.date_equals": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9072,7 +9072,7 @@
     "provider": "ollama"
   },
   "validation.decimal": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9081,22 +9081,22 @@
     "provider": "ollama"
   },
   "validation.declined_if": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.different": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.digits": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.digits_between": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9125,7 +9125,7 @@
     "provider": "ollama"
   },
   "validation.encoding": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9134,12 +9134,12 @@
     "provider": "ollama"
   },
   "validation.enum": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.exists": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9156,7 +9156,7 @@
     "provider": "ollama"
   },
   "validation.gt.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9165,17 +9165,17 @@
     "provider": "ollama"
   },
   "validation.gt.numeric": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.gt.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.gte.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9190,7 +9190,7 @@
     "provider": "ollama"
   },
   "validation.gte.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9203,12 +9203,12 @@
     "provider": "ollama"
   },
   "validation.in": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.in_array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9245,7 +9245,7 @@
     "provider": "ollama"
   },
   "validation.lt.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9260,12 +9260,12 @@
     "provider": "ollama"
   },
   "validation.lt.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.lte.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9280,7 +9280,7 @@
     "provider": "ollama"
   },
   "validation.lte.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9289,7 +9289,7 @@
     "provider": "ollama"
   },
   "validation.max.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9299,17 +9299,17 @@
     "provider": "ollama"
   },
   "validation.max.numeric": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.max.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.max_digits": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9322,7 +9322,7 @@
     "provider": "ollama"
   },
   "validation.min.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9332,17 +9332,17 @@
     "provider": "ollama"
   },
   "validation.min.numeric": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.min.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.min_digits": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9351,32 +9351,32 @@
     "provider": "ollama"
   },
   "validation.missing_if": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.missing_unless": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.missing_with": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.missing_with_all": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.multiple_of": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.not_in": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9405,7 +9405,7 @@
     "provider": "ollama"
   },
   "validation.password.uncompromised": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9414,22 +9414,22 @@
     "provider": "ollama"
   },
   "validation.present_if": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.present_unless": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.present_with": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.present_with_all": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9438,27 +9438,27 @@
     "provider": "ollama"
   },
   "validation.prohibited_if": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.prohibited_if_accepted": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.prohibited_if_declined": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.prohibited_unless": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.prohibits": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9475,37 +9475,37 @@
     "provider": "ollama"
   },
   "validation.required_if": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.required_if_accepted": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.required_if_declined": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.required_unless": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.required_with": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.required_with_all": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.required_without": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9514,12 +9514,12 @@
     "provider": "ollama"
   },
   "validation.same": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.size.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9528,12 +9528,12 @@
     "provider": "ollama"
   },
   "validation.size.numeric": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.size.string": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9554,7 +9554,7 @@
     "provider": "ollama"
   },
   "validation.unique": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

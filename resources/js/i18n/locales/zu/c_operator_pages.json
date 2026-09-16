@@ -235,6 +235,7 @@
   "identity.keystone_title": "Ikhiye",
   "identity.last_login": "ukungena kokugcina {when}",
   "identity.lr_password": "Iphasiwedi yakho yasendaweni ikungenisa kule bhokisi kuphela — ezinye izibhokisi zikubona ngokuba nekhi yesinto, hhayi ngephasiwedi.",
+  "identity.mesh_operator_id": "ID yomsebenzi we-Mesh",
   "identity.no_devices_body": "I-akhawunti yomsebenzi ingena ngephasiwedi yayo yasendaweni kuphela. Ukubhalisa isinto kushicilela ikhi yomphakathi ye-Ed25519, ukuze ezinye izibhokisi zikubone ngokuba nekhi.",
   "identity.no_devices_strong": "Ayikho izinto zokusebenza ezibhaliswe okwamanje.",
   "identity.no_mesh_id_body": "Le bhokisi ayikayenza isethu sakwayo sekhi ye-Ed25519. Isenza okokuqala lapho umfelandawonye uyidinga — ukufunda le khasi akukhiyi.",

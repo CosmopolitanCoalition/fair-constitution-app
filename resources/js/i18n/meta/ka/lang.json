@@ -1509,7 +1509,7 @@
     "provider": "ollama"
   },
   "Art. II §2 (endorsement request — the org's agent decides via F-ORG-002)": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1826,7 +1826,7 @@
     "provider": "ollama"
   },
   "Art. III §6 — worker track; also fired system-side by CLK-13": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1903,7 +1903,7 @@
     "provider": "ollama"
   },
   "Art. IV §4; Art. I — advocate registration; confers R-21, keeps the bar zealous and competent": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3289,12 +3289,12 @@
     "provider": "ollama"
   },
   "Endorsement decided (F-ORG-002) — a grant is forced public and confers R-07 on the candidate.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Endorsement re-made (F-ORG-002) — forced public and confers R-07 on the candidate again.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3303,7 +3303,7 @@
     "provider": "ollama"
   },
   "Endorsement requested — the organization's agent decides via F-ORG-002.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -6768,7 +6768,7 @@
     "provider": "ollama"
   },
   "The bill has no committee — direct-to-floor bills move by motion, not F-CHR-003.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

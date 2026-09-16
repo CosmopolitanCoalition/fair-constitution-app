@@ -484,6 +484,7 @@
   "education_judiciary_constitutional_challenge.s4_do": "Ehdotu muutosehdotusta",
   "education_judiciary_constitutional_challenge.s5_detail": "Kyseisen lainsäädäntöelimen jäsen avaa veton kumonnan äänestyksen veto-aikana; kaikkien istuvien jäsenten määräenemmistö kumoaa tuomioistuimen toteamuksen ja laki pysyy muuttumattomana (polku 2).",
   "education_judiciary_constitutional_challenge.s5_do": "Avaa määräenemmistön veton kumoaminen",
+  "education_judiciary_constitutional_challenge.s6_detail": "Kun molemmat ikkunat sulkeutuvat ilman muutosta tai veton kumoamista, nimitetty tuomari toteuttaa oikeudellisen korjauksen suoraan — tuomioistuin muokkaa lakia itse ja koko versiohistoria säilytetään (polku 3). CLK-11-puhdistus toteuttaa sen myös automaattisesti.",
   "education_judiciary_constitutional_challenge.s6_do": "Sovella oikeudellista korjausta",
   "education_judiciary_constitutional_challenge.why": "Tämä on sovelluksen syvällisin toimenpide. Se on tarkoituksella avoin kaikille siellä asuville, koska perustuslaki, jota vain asianajajat voivat käyttää, kuuluu asianajajille.",
   "education_judiciary_judiciary_home.learn": "Tämän hallintoalueen tuomioistuimet: miten ne perustettiin, kuka niissä istuu ja miten heidät valitaan.",

@@ -484,6 +484,7 @@
   "education_judiciary_constitutional_challenge.s4_do": "Foreslå et ændringslovforslag",
   "education_judiciary_constitutional_challenge.s5_detail": "Et medlem af den lovgivende forsamling åbner afstemningen om tilsidesættelse af veto inden for vetofristen; et kvalificeret flertal af alle siddende medlemmer tilsidesætter rettens afgørelse, og loven forbliver uændret (Sti 2).",
   "education_judiciary_constitutional_challenge.s5_do": "Åbn en kvalificeret tilsidesættelse af veto",
+  "education_judiciary_constitutional_challenge.s6_detail": "Når begge frister udløber uden hverken ændring eller tilsidesættelse af veto, anvender en siddende dommer retsmidlet direkte — domstolen redigerer selve loven, og den fulde versionshistorik bevares (Sti 3). CLK-11-fejningen anvender det også automatisk.",
   "education_judiciary_constitutional_challenge.s6_do": "Anvend det judicielle retsmiddel",
   "education_judiciary_constitutional_challenge.why": "dette er den dybeste handling i appen. Den er bevidst åben for alle, der bor der, fordi en forfatning, som kun advokater kan påberåbe sig, tilhører advokaterne.",
   "education_judiciary_judiciary_home.learn": "Domstolene for denne jurisdiktion: hvordan de blev oprettet, hvem der sidder i dem, og hvordan de vælges.",

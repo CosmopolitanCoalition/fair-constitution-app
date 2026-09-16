@@ -58,6 +58,7 @@
   "institution_acts.proposals_heading": "제안 및 결정",
   "institution_acts.read_proposed": "제안된 의결 읽기",
   "institution_acts.view_executive": "이 관할구역의 감독 행정부 보기",
+  "oversight.about": "제거 또는 제명 시스템은 투표 마감과 동일한 트랜잭션에서 파일 F-LEG-036을 처리합니다. 공석 기록, 재집계, 그리고 인증 또는 특별선거 분기는 변경되지 않은 단계 B 메커니즘입니다. 이 페이지에서 루프가 종료됩니다.",
   "oversight.adm_hardened": "독립적 · 중립적 기록 관리자 · Art. II §2",
   "oversight.adm_title": "행정 사무소 (I-ADM)",
   "oversight.awaiting_designation": "— 지정 대기 중 (의회가 지정하며, 엔진이 대상을 차단함)",

@@ -464,6 +464,7 @@
   "legislature_sessionconsole.replace_speaker": "házelnök cseréje",
   "legislature_sessionconsole.round": "forduló {round} — {action}{round2}",
   "legislature_sessionconsole.round_record_protected_counting_engine": "Forduló rekord (védett számítási motor)",
+  "legislature_sessionconsole.sealed_to_the_public_record_adjourning_a_q": "Lezárva a nyilvános nyilvántartás előtt; a határozatképességgel rendelkező ülés szüneteltetése újrakezdemi a CLK-02-t a meetingről — a visszaigazolás mutatja az újrakezdett határidőt.",
   "legislature_sessionconsole.session_due_in_day_by_discretion_can_never": "Ülés esedékes {days_left} nap{dueBanner} múlva ({due_at} napig) — a döntési jog nem hozhat létre \"ülés nélküli\" állapotot; az ütemezető kényszeríti azt. CLK-02 · WF-SYS-02 · Art. II §2",
   "legislature_sessionconsole.sessions_are_called_by_the_chamber_s_speak": "Az üléseket a kamra házelnöke hívja össze (vagy a rendszer CLK-02 szerint).",
   "legislature_sessionconsole.slots_1_2_locked_outstanding_emergency_pow": "1–2 slot lezárva: elsőben a függőben lévő rendkívüli jogkörök, másodikban az alkotmányos ügyek — nem rendezhető át és nem törölhető · Art. II §2; §7 · hardened",

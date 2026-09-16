@@ -16,6 +16,7 @@
   "organizations_codetscale.projection_the_engine_recomputes_on_real_h": "կանխատեսում — համակարգը վերահաշվարկում է իրական թվաքանակի փոփոխության դեպքում · WF-ORG-04",
   "organizations_codetscale.reset_to_live_workers_seats": "Վերականգնել իրականացվածին ({fmt} աշխատող · {workerSeats} տեղ)",
   "organizations_codetscale.scales_uniformly_between_the_first_seat_an": "Մասշտաբավորվում է համասեռորեն առաջին տեղի ({fmt}) և հավասարության ({fmt2}) միջև · Art. III §6 · CLK-13 / CLK-14",
+  "organizations_codetscale.scaling_between_clk_13_and_clk_14": "մասշտաբավորում CLK-13-ի և CLK-14-ի միջև",
   "organizations_codetscale.worker_elected_seats_r_27": "աշխատողների կողմից ընտրված տեղեր (R-27)",
   "organizations_codetscale.worker_headcount_explorer": "Աշխատողների թվաքանակ (հետազոտիչ)",
   "organizations_codetscale.workers_against_owner_side_seats": "{entityLabel} — {fmt} աշխատող՝ դիմաց {ownerSeats} սեփականատիրոջ կողմի տեղերի:",

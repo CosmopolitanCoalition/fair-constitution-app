@@ -517,7 +517,7 @@
     "provider": "ollama"
   },
   "judiciary_constitutionalchallenge.the_challenge_is_its_own_durable_entity_di": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -538,7 +538,7 @@
     "provider": "ollama"
   },
   "judiciary_constitutionalchallenge.workflows_constitutional_challenge_law_rem": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

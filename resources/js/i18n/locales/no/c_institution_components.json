@@ -86,6 +86,7 @@
   "art4_section5_tracker.recorded_notice": "Registrert i offentlig register — oversikten gjenspeiler den nye tilstanden.",
   "art4_section5_tracker.remedial_bill_gate": "Et lovforslag om rettsmiddel foreslås mens lovgivningsfristen er åpen (Art. IV §5.3).",
   "art4_section5_tracker.remedy": "Rettsmiddel",
+  "art4_section5_tracker.remedy_gate": "Tilgjengelig når både tidsfristen for rettsmiddel og vetofristen er utløpt; ellers gjelder CLK-11-opprydningen automatisk (Art. IV §5.5).",
   "art4_section5_tracker.remedy_timeframe": "Tidsramme: {days} dager ({clk}) · vetofrist: {vetoDays} dager ({vetoClk}).",
   "art4_section5_tracker.remedy_timeframe_label": "Tidsramme for rettsmiddel (dager · CLK-12)",
   "art4_section5_tracker.replacement_text": "Erstatningstekst",

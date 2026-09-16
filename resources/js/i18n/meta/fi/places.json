@@ -360,7 +360,7 @@
     "provider": "ollama"
   },
   "petitions_in": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

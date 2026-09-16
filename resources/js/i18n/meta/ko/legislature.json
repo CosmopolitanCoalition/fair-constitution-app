@@ -1861,7 +1861,7 @@
     "provider": "ollama"
   },
   "legislature_sessionconsole.sealed_to_the_public_record_adjourning_a_q": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1870,7 +1870,7 @@
     "provider": "ollama"
   },
   "legislature_sessionconsole.sessions_are_called_by_the_chamber_s_speak": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1903,7 +1903,7 @@
     "provider": "ollama"
   },
   "legislature_sessionconsole.until_the_chamber_elects_its_speaker_there": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1920,7 +1920,7 @@
     "provider": "ollama"
   },
   "legislature_settings.a_setting_change_is_a_bill_whose_enactment": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2133,7 +2133,7 @@
     "provider": "ollama"
   },
   "legislature_speakertools.the_only_speaker_votes_on_record_each_cast": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2154,7 +2154,7 @@
     "provider": "ollama"
   },
   "legislature_speakertools.this_page_never_duplicates_a_console_f_spk": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

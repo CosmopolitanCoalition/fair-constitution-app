@@ -1120,7 +1120,7 @@
     "provider": "ollama"
   },
   "petition_detail.audit_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

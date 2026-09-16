@@ -421,6 +421,7 @@
   "legislature_referendums.resolved_questions_results_at_the_matching": "Ratkaistut kysymykset — tulokset vastaavalla kynnyksellä",
   "legislature_referendums.shield_lapses_when_the_certifies": "· suoja raukeaa, kun {election_label} vahvistaa",
   "legislature_referendums.the_binding_text_the_referendum_enacts_not": "Sitova teksti, jonka kansanäänestys säätää — ei tiivistelmä.",
+  "legislature_referendums.the_clk_19_shield_is_a_validator_gate_not_": "CLK-19-suoja on validointiportaali, ei ajastin: F-LEG-034-hakemus väestön määräenemmistöön perustuvaa päätöstä vastaan hylätään ennen äänestystä viittauksella, ja hylkäys kirjautuu tarkastuslokiin. Suoja vapautuu, kun seuraavat vaalit vahvistetaan — kansanäänestyspäätökset muuttuvat tällöin tavallisen reitin kautta.",
   "legislature_referendums.the_legislature_can_put_any_issue_to_the_p": "Lainsäädäntöelin voi esittää minkä tahansa asian väestölle määräenemmistöllä. Hyväksymiskynnystä ei valita — se vastaa päätöksen tyyppiä: kysymys, jonka lainsäädäntöelin voisi hyväksyä yksinkertaisella enemmistöllä, ratkaistaan väestön enemmistöllä; kysymys, joka vaatisi määräenemmistön, ratkaistaan väestön määräenemmistöllä.",
   "legislature_referendums.this_jurisdiction": "tämä hallintoalue",
   "legislature_referendums.this_term_chamber_supermajority_f_leg_034_": "tämä kausi: kammiomääräenemmistö · F-LEG-034 · WF-LEG-19",

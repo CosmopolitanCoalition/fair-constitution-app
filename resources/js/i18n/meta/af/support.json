@@ -1,6 +1,6 @@
 {
   "support_report.conduct_and_legal_reports_are_routed_for_r": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

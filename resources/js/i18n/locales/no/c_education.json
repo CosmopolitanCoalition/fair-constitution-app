@@ -484,6 +484,7 @@
   "education_judiciary_constitutional_challenge.s4_do": "Foreslå et endringslovforslag",
   "education_judiciary_constitutional_challenge.s5_detail": "Et medlem av den lovgivende forsamlingen åpner avstemning om overprøving av veto innen vetofristen; et kvalifisert flertall av alle sittende medlemmer overstyrer rettens konklusjon, og loven forblir uendret (Vei 2).",
   "education_judiciary_constitutional_challenge.s5_do": "Åpne kvalifisert overprøving av veto",
+  "education_judiciary_constitutional_challenge.s6_detail": "Når begge fristene utløper uten endring eller overprøving av veto, anvender en sittende dommer rettsmiddelet direkte — domstolen endrer loven selv, og hele versjonshistorikken bevares (sti 3). CLK-11-opprydningen anvender dette også automatisk.",
   "education_judiciary_constitutional_challenge.s6_do": "Anvend det rettslige rettsmiddelet",
   "education_judiciary_constitutional_challenge.why": "dette er den dypeste handlingen i appen. Den er bevisst åpen for alle som bor der, fordi en forfatning som bare advokater kan påkalle, tilhører advokatene.",
   "education_judiciary_judiciary_home.learn": "Domstolene for denne jurisdiksjonen: hvordan de ble opprettet, hvem som sitter i dem, og hvordan de velges.",

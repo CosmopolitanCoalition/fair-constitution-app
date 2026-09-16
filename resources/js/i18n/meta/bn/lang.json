@@ -528,7 +528,7 @@
     "provider": "ollama"
   },
   "A district may not fragment :name's territory (the drawn shape cuts :cutcomponents separate landmasses and carries the cut territory in :fragmentpieces disconnected chunks — at most one connected cut fragment of one landmass is allowed).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1514,7 +1514,7 @@
     "provider": "ollama"
   },
   "Art. II §2 (endorsement request — the org's agent decides via F-ORG-002)": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2027,7 +2027,7 @@
     "provider": "ollama"
   },
   "Autoseed complete: :count districts created": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3304,7 +3304,7 @@
     "provider": "ollama"
   },
   "Endorsement requested — the organization's agent decides via F-ORG-002.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3525,22 +3525,22 @@
     "provider": "ollama"
   },
   "F-CHR-002 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-003 requires a valid bill_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-005 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-006 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3549,7 +3549,7 @@
     "provider": "ollama"
   },
   "F-ELB-008 requires a drawn polygon (geojson).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3618,7 +3618,7 @@
     "provider": "ollama"
   },
   "F-IND-006 requires the claim_id of the residency claim being confirmed.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3627,7 +3627,7 @@
     "provider": "ollama"
   },
   "F-IND-012 requires a valid jurisdiction_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3676,7 +3676,7 @@
     "provider": "ollama"
   },
   "F-IND-027 requires a valid case_id (the original case).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3733,7 +3733,7 @@
     "provider": "ollama"
   },
   "F-LEG-011 requires a valid committee_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3746,7 +3746,7 @@
     "provider": "ollama"
   },
   "F-LEG-022 requires a valid proceeding_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3775,7 +3775,7 @@
     "provider": "ollama"
   },
   "F-LEG-036 requires a valid member_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3824,12 +3824,12 @@
     "provider": "ollama"
   },
   "F-SPK-004 requires a valid vote_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-SPK-006 requires a valid session_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3842,7 +3842,7 @@
     "provider": "ollama"
   },
   "F-SPK-007 requires a valid proceeding_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -6096,7 +6096,7 @@
     "provider": "ollama"
   },
   "Residency claim [:id] has :days qualifying day(s); the resolved threshold is :threshold.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6477,7 +6477,7 @@
     "provider": "ollama"
   },
   "Signature audit complete (F-ELB-005) — :valid of :checked valid (:pct%): :verdict": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7102,7 +7102,7 @@
     "provider": "ollama"
   },
   "The remainder is split into :parts pieces — draw those separately.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7515,12 +7515,12 @@
     "provider": "ollama"
   },
   "This scope already holds :count drawn district — accept with replace, or clear them first.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "This scope already holds :count drawn districts — accept with replace, or clear them first.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8989,7 +8989,7 @@
     "provider": "ollama"
   },
   "validation.gte.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9056,7 +9056,7 @@
     "provider": "ollama"
   },
   "validation.lt.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9074,7 +9074,7 @@
     "provider": "ollama"
   },
   "validation.lte.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9096,7 +9096,7 @@
     "provider": "ollama"
   },
   "validation.max.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9114,7 +9114,7 @@
     "provider": "ollama"
   },
   "validation.max_digits": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9127,7 +9127,7 @@
     "provider": "ollama"
   },
   "validation.min.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9145,7 +9145,7 @@
     "provider": "ollama"
   },
   "validation.min_digits": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9298,7 +9298,7 @@
     "provider": "ollama"
   },
   "validation.size.array": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

@@ -1940,7 +1940,7 @@
     "provider": "ollama"
   },
   "education_judiciary_constitutional_challenge.s6_detail": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

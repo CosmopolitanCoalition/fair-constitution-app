@@ -355,7 +355,7 @@
     "provider": "ollama"
   },
   "person_profile.filing_endorse": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

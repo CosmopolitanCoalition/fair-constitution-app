@@ -464,7 +464,7 @@
     "provider": "ollama"
   },
   "organizations_orgdetail.apply_for_this_organization_s_ownership_cl": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

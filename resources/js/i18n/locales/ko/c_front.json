@@ -150,6 +150,7 @@
   "register.land_after": "— 로그인 후 바로 이동합니다.",
   "register.lang_hint": "기록은 선택하신 언어로 번역됩니다.",
   "register.lang_label": "언어",
+  "register.lifecycle_gloss": "연합은 모든 중첩 수준(지역 → 지구)에서 동시에 존재합니다. 투표 및 후보자 등록은 다른 요구 사항 없이 R-03에서 활성화됩니다.",
   "register.lifecycle_h": "개인 생애 주기 내 현재 위치",
   "register.log_in": "로그인",
   "register.name_hint": "공적 기록에 표시될 이름을 사용하십시오.",

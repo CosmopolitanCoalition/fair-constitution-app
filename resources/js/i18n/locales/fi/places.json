@@ -89,6 +89,7 @@
   "panels_map": "Äänestäjäpaneelit",
   "parent_map": "Tutki edustusta kohdassa {name}",
   "parent_map_hint": "Tällä paikalla ei ole omaa lainsäädäntöelintä. Seuraa yläpaikkaa tutkiaksesi edustusta.",
+  "petitions_in": "Vetoomukset kohteessa {name}",
   "petitions_in_view": "vetoomukset tässä näkymässä",
   "places_inside": "Sisällä olevat paikat",
   "population": "Noin {count} ihmistä",

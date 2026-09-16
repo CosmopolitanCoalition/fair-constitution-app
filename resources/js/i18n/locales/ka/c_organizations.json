@@ -16,6 +16,7 @@
   "organizations_codetscale.projection_the_engine_recomputes_on_real_h": "პროგნოზი — სისტემა ხელახლა ითვლის რეალური რაოდენობის ცვლილებისას · WF-ORG-04",
   "organizations_codetscale.reset_to_live_workers_seats": "დააბრუნეთ რეალურზე ({fmt} მუშაკი · {workerSeats} ადგილი)",
   "organizations_codetscale.scales_uniformly_between_the_first_seat_an": "მასშტაბირდება თანაბრად პირველ ადგილსა ({fmt}) და თანასწორობას ({fmt2}) შორის · Art. III §6 · CLK-13 / CLK-14",
+  "organizations_codetscale.scaling_between_clk_13_and_clk_14": "მასშტაბირება CLK-13-სა და CLK-14-ს შორის",
   "organizations_codetscale.worker_elected_seats_r_27": "მუშაკების მიერ არჩეული ადგილები (R-27)",
   "organizations_codetscale.worker_headcount_explorer": "მუშაკების რაოდენობა (იკვლევა)",
   "organizations_codetscale.workers_against_owner_side_seats": "{entityLabel} — {fmt} მუშაკი {ownerSeats} მფლობელის მხარის ადგილის წინააღმდეგ.",

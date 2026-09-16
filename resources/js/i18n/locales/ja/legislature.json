@@ -535,6 +535,7 @@
   "legislature_speakertools.the_speaker_presides_over_every_removal_pr": "議長は、自身のケースを除き、すべての解任手続きを主宰します。自身のケースでは、議院が代行者を指名します。",
   "legislature_speakertools.the_speaker_s_nine_forms": "議長の9つのフォーム",
   "legislature_speakertools.the_speaker_stays_in_every_quorum_and_thre": "議長はすべての定足数および閾値の分母に含まれます。可否の案件において、議長の投票は同数でない限りコミット前に拒否されます。また、同数票の解消によって特別多数が作り出されることはありません (Art. VII)。",
+  "legislature_speakertools.this_page_never_duplicates_a_console_f_spk": "このページでコンソールが重複することはありません：F-SPK-001/002/003/008/009はセッションコンソールで、F-SPK-005は委員会ページで、F-SPK-007は監視ページで実行されます。タイブレーク記録と優先キューは、事務所自体の記録であるためここに保存されます。",
   "legislature_speakertools.this_term": "今期 {length}",
   "legislature_speakertools.tied_at": "同数：",
   "legislature_speakertools.you_are_the_subject_the_engine_blocks_you_": "あなたは対象者であるため、システムにより主宰がブロックされます。議院が代行者を指名します · Art. II §3 (removal.presider, hardened)。",

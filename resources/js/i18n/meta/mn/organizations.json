@@ -432,7 +432,7 @@
     "provider": "ollama"
   },
   "organizations_orgdetail.a_candidate_requests_f_can_002_the_agent_g": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

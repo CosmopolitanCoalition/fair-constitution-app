@@ -1696,7 +1696,7 @@
     "provider": "ollama"
   },
   "legislature_referendums.the_clk_19_shield_is_a_validator_gate_not_": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

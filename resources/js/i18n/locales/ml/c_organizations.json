@@ -16,6 +16,7 @@
   "organizations_codetscale.projection_the_engine_recomputes_on_real_h": "പ്രവചനം — യഥാർത്ഥ എണ്ണത്തിൽ മാറ്റം വരുമ്പോൾ എൻജിൻ പുനർകണക്കുകൂട്ടുന്നു · WF-ORG-04",
   "organizations_codetscale.reset_to_live_workers_seats": "ലൈവ് ആയി പുനഃക്രമീകരിക്കുക ({fmt} തൊഴിലാളികൾ · {workerSeats} സീറ്റുകൾ)",
   "organizations_codetscale.scales_uniformly_between_the_first_seat_an": "ആദ്യ സീറ്റിനും ({fmt}) തുല്യതയ്ക്കും ({fmt2}) ഇടയിൽ ഏകരൂപത്തിൽ സ്കെയിൽ ചെയ്യുന്നു · Art. III §6 · CLK-13 / CLK-14",
+  "organizations_codetscale.scaling_between_clk_13_and_clk_14": "CLK-13-നും CLK-14-നും ഇടയിലുള്ള സ്കെയിലിംഗ്",
   "organizations_codetscale.worker_elected_seats_r_27": "തൊഴിലാളികൾ തിരഞ്ഞെടുത്ത സീറ്റുകൾ (R-27)",
   "organizations_codetscale.worker_headcount_explorer": "തൊഴിലാളികളുടെ എണ്ണം (എക്സ്പ്ലോറർ)",
   "organizations_codetscale.workers_against_owner_side_seats": "{entityLabel} — {ownerSeats} ഉടമസ്ഥ പക്ഷ സീറ്റുകൾക്കെതിരെ {fmt} തൊഴിലാളികൾ.",

@@ -16,6 +16,7 @@
   "organizations_codetscale.projection_the_engine_recomputes_on_real_h": "таамаглал — бодит тооны өөрчлөлт дээр систем дахин тооцно · WF-ORG-04",
   "organizations_codetscale.reset_to_live_workers_seats": "Бодит байдалд шилжүүлэх ({fmt} ажилтан · {workerSeats} суудал)",
   "organizations_codetscale.scales_uniformly_between_the_first_seat_an": "Эхний суудал ({fmt}) болон тэнцвэрийн ({fmt2}) хооронд жигд хэмжээслэгдэнэ · Art. III §6 · CLK-13 / CLK-14",
+  "organizations_codetscale.scaling_between_clk_13_and_clk_14": "CLK-13 ба CLK-14-ийн хооронд хэмжээг тохируулах",
   "organizations_codetscale.worker_elected_seats_r_27": "ажилтны сонгосон суудал (R-27)",
   "organizations_codetscale.worker_headcount_explorer": "Ажилтны тоо (хайгч)",
   "organizations_codetscale.workers_against_owner_side_seats": "{entityLabel} — {fmt} ажилтан эсрэг {ownerSeats} эзэмшигчийн талын суудал.",

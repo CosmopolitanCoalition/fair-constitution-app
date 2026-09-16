@@ -1116,7 +1116,7 @@
     "provider": "ollama"
   },
   "An active court hears this petition's constitutional review — use F-JDG-008, never the Phase C stub (the stub survives only for forming-court jurisdictions).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

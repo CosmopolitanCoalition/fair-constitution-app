@@ -372,7 +372,7 @@
     "provider": "ollama"
   },
   "advocate_console.about_workflows": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -697,7 +697,7 @@
     "provider": "ollama"
   },
   "case_detail.about": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

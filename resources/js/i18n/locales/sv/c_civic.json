@@ -279,6 +279,7 @@
   "petition_detail.an_associated_resident": "en associerad invånare",
   "petition_detail.appended": "Din signatur bifogas handlingen",
   "petition_detail.audit_below": "under tröskelvärdet {threshold} (avbrytning: för många ogiltiga → ogiltigförklarad).",
+  "petition_detail.audit_cite": "oberoende revision · en R-08-åtgärd visas som skivskyddad här · Art. II §6 · CLK-17",
   "petition_detail.audit_cite_empty": "oberoende revision · Art. II §6 · CLK-17",
   "petition_detail.audit_completed": "Slutförd {when} av {board} · lagrad som UTC.",
   "petition_detail.audit_confirmed": "Revision klar — tröskelvärde bekräftat",

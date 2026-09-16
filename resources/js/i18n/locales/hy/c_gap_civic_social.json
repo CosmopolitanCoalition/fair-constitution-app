@@ -40,6 +40,7 @@
   "person_profile.at_glance_resident": "{name}-ի բնակիչ — բնակությունը միակ քաղաքացիական նախապայմանն է (Art. I):",
   "person_profile.audit_receipt": "Աուդիտի անդորրագիր",
   "person_profile.audit_receipt_arrow": "Աուդիտի անդսկրիպտ →",
+  "person_profile.awaiting_validation": "Սպասվում է խորհրդի հաստատմանը. ընտրության կապը (և դրա հետ՝ դիրքը) կհայտնվի, երբ F-ELB-002-ն հաստատի բնակությունը:",
   "person_profile.ballot_locked_title": "քվեաթերթիկը սառեցված է եզրափակիչների սահմանում. հայտերի հետկանչը փակ է · CLK-21",
   "person_profile.below_line": "եզրափակիչների գծից ներքև · հնարավոր է ավելացում ձեռքով",
   "person_profile.bio_label": "Կենսագրություն",

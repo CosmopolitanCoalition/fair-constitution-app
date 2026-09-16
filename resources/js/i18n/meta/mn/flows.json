@@ -596,7 +596,7 @@
     "provider": "ollama"
   },
   "continues_in_wf_ele_01_71eae280": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -616,7 +616,7 @@
     "provider": "ollama"
   },
   "continues_in_wf_leg_01_195fb8ff": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1544,7 +1544,7 @@
     "provider": "ollama"
   },
   "not_reached_adjourn_reschedule_within_cl_5c277f54": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1929,7 +1929,7 @@
     "provider": "ollama"
   },
   "record_endorsement_grant_r_07_bind_facti_bf4e79f8": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1958,7 +1958,7 @@
     "provider": "ollama"
   },
   "refer_to_wf_leg_17_ebc2fd96": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2007,7 +2007,7 @@
     "provider": "ollama"
   },
   "registration_voting_per_wf_ele_01_11ef6563": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2128,7 +2128,7 @@
     "provider": "ollama"
   },
   "run_general_election_steps_3_8_of_wf_ele_496527f2": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

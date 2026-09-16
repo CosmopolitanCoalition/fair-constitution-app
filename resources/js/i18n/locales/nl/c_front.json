@@ -165,6 +165,7 @@
   "register.tz_hint": "Datums worden getoond in jouw tijdzone · opgeslagen als UTC.",
   "register.tz_label": "Tijdzone",
   "report.about": "Elk rapport heeft een van de zes onderwerpen en wordt naar één plek gestuurd: de operators, vertaalondersteuning, moderatie & de juridische afdeling, of de product backlog. De intake routeert een verzoek; deze bewerkt of verwijdert zelf nooit inhoud.",
+  "report.abuse_note": "Meldingen van misbruik en illegale inhoud gaan naar het moderatie- en juridische team, niet naar de supportwachtrij. Het indienen van dit formulier verwijdert niets — het verwijderen van inhoud volgt de grondwettelijke uitzonderingen (het F-SOC-003-mechanisme), nooit dit formulier.",
   "report.body_hint": "Gewone woorden zijn prima. Vermeld wat je verwachtte en wat je in plaats daarvan zag.",
   "report.body_label": "Wat is er gebeurd?",
   "report.category_label": "Wat voor soort rapport is dit?",

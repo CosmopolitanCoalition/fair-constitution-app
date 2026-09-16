@@ -57,6 +57,7 @@
   "civic_identityverification.the_administrative_office_of": "hallintotoimisto.",
   "civic_identityverification.the_rejection_itself_is_on_the_audit_chain": "{constitution} — hylkäys itsessään on tarkastuslokissa (vain lisäykset).",
   "civic_identityverification.verification_is_never_a_rights_requirement": "Vahvistaminen ei ole koskaan oikeuksien vaatimus.",
+  "civic_identityverification.via": "· kautta {verified_via}",
   "civic_identityverification.voting_and_candidacy_depend_on_jurisdictio": "Äänestäminen ja ehdokkuus riippuvat vain hallintoalueen asuinpaikasta — mitään henkilöllisyyden tarkistusta, asiakirjaa, kurssia tai maksua ei voi koskaan lisätä oikeuksiesi ja sinun välille. Tämän sivun ohittaminen on aina sallittua eikä se muuta mitään. Art. I · vahvistettu",
   "civic_identityverification.wf_civ_01_identity_step_phase_a_scope_the_": "WF-CIV-01 tunnistusvaihe, vaiheen A piiri: vain manuaalinen todistuspyyntö. Hallintoaluekohtaiset ulkoiset tunnistesillat (salattu kyllä/ei-asiakirjan vastaavuus, mitään ei tallenneta) tulevat federaation myötä vaiheessa F; virkamiehen tekemä vahvistusmerkintä on myöhemmän vaiheen mekanismi.",
   "civic_identityverification.where_you_are": "Missä olet",

@@ -1921,7 +1921,7 @@
     "provider": "ollama"
   },
   "record_endorsement_grant_r_07_bind_facti_bf4e79f8": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

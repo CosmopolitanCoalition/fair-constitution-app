@@ -86,6 +86,7 @@
   "art4_section5_tracker.recorded_notice": "Gerekordeer op die openbare rekord — die spoorder weerspieël die nuwe staat.",
   "art4_section5_tracker.remedial_bill_gate": "ŉ Regstellende wetsontwerp word voorgestel terwyl die wetgewende tydperk oop is (Art. IV §5.3).",
   "art4_section5_tracker.remedy": "Regsmiddel",
+  "art4_section5_tracker.remedy_gate": "Beskikbaar sodra beide die tydraamwerk vir die regsmiddel en die vetotydperk gesluit het; die CLK-11-skoonmaak pas dit andersins outomaties toe (Art. IV §5.5).",
   "art4_section5_tracker.remedy_timeframe": "Tydraam: {days} dae ({clk}) · vetotydperk: {vetoDays} dae ({vetoClk}).",
   "art4_section5_tracker.remedy_timeframe_label": "Regsmiddel-tydraam (dae · CLK-12)",
   "art4_section5_tracker.replacement_text": "Vervangingsteks",

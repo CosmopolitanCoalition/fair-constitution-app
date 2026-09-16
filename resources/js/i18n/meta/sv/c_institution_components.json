@@ -348,7 +348,7 @@
     "provider": "ollama"
   },
   "art4_section5_tracker.remedy_gate": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

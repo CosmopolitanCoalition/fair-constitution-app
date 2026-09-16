@@ -165,6 +165,7 @@
   "register.tz_hint": "Datums word in jou tydsone vertoon · gestoor as UTC.",
   "register.tz_label": "Tydsone",
   "report.about": "Elke verslag is een van ses onderwerpe, en elkeen word na een plek gestuur — die operateurs, vertalingsondersteuning, moderering & die regsvloer, of die produk-agterstand. Die inname stuur 'n versoek aan; dit redigeer of verwyder nooit inhoud self nie.",
+  "report.abuse_note": "Verslae oor misbruik en onwettige inhoud gaan na die moderasie- en regspan, nie die ondersteuningswachtry nie. Die indiening hiervan verwyder niks nie — die verwydering van inhoud volg die grondwetlike uitsonderings (die F-SOC-003-meganisme), nooit hierdie vorm nie.",
   "report.body_hint": "Eenvoudige woorde is reg. Sluit in wat jy verwag het en wat jy in plaas daarvan gesien het.",
   "report.body_label": "Wat het gebeur?",
   "report.category_label": "Watter soort verslag is dit?",

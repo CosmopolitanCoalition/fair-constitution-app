@@ -4,7 +4,7 @@
     "provider": "ollama"
   },
   "organizations_boardstrip.board_roster_governors_on_10_yr_clk_09_civ": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

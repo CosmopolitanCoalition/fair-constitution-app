@@ -40,6 +40,7 @@
   "person_profile.at_glance_resident": "{name}의 주민 — 거주는 유일한 시민적 전제 조건입니다 (Art. I).",
   "person_profile.audit_receipt": "감사 영수증",
   "person_profile.audit_receipt_arrow": "감사 영수증 →",
+  "person_profile.awaiting_validation": "이사회 검증 대기 중 — F-ELB-002이 거주를 검증하면 경선 바인딩(및 순위)이 표시됩니다.",
   "person_profile.ballot_locked_title": "결선 진출자 컷오프 시점에 투표용지 잠금 — 사퇴 마감 · CLK-21",
   "person_profile.below_line": "결선 진출선 아래 · 기입 투표 가능",
   "person_profile.bio_label": "약력",

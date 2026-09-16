@@ -323,6 +323,7 @@
   "speaker_tools.target_session": "টার্গেট: সেশন {n}",
   "speaker_tools.this_term": "এই মেয়াদে {n}",
   "speaker_tools.tiebreak_caption": "স্পিকারের টাই-ব্রেকিং ভোট",
+  "speaker_tools.tiebreak_gloss": "রেকর্ডে থাকা একমাত্র স্পিকারের ভোট — যার প্রতিটি F-SPK-004-এর মাধ্যমে দেওয়া হয়েছে এমন একটি ভোটে যা টাই হয়ে শেষ হয়েছে, এবং অপরিবর্তিত পেগ থ্রেশহোল্ডের বিপরীতে পুনরায় গণনা করা হয়েছে।",
   "speaker_tools.tiebreak_record": "টাই-ব্রেক রেকর্ড",
   "speaker_tools.title": "স্পিকার টুলস — {name}",
   "speaker_tools.you": "আপনি",

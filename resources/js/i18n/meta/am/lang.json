@@ -84,7 +84,7 @@
     "provider": "ollama"
   },
   ":count eligible jurisdictionally associated residents of :jurisdiction": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -525,7 +525,7 @@
     "provider": "ollama"
   },
   "A district may not fragment :name's territory (the drawn shape cuts :cutcomponents separate landmasses and carries the cut territory in :fragmentpieces disconnected chunks — at most one connected cut fragment of one landmass is allowed).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -1118,7 +1118,7 @@
     "provider": "ollama"
   },
   "An active court hears this petition's constitutional review — use F-JDG-008, never the Phase C stub (the stub survives only for forming-court jurisdictions).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1371,7 +1371,7 @@
     "provider": "ollama"
   },
   "Art. I (Freedom of Assembly) — granting confers R-07": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1765,7 +1765,7 @@
     "provider": "ollama"
   },
   "Art. III §4 — triggers the F-LEG-020 consent vote (peg-quorum majority of all serving)": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1907,7 +1907,7 @@
     "provider": "ollama"
   },
   "Art. IV §4; Art. I — advocate registration; confers R-21, keeps the bar zealous and competent": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1932,7 +1932,7 @@
     "provider": "ollama"
   },
   "Art. IV §5 — remedy recommendation; sets the CLK-11/CLK-12 per-case windows": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2429,7 +2429,7 @@
     "provider": "ollama"
   },
   "Chair ballot rankings must name seated members of this committee (R-12 requires R-11).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3038,7 +3038,7 @@
     "provider": "ollama"
   },
   "Designate :committee": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -3468,7 +3468,7 @@
     "provider": "ollama"
   },
   "Executive orders cannot touch the :targetdomain — elections, courts, and legislatures run identically under any executive instrument, emergency powers included.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -4015,7 +4015,7 @@
     "provider": "ollama"
   },
   "Governor nominated (F-EXE-001) — the dossier is published and the F-LEG-020 consent vote is open in the legislature (majority of all serving).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -5953,7 +5953,7 @@
     "provider": "ollama"
   },
   "Registered as an advocate — your R-21 bar record is on file (F-IND-015 · Art. IV §4).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -6076,7 +6076,7 @@
     "provider": "ollama"
   },
   "Reset :key to its default.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9302,12 +9302,12 @@
     "provider": "ollama"
   },
   "validation.timezone": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "validation.ulid": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -9325,7 +9325,7 @@
     "provider": "ollama"
   },
   "validation.url": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

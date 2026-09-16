@@ -193,6 +193,7 @@
   "session_console.publishing": "Publiserer…",
   "session_console.q_met": "oppnådd",
   "session_console.q_not_met": "ikke oppnådd",
+  "session_console.quorum_failed_body": "Krev fremmøte, og publiser deretter tellingen på nytt når medlemmene ankommer; eller hev møtet og sett ny dato innenfor CLK-02-fristen. Gjentatte feil henvises til administrasjonskontoret.",
   "session_console.quorum_failed_note": "Art. II §2 · 90-dagersfristen gjelder fortsatt — en sesjon uten beslutningsdyktighet nullstiller den aldri",
   "session_console.quorum_failed_title": "Beslutningsdyktighet ikke oppnådd — WF-LEG-20.",
   "session_console.quorum_kind_label": "Beslutningsdyktighet av denne typen — {kind}",

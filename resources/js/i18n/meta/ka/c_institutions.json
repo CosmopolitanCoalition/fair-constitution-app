@@ -696,7 +696,7 @@
     "provider": "ollama"
   },
   "case_detail.about": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

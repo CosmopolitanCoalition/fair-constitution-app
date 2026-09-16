@@ -120,7 +120,7 @@
     "provider": "ollama"
   },
   "q.advocacy_basics.q1.explain": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -261,7 +261,7 @@
     "provider": "ollama"
   },
   "q.chamber_basics.q3.explain": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -342,7 +342,7 @@
     "provider": "ollama"
   },
   "q.executive_basics.q2.explain": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -363,7 +363,7 @@
     "provider": "ollama"
   },
   "q.executive_basics.q3.explain": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -119,6 +119,7 @@
   "candidacy.office_option": "{label} · {seats} 의석",
   "candidacy.open_profile": "공개 프로필 열기",
   "candidacy.page_title": "입후보 — {name}",
+  "candidacy.platform_hint": "공개적이며, 스스로 관리하고, F-CAN-001을 통해 언제든 수정 가능합니다.",
   "candidacy.platform_label": "플랫폼 성명서 (선택 사항)",
   "candidacy.pool_title": "검증됨 — 승인 풀에 포함되었습니다.",
   "candidacy.recorded_ground": "기록된 근거: {reason} · Art. I",

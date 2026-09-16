@@ -1,4 +1,8 @@
 {
+  "elections_boardconsole.available_to_r_08_prereq_f_ind_011_submitt": "R-08-ന് ലഭ്യമാണ് · മുൻവ്യവസ്ഥ: F-IND-011 സമർപ്പിച്ചു · Art. II §2 (തിരഞ്ഞെടുപ്പ് സത്യസന്ധത)",
+  "elections_boardconsole.available_to_r_08_prereq_legislature_seat_": "R-08-ന് ലഭ്യമാണ് · മുൻവ്യവസ്ഥ: നിയമനിർമ്മാണ സഭ സീറ്റ് എണ്ണം > 9 · Art. II §2; Art. II §8 (ഉപവിഭാഗം)",
+  "elections_boardconsole.available_to_r_08_prereq_petition_at_thres": "R-08-ന് ലഭ്യമാണ് · മുൻവ്യവസ്ഥ: ഹർജി നിശ്ചിത പരിധിയിലെത്തി · Art. II §6 (സ്വതന്ത്ര ഓഡിറ്റ്)",
+  "elections_boardconsole.available_to_r_08_prereq_voting_closed_tab": "R-08-ന് ലഭ്യമാണ് · മുൻവ്യവസ്ഥ: വോട്ടെടുപ്പ് അവസാനിച്ചു + വോട്ടെണ്ണൽ പൂർത്തിയായി · Art. II §2 (സുതാര്യമായ തിരഞ്ഞെടുപ്പ് പ്രക്രിയ)",
   "elections_boardconsole.bootstrap_election_board_temporary_replace": "ബൂട്ട്സ്ട്രാപ്പ് തിരഞ്ഞെടുപ്പ് ബോർഡ് — താൽക്കാലികം · മാറ്റം ക്യൂവിലുണ്ട്.",
   "elections_boardconsole.bootstrap_variant_a_bootstrap_board_admini": "ബൂട്ട്സ്ട്രാപ്പ് വേരിയന്റ്: ഒരു ബൂട്ട്സ്ട്രാപ്പ് ബോർഡ് ആദ്യ തിരഞ്ഞെടുപ്പ് മാത്രം നടത്തുന്നു, നിയമനിർമ്മാണ സഭ ഒരു ശരിയായ ബോർഡിനെ നിയമിക്കുന്നത് വരെ (WF-ELE-10) മാറ്റം വരുത്താനുള്ള മുന്നറിയിപ്പ് നിലനിൽക്കും.",
   "elections_boardconsole.cause_for_the_audit_re_run_required": "ഓഡിറ്റ് പുനർനടത്തത്തിനുള്ള കാരണം (നിർബന്ധം)",
@@ -259,6 +263,7 @@
   "elections_results.audit_re_run_recount": "ഓഡിറ്റ് റൺ (പുനർവോട്ടെണ്ണൽ)",
   "elections_results.cause_ordered": "കാരണം: {cause} · ക്രമം {fmt}",
   "elections_results.certification_chain_of_custody": "സാക്ഷ്യപ്പെടുത്തലും കസ്റ്റഡി ശൃംഖലയും",
+  "elections_results.certification_pending_f_elb_004_election_r": "സാക്ഷ്യപ്പെടുത്തൽ pending · F-ELB-004 · തിരഞ്ഞെടുപ്പ് ഫലങ്ങളുടെ സാക്ഷ്യപ്പെടുത്തൽ · R-08-ന് ലഭ്യമാണ് · Art. II §2",
   "elections_results.certified_f_elb_004_election_results_certi": "സാക്ഷ്യപ്പെടുത്തിയത് {fmt} · F-ELB-004 · തിരഞ്ഞെടുപ്പ് ഫലങ്ങളുടെ സാക്ഷ്യപ്പെടുത്തൽ · Art. II §2",
   "elections_results.certify_results_f_elb_004": "ഫലങ്ങൾ സാക്ഷ്യപ്പെടുത്തുക — F-ELB-004",
   "elections_results.counting_rounds": "എണ്ണൽ റൗണ്ടുകൾ",

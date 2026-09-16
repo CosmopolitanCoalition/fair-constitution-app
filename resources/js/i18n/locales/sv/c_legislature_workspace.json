@@ -193,6 +193,7 @@
   "session_console.publishing": "Publicerar…",
   "session_console.q_met": "uppnådd",
   "session_console.q_not_met": "ej uppnådd",
+  "session_console.quorum_failed_body": "Tvinga fram närvaro, publicera sedan räkningen igen när medlemmarna anländer; eller ajournera och boka om inom CLK-02-fristen. Upprepad underlåtenhet hänvisas till det administrativa kontoret.",
   "session_console.quorum_failed_note": "Art. II §2 · 90-dagarsklockan gäller fortfarande — en session utan beslutsförhet återställer den aldrig",
   "session_console.quorum_failed_title": "Beslutsförhet ej uppnådd — WF-LEG-20.",
   "session_console.quorum_kind_label": "Beslutsförhet av denna sort — {kind}",

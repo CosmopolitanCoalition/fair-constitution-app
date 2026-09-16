@@ -166,6 +166,7 @@
   "session_console.kind_type_a": "A típus · népesség alapú",
   "session_console.kind_type_b": "B típus · egy választópolgáronként",
   "session_console.last_balloting": "utolsó szavazás lezárva {outcome} — a sikertelen szavazás sosem ismétlődik automatikusan; nyisson új szavazólapot (WF-LEG-02)",
+  "session_console.minutes_hint": "Lezárva a nyilvános nyilvántartás előtt; a határozatképességgel rendelkező ülés megszakítása újrakezdi a CLK-02-t a meetingről — a visszaigazolás mutatja az új határidőt.",
   "session_console.minutes_label": "Jegyzőkönyv",
   "session_console.minutes_sealed": "jegyzőkönyv lefügyelve ·",
   "session_console.motion_adjourn": "szüneteltetés",

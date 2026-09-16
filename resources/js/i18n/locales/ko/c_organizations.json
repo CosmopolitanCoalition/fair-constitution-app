@@ -16,6 +16,7 @@
   "organizations_codetscale.projection_the_engine_recomputes_on_real_h": "예상 — 실제 인원수 변경 시 엔진이 재계산함 · WF-ORG-04",
   "organizations_codetscale.reset_to_live_workers_seats": "실시간 상태로 초기화 ({fmt}명 노동자 · {workerSeats}개 의석)",
   "organizations_codetscale.scales_uniformly_between_the_first_seat_an": "첫 의석({fmt})과 동수({fmt2}) 사이에서 균등하게 조정됨 · Art. III §6 · CLK-13 / CLK-14",
+  "organizations_codetscale.scaling_between_clk_13_and_clk_14": "CLK-13와 CLK-14 사이의 스케일링",
   "organizations_codetscale.worker_elected_seats_r_27": "노동자 선출 의석 (R-27)",
   "organizations_codetscale.worker_headcount_explorer": "노동자 인원수 (탐색기)",
   "organizations_codetscale.workers_against_owner_side_seats": "{entityLabel} — 노동자 {fmt}명 대 소유주 측 의석 {ownerSeats}개.",

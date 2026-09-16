@@ -170,6 +170,7 @@
   "journey.when_economy": "ኢኮኖሚው በሚከፍልበት ጊዜ።",
   "journey.your_achievements": "ስኬቶችዎ",
   "journey.your_part_label": "የእርስዎ ድርሻ፦",
+  "my_record.about": "አንድ ሰው፣ አንድ ፕሮፋይል (profile-v2 ውል)። የመዝገብ ታብ የappend-only ኦዲት መዝገብ (WF-SYS-03/04) ንባብ-ብቻ ቅጂ ሲሆን የእርስዎን ፋይሎች ብቻ ያሳያል፤ የቅንብሮች ታብ ደግሞ F-IND-002ን በሕገ መንግሥቱ ሞተር በኩል ያስተላልፋል፣ በዚህም ለውጡ እና የመዝገብ ሰንሰለቱ አብረው ይቀረጻሉ። ዕጩነት የዚሁ ፕሮፋይል አንድ ታብ ነው — ተለይቶ የሚቆም ማንነት አይደለም።",
   "my_record.achievements": "ስኬቶች",
   "my_record.achievements_note": "ያጠናቀቋቸው ጉዞዎች እና የዜግነት የመጀመሪያ ስኬቶች መዝገቦች። አንዳቸውም ድምፅን፣ መቀመጫን ወይም የሚያደርጉትን ነገር አይለውጡም።",
   "my_record.association_many": "ማኅበራት",

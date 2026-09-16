@@ -3,6 +3,7 @@
   "judiciary_advocateconsole.accepted_docketed": "Хүлээж авсан · бүртгэгдсэн",
   "judiciary_advocateconsole.advocate_registration_is_open_to_any_assoc": "Өмгөөлөгчийн бүртгэл холбогдох бүх оршин суугчдад нээлттэй, гэвч эхлээд таны харьяалалд шүүх байх ёстой — хууль тогтоох байгууллага шүүхийг байгуулснаар шүүх үүсдэг (F-LEG-017).",
   "judiciary_advocateconsole.cases_you_file_on_behalf_of_clients_appear": "Үйлчлүүлэгчдийн нэрийн өмнөөс гаргасан хэргүүд энд харагдана.",
+  "judiciary_advocateconsole.cases_you_filed_on_behalf_of_clients_via_f": "Таны үйлчлүүлэгчдийн нэрийн өмнөөс гажаасан хэргүүд (F-ADV-001-ээр).",
   "judiciary_advocateconsole.entity_state_machine_case_filings_attach_a": "Нэгжийн төлөв: Хэрэг — бүртгэлүүд тодорхой төлөвт хавсаргагддаг (шүүх хурлын өмнө болон хугацаанд хүсэлт, нээлттэй бүртгэл дээрх нотолгоо, хэлэлцүүлгийн өмнөх тайлан); хэргийн дэлгэрэнгүй хуудас бүх дарааллыг харуулна. Хавсаргах хугацааг энэ хуудас биш, систем удирдана.",
   "judiciary_advocateconsole.filing_type": "Бүртгэлийн төрөл",
   "judiciary_advocateconsole.granted": "зөвшөөрөгдсөн {fmtDate} · {name}",

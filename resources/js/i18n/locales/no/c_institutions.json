@@ -505,6 +505,8 @@
   "co_determination.template_default": "Malstandard · grunnleggende verdi",
   "co_determination.view_record": "vis post ({status}) →",
   "co_determination.worker_election": "Arbeidervalg",
+  "constitutional_challenge.about_entity": "Utfordringen er en egen varig enhet, adskilt fra saken den behandles i: CLK-11/CLK-12-fristene løper i uker eller måneder etter at høringen er avsluttet, avhengig av handling fra den lovgivende forsamling.",
+  "constitutional_challenge.about_workflows": "— forfatningsmessig utfordring og rettsmiddel; høringer kjøres via WF-JUD-03-mekanismen; vei A går tilbake i flyten for lovforslag (WF-LEG-06); utøvende makt håndhever resultatet (WF-EXE-07).",
   "constitutional_challenge.about_workflows_label": "Arbeidsflyter:",
   "constitutional_challenge.basis_label": "Påstått motstrid",
   "constitutional_challenge.basis_option": "— velg grunnlag —",

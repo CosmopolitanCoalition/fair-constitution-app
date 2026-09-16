@@ -596,37 +596,37 @@
     "provider": "ollama"
   },
   "continues_in_wf_ele_01_71eae280": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "continues_in_wf_ele_10_eb95627a": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "continues_in_wf_exe_05_bc6efbe1": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "continues_in_wf_jur_06_27c472c3": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "continues_in_wf_leg_01_195fb8ff": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "continues_in_wf_org_04_ec02c8c9": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "continues_in_wf_sys_03_717a943c": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1287,7 +1287,7 @@
     "provider": "ollama"
   },
   "investigation_record_findings_can_feed_w_0592d2bc": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1544,7 +1544,7 @@
     "provider": "ollama"
   },
   "not_reached_adjourn_reschedule_within_cl_5c277f54": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2006,7 +2006,7 @@
     "provider": "ollama"
   },
   "registration_voting_per_wf_ele_01_11ef6563": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2127,7 +2127,7 @@
     "provider": "ollama"
   },
   "run_general_election_steps_3_8_of_wf_ele_496527f2": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

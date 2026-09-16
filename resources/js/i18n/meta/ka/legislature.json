@@ -1860,7 +1860,7 @@
     "provider": "ollama"
   },
   "legislature_sessionconsole.sealed_to_the_public_record_adjourning_a_q": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1869,7 +1869,7 @@
     "provider": "ollama"
   },
   "legislature_sessionconsole.sessions_are_called_by_the_chamber_s_speak": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2130,7 +2130,7 @@
     "provider": "ollama"
   },
   "legislature_speakertools.the_only_speaker_votes_on_record_each_cast": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

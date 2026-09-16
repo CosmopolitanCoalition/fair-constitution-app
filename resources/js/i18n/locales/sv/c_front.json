@@ -165,6 +165,7 @@
   "register.tz_hint": "Datum visas i din tidszon · lagras som UTC.",
   "register.tz_label": "Tidszon",
   "report.about": "Varje rapport tillhör ett av sex ämnen och dirigeras till en plats — operatörerna, översättningsstöd, moderering & den juridiska avdelningen, eller produktbackloggen. Intaget dirigerar en begäran; det redigerar eller tar aldrig bort innehåll själv.",
+  "report.abuse_note": "Rapporter om missbruk och olagligt innehåll går till modererings- och juridikteamet, inte till supportkön. Att anmäla här tar inte bort något — borttagning av innehåll följer Författningens undantag (maskineriet i F-SOC-003), aldrig detta formulär.",
   "report.body_hint": "Enkla ord fungerar bra. Inkludera vad du förväntade dig och vad du såg istället.",
   "report.body_label": "Vad hände?",
   "report.category_label": "Vilken typ av rapport är detta?",

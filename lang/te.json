@@ -2289,6 +2289,7 @@
   "validation.password.mixed": ":attribute ఫీల్డ్‌లో కనీసం ఒక పెద్ద అక్షరం మరియు ఒక చిన్న అక్షరం ఉండాలి.",
   "validation.password.numbers": ":attribute ఫీల్డ్‌లో కనీసం ఒక సంఖ్య ఉండాలి.",
   "validation.password.symbols": ":attribute ఫీల్డ్‌లో కనీసం ఒక చిహ్నం ఉండాలి.",
+  "validation.password.uncompromised": "ఇచ్చిన :attribute డేటా లీక్‌లో కనిపించింది. దయచేసి వేరే :attributeని ఎంచుకోండి.",
   "validation.present": ":attribute ఫీల్డ్ తప్పనిసరిగా ఉండాలి.",
   "validation.present_if": ":other, :value అయినప్పుడు :attribute ఫీల్డ్ తప్పనిసరిగా ఉండాలి.",
   "validation.present_unless": ":other, :value కానట్లయితే :attribute ఫీల్డ్ తప్పనిసరిగా ఉండాలి.",

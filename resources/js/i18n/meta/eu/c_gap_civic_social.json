@@ -164,7 +164,7 @@
     "provider": "ollama"
   },
   "person_profile.awaiting_validation": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

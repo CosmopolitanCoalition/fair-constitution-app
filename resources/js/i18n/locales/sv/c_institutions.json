@@ -505,6 +505,8 @@
   "co_determination.template_default": "Mallstandard · grundvärde",
   "co_determination.view_record": "visa post ({status}) →",
   "co_determination.worker_election": "Arbetarval",
+  "constitutional_challenge.about_entity": "Utmaningen är en egen bestående enhet, skild från det mål den prövas i: CLK-11/CLK-12-fristerna löper i veckor eller månader efter att förhandlingen avslutats, beroende på lagstiftande församlings åtgärder.",
+  "constitutional_challenge.about_workflows": "— författningsmässig utmaning & rättsmedel; förhandlingar sker via WF-JUD-03-maskineriet; väg A återgår till flödet för lagförslag (WF-LEG-06); verkställande makt genomför resultatet (WF-EXE-07).",
   "constitutional_challenge.about_workflows_label": "Arbetsflöden:",
   "constitutional_challenge.basis_label": "Påstådd motsägelse",
   "constitutional_challenge.basis_option": "— välj en grund —",

@@ -1,4 +1,8 @@
 {
+  "elections_boardconsole.available_to_r_08_prereq_f_ind_011_submitt": "R-08-க்குக் கிடைக்கிறது · முன்நிபந்தனை: F-IND-011 சமர்ப்பிக்கப்பட்டது · Art. II §2 (தேர்தல் நேர்மை)",
+  "elections_boardconsole.available_to_r_08_prereq_legislature_seat_": "R-08-க்குக் கிடைக்கிறது · முன்நிபந்தனை: சட்டமன்ற இருக்கை எண்ணிக்கை > 9 · Art. II §2; Art. II §8 (உட்பிரிவு)",
+  "elections_boardconsole.available_to_r_08_prereq_petition_at_thres": "R-08-க்குக் கிடைக்கிறது · முன்நிபந்தனை: மனு வரம்பை எட்டியுள்ளது · Art. II §6 (சுயாதீன தணிக்கை)",
+  "elections_boardconsole.available_to_r_08_prereq_voting_closed_tab": "R-08-க்குக் கிடைக்கிறது · முன்நிபந்தனை: வாக்குப்பதிவு நிறைவு + கணக்கீடு முடிந்தது · Art. II §2 (வெளிப்படையான தேர்தல் செயல்முறை)",
   "elections_boardconsole.bootstrap_election_board_temporary_replace": "தொடக்க தேர்தல் வாரியம் — தற்காலிகமானது · மாற்றீடு வரிசையில் உள்ளது.",
   "elections_boardconsole.bootstrap_variant_a_bootstrap_board_admini": "தொடக்க வகை: ஒரு தொடக்க வாரியம் முதல் தேர்தலை மட்டுமே நிர்வகிக்கும் மற்றும் சட்டமன்றம் முறையான வாரியத்தை நியமிக்கும் வரை (WF-ELE-10) நிரந்தர மாற்றீட்டு எச்சரிக்கையை வைத்திருக்கும்.",
   "elections_boardconsole.cause_for_the_audit_re_run_required": "தணிக்கை மறு-இயக்கத்திற்கான காரணம் (தேவை)",
@@ -259,6 +263,7 @@
   "elections_results.audit_re_run_recount": "தணிக்கை மறு இயக்கம் (மறு எண்ணிக்கை)",
   "elections_results.cause_ordered": "காரணம்: {cause} · வரிசைப்படுத்தப்பட்டது {fmt}",
   "elections_results.certification_chain_of_custody": "சான்றளிப்பு மற்றும் பாதுகாப்புச் சங்கிலி",
+  "elections_results.certification_pending_f_elb_004_election_r": "சான்றளிப்பு நிலுவையில் உள்ளது · F-ELB-004 · தேர்தல் முடிவுகள் சான்றளிப்பு · R-08-க்குக் கிடைக்கிறது · Art. II §2",
   "elections_results.certified_f_elb_004_election_results_certi": "சான்றளிக்கப்பட்டது {fmt} · F-ELB-004 · தேர்தல் முடிவுகள் சான்றளிப்பு · Art. II §2",
   "elections_results.certify_results_f_elb_004": "முடிவுகளுக்குச் சான்றளிக்கவும் — F-ELB-004",
   "elections_results.counting_rounds": "எண்ணிக்கை சுற்றுகள்",

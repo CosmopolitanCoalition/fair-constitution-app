@@ -100,7 +100,7 @@
     "provider": "ollama"
   },
   "organizations_boardelections.no_worker_track_the_first_worker_seat_appe": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -413,7 +413,7 @@
     "provider": "ollama"
   },
   "organizations_codetermination.the_scale_binds_from_the_first_qualifying_": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -434,7 +434,7 @@
     "provider": "ollama"
   },
   "organizations_orgdetail.a_candidate_requests_f_can_002_the_agent_g": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -467,7 +467,7 @@
     "provider": "ollama"
   },
   "organizations_orgdetail.apply_for_this_organization_s_ownership_cl": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

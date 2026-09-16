@@ -5127,7 +5127,7 @@
     "provider": "ollama"
   },
   "Only a decided or sentenced judgement can be appealed — this case is :status.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -5600,7 +5600,7 @@
     "provider": "ollama"
   },
   "Ping recorded — :count qualifying day(s).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -5957,7 +5957,7 @@
     "provider": "ollama"
   },
   "Rejected pre-vote: :what of :days day(s) exceeds the :ceiling-day constitutional ceiling (resolved emergency_powers_max_days = :maxDays; hardened maximum 90 · CLK-03).": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -6771,7 +6771,7 @@
     "provider": "ollama"
   },
   "The bill has no committee — direct-to-floor bills move by motion, not F-CHR-003.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -6890,12 +6890,12 @@
     "provider": "ollama"
   },
   "The drawn district extends outside :name's boundary.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
   "The drawn district holds :pop people (:fractional of the local quota :quota) — :seats seats, outside the resolved band [:floor, :ceiling]. Redraw it larger or smaller.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7064,7 +7064,7 @@
     "provider": "ollama"
   },
   "The polygon lies entirely outside :name.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -7093,7 +7093,7 @@
     "provider": "ollama"
   },
   "The remainder is split into :parts pieces — draw those separately.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8391,7 +8391,7 @@
     "provider": "ollama"
   },
   "every court of :court and its constituent counties": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8404,7 +8404,7 @@
     "provider": "ollama"
   },
   "filed via :form": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

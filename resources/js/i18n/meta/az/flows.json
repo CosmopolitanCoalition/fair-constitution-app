@@ -596,17 +596,17 @@
     "provider": "ollama"
   },
   "continues_in_wf_ele_01_71eae280": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "continues_in_wf_ele_10_eb95627a": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "continues_in_wf_exe_05_bc6efbe1": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -899,7 +899,7 @@
     "provider": "ollama"
   },
   "endorsement_recorded_candidate_gains_r_0_1a912bbf": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1288,7 +1288,7 @@
     "provider": "ollama"
   },
   "investigation_record_findings_can_feed_w_0592d2bc": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -68,7 +68,7 @@
     "provider": "ollama"
   },
   "organizations_codetscale.scaling_between_clk_13_and_clk_14": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

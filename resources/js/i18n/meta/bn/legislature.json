@@ -2128,7 +2128,7 @@
     "provider": "ollama"
   },
   "legislature_speakertools.the_only_speaker_votes_on_record_each_cast": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

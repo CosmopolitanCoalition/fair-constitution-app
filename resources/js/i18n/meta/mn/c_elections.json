@@ -36,7 +36,7 @@
     "provider": "ollama"
   },
   "board.cert_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -133,7 +133,7 @@
     "provider": "ollama"
   },
   "board.district_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -214,7 +214,7 @@
     "provider": "ollama"
   },
   "board.queue_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -263,7 +263,7 @@
     "provider": "ollama"
   },
   "board.recount_opens_tail": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -296,7 +296,7 @@
     "provider": "ollama"
   },
   "board.sig_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -485,7 +485,7 @@
     "provider": "ollama"
   },
   "candidacy.platform_hint": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1430,7 +1430,7 @@
     "provider": "ollama"
   },
   "results.cert_pending": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

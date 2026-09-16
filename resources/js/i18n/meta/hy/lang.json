@@ -1272,7 +1272,7 @@
     "provider": "ollama"
   },
   "Application accepted (F-ORG-001) — R-24 now derives from the active membership.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1510,7 +1510,7 @@
     "provider": "ollama"
   },
   "Art. II §2 (endorsement request — the org's agent decides via F-ORG-002)": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1827,7 +1827,7 @@
     "provider": "ollama"
   },
   "Art. III §6 — worker track; also fired system-side by CLK-13": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2424,7 +2424,7 @@
     "provider": "ollama"
   },
   "Chair ballot rankings must name seated members of this committee (R-12 requires R-11).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3301,12 +3301,12 @@
     "provider": "ollama"
   },
   "Endorsement requested — the organization's agent decides via F-ORG-002.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Endorsement withdrawn (F-ORG-002) — R-07 no longer derives from it; the organization may re-endorse at any time while the candidacy stands.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3487,107 +3487,107 @@
     "provider": "ollama"
   },
   "F-ADV-001 is filed ON BEHALF OF a client — name filed_on_behalf_of_user_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ADV-001 is filed by a registered advocate.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ADV-001 names the client by registered name or email — \":client\" did not resolve to a resident.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-BOG-001 is filed by a seated board member — system filings name no seat.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-BOG-001 is filed by a seated member of THIS department's board (R-18).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-BOG-001 names a chartered department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-BOG-002 is filed by a seated board member — system filings name no seat.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-BOG-002 is filed by a seated member of THIS department's board (R-18).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-BOG-002 names a chartered department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-002 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-003 requires a valid bill_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-005 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-006 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ELB-005 audits a petition at its threshold (status: :status).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ELB-008 requires a drawn polygon (geojson).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ELB-008 targets an unknown district map.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ELB-008 targets an unknown jurisdiction.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ELB-008 targets an unknown legislature.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-EXE-001 is filed by a seated principal of the OVERSEEING executive (R-14/15/16).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-EXE-001 names an existing nominee.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-EXE-001 names the nominee.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3596,22 +3596,22 @@
     "provider": "ollama"
   },
   "F-EXE-002 is filed by a member of the OVERSEEING executive.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-EXE-002 names a chartered department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-EXE-003 is filed by a seated principal of the OVERSEEING executive (good-faith finding).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-EXE-003 names a board seat.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3624,22 +3624,22 @@
     "provider": "ollama"
   },
   "F-IND-003 is filed by the resident — system filing is not defined.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-005 is filed by the resident — system filing is not defined.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-006 is system-filed only.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-006 requires the claim_id of the residency claim being confirmed.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3648,137 +3648,137 @@
     "provider": "ollama"
   },
   "F-IND-012 requires a valid jurisdiction_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-013 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-014 names the employer.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-014 targets an unknown department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-014 targets an unknown or inactive organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-015 is filed by the registering resident.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-015 names the court (judiciary_id) to register with.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-016 names the law it challenges (challenged_law_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-016 records the asserted contradiction (claim_text).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-017 is filed by the complaining resident or their advocate.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-023 names the recipient account.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-027 is filed by a party to the original case.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-027 requires a valid case_id (the original case).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-IND-027 states the grounds — the contradiction in law or the error in the case (Art. II §8).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-003 names a title and the opinion body.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-004 names the challenge it finds on (challenge_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-005 names the challenge it recommends a remedy for (challenge_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-006 names the challenge it remedies (challenge_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-007 names the power it reviews (reviewed_power_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-007 names the reviewing court (judiciary_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-008 names the petition it reviews (petition_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-008 names the reviewing court (judiciary_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-009 names the sentence terms.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-JDG-010 names the warrant kind (arrest/search/seizure).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-004 casts on whole-chamber votes; committee-stage votes take F-LEG-005.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-005 casts on committee votes; floor votes take F-LEG-004.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-011 requires a valid committee_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3791,92 +3791,92 @@
     "provider": "ollama"
   },
   "F-LEG-022 requires a valid proceeding_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-026 targets a private organization (a CGC cannot be acquired).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-027 targets a Common Good Corporation.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-034 modifies referendum-passed acts only — other laws amend through the bill path.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-034 names the referendum act it modifies (law_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-034 targets an unknown law.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-035 names the challenge it overrides (challenge_id).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-LEG-036 requires a valid member_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-001 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-003 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-004 targets an unknown board.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-005 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-005 targets an unknown transfer.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-006 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-007 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-008 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-009 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-ORG-011 targets an unknown organization.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3885,12 +3885,12 @@
     "provider": "ollama"
   },
   "F-SPK-004 requires a valid vote_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-SPK-006 requires a valid session_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3903,7 +3903,7 @@
     "provider": "ollama"
   },
   "F-SPK-007 requires a valid proceeding_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3989,7 +3989,7 @@
     "provider": "ollama"
   },
   "Findings published — :code referred to a removal proceeding (F-SPK-007 designates the presider next).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -4666,7 +4666,7 @@
     "provider": "ollama"
   },
   "Membership application filed (F-IND-013 · WF-ORG-03) — R-24 derives on the organization's acceptance.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -8775,7 +8775,7 @@
     "provider": "ollama"
   },
   "system (dev declaration — F-LEG-036 arrives in Phase C)": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

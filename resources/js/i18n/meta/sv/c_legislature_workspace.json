@@ -776,7 +776,7 @@
     "provider": "ollama"
   },
   "session_console.quorum_failed_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

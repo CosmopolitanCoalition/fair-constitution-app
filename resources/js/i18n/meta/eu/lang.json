@@ -2428,7 +2428,7 @@
     "provider": "ollama"
   },
   "Case lifecycle · panel ≥3 odd · Art. IV §4 · CLK-16 — double jeopardy barred · Art. II §8": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3548,7 +3548,7 @@
     "provider": "ollama"
   },
   "F-BOG-001 names a chartered department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3561,12 +3561,12 @@
     "provider": "ollama"
   },
   "F-BOG-002 names a chartered department.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-002 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3955,7 +3955,7 @@
     "provider": "ollama"
   },
   "Findings published — :code referred to a removal proceeding (F-SPK-007 designates the presider next).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -5793,7 +5793,7 @@
     "provider": "ollama"
   },
   "Projected composite fractional seats (:frac) ≥ :threshold — would round to > :ceiling, exceeding the constitutional district maximum of :max.": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
@@ -8603,7 +8603,7 @@
     "provider": "ollama"
   },
   "never below 3, always odd · CLK-16": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

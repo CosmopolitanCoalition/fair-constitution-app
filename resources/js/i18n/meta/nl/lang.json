@@ -2428,7 +2428,7 @@
     "provider": "ollama"
   },
   "Chair elections run on SEATED committees — run the F-SPK-005 assignment first.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -7617,22 +7617,22 @@
     "provider": "ollama"
   },
   "Unknown F-EXE-004 action [:action].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Unknown F-EXE-005 action [:action].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Unknown F-IND-020 action [:action].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Unknown F-LEG-015 action [:action].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -7647,27 +7647,27 @@
     "provider": "ollama"
   },
   "Unknown F-ORG-001 action [:action].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Unknown F-ORG-003 action [:action].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Unknown F-ORG-004 action [:action].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Unknown F-ORG-005 action [:action].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Unknown F-ORG-008 action [:action].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -7677,7 +7677,7 @@
     "provider": "ollama"
   },
   "Unknown F-ORG-011 action [:action].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -87,6 +87,7 @@
   "system_termsync.lockstep_expiry_art_iii_3_art_iv_3_replace": "Synkroniserat utgångsdatum · Art. III §3; Art. IV §3 — ersättningsmandat (återräkning/extraval) ÄRVER det ursprungliga utgångsdatumet, aldrig en ny period.",
   "system_termsync.lockstep_terms_by_role": "Synkroniserade mandat per roll",
   "system_termsync.months_per_term_election_interval_months": "månader per mandatperiod (election_interval_months)",
+  "system_termsync.next_general_election_the_armed_clk_01_tim": "nästa allmänna val · den aktiverade CLK-01-timerns faktiska förfallodatum",
   "system_termsync.no_active_civil_appointments_yet": "Inga aktiva civila utnämningar ännu.",
   "system_termsync.no_active_legislature_yet_jurisdictions_ac": "Ingen aktiv lagstiftande församling ännu — jurisdiktioner aktiveras vid kritisk befolkning (CLK-06); var och en startar sin egen klocka vid första fastställande.",
   "system_termsync.no_active_lockstep_terms_on_record": "Inga aktiva synkroniserade mandat registrerade.",

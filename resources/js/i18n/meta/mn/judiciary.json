@@ -16,7 +16,7 @@
     "provider": "ollama"
   },
   "judiciary_advocateconsole.cases_you_filed_on_behalf_of_clients_via_f": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -172,7 +172,7 @@
     "provider": "ollama"
   },
   "actions.grants_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -373,7 +373,7 @@
     "provider": "ollama"
   },
   "advocate_console.about_workflows": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -698,7 +698,7 @@
     "provider": "ollama"
   },
   "case_detail.about": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1307,7 +1307,7 @@
     "provider": "ollama"
   },
   "case_docket.about_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2132,7 +2132,7 @@
     "provider": "ollama"
   },
   "department_reporting.about_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -484,6 +484,7 @@
   "education_judiciary_constitutional_challenge.s4_do": "Föreslå ett ändringsförslag",
   "education_judiciary_constitutional_challenge.s5_detail": "En medlem av den lagstiftande församlingen öppnar omröstningen om upphävande av veto inom vetofristen; en kvalificerad majoritet av alla sittande medlemmar upphäver domstolens slutsats och lagen förblir oförändrad (Väg 2).",
   "education_judiciary_constitutional_challenge.s5_do": "Öppna ett upphävande av veto med kvalificerad majoritet",
+  "education_judiciary_constitutional_challenge.s6_detail": "När båda fristerna löpt ut utan ändring eller upphävande av veto, tillämpar en sittande domare rättsmedlet direkt — domstolen ändrar själva lagen och hela versionshistoriken bevaras (Sökväg 3). CLK-11-svepet tillämpar det också automatiskt.",
   "education_judiciary_constitutional_challenge.s6_do": "Tillämpa det rättsliga rättsmedlet",
   "education_judiciary_constitutional_challenge.why": "detta är den mest ingripande handlingen i appen. Den är medvetet öppen för alla som bor där, eftersom en författning som endast advokater kan åberopa tillhör advokaterna.",
   "education_judiciary_judiciary_home.learn": "Domstolarna för denna jurisdiktion: hur de skapades, vilka som sitter i dem och hur de väljs.",

@@ -134,6 +134,7 @@
   "oversight.vacancy_countback_link": "ledig sete {status} — side for tilbaketelling →",
   "oversight.vacancy_state_aria": "Tilstandsmaskin for ledige seter",
   "oversight.you_suffix": " (deg)",
+  "referendums.about": "CLK-19-skjoldet er en validatorport, ikke en timer: en F-LEG-034-innlevering mot et vedtak med kvalifisert flertall i befolkningen avvises før avstemning med henvisning, og selve avvisningen føres i revisjonsloggen. Skjoldet oppheves når neste valg sertifiseres — vedtak fra folkeavstemninger endres da gjennom den ordinære prosessen.",
   "referendums.act_ordinary": "Ordinært vedtak — flertallsklasse",
   "referendums.act_setting_change": "Vedtak om innstillingsendring — flertallsklasse",
   "referendums.act_supermajority": "Vedtak med kvalifisert flertallsklasse",

@@ -86,6 +86,7 @@
   "art4_section5_tracker.recorded_notice": "Tallennettu julkiseen rekisteriin — seuranta heijastaa uutta tilaa.",
   "art4_section5_tracker.remedial_bill_gate": "Korjaava lakiesitys esitetään lainsäädäntöajan ollessa auki (Art. IV §5.3).",
   "art4_section5_tracker.remedy": "Oikeudellinen korjaus",
+  "art4_section5_tracker.remedy_gate": "Käytettävissä, kun sekä oikeudellisen korjauksen määräaika että veto-aika ovat päättyneet; muussa tapauksessa CLK-11-puhdistus soveltaa sitä automaattisesti (Art. IV §5.5).",
   "art4_section5_tracker.remedy_timeframe": "Ajankausi: {days} päivää ({clk}) · veto-aika: {vetoDays} päivää ({vetoClk}).",
   "art4_section5_tracker.remedy_timeframe_label": "Korjausajankausi (päivät · CLK-12)",
   "art4_section5_tracker.replacement_text": "Korvaava teksti",

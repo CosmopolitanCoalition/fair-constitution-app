@@ -92,7 +92,7 @@
     "provider": "ollama"
   },
   "judiciary_advocateconsole.workflows_registration_is_wf_civ_07_every_": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -273,7 +273,7 @@
     "provider": "ollama"
   },
   "judiciary_casedetail.the_case_lifecycle_is_wf_jud_03_jury_panel": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

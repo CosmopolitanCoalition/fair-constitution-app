@@ -166,6 +166,7 @@
   "session_console.kind_type_a": "ዓይነት A · በሕዝብ ብዛት የተከፋፈለ",
   "session_console.kind_type_b": "ዓይነት B · ለአንድ መራጭ አንድ",
   "session_console.last_balloting": "የመጨረሻው የድምፅ አሰጣጥ በ {outcome} ተዘግቷል — ያልተሳካ የድምፅ አሰጣጥ በራሱ አይደገምም፤ አዲስ የድምፅ መስጫ ወረቀት ክፈት (WF-LEG-02)",
+  "session_console.minutes_hint": "ለሕዝብ መዝገብ ታሽጓል፤ ምልዓተ ጉባኤ የተሟላበትን ስብሰባ ማቋረጥ CLK-02ን ከስብሰባው መልሶ ያነቃቃል — ማረጋገጫው መልሶ የተነቃቃውን የጊዜ ገደብ ያሳያል።",
   "session_console.minutes_label": "ቃለ ጉባኤ",
   "session_console.minutes_sealed": "ቃለ ጉባኤው ታትሟል ·",
   "session_console.motion_adjourn": "አቋርጥ",

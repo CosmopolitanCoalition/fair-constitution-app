@@ -1337,7 +1337,7 @@
     "provider": "ollama"
   },
   "judiciary_operational_r_03_applies_29864f6a": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1922,7 +1922,7 @@
     "provider": "ollama"
   },
   "record_endorsement_grant_r_07_bind_facti_bf4e79f8": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -2000,7 +2000,7 @@
     "provider": "ollama"
   },
   "registration_voting_per_wf_ele_01_11ef6563": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

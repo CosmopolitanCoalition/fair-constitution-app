@@ -503,6 +503,8 @@
   "co_determination.template_default": "Mallin oletus · perustamisarvo",
   "co_determination.view_record": "näytä tietue ({status}) →",
   "co_determination.worker_election": "Työntekijöiden vaalit",
+  "constitutional_challenge.about_entity": "Haaste on oma kestävä kokonaisuutensa, erillinen tapauksesta, jossa sitä käsitellään: CLK-11/CLK-12-ajat jatkuvat viikkoja tai kuukausia kuulemisen päättymisen jälkeen, lainsäädäntöelimen toiminnasta riippuen.",
+  "constitutional_challenge.about_workflows": "— perustuslaillinen haaste ja lain oikeudellinen korjaus; kuulemiset perustuvat WF-JUD-03-koneistoon; polku A palaa lakiesitysvirtaan (WF-LEG-06); toimeenpanovalta pannaan tulos täytäntöön (WF-EXE-07).",
   "constitutional_challenge.about_workflows_label": "Työnkulut:",
   "constitutional_challenge.basis_label": "Väitetty ristiriita",
   "constitutional_challenge.basis_option": "— valitse peruste —",

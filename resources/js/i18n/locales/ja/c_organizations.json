@@ -1,5 +1,6 @@
 {
   "organizations_boardstrip.board_composition_does_not_match_the_scale": "理事会の構成がスケールと一致しません。",
+  "organizations_boardstrip.board_roster_governors_on_10_yr_clk_09_civ": "理事会名簿 — 理事は10年のCLK-09民事任期。労働者の議席は立法期間（CLK-10）の終了とともに終了します",
   "organizations_boardstrip.legend_solid_pip_owner_side_seat_blue_pip_": "凡例：塗りつぶし = 所有者側議席 · 青 = 労働者選出議席 · 点線 = 欠員 · 金色の輪 = 共同選出の委員長",
   "organizations_boardstrip.nominated_consent_pending": "指名済み · 同意待ち",
   "organizations_boardstrip.owner_side_worker_elected_chair": "{length} 所有者側 · {length2} 労働者選出 · 委員長 {chair}",

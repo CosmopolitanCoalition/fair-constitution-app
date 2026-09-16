@@ -122,6 +122,7 @@
   "civic_myrecord.no_representatives_seated_yet_they_appear_": "아직 선출된 대표자가 없습니다. 거주하시는 지역의 입법부가 구성되는 즉시 여기에 표시됩니다.",
   "civic_myrecord.none_yet_associations_at_every_nesting_lev": "아직 없습니다. 거주 인증이 완료되면 모든 계층의 소속 조직이 여기에 표시됩니다. 시작하려면 거주를 신고하십시오.",
   "civic_myrecord.nothing_here_yet_finish_your_first_journey": "아직 아무것도 없습니다. 첫 번째 여정을 완료하여 획득하십시오.",
+  "civic_myrecord.one_person_one_profile_profile_v2_contract": "1인 1프로필(profile-v2 계약) 체제입니다. 기록 탭은 본인의 제출물만 필터링하여 보여주는 추가 전용 감사 로그(WF-SYS-03/04)의 읽기 전용 슬라이스입니다. 설정 탭은 F-IND-002을 헌법 엔진을 통해 제출하므로, 변경 사항과 체인 항목이 함께 커밋됩니다. 후보자 등록은 동일한 프로필의 탭으로 관리되며, 별도의 신원을 생성하지 않습니다.",
   "civic_myrecord.one_verified_residency_associations_at_eve": "인증된 거주 1건 → 모든 상위 수준의 소속 조직 · Art. I",
   "civic_myrecord.open_the_election": "선거 시작",
   "civic_myrecord.page_of_entr": "{current_page} / {last_page} 페이지 · {total} 항목{entries}",

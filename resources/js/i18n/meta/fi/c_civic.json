@@ -1124,7 +1124,7 @@
     "provider": "ollama"
   },
   "petition_detail.audit_cite": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1701,7 +1701,7 @@
     "provider": "ollama"
   },
   "relocation.away_meter": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

@@ -684,7 +684,7 @@
     "provider": "ollama"
   },
   "my_record.about": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1661,7 +1661,7 @@
     "provider": "ollama"
   },
   "relocation.about_a": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

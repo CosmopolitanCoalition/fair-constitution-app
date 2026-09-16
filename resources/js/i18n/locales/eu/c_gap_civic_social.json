@@ -40,6 +40,7 @@
   "person_profile.at_glance_resident": "{name}rako bizilagun —egoitza da dauden bakarreko aurreb conditionally herritarren baldintza (Art. I).",
   "person_profile.audit_receipt": "Auditoria-erreceipta",
   "person_profile.audit_receipt_arrow": "Auditoria-erreceiptua →",
+  "person_profile.awaiting_validation": "Administrazio-kontseiluaren balidazioa zain — lehiaketa-lotura (eta horrekin egoera) F-ELB-002k egoitza balidatzen duenean agertuko da.",
   "person_profile.ballot_locked_title": "boto-txartela finalisten limitean blokeatuta — baja-eskera txikiatuta · CLK-21",
   "person_profile.below_line": "finalisten linearen behean · idatziz hautegaztekoa",
   "person_profile.bio_label": "Bio",

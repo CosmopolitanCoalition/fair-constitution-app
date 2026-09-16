@@ -604,7 +604,7 @@
     "provider": "ollama"
   },
   "session_console.called_by_speaker": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -973,7 +973,7 @@
     "provider": "ollama"
   },
   "settings_page.in_range_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1122,7 +1122,7 @@
     "provider": "ollama"
   },
   "speaker_tools.about": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

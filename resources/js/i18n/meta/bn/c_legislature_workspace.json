@@ -1296,7 +1296,7 @@
     "provider": "ollama"
   },
   "speaker_tools.tiebreak_gloss": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

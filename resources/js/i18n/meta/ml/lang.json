@@ -2420,7 +2420,7 @@
     "provider": "ollama"
   },
   "Chair ballot rankings must name seated members of this committee (R-12 requires R-11).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3517,22 +3517,22 @@
     "provider": "ollama"
   },
   "F-CHR-002 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-003 requires a valid bill_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-005 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-CHR-006 requires a valid meeting_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3541,7 +3541,7 @@
     "provider": "ollama"
   },
   "F-ELB-008 requires a drawn polygon (geojson).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3610,7 +3610,7 @@
     "provider": "ollama"
   },
   "F-IND-006 requires the claim_id of the residency claim being confirmed.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3619,7 +3619,7 @@
     "provider": "ollama"
   },
   "F-IND-012 requires a valid jurisdiction_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3668,7 +3668,7 @@
     "provider": "ollama"
   },
   "F-IND-027 requires a valid case_id (the original case).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3725,7 +3725,7 @@
     "provider": "ollama"
   },
   "F-LEG-011 requires a valid committee_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3738,7 +3738,7 @@
     "provider": "ollama"
   },
   "F-LEG-022 requires a valid proceeding_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3767,7 +3767,7 @@
     "provider": "ollama"
   },
   "F-LEG-036 requires a valid member_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3816,12 +3816,12 @@
     "provider": "ollama"
   },
   "F-SPK-004 requires a valid vote_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "F-SPK-006 requires a valid session_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3834,7 +3834,7 @@
     "provider": "ollama"
   },
   "F-SPK-007 requires a valid proceeding_id.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

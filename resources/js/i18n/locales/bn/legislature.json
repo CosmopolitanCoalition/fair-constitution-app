@@ -531,6 +531,7 @@
   "legislature_speakertools.removal_presiding_f_spk_007": "পদচ্যুতির সভাপতিত্ব (F-SPK-007)",
   "legislature_speakertools.speaker_cast": "স্পিকারের ভোট",
   "legislature_speakertools.speaker_tie_breaking_votes": "স্পিকারের টাই-ব্রেকিং ভোট",
+  "legislature_speakertools.the_only_speaker_votes_on_record_each_cast": "রেকর্ডে থাকা একমাত্র স্পিকারের ভোট — যার প্রতিটি F-SPK-004-এর মাধ্যমে দেওয়া হয়েছে এমন একটি ভোটে যা টাই হয়ে শেষ হয়েছে, এবং অপরিবর্তিত পেগ থ্রেশহোল্ডের বিপরীতে পুনরায় গণনা করা হয়েছে।",
   "legislature_speakertools.the_speaker_facilitates_and_stays_politica": "স্পিকার সহজীকরণ করেন এবং রাজনৈতিকভাবে নিরপেক্ষ থাকেন: তারা প্রতিটি হর-এ একজন কর্মরত সদস্য হিসেবে থাকেন, শুধুমাত্র টাই ব্রেক করার জন্য ভোট দেন এবং পদচ্যুতির প্রক্রিয়ায় সভাপতিত্ব করেন — তবে কখনোই নিজের ক্ষেত্রে নয়। এই পৃষ্ঠাটি স্পিকারের নয়টি ফর্মের লঞ্চপ্যাড; প্রতিটি কন্ট্রোল তার নিজস্ব ওয়ার্কিং সারফেসে থাকে।",
   "legislature_speakertools.the_speaker_presides_over_every_removal_pr": "স্পিকার প্রতিটি পদচ্যুতির প্রক্রিয়ায় সভাপতিত্ব করেন, তবে নিজের ক্ষেত্রে নয়, যেখানে চেম্বার একজন বিকল্প প্রতিনিধি মনোনীত করে।",
   "legislature_speakertools.the_speaker_s_nine_forms": "স্পিকারের নয়টি ফর্ম",

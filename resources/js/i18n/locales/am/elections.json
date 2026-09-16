@@ -31,6 +31,7 @@
   "elections_boardconsole.of_valid": "{row} ከ {row2} ትክክለኛ ({pct_valid}%) — {row3}",
   "elections_boardconsole.open_the_countback_view": "የድጋሚ ቆጠራ እይታን ክፈት",
   "elections_boardconsole.open_the_legislature_browser": "የሕግ አውጪ ምክር ቤት መፈለጊያውን ክፈት →",
+  "elections_boardconsole.opens_wf_ele_05": "{row} · WF-ELE-05ን ይከፍታል",
   "elections_boardconsole.order_recount": "ድጋሚ ቆጠራ አዝዝ",
   "elections_boardconsole.pending_candidacy_registrations": "የዕጩነት ምዝገባ ጥያቄዎች በመጠባበቅ ላይ",
   "elections_boardconsole.petition_audits_due": "የአቤቱታ ኦዲቶች ቀጠሮ ደርሷቸዋል",

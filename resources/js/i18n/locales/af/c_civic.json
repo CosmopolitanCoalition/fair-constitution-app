@@ -279,6 +279,7 @@
   "petition_detail.an_associated_resident": "'n Geassosieerde inwoner",
   "petition_detail.appended": "Jou handtekening word by die rekord gevoeg",
   "petition_detail.audit_below": "onder die {threshold} drempel (stop-pad: te veel ongeldig → ongeldig gemaak).",
+  "petition_detail.audit_cite": "onafhanklike oudit · 'n R-08-aksie is slegs leesbaar hier · Art. II §6 · CLK-17",
   "petition_detail.audit_cite_empty": "onafhanklike oudit · Art. II §6 · CLK-17",
   "petition_detail.audit_completed": "{when} voltooi deur die {board} · gestoor as UTC.",
   "petition_detail.audit_confirmed": "Oudit voltooi — drempel bevestig",

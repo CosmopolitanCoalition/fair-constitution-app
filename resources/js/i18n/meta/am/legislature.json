@@ -1265,7 +1265,7 @@
     "provider": "ollama"
   },
   "legislature_emergencypowers.e_g_evacuation_orders_shelter_requisition_": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 0",
     "provider": "ollama"
   },
@@ -1862,7 +1862,7 @@
     "provider": "ollama"
   },
   "legislature_sessionconsole.sealed_to_the_public_record_adjourning_a_q": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

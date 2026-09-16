@@ -233,7 +233,7 @@
     "provider": "ollama"
   },
   "civic_identityverification.via": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },

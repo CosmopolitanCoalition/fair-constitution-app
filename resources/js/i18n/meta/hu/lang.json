@@ -1116,7 +1116,7 @@
     "provider": "ollama"
   },
   "An active court hears this petition's constitutional review — use F-JDG-008, never the Phase C stub (the stub survives only for forming-court jurisdictions).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1369,7 +1369,7 @@
     "provider": "ollama"
   },
   "Art. I (Freedom of Assembly) — granting confers R-07": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1943,7 +1943,7 @@
     "provider": "ollama"
   },
   "Art. IV §4; Art. I — advocate registration; confers R-21, keeps the bar zealous and competent": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3328,12 +3328,12 @@
     "provider": "ollama"
   },
   "Endorsement decided (F-ORG-002) — a grant is forced public and confers R-07 on the candidate.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "Endorsement re-made (F-ORG-002) — forced public and confers R-07 on the candidate again.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3531,7 +3531,7 @@
     "provider": "ollama"
   },
   "F-ADV-001 is filed by a registered advocate.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3545,7 +3545,7 @@
     "provider": "ollama"
   },
   "F-BOG-001 is filed by a seated member of THIS department's board (R-18).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3559,7 +3559,7 @@
     "provider": "ollama"
   },
   "F-BOG-002 is filed by a seated member of THIS department's board (R-18).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3605,7 +3605,7 @@
     "provider": "ollama"
   },
   "F-EXE-001 is filed by a seated principal of the OVERSEEING executive (R-14/15/16).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3622,7 +3622,7 @@
     "provider": "ollama"
   },
   "F-EXE-002 is filed by a member of the OVERSEEING executive.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3631,7 +3631,7 @@
     "provider": "ollama"
   },
   "F-EXE-003 is filed by a seated principal of the OVERSEEING executive (good-faith finding).": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3648,7 +3648,7 @@
     "provider": "ollama"
   },
   "F-IND-003 is filed by the resident — system filing is not defined.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3690,7 +3690,7 @@
     "provider": "ollama"
   },
   "F-IND-015 is filed by the registering resident.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3707,7 +3707,7 @@
     "provider": "ollama"
   },
   "F-IND-017 is filed by the complaining resident or their advocate.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -3716,7 +3716,7 @@
     "provider": "ollama"
   },
   "F-IND-027 is filed by a party to the original case.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

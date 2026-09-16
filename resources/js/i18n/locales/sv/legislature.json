@@ -438,6 +438,7 @@
   "legislature_sessionconsole.break_the_tie_f_spk_004": "Bryt oavgjort resultat (F-SPK-004)",
   "legislature_sessionconsole.call_attendance_the_published_quorum_count": "Kallelse → närvaro → publicerad siffra för beslutsförhet → författningsagenda → motioner och omröstningar → uttalanden → ajournering med förseglat protokoll. Nämnaren för beslutsförhet är varje sittande medlem, aldrig endast de närvarande — och ajournering startar om 90-dagarsklockan för möten (CLK-02).",
   "legislature_sessionconsole.call_open_a_session": "Kalla till och öppna en session",
+  "legislature_sessionconsole.compel_attendance_then_re_publish_the_coun": "Tvinga fram närvaro, publicera sedan räkningen igen när medlemmar anländer; eller ajournera och boka om inom CLK-02-fönstret. Upprepad brist på beslutsförhet hänvisas till det administrativa kontoret. Art. II §2 · 90-dagarsfristen gäller fortfarande — ett möte utan beslutsförhet återställer den aldrig",
   "legislature_sessionconsole.entered_verbatim_into_the_immutable_public": "Införts ordagrant i den oföränderliga offentliga handlingen · WF-SYS-03.",
   "legislature_sessionconsole.file_my_ranking_f_leg_008": "Skicka min rangordning (F-LEG-008)",
   "legislature_sessionconsole.i_am_present_f_leg_002": "Jag är närvarande (F-LEG-002)",

@@ -126,6 +126,7 @@
   "committee_detail.reports_gloss": "委員会全体の報告書や、同じ法案に関する以前の報告書を含むすべての報告書がここに表示されます。",
   "committee_detail.reports_title": "公開済みの委員会報告書",
   "committee_detail.roster_by_kind": "({a} タイプA + {b} タイプB)",
+  "committee_detail.roster_empty": "まだ議席に就いていません — 配置はF-SPK-005の割り当て実行時に決定されます",
   "committee_detail.roster_seats": "名簿 — {n} 議席",
   "committee_detail.scheduled_for": "予定日:",
   "committee_detail.sealed_record": "封印された記録 →",

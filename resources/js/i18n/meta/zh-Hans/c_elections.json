@@ -1012,7 +1012,7 @@
     "provider": "ollama"
   },
   "open.secret_body": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "ollama"
   },

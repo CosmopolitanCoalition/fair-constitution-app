@@ -348,7 +348,7 @@
     "provider": "ollama"
   },
   "executive_departmentdetail.two_clocks_clk_09_governors_clk_10_worker_": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -449,7 +449,7 @@
     "provider": "ollama"
   },
   "executive_departmentreporting.rules_and_reports_are_the_board_of_governo": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -1,21 +1,21 @@
 {
   "elections_boardconsole.available_to_r_08_prereq_f_ind_011_submitt": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "elections_boardconsole.available_to_r_08_prereq_legislature_seat_": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "elections_boardconsole.available_to_r_08_prereq_petition_at_thres": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
   "elections_boardconsole.available_to_r_08_prereq_voting_closed_tab": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -384,7 +384,7 @@
     "provider": "ollama"
   },
   "elections_candidateprofile.awaiting_board_validation_the_race_binding": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -1061,7 +1061,7 @@
     "provider": "ollama"
   },
   "elections_results.certification_pending_f_elb_004_election_r": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

@@ -16,6 +16,7 @@
   "organizations_codetscale.projection_the_engine_recomputes_on_real_h": "প্রক্ষেপণ — প্রকৃত সদস্য সংখ্যার পরিবর্তনে ইঞ্জিনটি পুনরায় গণনা করে · WF-ORG-04",
   "organizations_codetscale.reset_to_live_workers_seats": "লাইভে রিসেট করুন ({fmt} কর্মী · {workerSeats} আসন)",
   "organizations_codetscale.scales_uniformly_between_the_first_seat_an": "প্রথম আসন ({fmt}) এবং সমতার ({fmt2}) মধ্যে একইভাবে স্কেল করে · Art. III §6 · CLK-13 / CLK-14",
+  "organizations_codetscale.scaling_between_clk_13_and_clk_14": "CLK-13 এবং CLK-14-এর মধ্যে স্কেলিং",
   "organizations_codetscale.worker_elected_seats_r_27": "কর্মী-নির্বাচিত আসন (R-27)",
   "organizations_codetscale.worker_headcount_explorer": "কর্মীর সংখ্যা (এক্সপ্লোরার)",
   "organizations_codetscale.workers_against_owner_side_seats": "{entityLabel} — {ownerSeats} মালিক-পক্ষ আসনের বিপরীতে {fmt} কর্মী।",
