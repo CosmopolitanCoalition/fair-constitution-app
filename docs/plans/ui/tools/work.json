@@ -12796,7 +12796,7 @@
       "phase": "P1",
       "order": 10,
       "kind": "content",
-      "status": "blocked",
+      "status": "done",
       "blocker": "operator_go",
       "detail": "Merged item (operator, 2026-09-14): the absent per-locale catalog files and the untranslated keys are one job. The export writes each missing file with its keys; the machine first pass (local model on box E, ruling translation-first-pass-provider = A) or any AI translates; the importer validates and writes. Blocked until the surfaces settle. Tooling built (LG-0): scripts/i18n/export_master.py, import_translated.py, the Ollama provider; procedure in docs/plans/i18n/MASTER_EXPORT.md.",
       "done_when": "Every English namespace file exists for every registry row with target: true (75 non-English: the UN six, pl, it, tr and the Coalition website programme languages) and tests/js/i18nCoverage.test.mjs reports zero missing keys for the six conference locales; human naturalness review stays separate.",
@@ -12822,7 +12822,8 @@
           "label": "disposition",
           "href": "tests/js/i18nCoverage.test.mjs records 14 absent namespace files per conference locale as of 2026-09-14. translate_run.py exists but provider is unruled (rubric translation-first-pass-provider open)."
         },
-        "21da1b03 glossary 52 x 75; f598c0ae cloud provider; 8451d268 runner --force"
+        "21da1b03 glossary 52 x 75; f598c0ae cloud provider; 8451d268 runner --force",
+        "b8ff87b9 close-out: gate exit 0, coverage.json 75 locales; scratchpad ledgers overnight_run.log, sweep_run.log, lane_ledger.json (session 548861f8)"
       ],
       "history": [
         {
@@ -12884,6 +12885,10 @@
         {
           "date": "2026-09-15",
           "note": "Operator order (11:00 PM Eastern): expand the glossary, render it for every language, set up the Max machinery, run ONE full language, then decide on Pro or Max. DONE 21da1b03: 52 terms (14 drift terms added with contexts), 3,744 renderings, all 75 targets complete, script check clean, C8 unchanged (the 4 pre-existing Arabic Jurisdiction warnings). Cloud provider: gemma4:31b-cloud through the local daemon at 19 strings/s (f598c0ae reads the fenced JSON reply). Runner ready for Max: translate_run.py --locales all --provider ollama --model gemma4:31b-cloud --workers 10 --chunk 40 --force (8451d268 passes --force). RUNNING: the full Hindi pass with --force on the Free plan, one stream, log in the session scratchpad cloud_hi_full.log."
+        },
+        {
+          "date": "2026-09-16",
+          "note": "PASS COMPLETE (7:30 AM Eastern). All 75 target languages drafted by gemma4:31b-cloud with the 52-term glossary, every key re-drafted: Hindi 11:16 PM (single stream, 32 min), the other 74 on 10 lanes 11:48 PM to 6:58 AM, sweep of pending strings 6:58 to 7:29 with Welsh and Basque split four ways by namespace, edge-whitespace repair on 1,138 strings, gate exit 0 and glossary warnings 0. Coverage 97.7 (Basque) to 100 (Spanish), median 99.1; 11,444 strings across all languages left for the reader queue, each QA-rejected twice. Cost about 16 dollars of the 300 dollar Max credit. Every string is a machine draft; only Hindi has a reading review (100 strings: 90 clean, 2 misleading, 10 corrections applied fdb0e13d). Commits 7c2ea53e through b8ff87b9, all on GitHub. Lessons: the cloud occasionally never answers a request (timeout now 120 s, generation cap num_predict, c0eec49f 38f78182); a finished worker must retire its heartbeat (d27c334f); a language splits by namespace for parallel lanes. OPEN: which languages to enable (rubric question languages-to-enable); reading reviews for the other 74; the review queue."
         }
       ]
     },
