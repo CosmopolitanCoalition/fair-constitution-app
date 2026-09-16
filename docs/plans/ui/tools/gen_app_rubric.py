@@ -23,6 +23,12 @@ import json, io, sys, os
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 QUESTIONS = [
+  {"id":"languages-to-enable","q":"The overnight cloud pass drafted all 75 target languages (glossary-constrained, machine drafts, QA-gated). The app shows 7 today (en es ar zh-Hans hi fr pt). Which languages go live in the switcher for Krakow?","status":"open","lane":"i18n",
+   "detail":"Enabling is one registry switch per language (scripts/i18n/languages.py ENABLED, then the generated registries). Every draft is marked machine and the review queue on /system/translations is open to readers of that language. A sampled reading review of Hindi found 90 of 100 clean, 2 misleading, 0 glossary or placeholder faults; the low-resource languages have had no reading review. An enabled language with a misleading string is a visible demo risk; a disabled language with a good draft is a missed one.",
+   "options":[{"k":"A","t":"Enable all 75 now; the switcher states machine draft and the queue settles them over time."},
+    {"k":"B","t":"Enable the conference six plus Polish, Italian, Turkish (9); the rest after a sampled review each. [desk rec: the demo audience is covered and each enabled language has had or gets a 100-string review first]"},
+    {"k":"C","t":"Keep the 7 enabled today; everything else waits for review."},
+    {"k":"D","t":"Enable a list you name."}]},
   {"id":"boardroom-page-access","q":"Accessibility sweep (W-0447): /rooms/board/{board} returns 403 to a resident who is not a seated member of that election board. Keep the boardroom call private, or render the page read-only for every resident?","status":"open","lane":"a11y",
    "detail":"The access policy (2026-09-10) says every page READS for a resident and a role gates ACTIONS, never the page (commit 253847f0: a page never 403s on a role). InstitutionRoomController::board calls BoardRoomAccess::assertMayJoin, which aborts 403 for anyone not seated on that board; InstitutionRoomTest pins that 403 as the boardroom being a private call. It is the ONE route of 152 on the signed-in roster without a pass (docs/audits/2026-09-15/A11Y_ROSTER.md; ledger storage/logs/a11y_full/FINAL_TALLY.txt). The join and floor POST endpoints stay gated under either option.",
    "options":[{"k":"A","t":"Keep the boardroom private to its seated members; record the 403 as an accepted exception in the roster and the report. [desk rec: a deliberating election board is a closed meeting, unlike a chamber or a court]"},
