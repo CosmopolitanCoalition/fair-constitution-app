@@ -12823,7 +12823,8 @@
           "href": "tests/js/i18nCoverage.test.mjs records 14 absent namespace files per conference locale as of 2026-09-14. translate_run.py exists but provider is unruled (rubric translation-first-pass-provider open)."
         },
         "21da1b03 glossary 52 x 75; f598c0ae cloud provider; 8451d268 runner --force",
-        "b8ff87b9 close-out: gate exit 0, coverage.json 75 locales; scratchpad ledgers overnight_run.log, sweep_run.log, lane_ledger.json (session 548861f8)"
+        "b8ff87b9 close-out: gate exit 0, coverage.json 75 locales; scratchpad ledgers overnight_run.log, sweep_run.log, lane_ledger.json (session 548861f8)",
+        "docs/audits/2026-09-16/L10N_SPOTCHECK.md (f3a782ed): per-language grades from the 1,950-string reading review"
       ],
       "history": [
         {
@@ -12893,6 +12894,10 @@
         {
           "date": "2026-09-16",
           "note": "FILL-IN (8:00 AM Eastern, operator order): 4,595 QA-rejected strings down to 121 in two sweeps. Causes fixed in the pipeline: a failed batch now bisects (one poison string cost 39 neighbours, institution_acts.* in 37 languages), a rejected string gets one retry alone (3a42eb0c); the QA's token regexes use ASCII boundaries so a suffix an inflecting language attaches to :count or CLK-06 is not a mismatch (8b3392b5; 966 false rejections in Korean, Armenian, Finnish, Mongolian, Georgian). Commits fccb8663, 052af26f; gate exit 0, glossary warnings 0, coverage min 99.1 median 99.3, 57 of 75 languages with nothing left. Box up: package pins 26/26 green, the server answers in Hindi/Arabic/Polish/Zulu live. SPOT CHECK running (operator plan): conference nine at 100 strings with skeptics, top 20 by speakers at 30 with skeptics, the other 45 at 10; 1,950 strings, four fan-outs of 4 to 10 agents, Opus 4.8."
+        },
+        {
+          "date": "2026-09-16",
+          "note": "SPOT CHECK DONE (9:30 AM Eastern, f3a782ed): 1,950 sampled strings across 74 languages (Hindi from its earlier reviews), Opus 4.8 readers, skeptics on the conference and top-20 tiers. Grades: A 35, B 25, C 14 (A = 90 percent clean and no misleading string; B = 70 percent and at most one; C = below). Conference nine: French 98, Russian 96, Polish 96, Italian 95, Arabic 94, Spanish 94, Turkish 92, Portuguese 90 (2 misleading), Chinese 54 of 60 read, Hindi 90. C grade: Welsh 2/10, Irish 3/10, Basque 4/10, Maltese 4/10, Lithuanian 4/10, Slovenian 5/10, Mongolian 5/10, Estonian 6/11, Pashto 6/10, Catalan 6/10, Icelandic 7/10, plus Bengali, Turkish, Portuguese for two misleading strings each in an otherwise clean sample. 95 confirmed corrections applied (review-fix in meta). Report docs/audits/2026-09-16/L10N_SPOTCHECK.md; journals wf_c1cb56bc-76c, wf_a6b37441-868, wf_c93e2f29-553, wf_c45d7eed-c5f."
         }
       ]
     },
