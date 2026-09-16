@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Indlæser kosmisk adresse…",
+  "cosmicaddresspicker.multiverse": "Multivers ▸",
+  "schemaupdatebanner.apply_updates": "Anvend opdateringer",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Påkrævet: {pendingLabel} — anvend før start af ETL-kørsel.",
+  "setupstepper.build_districts": "Opbyg kredse",
+  "setupstepper.confirm_seat_institutions": "Bekræft og tildel sæder til institutioner",
+  "setupstepper.constitutional_defaults": "Forfatningsmæssige standardindstillinger",
+  "setupstepper.cosmic_address": "Kosmisk adresse",
+  "setupstepper.map_data": "Kortdata",
+  "setupstepper.setup_progress": "Opsætningsstatus"
+}

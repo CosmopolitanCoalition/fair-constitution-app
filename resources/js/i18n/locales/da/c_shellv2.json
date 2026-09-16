@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Navigation og læring",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Fulde lektioner Planlagt · Fase 7 Rapporter et problem",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Mekanismen bag denne skærm",
+  "shellv2_menunav.all_screens_the_full_map": "Alle skærme — det fulde kort",
+  "shellv2_menunav.requires_planned": "{label} {label2} Kræver {prereq} {label3} Planlagt",
+  "shellv2_tourbar.guided_tour": "Guided tur",
+  "shellv2_tourbar.guided_tour_step_of": "Guided tur · trin {stepNumber} ud af {total}{title}{blurb}"
+}

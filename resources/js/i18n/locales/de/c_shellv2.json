@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Navigation und Lernen",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Vollständige Lektionen Geplant · Phase 7 Problem melden",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Die Mechanik hinter diesem Bildschirm",
+  "shellv2_menunav.all_screens_the_full_map": "Alle Bildschirme — die vollständige Karte",
+  "shellv2_menunav.requires_planned": "{label} {label2} Erfordert {prereq} {label3} Geplant",
+  "shellv2_tourbar.guided_tour": "Geführte Tour",
+  "shellv2_tourbar.guided_tour_step_of": "Geführte Tour · Schritt {stepNumber} von {total}{title}{blurb}"
+}

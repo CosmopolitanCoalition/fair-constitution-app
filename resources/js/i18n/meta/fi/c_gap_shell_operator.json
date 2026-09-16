@@ -1,0 +1,140 @@
+{
+  "app_footer.accessibility": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_footer.instance_line": {
+    "status": "review",
+    "reason": "laravel token mismatch",
+    "provider": "ollama"
+  },
+  "app_footer.report_issue": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_footer.verified": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.guest_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.guest_public": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.guest_signup": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.guest_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.log_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.log_out": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.register": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.role_r00": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.role_r01": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.role_r02": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.role_r03": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.role_r04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.role_r05": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell.settings": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell_v2.back_home": {
+    "status": "review",
+    "reason": "laravel token mismatch",
+    "provider": "ollama"
+  },
+  "app_shell_v2.guest_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell_v2.guest_public": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell_v2.guest_signup": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell_v2.guest_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell_v2.log_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell_v2.log_out": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell_v2.register": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "app_shell_v2.settings": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_switcher.adm_country": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_switcher.adm_county": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_switcher.adm_municipality": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_switcher.adm_neighborhood": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_switcher.adm_planet": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_switcher.adm_state": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_switcher.adm_township": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

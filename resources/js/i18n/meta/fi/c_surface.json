@@ -1,0 +1,23 @@
+{
+  "surface_aboutsurface.about_this_surface": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "surface_formcard.available_to": {
+    "status": "review",
+    "reason": "laravel token mismatch",
+    "provider": "ollama"
+  },
+  "surface_formcard.submitting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "surface_pagescaffold.canonical_forms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "surface_pagescaffold.workflows": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

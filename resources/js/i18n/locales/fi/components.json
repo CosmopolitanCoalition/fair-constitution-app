@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Ladataan kosmista osoitetta…",
+  "cosmicaddresspicker.multiverse": "Multiversumi ▸",
+  "schemaupdatebanner.apply_updates": "Asenna päivitykset",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Vaaditaan: {pendingLabel} — asenna ennen ETL-ajon aloittamista.",
+  "setupstepper.build_districts": "Luo vaalipiirit",
+  "setupstepper.confirm_seat_institutions": "Vahvista ja anna paikat laitoksille",
+  "setupstepper.constitutional_defaults": "Perustuslain oletusasetukset",
+  "setupstepper.cosmic_address": "Kosminen osoite",
+  "setupstepper.map_data": "Karttadata",
+  "setupstepper.setup_progress": "Asennuksen edistyminen"
+}

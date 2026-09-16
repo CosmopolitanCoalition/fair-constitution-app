@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "افزوده شده:",
+  "law_diff.label": "تغییرات متن قانون",
+  "law_diff.removed": "حذف شده:",
+  "planned_banner.default_body": "این بخش از جهان پیش از ساخت طراحی شده است. هنوز هیچ‌چیز در اینجا فعال نیست و هیچ پول واقعی در کار نیست.",
+  "planned_banner.title": "برنامه‌ریزی شده — پیش‌نمایش.",
+  "selection_identity.aria_org": "سابقه سازمان برای {name}، مرجع {id}",
+  "selection_identity.aria_profile": "پروفایل عمومی برای {name}، مرجع {id}",
+  "selection_identity.org_reference": "مرجع سازمان:",
+  "selection_identity.organization_record": "سابقه سازمان",
+  "selection_identity.profile_reference": "مرجع پروفایل:",
+  "selection_identity.public_profile": "پروفایل عمومی"
+}

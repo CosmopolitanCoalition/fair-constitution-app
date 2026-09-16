@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "گزارش‌های رفتاری و حقوقی برای بررسی ارسال می‌شوند. ثبت گزارش در اینجا باعث حذف هیچ مطلبی نمی‌شود؛ حذف محتوا طبق استثنائات قانون اساسی (سازوکار F-SOC-003) انجام می‌شود و هرگز از طریق این فرم نیست.",
+  "support_report.file_a_report": "ثبت گزارش",
+  "support_report.file_report": "ثبت گزارش",
+  "support_report.filed_from": "ثبت شده از: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "استفاده از کلمات ساده مناسب است. آنچه انتظار داشتید و آنچه در واقع مشاهده کردید را بنویسید.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "گزارش‌ها به صندوق پشتیبانی اپراتور می‌رسند و بر اساس دسته‌بندی هدایت می‌شوند. این بخش هرگز خودش محتوایی را ویرایش یا حذف نمی‌کند.",
+  "support_report.what_happened": "چه اتفاقی افتاد؟",
+  "support_report.what_kind_of_report_is_this": "این چه نوع گزارشی است؟",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "برای ثبت گزارش باید وارد حساب خود شوید — وارد شوید و به این صفحه بازگردید."
+}

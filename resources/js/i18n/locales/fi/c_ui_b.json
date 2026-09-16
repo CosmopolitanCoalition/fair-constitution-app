@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "lisätty:",
+  "law_diff.label": "Lain tekstimuutokset",
+  "law_diff.removed": "poistettu:",
+  "planned_banner.default_body": "Tämä osa maailmasta on suunniteltu ennen rakentamista. Mikään ei ole vielä käytössä, eikä täällä ole oikeaa rahaa.",
+  "planned_banner.title": "Suunniteltu — esikatselu.",
+  "selection_identity.aria_org": "Organisaation tietue {name}, viite {id}",
+  "selection_identity.aria_profile": "Julkinen profiili {name}, viite {id}",
+  "selection_identity.org_reference": "Organisaation viite:",
+  "selection_identity.organization_record": "Organisaation tietue",
+  "selection_identity.profile_reference": "Profiilin viite:",
+  "selection_identity.public_profile": "Julkinen profiili"
+}

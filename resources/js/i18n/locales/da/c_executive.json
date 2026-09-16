@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "under tærsklen",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} nødbeføjelser udvider det delegerede område kun inden for det erklærede område og tidsrum · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "kan prøves ved en domstol · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Afvist før udstedelse: {rejection_citation} Ordren trådte aldrig i kraft; det afviste forsøg findes i den offentlige optegnelse."
+}

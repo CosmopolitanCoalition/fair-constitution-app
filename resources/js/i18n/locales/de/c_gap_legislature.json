@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "Wahl der Exekutive",
+  "election_kind.general": "Allgemeine Wahl",
+  "election_kind.judicial": "Wahl der Judikative",
+  "election_kind.org_board_owner": "Verwaltungsratswahl (Sitze der Eigentümer)",
+  "election_kind.org_board_worker": "Verwaltungsratswahl (Sitze der Arbeitnehmer)",
+  "election_kind.referendum": "Referendum",
+  "election_kind.restoration": "Wahl zur Wiederherstellung",
+  "election_kind.special": "Sonderwahl"
+}

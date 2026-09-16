@@ -1,0 +1,10 @@
+{
+  "support_report.file_a_report": "Indsend en rapport",
+  "support_report.file_report": "Indsend rapport",
+  "support_report.filed_from": "Indsendt fra: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Almindelige ord er fine. Beskriv, hvad du forventede, og hvad du så i stedet.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Rapporter lander i operatørens supportindbakke og sorteres efter kategori. Denne modtagelse redigerer eller fjerner aldrig indhold selv.",
+  "support_report.what_happened": "Hvad skete der?",
+  "support_report.what_kind_of_report_is_this": "Hvilken type rapport er dette?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Du skal være logget ind for at indsende en rapport — log ind og vend tilbage til denne side."
+}

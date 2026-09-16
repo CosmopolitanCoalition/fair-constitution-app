@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "انتخابات قوه مجریه",
+  "election_kind.general": "انتخابات عمومی",
+  "election_kind.judicial": "انتخابات قوه قضاییه",
+  "election_kind.org_board_owner": "انتخابات هیئت مدیره (کرسی‌های مالک)",
+  "election_kind.org_board_worker": "انتخابات هیئت مدیره (کرسی‌های کارکنان)",
+  "election_kind.referendum": "همه‌پرسی",
+  "election_kind.restoration": "انتخابات احیا",
+  "election_kind.special": "انتخابات ویژه"
+}

@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Land",
+  "adm_chip.level_2": "Stat / Provins",
+  "adm_chip.level_3": "Amt",
+  "adm_chip.level_4": "Kommune",
+  "adm_chip.level_5": "Sogn",
+  "adm_chip.level_6": "Kvarter",
+  "citation_line.as_implemented": "som implementeret",
+  "data_table.caption_scrollable": "{caption} (rullebar)",
+  "data_table.scrollable_table": "Rullebar tabel",
+  "history_pager.first_page": "Første side",
+  "history_pager.load_error": "Denne side kunne ikke indlæses. Prøv igen.",
+  "history_pager.loading": "Indlæser optegnelser…",
+  "history_pager.next": "Næste",
+  "history_pager.previous": "Forrige"
+}

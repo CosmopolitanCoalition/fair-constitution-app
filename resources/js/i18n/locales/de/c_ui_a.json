@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Land",
+  "adm_chip.level_2": "Bundesland / Provinz",
+  "adm_chip.level_3": "Landkreis",
+  "adm_chip.level_4": "Gemeinde",
+  "adm_chip.level_5": "Gemeindebezirk",
+  "adm_chip.level_6": "Stadtviertel",
+  "citation_line.as_implemented": "wie implementiert",
+  "data_table.caption_scrollable": "{caption} (scrollbar)",
+  "data_table.scrollable_table": "Scrollbare Tabelle",
+  "history_pager.first_page": "Erste Seite",
+  "history_pager.load_error": "Diese Seite konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
+  "history_pager.loading": "Datensätze werden geladen…",
+  "history_pager.next": "Weiter",
+  "history_pager.previous": "Zurück"
+}

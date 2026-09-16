@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeetta",
+  "adm_chip.level_1": "Maa",
+  "adm_chip.level_2": "Osavaltio / provinssi",
+  "adm_chip.level_3": "Piirikunta",
+  "adm_chip.level_4": "Kunta",
+  "adm_chip.level_5": "Kylä",
+  "adm_chip.level_6": "Naapurusto",
+  "citation_line.as_implemented": "toteutettuna",
+  "data_table.caption_scrollable": "{caption} (vieritettävä)",
+  "data_table.scrollable_table": "Vieritettävä taulukko",
+  "history_pager.first_page": "Ensimmäinen sivu",
+  "history_pager.load_error": "Tätä sivua ei voitu ladata. Yritä uudelleen.",
+  "history_pager.loading": "Tietueita ladataan…",
+  "history_pager.next": "Seuraava",
+  "history_pager.previous": "Edellinen"
+}

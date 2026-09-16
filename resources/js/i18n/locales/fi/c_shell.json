@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Valtiollisen hallinnon maailma",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Kehittäjän ohjaimet — ei osa sovellusta",
+  "shell_devbar.impersonating": "{label} — Teeskentelee olevansa {name}",
+  "shell_devbar.residency_tool_civic_residency": "Asuinpaikkatyökalu → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Tuomioistuimen tarkastusta odottaa · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Avaa poikkeusvaltuuksien ohjauspaneeli"
+}

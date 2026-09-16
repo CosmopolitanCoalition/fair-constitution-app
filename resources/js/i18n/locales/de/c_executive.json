@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "unter dem Schwellenwert",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} Notstandsbefugnisse erweitern den delegierten Umfang nur innerhalb des erklärten Gebiets und Zeitraums · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "gerichtlich überprüfbar · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Vor der Ausstellung abgelehnt: {rejection_citation} Die Anordnung trat nie in Kraft; der abgelehnte Versuch ist im öffentlichen Register vermerkt."
+}

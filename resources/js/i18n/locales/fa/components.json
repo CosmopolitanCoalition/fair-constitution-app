@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "در حال بارگذاری آدرس کیهانی...",
+  "cosmicaddresspicker.multiverse": "چندجهانی ▸",
+  "schemaupdatebanner.apply_updates": "اعمال به‌روزرسانی‌ها",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "الزامی: {pendingLabel} — پیش از شروع اجرای ETL اعمال کنید.",
+  "setupstepper.build_districts": "ساخت حوزه‌های انتخابیه",
+  "setupstepper.confirm_seat_institutions": "تأیید و استقرار نهادها",
+  "setupstepper.constitutional_defaults": "پیش‌فرض‌های قانون اساسی",
+  "setupstepper.cosmic_address": "آدرس کیهانی",
+  "setupstepper.map_data": "داده‌های نقشه",
+  "setupstepper.setup_progress": "پیشرفت راه‌اندازی"
+}

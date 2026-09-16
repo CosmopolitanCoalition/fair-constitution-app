@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "toimeenpanovallan vaalit",
+  "election_kind.general": "yleisvaalit",
+  "election_kind.judicial": "tuomiovallan vaalit",
+  "election_kind.org_board_owner": "hallituksen vaalit (omistajapaikat)",
+  "election_kind.org_board_worker": "hallituksen vaalit (työntekijäpaikat)",
+  "election_kind.referendum": "kansanäänestys",
+  "election_kind.restoration": "palauttamisvaalit",
+  "election_kind.special": "ylimääräiset vaalit"
+}

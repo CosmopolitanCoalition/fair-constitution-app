@@ -1,0 +1,8 @@
+{
+  "dismiss": "Schließen",
+  "failed": "Die Anfrage konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.",
+  "loading": "Laden…",
+  "refresh": "Aktualisieren und erneut versuchen",
+  "slow": "Wird immer noch geladen…",
+  "start_failed": "Die Seite konnte nicht geöffnet werden."
+}

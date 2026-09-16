@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "kynnyksen alapuolella",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} poikkeusvaltuudet laajentavat delegoitua toimivaltaa vain ilmoitetulla alueella ja ajanjaksolla · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "tuomioistuimen tarkastettavissa · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Hylätty ennen myöntämistä: {rejection_citation} Määräys ei koskaan astunut voimaan; hylätty yritys on julkisessa rekisterissä."
+}

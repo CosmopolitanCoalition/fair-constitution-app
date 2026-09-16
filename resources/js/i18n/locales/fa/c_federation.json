@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "پیوستن به خوشه",
+  "federation_syncprogress.of_left": "{fmtValue} از {fmtValue2}~{fmtDuration} باقی مانده",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} رکورد · {fmtNum2} صفحه. وارد کردن بنیاد در پایگاه داده… وارد شد. در انتظار… {fmtNum3}/ثانیه",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "می‌توانید این صفحه را ترک کنید؛ همگام‌سازی در پس‌زمینه اجرا می‌شود و در صورت قطع شدن، از سر گرفته می‌شود."
+}

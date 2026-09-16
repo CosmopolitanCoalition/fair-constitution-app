@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "سیاره",
+  "adm_chip.level_1": "کشور",
+  "adm_chip.level_2": "ایالت / استان",
+  "adm_chip.level_3": "شهرستان",
+  "adm_chip.level_4": "شهرداری",
+  "adm_chip.level_5": "بخش",
+  "adm_chip.level_6": "محله",
+  "citation_line.as_implemented": "طبق اجرا شده",
+  "data_table.caption_scrollable": "{caption} (قابل پیمایش)",
+  "data_table.scrollable_table": "جدول قابل پیمایش",
+  "history_pager.first_page": "صفحه اول",
+  "history_pager.load_error": "این صفحه بارگذاری نشد. دوباره تلاش کنید.",
+  "history_pager.loading": "در حال بارگذاری سوابق...",
+  "history_pager.next": "بعدی",
+  "history_pager.previous": "قبلی"
+}

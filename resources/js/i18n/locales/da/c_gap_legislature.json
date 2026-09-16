@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "valg af udøvende magt",
+  "election_kind.general": "generelt valg",
+  "election_kind.judicial": "valg af dømmende magt",
+  "election_kind.org_board_owner": "bestyrelsesvalg (ejersæder)",
+  "election_kind.org_board_worker": "bestyrelsesvalg (arbejdersæder)",
+  "election_kind.referendum": "folkeafstemning",
+  "election_kind.restoration": "genoprettelsesvalg",
+  "election_kind.special": "suppleringsvalg"
+}

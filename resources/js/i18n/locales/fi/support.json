@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Käyttäytymis- ja oikeudelliset raportit ohjataan tarkastettavaksi. Raportointi ei poista mitään — sisällön poistaminen tapahtuu perustuslain poikkeusten (F-SOC-003 mekanismi) mukaisesti, ei tämän lomakkeen kautta.",
+  "support_report.file_a_report": "Tee raportti",
+  "support_report.file_report": "Tee raportti",
+  "support_report.filed_from": "Lähetetty osoitteesta: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Selkeät sanat riittävät. Kerro, mitä odotit ja mitä näit sen sijaan.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Raportit tulevat operaattorin tukipostiin ja ohjataan kategorioittain. Tämä vastaanotto ei koskaan muokkaa tai poista sisältöä.",
+  "support_report.what_happened": "Mitä tapahtui?",
+  "support_report.what_kind_of_report_is_this": "Minkälainen raportti tämä on?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Sinun on oltava kirjautuneena voidaksesi tehdä raportin — kirjaudu sisään ja palaa tälle sivulle."
+}

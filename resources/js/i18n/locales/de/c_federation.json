@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Cluster wird beigetreten",
+  "federation_syncprogress.of_left": "{fmtValue} von {fmtValue2}~{fmtDuration} verbleibend",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} Datensätze · {fmtNum2} SeitenImportieren der Grundlage in die Datenbank…ImportiertWarten…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Sie können diese Seite verlassen — die Synchronisierung läuft im Hintergrund und wird bei Unterbrechung fortgesetzt."
+}
