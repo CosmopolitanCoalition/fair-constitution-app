@@ -328,8 +328,8 @@
                     <template v-if="props.stats || hasAnyFlag || optimalLabel">
                         <button @click="statsPanelCollapsed = !statsPanelCollapsed"
                                 class="fixed z-[1100] flex items-center gap-2 rounded border bg-gray-900/95 px-2.5 py-1 text-[11px] shadow-lg backdrop-blur select-none
-                                       bottom-20 right-2
-                                       md:bottom-36 md:right-3"
+                                       bottom-20 end-2
+                                       md:bottom-36 md:end-3"
                                 :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
                             <span class="font-semibold text-cyan-400 uppercase tracking-wide">{{ t('c_legislature_pages_b.type_b_districts.map_quality', 'Map Quality') }}</span>
                             <span v-if="hardFlagCount > 0" class="text-red-400">⛔ {{ hardFlagCount }}</span>
@@ -338,12 +338,12 @@
                             <span v-if="props.stats?.contiguity" class="text-gray-400 hidden md:inline">
                                 {{ t('c_legislature_pages_b.type_b_districts.contig_short', { a: props.stats.contiguity.contiguous_count, b: props.stats.contiguity.contiguous_count + props.stats.contiguity.non_contiguous_count }, 'Contig {a}/{b}') }}
                             </span>
-                            <span class="text-gray-300 transition-transform" :class="statsPanelCollapsed ? '' : 'rotate-90'">›</span>
+                            <span class="text-gray-300 transition-transform" :class="statsPanelCollapsed ? '' : 'rotate-90 rtl:-rotate-90'">›</span>
                         </button>
                         <div v-if="!statsPanelCollapsed"
                              class="fixed z-[1100] rounded border bg-gray-900/95 shadow-2xl backdrop-blur
-                                    bottom-28 left-2 right-2
-                                    md:bottom-44 md:left-auto md:right-3 md:w-[400px]"
+                                    bottom-28 start-2 end-2
+                                    md:bottom-44 md:start-auto md:end-3 md:w-[400px]"
                              :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
                             <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-800">
                                 <span class="text-xs font-semibold text-cyan-400 uppercase tracking-wide">{{ t('c_legislature_pages_b.type_b_districts.map_quality', 'Map Quality') }}</span>
@@ -357,7 +357,7 @@
                                 <div class="text-[10px] uppercase font-semibold mb-1"
                                      :class="hardFlagCount > 0 ? 'text-red-400' : 'text-amber-400'">
                                     {{ t('c_legislature_pages_b.type_b_districts.constitutional_flags', 'Constitutional Flags') }}
-                                    <span class="text-gray-300 normal-case font-normal ml-1">
+                                    <span class="text-gray-300 normal-case font-normal ms-1">
                                         {{ (props.flags.cap ? 1 : 0) + (props.flags.floor_exceptions?.length ?? 0) + (props.flags.ceiling_exceptions?.length ?? 0) + (props.flags.deep_overages?.length ?? 0) + (props.flags.incomplete_scopes?.length ?? 0) + (props.flags.uneven_clumps ? 1 : 0) }} {{ t('c_legislature_pages_b.type_b_districts.issues', 'issue(s)') }}
                                     </span>
                                 </div>
@@ -421,8 +421,8 @@
                             <div v-if="false">
                                 <div class="relative group inline-flex items-center gap-1 mb-0.5">
                                     <span class="text-gray-300 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages_b.type_b_districts.community_integrity', 'Community Integrity') }}</span>
-                                    <span class="text-gray-300 text-[9px] cursor-help select-none ml-0.5">?</span>
-                                    <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
+                                    <span class="text-gray-300 text-[9px] cursor-help select-none ms-0.5">?</span>
+                                    <div class="pointer-events-none absolute start-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                         {{ t('c_legislature_pages_b.type_b_districts.ci_tooltip', 'Districts drawn along pre-existing administrative boundaries help preserve community integrity. Manual line-drawing is only needed when a jurisdiction has more seats than the constitutional ceiling allows and has no child subdivisions. In all other cases, sub-districts can be created along existing administrative borders.') }}
                                     </div>
                                 </div>
@@ -434,7 +434,7 @@
                                             {{ props.stats.community_integrity.good_count }}
                                             ({{ pct(props.stats.community_integrity.good_count, props.stats.community_integrity.total_count) }})
                                         </span>
-                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ms-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.community_integrity.good_population) }} {{ t('c_legislature_pages_b.type_b_districts.pop', 'pop') }}
                                             ({{ pct(props.stats.community_integrity.good_population, props.stats.community_integrity.total_population) }})
                                         </span>
@@ -446,7 +446,7 @@
                                             {{ props.stats.community_integrity.total_count - props.stats.community_integrity.good_count }}
                                             ({{ pct(props.stats.community_integrity.total_count - props.stats.community_integrity.good_count, props.stats.community_integrity.total_count) }})
                                         </span>
-                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ms-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.community_integrity.total_population - props.stats.community_integrity.good_population) }} {{ t('c_legislature_pages_b.type_b_districts.pop', 'pop') }}
                                             ({{ pct(props.stats.community_integrity.total_population - props.stats.community_integrity.good_population, props.stats.community_integrity.total_population) }})
                                         </span>
@@ -459,8 +459,8 @@
                             <div>
                                 <div class="relative group inline-flex items-center gap-1 mb-0.5">
                                     <span class="text-gray-300 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages_b.type_b_districts.constitutional_contiguity', 'Constitutional Contiguity') }}</span>
-                                    <span class="text-gray-300 text-[9px] cursor-help select-none ml-0.5">?</span>
-                                    <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
+                                    <span class="text-gray-300 text-[9px] cursor-help select-none ms-0.5">?</span>
+                                    <div class="pointer-events-none absolute start-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                         {{ t('c_legislature_pages_b.type_b_districts.contig_tooltip', 'Contiguity is considered broken only when it was achievable in the first place. Geographic impossibilities are exempt. These include island jurisdictions with no land border to any sibling, members completely surrounded by jurisdictions too large to combine without breaching the constitutional ceiling, and single-member districts, which are never constitutionally incongruous. The same applies to similarly isolated clusters that cannot reach the constitutional floor.') }}
                                     </div>
                                 </div>
@@ -472,7 +472,7 @@
                                             {{ props.stats.contiguity.contiguous_count }}
                                             ({{ pct(props.stats.contiguity.contiguous_count, props.stats.contiguity.checked_count) }})
                                         </span>
-                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ms-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.contiguity.contiguous_pop) }} {{ t('c_legislature_pages_b.type_b_districts.pop', 'pop') }}
                                             ({{ pct(props.stats.contiguity.contiguous_pop, props.stats.contiguity.contiguous_pop + props.stats.contiguity.non_contiguous_pop + props.stats.contiguity.unchecked_pop) }})
                                         </span>
@@ -484,7 +484,7 @@
                                             {{ props.stats.contiguity.non_contiguous_count }}
                                             ({{ pct(props.stats.contiguity.non_contiguous_count, props.stats.contiguity.checked_count) }})
                                         </span>
-                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ms-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.contiguity.non_contiguous_pop) }} {{ t('c_legislature_pages_b.type_b_districts.pop', 'pop') }}
                                             ({{ pct(props.stats.contiguity.non_contiguous_pop, props.stats.contiguity.contiguous_pop + props.stats.contiguity.non_contiguous_pop + props.stats.contiguity.unchecked_pop) }})
                                         </span>
@@ -496,7 +496,7 @@
                                             {{ props.stats.contiguity.unchecked_count }}
                                             ({{ pct(props.stats.contiguity.unchecked_count, props.stats.contiguity.checked_count) }})
                                         </span>
-                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ms-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.contiguity.unchecked_pop) }} {{ t('c_legislature_pages_b.type_b_districts.pop', 'pop') }}
                                         </span>
                                     </div>
@@ -512,8 +512,8 @@
                                     <div class="inline-flex items-center gap-1">
                                         <span class="text-gray-300 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages_b.type_b_districts.population_equality', 'Population Equality') }}</span>
                                         <span class="text-gray-300 normal-case font-normal text-[10px]">{{ t('c_legislature_pages_b.type_b_districts.pe_district_count', { n: props.stats.population_equality.district_count }, '({n} districts)') }}</span>
-                                        <span class="text-gray-300 text-[9px] cursor-help select-none ml-0.5">?</span>
-                                        <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
+                                        <span class="text-gray-300 text-[9px] cursor-help select-none ms-0.5">?</span>
+                                        <div class="pointer-events-none absolute start-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                             {{ t('c_legislature_pages_b.type_b_districts.pe_tooltip', 'Measures how evenly each district\'s population-per-seat matches the ideal "one person, one vote" standard. Lower deviation means each vote carries more equal weight.') }}
                                             <span class="block mt-1 text-gray-400">{{ t('c_legislature_pages_b.type_b_districts.pe_tooltip_note', '(Includes all sub-national districts in this map.)') }}</span>
                                         </div>
@@ -533,7 +533,7 @@
                                                 {{ props.stats.population_equality.tiers.good.count }}
                                                 ({{ props.stats.population_equality.tiers.good.pct }}%)
                                             </span>
-                                            <span class="text-gray-300 ml-auto whitespace-nowrap">
+                                            <span class="text-gray-300 ms-auto whitespace-nowrap">
                                                 {{ formatPop(props.stats.population_equality.tiers.good.population) }} {{ t('c_legislature_pages_b.type_b_districts.pop', 'pop') }}
                                                 ({{ pct(props.stats.population_equality.tiers.good.population, props.stats.population_equality.total_population) }})
                                             </span>
@@ -545,7 +545,7 @@
                                                 {{ props.stats.population_equality.tiers.ok.count }}
                                                 ({{ props.stats.population_equality.tiers.ok.pct }}%)
                                             </span>
-                                            <span class="text-gray-300 ml-auto whitespace-nowrap">
+                                            <span class="text-gray-300 ms-auto whitespace-nowrap">
                                                 {{ formatPop(props.stats.population_equality.tiers.ok.population) }} {{ t('c_legislature_pages_b.type_b_districts.pop', 'pop') }}
                                                 ({{ pct(props.stats.population_equality.tiers.ok.population, props.stats.population_equality.total_population) }})
                                             </span>
@@ -557,7 +557,7 @@
                                                 {{ props.stats.population_equality.tiers.bad.count }}
                                                 ({{ props.stats.population_equality.tiers.bad.pct }}%)
                                             </span>
-                                            <span class="text-gray-300 ml-auto whitespace-nowrap">
+                                            <span class="text-gray-300 ms-auto whitespace-nowrap">
                                                 {{ formatPop(props.stats.population_equality.tiers.bad.population) }} {{ t('c_legislature_pages_b.type_b_districts.pop', 'pop') }}
                                                 ({{ pct(props.stats.population_equality.tiers.bad.population, props.stats.population_equality.total_population) }})
                                             </span>
@@ -608,8 +608,8 @@
                                 <div class="relative group flex items-baseline justify-between gap-2 mb-0.5">
                                     <div class="inline-flex items-center gap-1">
                                         <span class="text-gray-300 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages_b.type_b_districts.shape_compactness', 'Shape Compactness') }}</span>
-                                        <span class="text-gray-300 text-[9px] cursor-help select-none ml-0.5">?</span>
-                                        <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
+                                        <span class="text-gray-300 text-[9px] cursor-help select-none ms-0.5">?</span>
+                                        <div class="pointer-events-none absolute start-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                             {{ t('c_legislature_pages_b.type_b_districts.sc_tooltip', 'Measures whether the district\'s outer boundary is compact or irregular using the Convex Hull Ratio: district area divided by the area of its convex hull (1.0 = perfectly convex).') }}
                                         </div>
                                     </div>
@@ -622,7 +622,7 @@
                                         <span class="text-emerald-400">&#9632;</span>
                                         <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages_b.type_b_districts.sc_compact', 'Compact (≥0.70):') }}</span>
                                         <span class="text-gray-200">{{ props.stats.shape_compactness.tiers.good.count }} ({{ props.stats.shape_compactness.tiers.good.pct }}%)</span>
-                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ms-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.shape_compactness.tiers.good.population) }} {{ t('c_legislature_pages_b.type_b_districts.pop', 'pop') }}
                                             ({{ pct(props.stats.shape_compactness.tiers.good.population, props.stats.shape_compactness.total_population) }})
                                         </span>
@@ -631,7 +631,7 @@
                                         <span class="text-amber-400">&#9632;</span>
                                         <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages_b.type_b_districts.sc_moderate', 'Moderate (0.50–0.70):') }}</span>
                                         <span class="text-gray-200">{{ props.stats.shape_compactness.tiers.ok.count }} ({{ props.stats.shape_compactness.tiers.ok.pct }}%)</span>
-                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ms-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.shape_compactness.tiers.ok.population) }} {{ t('c_legislature_pages_b.type_b_districts.pop', 'pop') }}
                                             ({{ pct(props.stats.shape_compactness.tiers.ok.population, props.stats.shape_compactness.total_population) }})
                                         </span>
@@ -640,7 +640,7 @@
                                         <span class="text-red-400">&#9632;</span>
                                         <span class="text-gray-400 whitespace-nowrap">{{ t('c_legislature_pages_b.type_b_districts.sc_irregular', 'Irregular (<0.50):') }}</span>
                                         <span class="text-gray-200">{{ props.stats.shape_compactness.tiers.bad.count }} ({{ props.stats.shape_compactness.tiers.bad.pct }}%)</span>
-                                        <span class="text-gray-300 ml-auto whitespace-nowrap">
+                                        <span class="text-gray-300 ms-auto whitespace-nowrap">
                                             {{ formatPop(props.stats.shape_compactness.tiers.bad.population) }} {{ t('c_legislature_pages_b.type_b_districts.pop', 'pop') }}
                                             ({{ pct(props.stats.shape_compactness.tiers.bad.population, props.stats.shape_compactness.total_population) }})
                                         </span>
@@ -653,8 +653,8 @@
                             <div v-if="clumpOptimalLabel">
                                 <div class="relative group inline-flex items-center gap-1 mb-1">
                                     <span class="text-gray-300 text-[10px] uppercase font-semibold">{{ t('c_legislature_pages_b.type_b_districts.uniform_diversity', 'Uniform Political Diversity') }}</span>
-                                    <span class="text-gray-300 text-[9px] cursor-help select-none ml-0.5">?</span>
-                                    <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
+                                    <span class="text-gray-300 text-[9px] cursor-help select-none ms-0.5">?</span>
+                                    <div class="pointer-events-none absolute start-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                         {{ t('c_legislature_pages_b.type_b_districts.ud_tooltip', 'Tracks whether the clumps hold an even number of constituent parts. Optimal shows the ideal even split (base and base+1). Current shows the actual member split of the drawn clumps. When they match, every clump is as equal as the part count allows.') }}
                                     </div>
                                 </div>

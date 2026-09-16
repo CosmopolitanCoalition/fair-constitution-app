@@ -1471,7 +1471,7 @@ onBeforeUnmount(() => {
                         <!-- Column header: the map class, then one total per line. -->
                         <div class="flex items-start justify-between gap-3 border-b border-gray-800 pb-1">
                             <div class="text-gray-200 font-semibold">{{ col.title }}</div>
-                            <div class="text-right shrink-0">
+                            <div class="text-end shrink-0">
                                 <div v-for="m in col.meta" :key="m" class="text-gray-400 tabular-nums">{{ m }}</div>
                             </div>
                         </div>
@@ -1482,8 +1482,8 @@ onBeforeUnmount(() => {
                                 <div class="relative group inline-flex items-center gap-1">
                                     <span class="text-gray-400 text-[10px] uppercase font-semibold">{{ sec.title }}</span>
                                     <span v-if="sec.sub" class="text-gray-600 normal-case font-normal text-[10px]">{{ sec.sub }}</span>
-                                    <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
-                                    <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-64 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
+                                    <span class="text-gray-600 text-[9px] cursor-help select-none ms-0.5">?</span>
+                                    <div class="pointer-events-none absolute start-0 top-full mt-0.5 z-50 w-64 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                         {{ sec.tip }}
                                     </div>
                                 </div>
@@ -1493,11 +1493,11 @@ onBeforeUnmount(() => {
                                 </span>
                             </div>
                             <div class="space-y-0.5">
-                                <div v-for="row in sec.rows" :key="row.label" class="flex items-baseline gap-1" :class="row.indent ? 'pl-4' : ''">
+                                <div v-for="row in sec.rows" :key="row.label" class="flex items-baseline gap-1" :class="row.indent ? 'ps-4' : ''">
                                     <span :class="Q_DOT[row.dot]">&#9632;</span>
                                     <span class="text-gray-400 whitespace-nowrap">{{ row.label }}</span>
                                     <span class="text-gray-200">{{ row.value }}</span>
-                                    <span v-if="row.right" class="text-gray-400 ml-auto whitespace-nowrap">{{ row.right }}</span>
+                                    <span v-if="row.right" class="text-gray-400 ms-auto whitespace-nowrap">{{ row.right }}</span>
                                 </div>
                             </div>
                         </div>
