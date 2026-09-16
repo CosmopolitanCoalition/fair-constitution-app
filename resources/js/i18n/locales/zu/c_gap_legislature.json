@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "ukhetho lwesisigungu esiphethe",
+  "election_kind.general": "ukhetho jikelele",
+  "election_kind.judicial": "ukhetho lobulungiswa",
+  "election_kind.org_board_owner": "ukhetho lwebhodi (izihlalo zabanikazi)",
+  "election_kind.org_board_worker": "ukhetho lwebhodi (izihlalo basebenzi)",
+  "election_kind.referendum": "inhlolovo",
+  "election_kind.restoration": "ukhetho lokubuyisela",
+  "election_kind.special": "ukhetho olukhethekile"
+}

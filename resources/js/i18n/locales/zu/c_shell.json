@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Umhlaba wezombusiso",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Izilawuli zomthuthukisi — akuyona ingxenye yohlelo",
+  "shell_devbar.impersonating": "{label} — Ukuzenza ube ngu-{name}",
+  "shell_devbar.residency_tool_civic_residency": "Ithuluzi lokuhlala → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Ukubuyekezwa kobulungiswa kulindile · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Vula ibhodi lamandla esimo esiphuthumayo"
+}

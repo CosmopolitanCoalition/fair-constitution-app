@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Ukuhlanganisa iqela",
+  "federation_syncprogress.of_left": "{fmtValue} kwe-{fmtValue2}~{fmtDuration} kusasele",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} amarekhodi · {fmtNum2} amakhasi. Ukufaka isisekelo kudatha-bhase…Kufakiwe. kulindwe…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Ungashiya le khasi — ukuhambisana kuqhubeka ngemuva futhi kuqala kabusha uma kuphazamiseka."
+}

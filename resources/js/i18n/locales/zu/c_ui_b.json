@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "kwengeziwe:",
+  "law_diff.label": "Izinguquko zombhalo womthetho",
+  "law_diff.removed": "kususwe:",
+  "planned_banner.default_body": "Le ngxenye yomhlaba iklanywe ngaphambi kokwakhiwa. Akukho okusebenzayo lapha, futhi akukho mali yangempela noma kuphi.",
+  "planned_banner.title": "Kuhleliwe — ukubuka kusengaphambili.",
+  "selection_identity.aria_org": "Irekhodi lenhlangano lika {name}, ireferensi {id}",
+  "selection_identity.aria_profile": "Iphrofayili yomphakathi ka {name}, ireferensi {id}",
+  "selection_identity.org_reference": "Ireferensi yenhlangano:",
+  "selection_identity.organization_record": "Irekhodi lenhlangano",
+  "selection_identity.profile_reference": "Ireferensi yephrofayili:",
+  "selection_identity.public_profile": "Iphrofayili yomphakathi"
+}

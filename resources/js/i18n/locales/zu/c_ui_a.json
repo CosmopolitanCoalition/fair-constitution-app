@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Iplanethi",
+  "adm_chip.level_1": "Izwe",
+  "adm_chip.level_2": "Isifunda / Isifundazwe",
+  "adm_chip.level_3": "Isifunda esincane",
+  "adm_chip.level_4": "Umasipala",
+  "adm_chip.level_5": "Umasipala omncane",
+  "adm_chip.level_6": "Umkhukhu",
+  "citation_line.as_implemented": "njengoba sekusebenza",
+  "data_table.caption_scrollable": "{caption} (engashintshashintshwa)",
+  "data_table.scrollable_table": "Itafula elingashintshashintshwa",
+  "history_pager.first_page": "Ikhasi lokuqala",
+  "history_pager.load_error": "Leli khasi alikwazanga ukulayidwa. Zama futhi.",
+  "history_pager.loading": "Kulayidwa irekhodi…",
+  "history_pager.next": "Okulandelayo",
+  "history_pager.previous": "Okungaphambilini"
+}

@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Ukuhamba nokufunda",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Izifundo ezigcwele Ezihleliwe · Isibiko seSigaba 7 Bika inkinga",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Ukuphatha okusemuva kwalesi sikhumba",
+  "shellv2_menunav.all_screens_the_full_map": "Zonke izikhumba — imephu ephelele",
+  "shellv2_menunav.requires_planned": "{label} {label2} Kudingeka {prereq} {label3} Kuhleliwe",
+  "shellv2_tourbar.guided_tour": "Uhambo oluholwayo",
+  "shellv2_tourbar.guided_tour_step_of": "Uhapo oluholwayo · isinyathelo {stepNumber} kue {total}{title}{blurb}"
+}

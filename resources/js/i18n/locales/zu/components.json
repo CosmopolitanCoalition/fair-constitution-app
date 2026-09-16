@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Kulayidwa ikheli lomkhathi…",
+  "cosmicaddresspicker.multiverse": "Multiverse ▸",
+  "schemaupdatebanner.apply_updates": "Faka izibuyekezo",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Kudingeka: {pendingLabel} — faka ngaphambi kokuqala ukuhamba kwe-ETL.",
+  "setupstepper.build_districts": "Zakha Izifunda",
+  "setupstepper.confirm_seat_institutions": "Qinisekisa & Hlala Ezikhungweni",
+  "setupstepper.constitutional_defaults": "Izinto Ezimiselwe Zomthethosisekelo",
+  "setupstepper.cosmic_address": "Ikheli Lomkhathi",
+  "setupstepper.map_data": "Idatha Yemephu",
+  "setupstepper.setup_progress": "Inqubo yokusetha"
+}
