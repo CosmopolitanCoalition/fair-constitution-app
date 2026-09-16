@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "クラスターに参加中",
+  "federation_syncprogress.of_left": "{fmtValue2}〜{fmtDuration}のうち、残り{fmtValue}",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum}件の記録 · {fmtNum2}ページ。データベースに財団をインポート中…インポート完了。待機中…{fmtNum3}/秒",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "このページを離れても構いません。同期はバックグラウンドで実行され、中断されても再開されます。"
+}

@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Negara",
+  "adm_chip.level_2": "Negara Bagian / Provinsi",
+  "adm_chip.level_3": "Kabupaten",
+  "adm_chip.level_4": "Kotamadya",
+  "adm_chip.level_5": "Kecamatan",
+  "adm_chip.level_6": "Lingkungan",
+  "citation_line.as_implemented": "sebagaimana diterapkan",
+  "data_table.caption_scrollable": "{caption} (dapat digulir)",
+  "data_table.scrollable_table": "Tabel dapat digulir",
+  "history_pager.first_page": "Halaman pertama",
+  "history_pager.load_error": "Halaman ini tidak dapat dimuat. Coba lagi.",
+  "history_pager.loading": "Memuat catatan…",
+  "history_pager.next": "Berikutnya",
+  "history_pager.previous": "Sebelumnya"
+}

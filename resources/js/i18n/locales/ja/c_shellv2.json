@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "ナビゲーションと学習",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "全レッスン 計画済み · フェーズ 7 問題を報告",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "この画面の仕組み",
+  "shellv2_menunav.all_screens_the_full_map": "全画面 — 全体マップ",
+  "shellv2_menunav.requires_planned": "{label} {label2} {prereq} {label3} 計画済みが必要",
+  "shellv2_tourbar.guided_tour": "ガイドツアー",
+  "shellv2_tourbar.guided_tour_step_of": "ガイドツアー · ステップ {stepNumber} / {total}{title}{blurb}"
+}

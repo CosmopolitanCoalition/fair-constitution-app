@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Bergabung dengan klaster",
+  "federation_syncprogress.of_left": "{fmtValue} dari {fmtValue2}~{fmtDuration} tersisa",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} catatan · {fmtNum2} halamanMengimpor fondasi ke dalam basis data…Diimpormenunggu…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Anda dapat meninggalkan halaman ini — sinkronisasi berjalan di latar belakang dan akan berlanjut jika terhenti."
+}

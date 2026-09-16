@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "curtha leis:",
+  "law_diff.label": "Athruithe ar théacs an dlí",
+  "law_diff.removed": "bainte:",
+  "planned_banner.default_body": "Tá an cuid seo den domhan deartha roimh an tógáil. Níl aon rud beo anseo fós, agus níl aon airgead fíor áit ar bith.",
+  "planned_banner.title": "Pleanáilte — réamhécsamail.",
+  "selection_identity.aria_org": "Taifead eagraíochta do {name}, tagairt {id}",
+  "selection_identity.aria_profile": "Próifíl phoiblí do {name}, tagairt {id}",
+  "selection_identity.org_reference": "Tagairt eagraíochta:",
+  "selection_identity.organization_record": "Taifead eagraíochta",
+  "selection_identity.profile_reference": "Tagairt próifíle:",
+  "selection_identity.public_profile": "Próifíl phoiblí"
+}

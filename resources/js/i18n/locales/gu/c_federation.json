@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "ક્લસ્ટરમાં જોડાઈ રહ્યું છે",
+  "federation_syncprogress.of_left": "{fmtValue} માંથી {fmtValue2}~{fmtDuration} બાકી",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} રેકોર્ડ્સ · {fmtNum2} પેજડેટાબેઝમાં ફાઉન્ડેશન ઈમ્પોર્ટ કરી રહ્યું છે…ઈમ્પોર્ટ થયુંરાહ જુઓ…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "તમે આ પેજ છોડી શકો છો — સિંક બેકગ્રાઉન્ડમાં ચાલશે અને જો અટકી જાય તો ફરી શરૂ થશે."
+}

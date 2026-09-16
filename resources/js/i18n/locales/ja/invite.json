@@ -1,0 +1,22 @@
+{
+  "invite_landing.an_invite_carries_no_power_nobody_gains_a_": "招待に権限はありません。招待によって投票権や議席、優位性を得ることはありません。それは単なる入り口です。",
+  "invite_landing.browse_everything_every_place_on_earth_eve": "すべてを閲覧してください。地球上のあらゆる場所、あらゆる記録、あらゆる選挙、あらゆる法律を。",
+  "invite_landing.create_an_account": "アカウントを作成",
+  "invite_landing.either_way_you_ll_land_right_where_this_li": "どちらにせよ、このリンクが指す場所に到達します。目的地はすでに記憶されています。",
+  "invite_landing.explore_first": "まず探索する",
+  "invite_landing.is_a_private_room_they_saved_you_a_seat_cr": "{destinationName} はプライベートルームです。あなたの議席が確保されています。アカウントを作成して入場してください。",
+  "invite_landing.join_anyway": "そのまま参加する",
+  "invite_landing.log_in": "ログイン",
+  "invite_landing.look_around_first": "まず周囲を見る",
+  "invite_landing.sign_up_join": "登録して参加",
+  "invite_landing.step_in": "入場する",
+  "invite_landing.step_in_and_see_what_this_is_is_already_op": "入場して内容を確認してください。{destinationName} はすでに開いています。閲覧にアカウントは不要です。",
+  "invite_landing.that_link_is_no_longer_valid_but_the_door_": "そのリンクは無効になりました。しかし、入り口は開いています。誰でも参加できます。",
+  "invite_landing.this_invite_link_has_expired": "この招待リンクは期限切れです",
+  "invite_landing.watch_any_public_room_every_hearing_meetin": "公開ルームを閲覧してください。すべての公聴会、会議、投票は公開で行われます。傍聴席は常に無料で利用できます。",
+  "invite_landing.what_you_can_do_right_now": "今すぐできること",
+  "invite_landing.when_you_want_a_voice_to_speak_on_the_reco": "発言したいとき。公的記録に残る発言、投票、または出馬を希望する場合は、アカウントを作成し、居住地を申告してください。居住していることが唯一の要件です。",
+  "invite_landing.where_this_leads": "遷移先",
+  "invite_landing.world_of_statecraft": "World of Statecraft",
+  "invite_landing.you_re_invited": "招待されました"
+}

@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "ավելացված՝",
+  "law_diff.label": "Օրենքի տեքստի փոփոխությունները",
+  "law_diff.removed": "հեռացված՝",
+  "planned_banner.default_body": "Աշխարհի այս մասը նախագծված է մինչև կառուցումը: Այստեղ ոչինչ դեռ գործող չէ, և իրական գումար չկա:",
+  "planned_banner.title": "Պլանավորված — նախնական դիտում:",
+  "selection_identity.aria_org": "Կազմակերպության գրառում {name}-ի համար, հղում {id}",
+  "selection_identity.aria_profile": "Հանրային պրոֆիլ {name}-ի համար, հղում {id}",
+  "selection_identity.org_reference": "Կազմակերպության հղում՝",
+  "selection_identity.organization_record": "Կազմակերպության գրառում",
+  "selection_identity.profile_reference": "Պրոֆիլի հղում՝",
+  "selection_identity.public_profile": "Հանրային պրոֆիլ"
+}

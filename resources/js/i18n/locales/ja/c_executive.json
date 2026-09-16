@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "しきい値未満",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} 緊急手段は、宣言された区域および期間内でのみ委任範囲を拡大する · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "司法審査が可能 · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "発行前に拒否：{rejection_citation} 命令は効力を持ちませんでした。拒否された試行は公的記録に残っています。"
+}

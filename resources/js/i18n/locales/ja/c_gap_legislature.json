@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "行政府選挙",
+  "election_kind.general": "総選挙",
+  "election_kind.judicial": "司法府選挙",
+  "election_kind.org_board_owner": "理事会選挙（オーナー議席）",
+  "election_kind.org_board_worker": "理事会選挙（労働者議席）",
+  "election_kind.referendum": "住民投票",
+  "election_kind.restoration": "復旧選挙",
+  "election_kind.special": "特別選挙"
+}

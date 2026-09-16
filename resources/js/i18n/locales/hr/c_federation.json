@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Pridruživanje skupistu",
+  "federation_syncprogress.of_left": "{fmtValue} od {fmtValue2}~{fmtDuration} preostalo",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} zapisa · {fmtNum2} stranicaUvoz temelja u bazu podataka…Uvezenočekanje…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Možete napustiti ovu stranicu — sinkronizacija se odvija u pozadini i nastavlja ako bude prekinuta."
+}

@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "toghchán feidhmeannais",
+  "election_kind.general": "toghchán ginearálta",
+  "election_kind.judicial": "toghchán breithiúnais",
+  "election_kind.org_board_owner": "toghchán borda (suíocháin úinéirí)",
+  "election_kind.org_board_worker": "toghchán borda (suíocháin oibrithe)",
+  "election_kind.referendum": "reifreann",
+  "election_kind.restoration": "toghchán athbhunú",
+  "election_kind.special": "toghchán speisialta"
+}

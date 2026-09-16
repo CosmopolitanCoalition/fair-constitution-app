@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "ステートクラフトの世界",
+  "shell_devbar.dev_controls_not_part_of_the_application": "開発者コントロール — アプリケーション外",
+  "shell_devbar.impersonating": "{label} — {name}としてなりすまし中",
+  "shell_devbar.residency_tool_civic_residency": "居住ツール → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "司法審査待ち · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "緊急権限ダッシュボードを開く"
+}

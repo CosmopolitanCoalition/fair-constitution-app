@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Izvještaji o ponašanju i pravni izvještaji šalju se na pregled. Podnošenje zahtjeva ovdje ništa ne uklanja — uklanjanje sadržaja slijedi ustavna izuzeća (mehanizam F-SOC-003), nikada ovaj obrazac.",
+  "support_report.file_a_report": "Podnesite izvještaj",
+  "support_report.file_report": "Podnesi izvještaj",
+  "support_report.filed_from": "Podneseno iz: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Jednostavne riječi su dovoljne. Navedite što ste očekivali i što ste zapravo vidjeli.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Izvještaji stižu u operatorov poštanski sandučić za podršku i sortiraju se po kategorijama. Ovaj unos nikada sam ne uređuje niti uklanja sadržaj.",
+  "support_report.what_happened": "Što se dogodilo?",
+  "support_report.what_kind_of_report_is_this": "O kakvoj se vrsti izvještaja radi?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Morate biti prijavljeni da biste podnijeli izvještaj — prijavite se i vratite se na ovu stranicu."
+}

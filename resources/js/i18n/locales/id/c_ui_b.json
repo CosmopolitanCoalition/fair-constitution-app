@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "ditambahkan:",
+  "law_diff.label": "Perubahan teks undang-undang",
+  "law_diff.removed": "dihapus:",
+  "planned_banner.default_body": "Bagian dunia ini dirancang sebelum pembangunan. Belum ada yang aktif di sini, dan tidak ada uang sungguhan di mana pun.",
+  "planned_banner.title": "Direncanakan — pratinjau.",
+  "selection_identity.aria_org": "Catatan organisasi untuk {name}, referensi {id}",
+  "selection_identity.aria_profile": "Profil publik untuk {name}, referensi {id}",
+  "selection_identity.org_reference": "Referensi organisasi:",
+  "selection_identity.organization_record": "Catatan organisasi",
+  "selection_identity.profile_reference": "Referensi profil:",
+  "selection_identity.public_profile": "Profil publik"
+}

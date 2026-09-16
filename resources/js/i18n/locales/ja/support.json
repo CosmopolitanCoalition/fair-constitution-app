@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "行動および法的報告書は審査に回されます。ここでの申請によってコンテンツが削除されることはありません。削除は憲法の除外規定（F-SOC-003 の仕組み）に従い、このフォームで行われることはありません。",
+  "support_report.file_a_report": "報告書を提出する",
+  "support_report.file_report": "報告書を提出",
+  "support_report.filed_from": "提出元: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "簡潔な言葉で構いません。期待していた結果と、実際に起きたことを記入してください。",
+  "support_report.reports_land_in_the_operator_s_support_inb": "報告書はオペレーターのサポート受信箱に届き、カテゴリー別に振り分けられます。この受付フォーム自体がコンテンツを編集または削除することはありません。",
+  "support_report.what_happened": "何が起きましたか？",
+  "support_report.what_kind_of_report_is_this": "報告書の種類を選択してください。",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "報告書を提出するにはサインインが必要です。ログインしてこのページに戻ってください。"
+}

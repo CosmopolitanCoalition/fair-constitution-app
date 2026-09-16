@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "գործադիր իշխանության ընտրություն",
+  "election_kind.general": "ընդհանուր ընտրություն",
+  "election_kind.judicial": "դատական իշխանության ընտրություն",
+  "election_kind.org_board_owner": "խորհրդի ընտրություն (սեփականատերերի տեղեր)",
+  "election_kind.org_board_worker": "խորհրդի ընտրություն (աշխատողների տեղեր)",
+  "election_kind.referendum": "հանրաքվե",
+  "election_kind.restoration": "վերականգնման ընտրություն",
+  "election_kind.special": "հատուկ ընտրություն"
+}

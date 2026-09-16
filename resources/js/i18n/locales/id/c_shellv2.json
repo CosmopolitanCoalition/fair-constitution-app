@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Navigasi dan pelajari",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Pelajaran lengkap Direncanakan · Laporan Fase 7 Laporkan masalah",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Mekanisme di balik layar ini",
+  "shellv2_menunav.all_screens_the_full_map": "Semua layar — peta lengkap",
+  "shellv2_menunav.requires_planned": "{label} {label2} Membutuhkan {prereq} {label3} Direncanakan",
+  "shellv2_tourbar.guided_tour": "Tur terpandu",
+  "shellv2_tourbar.guided_tour_step_of": "Tur terpandu · langkah {stepNumber} dari {total}{title}{blurb}"
+}

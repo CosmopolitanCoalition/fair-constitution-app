@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Միանում ենք կլաստերին",
+  "federation_syncprogress.of_left": "{fmtValue} հատ {fmtValue2}~{fmtDuration}-ից մնաց",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} գրառում · {fmtNum2} էջներ Հիմքը ներբեռնվում է տվյալների բազա…Ներբեռնված սպասում... {fmtNum3}/վ",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Դուք կարող եք լքել այս էջը. սինխրոնացումը կատարվում է հետին պլանում և կշարունակվի ընդհատման դեպքում:"
+}

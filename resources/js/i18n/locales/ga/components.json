@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Ag lódáil seilbhú cosmaingin…",
+  "cosmicaddresspicker.multiverse": "Iol-fhorbháireacht ▸",
+  "schemaupdatebanner.apply_updates": "Cuir nuashonruithe i bhfeidhm",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Riachtanach: {pendingLabel} — cuir i bhfeidhm sula dtosaítear rún ETL.",
+  "setupstepper.build_districts": "Tóg Ceantair",
+  "setupstepper.confirm_seat_institutions": "Dearú & Suíocháin Institiúidí",
+  "setupstepper.constitutional_defaults": "Réamhráiteanna Bunreachta",
+  "setupstepper.cosmic_address": "Seilbhú Cosmaingin",
+  "setupstepper.map_data": "Sonraí Mapa",
+  "setupstepper.setup_progress": "Dul chun cinn setup"
+}

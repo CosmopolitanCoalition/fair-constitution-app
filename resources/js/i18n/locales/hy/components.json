@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Բեռնվում է տիեզերական հասցեն…",
+  "cosmicaddresspicker.multiverse": "Բազմատիեզերք ▸",
+  "schemaupdatebanner.apply_updates": "Կիրառել թարմացումները",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Պահանջվում է՝ {pendingLabel} — կիրառել ETL գործընթացը սկսելուց առաջ:",
+  "setupstepper.build_districts": "Ստեղծել ընտրատարածքները",
+  "setupstepper.confirm_seat_institutions": "Հաստատել և նշանակել հաստատությունները",
+  "setupstepper.constitutional_defaults": "Սահմանադրական լռելյայն արժեքները",
+  "setupstepper.cosmic_address": "Տիեզերական հասցե",
+  "setupstepper.map_data": "Քարտեզի տվյալներ",
+  "setupstepper.setup_progress": "Կարգավորման ընթացքը"
+}

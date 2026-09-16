@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Pláinéad",
+  "adm_chip.level_1": "Tír",
+  "adm_chip.level_2": "Stát / Cúige",
+  "adm_chip.level_3": "Contae",
+  "adm_chip.level_4": "Municipéas",
+  "adm_chip.level_5": "Baile",
+  "adm_chip.level_6": "Coinneal",
+  "citation_line.as_implemented": "mar a chur i bhfeidhm",
+  "data_table.caption_scrollable": "{caption} (rolláilte)",
+  "data_table.scrollable_table": "Tábla rolláilte",
+  "history_pager.first_page": "An chéad leathanach",
+  "history_pager.load_error": "Ní féidir an leathanach seo a lucháid. Déan iarracht arís.",
+  "history_pager.loading": "Tá taiféad á lucháid…",
+  "history_pager.next": "Nás",
+  "history_pager.previous": "Previous"
+}

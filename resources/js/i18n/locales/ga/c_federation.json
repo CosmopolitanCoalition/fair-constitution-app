@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Ag dul isteach sa clúdar",
+  "federation_syncprogress.of_left": "{fmtValue} as {fmtValue2}~{fmtDuration} fágtha",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} taifead · {fmtNum2} leathanachAg iompar an bunús isteach sa database…Iompairte waiting…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Is féidir leat an leathanas seo a fhágáil — rithíonn an shincronú sa chúlra agus tosóilíonn sé arís má chuirtear stop leis."
+}

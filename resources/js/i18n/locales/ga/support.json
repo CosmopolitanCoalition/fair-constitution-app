@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Déantar tuairiscí faoi iompar agus faoi dlí a bheith routed le haghaidh athbhreithne. Ní bhaineann comhghairm anseo aon rud — leanann removal ábhair na carve-outs bunreachtacha (an F-SOC-003 machinery), ní seo an foirm.",
+  "support_report.file_a_report": "Cuir tuairisc isteach",
+  "support_report.file_report": "Cuir tuairisc isteach",
+  "support_report.filed_from": "Curtha isteach ó: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Tá focail shimplí go leor. Cuir isteach cad a bhí súil agat leis agus cad a chonaic tú ina ionad.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Titeann tuairiscí i mbosca tacaíochta an oibreora agus déantar iad a routed de réir catagóire. Ní dhéanann an intake seo athruithe nó removal ábhair féin.",
+  "support_report.what_happened": "Cad a tharla?",
+  "support_report.what_kind_of_report_is_this": "Cárd kind tuairisc é seo?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Ní mór duit a bheith sionta isteach chun tuairisc a fhíleáil — log in agus fill ar an leathanach seo."
+}

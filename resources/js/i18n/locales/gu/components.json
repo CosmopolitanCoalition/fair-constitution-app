@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "કોસ્મિક સરનામું લોડ થઈ રહ્યું છે…",
+  "cosmicaddresspicker.multiverse": "મલ્ટિવર્સ ▸",
+  "schemaupdatebanner.apply_updates": "અપડેટ્સ લાગુ કરો",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "જરૂરી: {pendingLabel} — ETL રન શરૂ કરતા પહેલા લાગુ કરો.",
+  "setupstepper.build_districts": "મતવિસ્તારો બનાવો",
+  "setupstepper.confirm_seat_institutions": "સંસ્થાઓની પુષ્ટિ કરો અને બેઠક ફાળવો",
+  "setupstepper.constitutional_defaults": "બંધારણીય ડિફોલ્ટ્સ",
+  "setupstepper.cosmic_address": "કોસ્મિક સરનામું",
+  "setupstepper.map_data": "મેપ ડેટા",
+  "setupstepper.setup_progress": "સેટઅપ પ્રગતિ"
+}

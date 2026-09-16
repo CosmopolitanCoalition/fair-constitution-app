@@ -1,0 +1,8 @@
+{
+  "dismiss": "Zatvori",
+  "failed": "Zahtjev nije mogao biti izvršen. Pokušajte ponovno.",
+  "loading": "Učitavanje…",
+  "refresh": "Osvježite za ponovni pokušaj",
+  "slow": "Još uvijek učitavanje…",
+  "start_failed": "Stranica se nije mogla otvoriti."
+}

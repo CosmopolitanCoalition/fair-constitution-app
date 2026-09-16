@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Մոլորակ",
+  "adm_chip.level_1": "Երկիր",
+  "adm_chip.level_2": "Նահանգ / Մարզ",
+  "adm_chip.level_3": "Շրջան",
+  "adm_chip.level_4": "Համայնք",
+  "adm_chip.level_5": "Քաղաքային համայնք",
+  "adm_chip.level_6": "Թաղամաս",
+  "citation_line.as_implemented": "իրականացված",
+  "data_table.caption_scrollable": "{caption} (գլխարկելի)",
+  "data_table.scrollable_table": "Գլխարկելի աղյուսակ",
+  "history_pager.first_page": "Առաջին էջ",
+  "history_pager.load_error": "Այս էջը հնարավոր չէ լինում բեռնել: Փորձեք նորից:",
+  "history_pager.loading": "Գրառումների բեռնում…",
+  "history_pager.next": "Հաջորդ",
+  "history_pager.previous": "Նախորդ"
+}

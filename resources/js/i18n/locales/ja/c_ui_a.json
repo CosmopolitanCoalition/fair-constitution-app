@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "惑星",
+  "adm_chip.level_1": "国",
+  "adm_chip.level_2": "州 / 省",
+  "adm_chip.level_3": "郡",
+  "adm_chip.level_4": "地方自治体",
+  "adm_chip.level_5": "町",
+  "adm_chip.level_6": "近隣地域",
+  "citation_line.as_implemented": "実装済み",
+  "data_table.caption_scrollable": "{caption} (スクロール可能)",
+  "data_table.scrollable_table": "スクロール可能なテーブル",
+  "history_pager.first_page": "最初のページ",
+  "history_pager.load_error": "このページを読み込めませんでした。もう一度お試しください。",
+  "history_pager.loading": "レコードを読み込み中…",
+  "history_pager.next": "次へ",
+  "history_pager.previous": "前へ"
+}

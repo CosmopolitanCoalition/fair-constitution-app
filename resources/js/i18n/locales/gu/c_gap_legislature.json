@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "કારોબારી ચૂંટણી",
+  "election_kind.general": "સામાન્ય ચૂંટણી",
+  "election_kind.judicial": "ન્યાયતંત્ર ચૂંટણી",
+  "election_kind.org_board_owner": "બોર્ડ ચૂંટણી (માલિક બેઠકો)",
+  "election_kind.org_board_worker": "બોર્ડ ચૂંટણી (કર્મચારી બેઠકો)",
+  "election_kind.referendum": "લોકમત",
+  "election_kind.restoration": "પુનઃસ્થાપન ચૂંટણી",
+  "election_kind.special": "વિશેષ ચૂંટણી"
+}

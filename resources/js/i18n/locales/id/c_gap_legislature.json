@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "pemilihan eksekutif",
+  "election_kind.general": "pemilihan umum",
+  "election_kind.judicial": "pemilihan yudikatif",
+  "election_kind.org_board_owner": "pemilihan dewan (kursi pemilik)",
+  "election_kind.org_board_worker": "pemilihan dewan (kursi pekerja)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "pemilihan pemulihan",
+  "election_kind.special": "pemilihan khusus"
+}

@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "World of Statecraft",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Kontrol pengembang — bukan bagian dari aplikasi",
+  "shell_devbar.impersonating": "{label} — Menyamar sebagai {name}",
+  "shell_devbar.residency_tool_civic_residency": "Alat kependudukan → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Tinjauan yudikatif tertunda · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Buka dasbor kewenangan darurat"
+}

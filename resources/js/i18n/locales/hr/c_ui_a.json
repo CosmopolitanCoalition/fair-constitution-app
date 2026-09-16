@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Država",
+  "adm_chip.level_2": "Savezna država / Provincija",
+  "adm_chip.level_3": "Županija",
+  "adm_chip.level_4": "Općina",
+  "adm_chip.level_5": "Naselje",
+  "adm_chip.level_6": "Susjedstvo",
+  "citation_line.as_implemented": "kao što je provedeno",
+  "data_table.caption_scrollable": "{caption} (pomaknuto)",
+  "data_table.scrollable_table": "Pomaknuta tablica",
+  "history_pager.first_page": "Prva stranica",
+  "history_pager.load_error": "Ova stranica nije učitana. Pokušajte ponovno.",
+  "history_pager.loading": "Učitavanje zapisa…",
+  "history_pager.next": "Sljedeće",
+  "history_pager.previous": "Prethodno"
+}

@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "ઉમેર્યું:",
+  "law_diff.label": "કાયદાના લખાણમાં ફેરફારો",
+  "law_diff.removed": "દૂર કર્યું:",
+  "planned_banner.default_body": "દુનિયાનો આ ભાગ નિર્માણ પહેલાં તૈયાર કરવામાં આવ્યો છે. અહીં હજુ કંઈપણ લાઇવ નથી, અને ક્યાંય કોઈ વાસ્તવિક નાણાં નથી.",
+  "planned_banner.title": "આયોજિત — એક પૂર્વાવલોકન.",
+  "selection_identity.aria_org": "{name} માટે સંસ્થા રેકોર્ડ, સંદર્ભ {id}",
+  "selection_identity.aria_profile": "{name} માટે જાહેર પ્રોફાઇલ, સંદર્ભ {id}",
+  "selection_identity.org_reference": "સંસ્થા સંદર્ભ:",
+  "selection_identity.organization_record": "સંસ્થા રેકોર્ડ",
+  "selection_identity.profile_reference": "પ્રોફાઇલ સંદર્ભ:",
+  "selection_identity.public_profile": "જાહેર પ્રોફાઇલ"
+}

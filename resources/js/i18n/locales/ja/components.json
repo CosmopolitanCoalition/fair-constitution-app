@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "宇宙アドレスを読み込み中…",
+  "cosmicaddresspicker.multiverse": "マルチバース ▸",
+  "schemaupdatebanner.apply_updates": "アップデートを適用",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "必須: {pendingLabel} — ETL実行前に適用してください。",
+  "setupstepper.build_districts": "選挙区の構築",
+  "setupstepper.confirm_seat_institutions": "機関の確定と議席の割り当て",
+  "setupstepper.constitutional_defaults": "憲法のデフォルト設定",
+  "setupstepper.cosmic_address": "宇宙アドレス",
+  "setupstepper.map_data": "マップデータ",
+  "setupstepper.setup_progress": "セットアップの進捗"
+}

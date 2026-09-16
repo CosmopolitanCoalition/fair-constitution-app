@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "ગ્રહ",
+  "adm_chip.level_1": "દેશ",
+  "adm_chip.level_2": "રાજ્ય / પ્રાંત",
+  "adm_chip.level_3": "કાઉન્ટી",
+  "adm_chip.level_4": "નગરપાલિકા",
+  "adm_chip.level_5": "ટાઉનશિપ",
+  "adm_chip.level_6": "પડોશ",
+  "citation_line.as_implemented": "અમલીકરણ કર્યા મુજબ",
+  "data_table.caption_scrollable": "{caption} (સ્ક્રોલ કરી શકાય તેવું)",
+  "data_table.scrollable_table": "સ્ક્રોલ કરી શકાય તેવું ટેબલ",
+  "history_pager.first_page": "પ્રથમ પેજ",
+  "history_pager.load_error": "આ પેજ લોડ થઈ શક્યું નથી. ફરી પ્રયાસ કરો.",
+  "history_pager.loading": "રેકોર્ડ્સ લોડ થઈ રહ્યા છે…",
+  "history_pager.next": "આગળ",
+  "history_pager.previous": "પાછળ"
+}
