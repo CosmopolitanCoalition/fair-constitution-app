@@ -234,6 +234,8 @@
   "video_library.films_h": "סרטים",
   "video_library.head_title": "ספריית וידאו",
   "video_library.intro": "בחר סרט ואת שפות האודיו והכתוביות המועדפות עליך.",
+  "video_library.sample_banner": "סרטים אלו הם דוגמאות מאתר הקואליציה הקוסמופוליטית. הם מדגימים כיצד הנגן עובד: סרט אחד, עם קריינות וכתוביות בשפות רבות. הסרטים של האפליקציה יחליפו אותם.",
+  "video_library.sample_banner_title": "סרטוני דוגמה",
   "video_library.track_meta": "{audio} אודיו · {captions} כתוביות",
   "video_library.translation_workspace": "מרחב עבודה לתרגום",
   "video_library.unavailable": "עדיין לא זמין",

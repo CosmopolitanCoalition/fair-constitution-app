@@ -234,6 +234,8 @@
   "video_library.films_h": "فلمونه",
   "video_library.head_title": "د ویډیو کتابتون",
   "video_library.intro": "یو فلم او هغه آډیو او سبټایټل ژبې انتخاب کړئ چې تاسو ته مناسبې دي.",
+  "video_library.sample_banner": "دا فلمونه د Cosmopolitan Coalition ویب پاڼې نمونه‌ها دي. دوی ښيي چې پلیر څنګه کار کوي: یو فلم، چې په ډېرو ژبونو کې بیان شوی او captioned دی. د اپلیکیشن خپل فلمونه به د دوی ځای ونیسي.",
+  "video_library.sample_banner_title": "نمونه ویډیوګانې",
   "video_library.track_meta": "{audio} آډیو · {captions} کیپشن",
   "video_library.translation_workspace": "د ژباړې کاري ځای",
   "video_library.unavailable": "لا شتون نلري",

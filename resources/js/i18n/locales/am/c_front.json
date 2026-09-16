@@ -234,6 +234,8 @@
   "video_library.films_h": "ፊልሞች",
   "video_library.head_title": "የቪዲዮ ቤተ-መጻሕፍት",
   "video_library.intro": "ፊልም እና የሚመርጡትን የድምፅ እና የግርጌ ጽሑፍ ቋንቋዎች ይምረጡ።",
+  "video_library.sample_banner": "እነዚህ ፊልሞች ከኮስሞፖሊታን ኮአሊሽን ድረ-ገጽ የተወሰዱ ናሙናዎች ናቸው። ተጫዋቹ እንዴት እንደሚሠራ ያሳያሉ፦ አንድ ፊልም በብዙ ቋንቋዎች ትረካ እና የጽሑፍ መግለጫ አለው። የ приложениеው የራሱ ፊልሞች እነዚህን ይተካሉ።",
+  "video_library.sample_banner_title": "የናሙና ቪዲዮዎች",
   "video_library.track_meta": "{audio} ድምፅ · {captions} የግርጌ ጽሑፎች",
   "video_library.translation_workspace": "የትርጉም የሥራ ቦታ",
   "video_library.unavailable": "ገና ዝግጁ አይደለም",

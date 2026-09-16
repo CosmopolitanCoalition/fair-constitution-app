@@ -234,6 +234,8 @@
   "video_library.films_h": "ຮູບເງົາ",
   "video_library.head_title": "ຄັງວິດີໂອ",
   "video_library.intro": "ເລືອກຮູບເງົາ ແລະ ພາສາສຽງ ແລະ ຄຳບັນຍາຍທີ່ທ່ານຕ້ອງການ.",
+  "video_library.sample_banner": "ຮູບເງົາເຫຼົ່ານີ້ແມ່ນຕົວຢ່າງຈາກເວັບໄຊທ໌ຂອງ Cosmopolitan Coalition. ພວກມັນສະແດງໃຫ້ເຫັນວ່າເຄື່ອງຫຼິ້ນເຮັດວຽກແນວໃດ: ຮູບເງົາເລື່ອງດຽວ, ມີການບັນຍາຍ ແລະ ຄຳບັນຍາກຳກັບໃນຫຼາຍພາສາ. ຮູບເງົາຂອງແອັບເອງຈະມາປ່ຽນແທນພວກມັນ.",
+  "video_library.sample_banner_title": "ວິດີໂອຕົວຢ່າງ",
   "video_library.track_meta": "ສຽງ {audio} · ຄຳບັນຍາຍ {captions}",
   "video_library.translation_workspace": "ພື້ນທີ່ເຮັດວຽກການແປ",
   "video_library.unavailable": "ຍັງບໍ່ທັນມີ",

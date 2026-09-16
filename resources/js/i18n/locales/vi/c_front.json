@@ -234,6 +234,8 @@
   "video_library.films_h": "Phim",
   "video_library.head_title": "Thư viện video",
   "video_library.intro": "Chọn một bộ phim cùng ngôn ngữ âm thanh và phụ đề bạn muốn.",
+  "video_library.sample_banner": "Những bộ phim này là mẫu từ trang web của Liên minh Cosmopolitan. Chúng minh họa cách trình phát hoạt động: một bộ phim, có thuyết minh và phụ đề bằng nhiều ngôn ngữ. Các bộ phim của chính ứng dụng sẽ thay thế chúng.",
+  "video_library.sample_banner_title": "Video mẫu",
   "video_library.track_meta": "{audio} âm thanh · {captions} phụ đề",
   "video_library.translation_workspace": "không gian làm việc dịch thuật",
   "video_library.unavailable": "Chưa có sẵn",

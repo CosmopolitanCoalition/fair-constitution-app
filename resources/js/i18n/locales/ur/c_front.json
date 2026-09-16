@@ -234,6 +234,8 @@
   "video_library.films_h": "فلمیں",
   "video_library.head_title": "ویڈیو لائبریری",
   "video_library.intro": "ایک فلم اور اپنی پسند کی آڈیو اور سب ٹائٹل زبانیں منتخب کریں۔",
+  "video_library.sample_banner": "یہ فلمیں کاسموپولیٹن کولیشن کی ویب سائٹ سے لیے گئے نمونے ہیں۔ یہ دکھاتے ہیں کہ پلیئر کیسے کام کرتا ہے: ایک فلم، جس کی کئی زبانوں میں بیانیہ اور کیپشنز موجود ہیں۔ ایپ کی اپنی فلمیں انہیں تبدیل کر دیں گی۔",
+  "video_library.sample_banner_title": "نمونہ ویڈیوز",
   "video_library.track_meta": "{audio} آڈیو · {captions} کیپشنز",
   "video_library.translation_workspace": "ترجمہ ورک اسپیس",
   "video_library.unavailable": "ابھی دستیاب نہیں",

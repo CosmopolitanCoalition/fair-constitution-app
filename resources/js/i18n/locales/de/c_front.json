@@ -233,6 +233,8 @@
   "video_library.films_h": "Filme",
   "video_library.head_title": "Videobibliothek",
   "video_library.intro": "Wählen Sie einen Film sowie die bevorzugten Audio- und Untertitelsprachen aus.",
+  "video_library.sample_banner": "Diese Filme sind Beispiele von der Website der Cosmopolitan Coalition. Sie zeigen die Funktionsweise des Players: ein Film, vertont und untertitelt in vielen Sprachen. Die eigenen Filme der App werden diese ersetzen.",
+  "video_library.sample_banner_title": "Beispielvideos",
   "video_library.track_meta": "{audio} Audio · {captions} Untertitel",
   "video_library.translation_workspace": "Übersetzungs-Workspace",
   "video_library.unavailable": "Noch nicht verfügbar",

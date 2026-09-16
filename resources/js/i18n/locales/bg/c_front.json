@@ -234,6 +234,8 @@
   "video_library.films_h": "Филми",
   "video_library.head_title": "Видеобиблиотека",
   "video_library.intro": "Изберете филм и предпочитаните езици за аудио и субтитри.",
+  "video_library.sample_banner": "Тези филми са примерни материали от уебсайта на Cosmopolitan Coalition. Те показват как работи плейърът: един филм с разказ и субтитри на много езици. Те ще бъдат заменени от собствените филми на приложението.",
+  "video_library.sample_banner_title": "Примерни видеоклипове",
   "video_library.track_meta": "{audio} аудио · {captions} субтитри",
   "video_library.translation_workspace": "работно пространство за превод",
   "video_library.unavailable": "Все още не е налично",

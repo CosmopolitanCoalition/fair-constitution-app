@@ -29,13 +29,20 @@ class VideoLibraryPageTest extends TestCase
                 ->component('Learn/VideoLibrary')
                 ->has('surface')
                 ->has('videos')
-                ->where('videos.0.id', 'v-affiliate-report'));
+                ->where('videos.0.id', 'v-summary'));
     }
 
     public function test_the_base_url_is_null_until_a_media_host_is_configured(): void
     {
         // No media ships in the repo: the player must render the labelled poster
-        // placeholder, which it keys on a null base URL.
+        // placeholder, which it keys on a null base URL. The library root is
+        // pinned to an EMPTY temp folder: on a box that holds the films (box E
+        // serves E:\Subjects at public/media/Subjects) the auto '/media' answer
+        // is correct, and this pin is about the no-host, no-library state.
+        $empty = rtrim(str_replace('\\', '/', sys_get_temp_dir()), '/').'/media-empty-'.getmypid().'-'.uniqid();
+        @mkdir($empty, 0775, true);
+        config(['cga.media_local.local_root' => $empty, 'cga.media.base_url' => null]);
+        \Illuminate\Support\Facades\Cache::flush();
         $this->assertNull(MediaMeta::baseUrl());
         $this->get('/videos')
             ->assertOk()

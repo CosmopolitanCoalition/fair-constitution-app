@@ -233,6 +233,8 @@
   "video_library.films_h": "Elokuvat",
   "video_library.head_title": "Videokirjasto",
   "video_library.intro": "Valitse elokuva sekä haluamasi äänen ja tekstityksen kielet.",
+  "video_library.sample_banner": "Nämä elokuvat ovat näytteitä Cosmopolitan Coalitionin verkkosivustolta. Ne näyttävät, miten soitin toimii: yksi elokuva, jossa on kerronta ja tekstitys useilla kielillä. Sovelluksen omat elokuvat korvaavat ne.",
+  "video_library.sample_banner_title": "Näitevideoita",
   "video_library.track_meta": "{audio} ääni · {captions} tekstitykset",
   "video_library.translation_workspace": "käännöstyötila",
   "video_library.unavailable": "Ei vielä saatavilla",

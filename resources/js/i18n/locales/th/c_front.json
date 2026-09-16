@@ -234,6 +234,8 @@
   "video_library.films_h": "ภาพยนตร์",
   "video_library.head_title": "คลังวิดีโอ",
   "video_library.intro": "เลือกภาพยนตร์ รวมถึงภาษาเสียงและคำบรรยายที่คุณต้องการ",
+  "video_library.sample_banner": "ภาพยนตร์เหล่านี้เป็นตัวอย่างจากเว็บไซต์ Cosmopolitan Coalition เพื่อแสดงวิธีการทำงานของเครื่องเล่น: ภาพยนตร์หนึ่งเรื่องที่มีเสียงบรรยายและคำบรรยายหลายภาษา ซึ่งภาพยนตร์ของแอปจะเข้ามาแทนที่ในภายหลัง",
+  "video_library.sample_banner_title": "วิดีโอตัวอย่าง",
   "video_library.track_meta": "เสียง {audio} · คำบรรยาย {captions}",
   "video_library.translation_workspace": "พื้นที่ทำงานการแปล",
   "video_library.unavailable": "ยังไม่มีข้อมูล",

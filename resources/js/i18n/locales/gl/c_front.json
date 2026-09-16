@@ -234,6 +234,8 @@
   "video_library.films_h": "Películas",
   "video_library.head_title": "Biblioteca de vídeos",
   "video_library.intro": "Escolla unha película e os idiomas de audio e subtítulos que prefira.",
+  "video_library.sample_banner": "Estas películas son mostras do sitio web da Coalición Cosmopolita. Mostran como funciona o reproductor: unha película, narrada e subtitulada en moitos idiomas. As películas propias da aplicación substituínalas.",
+  "video_library.sample_banner_title": "Vídeos de mostra",
   "video_library.track_meta": "{audio} audio · {captions} subtítulos",
   "video_library.translation_workspace": "espazo de traballo de tradución",
   "video_library.unavailable": "Aínda non dispoñible",

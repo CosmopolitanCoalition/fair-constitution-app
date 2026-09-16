@@ -234,6 +234,8 @@
   "video_library.films_h": "Фільми",
   "video_library.head_title": "Відеобібліотека",
   "video_library.intro": "Виберіть фільм, а також бажану мову аудіо та субтитрів.",
+  "video_library.sample_banner": "Ці фільми є зразками з вебсайту Cosmopolitan Coalition. Вони демонструють роботу плеєра: один фільм із озвученням та субтитрами багатьма мовами. Власні фільми застосунку замінять їх.",
+  "video_library.sample_banner_title": "Зразки відео",
   "video_library.track_meta": "{audio} аудіо · {captions} субтитри",
   "video_library.translation_workspace": "робочий простір перекладу",
   "video_library.unavailable": "Ще недоступно",

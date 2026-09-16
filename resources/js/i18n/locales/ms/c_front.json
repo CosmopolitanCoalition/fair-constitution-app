@@ -234,6 +234,8 @@
   "video_library.films_h": "Filem",
   "video_library.head_title": "Perpustakaan video",
   "video_library.intro": "Pilih filem serta bahasa audio dan sari kata yang anda mahukan.",
+  "video_library.sample_banner": "Filem-filem ini adalah sampel daripada laman web Gabungan Kosmopolitan. Ia menunjukkan cara pemain berfungsi: satu filem, dengan narasi dan sari kata dalam banyak bahasa. Filem aplikasi sendiri akan menggantikannya.",
+  "video_library.sample_banner_title": "Video sampel",
   "video_library.track_meta": "{audio} audio · {captions} sari kata",
   "video_library.translation_workspace": "ruang kerja terjemahan",
   "video_library.unavailable": "Belum tersedia",

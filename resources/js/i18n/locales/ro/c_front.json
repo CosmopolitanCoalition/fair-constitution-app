@@ -234,6 +234,8 @@
   "video_library.films_h": "Filme",
   "video_library.head_title": "Biblioteca video",
   "video_library.intro": "Alegeți un film și limbile preferate pentru audio și subtitrări.",
+  "video_library.sample_banner": "Aceste filme sunt mostre de pe site-ul Coaliției Cosmopolite. Ele arată cum funcționează playerul: un singur film, narat și subtitrat în mai multe limbi. Filmele proprii ale aplicației le vor înlocui.",
+  "video_library.sample_banner_title": "Videoclipuri mostră",
   "video_library.track_meta": "{audio} audio · {captions} subtitrări",
   "video_library.translation_workspace": "spațiu de lucru pentru traducere",
   "video_library.unavailable": "Nu este disponibil încă",

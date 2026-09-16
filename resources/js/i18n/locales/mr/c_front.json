@@ -234,6 +234,8 @@
   "video_library.films_h": "चित्रपट",
   "video_library.head_title": "व्हिडिओ लायब्ररी",
   "video_library.intro": "एक चित्रपट आणि तुम्हाला हवे असलेले ऑडिओ आणि सबटायटल भाषा निवडा.",
+  "video_library.sample_banner": "हे चित्रपट कॉस्मोपॉलिटन कोएलिशन वेबसाइटवरील नमुने आहेत. ते प्लेयर कसा काम करतो हे दर्शवतात: एक चित्रपट, ज्याचे अनेक भाषांमध्ये वर्णन आणि कॅप्शन आहेत. ॲपचे स्वतःचे चित्रपट यांची जागा घेतील.",
+  "video_library.sample_banner_title": "नमुना व्हिडिओ",
   "video_library.track_meta": "{audio} ऑडिओ · {captions} कॅप्शन्स",
   "video_library.translation_workspace": "भाषांतर कार्यक्षेत्र",
   "video_library.unavailable": "अद्याप उपलब्ध नाही",

@@ -234,6 +234,8 @@
   "video_library.films_h": "Кино",
   "video_library.head_title": "Видео сан",
   "video_library.intro": "Кино болон өөрт тохирох аудио, хадмал орчуулгын хэлийг сонгоно уу.",
+  "video_library.sample_banner": "Эдгээрч дүрсүүд нь Cosmopolitan Coalition вэбсайтын жишээнүүд юм. Эдгээр нь тоглогч хэрхэн ажиллахыг харуулна: нэг дүрс бичлэг олон хэлээр тайлбарлагдаж, хадмал орчуулгатай байна. Аппликейшний өөрийн дүрсүүд эдгээрийг солих болно.",
+  "video_library.sample_banner_title": "Жишээ видео",
   "video_library.track_meta": "{audio} аудио · {captions} хадмал",
   "video_library.translation_workspace": "орчуулгын ажлын талбай",
   "video_library.unavailable": "Одоогоор боломжгүй",

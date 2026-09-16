@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmler",
   "video_library.head_title": "Video kütüphanesi",
   "video_library.intro": "Bir film ve tercih ettiğiniz ses ile altyazı dillerini seçin.",
+  "video_library.sample_banner": "Bu filmler Cosmopolitan Coalition web sitesinden alınmış örneklerdir. Oynatıcının nasıl çalıştığını gösterirler: tek bir film, birçok dilde anlatım ve altyazı ile sunulur. Uygulamanın kendi filmleri bunların yerini alacaktır.",
+  "video_library.sample_banner_title": "Örnek videolar",
   "video_library.track_meta": "{audio} ses · {captions} altyazı",
   "video_library.translation_workspace": "çeviri çalışma alanı",
   "video_library.unavailable": "Henüz mevcut değil",

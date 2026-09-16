@@ -234,6 +234,8 @@
   "video_library.films_h": "চলচ্চিত্র",
   "video_library.head_title": "ভিডিও লাইব্রেরি",
   "video_library.intro": "একটি চলচ্চিত্র এবং আপনার পছন্দসই অডিও ও সাবটাইটেল ভাষা বেছে নিন।",
+  "video_library.sample_banner": "এই চলচ্চিত্রগুলো কসমোপলিটান কোয়ালিশন ওয়েবসাইটের নমুনা। এগুলো দেখায় যে প্লেয়ারটি কীভাবে কাজ করে: একটি চলচ্চিত্র, যা অনেক ভাষায় বর্ণিত এবং ক্যাপশনযুক্ত। অ্যাপের নিজস্ব চলচ্চিত্রগুলো এগুলোকে প্রতিস্থাপন করবে।",
+  "video_library.sample_banner_title": "নমুনা ভিডিও",
   "video_library.track_meta": "{audio} অডিও · {captions} ক্যাপশন",
   "video_library.translation_workspace": "অনুবাদ ওয়ার্কস্পেস",
   "video_library.unavailable": "এখন পর্যন্ত উপলব্ধ নয়",

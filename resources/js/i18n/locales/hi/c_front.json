@@ -234,6 +234,8 @@
   "video_library.films_h": "फिल्में",
   "video_library.head_title": "वीडियो लाइब्रेरी",
   "video_library.intro": "एक फिल्म और अपनी पसंद की ऑडियो और सबटाइटल भाषाएं चुनें।",
+  "video_library.sample_banner": "ये फ़िल्में कॉस्मोपॉलिटन गठबंधन वेबसाइट के नमूने हैं। ये दिखाते हैं कि प्लेयर कैसे काम करता है: एक फ़िल्म, कई भाषाओं में वर्णन और कैप्शन के साथ। ऐप की अपनी फ़िल्में इन्हें बदल देंगी।",
+  "video_library.sample_banner_title": "नमूना वीडियो",
   "video_library.track_meta": "{audio} ऑडियो · {captions} कैप्शन",
   "video_library.translation_workspace": "अनुवाद कार्यक्षेत्र",
   "video_library.unavailable": "अभी उपलब्ध नहीं है",

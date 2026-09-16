@@ -17,6 +17,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
+import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import MultiTrackVideoPlayer from '@/Components/Media/MultiTrackVideoPlayer.vue';
@@ -89,6 +90,13 @@ function pick(id) {
             <p>{{ t('c_front.video_library.about_1', 'Audio and subtitles can use the same language or different languages. Your choices are remembered in this browser.') }}</p>
             <p>{{ t('c_front.video_library.about_2_before', 'To review language coverage, open the') }} <Link href="/system/translations">{{ t('c_front.video_library.translation_workspace', 'translation workspace') }}</Link>{{ t('c_front.video_library.about_2_after', '.') }}</p>
         </template>
+
+        <!-- The sample-library banner (operator, 2026-09-16): these films come
+             from the Coalition website and stand in until the app's own films
+             are recorded; the banner says so on every visit. -->
+        <Banner tone="info" :title="t('c_front.video_library.sample_banner_title', 'Sample videos')">
+            {{ t('c_front.video_library.sample_banner', 'These films are samples from the Cosmopolitan Coalition website. They show how the player works: one film, narrated and captioned in many languages. The app\'s own films will replace them.') }}
+        </Banner>
 
         <!-- Featured player -->
         <div id="featured">

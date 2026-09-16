@@ -234,6 +234,8 @@
   "video_library.films_h": "Films",
   "video_library.head_title": "Librerija tal-video",
   "video_library.intro": "Agħżel film u l-lingwi tal-awdjo u tas-sottitli li tippreferi.",
+  "video_library.sample_banner": "dawn il-films huma kampjuni mis-sit elettroniku tal-Cosmopolitan Coalition. Juri kif jaħdem il-plejer: film wieħed, narrat u b'sottitoli f'ħafna lingwi. Il-films tal-app stess se jsostituwihom.",
+  "video_library.sample_banner_title": "Vidjows kampjuni",
   "video_library.track_meta": "{audio} awdjo · {captions} sottitli",
   "video_library.translation_workspace": "workspace ta' traduzzjoni",
   "video_library.unavailable": "Għad mhux disponibbli",

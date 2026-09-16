@@ -234,6 +234,8 @@
   "video_library.films_h": "Film",
   "video_library.head_title": "Libreria video",
   "video_library.intro": "Scegli un film e le lingue preferite per audio e sottotitoli.",
+  "video_library.sample_banner": "Questi film sono campioni del sito web della Cosmopolitan Coalition. Mostrano come funziona il player: un unico film, narrato e sottotitolato in molte lingue. I film dell'app li sostituiranno.",
+  "video_library.sample_banner_title": "Video di esempio",
   "video_library.track_meta": "{audio} audio · {captions} sottotitoli",
   "video_library.translation_workspace": "area di lavoro traduzioni",
   "video_library.unavailable": "Non ancora disponibile",

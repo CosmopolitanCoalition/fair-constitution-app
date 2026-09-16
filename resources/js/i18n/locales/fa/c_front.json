@@ -234,6 +234,8 @@
   "video_library.films_h": "فیلم‌ها",
   "video_library.head_title": "کتابخانه ویدیو",
   "video_library.intro": "یک فیلم و زبان‌های مورد نظر برای صدا و زیرنویس را انتخاب کنید.",
+  "video_library.sample_banner": "این فیلم‌ها نمونه‌هایی از وب‌سایت ائتلاف کازموپولیتن هستند. آن‌ها نحوه کار پخش‌کننده را نشان می‌دهند: یک فیلم با روایت و زیرنویس به زبان‌های مختلف. فیلم‌های خود اپلیکیشن جایگزین آن‌ها خواهند شد.",
+  "video_library.sample_banner_title": "ویدیوهای نمونه",
   "video_library.track_meta": "{audio} صدا · {captions} زیرنویس",
   "video_library.translation_workspace": "فضای کاری ترجمه",
   "video_library.unavailable": "هنوز در دسترس نیست",

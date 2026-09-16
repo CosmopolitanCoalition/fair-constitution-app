@@ -304,6 +304,7 @@
   "legislature_districts.uniform_political_diversity": "Einheitliche politische Diversität",
   "legislature_districts.vertical_strips": "Vertikale Streifen",
   "legislature_emergencypowers.active_power_dashboard": "Dashboard aktive Notstandsbefugnisse",
+  "legislature_emergencypowers.all_validation_runs_pre_vote_the_closed_ca": "Alle Validierungen erfolgen VOR DER WAHL: die geschlossene Ursachen-Aufzählung, die Obergrenze von ≤ 90 Tagen, die Prüfung der Zuständigkeit und die Anforderungen an die Methoden führen zu einer Ablehnung, bevor eine Wahl stattfindet — die Ablehnungszeilen sind das für den Betreiber sichtbare Protokoll. Die Befugniszeile und ihr CLK-03 Countdown existieren nur bei einer Verabschiedung durch qualifizierte Mehrheit.",
   "legislature_emergencypowers.auto_expiry_at_the_declared_duration_no_ac": "Automatisches Ablaufen nach der angegebenen Dauer — keine Aktion erforderlich, keine Verlängerung ohne neue qualifizierte Mehrheit.",
   "legislature_emergencypowers.auto_expiry_publishes_a_full_audit_record_": "Automatisches Ablaufen veröffentlicht ein vollständiges Prüfprotokoll — nichts wird stillschweigend übernommen.",
   "legislature_emergencypowers.available_at_any_time_by_any_inhabitant_fi": "jederzeit verfügbar, durch jeden Einwohner · Einreichung erfolgt bei der Judikative (Geplant · Phase E) · Art. II §7 · WF-JUD-06",

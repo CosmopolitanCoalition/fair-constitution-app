@@ -234,6 +234,8 @@
   "video_library.films_h": "영화",
   "video_library.head_title": "동영상 라이브러리",
   "video_library.intro": "영화와 선호하는 오디오 및 자막 언어를 선택하십시오.",
+  "video_library.sample_banner": "이 영상들은 Cosmopolitan Coalition 웹사이트의 샘플입니다. 플레이어 작동 방식을 보여줍니다. 하나의 영상에 여러 언어의 내레이션과 자막이 제공됩니다. 앱 자체 영상으로 대체될 예정입니다.",
+  "video_library.sample_banner_title": "샘플 영상",
   "video_library.track_meta": "오디오 {audio}개 · 자막 {captions}개",
   "video_library.translation_workspace": "번역 작업 공간",
   "video_library.unavailable": "아직 사용할 수 없음",

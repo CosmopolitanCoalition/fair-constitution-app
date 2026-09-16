@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmlar",
   "video_library.head_title": "Video kutubxona",
   "video_library.intro": "Film hamda ma'qul ko'rgan audio va subtitr tillarini tanlang.",
+  "video_library.sample_banner": "Ushbu filmlar Cosmopolitan Coalition veb-saytidan olingan namunalar. Ular pleyer qanday ishlashini ko'rsatadi: bitta film, ko'p tillarda ovozlashtirilgan va subtitrlar bilan ta'minlangan. Ilovaning o'z filmlari ularning o'rnini egallaydi.",
+  "video_library.sample_banner_title": "Namuna videolar",
   "video_library.track_meta": "{audio} audio · {captions} subtitrlar",
   "video_library.translation_workspace": "tarjima ishchi maydoni",
   "video_library.unavailable": "Hali mavjud emas",

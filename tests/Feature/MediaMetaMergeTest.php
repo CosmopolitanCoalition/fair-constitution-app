@@ -68,7 +68,7 @@ class MediaMetaMergeTest extends TestCase
     {
         $this->assertContains(self::VIDEO_ID, MediaMeta::ids());
         // The generated registry still leads: order is preserved, uploads append.
-        $this->assertSame('v-affiliate-report', MediaMeta::ids()[0]);
+        $this->assertSame('v-summary', MediaMeta::ids()[0]);
     }
 
     public function test_all_includes_the_uploaded_film_tagged_upload(): void
@@ -110,7 +110,7 @@ class MediaMetaMergeTest extends TestCase
     {
         // Upload a row with the SAME id as a registry film; the DB row wins.
         MediaVideo::create([
-            'id'      => 'v-affiliate-report',
+            'id'      => 'v-summary',
             'subject' => 'Affiliate Report',
             'slug'    => 'affiliate-report-upload',
             'master'  => 'Affiliate Report-Silent.mp4',
@@ -118,7 +118,7 @@ class MediaMetaMergeTest extends TestCase
             'source'  => 'upload',
         ]);
 
-        $record = MediaMeta::for('v-affiliate-report');
+        $record = MediaMeta::for('v-summary');
         $this->assertSame('upload', $record['source']);
         $this->assertSame('Affiliate Report (operator upload)', $record['title']);
     }

@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmy",
   "video_library.head_title": "Videoknižnica",
   "video_library.intro": "Vyberte film a preferované jazyky audia a titulkov.",
+  "video_library.sample_banner": "Tieto filmy sú vzorkami z webovej stránky Cosmopolitan Coalition. Ukazujú, ako prehrávač funguje: jeden film s rozpravou a titulkami v mnohých jazykoch. Filmy samotnej aplikácie ich nahradia.",
+  "video_library.sample_banner_title": "Vzorkové videá",
   "video_library.track_meta": "{audio} audio · {captions} titulky",
   "video_library.translation_workspace": "pracovný priestor pre preklad",
   "video_library.unavailable": "Zatiaľ nedostupné",

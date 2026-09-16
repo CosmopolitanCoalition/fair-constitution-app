@@ -122,7 +122,23 @@ function build() {
         } catch { return null; }
     }
 
-    const videos = subjectsRaw.map((s) => ({
+    /* THE PLAYLIST (operator, 2026-09-16, "Multilingual Video Playlist.xspf"):
+       resources/js/registry/media.playlist.json lists the subjects in the
+       order the library and the player's playlist follow, with each film's
+       duration in seconds. A subject the playlist does not name sorts after
+       the listed ones, alphabetically; a manifest duration wins over the
+       playlist's when both exist. */
+    const PLAYLIST = join(ROOT, 'resources', 'js', 'registry', 'media.playlist.json');
+    const playlist = existsSync(PLAYLIST) ? readJson(PLAYLIST) : [];
+    const playlistIndex = new Map(playlist.map((p, i) => [p.subject, i]));
+    const playlistSeconds = new Map(playlist.map((p) => [p.subject, typeof p.seconds === 'number' ? p.seconds : null]));
+    const ordered = [...subjectsRaw].sort((a, b) => {
+        const ia = playlistIndex.has(a.subject) ? playlistIndex.get(a.subject) : Number.MAX_SAFE_INTEGER;
+        const ib = playlistIndex.has(b.subject) ? playlistIndex.get(b.subject) : Number.MAX_SAFE_INTEGER;
+        return ia !== ib ? ia - ib : a.subject.localeCompare(b.subject);
+    });
+
+    const videos = ordered.map((s) => ({
         id: 'v-' + s.slug,
         subject: s.subject,       // spaces preserved — the filesystem token
         token: s.token,           // hyphens — id/slug only, never inverted
@@ -133,7 +149,7 @@ function build() {
         // t(v.title_key, v.title); the catalog holds the English title.
         title_key: 'c_media.video.' + s.slug,
         poster: posterFor(s.subject),
-        seconds: durationFor(s.subject),
+        seconds: durationFor(s.subject) ?? playlistSeconds.get(s.subject) ?? null,
         /* subjects.json asserts a uniform 77 audio + 77 caption tracks per
            subject; coverage is the in-library language set. Where a per-subject
            manifest later narrows this, the generator will read it. */

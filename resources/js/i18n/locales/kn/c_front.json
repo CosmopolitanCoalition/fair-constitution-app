@@ -234,6 +234,8 @@
   "video_library.films_h": "ಚಲನಚಿತ್ರಗಳು",
   "video_library.head_title": "ವೀಡಿಯೊ ಲೈಬ್ರರಿ",
   "video_library.intro": "ಚಲನಚಿತ್ರ ಮತ್ತು ನೀವು ಬಯಸುವ ಆಡಿಯೋ ಮತ್ತು ಉಪಶೀರ್ಷಿಕೆ ಭಾಷೆಗಳನ್ನು ಆರಿಸಿ.",
+  "video_library.sample_banner": "ಈ ಚಲನಚಿತ್ರಗಳು ಕಾಸ್ಮೋಪಾಲಿಟನ್ ಒಕ್ಕೂಟದ ವೆಬ್‌ಸೈಟ್‌ನ ಮಾದರಿಗಳಾಗಿವೆ. ಪ್ಲೇಯರ್ ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ ಎಂಬುದನ್ನು ಇವು ತೋರಿಸುತ್ತವೆ: ಒಂದು ಚಲನಚಿತ್ರ, ಅನೇಕ ಭಾಷೆಗಳಲ್ಲಿ ನಿರೂಪಣೆ ಮತ್ತು ಶೀರ್ಷಿಕೆಗಳನ್ನು ಹೊಂದಿದೆ. ಆ್ಯಪ್‌ನ ಸ್ವಂತ ಚಲನಚಿತ್ರಗಳು ಇವುಗಳ ಬದಲಿಗೆ ಬರಲಿವೆ.",
+  "video_library.sample_banner_title": "ಮಾದರಿ ವೀಡಿಯೊಗಳು",
   "video_library.track_meta": "{audio} ಆಡಿಯೋ · {captions} ಕ್ಯಾಪ್ಶನ್ಗಳು",
   "video_library.translation_workspace": "ಅನುವಾದ ಕಾರ್ಯಕ್ಷೇತ್ರ",
   "video_library.unavailable": "ಇನ್ನೂ ಲಭ್ಯವಿಲ್ಲ",

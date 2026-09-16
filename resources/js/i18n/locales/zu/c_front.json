@@ -234,6 +234,8 @@
   "video_library.films_h": "Amafilimu",
   "video_library.head_title": "Ulayibhali lwevidiyo",
   "video_library.intro": "Khetha ifilimu nolimi lomsindo nezincazelo oluthandayo.",
+  "video_library.sample_banner": "Lezi zifilimu ziyizibonelo ezivela kuwebhusayithi we-Cosmopolitan Coalition. Zikhombisa ukuthi umdlali usebenza kanjani: ifilimu eyodwa, echazwe futhi enamazwi olimi amaningi. Amafilimu ohlelo ngokwalo azozithatha indawo yazo.",
+  "video_library.sample_banner_title": "Izividiyo zezibonelo",
   "video_library.track_meta": "umsindo u-{audio} · izincazelo {captions}",
   "video_library.translation_workspace": "indawo yokusebenzela ukuhumusha",
   "video_library.unavailable": "Akukatholakali",

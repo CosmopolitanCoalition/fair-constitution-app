@@ -234,6 +234,8 @@
   "video_library.films_h": "సినిమాలు",
   "video_library.head_title": "వీడియో లైబ్రరీ",
   "video_library.intro": "మీకు నచ్చిన సినిమా మరియు ఆడియో మరియు సబ్‌టైటిల్ భాషలను ఎంచుకోండి.",
+  "video_library.sample_banner": "ఈ చిత్రాలు కాస్మోపాలిటన్ కోలిషన్ వెబ్‌సైట్ నుండి తీసుకున్న నమూనాలు. ప్లేయర్ ఎలా పనిచేస్తుందో ఇవి చూపుతాయి: ఒక చిత్రం, అనేక భాషలలో వివరణ మరియు శీర్షికలతో ఉంటుంది. యాప్‌లోని సొంత చిత్రాలు వీటి స్థానాన్ని భర్తీ చేస్తాయి.",
+  "video_library.sample_banner_title": "నమూనా వీడియోలు",
   "video_library.track_meta": "{audio} ఆడియో · {captions} క్యాప్షన్లు",
   "video_library.translation_workspace": "అనువాద వర్క్‌స్పేస్",
   "video_library.unavailable": "ఇంకా అందుబాటులో లేదు",

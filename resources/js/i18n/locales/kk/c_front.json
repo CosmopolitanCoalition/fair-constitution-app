@@ -234,6 +234,8 @@
   "video_library.films_h": "Фильмдер",
   "video_library.head_title": "Бейне кітапхана",
   "video_library.intro": "Фильмді және өзіңізге ыңғайлы аудио мен субтитр тілдерін таңдаңыз.",
+  "video_library.sample_banner": "Бұл фильмдер Cosmopolitan Coalition веб-сайтынан алынған үлгілер. Олар плеердің жұмысын көрсетеді: бір фильм, көптеген тілдердегі баяндау және субтитрлермен. Қолданбаның өз фильмдері оларды алмастырады.",
+  "video_library.sample_banner_title": "Үлгі видеолары",
   "video_library.track_meta": "{audio} аудио · {captions} субтитр",
   "video_library.translation_workspace": "аударма жұмыс кеңістігі",
   "video_library.unavailable": "Әлі қолжетімді емес",

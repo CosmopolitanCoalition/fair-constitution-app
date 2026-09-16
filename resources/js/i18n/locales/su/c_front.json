@@ -234,6 +234,8 @@
   "video_library.films_h": "Film",
   "video_library.head_title": "Perpustakaan video",
   "video_library.intro": "Pilih film sarta basa audio jeung subtitle anu dipikahayang.",
+  "video_library.sample_banner": "Film-film ieu mangrupikeun conto tina situs wéb Koalisi Kosmopolitan. Ieu nuduhkeun cara gawé pamaénna: hiji film, dicaritakeun sareng aya takaranna dina sababaraha basa. Film asli tina aplikasi bakal ngagentos film-film ieu.",
+  "video_library.sample_banner_title": "Video conto",
   "video_library.track_meta": "{audio} audio · {captions} caption",
   "video_library.translation_workspace": "ruang gawé tarjamahan",
   "video_library.unavailable": "Teu acan aya",

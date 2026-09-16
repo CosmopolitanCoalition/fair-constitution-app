@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmy",
   "video_library.head_title": "Biblioteka wideo",
   "video_library.intro": "Wybierz film oraz preferowane języki audio i napisów.",
+  "video_library.sample_banner": "Te filmy są próbkami ze strony internetowej Koalicji Kosmopolitycznej. Pokazują one, jak działa odtwarzacz: jeden film z narracją i napisami w wielu językach. Zostaną one zastąpione filmami z aplikacji.",
+  "video_library.sample_banner_title": "Przykładowe filmy",
   "video_library.track_meta": "{audio} audio · {captions} napisy",
   "video_library.translation_workspace": "przestrzeń robocza tłumacza",
   "video_library.unavailable": "Jeszcze niedostępne",

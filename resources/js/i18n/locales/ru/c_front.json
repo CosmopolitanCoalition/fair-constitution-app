@@ -234,6 +234,8 @@
   "video_library.films_h": "Фильмы",
   "video_library.head_title": "Видеобиблиотека",
   "video_library.intro": "Выберите фильм, а также предпочтительный язык аудио и субтитров.",
+  "video_library.sample_banner": "Эти фильмы — образцы с сайта Космополитичной коалиции. Они демонстрируют работу плеера: один фильм с озвучкой и субтитрами на многих языках. Собственные фильмы приложения заменят их.",
+  "video_library.sample_banner_title": "Примеры видео",
   "video_library.track_meta": "{audio} аудио · {captions} субтитры",
   "video_library.translation_workspace": "рабочее пространство переводчика",
   "video_library.unavailable": "Пока недоступно",

@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmlər",
   "video_library.head_title": "Video kitabxanası",
   "video_library.intro": "Film və üstünlük verdiyiniz audio və subtitr dillərini seçin.",
+  "video_library.sample_banner": "Bu filmlər Cosmopolitan Coalition veb-saytından nümunələrdir. Onlar pleyerin necə işlədiyini göstərir: bir film, bir çox dildə səsləndirmə və altyazı ilə. Tətbiqin öz filmləri onları əvəz edəcək.",
+  "video_library.sample_banner_title": "Nümunə videolar",
   "video_library.track_meta": "{audio} audio · {captions} subtitrlər",
   "video_library.translation_workspace": "tərcümə sahəsi",
   "video_library.unavailable": "Hələ mövcud deyil",

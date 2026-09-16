@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmi",
   "video_library.head_title": "Videotek",
   "video_library.intro": "Izberite film ter jezik zvoka in podnapisov, ki ju želite.",
+  "video_library.sample_banner": "Ti filmi so primerkje s spletne strani Cosmopolitan Coalition. Pokažejo, kako predvoravnik deluje: en film z pripovedjo in podnapisi v več jezikih. Filmske vsebine aplikacije jih bodo nadomestile.",
+  "video_library.sample_banner_title": "Primerki videoposnetkov",
   "video_library.track_meta": "{audio} zvok · {captions} podnapisi",
   "video_library.translation_workspace": "delovno okolje za prevajanje",
   "video_library.unavailable": "Še ni na voljo",

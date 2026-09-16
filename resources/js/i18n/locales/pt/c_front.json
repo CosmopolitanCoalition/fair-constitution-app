@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmes",
   "video_library.head_title": "Biblioteca de vídeos",
   "video_library.intro": "Escolha um filme e os idiomas de áudio e legenda de sua preferência.",
+  "video_library.sample_banner": "Estes filmes são amostras do site da Coalizão Cosmopolita. Eles mostram como o player funciona: um filme, narrado e legendado em vários idiomas. Os filmes do próprio app os substituirão.",
+  "video_library.sample_banner_title": "Vídeos de amostra",
   "video_library.track_meta": "{audio} áudio · {captions} legendas",
   "video_library.translation_workspace": "espaço de trabalho de tradução",
   "video_library.unavailable": "Ainda não disponível",

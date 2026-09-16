@@ -234,6 +234,8 @@
   "video_library.films_h": "Mga Pelikula",
   "video_library.head_title": "Video library",
   "video_library.intro": "Pumili ng pelikula at ng mga wika sa audio at subtitle na gusto mo.",
+  "video_library.sample_banner": "Ang mga pelikulang ito ay mga sample mula sa website ng Cosmopolitan Coalition. Ipinapakita nito kung paano gumagana ang player: isang pelikula, na may salaysay at caption sa maraming wika. Papalitan ang mga ito ng sariling mga pelikula ng app.",
+  "video_library.sample_banner_title": "Mga sample na video",
   "video_library.track_meta": "{audio} audio · {captions} caption",
   "video_library.translation_workspace": "workspace sa pagsasalin",
   "video_library.unavailable": "Hindi pa available",

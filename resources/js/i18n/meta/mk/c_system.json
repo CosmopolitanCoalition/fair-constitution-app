@@ -2189,7 +2189,7 @@
   },
   "translation_review.machine_refused": {
     "status": "review",
-    "reason": "provider returned nothing",
+    "reason": "placeholder mismatch",
     "provider": "ollama"
   },
   "translation_review.no_draft": {

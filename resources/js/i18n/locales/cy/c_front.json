@@ -234,6 +234,8 @@
   "video_library.films_h": "Ffilmiau",
   "video_library.head_title": "Llyfrgell fideo",
   "video_library.intro": "Dewiswch ffilm a'r ieithau sain a chaniadau rydych chi'n eu preferred.",
+  "video_library.sample_banner": "Mae'r ffilmiau hyn yn samplau o wefan own Coalition Cosmopolitan. Maent yn dangos sut mae'r chwaraewr yn gweithio: un ffilm, gyda huraid a chaptiynau mewn sawl iaith. Bydd ffilmiau'r ap ei hun yn eu cymryd lle.",
+  "video_library.sample_banner_title": "Fideoedd sampl",
   "video_library.track_meta": "{audio} sain · {captions} caniadau",
   "video_library.translation_workspace": "gweithle cyfieithu",
   "video_library.unavailable": "Nid yw'n ar gael eto",

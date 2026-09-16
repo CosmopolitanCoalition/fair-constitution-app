@@ -234,6 +234,8 @@
   "video_library.films_h": "Films",
   "video_library.head_title": "Videobibliotheek",
   "video_library.intro": "Kies een film en de gewenste talen voor audio en ondertitels.",
+  "video_library.sample_banner": "Deze films zijn voorbeelden van de website van de Cosmopolitan Coalition. Ze laten zien hoe de speler werkt: één film, verteld en ondertiteld in vele talen. De eigen films van de app zullen deze vervangen.",
+  "video_library.sample_banner_title": "Voorbeeldvideo's",
   "video_library.track_meta": "{audio} audio · {captions} ondertitels",
   "video_library.translation_workspace": "vertaalwerkruimte",
   "video_library.unavailable": "Nog niet beschikbaar",

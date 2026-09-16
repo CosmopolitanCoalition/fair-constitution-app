@@ -234,6 +234,8 @@
   "video_library.films_h": "Филмови",
   "video_library.head_title": "Видео библиотека",
   "video_library.intro": "Изберете филм и јазици за аудио и титлови што ги претпочитате.",
+  "video_library.sample_banner": "Овие филмови се примероци од веб-страницата на Космополитската коалиција. Тие покажуваат како работи плеерот: еден филм, наратиран и со титлови на многу јазици. Сопствените филмови на апликацијата ќе ги заменат.",
+  "video_library.sample_banner_title": "Примерни видеа",
   "video_library.track_meta": "{audio} аудио · {captions} титлови",
   "video_library.translation_workspace": "работен простор за превод",
   "video_library.unavailable": "Уште не е достапно",

@@ -234,6 +234,8 @@
   "video_library.films_h": "Scannáin",
   "video_library.head_title": "Leabharlann físeán",
   "video_library.intro": "Roghnaigh scannán agus na languages fuaim agus fo-teastais is fearr leat.",
+  "video_library.sample_banner": "Is samplaí iad na scannáin seo ó shuíomh gréasáin Coalition Cosmopolitan. Taispeánann siad conas a oibríonn an imre: scannán amháin, le scéalú agus subtitle i go leor teangacha. Beidh scannáin an app féin in ionad na scannáin seo.",
+  "video_library.sample_banner_title": "Físeáin shampla",
   "video_library.track_meta": "{audio} audio · {captions} captions",
   "video_library.translation_workspace": "spás oibre aistriúcháin",
   "video_library.unavailable": "Níl sé ar fáil fós",

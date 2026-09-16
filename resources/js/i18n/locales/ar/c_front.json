@@ -234,6 +234,8 @@
   "video_library.films_h": "أفلام",
   "video_library.head_title": "مكتبة الفيديو",
   "video_library.intro": "اختر فيلماً ولغات الصوت والترجمة التي تفضلها.",
+  "video_library.sample_banner": "هذه الأفلام عينات من موقع تحالف كوزموبوليتان. وهي توضح كيفية عمل المشغل: فيلم واحد، بصوت وترجمة بلغات متعددة. ستستبدلها أفلام التطبيق الخاصة.",
+  "video_library.sample_banner_title": "فيديوهات عينة",
   "video_library.track_meta": "{audio} صوت · {captions} تسميات توضيحية",
   "video_library.translation_workspace": "مساحة عمل الترجمة",
   "video_library.unavailable": "غير متوفر بعد",

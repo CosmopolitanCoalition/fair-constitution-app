@@ -74,7 +74,13 @@ final class LessonVideoTest extends TestCase
 
     public function test_lesson_passes_the_per_surface_film_record(): void
     {
-        config(['cga.media.base_url' => null]);
+        // No host AND no local library: the poster state. The library root is
+        // pinned to an empty temp folder because a box that holds the films
+        // (box E serves E:\Subjects at public/media/Subjects) answers '/media'.
+        $empty = rtrim(str_replace('\\', '/', sys_get_temp_dir()), '/').'/lesson-media-empty-'.getmypid().'-'.uniqid();
+        @mkdir($empty, 0775, true);
+        config(['cga.media.base_url' => null, 'cga.media_local.local_root' => $empty]);
+        \Illuminate\Support\Facades\Cache::flush();
         $props = $this->lesson('courts');
 
         self::assertIsArray($props['video']);

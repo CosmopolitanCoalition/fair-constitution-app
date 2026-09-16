@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmek",
   "video_library.head_title": "Bideo-biblioteka",
   "video_library.intro": "Aukeratu filma bat eta nahi dituzun audio eta subtitulu hizkuntzak.",
+  "video_library.sample_banner": "Filme hauek Cosmopolitan Coalition webgunearen lagunzak dira. Jokaelea nola funtzionatzen duen erakusten dute: filme bakarra, hizkuntza askotan narratua eta subtitulatua. Aplikazioaren film propioek ordeitzuko dituzte.",
+  "video_library.sample_banner_title": "Lagun-bideoak",
   "video_library.track_meta": "{audio} audio · {captions} subtituluak",
   "video_library.translation_workspace": "itzulpen-lan-espazioa",
   "video_library.unavailable": "Oraindik eskuragarri ez da",

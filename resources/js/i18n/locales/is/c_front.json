@@ -234,6 +234,8 @@
   "video_library.films_h": "Kvikmyndir",
   "video_library.head_title": "Myndbókasafn",
   "video_library.intro": "Veldu kvikmynd og það hljóð- og undirtextatungumál sem þú vilt.",
+  "video_library.sample_banner": "Þessar myndir eru sýnishorn frá vefsíðu Cosmopolitan Coalition. Þær sýna hvernig spilirinn virkar: ein mynd með rás og texta á mörgum tungumálum. Myndir appins munu koma í stað þeirra.",
+  "video_library.sample_banner_title": "Sýnivídeó",
   "video_library.track_meta": "{audio} hljóð · {captions} textar",
   "video_library.translation_workspace": "þýðingsvinnustöð",
   "video_library.unavailable": "Ekki enn í boði",

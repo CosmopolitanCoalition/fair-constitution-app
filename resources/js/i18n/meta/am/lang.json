@@ -7166,7 +7166,7 @@
   },
   "The superseded rule does not belong to this department.": {
     "status": "review",
-    "reason": "suspiciously short for Ethi — source content likely dropped (23/55 chars, floor 0.45)",
+    "reason": "suspiciously short for Ethi — source content likely dropped (24/55 chars, floor 0.45)",
     "provider": "ollama"
   },
   "The system (bootstrap board)": {

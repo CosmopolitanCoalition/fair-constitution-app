@@ -234,6 +234,8 @@
   "video_library.films_h": "चलचित्रहरू",
   "video_library.head_title": "भिडियो पुस्तकालय",
   "video_library.intro": "एक चलचित्र र तपाईंले चाहेको अडियो र सबटाइटल्स भाषा छान्नुहोस्।",
+  "video_library.sample_banner": "यी फिल्महरू Cosmopolitan Coalition वेबसाइटका नमूनाहरू हुन्। यिनीहरूले प्लेयरले कसरी काम गर्छ भन्ने देखाउँछन्: एउटा फिल्म, धेरै भाषाहरूमा वर्णन र क्याप्सन गरिएको। एपका आफ्नै फिल्महरूले यिनीहरूलाई प्रतिस्थापन गर्नेछन्।",
+  "video_library.sample_banner_title": "नमूना भिडियोहरू",
   "video_library.track_meta": "{audio} अडियो · {captions} क्याप्सन",
   "video_library.translation_workspace": "अनुवाद कार्यक्षेत्र",
   "video_library.unavailable": "अझै उपलब्ध छैन",

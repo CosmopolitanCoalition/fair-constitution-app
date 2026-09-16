@@ -234,6 +234,8 @@
   "video_library.films_h": "Film",
   "video_library.head_title": "Perpustakaan video",
   "video_library.intro": "Pilih film serta bahasa audio dan subtitle yang Anda inginkan.",
+  "video_library.sample_banner": "Film-film ini adalah sampel dari situs web Koalisi Kosmopolitan. Film ini menunjukkan cara kerja pemutar: satu film, dinarasikan dan diberi teks dalam banyak bahasa. Film asli aplikasi akan menggantikannya.",
+  "video_library.sample_banner_title": "Video sampel",
   "video_library.track_meta": "{audio} audio · {captions} takarir",
   "video_library.translation_workspace": "ruang kerja terjemahan",
   "video_library.unavailable": "Belum tersedia",

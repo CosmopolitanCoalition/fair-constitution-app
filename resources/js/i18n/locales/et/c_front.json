@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmid",
   "video_library.head_title": "Videotekituup",
   "video_library.intro": "Valige film ning eelistatud heli- ja altekstikeeled.",
+  "video_library.sample_banner": "Need filmid on näidised Cosmopolitan Coalition veebilehelt. Need näitavad, kuidas pleier töötab: üks film, millele on lisatud jutustus ja altekstid mitmes keeles. Rakenduse üksikasvud filmid asendavad need.",
+  "video_library.sample_banner_title": "Näidivideod",
   "video_library.track_meta": "{audio} heli · {captions} altekstid",
   "video_library.translation_workspace": "tõlkivate tööpind",
   "video_library.unavailable": "Veel ei ole saadaval",

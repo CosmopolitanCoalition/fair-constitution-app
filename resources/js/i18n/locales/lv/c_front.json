@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmas",
   "video_library.head_title": "Video bibliotēka",
   "video_library.intro": "Izvēlieties filmu un vēlamās audio un subtitru valodas.",
+  "video_library.sample_banner": "Šīs filmas ir paraugi no Cosmopolitan Coalition tīmekļa vietnes. Tās rāda, kā darbojas plejeris: viena filma ar stāstītāju un subtitrus vairākās valodās. Lietotnes pašas filmas tās aizstās.",
+  "video_library.sample_banner_title": "Paraugu video",
   "video_library.track_meta": "{audio} audio · {captions} subtitri",
   "video_library.translation_workspace": "tulkošanas darba vieta",
   "video_library.unavailable": "Vēl nav pieejams",

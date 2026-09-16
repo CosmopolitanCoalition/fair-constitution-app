@@ -234,6 +234,8 @@
   "video_library.films_h": "Filamu",
   "video_library.head_title": "Maktaba ya video",
   "video_library.intro": "Chagua filamu na lugha za sauti na vibao vya maelezo unazopendelea.",
+  "video_library.sample_banner": "Filamu hizi ni sampuli kutoka tovuti ya Muungano wa Cosmopolitan. Zinaonyesha jinsi kicheza filamu kinavyofanya kazi: filamu moja, yenye simulizi na maelezo ya maandishi katika lugha nyingi. Filamu za programu yenyewe zitazichukua nafasi yake.",
+  "video_library.sample_banner_title": "Video za sampuli",
   "video_library.track_meta": "sauti {audio} · maelezo {captions}",
   "video_library.translation_workspace": "sehemu ya kazi ya tafsiri",
   "video_library.unavailable": "Haijapatikana bado",

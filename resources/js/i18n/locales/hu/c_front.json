@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmek",
   "video_library.head_title": "Videótár",
   "video_library.intro": "Válasszon egy filmet, valamint a preferált audio és felirat nyelveket.",
+  "video_library.sample_banner": "Ezek a filmek minták a Cosmopolitan Coalition weboldaláról. Bemutatják a lejátszó működését: egy film, narrációval és felirattal több nyelven. Az alkalmazás saját filmjei lesznek helyettesíteni őket.",
+  "video_library.sample_banner_title": "Mintavideók",
   "video_library.track_meta": "{audio} audio · {captions} felirat",
   "video_library.translation_workspace": "fordítási munkaterület",
   "video_library.unavailable": "Még nem elérhető",

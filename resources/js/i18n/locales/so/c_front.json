@@ -234,6 +234,8 @@
   "video_library.films_h": "Filimada",
   "video_library.head_title": "Maktabadda muuqaallada",
   "video_library.intro": "Dooro filim iyo luqadaha maqalka iyo qoraalka hoose ee aad doorbidayso.",
+  "video_library.sample_banner": "Filimadan waa tusaalooyin laga soo qaatay mareegta Isbaharka Cosmopolitan. Waxay tusayaan sida uu u shaqeeyo qalabka: hal filim oo lagu akhriyey laguna qoray luqado badan. Filimada app-ka ayaa beddeli doona.",
+  "video_library.sample_banner_title": "Fiidiyowyo tusaale ah",
   "video_library.track_meta": "{audio} maqal · {captions} qoraal",
   "video_library.translation_workspace": "goobta shaqada turjumaada",
   "video_library.unavailable": "Wali ma diyaar aha",

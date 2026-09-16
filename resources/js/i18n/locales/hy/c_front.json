@@ -234,6 +234,8 @@
   "video_library.films_h": "Ֆիլմեր",
   "video_library.head_title": "Տեսանյութերի գրադարան",
   "video_library.intro": "Ընտրեք ֆիլմը, ինչպես նաև նախընտրելի լեզուները աուդիոյի և ենթագրերի համար:",
+  "video_library.sample_banner": "Այս ֆիլմերը Cosmopolitan Coalition կայքի նմուշներն են: Դրանք ցույց են տալիս, թե ինչպես է աշխատում նվագիչը. մեկ ֆիլմ, որն ունի պատմող և ենթագրեր բազմաթիվ լեզուներով: Հավելվածի սեփական ֆիլմերը կփոխարինեն դրանք:",
+  "video_library.sample_banner_title": "Նմուշային տեսանյութեր",
   "video_library.track_meta": "{audio} աուդիո · {captions} ենթագրեր",
   "video_library.translation_workspace": "թարգմանչական աշխատանքային տարածք",
   "video_library.unavailable": "Դեռ հասանելի չէ",

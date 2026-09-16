@@ -234,6 +234,8 @@
   "video_library.films_h": "Films",
   "video_library.head_title": "Videobiblioteek",
   "video_library.intro": "Kies 'n film en die oudio- en onderskriftale wat jy verkies.",
+  "video_library.sample_banner": "Hierdie films is voorbeelde van die Cosmopolitan Coalition-webwerf. Dit wys hoe die speler werk: een film, vertel en onderskrif in baie tale. Die toepassing se eie films sal hulle vervang.",
+  "video_library.sample_banner_title": "Voorbeelde-video's",
   "video_library.track_meta": "{audio} oudio · {captions} onderskrifte",
   "video_library.translation_workspace": "vertalingswerkruimte",
   "video_library.unavailable": "Nog nie beskikbaar nie",

@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmer",
   "video_library.head_title": "Videobibliotek",
   "video_library.intro": "Velg en film og ønsket språk for lyd og undertekster.",
+  "video_library.sample_banner": "Disse filmene er eksempler fra Cosmopolitan Coalitions nettside. De viser hvordan spilleren fungerer: én film med fortelling og teksting på mange språk. Appens egne filmer vil erstatte disse.",
+  "video_library.sample_banner_title": "Eksempelvideoer",
   "video_library.track_meta": "{audio} lyd · {captions} teksting",
   "video_library.translation_workspace": "oversettelsesområde",
   "video_library.unavailable": "Ikke tilgjengelig ennå",

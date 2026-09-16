@@ -234,6 +234,8 @@
   "video_library.films_h": "චිත්‍රපට",
   "video_library.head_title": "වීඩියෝ පුස්තකාලය",
   "video_library.intro": "චිත්‍රපටයක් සහ ඔබ කැමති ශ්‍රව්‍ය සහ උපසිරැසි භාෂාවන් තෝරන්න.",
+  "video_library.sample_banner": "මෙම චිත්‍රපට Cosmopolitan Coalition වෙබ් අඩවියෙන් ලබාගත් නිදසුන් වේ. ක්‍රීඩකයා ක්‍රියා කරන ආකාරය මෙයින් පෙන්වයි: එක් චිත්‍රපටයක්, භාෂා කිහිපයකින් විස්තර කර උපසිරැසි සහිතව ඇත. ඇප් එකේම චිත්‍රපට පසුව මේවා වෙනුවට යොදනු ලැබේ.",
+  "video_library.sample_banner_title": "නිදසුන් වීඩියෝ",
   "video_library.track_meta": "ශ්‍රව්‍ය {audio} · උපසිරැසි {captions}",
   "video_library.translation_workspace": "පරිවර්තන වැඩබිම",
   "video_library.unavailable": "තවමත් ලබා ගත නොහැක",

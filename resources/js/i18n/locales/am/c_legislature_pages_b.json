@@ -13,6 +13,7 @@
   "institution_acts.field_charter": "የሕዝብ ቻርተር",
   "institution_acts.field_charter_text_court": "የተመረጠው የፍትሕ አካል ቻርተር",
   "institution_acts.field_charter_text_exec": "የተመረጠው አስፈጻሚ አካል ቻርተር",
+  "institution_acts.field_committee_judge_count": "በሕግ አውጪ ኮሚቴ አማካኝነት የተመረጡ ዳኞች",
   "institution_acts.field_court_name": "የፍርድ ቤት ስም",
   "institution_acts.field_delegated_scope": "ለአስፈጻሚ አካል የተሰጡ ሥልጣኖች",
   "institution_acts.field_dept_kind": "የዲፓርትመንት ተግባር",

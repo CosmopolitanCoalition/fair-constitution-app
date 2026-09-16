@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmai",
   "video_library.head_title": "Vaizdo įrašų biblioteka",
   "video_library.intro": "Pasirinkite filmą bei pageidaujamą garso ir subtitrų kalbą.",
+  "video_library.sample_banner": "Šie filmai yra pavyzdžiai iš „Cosmopolitan Coalition“ svetainės. Jie demonstruoja, kaip veikia grotuvas: vienas filmas su pasakojimu ir subtitrais daugu kalbų. Programėlės filmai juos pakeis.",
+  "video_library.sample_banner_title": "Pavyzdiniai vaizdo įrašai",
   "video_library.track_meta": "{audio} garsas · {captions} subtitrai",
   "video_library.translation_workspace": "vertimo darbo erdvė",
   "video_library.unavailable": "Dar nepriejama",

@@ -234,6 +234,8 @@
   "video_library.films_h": "映画",
   "video_library.head_title": "ビデオライブラリ",
   "video_library.intro": "映画と、希望する音声および字幕の言語を選択してください。",
+  "video_library.sample_banner": "これらの映画はコスモポリタン連合のウェブサイトからのサンプルです。プレイヤーの動作を示しています。1つの映画に多くの言語のナレーションと字幕が付いています。アプリ独自の映画に置き換えられます。",
+  "video_library.sample_banner_title": "サンプルビデオ",
   "video_library.track_meta": "音声 {audio} · キャプション {captions}",
   "video_library.translation_workspace": "翻訳ワークスペース",
   "video_library.unavailable": "まだ利用できません",

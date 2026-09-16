@@ -234,6 +234,8 @@
   "video_library.films_h": "ફિલ્મો",
   "video_library.head_title": "વીડિયો લાઇબ્રેરી",
   "video_library.intro": "ફિલ્મ અને તમને પસંદ હોય તેવી ઓડિયો અને સબટાઈટલ ભાષાઓ પસંદ કરો.",
+  "video_library.sample_banner": "આ ફિલ્મો કોસ્મોપોલિટન કોએલિશન વેબસાઇટના નમૂના છે. તેઓ દર્શાવે છે કે પ્લેયર કેવી રીતે કામ કરે છે: એક ફિલ્મ, જે ઘણી ભાષાઓમાં વર્ણિત અને કેપ્શન સાથે છે. એપની પોતાની ફિલ્મો તેને બદલશે.",
+  "video_library.sample_banner_title": "નમૂના વીડિયો",
   "video_library.track_meta": "{audio} ઓડિયો · {captions} કેપ્શન્સ",
   "video_library.translation_workspace": "ભાષાંતર કાર્યસ્થળ",
   "video_library.unavailable": "હજુ ઉપલબ્ધ નથી",

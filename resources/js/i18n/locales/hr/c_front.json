@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmovi",
   "video_library.head_title": "Videoteku",
   "video_library.intro": "Odaberite film te preferirane jezike za audiozapise i titlove.",
+  "video_library.sample_banner": "Ovi filmovi su primjeri s web-stranice Cosmopolitan Coalition. Pokazuju kako player radi: jedan film, pripovijedan i titliran na više jezika. Filmovi same aplikacije zamijenit će ih.",
+  "video_library.sample_banner_title": "Primjerni videozapisi",
   "video_library.track_meta": "{audio} audio · {captions} titlovi",
   "video_library.translation_workspace": "radni prostor za prijevod",
   "video_library.unavailable": "Još nije dostupno",

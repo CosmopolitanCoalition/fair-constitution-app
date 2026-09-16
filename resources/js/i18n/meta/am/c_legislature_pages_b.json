@@ -57,7 +57,7 @@
     "provider": "ollama"
   },
   "institution_acts.field_committee_judge_count": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short for Ethi — source content likely dropped (21/47 chars, floor 0.45)",
     "provider": "ollama"
   },

@@ -234,6 +234,8 @@
   "video_library.films_h": "Filmovi",
   "video_library.head_title": "Video biblioteka",
   "video_library.intro": "Odaberite film te preferirane jezike za audio zapis i titlove.",
+  "video_library.sample_banner": "Ovi filmovi su primjeri sa web stranice Cosmopolitan Coalition. Pokazuju kako plejer radi: jedan film, narativno i sa titlovima na više jezika. Filmovi same aplikacije će ih zamijeniti.",
+  "video_library.sample_banner_title": "Primjerni videozapisi",
   "video_library.track_meta": "{audio} audio · {captions} titlovi",
   "video_library.translation_workspace": "radni prostor za prevod",
   "video_library.unavailable": "Još nije dostupno",

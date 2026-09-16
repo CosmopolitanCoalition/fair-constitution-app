@@ -234,6 +234,8 @@
   "video_library.films_h": "Filma",
   "video_library.head_title": "libraria e videove",
   "video_library.intro": "Zgjidhni një film dhe gjuhët e audios dhe titrave që preferoni.",
+  "video_library.sample_banner": "Këto filma janë mostra nga faqja e internetit të Koalicionit Kozmopolit. Ato tregojnë se si funksionon player-i: një film, i treguar dhe me titra në shumë gjuhë. Filmat e aplikacionit do t'i zëvendësojnë ato.",
+  "video_library.sample_banner_title": "Video mostra",
   "video_library.track_meta": "{audio} audio · {captions} titra",
   "video_library.translation_workspace": "hapësira e punës për përkthim",
   "video_library.unavailable": "ende nuk është në dispozicion",

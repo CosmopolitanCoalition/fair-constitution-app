@@ -234,6 +234,8 @@
   "video_library.films_h": "电影",
   "video_library.head_title": "视频库",
   "video_library.intro": "选择一部电影以及您偏好的音频和字幕语言。",
+  "video_library.sample_banner": "这些影片是来自世界主义联盟网站的示例。它们展示了播放器的工作方式：一部影片，配有多种语言的旁白和字幕。应用程序自身的影片将取代这些示例。",
+  "video_library.sample_banner_title": "示例视频",
   "video_library.track_meta": "{audio} 音频 · {captions} 字幕",
   "video_library.translation_workspace": "翻译工作区",
   "video_library.unavailable": "暂不可用",

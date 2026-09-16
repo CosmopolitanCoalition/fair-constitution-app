@@ -234,6 +234,8 @@
   "video_library.films_h": "ფილმები",
   "video_library.head_title": "ვიდეო ბიბლიოთეკა",
   "video_library.intro": "აირჩიეთ ფილმი და სასურველი აუდიოსა და სუბტიტრების ენები.",
+  "video_library.sample_banner": "ეს ფილმები Cosmopolitan Coalition-ის ვებგვერდიდან აღებული ნიმუშებია. ისინი აჩვენებენ, როგორ მუშაობს პლეიერი: ერთი ფილმი, ბევრი ენით გახმოვანებული და სუბტიტრలతో. აპლიკაციის საკუთარი ფილმები მათ ჩაანაცვლებს.",
+  "video_library.sample_banner_title": "სინამუშო ვიდეოები",
   "video_library.track_meta": "{audio} აუდიო · {captions} სუბტიტრები",
   "video_library.translation_workspace": "თარგმანის სამუშაო სივრცე",
   "video_library.unavailable": "ჯერ არ არის ხელმისაწვდომი",

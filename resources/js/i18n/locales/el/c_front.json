@@ -234,6 +234,8 @@
   "video_library.films_h": "Ταινίες",
   "video_library.head_title": "Βιβλιοθήκη βίντεο",
   "video_library.intro": "Επιλέξτε μια ταινία και τις γλώσσες ήχου και υπότιτλων που προτιμάτε.",
+  "video_library.sample_banner": "Αυτές οι ταινίες είναι δείγματα από τον ιστότοπο της Cosmopolitan Coalition. Δείχνουν πώς λειτουργεί ο παίκτης: μία ταινία, με αφήγηση και υπότιτλους σε πολλές γλώσσες. Οι δικές οι ταινίες της εφαρμογής θα τις αντικαταστήσουν.",
+  "video_library.sample_banner_title": "Δείγματα βίντεο",
   "video_library.track_meta": "{audio} ήχος · {captions} υπότιτλοι",
   "video_library.translation_workspace": "χώρος εργασίας μετάφρασης",
   "video_library.unavailable": "Δεν είναι ακόμα διαθέσιμο",

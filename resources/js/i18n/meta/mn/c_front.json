@@ -939,6 +939,14 @@
     "status": "machine",
     "provider": "ollama"
   },
+  "video_library.sample_banner": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.sample_banner_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
   "video_library.track_meta": {
     "status": "machine",
     "provider": "ollama"
