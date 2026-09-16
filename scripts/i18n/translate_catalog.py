@@ -1100,4 +1100,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # A Windows host console is cp1252; a Devanagari string in a smoke line
+    # must never crash the run (2026-09-15). The catalogs are always UTF-8.
+    for _stream in (sys.stdout, sys.stderr):
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors="replace")
     raise SystemExit(main())
