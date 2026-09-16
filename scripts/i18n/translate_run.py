@@ -34,7 +34,9 @@ Options:
   --locales LIST   comma-separated codes, or `all` for every target locale
                    (registry rows with target: true; 75 non-English today)
   --workers N      concurrent workers (default 2; the GPU is the real ceiling)
-  --provider NAME  stub | nllb | claude          (default nllb)
+  --provider NAME  stub | nllb | claude | ollama (default nllb)
+  --model TAG      ollama model tag (local or -cloud), passed to each worker
+  --force          re-translate keys a locale already holds (the NLLB drafts)
   --chunk N        strings per committed chunk   (default 16)
   --device DEV     force cuda | cpu for every worker
   --halt           request a halt and exit
@@ -151,6 +153,8 @@ def main() -> int:
     ap.add_argument("--chunk", type=int, default=16)
     ap.add_argument("--device", choices=["cuda", "cpu"])
     ap.add_argument("--model", help="ollama model tag, passed to each worker")
+    ap.add_argument("--force", action="store_true",
+                    help="re-translate keys a locale already holds (passed to each worker); the NLLB drafts")
     ap.add_argument("--halt", action="store_true")
     ap.add_argument("--status", action="store_true")
     args = ap.parse_args()
@@ -203,6 +207,8 @@ def main() -> int:
                "--provider", args.provider, "--chunk", str(args.chunk)]
         if args.model:
             cmd += ["--model", args.model]
+        if args.force:
+            cmd += ["--force"]
         # The orchestrator is the operator's explicit invocation, so a full
         # ollama pass through it carries the GO to each worker.
         if args.provider == "ollama":
