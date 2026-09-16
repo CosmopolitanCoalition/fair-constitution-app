@@ -17189,6 +17189,120 @@
           "note": "Operator set done. Close"
         }
       ]
+    },
+    {
+      "id": "W-0448",
+      "title": "Video library ingestion: website download in Setup Step 2, local folder pull, media hosting",
+      "phase": "P1",
+      "order": 12,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "On a fresh box the operator downloads the 61 films (video, audio, captions) from the public website inside Setup Step 2 with a resumable, halt-able progress card; the app serves them at /media and the player plays them with no .env edit; on box E the library comes from a local folder through the artisan pull or MEDIA_DIR; pins cover the transfer (resume, short read, folder copy), the operator gate and the controls.",
+      "depends_on": [],
+      "detail": "MEDIA_DIR (default ./data/media) is the Subjects folder, mounted rw in app, horizon and scheduler and ro in nginx at public/media/Subjects; nginx serves /media/ with ranges. Tables media_pulls and media_pull_items carry the run; PullMediaItemJob on the long-running queue streams each file to a .part with Range resume and size verification; the items are dispatched from both ends of the size pile; halt is honoured at a committed boundary; halt, resume and retry seize. media:pull --source=web|folder --from --subjects --sync is the console door. The Step 2 page gains a video-library dataset card and a Video library section (size line 54.8 GB for all films, subject picker, download, halt, resume, retry, progress bar, current items, MEDIA_DIR and MEDIA_SOURCE_DIR inputs with the restart_required message). MediaMeta::baseUrl() falls back to /media when a registered master exists locally; every catalog record carries available.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-16 video library GO",
+          "title": "Video library ingestion in Setup + local pull",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Media/",
+        "app/Jobs/Media/PullMediaItemJob.php",
+        "app/Console/Commands/Media/MediaPullCommand.php",
+        "app/Http/Controllers/Setup/MediaLibrarySetupController.php",
+        "resources/js/Pages/Setup/Step2_MapData.vue",
+        "tests/Unit/MediaTransferTest.php",
+        "tests/Feature/MediaLibrarySetupControllerTest.php"
+      ],
+      "history": [
+        {
+          "date": "2026-09-16",
+          "note": "Operator GO (2026-09-16, late afternoon Eastern): make the player play the Coalition website videos; Setup Step 2 ingestion from the public website; box E local pull; upload interface for the Learning Drawer; a11y, i18n, l10n as before; new strings through Gemma. Website stores one quality; the local copies hold variants; the website version is the one pulled."
+        },
+        {
+          "date": "2026-09-16",
+          "note": "Built 1a01c3be (evening, Eastern). MEDIA_DIR mounted at public/media/Subjects (rw app/horizon/scheduler, ro nginx), nginx /media/ with ranges, MediaMeta::baseUrl() auto /media, media_pulls + media_pull_items, MediaTransfer (Range resume, size verify, halt at a 2 s tick), PullMediaItemJob (long-running), MediaPullPlanner (single owner, bounded inserts, two-ended dispatch, --sync runner), media:pull, MediaLibrarySetupController (status/start/control/savePath), EnvFile extracted from SetupController, Step 2 card + Video library section. Operator ruling: all 61 films by default. JS pins 72 pass. PHP tests written, NOT RUN: Docker Desktop down on box E. New mounts need docker compose up -d (his action). Evidence: app/Services/Media/, app/Jobs/Media/PullMediaItemJob.php, app/Console/Commands/Media/MediaPullCommand.php, app/Http/Controllers/Setup/MediaLibrarySetupController.php, resources/js/Pages/Setup/Step2_MapData.vue, tests/Unit/MediaTransferTest.php, tests/Feature/MediaLibrarySetupControllerTest.php."
+        }
+      ]
+    },
+    {
+      "id": "W-0449",
+      "title": "Video manager: upload a master, audio and caption tracks; assign films to surfaces for the Learning Drawer",
+      "phase": "P1",
+      "order": 13,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "/videos/manage lists every film (registry and uploaded) with availability, track counts and assigned surfaces; an operator or R-23 holder uploads a silent master, audio files and caption files that land under MEDIA_DIR with the canonical names and appear in the library and the player; a film can be assigned to any registered surface and the lesson page and the Learn drawer open that film; reading stays open; pins cover the gate, the upload, the filename language resolution and the assignment.",
+      "depends_on": [
+        "W-0448"
+      ],
+      "detail": "Tables media_videos, media_video_tracks and media_surface_videos overlay the generated registry: MediaMeta::all() merges them (a DB row with the same id wins) and MediaMeta::surfaceOverride() answers the drawer. The page follows the material-manager idiom (read-only preview for non-holders, labelled controls, 44 px targets, 375 px safe). Languages resolve from the filename suffix -<English name> against the media languages table, or from a per-file select. Uploads are real file writes: the gate is the real role, not the demo waiver. An audit entry education/video.published is written where the audit table exists.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-16 video library GO",
+          "title": "Upload interface for the Learning Drawer",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Http/Controllers/Media/VideoManagerController.php",
+        "tests/Feature/VideoManagerControllerTest.php",
+        "tests/js/videoManager.test.mjs"
+      ],
+      "history": [
+        {
+          "date": "2026-09-16",
+          "note": "Operator GO (2026-09-16, late afternoon Eastern): make the player play the Coalition website videos; Setup Step 2 ingestion from the public website; box E local pull; upload interface for the Learning Drawer; a11y, i18n, l10n as before; new strings through Gemma. Website stores one quality; the local copies hold variants; the website version is the one pulled."
+        },
+        {
+          "date": "2026-09-16",
+          "note": "Built 1a01c3be (evening, Eastern). /videos/manage (VideoManagerController + Pages/Learn/VideoManager.vue): reading open, upload and assign gated on is_operator only (operator ruling: an operator tool, temporary during development); media_videos, media_video_tracks, media_surface_videos overlay the registry; LearnController, SurfaceMeta and LearnFlyout prefer the assignment; per-video available on the library and lesson pages. PHP tests written, NOT RUN (Docker down). Evidence: app/Http/Controllers/Media/VideoManagerController.php, tests/Feature/VideoManagerControllerTest.php, tests/js/videoManager.test.mjs."
+        }
+      ]
+    },
+    {
+      "id": "W-0450",
+      "title": "Video library strings: catalogue keys, Gemma pass over every enabled language, pins",
+      "phase": "done",
+      "order": null,
+      "kind": "build",
+      "status": "done",
+      "blocker": "none",
+      "done_when": "Every new string on Step 2, the video manager, the library and the lesson page resolves through vue-i18n or __(); the 75 non-English catalogs carry the new keys from the Gemma pass; node scripts/i18n/check.mjs exits 0; the wiring, raw-string and a11y pins are green.",
+      "depends_on": [
+        "W-0448",
+        "W-0449"
+      ],
+      "detail": "Keys land in c_setup (step2_media.*), c_front (video_manager.*) and lang/en.json. The pass is translate_run.py --locales all --provider ollama --model gemma4:31b-cloud (new keys only, glossary-constrained, QA-gated); rejected strings go to the reader queue on /system/translations.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-16 video library GO",
+          "title": "a11y, i18n and l10n standards for the video work",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "resources/js/i18n/locales/*/c_setup.json step2_media.*",
+        "resources/js/i18n/locales/*/c_front.json video_manager.*",
+        "lang/*.json Manage videos"
+      ],
+      "history": [
+        {
+          "date": "2026-09-16",
+          "note": "Operator GO (2026-09-16, late afternoon Eastern): make the player play the Coalition website videos; Setup Step 2 ingestion from the public website; box E local pull; upload interface for the Learning Drawer; a11y, i18n, l10n as before; new strings through Gemma. Website stores one quality; the local copies hold variants; the website version is the one pulled."
+        },
+        {
+          "date": "2026-09-16",
+          "note": "Done fafe452c + ce4d3eb9 (evening, Eastern): 95 JS keys + 1 lang key in en (1a01c3be); Gemma pass (translate_run.py --locales all --provider ollama --model gemma4:31b-cloud) filled all 75 locales, zu lacks 1 key (QA skip, reader queue); 313 of 7,200 values identical to English (technical tokens). The gate stays red for a pre-existing reason unrelated to this row: the chrome monolith dicts (resources/js/i18n/<code>.json) exist for 5 locales only, 8,131 failures at HEAD before this campaign."
+        }
+      ]
     }
   ]
 }

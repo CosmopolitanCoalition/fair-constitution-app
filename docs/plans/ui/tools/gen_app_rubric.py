@@ -23,6 +23,16 @@ import json, io, sys, os
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 QUESTIONS = [
+  {"id":"video-library-size","q":"The Coalition video library at website quality is 54.8 GB (61 films: 17.1 GB video, 37.7 GB audio, 72 MB captions). The Step 2 download supports a subject filter and resumes. What does the fresh cloud box pull for Krakow?","status":"open","lane":"video",
+   "detail":"All 61 films give every surface its assigned film (7 authored assignments plus the default introduction film). A subset cuts disk and download time on the cloud box; the player shows an honest poster for a film that is not present. The demo box disk size and the bandwidth on the day decide the cost.",
+   "options":[{"k":"A","t":"All 61 films (54.8 GB). [desk rec: the picker and resume make a full pull safe; a partial pull can follow later without rework]"},
+    {"k":"B","t":"The 8 assigned films only (default introduction plus the 7 surface films)."},
+    {"k":"C","t":"Captions and audio for all films, masters for the 8 assigned films."},
+    {"k":"D","t":"A list you name."}]},
+  {"id":"video-publication-form","q":"Publishing a video (master, audio, captions, surface assignment) is built as an operator or R-23 tool that writes the media catalog and an audit entry. Should it instead be a constitutional form (a new F-EDU-003) filed through the engine like F-EDU-002 training material?","status":"open","lane":"video",
+   "detail":"A form adds a FormRegistry id (the count is pinned in AuditChainSmokeTest), an engine authorize path with the demo waiver, and a public-record entry per publication. The tool path ships now with the same R-23 gate and an audit entry, and can be wrapped in a form later without changing the storage.",
+   "options":[{"k":"A","t":"Keep the tool with the audit entry; add a form later if publications need a public-record act. [desk rec]"},
+    {"k":"B","t":"Mint F-EDU-003 now and file every publication through the engine."}]},
   {"id":"languages-to-enable","q":"The overnight cloud pass drafted all 75 target languages (glossary-constrained, machine drafts, QA-gated). The app shows 7 today (en es ar zh-Hans hi fr pt). Which languages go live in the switcher for Krakow?","status":"open","lane":"i18n",
    "detail":"Enabling is one registry switch per language (scripts/i18n/languages.py ENABLED, then the generated registries). Every draft is marked machine and the review queue on /system/translations is open to readers of that language. The 2026-09-16 spot check graded every language (docs/audits/2026-09-16/L10N_SPOTCHECK.md): A 35, B 25, C 14. Conference nine all A or B except Portuguese and Turkish (two misleading strings each in 100). C grade: Welsh, Irish, Basque, Maltese, Lithuanian, Slovenian, Mongolian, Estonian, Pashto, Catalan, Icelandic, Bengali. An enabled language with a misleading string is a visible demo risk; a disabled language with a good draft is a missed one.",
    "options":[{"k":"A","t":"Enable all 75 now; the switcher states machine draft and the queue settles them over time."},
@@ -471,6 +481,8 @@ QUESTIONS = [
 ]
 # Operator answers (2026-07-29) — flip the 9 open to RESOLVED with the ruling folded in.
 _ANS = {
+ 'video-publication-form':('A','Keep the tool with the audit entry; an operator tool for now, temporary during development.',"'it's an operator thing. this is temporary during development.'"),
+ 'video-library-size':('A','All 61 films (54.8 GB). The picker and resume make a full pull safe; a partial pull can follow later without rework.','"if the question is, are you sure you want to include all videos, the answer is yes"'),
  'languages-to-enable':('A','Enable all 75 now; the switcher states machine draft and the queue settles them over time.','"activate all languages in the app. since they are part of code they will be turned on by default."'),
  'boardroom-page-access':('B','Render the room page read-only for any signed-in resident (call transcript or a no-access notice inside the page), join and floor actions still gated; then sweep it. Public bodies read for everyone; private organizations stay private.','"Private organizations NO, Public organizations YES. Electon Boards are public by nature"'),
  'step5-readiness-guard':('A','Block completion by default while any verify scope is in review; force=true records the outstanding list into setup_completion_notes; a done run with zero verify items is verification pending until the bounded verify phase runs; no new table or column.','"I have no formal opinion and defer to the desk." (2026-09-13)'),
