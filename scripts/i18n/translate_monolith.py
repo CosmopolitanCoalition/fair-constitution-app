@@ -26,7 +26,9 @@ Usage (inside the NLLB container, repo mounted at /repo):
   python3 scripts/i18n/translate_monolith.py --locale pt --provider nllb --dry-run
 
   --locale CODE      target locale (required)
-  --provider NAME    stub | nllb        (default: nllb — the settled local pass)
+  --provider NAME    stub | nllb | ollama (default: nllb; ollama = the Gemma pass,
+                     the same provider translate_catalog uses, with --model)
+  --model TAG        ollama model tag (local or -cloud)
   --chunk N          strings per forward-pass batch   (default: 24)
   --dry-run          count what would translate; write nothing
   --force            re-translate keys already present in the target base
@@ -82,7 +84,8 @@ def dump_json(path: Path, data: dict) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Translate the monolithic chrome dict.")
     ap.add_argument("--locale", required=True)
-    ap.add_argument("--provider", default="nllb", choices=["stub", "nllb"])
+    ap.add_argument("--provider", default="nllb", choices=["stub", "nllb", "ollama"])
+    ap.add_argument("--model", help="ollama model tag (local or -cloud), e.g. gemma4:31b-cloud")
     ap.add_argument("--chunk", type=int, default=24)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--force", action="store_true")
@@ -119,7 +122,9 @@ def main() -> int:
         return 0
 
     glossary = tc.glossary_terms(args.locale)
-    provider = tc.make_provider(args.provider, glossary)
+    # The ollama provider reads the language row (name, dir) for its prompt,
+    # exactly as translate_catalog passes it; stub and nllb ignore it.
+    provider = tc.make_provider(args.provider, glossary, model=args.model, lang=reg[args.locale])
 
     wrote = skipped = 0
     started = time.time()

@@ -1,25 +1,25 @@
 {
-  "generated_at": "2026-09-16T22:14:14.371Z",
+  "generated_at": "2026-09-16T23:22:35.629Z",
   "source_keys": 16599,
   "namespaces": 73,
   "locales": [
     {
       "locale": "af",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 243,
-      "pct": 99.3
+      "identical": 247,
+      "pct": 100
     },
     {
       "locale": "am",
       "total": 16599,
-      "present": 16481,
-      "missing": 118,
+      "present": 16592,
+      "missing": 7,
       "orphan": 0,
-      "identical": 75,
-      "pct": 99.3
+      "identical": 76,
+      "pct": 100
     },
     {
       "locale": "ar",
@@ -33,92 +33,92 @@
     {
       "locale": "az",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 181,
-      "pct": 99.3
+      "identical": 183,
+      "pct": 100
     },
     {
       "locale": "bg",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 81,
-      "pct": 99.3
+      "identical": 82,
+      "pct": 100
     },
     {
       "locale": "bn",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 77,
-      "pct": 99.3
+      "identical": 78,
+      "pct": 100
     },
     {
       "locale": "bs",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 204,
-      "pct": 99.3
+      "identical": 207,
+      "pct": 100
     },
     {
       "locale": "ca",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 216,
-      "pct": 99.3
+      "identical": 218,
+      "pct": 100
     },
     {
       "locale": "cs",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 176,
-      "pct": 99.3
+      "identical": 181,
+      "pct": 100
     },
     {
       "locale": "cy",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 254,
-      "pct": 99.3
+      "identical": 257,
+      "pct": 100
     },
     {
       "locale": "da",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 333,
-      "pct": 99.3
+      "identical": 341,
+      "pct": 100
     },
     {
       "locale": "de",
       "total": 16599,
-      "present": 16475,
-      "missing": 124,
+      "present": 16586,
+      "missing": 13,
       "orphan": 0,
-      "identical": 306,
-      "pct": 99.3
+      "identical": 313,
+      "pct": 99.9
     },
     {
       "locale": "el",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 99,
-      "pct": 99.3
+      "identical": 100,
+      "pct": 100
     },
     {
       "locale": "es",
@@ -132,92 +132,92 @@
     {
       "locale": "et",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 140,
-      "pct": 99.3
+      "identical": 142,
+      "pct": 100
     },
     {
       "locale": "eu",
       "total": 16599,
-      "present": 16487,
-      "missing": 112,
+      "present": 16598,
+      "missing": 1,
       "orphan": 0,
-      "identical": 180,
-      "pct": 99.3
+      "identical": 185,
+      "pct": 100
     },
     {
       "locale": "fa",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 69,
-      "pct": 99.3
+      "identical": 70,
+      "pct": 100
     },
     {
       "locale": "fi",
       "total": 16599,
-      "present": 16451,
-      "missing": 148,
+      "present": 16562,
+      "missing": 37,
       "orphan": 0,
-      "identical": 102,
-      "pct": 99.1
+      "identical": 103,
+      "pct": 99.8
     },
     {
       "locale": "fil",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 918,
-      "pct": 99.3
+      "identical": 933,
+      "pct": 100
     },
     {
       "locale": "fr",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 8,
-      "identical": 338,
-      "pct": 99.3
+      "identical": 345,
+      "pct": 100
     },
     {
       "locale": "ga",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 273,
-      "pct": 99.3
+      "identical": 274,
+      "pct": 100
     },
     {
       "locale": "gl",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 150,
-      "pct": 99.3
+      "identical": 152,
+      "pct": 100
     },
     {
       "locale": "gu",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 81,
-      "pct": 99.3
+      "identical": 82,
+      "pct": 100
     },
     {
       "locale": "he",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 73,
-      "pct": 99.3
+      "identical": 74,
+      "pct": 100
     },
     {
       "locale": "hi",
@@ -231,434 +231,434 @@
     {
       "locale": "hr",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 189,
-      "pct": 99.3
+      "identical": 191,
+      "pct": 100
     },
     {
       "locale": "hu",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 133,
-      "pct": 99.3
+      "identical": 137,
+      "pct": 100
     },
     {
       "locale": "hy",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 68,
-      "pct": 99.3
+      "identical": 69,
+      "pct": 100
     },
     {
       "locale": "id",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 297,
-      "pct": 99.3
+      "identical": 302,
+      "pct": 100
     },
     {
       "locale": "is",
       "total": 16599,
-      "present": 16487,
-      "missing": 112,
+      "present": 16598,
+      "missing": 1,
       "orphan": 0,
-      "identical": 120,
-      "pct": 99.3
+      "identical": 121,
+      "pct": 100
     },
     {
       "locale": "it",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 240,
-      "pct": 99.3
+      "identical": 248,
+      "pct": 100
     },
     {
       "locale": "ja",
       "total": 16599,
-      "present": 16486,
-      "missing": 113,
+      "present": 16597,
+      "missing": 2,
       "orphan": 0,
-      "identical": 76,
-      "pct": 99.3
+      "identical": 77,
+      "pct": 100
     },
     {
       "locale": "jv",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 336,
-      "pct": 99.3
+      "identical": 343,
+      "pct": 100
     },
     {
       "locale": "ka",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 84,
-      "pct": 99.3
+      "identical": 85,
+      "pct": 100
     },
     {
       "locale": "kk",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 80,
-      "pct": 99.3
+      "identical": 81,
+      "pct": 100
     },
     {
       "locale": "km",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 117,
-      "pct": 99.3
+      "identical": 118,
+      "pct": 100
     },
     {
       "locale": "kn",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 76,
-      "pct": 99.3
+      "identical": 77,
+      "pct": 100
     },
     {
       "locale": "ko",
       "total": 16599,
-      "present": 16486,
-      "missing": 113,
+      "present": 16597,
+      "missing": 2,
       "orphan": 0,
-      "identical": 80,
-      "pct": 99.3
+      "identical": 81,
+      "pct": 100
     },
     {
       "locale": "lo",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 106,
-      "pct": 99.3
+      "identical": 107,
+      "pct": 100
     },
     {
       "locale": "lt",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 97,
-      "pct": 99.3
+      "identical": 101,
+      "pct": 100
     },
     {
       "locale": "lv",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 110,
-      "pct": 99.3
+      "identical": 112,
+      "pct": 100
     },
     {
       "locale": "mk",
       "total": 16599,
-      "present": 16487,
-      "missing": 112,
+      "present": 16598,
+      "missing": 1,
       "orphan": 0,
-      "identical": 86,
-      "pct": 99.3
+      "identical": 87,
+      "pct": 100
     },
     {
       "locale": "ml",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 101,
-      "pct": 99.3
+      "identical": 102,
+      "pct": 100
     },
     {
       "locale": "mn",
       "total": 16599,
-      "present": 16487,
-      "missing": 112,
+      "present": 16598,
+      "missing": 1,
       "orphan": 0,
-      "identical": 72,
-      "pct": 99.3
+      "identical": 73,
+      "pct": 100
     },
     {
       "locale": "mr",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 83,
-      "pct": 99.3
+      "identical": 84,
+      "pct": 100
     },
     {
       "locale": "ms",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 224,
-      "pct": 99.3
+      "identical": 228,
+      "pct": 100
     },
     {
       "locale": "mt",
       "total": 16599,
-      "present": 16487,
-      "missing": 112,
+      "present": 16598,
+      "missing": 1,
       "orphan": 0,
-      "identical": 375,
-      "pct": 99.3
+      "identical": 381,
+      "pct": 100
     },
     {
       "locale": "my",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 161,
-      "pct": 99.3
+      "identical": 162,
+      "pct": 100
     },
     {
       "locale": "ne",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 77,
-      "pct": 99.3
+      "identical": 78,
+      "pct": 100
     },
     {
       "locale": "nl",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 437,
-      "pct": 99.3
+      "identical": 448,
+      "pct": 100
     },
     {
       "locale": "no",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 274,
-      "pct": 99.3
+      "identical": 280,
+      "pct": 100
     },
     {
       "locale": "pl",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 195,
-      "pct": 99.3
+      "identical": 201,
+      "pct": 100
     },
     {
       "locale": "ps",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 104,
-      "pct": 99.3
+      "identical": 105,
+      "pct": 100
     },
     {
       "locale": "pt",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 8,
-      "identical": 210,
-      "pct": 99.3
+      "identical": 214,
+      "pct": 100
     },
     {
       "locale": "ro",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 269,
-      "pct": 99.3
+      "identical": 271,
+      "pct": 100
     },
     {
       "locale": "ru",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 79,
-      "pct": 99.3
+      "identical": 80,
+      "pct": 100
     },
     {
       "locale": "si",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 106,
-      "pct": 99.3
+      "identical": 107,
+      "pct": 100
     },
     {
       "locale": "sk",
       "total": 16599,
-      "present": 16487,
-      "missing": 112,
+      "present": 16598,
+      "missing": 1,
       "orphan": 0,
-      "identical": 172,
-      "pct": 99.3
+      "identical": 177,
+      "pct": 100
     },
     {
       "locale": "sl",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 173,
-      "pct": 99.3
+      "identical": 176,
+      "pct": 100
     },
     {
       "locale": "so",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 157,
-      "pct": 99.3
+      "identical": 159,
+      "pct": 100
     },
     {
       "locale": "sq",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 174,
-      "pct": 99.3
+      "identical": 178,
+      "pct": 100
     },
     {
       "locale": "sr",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 86,
-      "pct": 99.3
+      "identical": 87,
+      "pct": 100
     },
     {
       "locale": "su",
       "total": 16599,
-      "present": 16487,
-      "missing": 112,
+      "present": 16598,
+      "missing": 1,
       "orphan": 0,
-      "identical": 337,
-      "pct": 99.3
+      "identical": 343,
+      "pct": 100
     },
     {
       "locale": "sv",
       "total": 16599,
-      "present": 16479,
-      "missing": 120,
+      "present": 16590,
+      "missing": 9,
       "orphan": 0,
-      "identical": 296,
-      "pct": 99.3
+      "identical": 302,
+      "pct": 99.9
     },
     {
       "locale": "sw",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 112,
-      "pct": 99.3
+      "identical": 114,
+      "pct": 100
     },
     {
       "locale": "ta",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 83,
-      "pct": 99.3
+      "identical": 84,
+      "pct": 100
     },
     {
       "locale": "te",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 83,
-      "pct": 99.3
+      "identical": 84,
+      "pct": 100
     },
     {
       "locale": "th",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 95,
-      "pct": 99.3
+      "identical": 96,
+      "pct": 100
     },
     {
       "locale": "tr",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 102,
-      "pct": 99.3
+      "identical": 104,
+      "pct": 100
     },
     {
       "locale": "uk",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 75,
-      "pct": 99.3
+      "identical": 76,
+      "pct": 100
     },
     {
       "locale": "ur",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 72,
-      "pct": 99.3
+      "identical": 73,
+      "pct": 100
     },
     {
       "locale": "uz",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 150,
-      "pct": 99.3
+      "identical": 152,
+      "pct": 100
     },
     {
       "locale": "vi",
       "total": 16599,
-      "present": 16488,
-      "missing": 111,
+      "present": 16599,
+      "missing": 0,
       "orphan": 0,
-      "identical": 102,
-      "pct": 99.3
+      "identical": 104,
+      "pct": 100
     },
     {
       "locale": "zh-Hans",
@@ -672,11 +672,11 @@
     {
       "locale": "zu",
       "total": 16599,
-      "present": 16474,
-      "missing": 125,
+      "present": 16585,
+      "missing": 14,
       "orphan": 0,
-      "identical": 142,
-      "pct": 99.2
+      "identical": 143,
+      "pct": 99.9
     }
   ],
   "by_namespace": [
@@ -5058,81 +5058,81 @@
       "namespace": "chrome",
       "total": 117,
       "locales": {
-        "af": 6,
-        "am": 6,
+        "af": 117,
+        "am": 117,
         "ar": 109,
-        "az": 6,
-        "bg": 6,
-        "bn": 6,
-        "bs": 6,
-        "ca": 6,
-        "cs": 6,
-        "cy": 6,
-        "da": 6,
-        "de": 6,
-        "el": 6,
+        "az": 117,
+        "bg": 117,
+        "bn": 117,
+        "bs": 117,
+        "ca": 117,
+        "cs": 117,
+        "cy": 117,
+        "da": 117,
+        "de": 117,
+        "el": 117,
         "es": 109,
-        "et": 6,
-        "eu": 6,
-        "fa": 6,
-        "fi": 6,
-        "fil": 6,
-        "fr": 6,
-        "ga": 6,
-        "gl": 6,
-        "gu": 6,
-        "he": 6,
+        "et": 117,
+        "eu": 117,
+        "fa": 117,
+        "fi": 117,
+        "fil": 117,
+        "fr": 117,
+        "ga": 117,
+        "gl": 117,
+        "gu": 117,
+        "he": 117,
         "hi": 109,
-        "hr": 6,
-        "hu": 6,
-        "hy": 6,
-        "id": 6,
-        "is": 6,
-        "it": 6,
-        "ja": 6,
-        "jv": 6,
-        "ka": 6,
-        "kk": 6,
-        "km": 6,
-        "kn": 6,
-        "ko": 6,
-        "lo": 6,
-        "lt": 6,
-        "lv": 6,
-        "mk": 6,
-        "ml": 6,
-        "mn": 6,
-        "mr": 6,
-        "ms": 6,
-        "mt": 6,
-        "my": 6,
-        "ne": 6,
-        "nl": 6,
-        "no": 6,
-        "pl": 6,
-        "ps": 6,
-        "pt": 6,
-        "ro": 6,
-        "ru": 6,
-        "si": 6,
-        "sk": 6,
-        "sl": 6,
-        "so": 6,
-        "sq": 6,
-        "sr": 6,
-        "su": 6,
-        "sv": 6,
-        "sw": 6,
-        "ta": 6,
-        "te": 6,
-        "th": 6,
-        "tr": 6,
-        "uk": 6,
-        "ur": 6,
-        "uz": 6,
-        "vi": 6,
+        "hr": 117,
+        "hu": 117,
+        "hy": 117,
+        "id": 117,
+        "is": 117,
+        "it": 117,
+        "ja": 117,
+        "jv": 117,
+        "ka": 117,
+        "kk": 117,
+        "km": 117,
+        "kn": 117,
+        "ko": 117,
+        "lo": 117,
+        "lt": 117,
+        "lv": 117,
+        "mk": 117,
+        "ml": 117,
+        "mn": 117,
+        "mr": 117,
+        "ms": 117,
+        "mt": 117,
+        "my": 117,
+        "ne": 117,
+        "nl": 117,
+        "no": 117,
+        "pl": 117,
+        "ps": 117,
+        "pt": 117,
+        "ro": 117,
+        "ru": 117,
+        "si": 117,
+        "sk": 117,
+        "sl": 117,
+        "so": 117,
+        "sq": 117,
+        "sr": 117,
+        "su": 117,
+        "sv": 117,
+        "sw": 117,
+        "ta": 117,
+        "te": 117,
+        "th": 117,
+        "tr": 117,
+        "uk": 117,
+        "ur": 117,
+        "uz": 117,
+        "vi": 117,
         "zh-Hans": 109,
-        "zu": 6
+        "zu": 117
       }
     },
     {
@@ -6594,11 +6594,11 @@
       }
     }
   ],
-  "failures": 8131,
-  "warnings": 126763,
+  "failures": 250,
+  "warnings": 127552,
   "failure_codes": {
-    "C1-missing": 8004,
     "C4-idtoken": 77,
+    "C1-missing": 123,
     "C2-orphan": 48,
     "C5-compile": 2
   }
