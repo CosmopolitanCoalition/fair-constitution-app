@@ -421,7 +421,11 @@ class OllamaProvider(Provider):
     name = "ollama"
 
     def __init__(self, glossary=None, model=None, lang=None, host=None,
-                 retries=3, timeout=300):
+                 retries=3, timeout=120):
+        # timeout 120 s: a cloud reply takes 2 to 5 s and the local 4B model
+        # under 65 s per 40-string chunk; a request the cloud never answers
+        # (Welsh and Basque lanes, 2026-09-16) costs 6 minutes across the three
+        # tries instead of 15, then the chunk goes to review and the lane moves.
         self.glossary = glossary or {}
         self.model = model or os.environ.get("OLLAMA_MODEL") or "llama3.1:8b"
         self.lang = lang or {}
