@@ -315,6 +315,7 @@
   "legislature_emergencypowers.clk_03_the_90_day_ceiling_is_itself_the_am": "CLK-03 — 90 天上限本身即为可修改设置的宪法最大值",
   "legislature_emergencypowers.day_s": "+{extension_days} 天 — {vote_summary}",
   "legislature_emergencypowers.duration_days": "持续时间 (天)",
+  "legislature_emergencypowers.e_g_evacuation_orders_shelter_requisition_": "例如：疏散命令、避难所征用、清除废墟承包",
   "legislature_emergencypowers.e_g_river_ausa_flooding": "例如：Ausa 河洪水",
   "legislature_emergencypowers.emergency_powers_exist_for_exactly_two_cau": "紧急权力仅适用于两种原因 — 自然灾害和实际入侵。它们需要绝对多数通过，运行时间最多 90 天，可随时接受司法审查，自动过期，且绝不能干扰选举、会议或法院。任何激活的权力都是每次会议的首要议题。",
   "legislature_emergencypowers.emergency_powers_state_machine": "紧急权力状态机",

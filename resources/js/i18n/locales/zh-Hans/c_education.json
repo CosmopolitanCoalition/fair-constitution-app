@@ -6,6 +6,7 @@
   "education_auth_login.s2_do": "登录",
   "education_auth_login.s3_detail": "在此 Beta 版本中，居住资格在您声明的瞬间即确认。投票权和参选资格立即开启。无需第二步，也无需任何人批准。",
   "education_auth_login.s3_do": "如果您尚未确认，请确认您的居住地",
+  "education_auth_login.why": "本应用直接从居住事实推导出投票权，与在某地生活的事实同时成立，因此二者之间不容任何东西介入。会话只是打开您记录的一把钥匙，从来不是权利的来源。",
   "education_auth_operator_login.learn": "此登录用于运行实例。它不是进入政府的途径。操作员状态属于基础设施，在任何辖区均不拥有投票权、席位或法律地位。",
   "education_auth_operator_login.s1_detail": "此登录与您的公民账户分开。服务器每分钟允许尝试五次，随后将短时间暂停新尝试，并在用户名字段中予以提示。",
   "education_auth_operator_login.s1_do": "输入您的操作员用户名和密码",

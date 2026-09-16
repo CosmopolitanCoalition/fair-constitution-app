@@ -253,7 +253,6 @@ TIER_1 = ["en", "es", "ar", "zh-Hans", "hi"]   # what the app ships today
 # wave doc). Enabling them is still the right call: an in-language body with an
 # English frame beats not offering the language at all. Explicit list, not a disk
 # scan, so a half-built tier-2 catalog can never silently flip a locale live.
-ENABLED = TIER_1 + ["fr", "pt"]
 
 # ─── The translation target set (operator order 2026-09-14) ──────────────────
 # The languages the translation pass runs for: the six official UN languages,
@@ -276,6 +275,11 @@ WEBSITE = [
 ]
 UN_OFFICIAL = ["ar", "zh-Hans", "en", "fr", "ru", "es"]
 TARGET = sorted(set(WEBSITE) | set(UN_OFFICIAL) | {"pl", "it", "tr"})
+
+# Operator order 2026-09-16: every target language is enabled. The catalogues
+# are code; a drafted language ships on by default, and the switcher states the
+# machine-draft status. Reading-review grades: docs/audits/2026-09-16/L10N_SPOTCHECK.md.
+ENABLED = list(TARGET)
 
 
 def etl_codes() -> list[str]:

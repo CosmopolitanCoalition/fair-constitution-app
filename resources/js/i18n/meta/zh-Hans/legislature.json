@@ -1373,9 +1373,9 @@
     "provider": "ollama"
   },
   "legislature_emergencypowers.e_g_evacuation_orders_shelter_requisition_": {
-    "status": "review",
-    "reason": "sentence count fell 2 -> 0",
-    "provider": "ollama"
+    "status": "machine",
+    "provider": "review-fix",
+    "source": "desk fill 2026-09-16 (QA-rejected residue)"
   },
   "legislature_emergencypowers.e_g_river_ausa_flooding": {
     "status": "machine",

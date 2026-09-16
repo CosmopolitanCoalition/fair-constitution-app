@@ -110,6 +110,27 @@ Inside the app, the **Map data** step shows what it detected, lets you scope the
 single country for a fast first world, or download the datasets over the internet country by
 country. The full planet is ~14 GB of source data and a 6–12 hour import.
 
+## Languages
+
+The app runs in **76 languages**: English, the six UN languages, Polish, Italian, Turkish, and every
+language on the Cosmopolitan Coalition website's translation programme. Every string of the
+interface and every server message exists in all of them, and all are switched on.
+
+**Read this before you trust a screen in another language.** English is the source. Every other
+language is a **machine draft**: produced by an open model under a constitutional glossary,
+checked automatically for intact placeholders, tokens and citations, and then read in samples by a
+reviewer model that graded each language. No human has yet read most languages end to end.
+
+- **[Translation status](docs/i18n/TRANSLATION_STATUS.md)** — the table: one row per language with
+  its coverage, its reading-review grade, and whether a native reader has signed off.
+- **[Methods](docs/i18n/METHODS.md)** — how the text was made translatable, how the drafts were
+  produced and gated, how the samples were read, and what the accessibility sweep checks.
+
+**If you read one of these languages, you can fix it.** Sign in, add the language to your record,
+and open the translation board at `/system/translations`: it queues the drafts for your language,
+and each string you confirm or correct is recorded. The languages graded C in the status table
+are the ones that need a reader first.
+
 ## Advanced
 
 For people running servers or contributing code — none of this is needed for a normal install:

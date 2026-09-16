@@ -44,6 +44,7 @@ Grade: A = 90 percent clean and no misleading string; B = 70 percent clean and a
 | Kannada (kn) | top20 | 30 | 27 | 90 | 3 | 1 | B |
 | Malayalam (ml) | top20 | 30 | 27 | 90 | 3 | 0 | A |
 | Nepali (ne) | rest | 10 | 9 | 90 | 1 (unverified) | 0 | A |
+| Hindi (hi) | conference | 100 | 90 | 90 | 10 | 2 | C |
 | Portuguese (pt) | conference | 100 | 90 | 90 | 9 | 2 | C |
 | Sinhala (si) | rest | 10 | 9 | 90 | 1 (unverified) | 0 | A |
 | Somali (so) | rest | 10 | 9 | 90 | 1 (unverified) | 0 | A |
@@ -82,7 +83,7 @@ Grade: A = 90 percent clean and no misleading string; B = 70 percent clean and a
 | Irish (ga) | rest | 10 | 3 | 30 | 7 (unverified) | 5 | C |
 | Welsh (cy) | rest | 10 | 2 | 20 | 8 (unverified) | 4 | C |
 
-Grades: A 35, B 25, C 14 of 74 languages reviewed (plus Hindi, A from its earlier reviews).
+Grades: A 35, B 25, C 15 of 75 languages reviewed (Hindi from its 2026-09-15 review of 100 strings: 90 clean, 2 misleading, 10 corrections applied fdb0e13d).
 Corrections applied to the catalogues from the skeptic-confirmed findings: 95. Not applied (key not found): 1.
 
 Evidence: workflow journals under the session's subagents/workflows directory (wf_c1cb56bc-76c, wf_a6b37441-868, wf_c93e2f29-553, wf_c45d7eed-c5f); samples under scratchpad/spotcheck/samples.

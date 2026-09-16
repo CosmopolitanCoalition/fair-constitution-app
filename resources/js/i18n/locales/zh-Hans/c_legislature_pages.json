@@ -555,6 +555,7 @@
   "emergency_powers.meter_text": "第 {day} 天 / 共 {max} 天",
   "emergency_powers.methods_hint": "引擎验证：方法必须保持在宪法秩序之内 — 权利和公民程序不可触碰。",
   "emergency_powers.methods_label": "方法",
+  "emergency_powers.methods_placeholder": "例如：疏散命令、避难所征用、清除废墟承包",
   "emergency_powers.name_label": "为紧急情况命名",
   "emergency_powers.name_placeholder": "例如：Ausa 河泛滥",
   "emergency_powers.never_invoked": "{name} 从未启动过紧急权力",

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T12:22:41.872Z",
+  "generated_at": "2026-09-16T12:43:52.487Z",
   "source_keys": 16504,
   "namespaces": 73,
   "locales": [
@@ -222,11 +222,11 @@
     {
       "locale": "hi",
       "total": 16504,
-      "present": 16495,
-      "missing": 9,
+      "present": 16496,
+      "missing": 8,
       "orphan": 8,
       "identical": 74,
-      "pct": 99.9
+      "pct": 100
     },
     {
       "locale": "hr",
@@ -663,11 +663,11 @@
     {
       "locale": "zh-Hans",
       "total": 16504,
-      "present": 16493,
-      "missing": 11,
+      "present": 16496,
+      "missing": 8,
       "orphan": 8,
       "identical": 72,
-      "pct": 99.9
+      "pct": 100
     },
     {
       "locale": "zu",
@@ -1405,7 +1405,7 @@
         "ur": 1023,
         "uz": 1023,
         "vi": 1023,
-        "zh-Hans": 1022,
+        "zh-Hans": 1023,
         "zu": 1023
       }
     },
@@ -3057,7 +3057,7 @@
         "gl": 593,
         "gu": 593,
         "he": 593,
-        "hi": 592,
+        "hi": 593,
         "hr": 593,
         "hu": 593,
         "hy": 593,
@@ -3106,7 +3106,7 @@
         "ur": 593,
         "uz": 593,
         "vi": 593,
-        "zh-Hans": 592,
+        "zh-Hans": 593,
         "zu": 593
       }
     },
@@ -5941,7 +5941,7 @@
         "ur": 542,
         "uz": 542,
         "vi": 542,
-        "zh-Hans": 541,
+        "zh-Hans": 542,
         "zu": 542
       }
     },
@@ -6594,10 +6594,10 @@
       }
     }
   ],
-  "failures": 8136,
-  "warnings": 126761,
+  "failures": 8132,
+  "warnings": 126762,
   "failure_codes": {
-    "C1-missing": 8009,
+    "C1-missing": 8005,
     "C4-idtoken": 77,
     "C2-orphan": 48,
     "C5-compile": 2

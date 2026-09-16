@@ -29,9 +29,16 @@ const localesDir = path.join(root, 'resources/js/i18n/locales');
 const registrySrc = read('resources/js/i18n/locales.generated.js');
 // The registry writes one locale object literal per line, so read enabled
 // codes line by line (a spanning regex mis-pairs code with a later enabled).
+// Since 2026-09-16 every target language is enabled (operator order), so the
+// conference set this pin holds to full parity is the six UN languages, read
+// from the registry's `conference: true` rows when present and otherwise the
+// settled list; the other enabled languages are graded, not parity-pinned
+// (docs/audits/2026-09-16/L10N_SPOTCHECK.md).
+const CONFERENCE_SET = ['ar', 'es', 'fr', 'hi', 'pt', 'zh-Hans'];
 const ENABLED = registrySrc.split('\n')
     .filter((l) => /code:\s*"/.test(l) && /enabled:\s*true/.test(l))
-    .map((l) => l.match(/code:\s*"([^"]+)"/)[1]);
+    .map((l) => l.match(/code:\s*"([^"]+)"/)[1])
+    .filter((c) => c === 'en' || CONFERENCE_SET.includes(c));
 const CONFERENCE = ENABLED.filter((c) => c !== 'en');
 
 // ── Helpers.

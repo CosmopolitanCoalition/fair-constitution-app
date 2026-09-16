@@ -555,6 +555,7 @@
   "emergency_powers.meter_text": "दिन {day} / {max}",
   "emergency_powers.methods_hint": "इंजन सत्यापन: तरीके संवैधानिक व्यवस्था के भीतर रहने चाहिए — अधिकार और नागरिक प्रक्रियाएं अछूत हैं।",
   "emergency_powers.methods_label": "तरीके",
+  "emergency_powers.methods_placeholder": "उदा. निकासी आदेश, आश्रय अधिग्रहण, मलबा हटाने के ठेके",
   "emergency_powers.name_label": "आपातकाल का नाम दें",
   "emergency_powers.name_placeholder": "जैसे: नदी औसा में बाढ़",
   "emergency_powers.never_invoked": "{name} में कभी भी आपातकालीन शक्तियाँ लागू नहीं की गई हैं",

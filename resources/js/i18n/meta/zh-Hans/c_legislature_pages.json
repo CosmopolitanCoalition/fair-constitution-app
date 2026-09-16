@@ -2264,9 +2264,9 @@
     "provider": "ollama"
   },
   "emergency_powers.methods_placeholder": {
-    "status": "review",
-    "reason": "sentence count fell 2 -> 0",
-    "provider": "ollama"
+    "status": "machine",
+    "provider": "review-fix",
+    "source": "desk fill 2026-09-16 (QA-rejected residue)"
   },
   "emergency_powers.name_label": {
     "status": "machine",

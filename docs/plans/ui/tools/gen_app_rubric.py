@@ -471,6 +471,7 @@ QUESTIONS = [
 ]
 # Operator answers (2026-07-29) — flip the 9 open to RESOLVED with the ruling folded in.
 _ANS = {
+ 'languages-to-enable':('A','Enable all 75 now; the switcher states machine draft and the queue settles them over time.','"activate all languages in the app. since they are part of code they will be turned on by default."'),
  'boardroom-page-access':('B','Render the room page read-only for any signed-in resident (call transcript or a no-access notice inside the page), join and floor actions still gated; then sweep it. Public bodies read for everyone; private organizations stay private.','"Private organizations NO, Public organizations YES. Electon Boards are public by nature"'),
  'step5-readiness-guard':('A','Block completion by default while any verify scope is in review; force=true records the outstanding list into setup_completion_notes; a done run with zero verify items is verification pending until the bounded verify phase runs; no new table or column.','"I have no formal opinion and defer to the desk." (2026-09-13)'),
  'sim-resume-cursor':('A','Keyset walk returning scanned and inserted together; durable enum_cursor jsonb on sim_runs (additive migration); a resume reads adm_max and limit from the stored run options; the chunk size is derived from the host through HostCapacity (env-overridable) and the two sibling constants are retrofitted in the same build.','"I have no formal opinion and defer to the desk." (2026-09-13)'),

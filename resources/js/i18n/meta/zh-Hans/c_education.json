@@ -28,9 +28,9 @@
     "provider": "ollama"
   },
   "education_auth_login.why": {
-    "status": "review",
-    "reason": "sentence count fell 3 -> 2",
-    "provider": "ollama"
+    "status": "machine",
+    "provider": "review-fix",
+    "source": "desk fill 2026-09-16 (QA-rejected residue)"
   },
   "education_auth_operator_login.learn": {
     "status": "machine",
