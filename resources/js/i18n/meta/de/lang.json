@@ -2428,7 +2428,7 @@
     "provider": "ollama"
   },
   "Chair elections run on SEATED committees — run the F-SPK-005 assignment first.": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },
@@ -4511,6 +4511,10 @@
     "provider": "ollama"
   },
   "Manage training material": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "Manage videos": {
     "status": "machine",
     "provider": "ollama"
   },
@@ -7640,7 +7644,7 @@
     "provider": "ollama"
   },
   "Unknown F-LEG-027 branch [:branch].": {
-    "status": "review",
+    "status": "machine",
     "reason": "ID token altered",
     "provider": "ollama"
   },

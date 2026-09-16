@@ -4552,6 +4552,10 @@
     "status": "machine",
     "provider": "ollama"
   },
+  "Manage videos": {
+    "status": "machine",
+    "provider": "ollama"
+  },
   "Manual District Draw": {
     "status": "machine",
     "provider": "ollama"

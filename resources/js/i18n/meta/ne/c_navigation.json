@@ -455,6 +455,10 @@
     "status": "machine",
     "provider": "ollama"
   },
+  "video-manager": {
+    "status": "machine",
+    "provider": "ollama"
+  },
   "wallet": {
     "status": "machine",
     "provider": "ollama"

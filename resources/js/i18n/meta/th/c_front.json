@@ -946,5 +946,193 @@
   "video_library.translation_workspace": {
     "status": "machine",
     "provider": "ollama"
+  },
+  "video_library.unavailable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.unavailable_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.assign_button": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.assign_cancel": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.assign_clear": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.assign_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.assign_save": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.assigned_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.assigned_none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.assigning": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.audio_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.audio_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.available_no": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.available_yes": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.captions_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.captions_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.demo_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.error_generic": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.file_language_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.films_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.library_root": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.master_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.master_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.no_films": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.no_surfaces_match": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.notice_assigned": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.notice_saved": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.page_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.preview": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.progress_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.replace_master_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.select_language": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.source_registry": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.source_upload": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.subject_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.subject_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.submit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.summary_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.surfaces_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.surfaces_search_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.surfaces_search_placeholder": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.title_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.tracks_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.upload_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.upload_progress": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_manager.uploading": {
+    "status": "machine",
+    "provider": "ollama"
   }
 }

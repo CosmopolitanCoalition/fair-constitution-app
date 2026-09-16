@@ -2037,6 +2037,195 @@
     "status": "machine",
     "provider": "ollama"
   },
+  "step2_media.card_films": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.card_none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.card_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.card_tracks": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.current_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.current_item": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.download": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.err_control": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.err_folder_required": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.err_from_required": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.err_save": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.err_start": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.folder_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.folder_help": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "ollama"
+  },
+  "step2_media.folder_saved": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.from_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.from_ph": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.halt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.help": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.media_dir_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.media_dir_ph": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.media_source_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.media_source_ph": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.progress_bytes": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.progress_eta": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.progress_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.progress_files": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.progress_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.recheck": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.resume": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.retry_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.save_folder": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.saving": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.size_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.source_folder": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.source_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.source_web": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.starting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.status_done": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.status_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.status_halted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.status_running": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.subject_all": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.subject_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.subject_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "step2_media.subject_pick": {
+    "status": "machine",
+    "provider": "ollama"
+  },
   "step3_districts.adm_0": {
     "status": "machine",
     "provider": "ollama"
