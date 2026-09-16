@@ -290,6 +290,18 @@ async function confirmImport(run) {
     await pkgPost(`/system/translations/packages/${encodeURIComponent(run)}/confirm`, {});
 }
 
+/* The escape hatch: a failed or stale run is retried (a new export run, or
+   the same import re-queued) or discarded. Offered on exactly those runs. */
+async function retryRun(run) {
+    await pkgPost(`/system/translations/packages/${encodeURIComponent(run)}/retry`, {});
+}
+
+async function discardRun(run) {
+    await pkgPost(`/system/translations/packages/${encodeURIComponent(run)}/discard`, {});
+}
+
+const pkgRecoverable = (r) => r.status === 'failed' || r.stale === true;
+
 async function requestLanguageSubmit() {
     if (!requestLocale.value) return;
     const done = await pkgPost('/system/translations/languages/request', {
@@ -730,21 +742,28 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
                         <td><span data-no-i18n>{{ pkgRunLocale(r) }}</span></td>
                         <td>
                             <StatusBadge :tone="r.status === 'ready' || r.status === 'imported' ? 'success'
-                                : r.status === 'failed' ? 'danger'
-                                : r.status === 'dry_run_ready' ? 'warning' : 'info'">{{ r.status }}</StatusBadge>
+                                : r.status === 'failed' || r.stale ? 'danger'
+                                : r.status === 'dry_run_ready' ? 'warning' : 'info'">{{ r.stale ? t('c_system.translations.pkg_stale', 'stalled, no worker') : r.status }}</StatusBadge>
                             <span v-if="r.report" class="gloss" data-no-i18n>
                                 · {{ t('c_system.translations.pkg_dry_report', '{accepted} accepted, {rejected} rejected', { accepted: r.report.accepted, rejected: r.report.rejected }) }}
                             </span>
+                            <span v-if="r.status === 'failed' && r.error" class="gloss pkg-error" data-no-i18n>· {{ r.error }}</span>
                         </td>
-                        <td>
+                        <td class="pkg-actions">
                             <a v-if="r.kind === 'export' && r.status === 'ready'" class="btn btn--sm" :href="downloadHref(r.run, r.locale)">
                                 {{ t('c_system.translations.pkg_download', 'Download package') }}
                             </a>
-                            <button v-else-if="r.kind === 'import' && r.status === 'dry_run_ready'" class="btn btn--sm btn--primary"
+                            <button v-if="r.kind === 'import' && r.status === 'dry_run_ready'" class="btn btn--sm btn--primary"
                                     :disabled="pkgBusy" @click="confirmImport(r.run)">
                                 {{ t('c_system.translations.pkg_confirm', 'Confirm import') }}
                             </button>
-                            <span v-else class="gloss">—</span>
+                            <button v-if="pkgRecoverable(r)" class="btn btn--sm btn--primary" :disabled="pkgBusy" @click="retryRun(r.run)">
+                                {{ t('c_system.translations.pkg_retry', 'Retry') }}
+                            </button>
+                            <button v-if="pkgRecoverable(r) || r.status === 'ready' || r.status === 'imported'" class="btn btn--sm" :disabled="pkgBusy" @click="discardRun(r.run)">
+                                {{ t('c_system.translations.pkg_discard', 'Discard') }}
+                            </button>
+                            <span v-if="!pkgRecoverable(r) && !['ready', 'imported', 'dry_run_ready'].includes(r.status)" class="gloss">—</span>
                         </td>
                     </tr>
                 </tbody>
@@ -857,6 +876,8 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
 }
 .pkg-table { width: 100%; border-collapse: collapse; margin-block: var(--space-3, 0.75rem); }
 .pkg-table th, .pkg-table td { text-align: left; padding: 0.4rem 0.5rem; vertical-align: top; }
+.pkg-actions { display: flex; flex-wrap: wrap; gap: var(--space-2, 0.5rem); }
+.pkg-error { display: block; overflow-wrap: anywhere; }
 .pkg-request { display: flex; flex-wrap: wrap; gap: var(--space-3, 0.75rem); align-items: flex-end; }
 .pkg-request .pkg-label { flex: 1 1 12rem; }
 .pkg-requests { margin: var(--space-2, 0.5rem) 0 0; padding-inline-start: 1.1rem; }

@@ -183,13 +183,17 @@ def read_glossary(glossary_file: Path, locale: str) -> dict[str, str]:
 
 def used_by(ns: str, meta_en_dir: Path, js_root: Path) -> list[str]:
     """
-    The pages and components that own or reference the namespace.
+    The pages and components that own the namespace, from the extraction
+    manifest (meta/en/<ns>.json `file` fields): one small JSON read.
 
-    Two signals, unioned:
-      - the extraction manifest (meta/en/<ns>.json `file` fields), authoritative
-        for the auto-extracted namespaces.
-      - explicit t('<ns>.  references in resources/js, which catch the
-        hand-authored content namespaces that carry no extraction manifest.
+    THE EXPORT READS FILES, NEVER WALKS THEM (operator order 2026-09-15).
+    A package is English keys minus the keys the locale already holds; that
+    is JSON arithmetic over the catalogues and takes seconds for any
+    language. An earlier version of this function also walked every file
+    under resources/js for each namespace to find t('<ns>. references, which
+    turned a Hindi export into minutes through the Docker bind mount and
+    past the queue timeout. js_root is kept in the signature for the
+    callers and is not read.
     """
     files: set[str] = set()
 
@@ -197,20 +201,6 @@ def used_by(ns: str, meta_en_dir: Path, js_root: Path) -> list[str]:
     for entry in manifest.values():
         if isinstance(entry, dict) and entry.get("file"):
             files.add(entry["file"].replace("\\", "/"))
-
-    if js_root.exists():
-        ref = re.compile(r"""[^\w]t\(\s*['"`]""" + re.escape(ns) + r"\.")
-        for path in js_root.rglob("*"):
-            if path.suffix not in (".vue", ".js", ".ts") or not path.is_file():
-                continue
-            if "i18n" in path.parts and "locales" in path.parts:
-                continue
-            try:
-                text = path.read_text(encoding="utf-8", errors="ignore")
-            except OSError:
-                continue
-            if ref.search(text):
-                files.add(str(path.relative_to(js_root.parent.parent)).replace("\\", "/"))
 
     return sorted(files)
 

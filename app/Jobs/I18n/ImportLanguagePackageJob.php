@@ -36,12 +36,17 @@ class ImportLanguagePackageJob implements ShouldQueue
 
     private const PROCESS_TIMEOUT_SECONDS = 1800;
 
+    /** The worker's ceiling for this job: the script budget, never the default lane's 60 s. */
+    public int $timeout = self::PROCESS_TIMEOUT_SECONDS;
+
     public function __construct(
         public string $run,
         public bool $confirm = false,
         public ?string $actorId = null,
         public ?string $locale = null,
     ) {
+        // The long lane, the same one the export rides (see ExportLanguagePackageJob).
+        $this->onConnection(ExportLanguagePackageJob::CONNECTION)->onQueue(ExportLanguagePackageJob::QUEUE);
     }
 
     public function handle(LanguagePackageService $packages, AuditService $audit): void
@@ -116,6 +121,26 @@ class ImportLanguagePackageJob implements ShouldQueue
             ]);
 
             throw $e;
+        }
+    }
+
+    /**
+     * The worker killed or crashed this job (a queue timeout, a lost worker,
+     * an uncaught error). Without this hook the run record keeps its in-flight
+     * status forever and the card shows a job that no longer exists
+     * (the Hindi export of 2026-09-15, killed at the 60 s default-queue
+     * timeout). Laravel calls failed() for every terminal failure.
+     */
+    public function failed(?\Throwable $e = null): void
+    {
+        try {
+            app(LanguagePackageService::class)->writeRun($this->run, [
+                'status' => 'failed',
+                'error' => $e?->getMessage() ?? 'job failed',
+                'finished_at' => now()->toIso8601String(),
+            ]);
+        } catch (\Throwable) {
+            // The record itself is unreachable; the failed_jobs row still holds the cause.
         }
     }
 

@@ -66,6 +66,8 @@ class LanguagePackageRoutesTest extends TestCase
 
         Queue::assertPushed(ExportLanguagePackageJob::class, fn ($job) => $job->locale === 'en');
         Queue::assertPushed(ExportLanguagePackageJob::class, fn ($job) => $job->locale === 'pl');
+        // Never the 60 s default lane (the first Hindi export, 2026-09-15).
+        Queue::assertPushed(ExportLanguagePackageJob::class, fn ($job, $queue) => $queue === 'long-running' && $job->connection === 'redis-long');
 
         $runs = $c->status($this->req(true))->getData(true)['runs'];
         $locales = array_column($runs, 'locale');
@@ -91,6 +93,35 @@ class LanguagePackageRoutesTest extends TestCase
 
         Queue::assertNothingPushed();
         $this->assertSame([], $c->status($this->req(true))->getData(true)['runs'], 'a refused import records no run');
+    }
+
+    public function test_retry_and_discard_recover_a_failed_or_stale_run(): void
+    {
+        Queue::fake();
+        $c = $this->controller();
+        $svc = new LanguagePackageService($this->tmp);
+
+        // A killed export left in flight: retried as a NEW run for the same locale.
+        $svc->writeRun('run-hi', ['kind' => 'export', 'locale' => 'pl', 'status' => 'exporting']);
+        $resp = $c->retry($this->req(true), 'run-hi')->getData(true);
+        $this->assertSame('queued', $resp['status']);
+        $this->assertNotSame('run-hi', $resp['run']);
+        Queue::assertPushed(ExportLanguagePackageJob::class, fn ($job, $queue) => $job->run === $resp['run'] && $job->locale === 'pl' && $queue === 'long-running');
+        $this->assertSame('run-hi', $svc->readRun($resp['run'])['retry_of']);
+        $this->assertSame($resp['run'], $svc->readRun('run-hi')['retried_as']);
+
+        // A failed import dry run: re-queued under its own run.
+        $svc->writeRun('run-im', ['kind' => 'import', 'locale' => 'es', 'status' => 'failed', 'error' => 'boom']);
+        $resp = $c->retry($this->req(true), 'run-im')->getData(true);
+        $this->assertSame(['run' => 'run-im', 'status' => 'queued'], $resp);
+        Queue::assertPushed(ImportLanguagePackageJob::class, fn ($job) => $job->run === 'run-im' && $job->confirm === false);
+        $this->assertNull($svc->readRun('run-im')['error']);
+
+        // Discard removes the run; unknown runs are 404 for both controls.
+        $this->assertSame('discarded', $c->discard($this->req(true), 'run-hi')->getData(true)['status']);
+        $this->assertNull($svc->readRun('run-hi'));
+        $this->assertSame(404, $c->discard($this->req(true), 'run-hi')->getStatusCode());
+        $this->assertSame(404, $c->retry($this->req(true), 'nope')->getStatusCode());
     }
 
     public function test_status_states_the_source_and_one_row_per_target(): void
@@ -137,6 +168,8 @@ class LanguagePackageRoutesTest extends TestCase
         $this->assert403(fn () => $c->export($this->req(false, ['locale' => 'es'])));
         $this->assert403(fn () => $c->import($this->req(false, ['locale' => 'es'])));
         $this->assert403(fn () => $c->confirm($this->req(false), 'run-1'));
+        $this->assert403(fn () => $c->retry($this->req(false), 'run-1'));
+        $this->assert403(fn () => $c->discard($this->req(false), 'run-1'));
         $this->assert403(fn () => $c->download($this->req(false), 'run-1', 'es'));
         $this->assert403(fn () => $c->requestLanguage($this->req(false, ['locale' => 'es'])));
         $this->assert403(fn () => $c->status($this->req(false)));

@@ -28,6 +28,8 @@ class Wiring_w0446_language_packagesTest extends TestCase
             'system.translations.packages.export',
             'system.translations.packages.import',
             'system.translations.packages.confirm',
+            'system.translations.packages.retry',
+            'system.translations.packages.discard',
             'system.translations.packages.download',
             'system.translations.languages.request',
         ] as $name) {
@@ -43,7 +45,7 @@ class Wiring_w0446_language_packagesTest extends TestCase
         $this->assertStringContainsString('is_operator', $ctrl);
         $this->assertStringContainsString('abort_unless', $ctrl);
         // Every public action calls the gate.
-        $this->assertSame(6, substr_count($ctrl, '$this->operatorOnly($request)'));
+        $this->assertSame(8, substr_count($ctrl, '$this->operatorOnly($request)'));
         // The web request never executes a script or a raw process.
         $this->assertStringNotContainsString('Symfony\\Component\\Process', $ctrl);
         $this->assertStringNotContainsString('proc_open', $ctrl);
@@ -64,6 +66,38 @@ class Wiring_w0446_language_packagesTest extends TestCase
         // Coverage refresh is attempted through node, deferred when unreachable.
         $this->assertStringContainsString('check.mjs', $import);
         $this->assertStringContainsString('coverage refresh pending', $import);
+    }
+
+    public function test_the_jobs_ride_the_long_lane_and_close_their_record_on_failure(): void
+    {
+        // The 60 s default lane killed the first Hindi export (2026-09-15).
+        $export = new \App\Jobs\I18n\ExportLanguagePackageJob('run-x', 'hi');
+        $this->assertSame('redis-long', $export->connection);
+        $this->assertSame('long-running', $export->queue);
+        $this->assertSame(1800, $export->timeout);
+
+        $import = new \App\Jobs\I18n\ImportLanguagePackageJob('run-y');
+        $this->assertSame('redis-long', $import->connection);
+        $this->assertSame('long-running', $import->queue);
+        $this->assertSame(1800, $import->timeout);
+
+        foreach (['app/Jobs/I18n/ExportLanguagePackageJob.php', 'app/Jobs/I18n/ImportLanguagePackageJob.php'] as $rel) {
+            $src = $this->read($rel);
+            $this->assertStringContainsString('public function failed(', $src, "{$rel} closes its run record on failure");
+            $this->assertStringContainsString("'status' => 'failed'", $src);
+        }
+
+        // Retry and Discard are never blocked by the state they recover from.
+        $ctrl = $this->read('app/Http/Controllers/System/TranslationPackageController.php');
+        $this->assertStringContainsString('public function retry(', $ctrl);
+        $this->assertStringContainsString('public function discard(', $ctrl);
+    }
+
+    public function test_the_export_script_never_walks_the_source_tree(): void
+    {
+        $py = $this->read('scripts/i18n/export_master.py');
+        $this->assertStringNotContainsString('rglob(', $py, 'the export is JSON arithmetic, never a walk of resources/js');
+        $this->assertStringNotContainsString('read_text(encoding="utf-8", errors="ignore")', $py);
     }
 
     public function test_the_import_job_writes_one_audit_entry(): void

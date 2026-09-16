@@ -133,6 +133,60 @@ class TranslationPackageController extends Controller
         return response()->json(['run' => $run, 'status' => 'confirm_queued']);
     }
 
+    /**
+     * The escape hatch, part one: run a failed or stale run again. An export
+     * becomes a NEW run for the same locale; an import re-queues its own dry
+     * run (the uploaded file is still under the run). Never blocked by the
+     * state it recovers from.
+     */
+    public function retry(Request $request, string $run): JsonResponse
+    {
+        $this->operatorOnly($request);
+
+        $record = $this->packages->readRun($run);
+        if ($record === null) {
+            return response()->json(['error' => __('Unknown run.')], 404);
+        }
+
+        $actor = (string) $request->user()?->getKey();
+        $locale = (string) ($record['locale'] ?? '');
+
+        if (($record['kind'] ?? '') === 'export') {
+            if (! $this->packages->isExportable($locale)) {
+                return response()->json(['error' => __('[:locale] is not exportable', ['locale' => $locale])], 422);
+            }
+            $new = $this->packages->newRunId();
+            $this->packages->writeRun($new, [
+                'kind' => 'export',
+                'locale' => $locale,
+                'status' => 'queued',
+                'actor' => $actor,
+                'retry_of' => $run,
+            ]);
+            $this->packages->writeRun($run, ['retried_as' => $new]);
+            ExportLanguagePackageJob::dispatch($new, $locale);
+
+            return response()->json(['run' => $new, 'status' => 'queued']);
+        }
+
+        $this->packages->writeRun($run, ['status' => 'queued', 'error' => null, 'retries' => (int) ($record['retries'] ?? 0) + 1]);
+        ImportLanguagePackageJob::dispatch($run, confirm: false, actorId: $actor, locale: $locale !== '' ? $locale : null);
+
+        return response()->json(['run' => $run, 'status' => 'queued']);
+    }
+
+    /** The escape hatch, part two: remove a run and its files. */
+    public function discard(Request $request, string $run): JsonResponse
+    {
+        $this->operatorOnly($request);
+
+        if (! $this->packages->discardRun($run)) {
+            return response()->json(['error' => __('Unknown run.')], 404);
+        }
+
+        return response()->json(['run' => $run, 'status' => 'discarded']);
+    }
+
     /** Download a finished package zip. */
     public function download(Request $request, string $run, string $locale): BinaryFileResponse|JsonResponse
     {

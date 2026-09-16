@@ -1468,6 +1468,9 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     Route::post('/translations/packages/export', [\App\Http\Controllers\System\TranslationPackageController::class, 'export'])->name('translations.packages.export');
     Route::post('/translations/packages/import', [\App\Http\Controllers\System\TranslationPackageController::class, 'import'])->name('translations.packages.import');
     Route::post('/translations/packages/{run}/confirm', [\App\Http\Controllers\System\TranslationPackageController::class, 'confirm'])->name('translations.packages.confirm');
+    // The escape hatch (2026-09-15): a failed or stale run is retried or discarded, never left stuck.
+    Route::post('/translations/packages/{run}/retry', [\App\Http\Controllers\System\TranslationPackageController::class, 'retry'])->name('translations.packages.retry');
+    Route::post('/translations/packages/{run}/discard', [\App\Http\Controllers\System\TranslationPackageController::class, 'discard'])->name('translations.packages.discard');
     Route::get('/translations/packages/{run}/{locale}/download', [\App\Http\Controllers\System\TranslationPackageController::class, 'download'])->name('translations.packages.download');
     Route::post('/translations/languages/request', [\App\Http\Controllers\System\TranslationPackageController::class, 'requestLanguage'])->name('translations.languages.request');
 });

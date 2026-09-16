@@ -435,23 +435,78 @@ class LanguagePackageService
         return is_array($decoded) ? $decoded : null;
     }
 
+    /** A run whose job is still expected to be doing something. */
+    public const IN_FLIGHT = ['queued', 'exporting', 'dry_running', 'importing', 'confirm_queued'];
+
+    /**
+     * Seconds after which an in-flight run with no update is STALE: the job's
+     * own ceiling (1800 s in both jobs) plus a minute of slack. The failed()
+     * hook normally closes a killed job's record; this catches a run whose
+     * worker vanished without running any hook (a lost container, a kill -9).
+     */
+    public const STALE_AFTER_SECONDS = 1860;
+
     /**
      * Every run record on disk, newest first (run ids sort chronologically).
+     * Each row carries `stale`: true when it is in flight and its last update
+     * is older than STALE_AFTER_SECONDS. The escape hatch (Retry, Discard) is
+     * offered on failed and stale runs.
      *
      * @return list<array<string, mixed>>
      */
-    public function listRuns(): array
+    public function listRuns(?int $nowTs = null): array
     {
+        $nowTs ??= now()->getTimestamp();
         $runs = [];
         foreach (glob($this->base . '/*/package.json') ?: [] as $file) {
             $decoded = json_decode((string) file_get_contents($file), true);
             if (is_array($decoded)) {
+                $decoded['stale'] = $this->isStale($decoded, $nowTs);
                 $runs[] = $decoded;
             }
         }
         usort($runs, fn ($a, $b) => strcmp((string) ($b['run'] ?? ''), (string) ($a['run'] ?? '')));
 
         return $runs;
+    }
+
+    /** @param array<string, mixed> $record */
+    public function isStale(array $record, int $nowTs): bool
+    {
+        if (! in_array($record['status'] ?? '', self::IN_FLIGHT, true)) {
+            return false;
+        }
+        $updated = strtotime((string) ($record['updated_at'] ?? '')) ?: 0;
+
+        return $updated > 0 && ($nowTs - $updated) > self::STALE_AFTER_SECONDS;
+    }
+
+    /**
+     * Remove a run and everything under it (the escape hatch's Discard).
+     * Returns false when there is no such run. A traversal run id throws
+     * before anything is touched.
+     */
+    public function discardRun(string $run): bool
+    {
+        $dir = $this->runDir($run);
+        if (! is_dir($dir)) {
+            return false;
+        }
+        $this->removeTree($dir);
+
+        return ! is_dir($dir);
+    }
+
+    private function removeTree(string $dir): void
+    {
+        foreach (scandir($dir) ?: [] as $f) {
+            if ($f === '.' || $f === '..') {
+                continue;
+            }
+            $p = $dir . '/' . $f;
+            is_dir($p) && ! is_link($p) ? $this->removeTree($p) : @unlink($p);
+        }
+        @rmdir($dir);
     }
 
     // ── Language requests ────────────────────────────────────────────────────────

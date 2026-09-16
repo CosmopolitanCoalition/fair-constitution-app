@@ -178,6 +178,43 @@ TXT;
         $this->svc()->runDir('../evil');
     }
 
+    public function test_a_stale_run_is_an_in_flight_record_nobody_updated(): void
+    {
+        $svc = $this->svc();
+        $now = 1_800_000_000;
+
+        $fresh = ['status' => 'exporting', 'updated_at' => date(DATE_ATOM, $now - 60)];
+        $old = ['status' => 'exporting', 'updated_at' => date(DATE_ATOM, $now - 4000)];
+        $done = ['status' => 'ready', 'updated_at' => date(DATE_ATOM, $now - 4000)];
+        $failed = ['status' => 'failed', 'updated_at' => date(DATE_ATOM, $now - 4000)];
+
+        $this->assertFalse($svc->isStale($fresh, $now));
+        $this->assertTrue($svc->isStale($old, $now));
+        $this->assertFalse($svc->isStale($done, $now), 'a finished run is never stale');
+        $this->assertFalse($svc->isStale($failed, $now), 'a failed run is recoverable, not stale');
+
+        $svc->writeRun('run-old', ['kind' => 'export', 'locale' => 'es', 'status' => 'exporting']);
+        $rows = $svc->listRuns($now + 10_000_000);
+        $this->assertTrue($rows[0]['stale']);
+        $this->assertFalse($svc->listRuns()[0]['stale'], 'just written, not stale now');
+    }
+
+    public function test_discard_removes_the_run_and_refuses_traversal(): void
+    {
+        $svc = $this->svc();
+        $svc->writeRun('run-d', ['kind' => 'export', 'locale' => 'es', 'status' => 'failed']);
+        $svc->ensureDir($svc->exportDir('run-d') . '/es');
+        file_put_contents($svc->exportDir('run-d') . '/es/auth.json', '{}');
+
+        $this->assertTrue($svc->discardRun('run-d'));
+        $this->assertDirectoryDoesNotExist($svc->runDir('run-d'));
+        $this->assertFalse($svc->discardRun('run-d'), 'gone is gone');
+        $this->assertSame([], $svc->listRuns());
+
+        $this->expectException(InvalidArgumentException::class);
+        $svc->discardRun('../evil');
+    }
+
     public function test_requests_round_trip_in_the_store(): void
     {
         $svc = $this->svc();

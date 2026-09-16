@@ -85,6 +85,10 @@ const KEYS = [
     'translations.pkg_opt_present',
     'translations.pkg_opt_absent',
     'translations.pkg_source_master',
+    // 2026-09-15: the escape hatch on failed and stale runs.
+    'translations.pkg_retry',
+    'translations.pkg_discard',
+    'translations.pkg_stale',
 ];
 
 test('every card key resolves in en/c_system.json', () => {
@@ -123,6 +127,14 @@ test('the export, import, confirm and request flows are wired', () => {
     assert.match(src, /function startExport\(/);
     assert.match(src, /function startImport\(/);
     assert.match(src, /function requestLanguageSubmit\(/);
+});
+
+test('the escape hatch is wired: retry and discard on failed and stale runs', () => {
+    assert.match(src, /\/retry`/);
+    assert.match(src, /\/discard`/);
+    assert.match(src, /function retryRun\(/);
+    assert.match(src, /function discardRun\(/);
+    assert.match(src, /r\.status === 'failed' \|\| r\.stale === true/);
 });
 
 test('the picker tells the truth about what is in the app', () => {

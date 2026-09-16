@@ -21,6 +21,11 @@ use Symfony\Component\Process\Process;
  * The board's card polls the run record and offers the zip once the state is
  * ready. The script NEVER runs inside the web request — only here.
  *
+ * THE LANE. Both package jobs ride the long-running supervisor
+ * (connection redis-long, queue long-running: no worker timeout, 4 h
+ * retry_after), never the 60 s default lane that killed the first Hindi
+ * export (2026-09-15). The job's own timeout matches the script budget.
+ *
  * The run record is the single source of truth the card reads:
  *   status: exporting -> ready | failed
  */
@@ -33,8 +38,15 @@ class ExportLanguagePackageJob implements ShouldQueue
     /** A long export must not be reaped mid-write; the whole run is one chunk here. */
     private const PROCESS_TIMEOUT_SECONDS = 1800;
 
+    /** The worker's ceiling for this job: the script budget, never the default lane's 60 s. */
+    public int $timeout = self::PROCESS_TIMEOUT_SECONDS;
+
+    public const CONNECTION = 'redis-long';
+    public const QUEUE = 'long-running';
+
     public function __construct(public string $run, public string $locale)
     {
+        $this->onConnection(self::CONNECTION)->onQueue(self::QUEUE);
     }
 
     public function handle(LanguagePackageService $packages): void
@@ -90,6 +102,26 @@ class ExportLanguagePackageJob implements ShouldQueue
             ]);
 
             throw $e;
+        }
+    }
+
+    /**
+     * The worker killed or crashed this job (a queue timeout, a lost worker,
+     * an uncaught error). Without this hook the run record keeps its in-flight
+     * status forever and the card shows a job that no longer exists
+     * (the Hindi export of 2026-09-15, killed at the 60 s default-queue
+     * timeout). Laravel calls failed() for every terminal failure.
+     */
+    public function failed(?\Throwable $e = null): void
+    {
+        try {
+            app(LanguagePackageService::class)->writeRun($this->run, [
+                'status' => 'failed',
+                'error' => $e?->getMessage() ?? 'job failed',
+                'finished_at' => now()->toIso8601String(),
+            ]);
+        } catch (\Throwable) {
+            // The record itself is unreachable; the failed_jobs row still holds the cause.
         }
     }
 }
