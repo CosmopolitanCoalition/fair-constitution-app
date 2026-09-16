@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "국정 운영의 세계",
+  "shell_devbar.dev_controls_not_part_of_the_application": "개발자 제어 — 애플리케이션의 일부가 아님",
+  "shell_devbar.impersonating": "{label} — {name} 사칭 중",
+  "shell_devbar.residency_tool_civic_residency": "거주 도구 → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "사법 심사 대기 중 · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "비상 권한 대시보드 열기"
+}

@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "végrehajtó hatalom választása",
+  "election_kind.general": "általános választás",
+  "election_kind.judicial": "igazságszolgáltatás választása",
+  "election_kind.org_board_owner": "igazgatótanácsi választás (tulajdonosi mandátumok)",
+  "election_kind.org_board_worker": "igazgatótanácsi választás (munkavállalói mandátumok)",
+  "election_kind.referendum": "népszavazás",
+  "election_kind.restoration": "helyreállítási választás",
+  "election_kind.special": "különleges választás"
+}

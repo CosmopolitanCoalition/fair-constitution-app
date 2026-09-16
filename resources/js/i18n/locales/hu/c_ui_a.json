@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Bolygó",
+  "adm_chip.level_1": "Ország",
+  "adm_chip.level_2": "Állam / Tartomány",
+  "adm_chip.level_3": "Vármegye",
+  "adm_chip.level_4": "Önkormányzat",
+  "adm_chip.level_5": "Település",
+  "adm_chip.level_6": "Városrész",
+  "citation_line.as_implemented": "alkalmazása szerint",
+  "data_table.caption_scrollable": "{caption} (görgethető)",
+  "data_table.scrollable_table": "Görgethető táblázat",
+  "history_pager.first_page": "Első oldal",
+  "history_pager.load_error": "Az oldal nem töltődött be. Próbálja újra.",
+  "history_pager.loading": "Rekordok betöltése…",
+  "history_pager.next": "Következő",
+  "history_pager.previous": "Előző"
+}

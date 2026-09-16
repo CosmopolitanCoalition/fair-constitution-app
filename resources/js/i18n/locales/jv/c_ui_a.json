@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Negara",
+  "adm_chip.level_2": "Negara Bagian / Provinsi",
+  "adm_chip.level_3": "Kabupaten",
+  "adm_chip.level_4": "Kotamadya",
+  "adm_chip.level_5": "Kecamatan",
+  "adm_chip.level_6": "Lingkungan",
+  "citation_line.as_implemented": "kaya sing ditrapake",
+  "data_table.caption_scrollable": "{caption} (bisa digulung)",
+  "data_table.scrollable_table": "Tabel bisa digulung",
+  "history_pager.first_page": "Kaca kapisan",
+  "history_pager.load_error": "Kaca iki ora bisa dimuat. Coba maneh.",
+  "history_pager.loading": "Ngmuat cathetan…",
+  "history_pager.next": "Sakbanjure",
+  "history_pager.previous": "Sadurunge"
+}

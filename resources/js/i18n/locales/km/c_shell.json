@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "ពិភពនៃសិល្បៈគ្រប់គ្រងរដ្ឋ",
+  "shell_devbar.dev_controls_not_part_of_the_application": "ការគ្រប់គ្រងរបស់អ្នកអភិវឌ្ឍន៍ — មិនមែនជាផ្នែកនៃកម្មវិធី",
+  "shell_devbar.impersonating": "{label} — កំពុងបន្លំជា {name}",
+  "shell_devbar.residency_tool_civic_residency": "ឧបករណ៍លំនៅឋាន → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "ការពិនិត្យឡើងវិញដោយអង្គតុលាការកំពុងរង់ចាំ · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "បើកផ្ទាំងគ្រប់គ្រងអំណាចអាសន្ន"
+}

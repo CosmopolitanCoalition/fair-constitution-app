@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "A magatartási és jogi jelentéseket felülvizsgálatra továbbítjuk. A jelentés benyújtása itt nem töröl semmit — a tartalomtörlés az Alkotmányi kivételeket (a F-SOC-003 mechanizmust) követi, soha nem ezt a nyomtatványt.",
+  "support_report.file_a_report": "Jelentés benyújtása",
+  "support_report.file_report": "Jelentés benyújtása",
+  "support_report.filed_from": "Küldve: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Egyszerű szavakat használjon. Írja le, mire számított, és mit látott helyette.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "A jelentések az operátor támogatási postaládájába érkeznek, majd kategóriák szerint kerülnek továbbításra. Ez a felvétel soha nem szerkeszti és nem töröl tartalmat.",
+  "support_report.what_happened": "Mi történt?",
+  "support_report.what_kind_of_report_is_this": "Milyen típusú jelentésről van szó?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Be kell jelentkeznie a jelentés benyújtásához — jelentkezzen be, majd térjen vissza erre az oldalra."
+}

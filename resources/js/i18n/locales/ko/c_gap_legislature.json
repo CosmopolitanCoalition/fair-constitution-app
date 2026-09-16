@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "행정부 선거",
+  "election_kind.general": "총선",
+  "election_kind.judicial": "사법부 선거",
+  "election_kind.org_board_owner": "이사회 선거 (소유주 의석)",
+  "election_kind.org_board_worker": "이사회 선거 (근로자 의석)",
+  "election_kind.referendum": "주민투표",
+  "election_kind.restoration": "복원 선거",
+  "election_kind.special": "보궐 선거"
+}

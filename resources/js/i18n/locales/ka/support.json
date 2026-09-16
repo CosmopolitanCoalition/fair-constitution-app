@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "ქცევისა და სამართლებრივი ანგარიშები გადაგზავნილია განსახილველად. აქ განთავსება არაფერს შლის — კონტენტის წაშლა ხდება კონსტიტუციით გათვალისწინებული გამონაკლისების (მექანიზმი F-SOC-003) საფუძველზე და არა ამ ფორმით.",
+  "support_report.file_a_report": "გაგზავნეთ ანგარიში",
+  "support_report.file_report": "ანგარიშის გაგზავნა",
+  "support_report.filed_from": "გაგზავნილია: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "გამოიყენეთ მარტივი სიტყვები. აღწერეთ, რას ელოდით და რა დაინახეთ რეალურად.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "ანგარიშები ჩვარდება ოპერატორის მხარდაჭერის საფოსტაში და ნაწილდება კატეგორიების მიხედვით. ეს ფორმა თავად არ რედაქტირებს და არ შლის კონტენტს.",
+  "support_report.what_happened": "რა მოხდა?",
+  "support_report.what_kind_of_report_is_this": "რა სახის ანგარიშია ეს?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "ანგარიშის გასაგზავნად საჭიროა ავტორიზაცია — შეйდით სისტემაში და დაუბრუნდით ამ გვერდს."
+}

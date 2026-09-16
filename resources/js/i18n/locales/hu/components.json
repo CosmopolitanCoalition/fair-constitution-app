@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Kozmikus cím betöltése…",
+  "cosmicaddresspicker.multiverse": "Multiverzum ▸",
+  "schemaupdatebanner.apply_updates": "Frissítések alkalmazása",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Szükséges: {pendingLabel} — alkalmazza az ETL futtatás előtt.",
+  "setupstepper.build_districts": "Választókerületek létrehozása",
+  "setupstepper.confirm_seat_institutions": "Visszaigazolás és mandátumok kiosztása",
+  "setupstepper.constitutional_defaults": "Alkotmányi alapbeállítások",
+  "setupstepper.cosmic_address": "Kozmikus cím",
+  "setupstepper.map_data": "Térképadatok",
+  "setupstepper.setup_progress": "Beállítási folyamat"
+}

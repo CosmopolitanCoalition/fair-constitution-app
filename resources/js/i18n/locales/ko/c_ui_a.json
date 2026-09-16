@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "행성",
+  "adm_chip.level_1": "국가",
+  "adm_chip.level_2": "주 / 도",
+  "adm_chip.level_3": "군",
+  "adm_chip.level_4": "시",
+  "adm_chip.level_5": "읍/면",
+  "adm_chip.level_6": "동/리",
+  "citation_line.as_implemented": "구현된 대로",
+  "data_table.caption_scrollable": "{caption} (스크롤 가능)",
+  "data_table.scrollable_table": "스크롤 가능 테이블",
+  "history_pager.first_page": "첫 페이지",
+  "history_pager.load_error": "페이지를 불러올 수 없습니다. 다시 시도하세요.",
+  "history_pager.loading": "기록을 불러오는 중…",
+  "history_pager.next": "다음",
+  "history_pager.previous": "이전"
+}

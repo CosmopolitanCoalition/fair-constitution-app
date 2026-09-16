@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Hleður geimheimaheili…",
+  "cosmicaddresspicker.multiverse": "Fjölheimar ▸",
+  "schemaupdatebanner.apply_updates": "Uppfæra",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Nauðsynlegt: {pendingLabel} — uppfæra fyrir ETL-keyrslu.",
+  "setupstepper.build_districts": "Skipuleggja kjördæmi",
+  "setupstepper.confirm_seat_institutions": "Staðfesta og setja stofnanir á sæti",
+  "setupstepper.constitutional_defaults": "Stjórnarskrárstillingar",
+  "setupstepper.cosmic_address": "Geimheimaheili",
+  "setupstepper.map_data": "Kortgögn",
+  "setupstepper.setup_progress": "Framgangur uppsetningar"
+}

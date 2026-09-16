@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Navigáció és tanulás",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Teljes tanterv Tervezett · 7. szakasz Hiba bejelentése",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "A képernyő mögött működő mechanizmus",
+  "shellv2_menunav.all_screens_the_full_map": "Összes képernyő — a teljes térkép",
+  "shellv2_menunav.requires_planned": "{label} {label2} Követelmény {prereq} {label3} Tervezett",
+  "shellv2_tourbar.guided_tour": "Üzletmenet",
+  "shellv2_tourbar.guided_tour_step_of": "Üzletmenet · {stepNumber}. lépés {total}-ből{title}{blurb}"
+}

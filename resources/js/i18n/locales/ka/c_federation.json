@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "კლასტერში შეერთება",
+  "federation_syncprogress.of_left": "{fmtValue} დარჩენილია {fmtValue2}~{fmtDuration}-დან",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} ჩანაწერი · {fmtNum2} გვერდი. საფუძვლის იმპორტი მონაცემთა ბაზაში… იმპორტირებულია. ლოდინი… {fmtNum3}/წმ",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "შეგიძლიათ დატოვოთ ეს გვერდი — სინქრონიზაცია მუშაობს ფონურ რეჟიმში და განახლდება შეწყვეტის შემთხვევაში."
+}

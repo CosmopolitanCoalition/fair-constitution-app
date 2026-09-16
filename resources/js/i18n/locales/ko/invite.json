@@ -1,0 +1,22 @@
+{
+  "invite_landing.an_invite_carries_no_power_nobody_gains_a_": "초대 자체에는 아무런 권한이 없습니다. 초대를 통해 투표권, 의석, 또는 이점을 얻는 사람은 없습니다. 그저 문일 뿐입니다.",
+  "invite_landing.browse_everything_every_place_on_earth_eve": "모든 것을 살펴보세요. 지구상의 모든 장소, 모든 기록, 모든 선거, 모든 법률을 확인할 수 있습니다.",
+  "invite_landing.create_an_account": "계정 만들기",
+  "invite_landing.either_way_you_ll_land_right_where_this_li": "어떤 방식을 선택하든 이 링크가 가리키는 곳으로 이동합니다. 목적지는 이미 저장되어 있습니다.",
+  "invite_landing.explore_first": "먼저 둘러보기",
+  "invite_landing.is_a_private_room_they_saved_you_a_seat_cr": "{destinationName}은 비공개 방입니다. 당신을 위한 의석이 마련되어 있습니다. 계정을 만들면 입장할 수 있습니다.",
+  "invite_landing.join_anyway": "그대로 참여하기",
+  "invite_landing.log_in": "로그인",
+  "invite_landing.look_around_first": "먼저 둘러보기",
+  "invite_landing.sign_up_join": "가입 및 참여",
+  "invite_landing.step_in": "입장하기",
+  "invite_landing.step_in_and_see_what_this_is_is_already_op": "입장해서 확인해 보세요. {destinationName}은 이미 열려 있습니다. 시청하는 데는 계정이 필요하지 않습니다.",
+  "invite_landing.that_link_is_no_longer_valid_but_the_door_": "해당 링크는 더 이상 유효하지 않지만, 문은 여전히 열려 있습니다. 누구나 참여할 수 있습니다.",
+  "invite_landing.this_invite_link_has_expired": "이 초대 링크가 만료되었습니다",
+  "invite_landing.watch_any_public_room_every_hearing_meetin": "모든 공개 방을 시청하세요. 모든 청문회, 회의, 투표는 공개적으로 진행됩니다. 방청석은 항상 무료입니다.",
+  "invite_landing.what_you_can_do_right_now": "지금 바로 할 수 있는 일",
+  "invite_landing.when_you_want_a_voice_to_speak_on_the_reco": "공적 기록에 발언하거나, 투표하거나, 공직에 출마하여 목소리를 내고 싶다면 계정을 만들고 거주지를 입력하세요. 거주지 증명이 유일한 요구 사항입니다.",
+  "invite_landing.where_this_leads": "이동할 곳",
+  "invite_landing.world_of_statecraft": "국정 운영의 세계",
+  "invite_landing.you_re_invited": "초대되었습니다"
+}

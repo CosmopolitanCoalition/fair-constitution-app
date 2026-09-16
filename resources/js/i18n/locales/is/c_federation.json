@@ -1,0 +1,5 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Tengst klústrinu",
+  "federation_syncprogress.of_left": "{fmtValue} af {fmtValue2}~{fmtDuration} eftir",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Þú getur yfirgefið þessa síðu — samstillingin gerist í bakgrunni og hefst aftur ef hún röðlast."
+}

@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Pianeta",
+  "adm_chip.level_1": "Paese",
+  "adm_chip.level_2": "Stato / Provincia",
+  "adm_chip.level_3": "Contea",
+  "adm_chip.level_4": "Comune",
+  "adm_chip.level_5": "Municipalità",
+  "adm_chip.level_6": "Quartiere",
+  "citation_line.as_implemented": "come implementato",
+  "data_table.caption_scrollable": "{caption} (scorribile)",
+  "data_table.scrollable_table": "Tabella scorrevole",
+  "history_pager.first_page": "Prima pagina",
+  "history_pager.load_error": "Impossibile caricare questa pagina. Riprova.",
+  "history_pager.loading": "Caricamento record…",
+  "history_pager.next": "Avanti",
+  "history_pager.previous": "Indietro"
+}

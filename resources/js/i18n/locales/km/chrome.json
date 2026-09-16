@@ -1,0 +1,8 @@
+{
+  "appshell.log_in": "ចូលប្រើ",
+  "appshell.log_out": "ចាកចេញ",
+  "appshell.pseudo_en_xa": "ឈ្មោះហៅក្រៅ (en-XA)",
+  "appshell.roles_derived": "តួនាទី (ដែលបានកំណត់): {roles}",
+  "appshell.these_proceedings_are_public_record_art_ii": "ដំណើរការទាំងនេះគឺជាកំណត់ត្រាសាធារណៈ (Art. II §2)។ សូមចុះឈ្មោះដើម្បីចូលរួម — ថ្លែងមតិ បោះឆ្នោត និងឈរឈ្មោះសម្រាប់តំណែង នៅពេលដែលលំនៅឋានរបស់អ្នកត្រូវបានបញ្ជាក់។",
+  "appshell.you_re_viewing_as_a_guest": "អ្នកកំពុងមើលក្នុងនាមជាភ្ញៀវ"
+}

@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "სახელმწიფო მართვის სამყარო",
+  "shell_devbar.dev_controls_not_part_of_the_application": "დეველოპერის კონტროლი — არ არის აპლიკაციის ნაწილი",
+  "shell_devbar.impersonating": "{label} — {name}-ის სახელით მოქმედება",
+  "shell_devbar.residency_tool_civic_residency": "საცხოვრებლის ინსტრუმენტი → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "სასამართლო განხილვა მიმდინარეობს · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "გახსენით საგანგებო უფლებამოსილებების პანელი"
+}

@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "행위 및 법적 보고서가 검토를 위해 전송됩니다. 여기서 신고한다고 해서 내용이 삭제되지는 않습니다. 콘텐츠 삭제는 헌법적 예외(F-SOC-003 메커니즘)를 따르며, 이 양식으로는 처리되지 않습니다.",
+  "support_report.file_a_report": "보고서 제출",
+  "support_report.file_report": "보고서 제출",
+  "support_report.filed_from": "제출처: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "평이한 문장으로 작성해 주세요. 기대했던 결과와 실제로 확인한 내용을 포함해 주세요.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "보고서는 운영자의 지원 편지함으로 전송되며 카테고리별로 분류됩니다. 이 접수 과정에서 콘텐츠가 직접 수정되거나 삭제되지는 않습니다.",
+  "support_report.what_happened": "어떤 일이 있었나요?",
+  "support_report.what_kind_of_report_is_this": "어떤 종류의 보고서인가요?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "보고서를 제출하려면 로그인이 필요합니다. 로그인 후 이 페이지로 돌아와 주세요."
+}

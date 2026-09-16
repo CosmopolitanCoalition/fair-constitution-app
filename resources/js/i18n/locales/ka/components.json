@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "კოსმოსური მისამართის ჩატვირთვა…",
+  "cosmicaddresspicker.multiverse": "მულტსამყარო ▸",
+  "schemaupdatebanner.apply_updates": "განახლებების გამოყენება",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "სავალდებულო: {pendingLabel} — გამოიყენეთ ETL პროცესის დაწყებამდე.",
+  "setupstepper.build_districts": "ოლქების შექმნა",
+  "setupstepper.confirm_seat_institutions": "დადასტურება და ინსტიტუციების განთავსება",
+  "setupstepper.constitutional_defaults": "კონსტიტუციური ნაგებარეები",
+  "setupstepper.cosmic_address": "კოსმოსური მისამართი",
+  "setupstepper.map_data": "მონაცემთა რუკა",
+  "setupstepper.setup_progress": "გამართვის პროგრესი"
+}

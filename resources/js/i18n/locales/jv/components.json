@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Ngmuat alamat kosmik…",
+  "cosmicaddresspicker.multiverse": "Multiverse ▸",
+  "schemaupdatebanner.apply_updates": "Terapake pemutakhiran",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Kebutuhan: {pendingLabel} — terapake sadurunge miwiti ETL run.",
+  "setupstepper.build_districts": "Bangun Dhaerah Pemilihan",
+  "setupstepper.confirm_seat_institutions": "Konfirmasi & Isi Kursi Lembaga",
+  "setupstepper.constitutional_defaults": "Setelan Standar Konstitusi",
+  "setupstepper.cosmic_address": "Alamat Kosmik",
+  "setupstepper.map_data": "Data Peta",
+  "setupstepper.setup_progress": "Kemajuan setelan"
+}

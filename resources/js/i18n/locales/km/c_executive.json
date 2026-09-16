@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "ក្រោមកម្រិតកំណត់",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} វិធីសាស្ត្រអាសន្នពង្រីកវិសាលភាពដែលបានប្រគល់ឱ្យ តែក្នុងតំបន់ និងរយៈពេលដែលបានប្រកាសប៉ុណ្ណោះ · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "អាចត្រួតពិនិត្យបានតាមផ្លូវតុលាការ · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "ត្រូវបានបដិសេធមុនពេលចេញផ្សាយ៖ {rejection_citation} បញ្ជានេះមិនដែលមានប្រសិទ្ធភាពទេ ហើយការព្យាយាមដែលត្រូវបានបដិសេធនោះមាននៅក្នុងកំណត់ត្រាសាធារណៈ។"
+}

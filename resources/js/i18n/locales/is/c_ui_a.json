@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Plánetu",
+  "adm_chip.level_1": "Land",
+  "adm_chip.level_2": "Fyrirstaða / Provínsa",
+  "adm_chip.level_3": "Sýsla",
+  "adm_chip.level_4": "Sveitarfélag",
+  "adm_chip.level_5": "Bær",
+  "adm_chip.level_6": "Hverfi",
+  "citation_line.as_implemented": "eins og innleitt",
+  "data_table.caption_scrollable": "{caption} (skrollað)",
+  "data_table.scrollable_table": "Skrollunaryta",
+  "history_pager.first_page": "Fyrsta blað",
+  "history_pager.load_error": "Comcast gekk ekki að hlaða þessari síðu. Reyndu aftur.",
+  "history_pager.loading": "Hlaðar skráum…",
+  "history_pager.next": "Næsta",
+  "history_pager.previous": "Fyrri"
+}

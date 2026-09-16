@@ -1,0 +1,266 @@
+{
+  "about": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "all_place_terms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "appointed_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "appointed_terms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "appointment_record": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "appointment_settings": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "audit_entry": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "browse_world": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "chamber": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "choose_help": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "choose_legislature": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "choose_place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock_help": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "configured_months": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "elected_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "elected_terms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election_clock": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "expires": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_rail.about_people": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_rail.group_its_government": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_rail.group_take_part": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_rail.group_this_place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction_rail.nav_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_navigation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_pages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_record": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature_term": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislatures_here": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "maps": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "next": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "no_legislature": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "no_refusals": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "no_terms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "not_recorded": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "open_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "place_elected_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "place_home": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "place_navigation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "places_inside": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "previous": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "record_pages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "recorded_refusals": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "refusal_pages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "refusal_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role_admin_staff": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role_board_governor": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role_board_seat": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role_civil_officer": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role_election_board_member": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role_executive_seat": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role_judicial_seat": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role_legislature_seat": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scheduled_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "select_clock": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "settings": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "source": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "source_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "started": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status_active": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status_dissolved": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status_forming": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "term_end": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "term_start": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "title": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

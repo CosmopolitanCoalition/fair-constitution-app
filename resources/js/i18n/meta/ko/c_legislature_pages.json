@@ -1,0 +1,2375 @@
+{
+  "bills.challenge_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.challenge_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.challenged_badge": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.col_act_type": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.col_bill": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.col_scale": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.col_sponsor": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.col_status": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.committee_row": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.cultural_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.cultural_h2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.empty_no_match": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.empty_none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.field_act_type": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.field_description": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.field_law_text": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.field_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.field_proposed_value": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.field_scale": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.field_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.field_setting_key": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.field_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.filter_act_type": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.filter_all": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.filter_status": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.hint_law_text": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.hint_proposed_value": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.hint_scale": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.hint_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.hint_setting_key": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.hint_setting_locked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.introduce_h2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.introduction_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.introduction_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.lifecycle_aria": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.lifecycle_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.lifecycle_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.preflight_bad_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.preflight_bad_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.preflight_ok_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.preflight_ok_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.processing_cultural": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.processing_introduce": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.registry_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.rejected_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.rejected_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.scope_default": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.setting_pick": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.status_enacted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.status_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.status_in_committee": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.status_introduced": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.status_on_floor": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.status_passed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.status_referred": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.status_reported": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.status_tabled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.status_withdrawn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.submit_cultural": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.submit_introduce": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.table_caption": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.toggle_hide": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills.toggle_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.about_1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.about_2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.about_bill": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.about_reported": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.agenda_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.agenda_items": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.alternate_badge": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.audit_entry": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.back_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.bill_none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.bill_pages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.bills_empty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.bills_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.bills_showing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.bills_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.call_meeting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.cast_recorded": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.chair_badge": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.close_report": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.committees_page": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.current_work": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.enter_record": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.field_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.file_report": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.filed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.hearings_public": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.intro_base": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.intro_bicameral": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.latest_report": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.meeting_adjourned": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.meeting_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.meeting_scheduled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.meeting_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.meetings_called": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.member_fallback": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.nav_aria": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.newer_testimony": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.no_agenda": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.no_meeting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.no_testimony": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.older_testimony": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.open_room": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.public_record": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.published_casts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.read_bill": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.read_only": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.read_report": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.refer_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.refer_gated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.refer_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.refer_ready": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.report_bill_unavailable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.report_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.report_choose": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.report_h2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.report_pages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.report_unavailable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.reports_empty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.reports_filed_by": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.reports_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.reports_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.roster_by_kind": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.roster_empty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.roster_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.scheduled_for": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.sealed_record": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.set_agenda": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.submit_testimony": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.testimony_committee": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.testimony_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.testimony_hearing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.testimony_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.testimony_needs_meeting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.testimony_pages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.type_a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.type_b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_detail.vote_opens": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.about": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.allocation_counts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.allocation_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.allocation_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.alternate_badge": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.assign_h2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.assign_pending": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.assign_speaker": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.assign_state": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.cast_chair_ballot": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.cast_recorded": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.chair_badge": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.chair_ballot_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.chair_candidates": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.chair_cast_recorded": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.chair_rank_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.chair_rcv": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.chip_awaiting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.contested_caption": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.contested_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.contested_h3": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.creation_vote_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.field_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.field_purpose": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.field_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.hint_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.hint_seats_bicameral": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.last_run": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.no_contested": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.not_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.note_recheck": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.open_chair_ballot": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.prefs_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.prefs_h2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.prefs_member_action": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.prefs_none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.prefs_revise": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.prefs_submit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.prefs_submitted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.prefs_update": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.processing_create": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.published_casts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.reg_bills": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.reg_by_kind": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.reg_ratio": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.reg_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.register_empty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.register_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.run_assignment": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.seat_lifecycle_aria": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.seat_lifecycle_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.seat_lifecycle_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.submit_create": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.tb_col_committee": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.tb_col_lost": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.tb_col_won": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.type_a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees.type_b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.accept_plan": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.accept_replace": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.accept_retires_a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.accept_retires_b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.accept_retires_word": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.activate_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.adding_count": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.all_assigned": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.auto_step_delay": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.autoseed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.autoseed_draft_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.autoseed_manual_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.autoseed_proposal": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.autoseed_propose_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.autoseed_queued": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.autoseed_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.avg": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.back_to_setup": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.balancing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.band_no": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.band_yes": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.bonus_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.bonus_word": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.cancel": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.ceiling_exception": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.chamber_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.choose_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.chr_dash": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.chr_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.clear": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.col_chr": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.col_dev": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.col_district": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.col_pop": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.col_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.commit_both": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.commit_district": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.commit_short": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.committing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.community_integrity": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.community_integrity_tip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.compactness_tip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.confirm_activate": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.confirm_delete_drawn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.confirm_disband": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.confirm_undo": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.constitutional_contiguity": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.constitutional_flags": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.contig_no": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.contig_no_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.contig_unknown": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.contig_unknown_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.contig_yes": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.contig_yes_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.contiguity_tip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.contiguous": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.copy_of": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.create": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.create_count": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.creating": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.current": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.cut_word": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.deep_overage": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.delete": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.delete_confirm": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.delete_named": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.delete_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.dev_deviation_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.dev_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.dev_seat_me": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.dev_seating": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.dev_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.dev_unknown": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.dev_value": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.disband": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.discard": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.district_count_paren": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.district_fallback": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.diversity_tip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.done": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.draw_controls_bottom": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.draw_locked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.drawing_edits_draft": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.drawn_district": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.drawn_districts_fallback": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.drawn_group": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.drawn_manage": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.drill_subdistricts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.duplicate_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.edit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.edits_draft_plan": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.eq_bad": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.eq_good": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.eq_ok": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.equality_tip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.equality_tip_sub": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_accept_draft": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_activate_map": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_autoseed_preview": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_autoseed_timeout": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_clear": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_commit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_copy_map": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_create_district": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_create_map": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_delete_district": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_delete_map": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_dev_route": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_dev_seat": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_dev_seat_net": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_disband": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_fill": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_fill_geometry": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_fill_timeout": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_probe": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_rename_map": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_reseed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_save": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_snap": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_undo": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_vertex_snap": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.err_wizard_sequence": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.exceeds_9": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.extremes": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.fill_remainder": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.filling": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.floor_exc_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.floor_exc_word": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.floor_flag": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.floor_override_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.giant_clean_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.giant_full_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.giant_incomplete_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.giant_none_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.giant_overage_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.giant_partial_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.halt_autoseed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.halt_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.halt_requested": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.halted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.halting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.head_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.hint_ctrl_drag": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.hint_drag": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.hint_hold": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.hint_incl_assigned": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.hint_shift_drag": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.hint_to_add": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.hint_to_pan": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.hint_to_remove": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.implied_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.in_band": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.intact": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.integrity_intact": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.integrity_needs_tools": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.integrity_no_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.integrity_unknown": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.integrity_unknown_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.integrity_yes_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.issue_count": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.key_space": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.legislature_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.loading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.loading_raster": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.manual_draw": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.map_fallback": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.map_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.map_name_placeholder": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.map_pop_rep": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.map_quality": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.map_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.mass_running": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.mass_waiting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.mean": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.measuring": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.method_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.navigate_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.net_error": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.net_error_undo": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.new_district": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.new_map_aria": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.new_map_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.no_maps": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.non_contiguous": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.not_computed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.not_computed_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.not_yet_computed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.not_yet_computed_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.on_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.optimal": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.out_band": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.out_of_band": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.out_of_band_short": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.over_rep": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.overcount": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.pan_mode": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.pan_release": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.pan_resume": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.pill_contig": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.pill_eq": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.plan_summary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.polygon": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.polygon_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.pop_word": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.population": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.population_equality": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.probe_contiguous": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.probe_inside": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.probe_outside": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.probe_split": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.proposing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.range": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.remove_from_district": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.rename_aria": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.rename_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.reseed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.return_to_setup": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.rounding_ready": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.run": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.save": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.save_count": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.saving": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.sc_compact": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.sc_irregular": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.sc_moderate": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.scope_all_cleardesc": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.scope_all_desc": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.scope_all_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.scope_all_rec_cleardesc": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.scope_all_rec_desc": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.scope_all_rec_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.scope_progress": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.scope_unassigned_desc": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.scope_unassigned_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.scope_unassigned_rec_desc": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.scope_unassigned_rec_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.seat_word": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.seats_word": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.seeding": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.segmented": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.setup_activated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.setup_build": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.setup_step": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.shape_compactness": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.shape_value": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.side": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.slow_warn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.snap_balance": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.sort_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.sort_rep": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.split_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.split_hint_adjust": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.split_hint_end": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.split_hint_start": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.split_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.split_mobile": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.stat_constituents": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.stat_districts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.stat_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.suboptimal": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.target_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tier_compact": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tier_irregular": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tier_moderate": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.timed_out": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tip_click_add": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tip_click_remove": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tip_click_select": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tip_district": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tip_expand": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tip_fractional": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tip_members_suffix": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tip_pop": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tip_unassigned": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_autoseed_complete": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_autoseed_skipped": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_clear": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_disbanded": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_district_created": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_district_updated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_draw_locked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_drawn_deleted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_edits_draft": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_halted_cleared": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_map_complete": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_map_flags": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_mass_running": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toast_undid": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toggle_jurs": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toggle_jurs_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toggle_names": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toggle_names_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toggle_pop": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toggle_raster": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toggle_raster_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toggle_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toggle_stats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.toggle_stats_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tpl_box": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tpl_box_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tpl_community_cells": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tpl_community_cells_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tpl_components": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tpl_components_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tpl_horizontal_strips": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tpl_shortest": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tpl_shortest_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.tpl_vertical_strips": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.trimmed_boundary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.trimmed_to": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.unassigned_count": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.unassigned_word": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.under_rep": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.undercount": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.undivided_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.undivided_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.undo_last": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.undo_short": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.undoing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.uniform_political_diversity": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.view_panels": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.wizard_auto_seed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.wizard_auto_step": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "districts.wizard_skip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.about": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.active_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.area_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.area_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.cause_actual_invasion": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.cause_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.cause_natural_disaster": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.dashboard_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.duration_error": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.duration_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.duration_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.expired_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.expired_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.extension_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.extension_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.invoke_gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.invoke_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.invoke_vote_record": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.judicial_review": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.label_area": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.label_cause": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.label_methods": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.machine_aria": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.meter_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.meter_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.meter_text": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.methods_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.methods_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.methods_placeholder": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 0",
+    "provider": "ollama"
+  },
+  "emergency_powers.name_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.name_placeholder": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.never_invoked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.no_active": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.no_other_cause": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.none_in_force": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.pending_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.propose_renewal": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.published_casts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.put_invocation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.put_renewal": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.rail_civic": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.rail_civic_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.rail_expiry": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.rail_first_order": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.rail_reviewable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.rails_chip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.rails_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.rails_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.renewal": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.renewal_early": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.renewal_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.renewal_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.renewal_opens": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.renewal_window": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.requires_super": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.review_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.review_none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.review_pending": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.sealed_audit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.session_console": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.stat_day": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.stat_expiry": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.this_jurisdiction_lower": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.this_jurisdiction_upper": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.title": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

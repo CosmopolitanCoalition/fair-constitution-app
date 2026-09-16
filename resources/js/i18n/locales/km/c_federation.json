@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "កំពុងចូលរួមក្នុងបណ្តុំ",
+  "federation_syncprogress.of_left": "សល់ {fmtValue} នៃ {fmtValue2}~{fmtDuration}",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "កំណត់ត្រា {fmtNum} · ទំព័រ {fmtNum2}កំពុងនាំចូលមូលដ្ឋានគ្រឹះទៅក្នុងមូលដ្ឋានទិន្នន័យ…នាំចូលរួចរាល់កំពុងរង់ចាំ…{fmtNum3}/វិនាទី",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "អ្នកអាចចាកចេញពីទំព័រនេះបាន — ការធ្វើសមកាលកម្មដំណើរការនៅផ្ទៃខាងក្រោយ ហើយនឹងបន្តឡើងវិញប្រសិនបើត្រូវបានរំខាន។"
+}

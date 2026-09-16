@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "bætt við:",
+  "law_diff.label": "Breytingar á texta laga",
+  "law_diff.removed": "fjarlægð:",
+  "planned_banner.default_body": "Þessi hluti heimsins er hannaður fyrir uppbyggingu. Ekkert hér er í rekstri enn og engin raunveruleg peningar eru til staðar.",
+  "planned_banner.title": "Áætlað — foryfirferð.",
+  "selection_identity.aria_org": "Skrá fyrir samtök {name}, vísun {id}",
+  "selection_identity.aria_profile": "Opinber prófíll fyrir {name}, vísun {id}",
+  "selection_identity.org_reference": "Vísun í samtök:",
+  "selection_identity.organization_record": "Skrá fyrir samtök",
+  "selection_identity.profile_reference": "Vísun í prófíll:",
+  "selection_identity.public_profile": "Opinber prófíll"
+}

@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "클러스터에 합류 중",
+  "federation_syncprogress.of_left": "{fmtValue2}~{fmtDuration} 중 {fmtValue} 남음",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum}개 기록 · {fmtNum2}페이지데이터베이스로 재단 가져오는 중…가져오기 완료대기 중…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "이 페이지를 나가셔도 됩니다. 동기화는 백그라운드에서 실행되며 중단 시 다시 시작됩니다."
+}

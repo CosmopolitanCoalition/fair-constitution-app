@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "បានបន្ថែម:",
+  "law_diff.label": "ការផ្លាស់ប្តូរអត្ថបទច្បាប់",
+  "law_diff.removed": "បានលុប:",
+  "planned_banner.default_body": "ផ្នែកនេះនៃពិភពលោកត្រូវបានរចនាឡើងមុនការសាងសង់។ មិនទាន់មានអ្វីដំណើរការនៅទីនេះទេ ហើយក៏មិនមានប្រាក់ពិតប្រាកដនៅកន្លែងណាមួយដែរ។",
+  "planned_banner.title": "បានគ្រោងទុក — ការមើលជាមុន។",
+  "selection_identity.aria_org": "កំណត់ត្រាអង្គការសម្រាប់ {name}, លេខយោង {id}",
+  "selection_identity.aria_profile": "ប្រវត្តិសាធារណៈសម្រាប់ {name}, លេខយោង {id}",
+  "selection_identity.org_reference": "លេខយោងអង្គការ:",
+  "selection_identity.organization_record": "កំណត់ត្រាអង្គការ",
+  "selection_identity.profile_reference": "លេខយោងប្រវត្តិ:",
+  "selection_identity.public_profile": "ប្រវត្តិសាធារណៈ"
+}

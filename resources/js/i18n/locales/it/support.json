@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "I rapporti di condotta e legali sono inviati per la revisione. L'invio tramite questo modulo non rimuove nulla: la rimozione dei contenuti segue le eccezioni costituzionali (il meccanismo F-SOC-003), mai questo modulo.",
+  "support_report.file_a_report": "Invia un rapporto",
+  "support_report.file_report": "Invia rapporto",
+  "support_report.filed_from": "Inviato da: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Usa parole semplici. Indica cosa ti aspettavi e cosa hai visto invece.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "I rapporti arrivano nella casella di supporto dell'operatore e sono smistati per categoria. Questa procedura di ricezione non modifica né rimuove i contenuti.",
+  "support_report.what_happened": "Cos'è successo?",
+  "support_report.what_kind_of_report_is_this": "Che tipo di rapporto è questo?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Devi aver effettuato l'accesso per inviare un rapporto: accedi e torna a questa pagina."
+}

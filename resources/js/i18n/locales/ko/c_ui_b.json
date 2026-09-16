@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "추가됨:",
+  "law_diff.label": "법률 텍스트 변경 사항",
+  "law_diff.removed": "삭제됨:",
+  "planned_banner.default_body": "이 지역은 구축 전에 설계되었습니다. 아직 활성화된 것이 없으며, 실제 자금도 투입되지 않았습니다.",
+  "planned_banner.title": "계획됨 — 미리보기.",
+  "selection_identity.aria_org": "{name}의 조직 기록, 참조 {id}",
+  "selection_identity.aria_profile": "{name}의 공개 프로필, 참조 {id}",
+  "selection_identity.org_reference": "조직 참조:",
+  "selection_identity.organization_record": "조직 기록",
+  "selection_identity.profile_reference": "프로필 참조:",
+  "selection_identity.public_profile": "공개 프로필"
+}

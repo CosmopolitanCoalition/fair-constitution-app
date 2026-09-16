@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "우주 주소 로딩 중…",
+  "cosmicaddresspicker.multiverse": "멀티버스 ▸",
+  "schemaupdatebanner.apply_updates": "업데이트 적용",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "필수: {pendingLabel} — ETL 실행 전 적용하십시오.",
+  "setupstepper.build_districts": "선거구 구축",
+  "setupstepper.confirm_seat_institutions": "확인 및 기관 의석 배치",
+  "setupstepper.constitutional_defaults": "헌법 기본 설정",
+  "setupstepper.cosmic_address": "우주 주소",
+  "setupstepper.map_data": "지도 데이터",
+  "setupstepper.setup_progress": "설정 진행률"
+}

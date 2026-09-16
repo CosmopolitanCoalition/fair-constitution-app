@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "កំពុងផ្ទុកអាសយដ្ឋានសកល…",
+  "cosmicaddresspicker.multiverse": "ពហុសកល ▸",
+  "schemaupdatebanner.apply_updates": "អនុវត្តការធ្វើបច្ចុប្បន្នភាព",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "តម្រូវឱ្យមាន៖ {pendingLabel} — អនុវត្តមុនពេលចាប់ផ្តើមដំណើរការ ETL។",
+  "setupstepper.build_districts": "បង្កើតមណ្ឌលបោះឆ្នោត",
+  "setupstepper.confirm_seat_institutions": "បញ្ជាក់ និងតែងតាំងស្ថាប័ន",
+  "setupstepper.constitutional_defaults": "ការកំណត់លំនាំដើមនៃរដ្ឋធម្មនុញ្ញ",
+  "setupstepper.cosmic_address": "អាសយដ្ឋានសកល",
+  "setupstepper.map_data": "ទិន្នន័យផែនទី",
+  "setupstepper.setup_progress": "វឌ្ឍនភាពនៃការរៀបចំ"
+}

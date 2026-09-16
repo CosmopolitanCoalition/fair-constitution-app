@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "ზღურბლზე დაბლა",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} საგანგებო მეთოდები გა넓ავებს დელეგირებულ სფეროს მხოლოდ გამოცხადებულ ტერიტორიაზე და ვადებში · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "სასამართლოს მიერ გადასინჯვადი · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "გაცემამდე უარყოფილი: {rejection_citation} ორდერი ძალაში არ შევიდა; უარყოფილი მცდელობა ასახულია საჯარო ჩანაწერში."
+}

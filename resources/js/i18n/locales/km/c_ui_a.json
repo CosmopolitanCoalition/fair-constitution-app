@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "ភព",
+  "adm_chip.level_1": "ប្រទេស",
+  "adm_chip.level_2": "រដ្ឋ / ខេត្ត",
+  "adm_chip.level_3": "ស្រុក",
+  "adm_chip.level_4": "សាលាក្រុង",
+  "adm_chip.level_5": "ឃុំសង្កាត់",
+  "adm_chip.level_6": "សហគមន៍",
+  "citation_line.as_implemented": "ដែលត្រូវបានអនុវត្ត",
+  "data_table.caption_scrollable": "{caption} (អាចអូសចុះឡើងបាន)",
+  "data_table.scrollable_table": "តារាងដែលអាចអូសចុះឡើងបាន",
+  "history_pager.first_page": "ទំព័រដំបូង",
+  "history_pager.load_error": "មិនអាចផ្ទុកទំព័រនេះបានទេ។ សូមព្យាយាមម្តងទៀត។",
+  "history_pager.loading": "កំពុងផ្ទុកកំណត់ត្រា…",
+  "history_pager.next": "បន្ទាប់",
+  "history_pager.previous": "មុន"
+}

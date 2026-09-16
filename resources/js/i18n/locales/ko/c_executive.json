@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "임계값 미만",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} 비상 권한 방법은 선포된 구역과 기간 내에서만 위임 범위를 확대합니다 · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "사법적 검토 가능 · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "발행 전 거부됨: {rejection_citation} 명령이 효력을 발생하지 않았으며, 거부된 시도는 공적 기록에 남습니다."
+}

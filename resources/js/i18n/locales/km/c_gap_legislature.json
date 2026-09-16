@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "ការបោះឆ្នោតអង្គនីតិប្រតិបត្តិ",
+  "election_kind.general": "ការបោះឆ្នោតទូទៅ",
+  "election_kind.judicial": "ការបោះឆ្នោតអង្គតុលាការ",
+  "election_kind.org_board_owner": "ការបោះឆ្នោតក្រុមប្រឹក្សា (អាសនៈម្ចាស់)",
+  "election_kind.org_board_worker": "ការបោះឆ្នោតក្រុមប្រឹក្សា (អាសនៈកម្មករ)",
+  "election_kind.referendum": "ប្រជាមតិ",
+  "election_kind.restoration": "ការបោះឆ្នោតស្តារឡើងវិញ",
+  "election_kind.special": "ការបោះឆ្នោតពិសេស"
+}

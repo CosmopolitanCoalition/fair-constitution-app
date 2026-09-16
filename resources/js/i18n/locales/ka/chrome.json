@@ -1,0 +1,8 @@
+{
+  "appshell.log_in": "შესვლა",
+  "appshell.log_out": "გასვლა",
+  "appshell.pseudo_en_xa": "ფსევდონიმი (en-XA)",
+  "appshell.roles_derived": "როლები (წარმოებული): {roles}",
+  "appshell.these_proceedings_are_public_record_art_ii": "ეს პროცესები საჯარო ჩანაწერია (Art. II §2). დარეგისტრირდით მონაწილეობის მისაღებად — რათა ისაუბროთ, მისცეთ ხმა და იყოთ კანდიდატი თანამდებობაზე თქვენი საცხოვრებლის დადასტურების შემდეგ.",
+  "appshell.you_re_viewing_as_a_guest": "თქვენ ნახულობთ როგორც სტუმარი"
+}

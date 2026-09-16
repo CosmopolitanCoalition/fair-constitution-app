@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "პლანეტა",
+  "adm_chip.level_1": "ქვეყანა",
+  "adm_chip.level_2": "შტატი / პროვინცია",
+  "adm_chip.level_3": "საoldCountე",
+  "adm_chip.level_4": "მუნიციპალიტეტი",
+  "adm_chip.level_5": "ტაუნშიპი",
+  "adm_chip.level_6": "უბანი",
+  "citation_line.as_implemented": "როგორც დანერგეს",
+  "data_table.caption_scrollable": "{caption} (სქროლვადი)",
+  "data_table.scrollable_table": "სქროლვადი ცხრილი",
+  "history_pager.first_page": "პირველი გვერდი",
+  "history_pager.load_error": "გვერდის ჩატვირთვა ვერ მოხერხდა. სცადეთ ხელახლა.",
+  "history_pager.loading": "ჩანაწერების ჩატვირთვა...",
+  "history_pager.next": "შემდეგი",
+  "history_pager.previous": "წინა"
+}

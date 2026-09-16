@@ -1,0 +1,8 @@
+{
+  "appshell.log_in": "로그인",
+  "appshell.log_out": "로그아웃",
+  "appshell.pseudo_en_xa": "가명 (en-XA)",
+  "appshell.roles_derived": "역할 (파생): {roles}",
+  "appshell.these_proceedings_are_public_record_art_ii": "이 절차는 공적 기록(Art. II §2)입니다. 가입하여 참여하세요. 거주 확인 후 발언, 투표 및 공직 출마가 가능합니다.",
+  "appshell.you_re_viewing_as_a_guest": "게스트로 보고 계십니다"
+}

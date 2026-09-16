@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Csatlakozás a klusterehez",
+  "federation_syncprogress.of_left": "{fmtValue} maradék {fmtValue2}~{fmtDuration} közül",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} rekord · {fmtNum2} oldalAlap importálása az adatbázisba…Importálvavárakozás…{fmtNum3}/mp",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Elhagyhatja ezt az oldalt — a szinkronizálás a háttérben fut, és megszakadás esetén újraindul."
+}

@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "탐색 및 학습",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "전체 레슨 계획됨 · 7단계 문제 보고",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "이 화면의 작동 원리",
+  "shellv2_menunav.all_screens_the_full_map": "모든 화면 — 전체 지도",
+  "shellv2_menunav.requires_planned": "{label} {label2} {prereq} {label3} 계획됨 필요",
+  "shellv2_tourbar.guided_tour": "가이드 투어",
+  "shellv2_tourbar.guided_tour_step_of": "가이드 투어 · {stepNumber}단계 / {total}{title}{blurb}"
+}

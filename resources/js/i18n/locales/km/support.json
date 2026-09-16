@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "របាយការណ៍អំពីការប្រតិបត្តិ និងផ្លូវច្បាប់ត្រូវបានបញ្ជូនទៅពិនិត្យ។ ការដាក់ពាក្យនៅទីនេះមិនលុបអ្វីទាំងអស់ — ការលុបខ្លឹមសារត្រូវអនុវត្តតាមការលើកលែងនៃរដ្ឋធម្មនុញ្ញ (យន្តការ F-SOC-003) មិនមែនតាមរយៈទម្រង់នេះទេ។",
+  "support_report.file_a_report": "ដាក់របាយការណ៍",
+  "support_report.file_report": "ដាក់របាយការណ៍",
+  "support_report.filed_from": "ដាក់ចេញពី: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "ប្រើពាក្យសាមញ្ញបាន។ សូមបញ្ជាក់ពីអ្វីដែលអ្នករំពឹងទុក និងអ្វីដែលអ្នកបានឃើញជាក់ស្តែង។",
+  "support_report.reports_land_in_the_operator_s_support_inb": "របាយការណ៍នឹងត្រូវផ្ញើទៅកាន់ប្រអប់សារគាំទ្ររបស់អ្នកប្រតិបត្តិ ហើយត្រូវបានបែងចែកតាមប្រភេទ។ ការទទួលពាក្យនេះមិនកែសម្រួល ឬលុបខ្លឹមសារដោយខ្លួនឯងឡើយ។",
+  "support_report.what_happened": "តើមានអ្វីកើតឡើង?",
+  "support_report.what_kind_of_report_is_this": "តើនេះជាប្រភេទរបាយការណ៍អ្វី?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "អ្នកត្រូវតែចូលប្រើប្រាស់គណនីដើម្បីដាក់របាយការណ៍ — សូមចូលสู่ប្រព័ន្ធ រួចត្រឡប់មកទំព័រនេះវិញ។"
+}

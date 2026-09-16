@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "kosningar til framkvæmdavalds",
+  "election_kind.general": "alþingiskosningar",
+  "election_kind.judicial": "kosningar til dómsvalds",
+  "election_kind.org_board_owner": "stjórnarkosningar (sæti eigenda)",
+  "election_kind.org_board_worker": "stjórnarkosningar (sæti starfsfólks)",
+  "election_kind.referendum": "þjóðaratkvæðagreiðsla",
+  "election_kind.restoration": "endurreisningskosningar",
+  "election_kind.special": "sérkosningar"
+}

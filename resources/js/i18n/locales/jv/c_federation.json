@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Gabung kluster",
+  "federation_syncprogress.of_left": "{fmtValue} saka {fmtValue2}~{fmtDuration} turah",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} cathetan · {fmtNum2} kacaNgimpor pondasi menyang database…Diimporngenteni…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Sampeyan bisa ninggalake kaca iki — sinkronisasi mlaku ing latar mburi lan bakal diterusake yen keputus."
+}

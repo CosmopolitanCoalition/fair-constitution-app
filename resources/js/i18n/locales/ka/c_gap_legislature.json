@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "აღსრულებადი ხელისუფლების არჩევნები",
+  "election_kind.general": "საერთო არჩევნები",
+  "election_kind.judicial": "სასამართლო ხელისუფლების არჩევნები",
+  "election_kind.org_board_owner": "საბჭოს არჩევნები (მფლობელის ადგილები)",
+  "election_kind.org_board_worker": "საბჭოს არჩევნები (მუშაკის ადგილები)",
+  "election_kind.referendum": "რეფერენდუმი",
+  "election_kind.restoration": "აღდგენითი არჩევნები",
+  "election_kind.special": "განრიგვ外的 არჩევნები"
+}
