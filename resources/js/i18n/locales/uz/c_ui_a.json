@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Sayyora",
+  "adm_chip.level_1": "Mamlakat",
+  "adm_chip.level_2": "Shtat / Provinsiya",
+  "adm_chip.level_3": "Okrug",
+  "adm_chip.level_4": "Munisipalitet",
+  "adm_chip.level_5": "Tuman",
+  "adm_chip.level_6": "Mahalla",
+  "citation_line.as_implemented": "amalga oshirilgan",
+  "data_table.caption_scrollable": "{caption} (aylantiriladigan)",
+  "data_table.scrollable_table": "Aylantiriladigan jadval",
+  "history_pager.first_page": "Birinchi sahifa",
+  "history_pager.load_error": "Ushbu sahifa yuklanmadi. Qayta urinib ko'ring.",
+  "history_pager.loading": "Yozuvlar yuklanmoqda…",
+  "history_pager.next": "Keyingi",
+  "history_pager.previous": "Oldingi"
+}

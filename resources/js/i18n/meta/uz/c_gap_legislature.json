@@ -1,0 +1,34 @@
+{
+  "election_kind.executive": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election_kind.general": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election_kind.judicial": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election_kind.org_board_owner": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election_kind.org_board_worker": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election_kind.referendum": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election_kind.restoration": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election_kind.special": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

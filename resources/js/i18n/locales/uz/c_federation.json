@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Klasterga qo'shilmoqda",
+  "federation_syncprogress.of_left": "{fmtValue} ta, {fmtValue2}~{fmtDuration} gacha qoldi",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} ta yozuv · {fmtNum2} ta sahifa. Fond ma'lumotlar bazasiga import qilinmoqda…Import qilindi.kutmoqda…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Ushbu sahifani tark etishingiz mumkin — sinxronizatsiya fonda ishlaydi va to'xtab qolsa, qayta tiklanadi."
+}

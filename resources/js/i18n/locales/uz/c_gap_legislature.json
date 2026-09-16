@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "ijro hokimiyati saylovi",
+  "election_kind.general": "umumiy saylov",
+  "election_kind.judicial": "sud hokimiyati saylovi",
+  "election_kind.org_board_owner": "boshqaruv saylovi (egalarning o'rinlari)",
+  "election_kind.org_board_worker": "boshqaruv saylovi (xodimlarning o'rinlari)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "tiklash saylovi",
+  "election_kind.special": "maxsus saylov"
+}

@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Koinot manzili yuklanmoqda…",
+  "cosmicaddresspicker.multiverse": "Multikoinot ▸",
+  "schemaupdatebanner.apply_updates": "Yangilanishlarni qo'llash",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Talab etiladi: {pendingLabel} — ETL ishini boshlashdan oldin qo'llang.",
+  "setupstepper.build_districts": "Okruglarni shakllantirish",
+  "setupstepper.confirm_seat_institutions": "Tashkilotlarni tasdiqlash va o'rinlarni taqsimlash",
+  "setupstepper.constitutional_defaults": "Konstitutsiyaviy standartlar",
+  "setupstepper.cosmic_address": "Koinot manzili",
+  "setupstepper.map_data": "Xarita ma'lumotlari",
+  "setupstepper.setup_progress": "Sozlash jarayoni"
+}

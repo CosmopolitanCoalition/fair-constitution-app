@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Davlat boshqaruvi dunyosi",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Dasturchi boshqaruvi — ilovaning bir qismi emas",
+  "shell_devbar.impersonating": "{label} — {name} nomidan ish tutish",
+  "shell_devbar.residency_tool_civic_residency": "Yashash joyi vositasi → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Sud nazorati kutilmoqda · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Favqulodda vakolatlar panelini ochish"
+}
