@@ -189,11 +189,14 @@ class VideoManagerControllerTest extends TestCase
     {
         $user = (new User)->forceFill(['id' => 'u-'.bin2hex(random_bytes(3)), 'is_operator' => $operator]);
         $r = Request::create('/videos/manage', 'POST', $body);
-        $r->setUserResolver(fn () => $user);
         // back() reads the previous url from the request; a referer keeps the
         // redirect deterministic without a session.
         $r->headers->set('referer', '/videos/manage');
+        // Bind the request FIRST: the auth provider's rebind handler resets the
+        // user resolver on every 'request' rebind, so a resolver set before
+        // instance() is silently replaced by the (empty) guard.
         $this->app->instance('request', $r);
+        $r->setUserResolver(fn () => $user);
 
         return $r;
     }

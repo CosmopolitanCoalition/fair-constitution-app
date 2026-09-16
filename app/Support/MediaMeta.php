@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\MediaSurfaceVideo;
 use App\Models\MediaVideo;
 use App\Services\Media\MediaLibraryService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 
@@ -207,18 +208,23 @@ final class MediaMeta
         return $out;
     }
 
-    /** Per-request memo of the table probes (SurfaceMeta::for runs on every page). */
-    private static array $tables = [];
-
+    /**
+     * The table probe, cached 30 s per connection (SurfaceMeta::for runs on
+     * every page render, and information_schema must not be queried each
+     * time). Keyed by the connection name so a test that switches to the live
+     * Postgres never inherits a sqlite answer; a process-static memo did
+     * exactly that (LearnPagesTest 500, 2026-09-16). A fresh box that applies
+     * the migration is seen within one cache window.
+     */
     private static function hasTable(string $table): bool
     {
-        return self::$tables[$table] ??= Schema::hasTable($table);
-    }
+        $conn = (string) config('database.default');
 
-    /** Forget the memo (tests that build the tables after the first probe). */
-    public static function forgetTableMemo(): void
-    {
-        self::$tables = [];
+        return (bool) Cache::remember(
+            'cga:media:table:'.$conn.':'.$table,
+            30,
+            static fn (): bool => Schema::hasTable($table)
+        );
     }
 
     /**
