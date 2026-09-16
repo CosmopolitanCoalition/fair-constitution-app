@@ -17234,6 +17234,10 @@
         {
           "date": "2026-09-16",
           "note": "Box E plays (evening, Eastern): after his reboot the containers had no media mounts and .env no MEDIA_DIR; the desk copied the website-quality library on the host into public/media/Subjects (61 films, 9,639 files, 54.8 GB, 73 s) which the repo bind mount already serves, and wrote MEDIA_DIR=E:/Subjects to .env for the next recreate. Verified by curl: nginx 200 and 206 with Content-Range on a master, audio/mp4 and text/vtt types, media status 61 of 61 masters with 4,697 audio and 4,697 caption tracks, /videos baseUrl /media with 61 of 61 available. His Edge check of playback is the remaining step."
+        },
+        {
+          "date": "2026-09-16",
+          "note": "Operator (evening, Eastern): the library plays on box E. Two follow-ups landed in 3c6789a6: the library and the player playlist follow his Multilingual Video Playlist.xspf order (resources/js/registry/media.playlist.json, read by build_media_registry.mjs; durations filled from it; Summary first) and the library page carries an info banner stating the films are samples from the Cosmopolitan Coalition website that show how the player works (two c_front keys, all 75 languages). Pins: mediaPlaylistOrder.test.mjs; VideoLibraryPageTest, MediaMetaMergeTest, LessonVideoTest updated (first film v-summary; poster state pinned on an empty root). Verified on box E: /videos opens on Summary, 61 of 61 available, baseUrl /media."
         }
       ]
     },
