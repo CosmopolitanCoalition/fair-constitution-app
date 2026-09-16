@@ -484,6 +484,7 @@
   "education_judiciary_constitutional_challenge.s4_do": "Änderungsentwurf vorschlagen",
   "education_judiciary_constitutional_challenge.s5_detail": "Ein Mitglied dieser gesetzgebenden Versammlung öffnet die Abstimmung über die Überstimmung des Vetos innerhalb der Vetofrist; eine qualifizierte Mehrheit aller amtierenden Mitglieder hebt die Feststellung auf und das Gesetz bleibt unverändert (Pfad 2).",
   "education_judiciary_constitutional_challenge.s5_do": "Qualifizierte Überstimmung des Vetos einleiten",
+  "education_judiciary_constitutional_challenge.s6_detail": "Sobald beide Fristen ohne Änderung oder Überstimmung des Vetos ablaufen, wendet ein amtierender Richter die Abhilfe direkt an – das Gericht ändert das Gesetz selbst und der vollständige Versionsverlauf bleibt erhalten (Pfad 3). Der CLK-11 Sweep wendet dies ebenfalls automatisch an.",
   "education_judiciary_constitutional_challenge.s6_do": "Judikative Abhilfe anwenden",
   "education_judiciary_constitutional_challenge.why": "Dies ist der tiefgreifendste Akt in der App. Er ist bewusst für jeden offen, der dort lebt, denn eine Verfassung, die nur Anwälte anrufen können, gehört den Anwälten.",
   "education_judiciary_judiciary_home.learn": "Die Gerichte dieser Gebietskörperschaft: wie sie geschaffen wurden, wer in ihnen sitzt und wie sie ausgewählt werden.",
