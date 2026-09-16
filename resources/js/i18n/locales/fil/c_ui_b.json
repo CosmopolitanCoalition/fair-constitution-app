@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "idinagdag:",
+  "law_diff.label": "Mga pagbabago sa teksto ng batas",
+  "law_diff.removed": "tinanggal:",
+  "planned_banner.default_body": "Ang bahaging ito ng mundo ay idinisenyo bago ang build. Wala pang live dito, at walang totoong pera kahit saan.",
+  "planned_banner.title": "Plano — isang preview.",
+  "selection_identity.aria_org": "Rekord ng organisasyon para sa {name}, sanggunian {id}",
+  "selection_identity.aria_profile": "Pampublikong profile para sa {name}, sanggunian {id}",
+  "selection_identity.org_reference": "Sanggunian ng organisasyon:",
+  "selection_identity.organization_record": "Rekord ng organisasyon",
+  "selection_identity.profile_reference": "Sanggunian ng profile:",
+  "selection_identity.public_profile": "Pampublikong profile"
+}

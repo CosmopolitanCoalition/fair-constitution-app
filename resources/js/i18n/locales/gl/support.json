@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Os informes de conduta e lexais envíanse para revisión. Presentar unha petición aquí non elimina nada; a eliminación de contidos segue as excepcións constitucionais (a maquinaria F-SOC-003), nunca este formulario.",
+  "support_report.file_a_report": "Presentar un informe",
+  "support_report.file_report": "Presentar informe",
+  "support_report.filed_from": "Presentado desde: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Usa palabras sincomplicar. Inclúe o que esperabas e o que viste en seu lugar.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Os informes chegan á bandexa de entrada de soporte do operador e routingse por categoría. Esta recepción nunca edita nin elimina contidos por si mesma.",
+  "support_report.what_happened": "Que pasou?",
+  "support_report.what_kind_of_report_is_this": "Que tipo de informe é este?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Tes que iniciar sesión para presentar un informe: accede e volta a esta páxina."
+}

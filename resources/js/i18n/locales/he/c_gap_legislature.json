@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "בחירות לרשות המבצעת",
+  "election_kind.general": "בחירות כלליות",
+  "election_kind.judicial": "בחירות לרשות השופטת",
+  "election_kind.org_board_owner": "בחירות לדירקטוריון (מושבי בעלים)",
+  "election_kind.org_board_worker": "בחירות לדירקטוריון (מושבי עובדים)",
+  "election_kind.referendum": "משאל עם",
+  "election_kind.restoration": "בחירות לשיקום",
+  "election_kind.special": "בחירות מיוחדות"
+}

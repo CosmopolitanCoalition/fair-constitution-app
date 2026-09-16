@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeta",
+  "adm_chip.level_1": "País",
+  "adm_chip.level_2": "Estado / Provincia",
+  "adm_chip.level_3": "Condado",
+  "adm_chip.level_4": "Municipio",
+  "adm_chip.level_5": "Parroquia",
+  "adm_chip.level_6": "Barro",
+  "citation_line.as_implemented": "segundo a implementación",
+  "data_table.caption_scrollable": "{caption} (con barra de desplazamiento)",
+  "data_table.scrollable_table": "Tabela con barra de desplazamiento",
+  "history_pager.first_page": "Primeira páxina",
+  "history_pager.load_error": "Non se puido cargar esta páxina. Inténtao de novo.",
+  "history_pager.loading": "Cargando rexistros…",
+  "history_pager.next": "Seguinte",
+  "history_pager.previous": "Anterior"
+}

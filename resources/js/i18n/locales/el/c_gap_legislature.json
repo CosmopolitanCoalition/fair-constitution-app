@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "εκλογές εκτελεστικής εξουσίας",
+  "election_kind.general": "γενικές εκλογές",
+  "election_kind.judicial": "δικαστικές εκλογές",
+  "election_kind.org_board_owner": "εκλογές διοικητικού συμβουλίου (έδρες ιδιοκτητών)",
+  "election_kind.org_board_worker": "εκλογές διοικητικού συμβουλίου (έδρες εργαζομένων)",
+  "election_kind.referendum": "δημοψήφισμα",
+  "election_kind.restoration": "εκλογές αποκατάστασης",
+  "election_kind.special": "ειδικές εκλογές"
+}

@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "elección do executivo",
+  "election_kind.general": "elección xeral",
+  "election_kind.judicial": "elección do poder xudicial",
+  "election_kind.org_board_owner": "elección do consello de administración (escanos de propietarios)",
+  "election_kind.org_board_worker": "elección do consello de administración (escanos de traballadores)",
+  "election_kind.referendum": "referendo",
+  "election_kind.restoration": "elección de restablecemento",
+  "election_kind.special": "elección especial"
+}

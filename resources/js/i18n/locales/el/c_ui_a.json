@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Πλανήτης",
+  "adm_chip.level_1": "Χώρα",
+  "adm_chip.level_2": "Πολιτεία / Επαρχία",
+  "adm_chip.level_3": "Νομός",
+  "adm_chip.level_4": "Δήμος",
+  "adm_chip.level_5": "Κοινότητα",
+  "adm_chip.level_6": "Γειτονιά",
+  "citation_line.as_implemented": "όπως εφαρμόστηκε",
+  "data_table.caption_scrollable": "{caption} (με κύλιση)",
+  "data_table.scrollable_table": "Πίνακας με κύλιση",
+  "history_pager.first_page": "Πρώτη σελίδα",
+  "history_pager.load_error": "Αυτή η σελίδα δεν φορτώθηκε. Δοκιμάστε ξανά.",
+  "history_pager.loading": "Φόρτωση εγγραφών…",
+  "history_pager.next": "Επόμενο",
+  "history_pager.previous": "Προηγούμενο"
+}

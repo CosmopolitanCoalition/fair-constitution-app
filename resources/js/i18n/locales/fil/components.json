@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Kasalukuyang kinakarga ang cosmic address…",
+  "cosmicaddresspicker.multiverse": "Multiverse ▸",
+  "schemaupdatebanner.apply_updates": "I-apply ang mga update",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Kailangan: {pendingLabel} — i-apply bago simulan ang ETL run.",
+  "setupstepper.build_districts": "Bumuo ng mga Distrito",
+  "setupstepper.confirm_seat_institutions": "Kumpirmahin at Ipuwesto ang mga Institusyon",
+  "setupstepper.constitutional_defaults": "Mga Default ng Konstitusyon",
+  "setupstepper.cosmic_address": "Cosmic Address",
+  "setupstepper.map_data": "Datos ng Mapa",
+  "setupstepper.setup_progress": "Pag-unlad ng setup"
+}

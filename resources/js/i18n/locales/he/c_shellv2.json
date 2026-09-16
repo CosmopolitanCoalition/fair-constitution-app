@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "ניווט ולמידה",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "שיעורים מלאים מתוכננים · דוח שלב 7 דיווח על בעיה",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "המנגנון שמאחורי המסך הזה",
+  "shellv2_menunav.all_screens_the_full_map": "כל המסכים — המפה המלאה",
+  "shellv2_menunav.requires_planned": "{label} {label2} דורש {prereq} {label3} מתוכנן",
+  "shellv2_tourbar.guided_tour": "סיור מודרך",
+  "shellv2_tourbar.guided_tour_step_of": "סיור מודרך · שלב {stepNumber} מתוך {total}{title}{blurb}"
+}

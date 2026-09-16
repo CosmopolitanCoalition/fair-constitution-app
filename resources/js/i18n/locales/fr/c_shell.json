@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Monde de l'art d'État",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Contrôles développeur — hors application",
+  "shell_devbar.impersonating": "{label} — Usurpation de l'identité de {name}",
+  "shell_devbar.residency_tool_civic_residency": "Outil de résidence → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Examen judiciaire en cours · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Ouvrir le tableau de bord des pouvoirs d'urgence"
+}

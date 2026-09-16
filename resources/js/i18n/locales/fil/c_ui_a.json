@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeta",
+  "adm_chip.level_1": "Bansa",
+  "adm_chip.level_2": "Estado / Probinsya",
+  "adm_chip.level_3": "Kunti",
+  "adm_chip.level_4": "Munisipalidad",
+  "adm_chip.level_5": "Bayan",
+  "adm_chip.level_6": "Kapitbahayan",
+  "citation_line.as_implemented": "ayon sa ipinatupad",
+  "data_table.caption_scrollable": "{caption} (maaaring i-scroll)",
+  "data_table.scrollable_table": "Talaang maaaring i-scroll",
+  "history_pager.first_page": "Unang pahina",
+  "history_pager.load_error": "Hindi na-load ang pahinang ito. Subukan muli.",
+  "history_pager.loading": "Naglo-load ng mga rekord…",
+  "history_pager.next": "Susunod",
+  "history_pager.previous": "Nakaraan"
+}

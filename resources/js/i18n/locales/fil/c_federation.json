@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Sumasali sa cluster",
+  "federation_syncprogress.of_left": "{fmtValue} sa {fmtValue2}~{fmtDuration} ang natitira",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} na rekord · {fmtNum2} na pahinaNag-iimport ng foundation sa database…Na-importnaghihintay…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Maaari mo nang iwan ang pahinang ito — tumatakbo ang sync sa background at magpapatuloy kung naantala."
+}

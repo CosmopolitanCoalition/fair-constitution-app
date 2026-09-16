@@ -1,12 +1,12 @@
 {
-  "cosmicaddresspicker.loading_cosmic_address": "Je charge une adresse cosmique...",
-  "cosmicaddresspicker.multiverse": "Le multivers ▸",
+  "cosmicaddresspicker.loading_cosmic_address": "Chargement de l'adresse cosmique…",
+  "cosmicaddresspicker.multiverse": "Multivers ▸",
   "schemaupdatebanner.apply_updates": "Appliquer les mises à jour",
-  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Exigence: {pendingLabel}  s'appliquer avant le début d'une course ETL.",
-  "setupstepper.build_districts": "Construisez des districts",
-  "setupstepper.confirm_seat_institutions": "Les établissements de confirmation et de siège",
-  "setupstepper.constitutional_defaults": "Les défauts constitutionnels",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Requis : {pendingLabel} — appliquer avant de lancer un processus ETL.",
+  "setupstepper.build_districts": "Créer les circonscriptions",
+  "setupstepper.confirm_seat_institutions": "Confirmer et installer les institutions",
+  "setupstepper.constitutional_defaults": "Valeurs par défaut de la Constitution",
   "setupstepper.cosmic_address": "Adresse cosmique",
-  "setupstepper.map_data": "Données de carte",
-  "setupstepper.setup_progress": "Progress de l'installation"
+  "setupstepper.map_data": "Données cartographiques",
+  "setupstepper.setup_progress": "Progression de la configuration"
 }

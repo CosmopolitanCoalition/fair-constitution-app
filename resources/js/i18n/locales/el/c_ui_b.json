@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "προστέθηκε:",
+  "law_diff.label": "Αλλαγές στο κείμενο του νόμου",
+  "law_diff.removed": "αφαιρέθηκε:",
+  "planned_banner.default_body": "Αυτό το τμήμα του κόσμου έχει σχεδιαστεί πριν από την κατασκευή. Τίποτα εδώ δεν είναι ακόμα ενεργό και δεν υπάρχουν πραγματικά χρήματα πουθενά.",
+  "planned_banner.title": "Προγραμματισμένο — μια προεπισκόπηση.",
+  "selection_identity.aria_org": "Αρχείο οργανισμού για {name}, αναφορά {id}",
+  "selection_identity.aria_profile": "Δημόσιο προφίλ για {name}, αναφορά {id}",
+  "selection_identity.org_reference": "Αναφορά οργανισμού:",
+  "selection_identity.organization_record": "Αρχείο οργανισμού",
+  "selection_identity.profile_reference": "Αναφορά προφίλ:",
+  "selection_identity.public_profile": "Δημόσιο προφίλ"
+}

@@ -1,6 +1,6 @@
 {
-  "federation_syncprogress.joining_the_cluster": "Joindre le groupe",
-  "federation_syncprogress.of_left": "{fmtValue} de {fmtValue2}~{fmtDuration} à gauche",
-  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} enregistrements · {fmtNum2} pagesImportation de la base de données dans la base de données...Importation...{fmtNum3}/s",
-  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Vous pouvez laisser cette page  la synchronisation se déroule en arrière-plan et reprend en cas d'interruption."
+  "federation_syncprogress.joining_the_cluster": "Jonction au cluster",
+  "federation_syncprogress.of_left": "{fmtValue} sur {fmtValue2}~{fmtDuration} restants",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} dossiers · {fmtNum2} pagesImportation de la fondation dans la base de données…Importéattente…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Vous pouvez quitter cette page — la synchronisation s'exécute en arrière-plan et reprend si elle est interrompue."
 }

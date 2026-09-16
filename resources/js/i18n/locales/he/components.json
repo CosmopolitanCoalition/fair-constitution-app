@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "טוען כתובת קוסמית…",
+  "cosmicaddresspicker.multiverse": "מולטיורס ▸",
+  "schemaupdatebanner.apply_updates": "החל עדכונים",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "נדרש: {pendingLabel} — יש להחיל לפני הפעלת ETL.",
+  "setupstepper.build_districts": "בניית מחוזות בחירה",
+  "setupstepper.confirm_seat_institutions": "אישור והשבה של מוסדות",
+  "setupstepper.constitutional_defaults": "ברירות מחדל חוקתיות",
+  "setupstepper.cosmic_address": "כתובת קוסמית",
+  "setupstepper.map_data": "נתוני מפה",
+  "setupstepper.setup_progress": "התקדמות הגדרה"
+}

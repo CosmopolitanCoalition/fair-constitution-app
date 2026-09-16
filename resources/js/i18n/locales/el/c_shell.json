@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Κόσμος της Κρατικής Τέχνης",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Έλεγχοι προγραμματιστή — δεν αποτελούν μέρος της εφαρμογής",
+  "shell_devbar.impersonating": "{label} — Υποδресία του {name}",
+  "shell_devbar.residency_tool_civic_residency": "Εργαλείο κατοικίας → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Εκκρεμεί δικαστικός έλεγχος · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Άνοιγμα του πίνακα ελέγχου εξουσιών έκτακτης ανάγκης"
+}

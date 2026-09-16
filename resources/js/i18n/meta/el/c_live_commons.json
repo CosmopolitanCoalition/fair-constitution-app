@@ -1,0 +1,122 @@
+{
+  "back_rooms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "browse_world": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "choose_place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "choose_residence": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "compose_placeholder": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "file_testimony": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "guest": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "halls_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "invite_friend": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "invite_share": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "invite_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "no_messages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "no_messages_offline": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "not_ready": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "open_square": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "place_navigation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "place_overview": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "post": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "post_to_commons": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "residence_shortcut": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "retry": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "sign_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "space_hall": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "space_square": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "timeline": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "unavailable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "waiting_for_government": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "you": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

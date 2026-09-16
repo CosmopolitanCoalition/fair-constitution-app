@@ -1,0 +1,8 @@
+{
+  "dismiss": "Ignorer",
+  "failed": "La requête n'a pas pu être traitée. Veuillez réessayer.",
+  "loading": "Chargement…",
+  "refresh": "Actualiser pour réessayer",
+  "slow": "Chargement toujours en cours…",
+  "start_failed": "La page n'a pas pu être ouverte."
+}

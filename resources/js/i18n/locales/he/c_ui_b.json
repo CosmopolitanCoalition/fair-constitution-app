@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "נוסף:",
+  "law_diff.label": "שינויים בטקסט החוק",
+  "law_diff.removed": "הוסר:",
+  "planned_banner.default_body": "חלק זה של העולם תוכנן לפני הבנייה. שום דבר כאן אינו פעיל עדיין, ולא קיים כסף אמיתי בשום מקום.",
+  "planned_banner.title": "מתוכנן — תצוגה מקדימה.",
+  "selection_identity.aria_org": "רשומה של ארגון עבור {name}, סימוכין {id}",
+  "selection_identity.aria_profile": "פרופיל ציבורי עבור {name}, סימוכין {id}",
+  "selection_identity.org_reference": "סימוכין לארגון:",
+  "selection_identity.organization_record": "רשומת ארגון",
+  "selection_identity.profile_reference": "סימוכין לפרופיל:",
+  "selection_identity.public_profile": "פרופיל ציבורי"
+}

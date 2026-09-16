@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "halalan para sa ehekutibo",
+  "election_kind.general": "pangkalahatang halalan",
+  "election_kind.judicial": "halalan para sa hudikatura",
+  "election_kind.org_board_owner": "halalan sa lupon (puwesto ng may-ari)",
+  "election_kind.org_board_worker": "halalan sa lupon (puwesto ng manggagawa)",
+  "election_kind.referendum": "reperendum",
+  "election_kind.restoration": "halalan para sa pagpapanumbalik",
+  "election_kind.special": "espesyal na halalan"
+}

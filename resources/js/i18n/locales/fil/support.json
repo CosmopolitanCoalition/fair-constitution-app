@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Ang mga ulat sa asal at legal ay ipinapadala para sa pagsusuri. Ang pag-file rito ay hindi nag-aalis ng anuman — ang pag-aalis ng nilalaman ay sumusunod sa mga carve-out ng Konstitusyon (ang makinarya ng F-SOC-003), hindi sa form na ito.",
+  "support_report.file_a_report": "Mag-file ng ulat",
+  "support_report.file_report": "Mag-file ng ulat",
+  "support_report.filed_from": "Na-file mula sa: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Ayos lang ang simpleng salita. Isama ang inaasahan mo at ang nakita mo sa halip.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Ang mga ulat ay napupunta sa support inbox ng operator at niruruta ayon sa kategorya. Ang intake na ito ay hindi kailanman nag-e-edit o nag-aalis ng nilalaman mismo.",
+  "support_report.what_happened": "Ano ang nangyari?",
+  "support_report.what_kind_of_report_is_this": "Anong uri ng ulat ito?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Kailangang naka-sign in ka para mag-file ng ulat — mag-log in at bumalik sa pahinang ito."
+}

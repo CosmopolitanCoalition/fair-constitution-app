@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "כוכב לכת",
+  "adm_chip.level_1": "מדינה",
+  "adm_chip.level_2": "מדינה / מחוז",
+  "adm_chip.level_3": "מחוז",
+  "adm_chip.level_4": "רשות מקומית",
+  "adm_chip.level_5": "מועצה מקומית",
+  "adm_chip.level_6": "שכונה",
+  "citation_line.as_implemented": "כפי שיושם",
+  "data_table.caption_scrollable": "{caption} (ניתן לגלילה)",
+  "data_table.scrollable_table": "טבלה ניתנת לגלילה",
+  "history_pager.first_page": "עמוד ראשון",
+  "history_pager.load_error": "לא ניתן היה לטעון את העמוד. נסה שוב.",
+  "history_pager.loading": "טוען רשומות…",
+  "history_pager.next": "הבא",
+  "history_pager.previous": "הקודם"
+}

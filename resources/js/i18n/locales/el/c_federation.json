@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Ενταξίς στο σύνολο",
+  "federation_syncprogress.of_left": "{fmtValue} από {fmtValue2}~{fmtDuration} απομένουν",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} εγγραφές · {fmtNum2} σελίδεςΕισαγωγή του ιδρύματος στη βάση δεδομένων…Εισήχθηαναμονή…{fmtNum3}/δευτ",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Μπορείτε να αποχωρήσετε από αυτή τη σελίδα — ο συγχρονισμός εκτελείται στο παρασκήνιο και συνεχίζεται εάν διακοπεί."
+}

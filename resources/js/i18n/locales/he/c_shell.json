@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "עולם הממשל",
+  "shell_devbar.dev_controls_not_part_of_the_application": "בקרות מפתחים — לא חלק מהאפליקציה",
+  "shell_devbar.impersonating": "{label} — התחזות ל-{name}",
+  "shell_devbar.residency_tool_civic_residency": "כלי תושבות ← /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "ביקורת שיפוטית ממתינה · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "פתח את לוח הבקרה של סמכויות חירום"
+}

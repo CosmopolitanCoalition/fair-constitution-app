@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "דיווחים על התנהגות ודיווחים משפטיים מועברים לבדיקה. הגשה כאן אינה מסירה דבר — הסרת תוכן מתבצעת בהתאם להחרגות החוקתיות (מנגנון ה-F-SOC-003), לעולם לא באמצעות טופס זה.",
+  "support_report.file_a_report": "הגש דיווח",
+  "support_report.file_report": "הגש דיווח",
+  "support_report.filed_from": "הוגש מ: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "מילים פשוטות מספיקות. ציין מה ציפית לראות ומה ראית בפועל.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "דיווחים מגיעים לתיבת התמיכה של המפעיל ומופנים לפי קטגוריה. תהליך קליטה זה אינו עורך או מסיר תוכן בעצמו.",
+  "support_report.what_happened": "מה קרה?",
+  "support_report.what_kind_of_report_is_this": "איזה סוג של דיווח זה?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "עליך להיות מחובר כדי להגיש דיווח — התחבר וחזור לדף זה."
+}

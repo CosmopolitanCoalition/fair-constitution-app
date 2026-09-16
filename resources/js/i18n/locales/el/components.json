@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Φόρτωση κοσμικής διεύθυνσης…",
+  "cosmicaddresspicker.multiverse": "Πολυσύμπαν ▸",
+  "schemaupdatebanner.apply_updates": "Εφαρμογή ενημερώσεων",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Απαιτείται: {pendingLabel} — εφαρμογή πριν από την έναρξη εκτέλεσης ETL.",
+  "setupstepper.build_districts": "Δημιουργία περιφερειών",
+  "setupstepper.confirm_seat_institutions": "Επιβεβαίωση & τοποθέτηση θεσμών",
+  "setupstepper.constitutional_defaults": "Συνταγματικές προεπιλογές",
+  "setupstepper.cosmic_address": "Κοσμική Διεύθυνση",
+  "setupstepper.map_data": "Δεδομένα Χάρτη",
+  "setupstepper.setup_progress": "Πρόοδος εγκατάστασης"
+}

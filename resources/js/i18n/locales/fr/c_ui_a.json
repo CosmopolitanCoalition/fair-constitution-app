@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planète",
+  "adm_chip.level_1": "Pays",
+  "adm_chip.level_2": "État / Province",
+  "adm_chip.level_3": "Comté",
+  "adm_chip.level_4": "Municipalité",
+  "adm_chip.level_5": "Commune",
+  "adm_chip.level_6": "Quartier",
+  "citation_line.as_implemented": "tel que mis en œuvre",
+  "data_table.caption_scrollable": "{caption} (défilable)",
+  "data_table.scrollable_table": "Tableau défilable",
+  "history_pager.first_page": "Première page",
+  "history_pager.load_error": "Cette page n'a pas pu être chargée. Réessayez.",
+  "history_pager.loading": "Chargement des dossiers…",
+  "history_pager.next": "Suivant",
+  "history_pager.previous": "Précédent"
+}

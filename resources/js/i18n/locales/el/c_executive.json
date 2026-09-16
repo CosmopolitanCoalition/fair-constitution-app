@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "κάτω από το όριο",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} οι μέθοδοι έκτακτης ανάγκης διευρύνουν το ανάθεση πεδίο μόνο εντός της δηλωμένης περιοχής και διάρκειας · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "υπόκειται σε δικαστικό έλεγχο · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Απορρίφθηκε πριν την έκδοση: {rejection_citation} Η εντολή δεν вступиκε ποτέ σε ισχύ· η απορριφθείσα προσπάθεια βρίσκεται στο δημόσιο αρχείο."
+}

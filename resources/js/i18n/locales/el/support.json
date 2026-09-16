@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Οι αναφορές συμπεριφοράς και νομικές αναφορές προωθούνται για έλεγχο. Η υποβολή εδώ δεν αφαιρεί τίποτα — η αφαίρεση περιεχομένου ακολουθεί τις συνταγματικές εξαιρέσεις (τον μηχανισμό F-SOC-003), ποτέ αυτή τη φόρμα.",
+  "support_report.file_a_report": "Υποβολή αναφοράς",
+  "support_report.file_report": "Υποβολή αναφοράς",
+  "support_report.filed_from": "Υποβλήθηκε από: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Απλά λόγια είναι αρκετά. Περιγράψτε τι αναμενόσασταν και τι είδατε αντίθετα.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Οι αναφορές καταλήγουν στο εισερχόμενο υποστήριξης του χειριστή και προωθούνται ανά κατηγορία. Αυτή η διαδικασία εισαγωγής δεν επεξεργάζεται ούτε αφαιρεί περιεχόμενο.",
+  "support_report.what_happened": "Τι συνέβη;",
+  "support_report.what_kind_of_report_is_this": "Τι είδους αναφορά είναι αυτή;",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Πρέπει να είστε συνδεδεμένοι για να υποβάλετε αναφορά — συνδεθείτε και επιστρέψτε σε αυτή τη σελίδα."
+}
