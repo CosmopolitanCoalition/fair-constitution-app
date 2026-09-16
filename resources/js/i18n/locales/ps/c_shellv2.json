@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "تګ او زده کړه",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "پوره پلان شوي درسونه · اوومه پړاو ستونزه راپور کړئ",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "د دې سکرین شالیدي میکانیزم",
+  "shellv2_menunav.all_screens_the_full_map": "ټول سکرینونه — بشپړه نقشه",
+  "shellv2_menunav.requires_planned": "{label} {label2} اړتیا لري {prereq} {label3} پلان شوی",
+  "shellv2_tourbar.guided_tour": "رهبري شوی之旅",
+  "shellv2_tourbar.guided_tour_step_of": "رهبري شوی之旅 · ګام {stepNumber} له {total}{title}{blurb} څخه"
+}

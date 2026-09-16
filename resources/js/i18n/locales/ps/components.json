@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "د کائناتي پته لوډ کیږي…",
+  "cosmicaddresspicker.multiverse": "څو کائناتونه ▸",
+  "schemaupdatebanner.apply_updates": "د تازه کولو تطبیق",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "ضروري: {pendingLabel} — د ETL د اجرا څخه وړاندې یې تطبیق کړئ.",
+  "setupstepper.build_districts": "د ټاکنیزو حوزو جوړول",
+  "setupstepper.confirm_seat_institutions": "د بنسټونو تایید او څوکۍ ورکول",
+  "setupstepper.constitutional_defaults": "د اساسي قانون ډیفالټ‌ها",
+  "setupstepper.cosmic_address": "کائناتي پته",
+  "setupstepper.map_data": "د ډیټا نقشه",
+  "setupstepper.setup_progress": "د ترتیب پرمختګ"
+}

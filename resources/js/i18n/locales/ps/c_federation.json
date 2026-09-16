@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "کلسټر ته یوېدل",
+  "federation_syncprogress.of_left": "{fmtValue} له {fmtValue2}~{fmtDuration} پاتې دي",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} ریکارډونه · {fmtNum2} پاڼېبنیاد ډیټابیس ته واردول کېږي…وارد شولانتظار...{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "تاسو کولی شئ دا پاڼه پریږدئ — همغږي په پس منظر کې chali او که خنډ ورشي بیا پیل کیږي."
+}

@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "ниже порога",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} чрезвычайные методы расширяют делегированные полномочия только в пределах объявленной зоны и срока · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "подлежит судебному пересмотру · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Отклонено до выдачи: {rejection_citation} Ордер не вступил в силу; запись об отклоненной попытке находится в публичной записи."
+}

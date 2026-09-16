@@ -1,0 +1,22 @@
+{
+  "invite_landing.an_invite_carries_no_power_nobody_gains_a_": "Приглашение не дает власти — никто не получает голос, место или преимущество, приглашая вас. Это просто дверь.",
+  "invite_landing.browse_everything_every_place_on_earth_eve": "Ищите всё — любое место на Земле, любую запись, любые выборы, любой закон.",
+  "invite_landing.create_an_account": "Создать аккаунт",
+  "invite_landing.either_way_you_ll_land_right_where_this_li": "В любом случае вы попадете туда, куда ведет эта ссылка — пункт назначения уже запомнен.",
+  "invite_landing.explore_first": "Сначала изучить",
+  "invite_landing.is_a_private_room_they_saved_you_a_seat_cr": "{destinationName} — это приватная комната, там приберегли для вас место. Создайте аккаунт, чтобы войти.",
+  "invite_landing.join_anyway": "Все равно присоединиться",
+  "invite_landing.log_in": "Войти",
+  "invite_landing.look_around_first": "Сначала осмотреться",
+  "invite_landing.sign_up_join": "Зарегистрироваться и присоединиться",
+  "invite_landing.step_in": "Войти",
+  "invite_landing.step_in_and_see_what_this_is_is_already_op": "Зайдите и посмотрите, что это — {destinationName} уже открыта. Аккаунт не нужен, чтобы наблюдать.",
+  "invite_landing.that_link_is_no_longer_valid_but_the_door_": "Эта ссылка больше не действительна, но дверь всё еще открыта. Присоединиться может любой.",
+  "invite_landing.this_invite_link_has_expired": "Срок действия этой ссылки-приглашения истек",
+  "invite_landing.watch_any_public_room_every_hearing_meetin": "Наблюдайте за любой публичной комнатой — все слушания, встречи и голосования проходят открыто. Галерея всегда бесплатна.",
+  "invite_landing.what_you_can_do_right_now": "Что вы можете сделать прямо сейчас",
+  "invite_landing.when_you_want_a_voice_to_speak_on_the_reco": "Когда вам понадобится голос — чтобы выступить официально, проголосовать или баллотироваться на должность — создайте аккаунт и укажите место жительства. Наличие места жительства — единственное требование.",
+  "invite_landing.where_this_leads": "Куда это ведет",
+  "invite_landing.world_of_statecraft": "Мир государственного управления",
+  "invite_landing.you_re_invited": "Вы приглашены"
+}

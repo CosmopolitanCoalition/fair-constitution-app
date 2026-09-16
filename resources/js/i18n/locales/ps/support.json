@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "د چلند او قانوني راپورونه د بیاکتنې لپاره لېږل کېږي. دلته ثبتول هیڅ شی نه لیري — د موادو لیرول د اساسي قانون د استثناوو (د F-SOC-003 میکانیزم) له مخلا وي، نه د دې فورم له لارې.",
+  "support_report.file_a_report": "راپور ثبت کړئ",
+  "support_report.file_report": "راپور ثبت کړئ",
+  "support_report.filed_from": "د دلته څخه ثبت شوی: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "ساده خبرې کفایت کوي. هغه څه ولیکئ چې تاسو یې تمه درلوده او هغه څه چې په حقیقت کې مو ولیدل.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "راپورونه د اپراتور د ملاتړ انباکس ته رسیږي او د کټګورۍ په اساس لېږل کېږي. دا بهرنی سیستم پخپله مواد نه بدلوي او نه یې لیري.",
+  "support_report.what_happened": "څه وشول؟",
+  "support_report.what_kind_of_report_is_this": "دا د کوم ډول راپور دی؟",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "د راپور ثبتولو لپاره تاسو باید ننوت църкваست — 로그인 وکړئ او بیا دې پاڼې ته راشئ."
+}

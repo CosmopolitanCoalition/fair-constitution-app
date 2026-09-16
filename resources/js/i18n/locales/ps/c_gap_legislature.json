@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "د اجرائیه قوه ټاکنې",
+  "election_kind.general": "عمومي ټاکنې",
+  "election_kind.judicial": "د قضائیه قوه ټاکنې",
+  "election_kind.org_board_owner": "د بورډ ټاکنې (د مالکانو څوکۍ)",
+  "election_kind.org_board_worker": "د بورډ ټاکنې (د کارګرانو څوکۍ)",
+  "election_kind.referendum": "ټولپوښتنه",
+  "election_kind.restoration": "د بیا رغونې ټاکنې",
+  "election_kind.special": "ځانګړې ټاکنې"
+}

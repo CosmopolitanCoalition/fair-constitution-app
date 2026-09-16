@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "добавлено:",
+  "law_diff.label": "Изменения в тексте закона",
+  "law_diff.removed": "удалено:",
+  "planned_banner.default_body": "Эта часть мира спроектирована до начала сборки. Здесь еще ничего не работает, и реальные деньги отсутствуют.",
+  "planned_banner.title": "Запланировано — предварительный просмотр.",
+  "selection_identity.aria_org": "Запись организации для {name}, ссылка {id}",
+  "selection_identity.aria_profile": "Публичный профиль для {name}, ссылка {id}",
+  "selection_identity.org_reference": "Ссылка на организацию:",
+  "selection_identity.organization_record": "Запись организации",
+  "selection_identity.profile_reference": "Ссылка на профиль:",
+  "selection_identity.public_profile": "Публичный профиль"
+}

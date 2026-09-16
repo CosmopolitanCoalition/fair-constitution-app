@@ -1,0 +1,30 @@
+{
+  "association_scope": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "governance": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "live_halls": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "live_square": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "title": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

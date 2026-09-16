@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "له حد څخه ټیټ",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} بېړني میتودونه د تفویض شویې ساحې نطاق یوازې په اعلان شوي قلمرو او مودې کې پراخیږي · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "قضایي بیاکتنې وړ · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "له خپرېدو وړاندې رد شوی: {rejection_citation} حکم هیڅکله نافذ نه شو؛ د رد شوي هڅې ریکارډ په عامه سابقه کې شته."
+}

@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Навигация и обучение",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Полные уроки Запланировано · Отчет фазы 7 Сообщить о проблеме",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Механизмы этого экрана",
+  "shellv2_menunav.all_screens_the_full_map": "Все экраны — полная карта",
+  "shellv2_menunav.requires_planned": "{label} {label2} Требуется {prereq} {label3} Запланировано",
+  "shellv2_tourbar.guided_tour": "Экскурсия",
+  "shellv2_tourbar.guided_tour_step_of": "Экскурсия · шаг {stepNumber} из {total}{title}{blurb}"
+}

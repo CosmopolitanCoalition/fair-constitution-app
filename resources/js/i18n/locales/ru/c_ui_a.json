@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Планета",
+  "adm_chip.level_1": "Страна",
+  "adm_chip.level_2": "Штат / Провинция",
+  "adm_chip.level_3": "Округ",
+  "adm_chip.level_4": "Муниципалитет",
+  "adm_chip.level_5": "Поселок",
+  "adm_chip.level_6": "Район",
+  "citation_line.as_implemented": "внедрено",
+  "data_table.caption_scrollable": "{caption} (с прокруткой)",
+  "data_table.scrollable_table": "Таблица с прокруткой",
+  "history_pager.first_page": "Первая страница",
+  "history_pager.load_error": "Не удалось загрузить страницу. Попробуйте снова.",
+  "history_pager.loading": "Загрузка записей…",
+  "history_pager.next": "Далее",
+  "history_pager.previous": "Назад"
+}

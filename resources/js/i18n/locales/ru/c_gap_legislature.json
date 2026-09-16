@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "выборы исполнительной власти",
+  "election_kind.general": "всеобщие выборы",
+  "election_kind.judicial": "судебные выборы",
+  "election_kind.org_board_owner": "выборы в правление (места владельцев)",
+  "election_kind.org_board_worker": "выборы в правление (места работников)",
+  "election_kind.referendum": "референдум",
+  "election_kind.restoration": "выборы по восстановлению",
+  "election_kind.special": "внеочередные выборы"
+}

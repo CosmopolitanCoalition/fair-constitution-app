@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "د دولت چلولو نړۍ",
+  "shell_devbar.dev_controls_not_part_of_the_application": "د پراسوب کنټرولونه — د اپلیکیشن برخه نه ده",
+  "shell_devbar.impersonating": "{label} — د {name} په نوم عمل کول",
+  "shell_devbar.residency_tool_civic_residency": "د استوګنې وسیله → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "قضایي بیاکتنه په انتظار ده · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "د بېړني واکونو ډشبورډ خلاص کړئ"
+}

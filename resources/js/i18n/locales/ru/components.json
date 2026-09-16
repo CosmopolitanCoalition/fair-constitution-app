@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Загрузка космического адреса…",
+  "cosmicaddresspicker.multiverse": "Мультивселенная ▸",
+  "schemaupdatebanner.apply_updates": "Применить обновления",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Требуется: {pendingLabel} — примените перед запуском ETL.",
+  "setupstepper.build_districts": "Создать округа",
+  "setupstepper.confirm_seat_institutions": "Подтвердить и назначить институты",
+  "setupstepper.constitutional_defaults": "Конституционные настройки по умолчанию",
+  "setupstepper.cosmic_address": "Космический адрес",
+  "setupstepper.map_data": "Данные карты",
+  "setupstepper.setup_progress": "Прогресс настройки"
+}

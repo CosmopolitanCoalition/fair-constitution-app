@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Отчеты о поведении и правонарушениях направляются на рассмотрение. Подача жалобы здесь ничего не удаляет — удаление контента происходит согласно исключениям в Конституции (механизм F-SOC-003), а не через эту форму.",
+  "support_report.file_a_report": "Подать отчет",
+  "support_report.file_report": "Подать отчет",
+  "support_report.filed_from": "Отправлено из: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Пишите простыми словами. Укажите, что вы ожидали увидеть и что увидели на самом деле.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Отчеты поступают во входящие сообщения службы поддержки оператора и распределяются по категориям. Эта форма сама по себе не редактирует и не удаляет контент.",
+  "support_report.what_happened": "Что произошло?",
+  "support_report.what_kind_of_report_is_this": "Какой это тип отчета?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Для подачи отчета необходимо войти в систему — войдите в аккаунт и вернитесь на эту страницу."
+}

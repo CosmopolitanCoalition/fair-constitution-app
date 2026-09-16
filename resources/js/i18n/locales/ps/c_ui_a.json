@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "سیاره",
+  "adm_chip.level_1": "هېواد",
+  "adm_chip.level_2": "ولایت / ولایت",
+  "adm_chip.level_3": "ولسوالۍ",
+  "adm_chip.level_4": "بلدیه",
+  "adm_chip.level_5": "کليزه سیمه",
+  "adm_chip.level_6": "جوار",
+  "citation_line.as_implemented": "لکه څنګه چې تطبیق شوي",
+  "data_table.caption_scrollable": "{caption} (د لړلو وړ)",
+  "data_table.scrollable_table": "د لړلو وړ جدول",
+  "history_pager.first_page": "لومړۍ پاڼه",
+  "history_pager.load_error": "دا پاڼه نه ده خلاصه شوې. بیا یې هڅه وکړئ.",
+  "history_pager.loading": "د سابقتونو لوډول…",
+  "history_pager.next": "بل",
+  "history_pager.previous": "مخکینی"
+}

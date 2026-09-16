@@ -1,0 +1,106 @@
+{
+  "arrival_hub.accountHint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.accountTitle": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.community": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.communityHint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.economy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.economyHint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.everyday": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.eyebrow": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.learn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.learnHint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.login": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.places": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.placesAction": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.placesHint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.register": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.returnHint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.returnTitle": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.roles": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.rolesAction": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.rolesHint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.setup": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.setupAction": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.start": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "arrival_hub.today": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}
