@@ -17226,6 +17226,10 @@
         {
           "date": "2026-09-16",
           "note": "Built 1a01c3be (evening, Eastern). MEDIA_DIR mounted at public/media/Subjects (rw app/horizon/scheduler, ro nginx), nginx /media/ with ranges, MediaMeta::baseUrl() auto /media, media_pulls + media_pull_items, MediaTransfer (Range resume, size verify, halt at a 2 s tick), PullMediaItemJob (long-running), MediaPullPlanner (single owner, bounded inserts, two-ended dispatch, --sync runner), media:pull, MediaLibrarySetupController (status/start/control/savePath), EnvFile extracted from SetupController, Step 2 card + Video library section. Operator ruling: all 61 films by default. JS pins 72 pass. PHP tests written, NOT RUN: Docker Desktop down on box E. New mounts need docker compose up -d (his action). Evidence: app/Services/Media/, app/Jobs/Media/PullMediaItemJob.php, app/Console/Commands/Media/MediaPullCommand.php, app/Http/Controllers/Setup/MediaLibrarySetupController.php, resources/js/Pages/Setup/Step2_MapData.vue, tests/Unit/MediaTransferTest.php, tests/Feature/MediaLibrarySetupControllerTest.php."
+        },
+        {
+          "date": "2026-09-16",
+          "note": "PHP gate green 1268c789 (evening, Eastern): 49 tests, 365 assertions in fc_app after three repairs (MediaMeta table probe cached per connection; NavRoleGateParityTest recorded gap pruned per its own instruction; manager test binds the request before the user resolver). Migration applied on box E; config cache re-baked; /videos, /videos/manage, /setup/step/2, /learn and the media status endpoint answer 200 (library empty: 0 of 61 masters). Pushed: main == origin/main. Still open: the operator's docker compose up -d for the new mounts, then a playback check in his Edge."
         }
       ]
     },
@@ -17263,6 +17267,10 @@
         {
           "date": "2026-09-16",
           "note": "Built 1a01c3be (evening, Eastern). /videos/manage (VideoManagerController + Pages/Learn/VideoManager.vue): reading open, upload and assign gated on is_operator only (operator ruling: an operator tool, temporary during development); media_videos, media_video_tracks, media_surface_videos overlay the registry; LearnController, SurfaceMeta and LearnFlyout prefer the assignment; per-video available on the library and lesson pages. PHP tests written, NOT RUN (Docker down). Evidence: app/Http/Controllers/Media/VideoManagerController.php, tests/Feature/VideoManagerControllerTest.php, tests/js/videoManager.test.mjs."
+        },
+        {
+          "date": "2026-09-16",
+          "note": "PHP gate green 1268c789 (evening, Eastern): 49 tests, 365 assertions in fc_app after three repairs (MediaMeta table probe cached per connection; NavRoleGateParityTest recorded gap pruned per its own instruction; manager test binds the request before the user resolver). Migration applied on box E; config cache re-baked; /videos, /videos/manage, /setup/step/2, /learn and the media status endpoint answer 200 (library empty: 0 of 61 masters). Pushed: main == origin/main. Still open: the operator's docker compose up -d for the new mounts, then a playback check in his Edge."
         }
       ]
     },
