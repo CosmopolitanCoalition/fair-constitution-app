@@ -180,7 +180,7 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
 <template>
     <PageScaffold
         :surface="surface"
-        :title="election ? t('c_institutions.election_detail.page_title', '{kind} — {name}', { kind: titleCase(election.kind_label ?? electionKindLabel(election.kind)), name: election.jurisdiction.name }) : t('c_institutions.election_detail.page_title_fallback', 'Elections')"
+        :title="election ? t('c_institutions.election_detail.page_title', '{kind} — {name}', { named: { kind: titleCase(election.kind_label ?? electionKindLabel(election.kind)), name: election.jurisdiction.name } }) : t('c_institutions.election_detail.page_title_fallback', 'Elections')"
     >
         <template #intro>
             <template v-if="election">

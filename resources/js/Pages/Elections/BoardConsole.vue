@@ -188,7 +188,7 @@ function runPetitionAudit(row) {
         <CitationLine text="WF-ELE-02 · WF-ELE-10 · Art. II §2" />
     </Banner>
 
-    <PageScaffold :surface="surface" :title="board ? t('c_elections.board.console_title', 'Election board console — {name}', { name: board.jurisdiction_name }) : t('c_elections.board.console_title_none', 'Election board console')">
+    <PageScaffold :surface="surface" :title="board ? t('c_elections.board.console_title', 'Election board console — {name}', { named: { name: board.jurisdiction_name } }) : t('c_elections.board.console_title_none', 'Election board console')">
         <template #intro>
             {{ t('c_elections.board.intro', 'The board is an independent, politically neutral office. It schedules, validates, oversees boundaries, certifies, audits, and orders recounts. It never counts by hand. Tabulation runs in protected code.') }}
         </template>
@@ -249,7 +249,7 @@ function runPetitionAudit(row) {
                     <Field
                         :label="t('c_elections.board.finalist_cutoff', 'Finalist cutoff')"
                         :hint="selectedElection
-                            ? t('c_elections.board.cutoff_hint_sel', 'X per race is pre-published with this order — {races} · CLK-21', { races: selectedElection.races.map((r) => `${r.label}: X = ${r.finalist_count}`).join(' · ') })
+                            ? t('c_elections.board.cutoff_hint_sel', 'X per race is pre-published with this order — {races} · CLK-21', { named: { races: selectedElection.races.map((r) => `${r.label}: X = ${r.finalist_count}`).join(' · ') } })
                             : t('c_elections.board.cutoff_hint', 'X per race is pre-published with this order · CLK-21')"
                         :error="schedForm.errors.finalist_cutoff_at"
                     >
@@ -370,7 +370,7 @@ function runPetitionAudit(row) {
                     :caption="t('c_elections.board.district_caption', 'District map plans under oversight')"
                 >
                     <template #cell-districts="{ row }">
-                        {{ t('c_elections.board.district_seats', '{n} · seats {s}', { n: row.district_count, s: row.seat_string }) }}
+                        {{ t('c_elections.board.district_seats', '{n} · seats {s}', { named: { n: row.district_count, s: row.seat_string } }) }}
                     </template>
                     <template #cell-status="{ row }">
                         <StatusBadge v-if="row.status === 'active'" tone="success" icon="check">{{ t('c_elections.board.status_active', 'active') }}</StatusBadge>
@@ -400,7 +400,7 @@ function runPetitionAudit(row) {
                 <div v-for="row in certifiable" :key="row.election_id" class="card card--inset" style="margin-block-end: var(--space-3)">
                     <p style="margin-block-end: var(--space-1)"><strong>{{ row.label }}</strong></p>
                     <p class="citation">
-                        {{ t('c_elections.board.cert_summary', '{r} rounds · {s} seats', { r: row.rounds, s: row.seats }) }} ·
+                        {{ t('c_elections.board.cert_summary', '{r} rounds · {s} seats', { named: { r: row.rounds, s: row.seats } }) }} ·
                         {{ row.tabulation_complete ? t('c_elections.board.tab_complete', 'tabulation complete') : t('c_elections.board.tab_progress', 'tabulation in progress') }}
                     </p>
                     <div class="cluster" style="margin-block-start: var(--space-2)">
@@ -479,10 +479,10 @@ function runPetitionAudit(row) {
                             </StatusBadge>
                         </p>
                         <p class="cc-small">
-                            {{ t('c_elections.board.sig_counts', '{live} live signatures · threshold {threshold}', { live: localeFmt.number(row.signatures), threshold: localeFmt.number(row.threshold_count) }) }}
+                            {{ t('c_elections.board.sig_counts', '{live} live signatures · threshold {threshold}', { named: { live: localeFmt.number(row.signatures), threshold: localeFmt.number(row.threshold_count) } }) }}
                         </p>
                         <p v-if="row.result" class="cc-small">
-                            {{ t('c_elections.board.sig_result', '{valid} of {checked} valid ({pct}%)', { valid: localeFmt.number(row.result.valid), checked: localeFmt.number(row.result.checked), pct: row.result.pct_valid }) }} —
+                            {{ t('c_elections.board.sig_result', '{valid} of {checked} valid ({pct}%)', { named: { valid: localeFmt.number(row.result.valid), checked: localeFmt.number(row.result.checked), pct: row.result.pct_valid } }) }} —
                             {{ row.result.still_above ? t('c_elections.board.still_above', 'still above threshold') : t('c_elections.board.below_threshold', 'below threshold — invalidated (kill-path)') }}
                         </p>
                         <Btn

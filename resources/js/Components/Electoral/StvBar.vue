@@ -76,13 +76,13 @@ const votesTitle = computed(() =>
 const linkTitle = computed(() => {
     const electedRound = props.elected && props.badge ? props.badge.match(/^r(\d+)$/) : null;
     const tip = electedRound
-        ? t('c_institution_components.stv_bar.elected_in_round', 'elected in round {n}', { n: electedRound[1] })
+        ? t('c_institution_components.stv_bar.elected_in_round', 'elected in round {n}', { named: { n: electedRound[1] } })
         : props.votes !== null
-          ? t('c_institution_components.stv_bar.votes', '{n} votes', { n: localeFmt.number(Math.round(props.votes)) })
+          ? t('c_institution_components.stv_bar.votes', '{n} votes', { named: { n: localeFmt.number(Math.round(props.votes)) } })
           : null;
     return tip
-        ? t('c_institution_components.stv_bar.link_title_tip', '{name} — open public profile · {tip}', { name: props.name, tip })
-        : t('c_institution_components.stv_bar.link_title', '{name} — open public profile', { name: props.name });
+        ? t('c_institution_components.stv_bar.link_title_tip', '{name} — open public profile · {tip}', { named: { name: props.name, tip } })
+        : t('c_institution_components.stv_bar.link_title', '{name} — open public profile', { named: { name: props.name } });
 });
 </script>
 

@@ -70,7 +70,7 @@ function submit(designation = false) {
             </div>
             <HistoryPager :pages="committees.pages" :first="path" :only="['judicialCommittees']" cursor-key="committees_cursor" :label="t('c_institution_components.judicial_nominations.committee_pager', 'Committee selection pages')" />
             <form @submit.prevent="submit(true)">
-                <p v-if="committee">{{ t('c_institution_components.judicial_nominations.selected_name', 'Selected: {name}', { name: committee.name }) }}</p>
+                <p v-if="committee">{{ t('c_institution_components.judicial_nominations.selected_name', 'Selected: {name}', { named: { name: committee.name } }) }}</p>
                 <label for="judicial-designation-statement">{{ t('c_institution_components.judicial_nominations.designation_statement_label', 'Public designation statement') }}</label>
                 <textarea id="judicial-designation-statement" v-model="designationStatement" rows="3" maxlength="10000" required />
                 <button type="submit" :disabled="busy || !context.can_designate || !committee || !designationStatement.trim()">{{ t('c_institution_components.judicial_nominations.propose_designation_btn', 'Propose committee designation') }}</button>
@@ -81,11 +81,11 @@ function submit(designation = false) {
             <h3>{{ t('c_institution_components.judicial_nominations.vacant_seats', 'Vacant seats') }}</h3>
             <p v-if="!seats.rows.length">{{ t('c_institution_components.judicial_nominations.no_vacant_seats', 'No vacant seats are available on this page.') }}</p>
             <div v-for="item in seats.rows" :key="item.id" class="choice">
-                <span>{{ t('c_institution_components.judicial_nominations.seat_num', 'Seat {n}', { n: item.number }) }} · {{ item.nominator }}</span>
+                <span>{{ t('c_institution_components.judicial_nominations.seat_num', 'Seat {n}', { named: { n: item.number } }) }} · {{ item.nominator }}</span>
                 <button type="button" :aria-pressed="seat?.id === item.id" @click="seat = item">{{ seat?.id === item.id ? t('c_institution_components.judicial_nominations.selected_seat', 'Selected seat') : t('c_institution_components.judicial_nominations.select_seat', 'Select seat') }}</button>
             </div>
             <HistoryPager :pages="seats.pages" :first="path" :only="['vacantSeats']" cursor-key="seats_cursor" :label="t('c_institution_components.judicial_nominations.seats_pager', 'Vacant court seat pages')" />
-            <p v-if="seat">{{ t('c_institution_components.judicial_nominations.selected_seat_num', 'Selected: seat {n}', { n: seat.number }) }} · {{ seat.nominator }}</p>
+            <p v-if="seat">{{ t('c_institution_components.judicial_nominations.selected_seat_num', 'Selected: seat {n}', { named: { n: seat.number } }) }} · {{ seat.nominator }}</p>
             <p v-if="seat && !seat.can_propose" role="status">{{ seat.reason || t('c_institution_components.judicial_nominations.seat_preview', 'Public preview: a serving member of this seat’s nominating body files the proposal.') }}</p>
         </div>
 
@@ -118,7 +118,7 @@ function submit(designation = false) {
         <p v-if="!proposals.rows.length">{{ t('c_institution_components.judicial_nominations.no_proposals', 'No nomination or committee-designation proposals have been filed here.') }}</p>
         <article v-for="proposal in proposals.rows" :key="proposal.id" class="nomination-section">
             <h3>{{ proposal.title }} · {{ proposalStatus(proposal.status) }}</h3>
-            <p><span v-if="proposal.seat_number != null">{{ t('c_institution_components.judicial_nominations.seat_num', 'Seat {n}', { n: proposal.seat_number }) }} · </span>{{ proposal.body_name }}</p>
+            <p><span v-if="proposal.seat_number != null">{{ t('c_institution_components.judicial_nominations.seat_num', 'Seat {n}', { named: { n: proposal.seat_number } }) }} · </span>{{ proposal.body_name }}</p>
             <SelectionIdentity v-if="proposal.nominee" :person="proposal.nominee" />
             <details><summary>{{ t('c_institution_components.judicial_nominations.read_statement', 'Read the public statement') }}</summary><p class="statement">{{ proposal.statement }}</p></details>
             <p v-if="proposal.reason" role="status">{{ proposal.reason }}</p>

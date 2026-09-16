@@ -74,17 +74,17 @@ const statusBadge = computed(() => {
 const codet = computed(() => {
     const board = props.department.board;
     if (!board || board.worker_seats === 0) {
-        return { tone: 'neutral', icon: 'minus', text: t('c_institution_components.department_card.codet_below', 'below threshold'), citation: t('c_institution_components.department_card.codet_below_cite', '{n} workers below the CLK-13 minimum', { n: fmt(props.department.worker_count) }) };
+        return { tone: 'neutral', icon: 'minus', text: t('c_institution_components.department_card.codet_below', 'below threshold'), citation: t('c_institution_components.department_card.codet_below_cite', '{n} workers below the CLK-13 minimum', { named: { n: fmt(props.department.worker_count) } }) };
     }
     if (board.worker_seats >= board.owner_seats) {
-        return { tone: 'success', icon: 'users', text: t('c_institution_components.department_card.codet_parity', 'parity'), citation: t('c_institution_components.department_card.codet_parity_cite', '{n} workers · worker seats equal owner seats · CLK-14', { n: fmt(props.department.worker_count) }) };
+        return { tone: 'success', icon: 'users', text: t('c_institution_components.department_card.codet_parity', 'parity'), citation: t('c_institution_components.department_card.codet_parity_cite', '{n} workers · worker seats equal owner seats · CLK-14', { named: { n: fmt(props.department.worker_count) } }) };
     }
     const n = board.worker_seats;
     return {
         tone: 'info',
         icon: 'users',
-        text: t('c_institution_components.department_card.codet_scaling', '{n} worker seat{s} · scaling', { n, s: n > 1 ? 's' : '' }),
-        citation: t('c_institution_components.department_card.codet_scaling_cite', '{n} workers past the CLK-13 minimum', { n: fmt(props.department.worker_count) }),
+        text: t('c_institution_components.department_card.codet_scaling', '{n} worker seat{s} · scaling', { named: { n, s: n > 1 ? 's' : '' } }),
+        citation: t('c_institution_components.department_card.codet_scaling_cite', '{n} workers past the CLK-13 minimum', { named: { n: fmt(props.department.worker_count) } }),
     };
 });
 
@@ -92,9 +92,9 @@ const codet = computed(() => {
 const reportChip = computed(() => {
     const report = props.department.next_report;
     if (!report) return null;
-    if (report.status === 'overdue') return { tone: 'warning', icon: 'alert-triangle', text: t('c_institution_components.department_card.report_overdue', 'report overdue · was due {date}', { date: report.due_on }) };
-    if (report.status === 'due_soon') return { tone: 'warning', icon: 'clock', text: t('c_institution_components.department_card.report_due_soon', 'report due {date}', { date: report.due_on }) };
-    return { tone: 'neutral', icon: 'clock', text: t('c_institution_components.department_card.report_next', 'next report {date}', { date: report.due_on }) };
+    if (report.status === 'overdue') return { tone: 'warning', icon: 'alert-triangle', text: t('c_institution_components.department_card.report_overdue', 'report overdue · was due {date}', { named: { date: report.due_on } }) };
+    if (report.status === 'due_soon') return { tone: 'warning', icon: 'clock', text: t('c_institution_components.department_card.report_due_soon', 'report due {date}', { named: { date: report.due_on } }) };
+    return { tone: 'neutral', icon: 'clock', text: t('c_institution_components.department_card.report_next', 'next report {date}', { named: { date: report.due_on } }) };
 });
 
 const fmt = (n) => localeFmt.number(Number(n ?? 0));
@@ -111,7 +111,7 @@ const fmt = (n) => localeFmt.number(Number(n ?? 0));
         <p class="cluster" style="gap: var(--space-2)">
             <TagChip data-no-i18n>{{ kindLabel }}</TagChip>
             <StatusBadge :tone="statusBadge.tone" :icon="statusBadge.icon">{{ statusBadge.text }}</StatusBadge>
-            <StatusBadge tone="info" icon="users">{{ t('c_institution_components.department_card.workers', '{n} workers', { n: fmt(department.worker_count) }) }}</StatusBadge>
+            <StatusBadge tone="info" icon="users">{{ t('c_institution_components.department_card.workers', '{n} workers', { named: { n: fmt(department.worker_count) } }) }}</StatusBadge>
         </p>
 
         <BoardStrip

@@ -191,9 +191,9 @@ function pathBadge(path) {
         <Banner
             tone="warning"
             role="status"
-            :title="t('c_institution_components.art4_section5_tracker.window_banner_title', 'Legislative window open — override closes {date}', { date: remedy.veto_closes_on })"
+            :title="t('c_institution_components.art4_section5_tracker.window_banner_title', 'Legislative window open — override closes {date}', { named: { date: remedy.veto_closes_on } })"
         >
-            {{ t('c_institution_components.art4_section5_tracker.window_banner_body', 'The legislature has {days} days to modify or remove the law (CLK-12, due {due}) and {vetoDays} days to override ({clk}).', { days: remedy.timeframe_days, due: remedy.timeframe_due_on, vetoDays: remedy.veto_window_days, clk: remedy.veto_clk || 'CLK-11' }) }}
+            {{ t('c_institution_components.art4_section5_tracker.window_banner_body', 'The legislature has {days} days to modify or remove the law (CLK-12, due {due}) and {vetoDays} days to override ({clk}).', { named: { days: remedy.timeframe_days, due: remedy.timeframe_due_on, vetoDays: remedy.veto_window_days, clk: remedy.veto_clk || 'CLK-11' } }) }}
             <span class="citation" data-no-i18n>{{ remedy.tz || 'stored as UTC' }}</span>
         </Banner>
 
@@ -207,16 +207,16 @@ function pathBadge(path) {
             </p>
             <p>
                 <strong style="color: var(--gov-fg)">{{ t('c_institution_components.art4_section5_tracker.filed', 'Filed:') }}</strong> {{ ch.filed_at }}
-                {{ t('c_institution_components.art4_section5_tracker.filed_by', 'by {who} — any inhabitant may file; no standing gatekeeper beyond jurisdictional association.', { who: ch.filed_by_label }) }}
+                {{ t('c_institution_components.art4_section5_tracker.filed_by', 'by {who} — any inhabitant may file; no standing gatekeeper beyond jurisdictional association.', { named: { who: ch.filed_by_label } }) }}
             </p>
             <p>
                 <strong style="color: var(--gov-fg)">{{ t('c_institution_components.art4_section5_tracker.heard_by', 'Heard by:') }}</strong>
                 <template v-if="ch.is_major">
-                    {{ t('c_institution_components.art4_section5_tracker.full_court', 'the full court — all {n} judges · CLK-16, {judge} writing.', { n: ch.full_court_size, judge: ch.writing_judge?.name }) }}
+                    {{ t('c_institution_components.art4_section5_tracker.full_court', 'the full court — all {n} judges · CLK-16, {judge} writing.', { named: { n: ch.full_court_size, judge: ch.writing_judge?.name } }) }}
                     <HardenedChip />
                 </template>
                 <template v-else>
-                    {{ t('c_institution_components.art4_section5_tracker.panel_court', 'a severity-scaled panel of the {court}, {judge} writing.', { court: ch.court?.name, judge: ch.writing_judge?.name }) }}
+                    {{ t('c_institution_components.art4_section5_tracker.panel_court', 'a severity-scaled panel of the {court}, {judge} writing.', { named: { court: ch.court?.name, judge: ch.writing_judge?.name } }) }}
                 </template>
             </p>
             <p class="citation">{{ t('c_institution_components.art4_section5_tracker.right_to_challenge', 'Right to challenge · Art. IV §5') }}</p>
@@ -253,7 +253,7 @@ function pathBadge(path) {
                     </div>
                     <p class="citation" style="margin-block: var(--space-1)">{{ remedy.form_card.citation }}</p>
                     <p style="font-size: var(--text-sm); color: var(--gov-fg)">
-                        “{{ remedy.text }}.” {{ t('c_institution_components.art4_section5_tracker.remedy_timeframe', 'Timeframe: {days} days ({clk}) · veto window: {vetoDays} days ({vetoClk}).', { days: remedy.timeframe_days, clk: remedy.clk || 'CLK-12', vetoDays: remedy.veto_window_days, vetoClk: remedy.veto_clk || 'CLK-11' }) }}
+                        “{{ remedy.text }}.” {{ t('c_institution_components.art4_section5_tracker.remedy_timeframe', 'Timeframe: {days} days ({clk}) · veto window: {vetoDays} days ({vetoClk}).', { named: { days: remedy.timeframe_days, clk: remedy.clk || 'CLK-12', vetoDays: remedy.veto_window_days, vetoClk: remedy.veto_clk || 'CLK-11' } }) }}
                     </p>
                 </div>
             </div>
@@ -328,7 +328,7 @@ function pathBadge(path) {
                     {{ t('c_institution_components.art4_section5_tracker.remedial_bill_gate', 'A remedial bill is proposed while the legislative window is open (Art. IV §5.3).') }}
                 </p>
                 <p class="citation">
-                    {{ t('c_institution_components.art4_section5_tracker.path_a_cite', 'due within {days} days of the finding · {clk} · Art. IV §5 — opinions remain commentary on the law as edited', { days: remedy.timeframe_days, clk: remedy.clk || 'CLK-12' }) }}
+                    {{ t('c_institution_components.art4_section5_tracker.path_a_cite', 'due within {days} days of the finding · {clk} · Art. IV §5 — opinions remain commentary on the law as edited', { named: { days: remedy.timeframe_days, clk: remedy.clk || 'CLK-12' } }) }}
                 </p>
             </Card>
 
@@ -365,7 +365,7 @@ function pathBadge(path) {
                         :threshold="override.required"
                         :label="t('c_institution_components.art4_section5_tracker.override_meter_label', 'Override — votes in favor of all serving')"
                     >
-                        {{ t('c_institution_components.art4_section5_tracker.override_in_favor', '{yes} of {serving} serving members in favor', { yes: override.yes, serving: override.serving }) }}
+                        {{ t('c_institution_components.art4_section5_tracker.override_in_favor', '{yes} of {serving} serving members in favor', { named: { yes: override.yes, serving: override.serving } }) }}
                         <template #note>
                             <span data-no-i18n
                                 >needs {{ override.required }} of {{ override.serving }} ·
@@ -421,7 +421,7 @@ function pathBadge(path) {
                 <LawDiff
                     v-if="diff"
                     :segments="diff.segments"
-                    :label="t('c_institution_components.art4_section5_tracker.law_diff_label', '{name} — {state}', { name: ch.law?.name, state: diff.applied ? t('c_institution_components.art4_section5_tracker.diff_as_edited', 'as edited by the judiciary') : t('c_institution_components.art4_section5_tracker.diff_remedy_preview', 'remedy preview') })"
+                    :label="t('c_institution_components.art4_section5_tracker.law_diff_label', '{name} — {state}', { named: { name: ch.law?.name, state: diff.applied ? t('c_institution_components.art4_section5_tracker.diff_as_edited', 'as edited by the judiciary') : t('c_institution_components.art4_section5_tracker.diff_remedy_preview', 'remedy preview') } })"
                 />
                 <div v-if="ch.judicial_remedy_form_card" class="card card--inset" style="margin-block-start: var(--space-2)">
                     <div class="cluster" style="justify-content: space-between; align-items: baseline">
@@ -454,9 +454,9 @@ function pathBadge(path) {
                     role="status"
                     :title="t('c_institution_components.art4_section5_tracker.applied_title', 'Remedy applied directly')"
                 >
-                    {{ t('c_institution_components.art4_section5_tracker.applied_body', '{name} is edited to the text above; a new law version is published with the prior version retained in history.', { name: ch.law?.name }) }}
+                    {{ t('c_institution_components.art4_section5_tracker.applied_body', '{name} is edited to the text above; a new law version is published with the prior version retained in history.', { named: { name: ch.law?.name } }) }}
                     <a v-if="diff?.history_href" :href="diff.history_href">
-                        {{ t('c_institution_components.art4_section5_tracker.version_link', 'Version {n} (prior: {prior}) →', { n: diff.version_no, prior: diff.prior_version_no }) }}
+                        {{ t('c_institution_components.art4_section5_tracker.version_link', 'Version {n} (prior: {prior}) →', { named: { n: diff.version_no, prior: diff.prior_version_no } }) }}
                     </a>
                     <span class="citation" data-no-i18n>F-JDG-006 · judicial_remedy · Art. IV §5</span>
                 </Banner>

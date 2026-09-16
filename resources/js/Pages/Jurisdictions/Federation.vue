@@ -388,8 +388,8 @@ const forgetBrokerCred = (domain) => {
                             <span class="text-slate-700">[{{ r.transport }}] {{ r.url }}</span>
                             <span class="text-slate-500">—
                                 <template v-if="r.error">{{ r.error }}</template>
-                                <template v-else-if="r.reachable">{{ t('c_jurisdictions.federation.probe_latency', '{n}ms', { n: r.latency_ms ?? '?' }) }} · {{ r.version === '' ? t('c_jurisdictions.federation.probe_no_version', 'no version') : (r.version_match ? t('c_jurisdictions.federation.probe_version_match', 'version match') : t('c_jurisdictions.federation.probe_version_mismatch', 'version MISMATCH')) }}</template>
-                                <template v-else>{{ t('c_jurisdictions.federation.probe_http', 'HTTP {status}', { status: r.http_status ?? '?' }) }}</template>
+                                <template v-else-if="r.reachable">{{ t('c_jurisdictions.federation.probe_latency', '{n}ms', { named: { n: r.latency_ms ?? '?' } }) }} · {{ r.version === '' ? t('c_jurisdictions.federation.probe_no_version', 'no version') : (r.version_match ? t('c_jurisdictions.federation.probe_version_match', 'version match') : t('c_jurisdictions.federation.probe_version_mismatch', 'version MISMATCH')) }}</template>
+                                <template v-else>{{ t('c_jurisdictions.federation.probe_http', 'HTTP {status}', { named: { status: r.http_status ?? '?' } }) }}</template>
                             </span>
                         </li>
                     </ul>

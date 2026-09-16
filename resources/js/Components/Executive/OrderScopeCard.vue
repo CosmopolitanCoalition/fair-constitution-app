@@ -91,7 +91,7 @@ const badge = computed(() => {
             <!-- rejection: the engine citation VERBATIM + the record chip -->
             <template v-if="rejected">
                 <span class="citation" style="display: block; margin-block-start: var(--space-1)">
-                    {{ t('c_institution_components.order_scope_card.rejected_citation', 'Rejected pre-issuance: {citation}', { citation: order.rejection_citation }) }}
+                    {{ t('c_institution_components.order_scope_card.rejected_citation', 'Rejected pre-issuance: {citation}', { named: { citation: order.rejection_citation } }) }}
                 </span>
                 <span class="cc-small" style="display: block">
                     {{ t('c_institution_components.order_scope_card.rejected_never_took_effect', 'The order never took effect; the rejected attempt is on the public record.') }}

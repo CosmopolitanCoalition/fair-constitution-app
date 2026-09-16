@@ -25,7 +25,7 @@ const links = computed(() => [
             <Link href="/organizations">{{ t('c_institution_components.organization_nav.all_organizations', 'All organizations') }}</Link>
             <strong>{{ organization.name }}</strong>
         </div>
-        <nav :aria-label="t('c_institution_components.organization_nav.workspace_aria', '{name} workspace', { name: organization.name })">
+        <nav :aria-label="t('c_institution_components.organization_nav.workspace_aria', '{name} workspace', { named: { name: organization.name } })">
             <Link v-for="item in links" :key="item.key" :href="item.href" :aria-current="current === item.key ? 'page' : undefined">
                 {{ item.label }}
             </Link>

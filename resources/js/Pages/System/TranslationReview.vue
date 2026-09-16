@@ -69,7 +69,7 @@ const unwordedTerms = computed(() => props.terms.filter((tm) => !tm.rendering).l
    shadowed by the DataTable row slots (those bind the row as `term`). */
 const termColumns = computed(() => [
     { key: 'term', label: t('c_system.translation_review.col_term', 'Term (English)'), mono: true },
-    { key: 'rendering', label: t('c_system.translation_review.col_in', 'In {name}', { name: props.language.name }) },
+    { key: 'rendering', label: t('c_system.translation_review.col_in', 'In {name}', { named: { name: props.language.name } }) },
     { key: 'state', label: t('c_system.translation_review.col_state', 'State') },
     { key: 'context', label: t('c_system.translation_review.col_context', 'What it means here') },
     ...(props.canVerify ? [{ key: 'act', label: t('c_system.translation_review.col_act', 'Is this right?') }] : []),
@@ -126,24 +126,24 @@ function submit(item, verdict) {
         <template #intro>
             <span class="citation">
                 {{ language.name }} · {{ language.code
-                }}<template v-if="rtl"> · {{ t('c_system.translation_review.rtl', 'right-to-left') }}</template> · {{ t('c_system.translation_review.pct_overall', '{pct}% overall', { pct: row.overall }) }}
+                }}<template v-if="rtl"> · {{ t('c_system.translation_review.rtl', 'right-to-left') }}</template> · {{ t('c_system.translation_review.pct_overall', '{pct}% overall', { named: { pct: row.overall } }) }}
             </span>
             <br />
             {{ t('c_system.translation_review.intro_a', 'The machine writes the first round. You correct it. Enough verifications move a string to') }}
             <strong>{{ t('c_system.translation_review.community_verified', 'community-verified') }}</strong>
-            {{ t('c_system.translation_review.intro_b', '— {quorum} readers, not one, so no single person\'s reading settles what the constitution says in this language.', { quorum }) }}
+            {{ t('c_system.translation_review.intro_b', '— {quorum} readers, not one, so no single person\'s reading settles what the constitution says in this language.', { named: { quorum } }) }}
         </template>
 
         <!-- who may verify, and why it is not a privilege -->
         <div class="route-note">
             <Icon name="users" size="sm" />
             <div v-if="canVerify">
-                <strong>{{ t('c_system.translation_review.can_verify_strong', 'You can verify {name}.', { name: language.name }) }}</strong>
+                <strong>{{ t('c_system.translation_review.can_verify_strong', 'You can verify {name}.', { named: { name: language.name } }) }}</strong>
                 {{ t('c_system.translation_review.can_verify_body', 'Verification is gated to the people who actually read a language — not a central team, and not machine translation grading itself.') }}
             </div>
             <div v-else>
                 <strong>{{ t('c_system.translation_review.reading_strong', 'You are reading this queue, not ruling on it.') }}</strong>
-                {{ t('c_system.translation_review.reading_body', 'Verification is gated to the people who read {name} — someone who cannot read a language cannot usefully confirm it. This takes nothing from you: name {name} among your languages on your record and you can start immediately.', { name: language.name }) }}
+                {{ t('c_system.translation_review.reading_body', 'Verification is gated to the people who read {name} — someone who cannot read a language cannot usefully confirm it. This takes nothing from you: name {name} among your languages on your record and you can start immediately.', { named: { name: language.name } }) }}
             </div>
         </div>
 
@@ -187,10 +187,10 @@ function submit(item, verdict) {
              Above the strings, because they constrain the strings. Verified
              the same way and by the same quorum — settling a term is the same
              act as settling a string, and carries more weight. -->
-        <Card :title="t('c_system.translation_review.terms_title', 'Constitutional terms — {settled} of {total} settled', { settled: settledTerms, total: terms.length })">
+        <Card :title="t('c_system.translation_review.terms_title', 'Constitutional terms — {settled} of {total} settled', { named: { settled: settledTerms, total: terms.length } })">
             <p class="gloss">
                 {{ t('c_system.translation_review.terms_gloss_a', 'These words carry legal weight and must read the same everywhere. Settle them first: every string containing one inherits the choice, and re-wording one later unsettles every verdict that was given against the old wording.') }}
-                <strong>{{ t('c_system.translation_review.terms_settled_means', 'Settled means {quorum} readers agreed', { quorum }) }}</strong> {{ t('c_system.translation_review.terms_gloss_b', '— a rendering a machine proposed is a draft here too.') }}
+                <strong>{{ t('c_system.translation_review.terms_settled_means', 'Settled means {quorum} readers agreed', { named: { quorum } }) }}</strong> {{ t('c_system.translation_review.terms_gloss_b', '— a rendering a machine proposed is a draft here too.') }}
             </p>
             <DataTable
                 :columns="termColumns"
@@ -207,7 +207,7 @@ function submit(item, verdict) {
                         {{ byState[term.state]?.label ?? term.state }}
                     </StatusBadge>
                     <span class="citation" data-no-i18n> {{ term.verifiers }}/{{ term.needed }}</span>
-                    <StatusBadge v-if="term.my_verdict" tone="info">{{ t('c_system.translation_review.you_said', 'you said: {verdict}', { verdict: term.my_verdict }) }}</StatusBadge>
+                    <StatusBadge v-if="term.my_verdict" tone="info">{{ t('c_system.translation_review.you_said', 'you said: {verdict}', { named: { verdict: term.my_verdict } }) }}</StatusBadge>
                 </template>
                 <template #cell-act="{ row: term }">
                     <div class="cluster term-act">
@@ -229,7 +229,7 @@ function submit(item, verdict) {
                 </template>
             </DataTable>
             <p v-if="unwordedTerms" class="citation">
-                {{ t('c_system.translation_review.unworded', '{n} have no {name} wording at all, so every string using them was translated with nothing holding it consistent.', { n: unwordedTerms, name: language.name }) }}
+                {{ t('c_system.translation_review.unworded', '{n} have no {name} wording at all, so every string using them was translated with nothing holding it consistent.', { named: { n: unwordedTerms, name: language.name } }) }}
             </p>
         </Card>
 
@@ -237,9 +237,9 @@ function submit(item, verdict) {
              English source and machine draft side by side, always. -->
         <Card>
             <template #title>
-                <h2>{{ t('c_system.translation_review.review_queue', 'Review queue — {label}', { label: current.label ?? modality }) }}</h2>
+                <h2>{{ t('c_system.translation_review.review_queue', 'Review queue — {label}', { named: { label: current.label ?? modality } }) }}</h2>
                 <StatusBadge tone="info">
-                    {{ t('c_system.translation_review.reviewing', 'You are reviewing {name}', { name: language.name }) }}
+                    {{ t('c_system.translation_review.reviewing', 'You are reviewing {name}', { named: { name: language.name } }) }}
                 </StatusBadge>
             </template>
 
@@ -255,7 +255,7 @@ function submit(item, verdict) {
                 {{ current.why }} {{ t('c_system.translation_review.nothing_here', 'There is nothing here to review yet.') }}
             </p>
             <p v-else-if="!queue.length" class="gloss">
-                {{ t('c_system.translation_review.nothing_waiting', 'Nothing waiting in {label}. Every string here has enough agreement.', { label: current.label }) }}
+                {{ t('c_system.translation_review.nothing_waiting', 'Nothing waiting in {label}. Every string here has enough agreement.', { named: { label: current.label } }) }}
             </p>
 
             <div v-for="item in queue" :key="rowKey(item)" class="review-row">
@@ -266,10 +266,10 @@ function submit(item, verdict) {
                         {{ byState[item.state]?.label ?? item.state }}
                     </StatusBadge>
                     <StatusBadge v-if="item.quarantine_reason" tone="warning">
-                        {{ t('c_system.translation_review.machine_refused', 'machine refused: {reason}', { reason: item.quarantine_reason }) }}
+                        {{ t('c_system.translation_review.machine_refused', 'machine refused: {reason}', { named: { reason: item.quarantine_reason } }) }}
                     </StatusBadge>
                     <StatusBadge v-if="item.my_verdict" tone="info">
-                        {{ t('c_system.translation_review.you_said', 'you said: {verdict}', { verdict: item.my_verdict }) }}
+                        {{ t('c_system.translation_review.you_said', 'you said: {verdict}', { named: { verdict: item.my_verdict } }) }}
                     </StatusBadge>
                 </span>
 
@@ -278,7 +278,7 @@ function submit(item, verdict) {
                 </div>
 
                 <div class="review-draft">
-                    <span class="rlbl">{{ t('c_system.translation_review.draft_label', 'Draft ({name})', { name: language.name }) }}</span>
+                    <span class="rlbl">{{ t('c_system.translation_review.draft_label', 'Draft ({name})', { named: { name: language.name } }) }}</span>
                     <span v-if="!suggesting[rowKey(item)]" :dir="language.dir" :lang="language.code">
                         <template v-if="item.machine">{{ item.machine }}</template>
                         <em v-else class="gloss">{{ t('c_system.translation_review.no_draft', 'no draft — this string falls back to English') }}</em>
@@ -290,7 +290,7 @@ function submit(item, verdict) {
                         :dir="language.dir"
                         :lang="language.code"
                         rows="2"
-                        :aria-label="t('c_system.translation_review.wording_aria', '{name} wording for {key}', { name: language.name, key: item.key })"
+                        :aria-label="t('c_system.translation_review.wording_aria', '{name} wording for {key}', { named: { name: language.name, key: item.key } })"
                         @input="drafts[rowKey(item)] = $event.target.value"
                     />
                 </div>
@@ -342,7 +342,7 @@ function submit(item, verdict) {
 
         <Card :title="t('c_system.translation_review.contributors_title', 'Contributors')">
             <p v-if="!contributors.length" class="gloss">
-                {{ t('c_system.translation_review.nobody_verified', 'Nobody has verified {name} yet. Every string in this language is still exactly what a machine wrote.', { name: language.name }) }}
+                {{ t('c_system.translation_review.nobody_verified', 'Nobody has verified {name} yet. Every string in this language is still exactly what a machine wrote.', { named: { name: language.name } }) }}
             </p>
             <div v-for="c in contributors" :key="c.handle" class="contributor-row">
                 <span class="avatar" aria-hidden="true">{{ c.handle.slice(0, 2).toUpperCase() }}</span>

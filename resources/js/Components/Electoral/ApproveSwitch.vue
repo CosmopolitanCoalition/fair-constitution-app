@@ -53,7 +53,7 @@ const shownTitle = computed(() =>
         :aria-pressed="String(pressed)"
         :disabled="disabled || busy"
         :title="shownTitle"
-        :aria-label="pressed ? t('c_institution_components.approve_switch.withdraw_aria', 'Withdraw approval for {name}', { name: candidateName }) : t('c_institution_components.approve_switch.approve_aria', 'Approve {name}', { name: candidateName })"
+        :aria-label="pressed ? t('c_institution_components.approve_switch.withdraw_aria', 'Withdraw approval for {name}', { named: { name: candidateName } }) : t('c_institution_components.approve_switch.approve_aria', 'Approve {name}', { named: { name: candidateName } })"
         @click="emit('update:pressed', !pressed)"
     >{{ shownLabel }}</button>
 </template>

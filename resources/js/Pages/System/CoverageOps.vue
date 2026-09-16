@@ -86,7 +86,7 @@ const tone = (s) =>
         <p class="citation"><Link href="/coverage">{{ t('c_system.coverage_ops.back_link', '← back to the coverage dashboard') }}</Link></p>
 
         <Banner v-if="!drift.ok" tone="emergency" :title="t('c_system.coverage_ops.drift_title', 'Drift detected')">
-            {{ t('c_system.coverage_ops.drift_body', '{dead} dead nav link(s) · {tour} dead tour stop(s) · {nav} unresolved surface nav(s).', { dead: drift.deadNavLinks.length, tour: drift.deadTourStops.length, nav: drift.navUnresolved.length }) }}
+            {{ t('c_system.coverage_ops.drift_body', '{dead} dead nav link(s) · {tour} dead tour stop(s) · {nav} unresolved surface nav(s).', { named: { dead: drift.deadNavLinks.length, tour: drift.deadTourStops.length, nav: drift.navUnresolved.length } }) }}
         </Banner>
         <Banner v-else tone="info" :title="t('c_system.coverage_ops.all_resolve_title', 'All rows resolve')">
             {{ t('c_system.coverage_ops.all_resolve_body', 'Every registry row, tour stop, and surface nav resolves against the running app.') }}

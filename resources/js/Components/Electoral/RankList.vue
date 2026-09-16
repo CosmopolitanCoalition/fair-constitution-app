@@ -91,7 +91,7 @@ async function move(index, dir, kind) {
     emit('update:modelValue', next);
     await nextTick();
     focusControl(kind, item);
-    announce(t('c_institution_components.rank_list.moved_announce', '{name} moved to rank {rank} of {total}', { name: item.name, rank: target + 1, total: next.length }));
+    announce(t('c_institution_components.rank_list.moved_announce', '{name} moved to rank {rank} of {total}', { named: { name: item.name, rank: target + 1, total: next.length } }));
 }
 
 async function remove(index) {
@@ -103,7 +103,7 @@ async function remove(index) {
     if (next.length > 0) {
         focusControl('remove', next[Math.min(index, next.length - 1)]);
     }
-    announce(t('c_institution_components.rank_list.removed_announce', '{name} removed — {total} ranked', { name: item.name, total: next.length }));
+    announce(t('c_institution_components.rank_list.removed_announce', '{name} removed — {total} ranked', { named: { name: item.name, total: next.length } }));
 }
 
 /* Alt+ArrowUp/Down on a focused control inside the item (bubbles to the
@@ -129,7 +129,7 @@ function onItemKeydown(event, index) {
             @keydown="onItemKeydown($event, index)"
         >
             <!-- The CSS ::before counter is not reliably announced. -->
-            <span class="visually-hidden">{{ t('c_institution_components.rank_list.rank_label', 'Rank {n}', { n: index + 1 }) }}</span>
+            <span class="visually-hidden">{{ t('c_institution_components.rank_list.rank_label', 'Rank {n}', { named: { n: index + 1 } }) }}</span>
             <span style="flex: 1; color: var(--gov-fg)">
                 {{ entry.name }}
                 {{ ' ' }}
@@ -142,7 +142,7 @@ function onItemKeydown(event, index) {
                     icon="arrow-up"
                     data-rank-control="up"
                     :disabled="disabled || index === 0"
-                    :aria-label="t('c_institution_components.rank_list.move_up_aria', 'Move {name} up', { name: entry.name })"
+                    :aria-label="t('c_institution_components.rank_list.move_up_aria', 'Move {name} up', { named: { name: entry.name } })"
                     @click="move(index, -1, 'up')"
                 />
                 <Btn
@@ -151,7 +151,7 @@ function onItemKeydown(event, index) {
                     icon="arrow-down"
                     data-rank-control="down"
                     :disabled="disabled || index === modelValue.length - 1"
-                    :aria-label="t('c_institution_components.rank_list.move_down_aria', 'Move {name} down', { name: entry.name })"
+                    :aria-label="t('c_institution_components.rank_list.move_down_aria', 'Move {name} down', { named: { name: entry.name } })"
                     @click="move(index, 1, 'down')"
                 />
                 <Btn
@@ -161,7 +161,7 @@ function onItemKeydown(event, index) {
                     icon="x"
                     data-rank-control="remove"
                     :disabled="disabled"
-                    :aria-label="t('c_institution_components.rank_list.remove_aria', 'Remove {name}', { name: entry.name })"
+                    :aria-label="t('c_institution_components.rank_list.remove_aria', 'Remove {name}', { named: { name: entry.name } })"
                     @click="remove(index)"
                 />
             </span>

@@ -79,7 +79,7 @@ function splitRounds(stv) {
         final: key[key.length - 1] ?? null,
         mid,
         midLabel: mid.length
-            ? t('c_elections.results.mid_label', 'Rounds {a}–{b} — expand any round for its vote transfers', { a: mid[0].n, b: mid[mid.length - 1].n })
+            ? t('c_elections.results.mid_label', 'Rounds {a}–{b} — expand any round for its vote transfers', { named: { a: mid[0].n, b: mid[mid.length - 1].n } })
             : null,
         electedRound: Object.fromEntries(stv.elected.map((e) => [e.name, e.round])),
     };
@@ -110,8 +110,8 @@ const writeIns = computed(() => {
 const writeInNote = computed(() => {
     const names = writeIns.value.join(', ');
     return writeIns.value.length === 1
-        ? t('c_elections.results.write_in_note_one', '{names} entered as a write-in and was tabulated identically — transfers flow onward like any other.', { names })
-        : t('c_elections.results.write_in_note_other', '{names} entered as write-ins and were tabulated identically — transfers flow onward like any other.', { names });
+        ? t('c_elections.results.write_in_note_one', '{names} entered as a write-in and was tabulated identically — transfers flow onward like any other.', { named: { names } })
+        : t('c_elections.results.write_in_note_other', '{names} entered as write-ins and were tabulated identically — transfers flow onward like any other.', { named: { names } });
 });
 
 const observerColumns = computed(() => [
@@ -158,7 +158,7 @@ const phaseBadge = computed(() => ({
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="t('c_elections.results.title', 'Results — {race}', { race: race.label })">
+    <PageScaffold :surface="surface" :title="t('c_elections.results.title', 'Results — {race}', { named: { race: race.label } })">
         <template #intro>
             {{ t('c_elections.results.intro', 'Every seat fills in this single count. Your vote moves to your next choice when your favorite either wins with room to spare or is eliminated, so no vote is wasted. Write-ins are counted exactly like finalists, and the full record below is public and auditable.') }}
         </template>
@@ -210,19 +210,19 @@ const phaseBadge = computed(() => ({
             </div>
 
             <!-- ===================================== elected ============= -->
-            <Card as="section" :title="t('c_elections.results.elected_title', 'Elected — {n} of {total} seats', { n: stv.elected.length, total: stv.seats })">
+            <Card as="section" :title="t('c_elections.results.elected_title', 'Elected — {n} of {total} seats', { named: { n: stv.elected.length, total: stv.seats } })">
                 <div class="cluster">
                     <span v-for="winner in stv.elected" :key="winner.candidacy_id" class="cluster" style="gap: var(--space-1)">
                         <PersonaChip :name="winner.name" />
                         <Link :href="profileHref(winner.candidacy_id)" class="citation">{{ t('c_elections.results.profile_link', 'profile') }}</Link>
-                        <StatusBadge tone="success" icon="check">{{ t('c_elections.results.elected_round', 'elected · round {round}', { round: winner.round }) }}</StatusBadge>
-                        <span class="persona-roles">{{ t('c_elections.results.seat_no', 'seat {no}', { no: winner.seat_no }) }}</span>
+                        <StatusBadge tone="success" icon="check">{{ t('c_elections.results.elected_round', 'elected · round {round}', { named: { round: winner.round } }) }}</StatusBadge>
+                        <span class="persona-roles">{{ t('c_elections.results.seat_no', 'seat {no}', { named: { no: winner.seat_no } }) }}</span>
                         <TagChip v-if="winner.write_in">{{ t('c_elections.results.write_in_tag', 'write-in') }}</TagChip>
                     </span>
                 </div>
                 <p class="citation" style="margin-block-start: var(--space-3)">
                     <template v-if="certification">
-                        {{ t('c_elections.results.cert_done', 'Certified {when} · F-ELB-004 · Election Results Certification · Art. II §2', { when: fmt(certification.certified_at) }) }}
+                        {{ t('c_elections.results.cert_done', 'Certified {when} · F-ELB-004 · Election Results Certification · Art. II §2', { named: { when: fmt(certification.certified_at) } }) }}
                     </template>
                     <template v-else>
                         {{ t('c_elections.results.cert_pending', 'Certification pending · F-ELB-004 · Election Results Certification · available to R-08 · Art. II §2') }}
@@ -235,7 +235,7 @@ const phaseBadge = computed(() => ({
                 <p class="gloss">
                     {{ t('c_elections.results.count_gloss', 'Gold tick = the Droop quota. Reaching it elects a candidate; their surplus transfers onward at fractional value so no vote is wasted.') }}
                 </p>
-                <span class="visually-hidden">{{ t('c_elections.results.droop_quota_sr', 'Droop quota {n}', { n: localeFmt.number(stv.quota) }) }}</span>
+                <span class="visually-hidden">{{ t('c_elections.results.droop_quota_sr', 'Droop quota {n}', { named: { n: localeFmt.number(stv.quota) } }) }}</span>
 
                 <StvRound
                     v-for="round in main.opening"
@@ -295,18 +295,18 @@ const phaseBadge = computed(() => ({
                             v-if="audit.outcome"
                             :tone="audit.outcome === 'reaffirmed' ? 'success' : 'warning'"
                             :icon="audit.outcome === 'reaffirmed' ? 'check' : 'alert-triangle'"
-                        >{{ t('c_elections.results.audit_outcome', 'outcome: {outcome}', { outcome: audit.outcome }) }}</StatusBadge>
+                        >{{ t('c_elections.results.audit_outcome', 'outcome: {outcome}', { named: { outcome: audit.outcome } }) }}</StatusBadge>
                         <StatusBadge v-else tone="warning" icon="clock">{{ t('c_elections.results.audit_rerun_progress', 're-run in progress') }}</StatusBadge>
-                        <span class="citation">{{ t('c_elections.results.audit_cause', 'cause: {cause} · ordered {when}', { cause: audit.cause, when: fmt(audit.ordered_at) }) }}</span>
+                        <span class="citation">{{ t('c_elections.results.audit_cause', 'cause: {cause} · ordered {when}', { named: { cause: audit.cause, when: fmt(audit.ordered_at) } }) }}</span>
                     </template>
                 </div>
                 <p class="gloss">
                     {{ t('c_elections.results.audit_gloss', 'A recount is an audit re-run of the stored ballots through the same protected engine. There is no hand count. Identical inputs reproduce an identical record hash.') }}
                 </p>
                 <details class="about-surface">
-                    <summary>{{ t('c_elections.results.rerun_summary', 'Re-run record — {n} rounds', { n: auditStv.rounds }) }}</summary>
+                    <summary>{{ t('c_elections.results.rerun_summary', 'Re-run record — {n} rounds', { named: { n: auditStv.rounds } }) }}</summary>
                     <div class="about-surface-body">
-                        <span class="visually-hidden">{{ t('c_elections.results.droop_quota_sr', 'Droop quota {n}', { n: localeFmt.number(auditStv.quota) }) }}</span>
+                        <span class="visually-hidden">{{ t('c_elections.results.droop_quota_sr', 'Droop quota {n}', { named: { n: localeFmt.number(auditStv.quota) } }) }}</span>
                         <StvRound
                             v-for="round in [...rerun.opening, ...rerun.mid, ...(rerun.final ? [rerun.final] : [])]"
                             :key="round.n"

@@ -78,35 +78,35 @@ const yes = computed(() => props.tallies?.yes ?? 0);
 const no = computed(() => props.tallies?.no ?? 0);
 
 const leftCaption = computed(() => {
-    if (props.tallies === null) return t('c_institution_components.vote_tally.left_pending', 'pending — 0 of {serving} recorded', { serving: props.serving });
+    if (props.tallies === null) return t('c_institution_components.vote_tally.left_pending', 'pending — 0 of {serving} recorded', { named: { serving: props.serving } });
     if (props.thresholdClass === 'committee_majority') {
-        return t('c_institution_components.vote_tally.left_committee', '{yes} yes of {serving} committee members', { yes: yes.value, serving: props.serving });
+        return t('c_institution_components.vote_tally.left_committee', '{yes} yes of {serving} committee members', { named: { yes: yes.value, serving: props.serving } });
     }
-    return t('c_institution_components.vote_tally.left_all_serving', '{yes} yes of {serving} (all serving)', { yes: yes.value, serving: props.serving });
+    return t('c_institution_components.vote_tally.left_all_serving', '{yes} yes of {serving} (all serving)', { named: { yes: yes.value, serving: props.serving } });
 });
 
 const rightCaption = computed(() => {
     if (props.thresholdClass === 'committee_majority') {
-        return t('c_institution_components.vote_tally.right_committee', 'needs {req} of {serving} — all members, not those present · {basis}', { req: props.requiredYes, serving: props.serving, basis: props.basis });
+        return t('c_institution_components.vote_tally.right_committee', 'needs {req} of {serving} — all members, not those present · {basis}', { named: { req: props.requiredYes, serving: props.serving, basis: props.basis } });
     }
     if (isSupermajority.value || props.thresholdClass === 'rcv') {
         /* Display of the server snapshot — the formula gloss is composed
            from snapshotted numbers, never computed here. */
-        return t('c_institution_components.vote_tally.right_supermajority', 'needs ceil({serving} × 2/3) = {req} of {serving} · Art. VII', { serving: props.serving, req: props.requiredYes });
+        return t('c_institution_components.vote_tally.right_supermajority', 'needs ceil({serving} × 2/3) = {req} of {serving} · Art. VII', { named: { serving: props.serving, req: props.requiredYes } });
     }
-    return t('c_institution_components.vote_tally.right_majority', 'needs {req} of {serving} · {basis}', { req: props.requiredYes, serving: props.serving, basis: props.basis });
+    return t('c_institution_components.vote_tally.right_majority', 'needs {req} of {serving} · {basis}', { named: { req: props.requiredYes, serving: props.serving, basis: props.basis } });
 });
 
 const outcomeBadge = computed(() => {
     switch (props.outcome) {
         case 'adopted':
-            return { tone: 'success', icon: 'check', text: t('c_institution_components.vote_tally.adopted', 'Adopted {yes}–{no}', { yes: yes.value, no: no.value }) };
+            return { tone: 'success', icon: 'check', text: t('c_institution_components.vote_tally.adopted', 'Adopted {yes}–{no}', { named: { yes: yes.value, no: no.value } }) };
         case 'failed':
-            return { tone: 'danger', icon: 'x', text: t('c_institution_components.vote_tally.failed', 'Failed {yes}–{no}', { yes: yes.value, no: no.value }) };
+            return { tone: 'danger', icon: 'x', text: t('c_institution_components.vote_tally.failed', 'Failed {yes}–{no}', { named: { yes: yes.value, no: no.value } }) };
         case 'tied':
-            return { tone: 'warning', icon: 'clock', text: t('c_institution_components.vote_tally.tied', 'Tied {yes}–{no} — awaiting the Speaker', { yes: yes.value, no: no.value }) };
+            return { tone: 'warning', icon: 'clock', text: t('c_institution_components.vote_tally.tied', 'Tied {yes}–{no} — awaiting the Speaker', { named: { yes: yes.value, no: no.value } }) };
         case 'tied_broken':
-            return { tone: 'success', icon: 'check', text: t('c_institution_components.vote_tally.tied_broken', 'Adopted {yes}–{no} — tie broken by the Speaker', { yes: yes.value, no: no.value }) };
+            return { tone: 'success', icon: 'check', text: t('c_institution_components.vote_tally.tied_broken', 'Adopted {yes}–{no} — tie broken by the Speaker', { named: { yes: yes.value, no: no.value } }) };
         default:
             return { tone: 'info', icon: 'clock', text: t('c_institution_components.vote_tally.vote_open', 'Vote open') };
     }
@@ -126,7 +126,7 @@ const combined = computed(() => {
         return {
             tone: 'info',
             icon: 'check',
-            title: t('c_institution_components.vote_tally.combined_pass', 'Both kinds agree {stage} — the act passes', { stage: stageLabel.value }),
+            title: t('c_institution_components.vote_tally.combined_pass', 'Both kinds agree {stage} — the act passes', { named: { stage: stageLabel.value } }),
             body: failBody,
         };
     }
@@ -136,14 +136,14 @@ const combined = computed(() => {
         return {
             tone: 'warning',
             icon: 'x',
-            title: t('c_institution_components.vote_tally.combined_fail', 'The act fails — {which} did not agree {stage}', { which, stage: stageLabel.value }),
+            title: t('c_institution_components.vote_tally.combined_fail', 'The act fails — {which} did not agree {stage}', { named: { which, stage: stageLabel.value } }),
             body: failBody,
         };
     }
     return {
         tone: 'info',
         icon: 'clock',
-        title: t('c_institution_components.vote_tally.combined_open', 'Vote open — both kinds must independently agree {stage}', { stage: stageLabel.value }),
+        title: t('c_institution_components.vote_tally.combined_open', 'Vote open — both kinds must independently agree {stage}', { named: { stage: stageLabel.value } }),
         body: failBody,
     };
 });
@@ -162,9 +162,9 @@ function kindAgreement(kind) {
 
 function kindRightCaption(kind) {
     if (isSupermajority.value) {
-        return t('c_institution_components.vote_tally.kind_right_supermajority', 'needs ceil({serving} × 2/3) = {req} · Art. V §3 · ledger #q7', { serving: kind.serving, req: kind.requiredYes });
+        return t('c_institution_components.vote_tally.kind_right_supermajority', 'needs ceil({serving} × 2/3) = {req} · Art. V §3 · ledger #q7', { named: { serving: kind.serving, req: kind.requiredYes } });
     }
-    return t('c_institution_components.vote_tally.kind_right_majority', 'needs {req} · Art. V §3 · ledger #q7', { req: kind.requiredYes });
+    return t('c_institution_components.vote_tally.kind_right_majority', 'needs {req} · Art. V §3 · ledger #q7', { named: { req: kind.requiredYes } });
 }
 
 /* ---------------------------------------------------------- casting ---- */
@@ -186,8 +186,8 @@ function cast(value) {
                     :threshold="quorum.required"
                     :label="t('c_institution_components.vote_tally.quorum_label', 'Quorum — present of all serving')"
                 >
-                    {{ t('c_institution_components.vote_tally.serving_present', '{present} of {serving} serving present', { present: quorum.present, serving }) }}
-                    <template #note>{{ t('c_institution_components.vote_tally.peg_quorum_note', 'peg quorum: {req} of {serving} serving · Art. II §2', { req: quorum.required, serving }) }}</template>
+                    {{ t('c_institution_components.vote_tally.serving_present', '{present} of {serving} serving present', { named: { present: quorum.present, serving } }) }}
+                    <template #note>{{ t('c_institution_components.vote_tally.peg_quorum_note', 'peg quorum: {req} of {serving} serving · Art. II §2', { named: { req: quorum.required, serving } }) }}</template>
                 </ThresholdMeter>
             </div>
 
@@ -195,7 +195,7 @@ function cast(value) {
                 :value="yes"
                 :max="serving"
                 :threshold="requiredYes"
-                :label="t('c_institution_components.vote_tally.favor_label', '{prefix} — of all serving', { prefix: thresholdClass === 'rcv' ? t('c_institution_components.vote_tally.rcv_outcome', 'Supermajority RCV outcome') : t('c_institution_components.vote_tally.votes_in_favor', 'Votes in favor') })"
+                :label="t('c_institution_components.vote_tally.favor_label', '{prefix} — of all serving', { named: { prefix: thresholdClass === 'rcv' ? t('c_institution_components.vote_tally.rcv_outcome', 'Supermajority RCV outcome') : t('c_institution_components.vote_tally.votes_in_favor', 'Votes in favor') } })"
             >
                 {{ leftCaption }}
                 <template #note>{{ rightCaption }}</template>
@@ -226,11 +226,11 @@ function cast(value) {
                             :value="kind.quorum.present"
                             :max="kind.serving"
                             :threshold="kind.quorum.required"
-                            :label="t('c_institution_components.vote_tally.kind_quorum_label', 'Quorum of this kind — {label}', { label: kind.label })"
+                            :label="t('c_institution_components.vote_tally.kind_quorum_label', 'Quorum of this kind — {label}', { named: { label: kind.label } })"
                         >
-                            {{ t('c_institution_components.vote_tally.serving_present', '{present} of {serving} serving present', { present: kind.quorum.present, serving: kind.serving }) }}
+                            {{ t('c_institution_components.vote_tally.serving_present', '{present} of {serving} serving present', { named: { present: kind.quorum.present, serving: kind.serving } }) }}
                             <template #note>
-                                {{ t('c_institution_components.vote_tally.kind_peg_note', 'peg quorum of this kind: {req} of {serving} serving', { req: kind.quorum.required, serving: kind.serving }) }}
+                                {{ t('c_institution_components.vote_tally.kind_peg_note', 'peg quorum of this kind: {req} of {serving} serving', { named: { req: kind.quorum.required, serving: kind.serving } }) }}
                             </template>
                         </ThresholdMeter>
 
@@ -238,9 +238,9 @@ function cast(value) {
                             :value="kind.yes ?? 0"
                             :max="kind.serving"
                             :threshold="kind.requiredYes"
-                            :label="t('c_institution_components.vote_tally.kind_favor_label', 'Votes in favor — {label}', { label: kind.label })"
+                            :label="t('c_institution_components.vote_tally.kind_favor_label', 'Votes in favor — {label}', { named: { label: kind.label } })"
                         >
-                            {{ t('c_institution_components.vote_tally.kind_yes_of', '{yes} yes of {serving} (all serving of this kind)', { yes: kind.yes ?? 0, serving: kind.serving }) }}
+                            {{ t('c_institution_components.vote_tally.kind_yes_of', '{yes} yes of {serving} (all serving of this kind)', { named: { yes: kind.yes ?? 0, serving: kind.serving } }) }}
                             <template #note>{{ kindRightCaption(kind) }}</template>
                         </ThresholdMeter>
 

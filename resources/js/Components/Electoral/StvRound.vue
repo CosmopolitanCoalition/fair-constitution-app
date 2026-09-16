@@ -91,12 +91,12 @@ const transfer = computed(() => {
     };
 });
 
-const quotaTitle = computed(() => t('c_institution_components.stv_round.quota_title', 'Droop quota {quota}', { quota: localeFmt.number(props.quota) }));
+const quotaTitle = computed(() => t('c_institution_components.stv_round.quota_title', 'Droop quota {quota}', { named: { quota: localeFmt.number(props.quota) } }));
 </script>
 
 <template>
     <div>
-        <h3>{{ t('c_institution_components.stv_round.round_n', 'Round {n}', { n: round.n }) }} <span class="citation stv-action">{{ round.action }}</span></h3>
+        <h3>{{ t('c_institution_components.stv_round.round_n', 'Round {n}', { named: { n: round.n } }) }} <span class="citation stv-action">{{ round.action }}</span></h3>
 
         <div v-if="round.tallies" class="stv-round">
             <StvBar
@@ -122,7 +122,7 @@ const quotaTitle = computed(() => t('c_institution_components.stv_round.quota_ti
         >
             <summary>
                 <Icon name="chevron-right" size="sm" />
-                {{ t('c_institution_components.stv_round.transfer_summary', 'Where {name}’s votes went · {count} votes {kind}', { name: transfer.from.name, count: localeFmt.number(transfer.totalMoved), kind: transfer.kind === 'surplus' ? t('c_institution_components.stv_round.kind_surplus', '(surplus, fractional Gregory values)') : t('c_institution_components.stv_round.kind_elimination', '(elimination, at current value)') }) }}
+                {{ t('c_institution_components.stv_round.transfer_summary', 'Where {name}’s votes went · {count} votes {kind}', { named: { name: transfer.from.name, count: localeFmt.number(transfer.totalMoved), kind: transfer.kind === 'surplus' ? t('c_institution_components.stv_round.kind_surplus', '(surplus, fractional Gregory values)') : t('c_institution_components.stv_round.kind_elimination', '(elimination, at current value)') } }) }}
             </summary>
             <div class="about-surface-body">
                 <StvBar

@@ -104,7 +104,7 @@ async function move(index, dir, kind) {
             break;
         }
     }
-    announce(t('c_institution_components.agenda_strip.moved_announce', '{title} moved to position {pos} of {total}', { title: item.title, pos: index + dir + 1, total: props.items.length }));
+    announce(t('c_institution_components.agenda_strip.moved_announce', '{title} moved to position {pos} of {total}', { named: { title: item.title, pos: index + dir + 1, total: props.items.length } }));
 }
 </script>
 
@@ -152,7 +152,7 @@ async function move(index, dir, kind) {
                         size="sm"
                         icon="arrow-up"
                         :disabled="!canMove(index, -1)"
-                        :aria-label="t('c_institution_components.agenda_strip.move_up_aria', 'Move {title} up', { title: item.title })"
+                        :aria-label="t('c_institution_components.agenda_strip.move_up_aria', 'Move {title} up', { named: { title: item.title } })"
                         @click="move(index, -1, 'up')"
                     />
                     <Btn
@@ -161,7 +161,7 @@ async function move(index, dir, kind) {
                         size="sm"
                         icon="arrow-down"
                         :disabled="!canMove(index, 1)"
-                        :aria-label="t('c_institution_components.agenda_strip.move_down_aria', 'Move {title} down', { title: item.title })"
+                        :aria-label="t('c_institution_components.agenda_strip.move_down_aria', 'Move {title} down', { named: { title: item.title } })"
                         @click="move(index, 1, 'down')"
                     />
                 </template>

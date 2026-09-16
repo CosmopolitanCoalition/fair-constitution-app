@@ -173,7 +173,7 @@ function reconcile() {
         </Card>
 
         <!-- ───────────────────────────────────────────── Latest entries -->
-        <Card as="section" :title="selection.status === 'found' ? t('c_system.audit_chain.receipt_n', 'Receipt #{seq}', { seq: selection.seq }) : t('c_system.audit_chain.history_title', 'Audit history')">
+        <Card as="section" :title="selection.status === 'found' ? t('c_system.audit_chain.receipt_n', 'Receipt #{seq}', { named: { seq: selection.seq } }) : t('c_system.audit_chain.history_title', 'Audit history')">
             <form class="cluster" @submit.prevent="visit(receiptUrl(lookup))">
                 <label for="audit-sequence">{{ t('c_system.audit_chain.entry_number', 'Entry number') }}</label>
                 <input id="audit-sequence" v-model="lookup" class="field-input" type="text" inputmode="numeric" pattern="[1-9][0-9]{0,18}" required style="inline-size: 14rem" />
@@ -190,7 +190,7 @@ function reconcile() {
             </div>
             <p v-if="selection.status === 'invalid'" role="alert">{{ t('c_system.audit_chain.invalid', 'This entry number is invalid. Use a positive whole number or browse the latest history.') }}</p>
             <p v-else-if="selection.status === 'invalid_cursor'" role="alert">{{ t('c_system.audit_chain.invalid_cursor', 'This history page link is invalid. Browse the latest history to continue.') }}</p>
-            <p v-else-if="selection.status === 'missing'" role="status">{{ t('c_system.audit_chain.missing', 'Entry #{seq} was not found on this instance. Sequence numbers can have gaps.', { seq: selection.seq }) }}</p>
+            <p v-else-if="selection.status === 'missing'" role="status">{{ t('c_system.audit_chain.missing', 'Entry #{seq} was not found on this instance. Sequence numbers can have gaps.', { named: { seq: selection.seq } }) }}</p>
             <p v-else-if="entries.data.length === 0" class="gloss">{{ t('c_system.audit_chain.empty_page', 'No entries on this page. Browse the latest history to check for new records.') }}</p>
             <p class="cc-small">{{ selection.status === 'history' ? t('c_system.audit_chain.newest_first', 'Newest first · ') : '' }}{{ t('c_system.audit_chain.times_utc', 'Times are shown in UTC.') }}</p>
 
@@ -204,7 +204,7 @@ function reconcile() {
                 >
                     <code class="cc-small">{{ formatUtc(entry.occurred_at) }}</code>
                     <span>{{ entry.module }} · {{ entry.event }}</span>
-                    <a v-if="selection.status === 'history'" :href="receiptUrl(entry.seq)" :aria-disabled="busy" @click.prevent="visit(receiptUrl(entry.seq))">{{ t('c_system.audit_chain.open_receipt_n', 'Open receipt #{seq}', { seq: entry.seq }) }}</a>
+                    <a v-if="selection.status === 'history'" :href="receiptUrl(entry.seq)" :aria-disabled="busy" @click.prevent="visit(receiptUrl(entry.seq))">{{ t('c_system.audit_chain.open_receipt_n', 'Open receipt #{seq}', { named: { seq: entry.seq } }) }}</a>
                     <FormChip v-if="isFormRef(entry.ref)" :form-id="entry.ref" />
                     <span v-else-if="entry.ref" class="form-chip"><span class="form-id">{{ entry.ref }}</span></span>
                     <StatusBadge v-if="entry.rejected" tone="danger" icon="x">{{ t('c_system.audit_chain.rejected', 'rejected') }}</StatusBadge>

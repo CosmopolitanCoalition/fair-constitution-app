@@ -122,11 +122,11 @@ const checkResult = computed(() => {
         return {
             ok,
             message: ok
-                ? t('c_system.amendments.check_allowed', '“{value}” is an allowed value.', { value: raw })
-                : t('c_system.amendments.check_not_allowed', '“{value}” is not in the allowed set ({set}).', {
+                ? t('c_system.amendments.check_allowed', '“{value}” is an allowed value.', { named: { value: raw } })
+                : t('c_system.amendments.check_not_allowed', '“{value}” is not in the allowed set ({set}).', { named: {
                     value: raw,
                     set: b.allowed.map((v) => valueOf(v)).join(', '),
-                }),
+                } }),
         };
     }
 
@@ -134,26 +134,26 @@ const checkResult = computed(() => {
     if (Number.isNaN(n)) {
         return {
             ok: false,
-            message: t('c_system.amendments.check_not_number', '“{value}” is not a number — this setting takes {range}.', {
+            message: t('c_system.amendments.check_not_number', '“{value}” is not a number — this setting takes {range}.', { named: {
                 value: raw,
                 range: rangeLabel(b),
-            }),
+            } }),
         };
     }
     const ok = n >= b.min && n <= b.max;
     return {
         ok,
         message: ok
-            ? t('c_system.amendments.check_in_range', '{value} is within the hardened range ({min} – {max}).', {
+            ? t('c_system.amendments.check_in_range', '{value} is within the hardened range ({min} – {max}).', { named: {
                 value: n,
                 min: b.min,
                 max: b.max,
-            })
-            : t('c_system.amendments.check_out_range', '{value} is out of range — the engine would refuse it pre-vote (allowed {min} – {max}).', {
+            } })
+            : t('c_system.amendments.check_out_range', '{value} is out of range — the engine would refuse it pre-vote (allowed {min} – {max}).', { named: {
                 value: n,
                 min: b.min,
                 max: b.max,
-            }),
+            } }),
     };
 });
 </script>

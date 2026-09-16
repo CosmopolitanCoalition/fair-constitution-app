@@ -98,7 +98,7 @@ const rankIndex = (id) => ranking.value.findIndex((e) => e.id === id);
 
 const guidance = computed(() =>
     ranking.value.length < props.race.seats
-        ? t('c_elections.ranked.guidance_more', 'Rank for all {seats} seats (or more) so your vote can transfer — {more} more recommended. Nothing is saved until you commit; closing this tab loses the draft.', { seats: props.race.seats, more: props.race.seats - ranking.value.length })
+        ? t('c_elections.ranked.guidance_more', 'Rank for all {seats} seats (or more) so your vote can transfer — {more} more recommended. Nothing is saved until you commit; closing this tab loses the draft.', { named: { seats: props.race.seats, more: props.race.seats - ranking.value.length } })
         : t('c_elections.ranked.guidance_full', 'All seats covered — extra ranks only help your vote transfer further. Nothing is saved until you commit; closing this tab loses the draft.'),
 );
 
@@ -163,7 +163,7 @@ function addWriteIn(match) {
         ...ranking.value,
         { id: match.candidacy_id, name: match.name, write_in: true, chips: [t('c_elections.ranked.writein_chip', 'write-in')] },
     ];
-    announce(t('c_elections.ranked.announce_writein', '{name} added as a write-in — rank {rank}', { name: match.name, rank: ranking.value.length }));
+    announce(t('c_elections.ranked.announce_writein', '{name} added as a write-in — rank {rank}', { named: { name: match.name, rank: ranking.value.length } }));
 }
 
 /* ------------------------------------------------- receipt self-check -- */
@@ -200,10 +200,10 @@ const checkLine = computed(() => {
     const r = checkResult.value;
     if (!r) return null;
     if (r.found) {
-        return t('c_elections.ranked.check_found', 'Found — committed {when} (hour bucket), counted: {counted}', {
+        return t('c_elections.ranked.check_found', 'Found — committed {when} (hour bucket), counted: {counted}', { named: {
             when: fmt(r.cast_bucket),
             counted: r.counted ? t('c_elections.ranked.counted_yes', 'yes') : t('c_elections.ranked.counted_no', 'no'),
-        });
+        } });
     }
     return r.message ?? t('c_elections.ranked.check_not_found', 'Not found — check for typos; hashes are 64 characters.');
 });
@@ -216,7 +216,7 @@ const aggScale = computed(() =>
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="t('c_elections.ranked.title', 'Ranked ballot — {race}', { race: race.label })">
+    <PageScaffold :surface="surface" :title="t('c_elections.ranked.title', 'Ranked ballot — {race}', { named: { race: race.label } })">
         <template #intro>
             {{ t('c_elections.ranked.intro', 'Rank as many candidates as you like. Ranking for all seats keeps your vote alive as the count unfolds. Your ballot is secret. Your receipt code lets you check it was counted.') }}
         </template>
@@ -225,7 +225,7 @@ const aggScale = computed(() =>
             {{ t('c_elections.ranked.cite_form', 'Ballot submission (ranked choice) · F-IND-007 · available to R-04 Voter · Art. II §2') }}
         </p>
         <p v-if="race.ranked_closes_at" class="citation">
-            {{ t('c_elections.ranked.window_closes', 'Window closes {when} · shown in your timezone · stored as UTC', { when: fmt(race.ranked_closes_at) }) }}
+            {{ t('c_elections.ranked.window_closes', 'Window closes {when} · shown in your timezone · stored as UTC', { named: { when: fmt(race.ranked_closes_at) } }) }}
         </p>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -273,7 +273,7 @@ const aggScale = computed(() =>
                 {{ t('c_elections.ranked.custody_cite', 'Public chain of custody — endorsing organizations and candidates can observe and audit the count · Art. II §2') }}
             </p>
             <p class="citation">
-                {{ t('c_elections.ranked.machine_note', 'Ballot machine: {machine} — the receipt hash is your handle on the counted state.', { machine: machine.join(' → ') }) }}
+                {{ t('c_elections.ranked.machine_note', 'Ballot machine: {machine} — the receipt hash is your handle on the counted state.', { named: { machine: machine.join(' → ') } }) }}
             </p>
         </Card>
 
@@ -322,7 +322,7 @@ const aggScale = computed(() =>
                 <template #title>
                     <h2>
                         {{ t('c_elections.ranked.finalists_title', 'Finalists') }}
-                        <span class="citation">{{ t('c_elections.ranked.finalists_cite', 'top {n} from the approval phase · CLK-21', { n: race.finalist_count }) }}</span>
+                        <span class="citation">{{ t('c_elections.ranked.finalists_cite', 'top {n} from the approval phase · CLK-21', { named: { n: race.finalist_count } }) }}</span>
                     </h2>
                 </template>
                 <div class="stack" style="gap: var(--space-1)">
@@ -331,10 +331,10 @@ const aggScale = computed(() =>
                             <Link
                                 style="color: var(--gov-fg-strong)"
                                 :href="entry.profile_href"
-                                :title="t('c_elections.ranked.profile_title', '{name} — open public profile', { name: entry.name })"
+                                :title="t('c_elections.ranked.profile_title', '{name} — open public profile', { named: { name: entry.name } })"
                             >{{ entry.name }}</Link>
                             <span v-if="rankIndex(entry.candidacy_id) >= 0" class="citation">
-                                {{ t('c_elections.ranked.ranked_hash', 'ranked #{n}', { n: rankIndex(entry.candidacy_id) + 1 }) }}
+                                {{ t('c_elections.ranked.ranked_hash', 'ranked #{n}', { named: { n: rankIndex(entry.candidacy_id) + 1 } }) }}
                             </span>
                         </span>
                         <Btn
@@ -348,7 +348,7 @@ const aggScale = computed(() =>
                 <hr />
                 <h3>{{ t('c_elections.ranked.writein_title', 'Write-in') }}</h3>
                 <p class="cc-small">
-                    {{ t('c_elections.ranked.writein_body', 'Any validated candidate may be written in, finalist or not. {n} validated non-finalists remain write-in eligible in this race.', { n: writeInsAvailable }) }}
+                    {{ t('c_elections.ranked.writein_body', 'Any validated candidate may be written in, finalist or not. {n} validated non-finalists remain write-in eligible in this race.', { named: { n: writeInsAvailable } }) }}
                 </p>
                 <p class="citation">{{ t('c_elections.ranked.writein_cite', 'Your right to stand and to vote for anyone is preserved · Art. II §2') }}</p>
                 <Field
@@ -381,7 +381,7 @@ const aggScale = computed(() =>
                 <template #title>
                     <h2>
                         {{ t('c_elections.ranked.your_ranking', 'Your ranking') }}
-                        <span class="citation">{{ t('c_elections.ranked.ranked_count', '{n} ranked', { n: ranking.length }) }}</span>
+                        <span class="citation">{{ t('c_elections.ranked.ranked_count', '{n} ranked', { named: { n: ranking.length } }) }}</span>
                     </h2>
                 </template>
                 <p class="gloss">{{ guidance }}</p>
@@ -423,7 +423,7 @@ const aggScale = computed(() =>
                 {{ t('c_elections.ranked.live_body', 'Standings stay visible through the ranked window: first preferences counted so far, as if the window closed this minute.') }}
             </p>
             <p class="citation">
-                {{ t('c_elections.ranked.live_agg_note', '{ballots} ballots so far · Droop quota if closed now: {quota}', { ballots: localeFmt.number(liveAggregate.ballotsSoFar), quota: localeFmt.number(liveAggregate.quotaIfClosedNow) }) }}
+                {{ t('c_elections.ranked.live_agg_note', '{ballots} ballots so far · Droop quota if closed now: {quota}', { named: { ballots: localeFmt.number(liveAggregate.ballotsSoFar), quota: localeFmt.number(liveAggregate.quotaIfClosedNow) } }) }}
             </p>
             <StvBar
                 v-for="[name, votes] in liveAggregate.top"

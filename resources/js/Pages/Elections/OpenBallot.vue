@@ -97,7 +97,7 @@ function visit(url, data = {}) {
     detailsFor.value = null;
     router.get(url, data, {
         preserveScroll: true, preserveState: true,
-        onSuccess: () => announce(t('c_elections.open.announce_loaded', '{n} candidates loaded', { n: props.standings.length })),
+        onSuccess: () => announce(t('c_elections.open.announce_loaded', '{n} candidates loaded', { named: { n: props.standings.length } })),
         onFinish: () => { loading.value = false; },
     });
 }
@@ -132,7 +132,7 @@ function loadEndorsements(candidateId, url = null) {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="race ? t('c_elections.open.title_race', 'Open ballot — {race}', { race: race.label }) : t('c_elections.open.title', 'Open ballot')">
+    <PageScaffold :surface="surface" :title="race ? t('c_elections.open.title_race', 'Open ballot — {race}', { named: { race: race.label } }) : t('c_elections.open.title', 'Open ballot')">
         <template #intro>
             {{ t('c_elections.open.intro', 'Approve the candidates you trust. You can change your mind until the phase closes. The top finalists then go on the ranked ballot, where write-ins stay open.') }}
         </template>
@@ -208,10 +208,10 @@ function loadEndorsements(candidateId, url = null) {
                 </FilterBar>
             </form>
 
-            <p role="status" aria-live="polite">{{ saving ? t('c_elections.open.saving', 'Saving your approval…') : loading ? t('c_elections.open.loading', 'Loading…') : t('c_elections.open.page_count', '{n} candidates on this page. Search and page through the entire race.', { n: standings.length }) }}</p>
+            <p role="status" aria-live="polite">{{ saving ? t('c_elections.open.saving', 'Saving your approval…') : loading ? t('c_elections.open.loading', 'Loading…') : t('c_elections.open.page_count', '{n} candidates on this page. Search and page through the entire race.', { named: { n: standings.length } }) }}</p>
             <Card as="section" style="padding: 0" :aria-busy="busy">
                 <div style="padding-block: var(--space-4) 0; padding-inline: var(--space-6)">
-                    <h2>{{ t('c_elections.open.standings', 'Standings') }} <span class="citation">{{ approvalOpen ? t('c_elections.open.updated_daily', 'Updated daily · as of {when}', { when: race.asOf ?? t('c_elections.open.first_update_pending', 'the first update is pending') }) : t('c_elections.open.frozen_cutoff', 'Frozen at the finalist cutoff') }}</span></h2>
+                    <h2>{{ t('c_elections.open.standings', 'Standings') }} <span class="citation">{{ approvalOpen ? t('c_elections.open.updated_daily', 'Updated daily · as of {when}', { named: { when: race.asOf ?? t('c_elections.open.first_update_pending', 'the first update is pending') } }) : t('c_elections.open.frozen_cutoff', 'Frozen at the finalist cutoff') }}</span></h2>
                     <p v-if="approvable" class="gloss">{{ t('c_elections.open.toggle_hint', 'Toggle a candidate\'s switch to save or withdraw your approval.') }}</p>
                 </div>
                 <template v-for="row in standings" :key="row.candidacy_id">
@@ -223,12 +223,12 @@ function loadEndorsements(candidateId, url = null) {
                             <StatusBadge v-if="row.status === 'withdrawn'" tone="danger">{{ t('c_elections.open.withdrawn', 'Withdrawn') }}</StatusBadge>
                             <Btn v-if="row.candidacy.endorsements.more_organizations" variant="ghost" size="sm" :disabled="busy"
                                 :aria-expanded="detailsFor === row.candidacy_id" @click="loadEndorsements(row.candidacy_id)">
-                                {{ t('c_elections.open.more_endorsements', 'More organization endorsements for {name}', { name: row.candidacy.name }) }}
+                                {{ t('c_elections.open.more_endorsements', 'More organization endorsements for {name}', { named: { name: row.candidacy.name } }) }}
                             </Btn>
                         </template>
                     </CandidateRow>
                     <div v-if="detailsFor === row.candidacy_id" class="stack" style="padding: var(--space-4) var(--space-6)">
-                        <h3>{{ t('c_elections.open.orgs_endorsing', 'Organizations endorsing {name}', { name: row.candidacy.name }) }}</h3>
+                        <h3>{{ t('c_elections.open.orgs_endorsing', 'Organizations endorsing {name}', { named: { name: row.candidacy.name } }) }}</h3>
                         <template v-if="endorsementDetails?.candidateId === row.candidacy_id">
                             <p v-if="endorsementDetails.notice" role="status">{{ endorsementDetails.notice }}</p>
                             <ul><li v-for="org in endorsementDetails.organizations" :key="org.id"><Link :href="`/organizations/${org.id}`">{{ org.name }}</Link></li></ul>

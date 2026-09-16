@@ -53,8 +53,8 @@ const GLOSS = computed(() =>
 
 const headline = computed(() =>
     props.isFullCourt
-        ? t('c_institution_components.panel_table.headline_full', 'Full court — all {n} judges', { n: props.panelSize })
-        : t('c_institution_components.panel_table.headline_panel', 'Panel of {n} — odd, severity-scaled', { n: props.panelSize }),
+        ? t('c_institution_components.panel_table.headline_full', 'Full court — all {n} judges', { named: { n: props.panelSize } })
+        : t('c_institution_components.panel_table.headline_panel', 'Panel of {n} — odd, severity-scaled', { named: { n: props.panelSize } }),
 );
 
 const RESULT_TONES = { seated: 'success', recused: 'neutral', excluded: 'neutral' };

@@ -139,7 +139,7 @@ const totalMissing = computed(() =>
 const CODE_LABELS = computed(() => ({
     'C1-missing': t('c_system.translations.code_c1', 'Key missing from a locale'),
     'C2-orphan': t('c_system.translations.code_c2', 'Key present in a locale but not in English'),
-    'C3-placeholder': t('c_system.translations.code_c3', 'Placeholder mismatch ({token} tokens differ)', { token: '{name}' }),
+    'C3-placeholder': t('c_system.translations.code_c3', 'Placeholder mismatch ({token} tokens differ)', { named: { token: '{name}' } }),
     'C4-idtoken': t('c_system.translations.code_c4', 'ID token or citation not byte-identical'),
     'C5-compile': t('c_system.translations.code_c5', 'Message does not compile in vue-i18n'),
     'C6-empty': t('c_system.translations.code_c6', 'Empty message'),
@@ -219,10 +219,10 @@ const pkgSourceCode = computed(() => pkgSource.value?.code ?? 'en');
 function pkgOptionLabel(l) {
     const head = `${l.name} (${l.code})`;
     if (!l.present) return `${head} · ${t('c_system.translations.pkg_opt_absent', 'no strings yet')}`;
-    return `${head} · ${t('c_system.translations.pkg_opt_present', '{pct}% drafted, {missing} to go', {
+    return `${head} · ${t('c_system.translations.pkg_opt_present', '{pct}% drafted, {missing} to go', { named: {
         pct: localeFmt.number(Math.round(l.pct ?? 0)),
         missing: localeFmt.number(l.missing ?? 0),
-    })}`;
+    } })}`;
 }
 function pkgRunLocale(r) {
     if (r.kind === 'export' && r.locale === pkgSourceCode.value) return t('c_system.translations.pkg_source_master', 'English master');
@@ -443,8 +443,8 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
                                 v-for="m in modalities" :key="m.id"
                                 class="tcell" :class="`tcell--${r.cells[m.id].state}`"
                                 :aria-label="r.cells[m.id].state === 'none'
-                                    ? t('c_system.translations.cell_aria_none', '{modality}: {state}', { modality: m.label, state: byState[r.cells[m.id].state]?.label })
-                                    : t('c_system.translations.cell_aria', '{modality}: {state}, {pct} percent', { modality: m.label, state: byState[r.cells[m.id].state]?.label, pct: r.cells[m.id].pct })"
+                                    ? t('c_system.translations.cell_aria_none', '{modality}: {state}', { named: { modality: m.label, state: byState[r.cells[m.id].state]?.label } })
+                                    : t('c_system.translations.cell_aria', '{modality}: {state}, {pct} percent', { named: { modality: m.label, state: byState[r.cells[m.id].state]?.label, pct: r.cells[m.id].pct } })"
                             >
                                 <span class="tdot" :title="byState[r.cells[m.id].state]?.label">
                                     {{ cellLabel(r.cells[m.id]) }}
@@ -484,7 +484,7 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
             <ol class="sop-steps">
                 <li>
                     <span class="sop-do">{{ t('c_system.translations.sop1_do', 'Pick the language') }}</span>
-                    <span class="sop-detail">{{ t('c_system.translations.sop1_detail', 'Any of the {n} registered languages, or request a new one.', { n: totals.mapped }) }}</span>
+                    <span class="sop-detail">{{ t('c_system.translations.sop1_detail', 'Any of the {n} registered languages, or request a new one.', { named: { n: totals.mapped } }) }}</span>
                 </li>
                 <li>
                     <span class="sop-do">{{ t('c_system.translations.sop2_do', 'Generate the first round') }}</span>
@@ -534,12 +534,12 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
                 </div>
                 <p class="muted">
                     <template v-if="totalMissing > 0">
-                        {{ t('c_system.translations.owed', '{n} message-translations are still owed across the languages below.', { n: localeFmt.number(totalMissing) }) }}
+                        {{ t('c_system.translations.owed', '{n} message-translations are still owed across the languages below.', { named: { n: localeFmt.number(totalMissing) } }) }}
                     </template>
                     <template v-else>{{ t('c_system.translations.all_carried', 'Every registered language carries every message.') }}</template>
                 </p>
                 <p v-if="generatedAt" class="muted">
-                    {{ t('c_system.translations.measured_at', 'Measured {when}.', { when: generatedAt }) }}
+                    {{ t('c_system.translations.measured_at', 'Measured {when}.', { named: { when: generatedAt } }) }}
                 </p>
             </Card>
 
@@ -572,7 +572,7 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
                 </p>
             </Card>
 
-            <Card :title="t('c_system.translations.gate_findings_title', 'Gate findings ({n})', { n: localeFmt.number(failures) })">
+            <Card :title="t('c_system.translations.gate_findings_title', 'Gate findings ({n})', { named: { n: localeFmt.number(failures) } })">
                 <p v-if="!failures">{{ t('c_system.translations.gate_passes', 'The gate passes. No language is behind and every message compiles.') }}</p>
                 <template v-else>
                     <DataTable
@@ -663,12 +663,12 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
                 {{ t('c_system.translations.pkg_intro', 'Every package you export is English. Pick the language a translator will produce and the zip holds the English strings that language still lacks, with surface context and the glossary. Translate anywhere, then import the result under that language. Every action runs as a queued job, never in the page.') }}
             </p>
             <p v-if="pkgSource" class="muted" data-no-i18n>
-                {{ t('c_system.translations.pkg_state_line', 'In the app now: English (the source, {keys} strings in {files} files), {present} machine drafts in progress, {absent} registered languages with no strings yet.', {
+                {{ t('c_system.translations.pkg_state_line', 'In the app now: English (the source, {keys} strings in {files} files), {present} machine drafts in progress, {absent} registered languages with no strings yet.', { named: {
                     keys: localeFmt.number(pkgSource.keys ?? 0),
                     files: localeFmt.number(pkgSource.files ?? 0),
                     present: localeFmt.number(pkgPresent.length),
                     absent: localeFmt.number(pkgAbsent.length),
-                }) }}
+                } }) }}
             </p>
 
             <p v-if="pkgError" class="muted">
@@ -745,7 +745,7 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
                                 : r.status === 'failed' || r.stale ? 'danger'
                                 : r.status === 'dry_run_ready' ? 'warning' : 'info'">{{ r.stale ? t('c_system.translations.pkg_stale', 'stalled, no worker') : r.status }}</StatusBadge>
                             <span v-if="r.report" class="gloss" data-no-i18n>
-                                · {{ t('c_system.translations.pkg_dry_report', '{accepted} accepted, {rejected} rejected', { accepted: r.report.accepted, rejected: r.report.rejected }) }}
+                                · {{ t('c_system.translations.pkg_dry_report', '{accepted} accepted, {rejected} rejected', { named: { accepted: r.report.accepted, rejected: r.report.rejected } }) }}
                             </span>
                             <span v-if="r.status === 'failed' && r.error" class="gloss pkg-error" data-no-i18n>· {{ r.error }}</span>
                         </td>
@@ -798,7 +798,7 @@ onUnmounted(() => { if (pkgTimer) clearInterval(pkgTimer); });
         <Card>
             <h2>{{ t('c_system.translations.add_language_title', 'Add a language') }}</h2>
             <p>
-                {{ t('c_system.translations.add_language_body', 'Don’t see yours? Any of the {n} mapped languages can be opened for translation, and a new one can be requested. The machine drafts every kind of content at once, then it opens for your review — never shipped as final until readers confirm it.', { n: totals.mapped ?? 0 }) }}
+                {{ t('c_system.translations.add_language_body', 'Don’t see yours? Any of the {n} mapped languages can be opened for translation, and a new one can be requested. The machine drafts every kind of content at once, then it opens for your review — never shipped as final until readers confirm it.', { named: { n: totals.mapped ?? 0 } }) }}
             </p>
             <div class="cluster" style="gap: var(--space-1)">
                 <Link class="btn btn--primary" :href="`/support/report?ref=${encodeURIComponent('Add a language')}`">

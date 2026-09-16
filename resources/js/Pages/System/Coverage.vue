@@ -64,7 +64,7 @@ const c = computed(() => drift.value.counts);
             tone="emergency"
             :title="t('c_system.coverage.drift_title', 'Drift detected — the registry and the app disagree')"
         >
-            {{ t('c_system.coverage.drift_body', '{dead} dead nav link(s), {tour} dead tour stop(s), {nav} unresolved surface nav(s). Details below.', { dead: drift.deadNavLinks.length, tour: drift.deadTourStops.length, nav: drift.navUnresolved.length }) }}
+            {{ t('c_system.coverage.drift_body', '{dead} dead nav link(s), {tour} dead tour stop(s), {nav} unresolved surface nav(s). Details below.', { named: { dead: drift.deadNavLinks.length, tour: drift.deadTourStops.length, nav: drift.navUnresolved.length } }) }}
         </Banner>
         <Banner v-else tone="info" :title="t('c_system.coverage.all_clear_title', 'All clear')">
             {{ t('c_system.coverage.all_clear_body', 'Every wired registry href and tour stop resolves to a route the app serves, and every surface nav names a real menu id.') }}
@@ -89,7 +89,7 @@ const c = computed(() => drift.value.counts);
                         :tone="drift.deadNavLinks.length ? 'danger' : 'success'"
                         :icon="drift.deadNavLinks.length ? 'alert-triangle' : 'check'"
                     >
-                        {{ drift.deadNavLinks.length ? t('c_system.coverage.n_dead', '{n} dead', { n: drift.deadNavLinks.length }) : t('c_system.coverage.all_resolve', 'all resolve') }}
+                        {{ drift.deadNavLinks.length ? t('c_system.coverage.n_dead', '{n} dead', { named: { n: drift.deadNavLinks.length } }) : t('c_system.coverage.all_resolve', 'all resolve') }}
                     </StatusBadge>
                 </h2>
             </template>
@@ -111,7 +111,7 @@ const c = computed(() => drift.value.counts);
                         :tone="drift.deadTourStops.length ? 'danger' : 'success'"
                         :icon="drift.deadTourStops.length ? 'alert-triangle' : 'check'"
                     >
-                        {{ drift.deadTourStops.length ? t('c_system.coverage.n_dead', '{n} dead', { n: drift.deadTourStops.length }) : t('c_system.coverage.all_resolve', 'all resolve') }}
+                        {{ drift.deadTourStops.length ? t('c_system.coverage.n_dead', '{n} dead', { named: { n: drift.deadTourStops.length } }) : t('c_system.coverage.all_resolve', 'all resolve') }}
                     </StatusBadge>
                 </h2>
             </template>
@@ -121,7 +121,7 @@ const c = computed(() => drift.value.counts);
                     <Icon name="alert-triangle" size="sm" /> {{ d.title }} → <strong>{{ d.href }}</strong>
                 </li>
             </ul>
-            <p v-else class="citation"><Icon name="check" size="sm" /> {{ t('c_system.coverage.tour_ok', 'All {n} stops land on a served route.', { n: c.tourStops }) }}</p>
+            <p v-else class="citation"><Icon name="check" size="sm" /> {{ t('c_system.coverage.tour_ok', 'All {n} stops land on a served route.', { named: { n: c.tourStops } }) }}</p>
         </Card>
 
         <!-- ─────────────────────────── 3 · surface nav cross-check ── -->
@@ -133,7 +133,7 @@ const c = computed(() => drift.value.counts);
                         :tone="drift.navUnresolved.length ? 'danger' : 'success'"
                         :icon="drift.navUnresolved.length ? 'alert-triangle' : 'check'"
                     >
-                        {{ drift.navUnresolved.length ? t('c_system.coverage.n_unresolved', '{n} unresolved', { n: drift.navUnresolved.length }) : t('c_system.coverage.all_resolve', 'all resolve') }}
+                        {{ drift.navUnresolved.length ? t('c_system.coverage.n_unresolved', '{n} unresolved', { named: { n: drift.navUnresolved.length } }) : t('c_system.coverage.all_resolve', 'all resolve') }}
                     </StatusBadge>
                 </h2>
             </template>
@@ -150,7 +150,7 @@ const c = computed(() => drift.value.counts);
             <!-- known drift, deferred to the owning lane — recorded, not counted -->
             <div v-if="drift.navAllowlisted.length" style="margin-block-start: var(--space-3)">
                 <p class="cc-small">
-                    <strong>{{ t('c_system.coverage.known_drift', 'Known drift — deferred ({n}).', { n: drift.navAllowlisted.length }) }}</strong>
+                    <strong>{{ t('c_system.coverage.known_drift', 'Known drift — deferred ({n}).', { named: { n: drift.navAllowlisted.length } }) }}</strong>
                     {{ t('c_system.coverage.known_drift_note', 'Recorded, not counted against the verdict; the owning lane resolves it.') }}
                 </p>
                 <ul class="stack" style="gap: var(--space-1)">

@@ -102,17 +102,17 @@ const kindLabel = (kind) =>
 
 function seatLabel(m) {
     if (m.vacant) {
-        return t('c_institution_components.seat_map.seat_vacant', 'Seat {n} — vacant (countback running); joins at the junior-most position', { n: m.seat_no });
+        return t('c_institution_components.seat_map.seat_vacant', 'Seat {n} — vacant (countback running); joins at the junior-most position', { named: { n: m.seat_no } });
     }
-    let label = t('c_institution_components.seat_map.seat_occupied', 'Seat {n} — {name}{speaker} · {days} days served · share {share}', {
+    let label = t('c_institution_components.seat_map.seat_occupied', 'Seat {n} — {name}{speaker} · {days} days served · share {share}', { named: {
         n: m.seat_no,
         name: m.name,
         speaker: m.speaker ? t('c_institution_components.seat_map.speaker_suffix', ' (Speaker)') : '',
         days: m.days_served || 0,
         share: (m.vote_share_norm || 0).toFixed(2),
-    });
-    if (bicameral.value && m.seat_kind) label += t('c_institution_components.seat_map.kind_suffix', ' · {kind}', { kind: kindLabel(m.seat_kind) });
-    if (m.district_label) label += t('c_institution_components.seat_map.district_suffix', ' · {label}', { label: m.district_label });
+    } });
+    if (bicameral.value && m.seat_kind) label += t('c_institution_components.seat_map.kind_suffix', ' · {kind}', { named: { kind: kindLabel(m.seat_kind) } });
+    if (m.district_label) label += t('c_institution_components.seat_map.district_suffix', ' · {label}', { named: { label: m.district_label } });
     return label;
 }
 
@@ -156,7 +156,7 @@ const dots = computed(() => {
         <svg
             :viewBox="`0 0 ${size} ${size}`"
             role="img"
-            :aria-label="t('c_institution_components.seat_map.chamber_aria', 'Circular chamber seat map — {seats} seats, {serving} serving', { seats: members.length, serving: servingCount })"
+            :aria-label="t('c_institution_components.seat_map.chamber_aria', 'Circular chamber seat map — {seats} seats, {serving} serving', { named: { seats: members.length, serving: servingCount } })"
             xmlns="http://www.w3.org/2000/svg"
         >
             <!-- The dashed "floor" circle at the center — no head of the room. -->

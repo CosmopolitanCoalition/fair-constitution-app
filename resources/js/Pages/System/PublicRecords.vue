@@ -252,7 +252,7 @@ function dateOf(iso) {
                         <span class="citation" style="display: block">
                             {{ record.actor_display }}
                             <template v-if="record.jurisdiction?.name"> · {{ record.jurisdiction.name }}</template>
-                            <template v-if="viaChip(record.via)"> {{ t('c_system.public_records.via_label', '· via {chip}', { chip: viaChip(record.via) }) }}</template>
+                            <template v-if="viaChip(record.via)"> {{ t('c_system.public_records.via_label', '· via {chip}', { named: { chip: viaChip(record.via) } }) }}</template>
                             · {{ dateOf(record.published_at) }}
                             <template v-if="record.subject?.href"> · <Link :href="record.subject.href">{{ record.subject.label }} →</Link></template>
                             <template v-else-if="record.subject"> · {{ record.subject.label }}</template>
@@ -263,7 +263,7 @@ function dateOf(iso) {
                     </div>
                     <StatusBadge v-if="record.translations.total > 0" :tone="record.translations.done >= record.translations.total ? 'success' : 'warning'"
                         :title="record.translations.locales.map((l) => `${l.code}: ${l.quality}`).join(' · ')">
-                        {{ t('c_system.public_records.languages_count', '{done}/{total} languages', { done: record.translations.done, total: record.translations.total }) }}
+                        {{ t('c_system.public_records.languages_count', '{done}/{total} languages', { named: { done: record.translations.done, total: record.translations.total } }) }}
                     </StatusBadge>
                     <StatusBadge v-else tone="neutral" :title="t('c_system.public_records.mt_pipeline', 'machine translation pipeline · Planned · Phase F')">{{ t('c_system.public_records.original', 'original') }}</StatusBadge>
                     <Link

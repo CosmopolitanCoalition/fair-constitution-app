@@ -165,7 +165,7 @@ const columns = computed(() => [
         <!-- ==================================== the four families ======== -->
         <Card v-for="fam in families" :key="fam.name" as="section">
             <template #title>
-                <h2>{{ fam.label }} <span class="citation">{{ t('c_system.clocks.family_count', '{n} clocks', { n: fam.rows.length }) }}</span></h2>
+                <h2>{{ fam.label }} <span class="citation">{{ t('c_system.clocks.family_count', '{n} clocks', { named: { n: fam.rows.length } }) }}</span></h2>
             </template>
             <p class="cc-small">{{ fam.desc }}</p>
             <DataTable :columns="columns" :rows="fam.rows" row-key="id" :caption="fam.label">
@@ -185,7 +185,7 @@ const columns = computed(() => [
                 </template>
                 <template #cell-live="{ row }">
                     <template v-if="liveOf(row)">
-                        {{ t('c_system.clocks.armed_count', '{n} armed', { n: liveOf(row).count }) }}
+                        {{ t('c_system.clocks.armed_count', '{n} armed', { named: { n: liveOf(row).count } }) }}
                         <span
                             v-if="liveOf(row).next_fires_at"
                             class="citation"
@@ -196,7 +196,7 @@ const columns = computed(() => [
                              deadline that is still armed means the sweep did
                              not fire it — a fault, not a status. -->
                         <StatusBadge v-if="overdueOf(row)" tone="warning" icon="alert-triangle">
-                            {{ t('c_system.clocks.overdue_count', '{n} overdue', { n: overdueOf(row) }) }}
+                            {{ t('c_system.clocks.overdue_count', '{n} overdue', { named: { n: overdueOf(row) } }) }}
                         </StatusBadge>
                     </template>
                     <template v-else>—</template>

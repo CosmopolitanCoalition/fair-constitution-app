@@ -100,7 +100,7 @@ function admLabel(level) {
         5: t('c_system.atlas.adm_5', 'ADM 5'),
         6: t('c_system.atlas.adm_6', 'ADM 6'),
     };
-    return admLabels[level] ?? t('c_system.atlas.adm_n', 'ADM {level}', { level });
+    return admLabels[level] ?? t('c_system.atlas.adm_n', 'ADM {level}', { named: { level } });
 }
 
 /* ── the living map ─────────────────────────────────────────────────────────
@@ -201,9 +201,9 @@ function nodeTone(status) {
 function nodeTitle(n) {
     return [
         n.label,
-        n.operator ? t('c_system.atlas.node_operator', 'operator {name}', { name: n.operator }) : null,
-        t('c_system.atlas.node_residents', '{n} residents', { n: dash(n.residents) }),
-        n.uptimePct == null ? null : t('c_system.atlas.node_up', '{pct}% up', { pct: n.uptimePct }),
+        n.operator ? t('c_system.atlas.node_operator', 'operator {name}', { named: { name: n.operator } }) : null,
+        t('c_system.atlas.node_residents', '{n} residents', { named: { n: dash(n.residents) } }),
+        n.uptimePct == null ? null : t('c_system.atlas.node_up', '{pct}% up', { named: { pct: n.uptimePct } }),
     ]
         .filter(Boolean)
         .join(' · ');
@@ -297,7 +297,7 @@ const domains = computed(() => {
             tiles: [
                 { n: dash(r.verifiedTotal), label: t('c_system.atlas.reach_verified', 'verified residents'), tone: 'success' },
                 { n: dash(r.measuredPlaces), label: t('c_system.atlas.reach_measured', 'measured places') },
-                { n: homeMeasured.value ? pct(home.value.reachPct) : '—', label: t('c_system.atlas.reach_place', 'reach · {name}', { name: home.value?.name ?? t('c_system.atlas.your_place', 'your place') }) },
+                { n: homeMeasured.value ? pct(home.value.reachPct) : '—', label: t('c_system.atlas.reach_place', 'reach · {name}', { named: { name: home.value?.name ?? t('c_system.atlas.your_place', 'your place') } }) },
                 { n: dash(r.placesGauged), label: t('c_system.atlas.reach_gauged', 'places gauged') },
             ],
         },
@@ -530,7 +530,7 @@ const heroStats = computed(() => {
                 </div>
                 <span v-if="mesh.nodes != null" class="pill pill--live">
                     <span class="dotlive" aria-hidden="true"></span>
-                    {{ t('c_system.atlas.nodes_alive_of', '{alive} of {total} nodes alive', { alive: dash(mesh.alive), total: dash(mesh.nodes) }) }}
+                    {{ t('c_system.atlas.nodes_alive_of', '{alive} of {total} nodes alive', { named: { alive: dash(mesh.alive), total: dash(mesh.nodes) } }) }}
                 </span>
             </div>
 
@@ -720,7 +720,7 @@ const heroStats = computed(() => {
                         </svg>
                         <div class="atlas-dial-c">
                             <span class="atlas-dial-n">{{ homeMeasured ? pct(home.reachPct, 1) : '—' }}</span>
-                            <span class="atlas-dial-l">{{ t('c_system.atlas.reach_place', 'reach · {name}', { name: home?.name ?? t('c_system.atlas.your_place', 'your place') }) }}</span>
+                            <span class="atlas-dial-l">{{ t('c_system.atlas.reach_place', 'reach · {name}', { named: { name: home?.name ?? t('c_system.atlas.your_place', 'your place') } }) }}</span>
                         </div>
                     </div>
 
@@ -736,7 +736,7 @@ const heroStats = computed(() => {
                             viewBox="0 0 200 44"
                             preserveAspectRatio="none"
                             role="img"
-                            :aria-label="t('c_system.atlas.reach_spark_label', 'Reach over 30 nights, {name}', { name: home?.name ?? t('c_system.atlas.your_place', 'your place') })"
+                            :aria-label="t('c_system.atlas.reach_spark_label', 'Reach over 30 nights, {name}', { named: { name: home?.name ?? t('c_system.atlas.your_place', 'your place') } })"
                         >
                             <path :d="homeSpark" />
                         </svg>
@@ -769,7 +769,7 @@ const heroStats = computed(() => {
                     <span class="health-line">
                         <span class="health-dot" :class="`health-dot--${mesh.health}`"></span>
                         {{ t('c_system.atlas.health_label', 'Health:') }} <strong>{{ mesh.health }}</strong>
-                        <template v-if="mesh.lastSync"> {{ t('c_system.atlas.last_compared', '· everyone last compared notes {when}', { when: mesh.lastSync }) }}</template>
+                        <template v-if="mesh.lastSync"> {{ t('c_system.atlas.last_compared', '· everyone last compared notes {when}', { named: { when: mesh.lastSync } }) }}</template>
                     </span>
                 </div>
             </section>
@@ -798,7 +798,7 @@ const heroStats = computed(() => {
                         viewBox="0 0 200 44"
                         preserveAspectRatio="none"
                         role="img"
-                        :aria-label="t('c_system.atlas.trend_spark_label', '{label} over the last year', { label: row.label })"
+                        :aria-label="t('c_system.atlas.trend_spark_label', '{label} over the last year', { named: { label: row.label } })"
                     >
                         <path :d="row.path" />
                     </svg>
@@ -879,7 +879,7 @@ const heroStats = computed(() => {
         </section>
 
         <p v-if="generatedAt" class="citation">
-            {{ t('c_system.atlas.rollup_footer', 'Vital signs from the nightly world rollup · {when}. The Atlas reads a snapshot, never a live count of the world.', { when: generatedAt }) }}
+            {{ t('c_system.atlas.rollup_footer', 'Vital signs from the nightly world rollup · {when}. The Atlas reads a snapshot, never a live count of the world.', { named: { when: generatedAt } }) }}
         </p>
         <div v-else class="banner banner--info">
             <Icon name="info" size="sm" />

@@ -99,12 +99,12 @@ const namesParenthetical = computed(() => {
     const names = consents.value.slice(0, 7).map(jurName);
     if (!names.length) return '';
     const more = Math.max(0, (props.process.total ?? names.length) - names.length);
-    return ` (${names.join(', ')}${more > 0 ? t('c_institution_components.constituent_consent_panel.more', ' + {n} more', { n: more }) : ''})`;
+    return ` (${names.join(', ')}${more > 0 ? t('c_institution_components.constituent_consent_panel.more', ' + {n} more', { named: { n: more } }) : ''})`;
 });
 
 const leftCaption = computed(
     () =>
-        t('c_institution_components.constituent_consent_panel.left_caption', 'Constituent jurisdictions: {yes} of {total} in favor', { yes: props.process.yes, total: props.process.total }) +
+        t('c_institution_components.constituent_consent_panel.left_caption', 'Constituent jurisdictions: {yes} of {total} in favor', { named: { yes: props.process.yes, total: props.process.total } }) +
         namesParenthetical.value,
 );
 
@@ -134,7 +134,7 @@ const combined = computed(() => {
         return {
             tone: 'warning',
             icon: 'x',
-            title: t('c_institution_components.constituent_consent_panel.act_fails', 'The act fails — {which} did not clear the threshold', { which: failing.join(t('c_institution_components.constituent_consent_panel.and_join', ' and ')) }),
+            title: t('c_institution_components.constituent_consent_panel.act_fails', 'The act fails — {which} did not clear the threshold', { named: { which: failing.join(t('c_institution_components.constituent_consent_panel.and_join', ' and ')) } }),
         };
     }
     if (procPassed && (legPassed || leg === null)) {
@@ -164,7 +164,7 @@ const combined = computed(() => {
 
         <!-- Block 1 — the legislature's own supermajority -->
         <div v-if="legislatureVote" class="card card--inset">
-            <span class="eyebrow">{{ t('c_institution_components.constituent_consent_panel.own_supermajority_eyebrow', '{name}: own supermajority', { name: legislatureLabel ?? t('c_institution_components.constituent_consent_panel.legislature', 'Legislature') }) }}</span>
+            <span class="eyebrow">{{ t('c_institution_components.constituent_consent_panel.own_supermajority_eyebrow', '{name}: own supermajority', { named: { name: legislatureLabel ?? t('c_institution_components.constituent_consent_panel.legislature', 'Legislature') } }) }}</span>
             <div style="margin-block-start: var(--space-2)">
                 <VoteTally
                     :mode="legislatureVote.mode"
@@ -195,7 +195,7 @@ const combined = computed(() => {
                 </ThresholdMeter>
             </div>
             <p v-if="process.closes_at" class="citation" style="margin-block-start: var(--space-1)">
-                {{ t('c_institution_components.constituent_consent_panel.window_closes', 'window closes {date} · stored as UTC', { date: process.closes_at }) }}
+                {{ t('c_institution_components.constituent_consent_panel.window_closes', 'window closes {date} · stored as UTC', { named: { date: process.closes_at } }) }}
             </p>
 
             <DataTable

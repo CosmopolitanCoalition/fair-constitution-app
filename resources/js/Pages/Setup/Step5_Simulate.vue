@@ -502,8 +502,8 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             <div class="space-y-1 text-xs overflow-x-auto" tabindex="0" role="region" :aria-label="t('c_setup.step5_simulate.timings_region', 'Timings (scrollable)')">
                 <div v-for="tm in timings" :key="tm.part" class="flex items-center gap-3 min-w-[20rem]">
                     <span class="w-56 shrink-0 truncate" :class="timingTone(tm.part)">{{ timingLabel(tm.part) }}</span>
-                    <span class="w-20 text-right tabular-nums text-gray-300">{{ t('c_setup.step5_simulate.ms_value', '{n} ms', { n: tm.avg_ms }) }}</span>
-                    <span class="w-24 text-right tabular-nums text-gray-400 hidden md:inline">{{ t('c_setup.step5_simulate.max_ms', 'max {n} ms', { n: tm.max_ms }) }}</span>
+                    <span class="w-20 text-right tabular-nums text-gray-300">{{ t('c_setup.step5_simulate.ms_value', '{n} ms', { named: { n: tm.avg_ms } }) }}</span>
+                    <span class="w-24 text-right tabular-nums text-gray-400 hidden md:inline">{{ t('c_setup.step5_simulate.max_ms', 'max {n} ms', { named: { n: tm.max_ms } }) }}</span>
                     <span class="w-20 text-right tabular-nums text-gray-400 hidden md:inline">{{ n(tm.count) }}×</span>
                     <div class="flex-1 h-2 bg-gray-800 rounded overflow-hidden">
                         <div class="h-full transition-all duration-700" :class="timingBar(tm.part)" :style="{ width: pct(tm.total_s, timingMax) + '%' }"></div>

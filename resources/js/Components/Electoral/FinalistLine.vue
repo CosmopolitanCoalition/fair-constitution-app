@@ -26,7 +26,7 @@ const props = defineProps({
 const text = computed(
     () =>
         props.label ??
-        t('c_institution_components.finalist_line.text', 'finalist line — top {count} advance to the ranked ballot · CLK-21', { count: props.count }),
+        t('c_institution_components.finalist_line.text', 'finalist line — top {count} advance to the ranked ballot · CLK-21', { named: { count: props.count } }),
 );
 </script>
 
