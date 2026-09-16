@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "அரசாங்கக்கலை உலகம்",
+  "shell_devbar.dev_controls_not_part_of_the_application": "டெவலப்பர் கட்டுப்பாடுகள் — பயன்பாட்டின் பகுதி அல்ல",
+  "shell_devbar.impersonating": "{label} — {name} ஆகப் போலிidentité",
+  "shell_devbar.residency_tool_civic_residency": "குடியிருப்பு கருவி → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "நீதித்துறை ஆய்வு நிலுவையில் உள்ளது · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "அவசரகால அதிகாரம் டாஷ்போர்டைத் திறக்கவும்"
+}

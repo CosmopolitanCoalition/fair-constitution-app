@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Svet štátneho zriadenia",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Vývojárske ovládanie — nie je súčasťou aplikácie",
+  "shell_devbar.impersonating": "{label} — Podvádzanie ako {name}",
+  "shell_devbar.residency_tool_civic_residency": "Nástroj bydliska → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Súdna kontrola čaká · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Otvoriť kontrolný panel núdzových právomocí"
+}

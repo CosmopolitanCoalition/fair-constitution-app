@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Načítavanie kozmickej adresy…",
+  "cosmicaddresspicker.multiverse": "Multivesmír ▸",
+  "schemaupdatebanner.apply_updates": "Aplikovať aktualizácie",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Vyžaduje sa: {pendingLabel} — aplikujte pred spustením ETL procesu.",
+  "setupstepper.build_districts": "Vytvoriť obvody",
+  "setupstepper.confirm_seat_institutions": "Potvrdiť a obsadiť kreslá v inštitúciách",
+  "setupstepper.constitutional_defaults": "Ústavné predvolby",
+  "setupstepper.cosmic_address": "Kozmická adresa",
+  "setupstepper.map_data": "Údaje mapy",
+  "setupstepper.setup_progress": "Pokrok nastavenia"
+}

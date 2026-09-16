@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "காஸ்மிக் முகவரி ஏற்றப்படுகிறது…",
+  "cosmicaddresspicker.multiverse": "மல்டிவர்ஸ் ▸",
+  "schemaupdatebanner.apply_updates": "புதுப்பிப்புகளைப் பயன்படுத்தவும்",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "தேவை: {pendingLabel} — ETL இயக்கத்தைத் தொடங்குவதற்கு முன் பயன்படுத்தவும்.",
+  "setupstepper.build_districts": "தொகுதிகளை உருவாக்கு",
+  "setupstepper.confirm_seat_institutions": "நிறுவனங்களை உறுதிப்படுத்தி இருக்கைகளை ஒதுக்கு",
+  "setupstepper.constitutional_defaults": "அரசியலமைப்பு இயல்பமைப்புகள்",
+  "setupstepper.cosmic_address": "காஸ்மிக் முகவரி",
+  "setupstepper.map_data": "வரைபடத் தரவு",
+  "setupstepper.setup_progress": "அமைப்பின் முன்னேற்றம்"
+}

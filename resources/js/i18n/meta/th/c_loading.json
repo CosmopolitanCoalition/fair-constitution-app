@@ -1,0 +1,26 @@
+{
+  "dismiss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "loading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "refresh": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "slow": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "start_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

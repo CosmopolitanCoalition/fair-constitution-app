@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "การนำทางและการเรียนรู้",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "แผนการเรียนฉบับเต็ม · รายงานปัญหาเฟส 7",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "กลไกเบื้องหลังหน้าจอนี้",
+  "shellv2_menunav.all_screens_the_full_map": "หน้าจอทั้งหมด — แผนที่ฉบับเต็ม",
+  "shellv2_menunav.requires_planned": "{label} {label2} ต้องการ {prereq} {label3} ตามแผน",
+  "shellv2_tourbar.guided_tour": "ทัวร์แนะนำ",
+  "shellv2_tourbar.guided_tour_step_of": "ทัวร์แนะนำ · ขั้นตอนที่ {stepNumber} จาก {total}{title}{blurb}"
+}

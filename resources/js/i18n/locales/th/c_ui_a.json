@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "ดาวเคราะห์",
+  "adm_chip.level_1": "ประเทศ",
+  "adm_chip.level_2": "รัฐ / จังหวัด",
+  "adm_chip.level_3": "เคาน์ตี้",
+  "adm_chip.level_4": "เทศบาล",
+  "adm_chip.level_5": "ตำบล",
+  "adm_chip.level_6": "ย่าน",
+  "citation_line.as_implemented": "ตามที่นำมาใช้",
+  "data_table.caption_scrollable": "{caption} (เลื่อนได้)",
+  "data_table.scrollable_table": "ตารางแบบเลื่อนได้",
+  "history_pager.first_page": "หน้าแรก",
+  "history_pager.load_error": "ไม่สามารถโหลดหน้านี้ได้ โปรดลองอีกครั้ง",
+  "history_pager.loading": "กำลังโหลดบันทึก...",
+  "history_pager.next": "ถัดไป",
+  "history_pager.previous": "ก่อนหน้า"
+}

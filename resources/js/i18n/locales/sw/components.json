@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Inapakia anwani ya ulimwengu…",
+  "cosmicaddresspicker.multiverse": "Multiverse ▸",
+  "schemaupdatebanner.apply_updates": "Tumia sasisho",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Inahitajika: {pendingLabel} — tumia kabla ya kuanza mchakato wa ETL.",
+  "setupstepper.build_districts": "Tengeneza Jimbo",
+  "setupstepper.confirm_seat_institutions": "Thibitisha & Weka Taasisi Kiti",
+  "setupstepper.constitutional_defaults": "Misingi ya Katiba",
+  "setupstepper.cosmic_address": "Anwani ya Ulimwengu",
+  "setupstepper.map_data": "Data ya Ramani",
+  "setupstepper.setup_progress": "Maendeleo ya usanidi"
+}

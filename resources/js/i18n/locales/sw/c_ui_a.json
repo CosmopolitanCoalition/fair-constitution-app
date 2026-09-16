@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Sayari",
+  "adm_chip.level_1": "Nchi",
+  "adm_chip.level_2": "Jimbo / Mkoa",
+  "adm_chip.level_3": "Kaunti",
+  "adm_chip.level_4": "Manispaa",
+  "adm_chip.level_5": "Kata",
+  "adm_chip.level_6": "Mtaa",
+  "citation_line.as_implemented": "kama ilivyotekelezwa",
+  "data_table.caption_scrollable": "{caption} (inayoweza kusogezwa)",
+  "data_table.scrollable_table": "Jedwali linalosogezwa",
+  "history_pager.first_page": "Ukurasa wa kwanza",
+  "history_pager.load_error": "Ukurasa huu haukuweza kufunguka. Jaribu tena.",
+  "history_pager.loading": "Inapakia rekodi…",
+  "history_pager.next": "Inayofuata",
+  "history_pager.previous": "Iliyopita"
+}

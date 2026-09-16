@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "uchaguzi wa mhimili wa utendaji",
+  "election_kind.general": "uchaguzi mkuu",
+  "election_kind.judicial": "uchaguzi wa mahakama",
+  "election_kind.org_board_owner": "uchaguzi wa bodi (viti vya mmiliki)",
+  "election_kind.org_board_worker": "uchaguzi wa bodi (viti vya mfanyakazi)",
+  "election_kind.referendum": "kura ya maoni",
+  "election_kind.restoration": "uchaguzi wa urejeshaji",
+  "election_kind.special": "uchaguzi maalum"
+}

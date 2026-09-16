@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "நிர்வாகத் துறை தேர்தல்",
+  "election_kind.general": "பொதுத் தேர்தல்",
+  "election_kind.judicial": "நீதித்துறை தேர்தல்",
+  "election_kind.org_board_owner": "வாரியத் தேர்தல் (உரிமையாளர் இருக்கைகள்)",
+  "election_kind.org_board_worker": "வாரியத் தேர்தல் (தொழிலாளர் இருக்கைகள்)",
+  "election_kind.referendum": "பொதுவாக்கெடுப்பு",
+  "election_kind.restoration": "மீட்டமைப்பு தேர்தல்",
+  "election_kind.special": "சிறப்புத் தேர்தல்"
+}

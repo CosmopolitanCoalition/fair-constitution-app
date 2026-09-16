@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Приступање кластеру",
+  "federation_syncprogress.of_left": "{fmtValue} од {fmtValue2}~{fmtDuration} је преостало",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} записа · {fmtNum2} страна Увоз основа у базу података…Увезеночекање…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Можете напустити ову страницу — синхронизација се одвија у позадини и наставља се ако буде прекинута."
+}

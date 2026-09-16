@@ -1,0 +1,431 @@
+{
+  "association_view": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "boundary_map": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "browse_all_inside": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "browse_world": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "choose_place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clear": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "district_map": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "explore_inside": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "explore_roles": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "filing_choices": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "halls_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "host_registry": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "inside": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.about_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.about_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.about_profile": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.back_learn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.complete": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.continue": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.on_profile": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.planned": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.planned_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.progress_aria": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.start": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.steps_progress": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys.steps_total": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "leaf_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislative_maps": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "level_0": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "level_1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "level_2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "level_3": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "level_4": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "level_5": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "level_6": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "map_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.cancel": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.eyebrow": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.name_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.name_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.name_placeholder": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 0",
+    "provider": "ollama"
+  },
+  "message_new.note_link_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.note_link_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.note_temp_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.note_temp_tail": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.note_temp_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.organization": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.submit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "message_new.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.bring_people": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.conversations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.create_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.created_ready": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.empty_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.empty_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.empty_start": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.eyebrow": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.just_you": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.member": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.new_message": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.no_messages": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.note_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.note_tail": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.note_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.open_conversation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.organization": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.people": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.tagline": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.when_now": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "messages.you_own": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "my_place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "name_placeholder": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "next": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "no_children": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "no_discussions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "no_matches": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "no_petitions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "open_place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "page": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "pagination": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "panels_map": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "parent_map": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "parent_map_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petitions_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petitions_in_view": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "places_inside": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "population": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "population_unknown": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "previous": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "search": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "search_inside": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "search_worlds": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "square_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "threads_in_view": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "trail": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "try_name": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "up": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "viewing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "worlds": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

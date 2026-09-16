@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "กำลังโหลดที่อยู่คอสมิก…",
+  "cosmicaddresspicker.multiverse": "พหุภพ ▸",
+  "schemaupdatebanner.apply_updates": "ใช้การอัปเดต",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "จำเป็น: {pendingLabel} — โปรดใช้ก่อนเริ่มการรัน ETL",
+  "setupstepper.build_districts": "สร้างเขตเลือกตั้ง",
+  "setupstepper.confirm_seat_institutions": "ยืนยันและจัดสรรที่นั่งให้สถาบัน",
+  "setupstepper.constitutional_defaults": "ค่าเริ่มต้นของรัฐธรรมนูญ",
+  "setupstepper.cosmic_address": "ที่อยู่คอสมิก",
+  "setupstepper.map_data": "ข้อมูลแผนที่",
+  "setupstepper.setup_progress": "ความคืบหน้าการตั้งค่า"
+}

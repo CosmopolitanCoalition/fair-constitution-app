@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "கோள்",
+  "adm_chip.level_1": "நாடு",
+  "adm_chip.level_2": "மாநிலம் / மாகாணம்",
+  "adm_chip.level_3": "மாவட்டம்",
+  "adm_chip.level_4": "நகராட்சி",
+  "adm_chip.level_5": "நகரப்பகுதி",
+  "adm_chip.level_6": "பகுதிகள்",
+  "citation_line.as_implemented": "நடைமுறைப்படுத்தப்பட்டது",
+  "data_table.caption_scrollable": "{caption} (சுருட்டக்கூடியது)",
+  "data_table.scrollable_table": "சுருட்டக்கூடிய அட்டவணை",
+  "history_pager.first_page": "முதல் பக்கம்",
+  "history_pager.load_error": "இந்தப் பக்கத்தை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "history_pager.loading": "பதிவுகள் ஏற்றப்படுகின்றன…",
+  "history_pager.next": "அடுத்தது",
+  "history_pager.previous": "முந்தையது"
+}

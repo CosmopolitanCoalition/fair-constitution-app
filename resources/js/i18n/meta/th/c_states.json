@@ -1,0 +1,358 @@
+{
+  "bill.enacted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.in_committee": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.introduced": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.on_floor": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.passed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.referred": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.reported": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.tabled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bill.withdrawn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "case.accepted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "case.appealed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "case.closed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "case.decided": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "case.deliberation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "case.dismissed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "case.filed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "case.heard": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "case.jury_empaneled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "case.paneled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "case.sentenced": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_seat.allocated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_seat.assigned": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_seat.seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_seat.tie_broken": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committee_seat.vacated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional_challenge.amended_by_legislature": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional_challenge.closed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional_challenge.dismissed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional_challenge.filed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional_challenge.finding_issued": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional_challenge.judicial_remedy_applied": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional_challenge.legislative_window_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional_challenge.overridden": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional_challenge.remedy_recommended": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional_challenge.under_review": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department_board.chartered": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department_board.consented": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department_board.dissolved": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department_board.governors_nominated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department_board.operating": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department_board.oversight_assigned": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department_board.rechartered": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department_board.reporting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.active": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.expired": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.narrowed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.renewed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.struck": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency_powers.under_review": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_office.conversion_voted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_office.delegated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_office.dissolved": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_office.elected": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_office.forming": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive_office.reverted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "individual_onboarding.identity_verified": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "individual_onboarding.jurisdictionally_associated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "individual_onboarding.registered": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "individual_onboarding.residency_declared": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "motion.adopted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "motion.debated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "motion.failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "motion.recognized": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "motion.submitted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "motion.voted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "motion.withdrawn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "organization.active": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "organization.converted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "organization.dissolved": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "organization.registered": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "organization.transfer_pending": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "organization.transferred": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition.adopted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition.constitutional_review": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition.created": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition.gathering": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition.invalidated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition.on_ballot": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition.rejected": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition.signature_audit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition.threshold_reached": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petition.validated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "referendum_question.failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "referendum_question.invalidated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "referendum_question.passed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "referendum_question.queued": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "referendum_question.scheduled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "referendum_question.voted": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

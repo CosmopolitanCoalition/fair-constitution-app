@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Urambazaji na kujifunza",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Masomo kamili Yaliyopangwa · Ripoti ya Awamu ya 7 Ripoti tatizo",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Mfumo nyuma ya skrini hii",
+  "shellv2_menunav.all_screens_the_full_map": "Skrini zote — ramani kamili",
+  "shellv2_menunav.requires_planned": "{label} {label2} Inahitaji {prereq} {label3} Yaliyopangwa",
+  "shellv2_tourbar.guided_tour": "Mwongozo wa ziara",
+  "shellv2_tourbar.guided_tour_step_of": "Mwongozo wa ziara · hatua ya {stepNumber} kati ya {total}{title}{blurb}"
+}

@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planéta",
+  "adm_chip.level_1": "Krajina",
+  "adm_chip.level_2": "Štát / Provincie",
+  "adm_chip.level_3": "Okres",
+  "adm_chip.level_4": "Obec",
+  "adm_chip.level_5": "Mestský obvod",
+  "adm_chip.level_6": "Štvrť",
+  "citation_line.as_implemented": "ako implementované",
+  "data_table.caption_scrollable": "{caption} (posuvné)",
+  "data_table.scrollable_table": "Posuvná tabuľka",
+  "history_pager.first_page": "Prvá strana",
+  "history_pager.load_error": "Túto stránku sa nepodarilo načítať. Skúste to znova.",
+  "history_pager.loading": "Načítavanie záznamov…",
+  "history_pager.next": "Ďalej",
+  "history_pager.previous": "Predchádzajúca"
+}

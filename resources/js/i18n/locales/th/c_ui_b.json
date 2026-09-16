@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "เพิ่ม:",
+  "law_diff.label": "การเปลี่ยนแปลงข้อความกฎหมาย",
+  "law_diff.removed": "ลบ:",
+  "planned_banner.default_body": "พื้นที่ส่วนนี้ของโลกถูกออกแบบไว้ก่อนการสร้าง ยังไม่มีส่วนใดใช้งานจริง และไม่มีการใช้เงินจริงในขณะนี้",
+  "planned_banner.title": "วางแผนแล้ว — ตัวอย่าง",
+  "selection_identity.aria_org": "บันทึกองค์กรสำหรับ {name}, อ้างอิง {id}",
+  "selection_identity.aria_profile": "โปรไฟล์สาธารณะสำหรับ {name}, อ้างอิง {id}",
+  "selection_identity.org_reference": "การอ้างอิงองค์กร:",
+  "selection_identity.organization_record": "บันทึกองค์กร",
+  "selection_identity.profile_reference": "การอ้างอิงโปรไฟล์:",
+  "selection_identity.public_profile": "โปรไฟล์สาธารณะ"
+}

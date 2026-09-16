@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "กำลังเข้าร่วมคลัสเตอร์",
+  "federation_syncprogress.of_left": "เหลือเวลา {fmtValue} จาก {fmtValue2}~{fmtDuration}",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} รายการ · {fmtNum2} หน้ากำลังนำเข้าข้อมูลพื้นฐานลงในฐานข้อมูล…นำเข้าสำเร็จแล้วกำลังรอ…{fmtNum3}/วินาที",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "คุณสามารถออกจากหน้านี้ได้ — การซิงค์จะทำงานในพื้นหลังและจะเริ่มใหม่หากถูกขัดจังหวะ"
+}

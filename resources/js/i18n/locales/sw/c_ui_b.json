@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "imeongezwa:",
+  "law_diff.label": "Mabadiliko ya maandishi ya sheria",
+  "law_diff.removed": "imeondolewa:",
+  "planned_banner.default_body": "Sehemu hii ya ulimwengu imeundwa kabla ya ujenzi. Hakuna kitu hapa kilicho hai, na hakuna pesa halisi popote.",
+  "planned_banner.title": "Imepangwa — onyo.",
+  "selection_identity.aria_org": "Rekodi ya shirika kwa {name}, rejea {id}",
+  "selection_identity.aria_profile": "Wasifu wa umma kwa {name}, rejea {id}",
+  "selection_identity.org_reference": "Rejea ya shirika:",
+  "selection_identity.organization_record": "Rekodi ya shirika",
+  "selection_identity.profile_reference": "Rejea ya wasifu:",
+  "selection_identity.public_profile": "Wasifu wa umma"
+}

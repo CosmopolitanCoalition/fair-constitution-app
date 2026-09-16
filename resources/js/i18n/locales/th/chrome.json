@@ -1,0 +1,8 @@
+{
+  "appshell.log_in": "เข้าสู่ระบบ",
+  "appshell.log_out": "ออกจากระบบ",
+  "appshell.pseudo_en_xa": "นามแฝง (en-XA)",
+  "appshell.roles_derived": "บทบาท (ที่ได้รับ): {roles}",
+  "appshell.these_proceedings_are_public_record_art_ii": "การดำเนินการเหล่านี้เป็นบันทึกสาธารณะ (Art. II §2) ลงชื่อเข้าใช้เพื่อมีส่วนร่วม — แสดงความเห็น ลงคะแนน และลงสมัครรับเลือกตั้ง เมื่อถิ่นที่อยู่ของคุณได้รับการยืนยันแล้ว",
+  "appshell.you_re_viewing_as_a_guest": "คุณกำลังเข้าชมในฐานะแขก"
+}

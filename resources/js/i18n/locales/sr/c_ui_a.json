@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Планета",
+  "adm_chip.level_1": "Држава",
+  "adm_chip.level_2": "Држава / Провинција",
+  "adm_chip.level_3": "Округ",
+  "adm_chip.level_4": "Општина",
+  "adm_chip.level_5": "Насеље",
+  "adm_chip.level_6": "Комшилук",
+  "citation_line.as_implemented": "као што је спроведено",
+  "data_table.caption_scrollable": "{caption} (може се скроловати)",
+  "data_table.scrollable_table": "Табела са скроловањем",
+  "history_pager.first_page": "Прва страница",
+  "history_pager.load_error": "Ова страница није могла да се учита. Покушајте поново.",
+  "history_pager.loading": "Учитавање записа…",
+  "history_pager.next": "Следеће",
+  "history_pager.previous": "Претходно"
+}

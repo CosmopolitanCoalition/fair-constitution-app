@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "行政机构选举",
+  "election_kind.general": "大选",
+  "election_kind.judicial": "司法机构选举",
+  "election_kind.org_board_owner": "理事会选举（所有者席位）",
+  "election_kind.org_board_worker": "理事会选举（工人席位）",
+  "election_kind.referendum": "公投",
+  "election_kind.restoration": "恢复选举",
+  "election_kind.special": "特别选举"
+}

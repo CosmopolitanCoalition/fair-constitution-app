@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Správy o správaní a právne správy sú presmerované na preskúmanie. Podanie správy tu nič neodstraňuje — odstraňovanie obsahu prebieha podľa ústavných výnimiek (mechanizmus F-SOC-003), nikdy nie prostredníctvom tohto formulára.",
+  "support_report.file_a_report": "Podajte správu",
+  "support_report.file_report": "Podajte správu",
+  "support_report.filed_from": "Podané z: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Stačí jednoduché slová. Uveďte, čo ste očakávali a čo ste namiesto toho videli.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Správy dopadnú do podpornej schránky operátora a sú presmerované podľa kategórií. Tento príjem sám o sebe obsah nikdy neupravuje ani neodstraňuje.",
+  "support_report.what_happened": "Čo sa stalo?",
+  "support_report.what_kind_of_report_is_this": "O aký typ správy ide?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Na podanie správy sa musíte prihlásiť — prihláste sa a vráťte sa na túto stránku."
+}

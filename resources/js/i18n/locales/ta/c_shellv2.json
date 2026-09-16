@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "வழிசெலுத்தல் மற்றும் கற்றல்",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "முழு பாடங்கள் திட்டமிடப்பட்டது · கட்டம் 7 சிக்கலைப் புகாரளிக்கவும்",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "இந்தத் திரைக்குப் பின்னால் உள்ள செயல்பாடுகள்",
+  "shellv2_menunav.all_screens_the_full_map": "அனைத்துத் திரைகள் — முழு வரைபடம்",
+  "shellv2_menunav.requires_planned": "{label} {label2} தேவைப்படுகிறது {prereq} {label3} திட்டமிடப்பட்டது",
+  "shellv2_tourbar.guided_tour": "வழிகாட்டப்பட்ட சுற்றுப்பயணம்",
+  "shellv2_tourbar.guided_tour_step_of": "வழிகாட்டப்பட்ட சுற்றுப்பயணம் · படி {stepNumber} / {total}{title}{blurb}"
+}

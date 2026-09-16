@@ -1,0 +1,8 @@
+{
+  "dismiss": "忽略",
+  "failed": "请求无法完成。请重试。",
+  "loading": "加载中…",
+  "refresh": "刷新重试",
+  "slow": "仍在加载…",
+  "start_failed": "页面无法打开。"
+}

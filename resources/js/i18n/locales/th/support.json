@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "รายงานด้านความประพฤติและกฎหมายจะถูกส่งเพื่อการตรวจสอบ การยื่นเรื่องที่นี่ไม่ได้เป็นการลบข้อมูลใดๆ — การลบเนื้อหาจะเป็นไปตามข้อยกเว้นในรัฐธรรมนูญ (กลไก F-SOC-003) ไม่ใช่ผ่านแบบฟอร์มนี้",
+  "support_report.file_a_report": "ยื่นรายงาน",
+  "support_report.file_report": "ยื่นรายงาน",
+  "support_report.filed_from": "ยื่นจาก: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "ใช้ภาษาทั่วไปได้ โปรดระบุสิ่งที่คุณคาดหวังและสิ่งที่คุณพบแทน",
+  "support_report.reports_land_in_the_operator_s_support_inb": "รายงานจะถูกส่งไปยังกล่องจดหมายสนับสนุนของผู้ดูแลและถูกจัดกลุ่มตามหมวดหมู่ การรับเรื่องนี้จะไม่มีการแก้ไขหรือลบเนื้อหาด้วยตัวเอง",
+  "support_report.what_happened": "เกิดอะไรขึ้น?",
+  "support_report.what_kind_of_report_is_this": "รายงานนี้เป็นประเภทใด?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "คุณต้องลงชื่อเข้าใช้เพื่อยื่นรายงาน — โปรดเข้าสู่ระบบแล้วกลับมาที่หน้านี้"
+}

@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "வரம்பிற்கு கீழ்",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} அவசரகால முறைகள் அறிவிக்கப்பட்ட பகுதி மற்றும் காலத்திற்குள் மட்டுமே ஒப்படைக்கப்பட்ட எல்லையை விரிவுபடுத்துகின்றன · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "நீதித்துறை reviewing செய்யக்கூடியது · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "வெளியிடுவதற்கு முன் நிராகரிக்கப்பட்டது: {rejection_citation} இந்த உத்தரவு நடைமுறைக்கு வரவில்லை; நிராகரிக்கப்பட்ட முயற்சி பொதுப் பதிவில் உள்ளது."
+}

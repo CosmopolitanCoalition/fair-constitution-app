@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "การเลือกตั้งฝ่ายบริหาร",
+  "election_kind.general": "การเลือกตั้งทั่วไป",
+  "election_kind.judicial": "การเลือกตั้งฝ่ายตุลาการ",
+  "election_kind.org_board_owner": "การเลือกตั้งคณะกรรมการบริหาร (ที่นั่งเจ้าของ)",
+  "election_kind.org_board_worker": "การเลือกตั้งคณะกรรมการบริหาร (ที่นั่งคนงาน)",
+  "election_kind.referendum": "การลงประชามติ",
+  "election_kind.restoration": "การเลือกตั้งเพื่อการฟื้นฟู",
+  "election_kind.special": "การเลือกตั้งซ่อม"
+}

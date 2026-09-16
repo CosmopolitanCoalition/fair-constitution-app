@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Pripojenie sa k klastru",
+  "federation_syncprogress.of_left": "{fmtValue} z {fmtValue2}~{fmtDuration} zostáva",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} záznamov · {fmtNum2} stránokImportovanie zakladateľského dokumentu do databázy…Importovanéčakanie…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Túto stránku môžete opustiť — synchronizácia prebieha na pozadí a v prípade prerušenia sa obnoví."
+}

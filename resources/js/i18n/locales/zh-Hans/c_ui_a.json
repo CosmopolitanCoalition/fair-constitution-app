@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "行星",
+  "adm_chip.level_1": "国家",
+  "adm_chip.level_2": "州 / 省",
+  "adm_chip.level_3": "县",
+  "adm_chip.level_4": "市",
+  "adm_chip.level_5": "乡镇",
+  "adm_chip.level_6": "社区",
+  "citation_line.as_implemented": "已实施",
+  "data_table.caption_scrollable": "{caption} (可滚动)",
+  "data_table.scrollable_table": "可滚动表格",
+  "history_pager.first_page": "第一页",
+  "history_pager.load_error": "无法加载此页面。请重试。",
+  "history_pager.loading": "正在加载记录…",
+  "history_pager.next": "下一页",
+  "history_pager.previous": "上一页"
+}

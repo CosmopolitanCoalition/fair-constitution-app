@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "குழுவில் இணைக்கப்படுகிறது",
+  "federation_syncprogress.of_left": "{fmtValue} இல் {fmtValue2}~{fmtDuration} மீதமுள்ளன",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} பதிவுகள் · {fmtNum2} பக்கங்கள்அடித்தளத்தை தரவுத்தளத்தில் இறக்குகிறது…இறக்குப்பட்டதுகாத்திருக்கிறது…{fmtNum3}/வினாடி",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "நீங்கள் இந்தப் பக்கத்தை விட்டு வெளியேறலாம் — ஒத்திசைவு பின்னணியில் இயங்கும், தடைப்பட்டால் மீண்டும் தொடங்கும்."
+}

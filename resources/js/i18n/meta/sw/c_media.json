@@ -1,0 +1,406 @@
+{
+  "audio_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "caption_sample": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "captions_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "captions_off": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "captions_on": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "error.audio": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "error.captions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "error.retry_audio": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "error.retry_captions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "error.retry_video": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "error.video": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "line.audio": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "line.captions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "line.linked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "line.loading_captions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "line.off": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "line.unlinked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "link_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "meta_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "mute": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "narrated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "next_film": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "play_pause": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "port_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "poster_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "previous_film": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "seek": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "select_film": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status.audio_buffering": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status.audio_loading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status.buffering": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status.ended": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status.loading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status.playing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status.playing_no_audio": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status.ready": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status.unavailable": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "status.video_error": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "unmute": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.affiliate-report": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.autocratic-voting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.balance-interests-uniformly": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.coalition-directory": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.committees": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.community": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.community-leader-directory": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.constitutional-order": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.content-creator-directory": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.cosmopolitan-principles": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.cosmopolitan-template1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.cosmopolitan-template2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.discord": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.donors-list": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.driving-reform": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.edit-profile": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.education": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.electoral-systems-compared1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.electoral-systems-compared2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.engage": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.events": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.focus-areas": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.global-community1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.global-community2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.governments": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.individuals": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.initiatives": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.introduction-to-the-coalition1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.introduction-to-the-coalition2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.judiciaries": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.jurisdictions1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.jurisdictions2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.legislatures1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.legislatures2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.legislatures3": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.legitimacy-tests": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.local-coalition-support": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.login": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.manage-account": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.onboarding": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.plurality-voting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.preamble": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.proportional-ranked-choice-voting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.public-profile": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.ranked-choice-voting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.ratification": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.reciprocity": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.regulatory-parity": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.remove-role": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.resources": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.role-history": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.scaling-co-determination": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.shop": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.strategy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.summary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.supporter-directory": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.survey": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.thank-you-and-welcome": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.translations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.volunteer-directory": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video.your-profile": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "volume": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

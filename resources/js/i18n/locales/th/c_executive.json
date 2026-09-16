@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "ต่ำกว่าเกณฑ์",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} วิธีการฉุกเฉินจะขยายขอบเขตการมอบอำนาจเฉพาะภายในพื้นที่และระยะเวลาที่ประกาศเท่านั้น · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "สามารถตรวจสอบโดยฝ่ายตุลาการได้ · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "ถูกปฏิเสธก่อนการออกคำสั่ง: {rejection_citation} คำสั่งไม่มีผลบังคับใช้ ความพยายามที่ถูกปฏิเสธถูกบันทึกไว้ในบันทึกสาธารณะ"
+}

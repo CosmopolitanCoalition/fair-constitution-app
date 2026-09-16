@@ -1,0 +1,22 @@
+{
+  "invite_landing.an_invite_carries_no_power_nobody_gains_a_": "คำเชิญไม่มีผลทางอำนาจ — ไม่มีใครได้รับคะแนนเสียง ที่นั่ง หรือข้อได้เปรียบจากการเชิญคุณ มันเป็นเพียงประตูบานหนึ่ง",
+  "invite_landing.browse_everything_every_place_on_earth_eve": "เรียกดูทุกอย่าง — ทุกสถานที่บนโลก ทุกบันทึก ทุกการเลือกตั้ง และทุกกฎหมาย",
+  "invite_landing.create_an_account": "สร้างบัญชี",
+  "invite_landing.either_way_you_ll_land_right_where_this_li": "ไม่ว่าทางใดคุณจะไปยังจุดที่ลิงก์นี้ชี้ไป — ปลายทางถูกบันทึกไว้แล้ว",
+  "invite_landing.explore_first": "สำรวจก่อน",
+  "invite_landing.is_a_private_room_they_saved_you_a_seat_cr": "{destinationName} เป็นห้องส่วนตัว — พวกเขาจองที่นั่งไว้ให้คุณ สร้างบัญชีเพื่อเข้าใช้งาน",
+  "invite_landing.join_anyway": "เข้าร่วมอยู่ดี",
+  "invite_landing.log_in": "เข้าสู่ระบบ",
+  "invite_landing.look_around_first": "ดูรอบๆ ก่อน",
+  "invite_landing.sign_up_join": "ลงทะเบียนและเข้าร่วม",
+  "invite_landing.step_in": "ก้าวเข้ามา",
+  "invite_landing.step_in_and_see_what_this_is_is_already_op": "ก้าวเข้ามาดูว่านี่คืออะไร — {destinationName} เปิดอยู่แล้ว คุณไม่จำเป็นต้องมีบัญชีเพื่อรับชม",
+  "invite_landing.that_link_is_no_longer_valid_but_the_door_": "ลิงก์นั้นใช้งานไม่ได้แล้ว — แต่ประตูยังเปิดอยู่ ใครก็เข้าร่วมได้",
+  "invite_landing.this_invite_link_has_expired": "ลิงก์คำเชิญนี้หมดอายุแล้ว",
+  "invite_landing.watch_any_public_room_every_hearing_meetin": "รับชมห้องสาธารณะใดก็ได้ — ทุกการไต่สวน การประชุม และการลงคะแนนเกิดขึ้นอย่างเปิดเผย พื้นที่ผู้สังเกตการณ์เปิดให้เข้าชมฟรีเสมอ",
+  "invite_landing.what_you_can_do_right_now": "สิ่งที่คุณทำได้ในตอนนี้",
+  "invite_landing.when_you_want_a_voice_to_speak_on_the_reco": "เมื่อคุณต้องการมีเสียง — เพื่อให้คำให้การ ลงคะแนน หรือลงสมัครรับเลือกตั้ง — ให้สร้างบัญชีและระบุถิ่นที่อยู่ของคุณ การมีถิ่นที่อยู่เป็นข้อกำหนดเพียงอย่างเดียว",
+  "invite_landing.where_this_leads": "จุดหมายของสิ่งนี้",
+  "invite_landing.world_of_statecraft": "World of Statecraft",
+  "invite_landing.you_re_invited": "คุณได้รับคำเชิญ"
+}

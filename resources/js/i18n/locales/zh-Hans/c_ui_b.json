@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "已添加：",
+  "law_diff.label": "法律文本变更",
+  "law_diff.removed": "已删除：",
+  "planned_banner.default_body": "该区域在构建前已设计。目前尚未上线，且不涉及真实资金。",
+  "planned_banner.title": "计划中 — 预览。",
+  "selection_identity.aria_org": "{name} 的组织记录，参考 {id}",
+  "selection_identity.aria_profile": "{name} 的公开资料，参考 {id}",
+  "selection_identity.org_reference": "组织参考：",
+  "selection_identity.organization_record": "组织记录",
+  "selection_identity.profile_reference": "资料参考：",
+  "selection_identity.public_profile": "公开资料"
+}

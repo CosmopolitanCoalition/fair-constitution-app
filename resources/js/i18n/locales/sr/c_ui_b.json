@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "додато:",
+  "law_diff.label": "Измене текста закона",
+  "law_diff.removed": "уклоњено:",
+  "planned_banner.default_body": "Овај део света је дизајниран пре изградње. Ништа овде још није активно и никакв стваран новац не постоји.",
+  "planned_banner.title": "Планирано — преглед.",
+  "selection_identity.aria_org": "Запис организације за {name}, референца {id}",
+  "selection_identity.aria_profile": "Јавни профил за {name}, референца {id}",
+  "selection_identity.org_reference": "Референца организације:",
+  "selection_identity.organization_record": "Запис организације",
+  "selection_identity.profile_reference": "Референца профила:",
+  "selection_identity.public_profile": "Јавни профил"
+}
