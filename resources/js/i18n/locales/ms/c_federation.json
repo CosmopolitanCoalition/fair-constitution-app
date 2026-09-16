@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Menyertai kluster",
+  "federation_syncprogress.of_left": "{fmtValue} daripada {fmtValue2}~{fmtDuration} berbaki",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} rekod · {fmtNum2} halamanMengimport asas ke dalam pangkalan data…Diimportmenunggu…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Anda boleh meninggalkan halaman ini — penyinkronan berjalan di latar belakang dan akan disambung jika terganggu."
+}

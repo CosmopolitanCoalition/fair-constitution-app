@@ -1,0 +1,1970 @@
+{
+  "actions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "amendable_rule": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.add_to_ranking": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.appointed_governor": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.appointments_explained": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.appointments_records": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.board_cycle_default": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.board_cycle_months": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.board_member": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.certification_explained": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.certify_owner": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.certify_worker": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.certifying": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.cgc_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.cgc_no_board": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.chair": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.chair_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.chair_joint_chip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.chair_ranking_recorded": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.chair_re_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.chair_retry_help": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.composition_changed_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.composition_invalid": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.count_rounds": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.default_schedule": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.droop_quota": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.election_in_flight": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.elections_explained": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.eligible_owners": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.eligible_workers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.establish_board": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.establishing_board": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.every_seat_casts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.explanation_optional": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.gold_tick_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.governor_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.initial_owner_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.majority_full_board": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.move_down": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.move_up": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.no_board": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.no_board_banner": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.no_board_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.no_chair_election_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.no_chair_election_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.no_election_scheduled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.no_owner_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.no_owner_election_record": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.no_seated_members": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.no_worker_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.no_worker_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.nomination_days": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.nominations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.nominations_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.open_chair_ballot": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.opening_ballot": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.owner_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.owner_election_explained": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.owner_representative": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.owner_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.owner_track": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.owners_see_ballot": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.page_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.public_chair_ballot": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.quota": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.rank_chair_help": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.rank_member": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.remove": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.required_of_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.round_action": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.schedule_owner": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.schedule_worker": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.seat": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.seated_board_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.settings": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.submit_ranking": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.submitting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.the_board": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.unfilled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.vote_ranked_ballot": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.voting_seat": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.window_count": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.window_nominations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.window_nominations_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.window_ranking": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.window_ranking_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.winner_majority": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.worker_election": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.worker_final_round": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.worker_representation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.worker_representative": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.worker_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.worker_seats_explained": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.worker_threshold": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.worker_track": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.workers_see_ballot": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_elections.your_chair_ranking": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_roster": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.cell_vacant": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.chair_suffix": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.class_governor": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.class_owner_elected": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.class_worker_elected": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.col_member": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.col_seat_type": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.col_status": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.col_term": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.invalid_banner": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.invalid_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.legend": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.legend_counts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.pip_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.seat_type_chair": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.status_expiring": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.status_nominated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.status_removal_requested": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.status_removed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.status_serving": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.status_serving_worker": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.status_term_ended": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.status_vacant": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.term_ends": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.unfilled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board_strip.vacant": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "catalog_reference": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-01": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-02": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-03": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-05": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-06": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-07": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-08": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-09": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-10": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-11": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-12": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-13": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-14": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-15": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-16": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-17": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-18": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-19": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-20": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clock.CLK-21": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "co_det_scale.entity_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "co_det_scale.explorer_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "co_det_scale.meter_aria": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "co_det_scale.meter_aria_entity": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "co_det_scale.next_seat_at": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "co_det_scale.reset_to_live": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "co_det_scale.scales_uniformly": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "configured_default": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional_rule": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.all_departments": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.board_explained": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.board_member_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.board_member_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.board_not_formed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.board_not_formed_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.board_of_governors": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.cgc_public_domain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.charter_oversight": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.consent_vote_eyebrow": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.dossier_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.dossier_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.executive_actions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.filing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.gov_worker_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.grounds_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.grounds_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.investigative_power": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.kind_chief_executive": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.kind_defense": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.kind_justice": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.kind_other": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.kind_state": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.kind_treasury": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.last_filed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.next_due": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.no_cgcs": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.no_nominations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.no_removals": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.no_reporting_interval": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.no_seated_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.no_seated_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.nom_consented": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.nom_ended": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.nom_nominated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.nom_rejected": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.nom_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.nominate_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.nominate_submit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.nomination_pipeline": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.nomination_reopened": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.nominee_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.nominee_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.on_public_record": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.overseen_by": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.oversees": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.published_positions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.removal_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.removal_intro_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.removal_intro_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.removal_intro_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.removal_pending": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.removal_removed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.removal_requests": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.removal_retained": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.removal_submit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.removal_vote_eyebrow": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.reporting_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.reports_register": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.seat_fallback": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.select_seat": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.status_chartered": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.status_consented": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.status_dissolved": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.status_governors_nominated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.status_operating": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.status_oversight_assigned": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.status_rechartered": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.status_removal_requested": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.status_reporting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.term": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.term_schedules": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.terms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department.workers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "equal_board_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "equal_representation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "filed_by": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "first_worker_seat": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ADV-001": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ADV-002": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ADV-003": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ADV-004": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-BOG-001": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-BOG-002": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-CAN-001": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-CAN-002": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-CAN-003": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-CHR-001": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-CHR-002": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-CHR-003": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-CHR-004": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-CHR-005": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-CHR-006": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-EDU-001": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-EDU-002": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ELB-001": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ELB-002": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ELB-003": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ELB-004": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ELB-005": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ELB-006": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ELB-008": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-EXE-001": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-EXE-002": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-EXE-003": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-EXE-004": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-EXE-005": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-001": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-002": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-003": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-004": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-005": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-006": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-007": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-008": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-009": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-010": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-011": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-012": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-013": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-014": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-015": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-016": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-IND-017": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-IND-019": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-IND-020": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-IND-021": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-IND-022": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-IND-023": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-IND-024": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-JDG-001": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-JDG-002": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-JDG-003": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-JDG-004": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-JDG-005": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-JDG-006": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-JDG-007": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-JDG-008": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-JDG-009": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-JDG-010": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-001": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-002": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-003": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-004": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-005": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-006": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-007": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-008": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-009": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-010": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-011": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-012": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-013": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-014": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-015": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-016": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-017": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-018": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-019": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-020": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-021": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-022": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-023": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "form.F-LEG-024": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-025": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-026": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-027": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-028": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-029": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-030": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-031": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-032": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-033": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-034": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-035": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-LEG-036": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ORG-001": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ORG-002": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ORG-003": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ORG-004": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ORG-005": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ORG-006": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ORG-007": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ORG-008": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-ORG-009": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SOC-001": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SOC-002": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SOC-003": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SOC-004": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SPK-001": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SPK-002": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SPK-003": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SPK-004": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SPK-005": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SPK-006": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SPK-007": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SPK-008": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "form.F-SPK-009": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "growing_board_representation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "how_page_works": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "how_seats_calculated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "owner_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "processes": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "reference_codes": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "reference_details": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-00": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-01": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-02": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-03": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-05": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-06": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-07": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-08": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-09": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-10": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-11": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-12": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-13": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-14": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-15": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-16": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-17": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-18": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-19": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-20": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-21": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-22": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-23": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-24": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-25": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-26": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-27": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-28": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-29": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role.R-30": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "roles_explained": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "rule_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setting.election_interval_months": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setting.legislature_max_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setting.legislature_min_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "worker_seats": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "worker_seats_start": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-CIV-01": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-CIV-02": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-CIV-03": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-CIV-04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-CIV-05": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-CIV-06": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-CIV-07": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-CIV-08": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ELE-01": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ELE-02": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ELE-03": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ELE-04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ELE-05": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ELE-06": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ELE-07": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ELE-08": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ELE-09": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ELE-10": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-EXE-01": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-EXE-02": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-EXE-03": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-EXE-04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-EXE-05": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-EXE-06": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-EXE-07": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-EXE-08": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-EXE-09": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUD-01": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUD-02": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUD-03": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUD-04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUD-05": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUD-06": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUD-07": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUD-08": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUD-09": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUR-01": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUR-02": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUR-03": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUR-04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUR-05": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUR-06": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUR-07": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUR-08": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-JUR-09": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-01": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-02": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-03": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-05": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-06": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-07": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-08": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-09": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-10": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-11": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-12": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-13": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-14": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-15": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-16": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-17": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-18": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-19": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-LEG-20": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ORG-01": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ORG-02": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ORG-03": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ORG-04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ORG-05": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ORG-06": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ORG-07": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ORG-08": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ORG-09": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-ORG-10": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-SYS-01": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-SYS-02": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-SYS-03": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-SYS-04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workflow.WF-SYS-05": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "workforce_projection": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "नेव्हिगेशन आणि शिका",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "पूर्ण धडे नियोजित · टप्पा ७ समस्या कळवा",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "या स्क्रीनमागील यंत्रणा",
+  "shellv2_menunav.all_screens_the_full_map": "सर्व स्क्रीन्स — संपूर्ण नकाशा",
+  "shellv2_menunav.requires_planned": "{label} {label2} आवश्यक {prereq} {label3} नियोजित",
+  "shellv2_tourbar.guided_tour": "मार्गदर्शित टूर",
+  "shellv2_tourbar.guided_tour_step_of": "मार्गदर्शित टूर · पायरी {stepNumber} / {total}{title}{blurb}"
+}

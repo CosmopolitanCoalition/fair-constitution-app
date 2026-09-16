@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Извештаите за однесување и правните извештаи се праќаат на преглед. Поднесувањето овде не отстранува ништо — отстранувањето на содржината се следи според уставните исклучоци (механизмот F-SOC-003), никогаш преку оваа форма.",
+  "support_report.file_a_report": "Поднесете извештај",
+  "support_report.file_report": "Поднеси извештај",
+  "support_report.filed_from": "Поднесено од: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Едноставните зборови се во ред. Напишете што очекувавте и што видовте наместо тоа.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Извештаите стигнуваат во сандачето за поддршка на операторот и се сортираат по категории. Овој прием никогаш не уредува ниту отстранува содржина.",
+  "support_report.what_happened": "Што се случи?",
+  "support_report.what_kind_of_report_is_this": "Каков вид на извештај е ова?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Мора да бидете најавени за да поднесете извештај — најавете се и вратете се на оваа страница."
+}

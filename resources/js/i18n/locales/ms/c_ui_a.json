@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planet",
+  "adm_chip.level_1": "Negara",
+  "adm_chip.level_2": "Negeri / Provinsi",
+  "adm_chip.level_3": "Daerah",
+  "adm_chip.level_4": "Perbandaran",
+  "adm_chip.level_5": "Mukim",
+  "adm_chip.level_6": "Kejiranan",
+  "citation_line.as_implemented": "seperti yang dilaksanakan",
+  "data_table.caption_scrollable": "{caption} (boleh skrol)",
+  "data_table.scrollable_table": "Jadual boleh skrol",
+  "history_pager.first_page": "Halaman pertama",
+  "history_pager.load_error": "Halaman ini tidak dapat dimuatkan. Cuba lagi.",
+  "history_pager.loading": "Memuatkan rekod…",
+  "history_pager.next": "Seterusnya",
+  "history_pager.previous": "Sebelumnya"
+}

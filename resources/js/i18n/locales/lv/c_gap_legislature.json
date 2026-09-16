@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "izpildvaras vēlēšanas",
+  "election_kind.general": "vispārējas vēlēšanas",
+  "election_kind.judicial": "tiesu varas vēlēšanas",
+  "election_kind.org_board_owner": "valdes vēlēšanas (īpašnieku vietas)",
+  "election_kind.org_board_worker": "valdes vēlēšanas (strādnieku vietas)",
+  "election_kind.referendum": "referendums",
+  "election_kind.restoration": "atjaunošanas vēlēšanas",
+  "election_kind.special": "laiksnīgas vēlēšanas"
+}

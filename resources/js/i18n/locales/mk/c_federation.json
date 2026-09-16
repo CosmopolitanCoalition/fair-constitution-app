@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Примежување во кластерот",
+  "federation_syncprogress.of_left": "{fmtValue} од {fmtValue2}~{fmtDuration} преостанати",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} записи · {fmtNum2} странициУвезување на основата во базата на податоци…Увезеночекање…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Можете да ја напуштите оваа страница — синхронизацијата се извршува во позадина и продолжува ако биде прекината."
+}

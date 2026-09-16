@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Valstybės valdymo pasaulis",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Kurtojo valdymai — ne programėlės dalis",
+  "shell_devbar.impersonating": "{label} — savistatė {name}",
+  "shell_devbar.residency_tool_civic_residency": "Gyvenamosios vietos įrankis → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Laukiama teismės peržiūros · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Atidaryti nepaprastųjų įgaliojimų kontrolės skydelį"
+}

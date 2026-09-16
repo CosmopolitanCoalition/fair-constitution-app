@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "pilihan raya eksekutif",
+  "election_kind.general": "pilihan raya umum",
+  "election_kind.judicial": "pilihan raya badan kehakiman",
+  "election_kind.org_board_owner": "pilihan raya lembaga (kerusi pemilik)",
+  "election_kind.org_board_worker": "pilihan raya lembaga (kerusi pekerja)",
+  "election_kind.referendum": "referendum",
+  "election_kind.restoration": "pilihan raya pemulihan",
+  "election_kind.special": "pilihan raya khas"
+}

@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Вчитување на космичка адреса…",
+  "cosmicaddresspicker.multiverse": "Мултивселен ▸",
+  "schemaupdatebanner.apply_updates": "Примени ажурирања",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Потребно: {pendingLabel} — примени пред почеток на ETL процесот.",
+  "setupstepper.build_districts": "Креирај изборни единици",
+  "setupstepper.confirm_seat_institutions": "Потврди и назначи институции",
+  "setupstepper.constitutional_defaults": "Уставни стандардни вредности",
+  "setupstepper.cosmic_address": "Космичка адреса",
+  "setupstepper.map_data": "Податоци за мапа",
+  "setupstepper.setup_progress": "Напредок при поставувањето"
+}

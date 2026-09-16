@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Ielādē kosmisko adresi…",
+  "cosmicaddresspicker.multiverse": "Multiversums ▸",
+  "schemaupdatebanner.apply_updates": "Pielietot atjauninājumus",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Obligāti: {pendingLabel} — pielietojiet pirms ETL procesa uzsākšanas.",
+  "setupstepper.build_districts": "Veidot apgabalus",
+  "setupstepper.confirm_seat_institutions": "Apstiprināt un ievietot institūcijas",
+  "setupstepper.constitutional_defaults": "Konstitucionālie noklusējumi",
+  "setupstepper.cosmic_address": "Kosmiskā adrese",
+  "setupstepper.map_data": "Kartes dati",
+  "setupstepper.setup_progress": "Iestādināšanas progress"
+}

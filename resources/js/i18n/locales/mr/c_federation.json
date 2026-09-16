@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "क्लस्टरमध्ये सामील होत आहे",
+  "federation_syncprogress.of_left": "{fmtValue2}~{fmtDuration} पैकी {fmtValue} शिल्लक",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} नोंदी · {fmtNum2} पाने. डेटाबेसमध्ये फाउंडेशन आयात करत आहे…आयात झाले. प्रतीक्षा करत आहे…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "तुम्ही हे पान सोडू शकता — सिंक बॅकग्राउंडमध्ये सुरू राहील आणि व्यत्यय आल्यास पुन्हा सुरू होईल."
+}

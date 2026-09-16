@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Kraunamas kosminis adresas…",
+  "cosmicaddresspicker.multiverse": "Multiversija ▸",
+  "schemaupdatebanner.apply_updates": "Taikyti atnaujinimus",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Būtina: {pendingLabel} — taikykite prieš pradedant ETL procesą.",
+  "setupstepper.build_districts": "Kurti apygardas",
+  "setupstepper.confirm_seat_institutions": "Patvirtinti ir paskirti institucijas",
+  "setupstepper.constitutional_defaults": "Konstituciniai numatymai",
+  "setupstepper.cosmic_address": "Kosminis adresas",
+  "setupstepper.map_data": "Žemėlapio duomenys",
+  "setupstepper.setup_progress": "Konfigūravimo eiga"
+}

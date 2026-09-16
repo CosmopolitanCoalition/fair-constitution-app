@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "pridėta:",
+  "law_diff.label": "Įstatymo teksto pakeitimai",
+  "law_diff.removed": "pašalinta:",
+  "planned_banner.default_body": "Ši pasaulio dalis suprojektuota prieš kūrimą. Čia dar niekas nėra veikiama ir nėra jokių realių pinigų.",
+  "planned_banner.title": "Suplanuota — peržiūra.",
+  "selection_identity.aria_org": "Organizacijos įrašas {name}, nuoroda {id}",
+  "selection_identity.aria_profile": "Viešas profilis {name}, nuoroda {id}",
+  "selection_identity.org_reference": "Organizacijos nuoroda:",
+  "selection_identity.organization_record": "Organizacijos įrašas",
+  "selection_identity.profile_reference": "Profilio nuoroda:",
+  "selection_identity.public_profile": "Viešas profilis"
+}

@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Pievienošanās klusterim",
+  "federation_syncprogress.of_left": "{fmtValue} no {fmtValue2}~{fmtDuration} atlikušo",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} ieraksti · {fmtNum2} lapasImportējam pamatu datubāzē…Importētsgaidāšana…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Šo lapu var pamest — sinhronizācija notiek fonā un tiek atsākta, ja tā tiek pārtraukta."
+}

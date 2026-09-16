@@ -1,0 +1,990 @@
+{
+  "index.complete_walkthrough": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.eyebrow": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.first_visit_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.first_visit_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.head_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.intro_a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.intro_b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.intro_backnext": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.intro_cite": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.lr_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.pick_step": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.start_tour": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "index.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.create_account": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.expired_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.expired_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.explore_first": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.head_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.heading_invited": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.heading_invited_by": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.honest_browse_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.honest_browse_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.honest_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.honest_voice_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.honest_voice_link": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.honest_voice_mid": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.honest_voice_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.honest_watch_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.honest_watch_strong": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.invite_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.join_anyway": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.kind_call": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.kind_commons": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.kind_default": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.kind_proceeding": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.kind_space": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.land_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.log_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.look_around": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.member_many": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.member_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.open_intro_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.open_intro_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.private_pill": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.public_pill": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.roster_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.signup_join": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.space_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.step_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "landing.where_leads": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.account_signin": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.continue_to": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.create_account": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.eyebrow": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.field_email": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.field_password": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.head_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.headed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.invited_prefix": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.invited_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.land_there": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.log_in_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.new_here": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.signing_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.stay_signed_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "login.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.action_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.back_all": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.current_revision": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.error_generic": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.filing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.form_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.ip_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.minutes_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.module_key_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.notice_filed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.opt_publish": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.opt_revise": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.page_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.preview": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.select_surface": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.select_track": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.status_draft": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.status_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.status_live": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.submit_republish": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.submit_revise": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.surface_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.title_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_edit.track_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.action_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.error_generic": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.filing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.form_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.gloss": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.ip_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.minutes_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.module_key_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.modules_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.next_modules": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.no_modules": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.notice_filed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.opt_publish": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.opt_revise": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.page_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.preview": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.published_by": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.revision": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.select_surface": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.select_track": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.status_draft": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.status_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.status_live": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.submit_publish": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.submit_revise": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.surface_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material_manager.title_label": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "material_manager.track_label": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "operator_login.account": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "operator_login.back_link": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "operator_login.eyebrow": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "operator_login.field_password": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "operator_login.field_username": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "operator_login.head_title": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "operator_login.intro": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "operator_login.sign_in_btn": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "operator_login.signing_in": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "operator_login.title": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.continue_to": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.create_btn": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.creating": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.errors_body": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.errors_title": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.eyebrow": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.field_confirm": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.field_email": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.field_password": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.have_account": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.head_title": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.headed": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.intro": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.intro_cite": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.invited_prefix": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.invited_title": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.land_after": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.lang_hint": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.lang_label": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.lifecycle_gloss": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.lifecycle_h": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.log_in": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.name_hint": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.name_hint_invite": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.name_label": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.name_label_invite": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.reg_cite": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.reg_desc": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "register.reg_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "register.terms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "register.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "register.tz_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "register.tz_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.about": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.abuse_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.body_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.body_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.category_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.file_report": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.filed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.filed_from": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.goes_to": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.guest_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.guest_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.log_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.page_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.see_filed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.subject_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.subject_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "report.submit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.back_to_queue": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.back_to_reports": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.default_subject": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.filed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.filed_by": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.from_page": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.last_update": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.page_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.report_card": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.route_moderation_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.route_moderation_text": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.route_translation_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.route_translation_text": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.routed_to": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.save": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.severity_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.severity_none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.status_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.triage": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ticket.triage_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.col_kind": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.col_ref": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.col_routed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.col_status": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.col_subject": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.col_updated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.file_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.filter": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.intro_operator": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.intro_self": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.kind_all": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.kind_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.new_report": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.no_match": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.no_subject": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.of_total": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.off_queue": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.status_all": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.status_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.status_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.still_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.table_caption": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.title_operator": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tickets.title_self": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.about_1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.about_2_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.about_2_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.count_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.empty": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.films_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.head_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.track_meta": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "video_library.translation_workspace": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

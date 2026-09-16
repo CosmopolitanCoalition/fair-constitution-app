@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "vykdomosios valdžios rinkimai",
+  "election_kind.general": "bendrieji rinkimai",
+  "election_kind.judicial": "teisminės valdžios rinkimai",
+  "election_kind.org_board_owner": "valdybos rinkimai (savininkų vietoms)",
+  "election_kind.org_board_worker": "valdybos rinkimai (darbuotojų vietoms)",
+  "election_kind.referendum": "referendumas",
+  "election_kind.restoration": "atkūrimo rinkimai",
+  "election_kind.special": "specialūs rinkimai"
+}

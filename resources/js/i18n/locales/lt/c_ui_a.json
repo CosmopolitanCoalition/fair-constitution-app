@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planeta",
+  "adm_chip.level_1": "Šalis",
+  "adm_chip.level_2": "Valstija / Provincija",
+  "adm_chip.level_3": "Apygarda",
+  "adm_chip.level_4": "Savivaldybė",
+  "adm_chip.level_5": "Miestelis",
+  "adm_chip.level_6": "Kvartalas",
+  "citation_line.as_implemented": "įgyvendinta",
+  "data_table.caption_scrollable": "{caption} (perriežiamas)",
+  "data_table.scrollable_table": "Perriežiama lentelė",
+  "history_pager.first_page": "Pirmas puslapis",
+  "history_pager.load_error": "Nepavyko įkelti puslapio. Bandykite dar kartą.",
+  "history_pager.loading": "Kraunami įrašai…",
+  "history_pager.next": "Kitas",
+  "history_pager.previous": "Ankslesnis"
+}

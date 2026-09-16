@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Планета",
+  "adm_chip.level_1": "Држава",
+  "adm_chip.level_2": "Област / Провинција",
+  "adm_chip.level_3": "Округ",
+  "adm_chip.level_4": "Општина",
+  "adm_chip.level_5": "Населено место",
+  "adm_chip.level_6": "Маало",
+  "citation_line.as_implemented": "како што е спроведено",
+  "data_table.caption_scrollable": "{caption} (со скролање)",
+  "data_table.scrollable_table": "Табела со скролање",
+  "history_pager.first_page": "Прва страница",
+  "history_pager.load_error": "Оваа страница не може да се вчита. Обидете се повторно.",
+  "history_pager.loading": "Вчитање записи…",
+  "history_pager.next": "Следно",
+  "history_pager.previous": "Претходно"
+}

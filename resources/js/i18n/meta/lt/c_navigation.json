@@ -1,0 +1,462 @@
+{
+  "accessibility": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "achievements": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "advocate-console": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "after_setup": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "agreements": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "amendments": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "atlas": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "audit-chain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bills": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "board-elections": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "bootstrap": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "browse": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "building": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "candidacy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "clocks": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "co-determination": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "committees": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "commons-halls": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "commons-square": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional-challenge": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "constitutional-questions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "coverage": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "coverage-ops": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "department-reporting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "departments": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "disintermediation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "election-board-console": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "elections": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "electoral-kit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "emergency-powers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "end_tour": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "exchange": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive-actions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive-home": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "executive-kit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "federation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "federation-console": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "halls": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "home": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "host": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "join": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "joint-ledgers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "journeys": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary-home": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "judiciary-kit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "jurisdiction-browser": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "juror-view": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "launchpad": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "learn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature-home": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislature-kit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "legislatures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "live-rooms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "market": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "marketplace": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "material-manager": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "my-record": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "onboarding": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "open-ballot": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operator-console": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operator-dns": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operator-home": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operator-identity": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operator-mesh": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operator-moderation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operator-operations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operator-roles": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operator-versioning": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "org-registry": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "org-settings": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "oversight": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "petitions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "place_operations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "primary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-docket": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-records": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "public-square": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ranked-ballot": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "reach": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "referendums": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "relocation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "residency": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "restoration": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "results": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "role-explorer": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "rooms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_build-team": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_chamber": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_courts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_elections": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_executive": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_help": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_market": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_me": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_node": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_organizations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_places": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_records": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "section_rooms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "session-console": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "settings": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setup-wizard": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "speaker-tools": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "stipend": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "styleguide": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "support-report": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "support-tickets": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "term-sync": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tour": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "transfers-conversions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "treasury": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "union-formation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "units": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "vacancy-countback": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "wallet": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

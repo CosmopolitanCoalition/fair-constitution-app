@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Planēta",
+  "adm_chip.level_1": "Valsts",
+  "adm_chip.level_2": "Štatss / Province",
+  "adm_chip.level_3": "Apgabals",
+  "adm_chip.level_4": "Pašvaldība",
+  "adm_chip.level_5": "Pagasts",
+  "adm_chip.level_6": "Apkaime",
+  "citation_line.as_implemented": "tā kā īstenots",
+  "data_table.caption_scrollable": "{caption} (skrolējams)",
+  "data_table.scrollable_table": "Skrolējama tabula",
+  "history_pager.first_page": "Pirmā lapa",
+  "history_pager.load_error": "Šo lapu neizdevās ielādēt. Mēģiniet vēlreiz.",
+  "history_pager.loading": "Ielādē ierakstus…",
+  "history_pager.next": "Tālāk",
+  "history_pager.previous": "Iepriekšējais"
+}

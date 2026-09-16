@@ -1,0 +1,1486 @@
+{
+  "background_jobs_widget.count_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "background_jobs_widget.count_other": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "background_jobs_widget.hide": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "background_jobs_widget.show": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cmd_bar.aria_learn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cmd_bar.aria_nav_learn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cmd_bar.demo": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cmd_bar.demo_as": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cmd_bar.impersonating_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cmd_bar.learn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cmd_bar.menu": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmic_address_picker.coming_soon": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmic_address_picker.level_galactic_region": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmic_address_picker.level_galaxy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmic_address_picker.level_galaxy_group": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmic_address_picker.level_observable_universe": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmic_address_picker.level_star_system": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmic_address_picker.level_supercluster": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmic_address_picker.level_world": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmic_address_picker.load_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmic_address_picker.loading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmic_address_picker.multiverse": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.assume": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.assuming": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.becoming": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.err_assume": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.place_placeholder": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.role_R-04": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.role_R-06": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.role_R-08": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.role_R-09": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.role_R-10": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.role_R-19": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.role_R-20": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.role_R-21": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_assume.role_aria": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_bar.impersonating": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_bar.residency_tool": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_bar.return_to": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.abstain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.ballots_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.bicameral": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.cast_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.every_member": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.file_ballots": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.filed_summary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.filing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.lane_tally": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.lane_type_a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.lane_type_b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.lane_whole": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.n_serving": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.no": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.no_vote_open": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.pick_vote": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.refused": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.tally_line": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.type_a_only": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.type_b_only": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.unscoped": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.vote_is": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.who_ballots": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_chamber_cast.yes": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.advance_coordinator": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.advance_world": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.advanced_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.all_places": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.apply_btn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.col_clock": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.col_due": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.col_place": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.col_window": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.cols_summary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.coord_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.coord_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.coord_term": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.day_unit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.err_clock": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.err_coordinator": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.err_fire": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.fire_now": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.fire_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.fired": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.firing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.follows_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.follows_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.follows_term": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.make_coordinator": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.n_rows": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.not_armed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.nothing_armed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.plan_caption": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.plan_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.plan_timers_due": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.preview": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.preview_again": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.refused_by": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.rows_moved": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.solo": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.soonest_50": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.timers_fired": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_clock_controls.tolerate_skew": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.become": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.count_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.count_other": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.err_return": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.err_switch": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.err_user_list": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.none": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.operator": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.return_self": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.search_placeholder": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_persona_switcher.searching": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_playtest_panels.door_clocks": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_playtest_panels.door_electoral": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_playtest_panels.door_executive": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_playtest_panels.door_judiciary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_playtest_panels.door_legislature": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "dev_playtest_panels.door_simworld": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_playtest_panels.summary_assume": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_playtest_panels.summary_chamber": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_playtest_panels.summary_scenarios": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_playtest_panels.summary_time": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.badge_done": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.badge_failed": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.badge_queued": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.badge_running": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.err_queue": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.intro": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.lights": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.live_output": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.queueing": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.run_output": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.seed_it": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "dev_scenario_presets.unbacked_summary": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "emergency_banner.active": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "emergency_banner.judicial_review": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "emergency_banner.open_dashboard": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "emergency_banner.title": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.accept_flag": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.action_accept_flag": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.action_merge_chain": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.action_prune": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.action_recompute_population": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.action_reimport_boundaries": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.action_reparent": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.action_synthesize_anchor": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.applied": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.cat_displaced_geometry": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.cat_dual_coverage": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.cat_mis_anchored_cluster": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.cat_national_delta_gt5": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.cat_orphaned_rows": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.cat_raster_coverage": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.cat_same_space_chain": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.cat_stray_synthetic": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.detected": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.health_after": {
+    "status": "review",
+    "reason": "provider returned nothing",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.health_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.health_term": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.hover_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.hover_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.last_scan": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.loading_flags": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.loading_repairs": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.locked": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.measures_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.nature_measurement": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.nature_measurement_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.nature_realworld": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.nature_realworld_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.nature_structural": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.nature_structural_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.no_open_flags": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.no_repairs": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.no_status_flags": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.prune_ellipsis": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.reading_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.remedy_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.resolution_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.revert": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.reverted": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.reverting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.run_scan": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.scan_running": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.scan_running_since": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.scanning": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.sev_critical": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.sev_info": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.sev_warning": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.starting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.tab_flags": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.tab_repairs": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.truncated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_flag_queue.why_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.col_level": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.col_populated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.col_populated_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.col_population": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.continue_anyway": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.earth_rollup": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.err_control": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.err_progress": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.err_scan_option": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.eta_hr": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.eta_lt1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.eta_min": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.halt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.hold_actions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.hold_counting": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.hold_paused": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.hold_retries_after_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.hold_retries_after_other": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.hold_retries_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.idle": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.idle_between_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.idle_between_other": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.ingest_complete": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.items_review": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.kind_attribution": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.kind_boundaries": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.kind_rasters": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.level_1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.level_2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.level_3": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.level_4": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.level_5": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.level_6": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.n_failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.n_review": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.needs_review": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.no_workers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.parent_chains": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.paused_pg": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.pct_loaded": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.phase_attribution": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.phase_boundaries": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.phase_enumerating": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.phase_finalizing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.phase_rasters": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.phase_resolving": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.phase_scanning": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.pipeline_phases": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.pop_by_level": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.rerun_scan": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.resolve_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.resume": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.retry_isolated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.review_chip": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.review_then_continue": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.run_scan": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.scan_after_finalize": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.scan_toggle_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.total": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_all_covered": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_all_stamped": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_apportionment": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_block_keys": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_board_missing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_bootstrap_board": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_borders": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_building": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_complete": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_founding_maps": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_gate_refusals": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_legislatures": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_missing": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_seated": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_stamped": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_uncovered": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.wb_unstamped": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.workers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.working": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.world_build": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_pull_panel.world_build_sub": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.accept_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.applying": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.cancel": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.cascade_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.cascade_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.child_count": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.confirm_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.confirm_subtree": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.merge_body_after": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.merge_body_before": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.merge_chain_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.merge_topmost": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.merged_away": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.method": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.method_children": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.method_children_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.method_raster": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.method_raster_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.new_parent_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.note_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.note_placeholder": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.prune_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.prune_juris_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.recompute_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.recompute_juris_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.reparent_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.reparent_move_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.submit_accept": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.submit_apply": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.submit_merge": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.submit_prune": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.submit_prune_subtree": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.suggested_parents": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.survivor": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.synth_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.synth_children_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.synth_name_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.synth_parent_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.title_accept_flag": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.title_merge_chain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.title_prune": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.title_recompute_population": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.title_reparent": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "geodata_repair_modal.title_synthesize_anchor": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "lane_strip.decompose_suffix": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "lane_strip.slice_suffix": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scan_detector_bars.errored": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scan_detector_bars.flag_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scan_detector_bars.flag_other": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scan_detector_bars.hover_hint": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scan_detector_bars.measures_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scan_detector_bars.queued": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scan_detector_bars.reading_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scan_detector_bars.remedy_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scan_detector_bars.stalled": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scan_detector_bars.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "scan_detector_bars.why_label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "schema_update_banner.apply_button": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "schema_update_banner.apply_notice": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "schema_update_banner.pending_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "schema_update_banner.pending_other": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "schema_update_banner.required": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setup_stepper.aria_progress": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setup_stepper.skipped_suffix": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setup_stepper.skipped_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setup_stepper.step_0": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setup_stepper.step_1": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setup_stepper.step_2": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setup_stepper.step_3": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setup_stepper.step_4": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setup_stepper.step_5": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setup_stepper.step_6": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tour_bar.all_steps": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tour_bar.aria": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tour_bar.back": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tour_bar.exit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tour_bar.exploring": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tour_bar.finish": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tour_bar.next": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tour_bar.off_trail": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tour_bar.step_of": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tour_bar.this_page": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

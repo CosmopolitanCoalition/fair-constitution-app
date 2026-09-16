@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Navigacija ir mokymasis",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Visos pamokos Suplanuota · 7 etapas Pranešti apie klaidą",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Šio ekrano mechanizmai",
+  "shellv2_menunav.all_screens_the_full_map": "Visi ekranai — pilna žemėlapis",
+  "shellv2_menunav.requires_planned": "{label} {label2} Reikia {prereq} {label3} Suplanuota",
+  "shellv2_tourbar.guided_tour": "Giduojamas turas",
+  "shellv2_tourbar.guided_tour_step_of": "Giduojamas turas · žingsnis {stepNumber} iš {total}{title}{blurb}"
+}

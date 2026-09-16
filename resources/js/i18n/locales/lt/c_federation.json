@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Prisijungiama prie klasterio",
+  "federation_syncprogress.of_left": "{fmtValue} iš {fmtValue2}~{fmtDuration} liko",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} įrašų · {fmtNum2} puslapiųĮkeliama pagrindas į duomenų bazę…Įkeltalaukiama…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Galite palikti šį puslapį – sinchronizavimas vyksta fone ir resumed, jei buvo nutrauktas."
+}

@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Навигација и учење",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Целосни лекции Планирани · Фаза 7 Пријави проблем",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Механизмот зад овој екран",
+  "shellv2_menunav.all_screens_the_full_map": "Сите екрани — целата мапа",
+  "shellv2_menunav.requires_planned": "{label} {label2} Потребно е {prereq} {label3} Планирано",
+  "shellv2_tourbar.guided_tour": "Водена тура",
+  "shellv2_tourbar.guided_tour_step_of": "Водена тура · чекор {stepNumber} од {total}{title}{blurb}"
+}

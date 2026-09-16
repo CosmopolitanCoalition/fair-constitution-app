@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "कार्यकारी मंडळ निवडणूक",
+  "election_kind.general": "सर्वसाधारण निवडणूक",
+  "election_kind.judicial": "न्यायपालिका निवडणूक",
+  "election_kind.org_board_owner": "मंडळ निवडणूक (मालक जागा)",
+  "election_kind.org_board_worker": "मंडळ निवडणूक (कामगार जागा)",
+  "election_kind.referendum": "सार्वमत",
+  "election_kind.restoration": "पुनर्स्थापना निवडणूक",
+  "election_kind.special": "विशेष निवडणूक"
+}

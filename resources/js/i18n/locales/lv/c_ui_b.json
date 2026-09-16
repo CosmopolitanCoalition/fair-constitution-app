@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "pievienots:",
+  "law_diff.label": "Likuma teksta izmaiņas",
+  "law_diff.removed": "noņemts:",
+  "planned_banner.default_body": "Šī pasaules daļa ir izplānota pirms izveides. Šeit vēl nekas nav aktīvi, un nevienā vietā nav īsta naudas.",
+  "planned_banner.title": "Plānots — priekšskats.",
+  "selection_identity.aria_org": "Organizācijas ieraksts {name}, atsauce {id}",
+  "selection_identity.aria_profile": "Publiskais profils {name}, atsauce {id}",
+  "selection_identity.org_reference": "Organizācijas atsauce:",
+  "selection_identity.organization_record": "Organizācijas ieraksts",
+  "selection_identity.profile_reference": "Profila atsauce:",
+  "selection_identity.public_profile": "Publiskais profils"
+}

@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "избори за извршна власт",
+  "election_kind.general": "општи избори",
+  "election_kind.judicial": "избори за судска власт",
+  "election_kind.org_board_owner": "избори за управен одбор (места за сопственици)",
+  "election_kind.org_board_worker": "избори за управен одбор (места за работници)",
+  "election_kind.referendum": "референдум",
+  "election_kind.restoration": "избори за обнова",
+  "election_kind.special": "вонредни избори"
+}
