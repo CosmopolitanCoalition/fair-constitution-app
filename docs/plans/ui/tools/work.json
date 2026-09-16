@@ -17230,6 +17230,10 @@
         {
           "date": "2026-09-16",
           "note": "PHP gate green 1268c789 (evening, Eastern): 49 tests, 365 assertions in fc_app after three repairs (MediaMeta table probe cached per connection; NavRoleGateParityTest recorded gap pruned per its own instruction; manager test binds the request before the user resolver). Migration applied on box E; config cache re-baked; /videos, /videos/manage, /setup/step/2, /learn and the media status endpoint answer 200 (library empty: 0 of 61 masters). Pushed: main == origin/main. Still open: the operator's docker compose up -d for the new mounts, then a playback check in his Edge."
+        },
+        {
+          "date": "2026-09-16",
+          "note": "Box E plays (evening, Eastern): after his reboot the containers had no media mounts and .env no MEDIA_DIR; the desk copied the website-quality library on the host into public/media/Subjects (61 films, 9,639 files, 54.8 GB, 73 s) which the repo bind mount already serves, and wrote MEDIA_DIR=E:/Subjects to .env for the next recreate. Verified by curl: nginx 200 and 206 with Content-Range on a master, audio/mp4 and text/vtt types, media status 61 of 61 masters with 4,697 audio and 4,697 caption tracks, /videos baseUrl /media with 61 of 61 available. His Edge check of playback is the remaining step."
         }
       ]
     },
@@ -17309,6 +17313,10 @@
         {
           "date": "2026-09-16",
           "note": "Done fafe452c + ce4d3eb9 (evening, Eastern): 95 JS keys + 1 lang key in en (1a01c3be); Gemma pass (translate_run.py --locales all --provider ollama --model gemma4:31b-cloud) filled all 75 locales, zu lacks 1 key (QA skip, reader queue); 313 of 7,200 values identical to English (technical tokens). The gate stays red for a pre-existing reason unrelated to this row: the chrome monolith dicts (resources/js/i18n/<code>.json) exist for 5 locales only, 8,131 failures at HEAD before this campaign."
+        },
+        {
+          "date": "2026-09-16",
+          "note": "Chrome dictionaries (evening, Eastern): the monolithic shell dict resources/js/i18n/<code>.json existed for 5 languages only and AppShellV2 reads 9 of its keys; translate_monolith.py gained --provider ollama --model and generated the 71 missing dictionaries with 0 QA skips (app.name kept as the English brand). Gate C1-missing 8,004 to 123; the rest is the earlier reader-queue residue."
         }
       ]
     }
