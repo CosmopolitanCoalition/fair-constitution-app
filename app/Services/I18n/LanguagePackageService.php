@@ -372,6 +372,73 @@ class LanguagePackageService
         return $count;
     }
 
+    // ── Uploaded packages ──────────────────────────────────────────────────────
+
+    /**
+     * Unpack every zip the operator uploaded into <run>/import/unpacked/, so
+     * the importer's directory walk finds ui/<ns>.json and php/<code>.json.
+     * Defect found 2026-09-15: the card accepted a zip and the job handed the
+     * directory to the importer, which reads *.json only, so a zip imported
+     * nothing. Each entry is written by hand from its stream: an entry whose
+     * name escapes the run (`..`, an absolute path, a drive letter) is refused
+     * and counted, never written. A bare .json upload is left where it is.
+     *
+     * @return array{zips:int, files:int, refused:int}
+     */
+    public function unpackUpload(string $importDir): array
+    {
+        $result = ['zips' => 0, 'files' => 0, 'refused' => 0];
+        $zips = glob(rtrim(str_replace('\\', '/', $importDir), '/') . '/*.zip') ?: [];
+        if ($zips === []) {
+            return $result;
+        }
+        if (! class_exists(\ZipArchive::class)) {
+            throw new \RuntimeException('ext-zip is required to read an uploaded package');
+        }
+
+        $dest = $this->normalize($importDir . '/unpacked');
+        $this->ensureDir($dest);
+
+        foreach ($zips as $zipPath) {
+            $zip = new \ZipArchive();
+            if ($zip->open($zipPath) !== true) {
+                throw new \RuntimeException('could not open the uploaded package: ' . basename($zipPath));
+            }
+            $result['zips']++;
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = str_replace('\\', '/', (string) $zip->getNameIndex($i));
+                if ($name === '' || str_ends_with($name, '/')) {
+                    continue; // a directory entry
+                }
+                if (! str_ends_with(strtolower($name), '.json')) {
+                    continue; // README.txt and anything else: not an import file
+                }
+                $target = $this->normalize($dest . '/' . ltrim($name, '/'));
+                $escapes = preg_match('#(^|/)\.\.(/|$)#', $name) === 1
+                    || str_starts_with($name, '/')
+                    || preg_match('#^[A-Za-z]:#', $name) === 1
+                    || ! str_starts_with($target, $dest . '/');
+                if ($escapes) {
+                    $result['refused']++;
+
+                    continue;
+                }
+                $bytes = $zip->getFromIndex($i);
+                if ($bytes === false) {
+                    $result['refused']++;
+
+                    continue;
+                }
+                $this->ensureDir(dirname($target));
+                file_put_contents($target, $bytes);
+                $result['files']++;
+            }
+            $zip->close();
+        }
+
+        return $result;
+    }
+
     // ── Run records ────────────────────────────────────────────────────────────
 
     private function runRecordPath(string $run): string

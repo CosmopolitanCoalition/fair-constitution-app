@@ -214,6 +214,45 @@ TXT;
         $svc->discardRun('../evil');
     }
 
+    public function test_an_uploaded_zip_is_unpacked_inside_the_run_and_never_outside(): void
+    {
+        if (! class_exists(\ZipArchive::class)) {
+            $this->markTestSkipped('ext-zip absent');
+        }
+        $svc = $this->svc();
+        $importDir = $svc->importDir('run-z');
+        $svc->ensureDir($importDir);
+
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($importDir . '/hi-package.zip', \ZipArchive::CREATE) === true);
+        $zip->addFromString('README.txt', 'not an import file');
+        $zip->addFromString('ui/auth.json', '{"auth_login.log_in":"लॉग इन"}');
+        $zip->addFromString('php/hi.json', '{"Log in":"लॉग इन"}');
+        $zip->addFromString('hi/ui/civic.json', '{"a":"b"}');          // a top folder is fine
+        $zip->addFromString('../evil.json', '{}');                    // escapes: refused
+        $zip->addFromString('ui/../../evil2.json', '{}');             // escapes: refused
+        $zip->close();
+
+        $r = $svc->unpackUpload($importDir);
+        $this->assertSame(['zips' => 1, 'files' => 3, 'refused' => 2], $r);
+        $this->assertFileExists($importDir . '/unpacked/ui/auth.json');
+        $this->assertFileExists($importDir . '/unpacked/php/hi.json');
+        $this->assertFileExists($importDir . '/unpacked/hi/ui/civic.json');
+        $this->assertFileDoesNotExist($importDir . '/unpacked/README.txt');
+        $this->assertFileDoesNotExist($svc->runDir('run-z') . '/evil.json');
+        $this->assertFileDoesNotExist($this->tmp . '/evil.json');
+        $this->assertFileDoesNotExist($this->tmp . '/evil2.json');
+
+        // Idempotent: a retry unpacks again without error.
+        $this->assertSame(['zips' => 1, 'files' => 3, 'refused' => 2], $svc->unpackUpload($importDir));
+
+        // No zip: nothing to do, nothing created.
+        $bare = $svc->importDir('run-b');
+        $svc->ensureDir($bare);
+        $this->assertSame(['zips' => 0, 'files' => 0, 'refused' => 0], $svc->unpackUpload($bare));
+        $this->assertDirectoryDoesNotExist($bare . '/unpacked');
+    }
+
     public function test_requests_round_trip_in_the_store(): void
     {
         $svc = $this->svc();

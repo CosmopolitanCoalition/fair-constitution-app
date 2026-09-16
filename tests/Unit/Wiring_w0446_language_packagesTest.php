@@ -127,6 +127,9 @@ class Wiring_w0446_language_packagesTest extends TestCase
         $this->assertStringContainsString('if parent == "php":', $imp);
         $job = $this->read('app/Jobs/I18n/ImportLanguagePackageJob.php');
         $this->assertStringContainsString('locale: $this->locale', $job);
+        // A zip upload is unpacked inside the run before the importer walks it (defect 2026-09-15).
+        $this->assertStringContainsString('$packages->unpackUpload($target)', $job);
+        $this->assertLessThan(strpos($job, '$packages->importCommand('), strpos($job, '$packages->unpackUpload('), 'unpack comes before the importer');
     }
 
     public function test_the_import_job_writes_one_audit_entry(): void

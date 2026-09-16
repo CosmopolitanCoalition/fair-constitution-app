@@ -60,6 +60,12 @@ class ImportLanguagePackageJob implements ShouldQueue
         ]);
 
         try {
+            // A zip upload is unpacked inside the run first; the importer walks the tree.
+            $unpacked = $packages->unpackUpload($target);
+            if ($unpacked['zips'] > 0) {
+                $packages->writeRun($this->run, ['unpacked' => $unpacked]);
+            }
+
             $cmd = $packages->importCommand($target, dryRun: ! $this->confirm, locale: $this->locale);
             $process = new Process($cmd, base_path());
             $process->setTimeout(self::PROCESS_TIMEOUT_SECONDS);
