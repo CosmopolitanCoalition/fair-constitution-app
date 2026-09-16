@@ -702,7 +702,12 @@ def load(path: Path) -> dict:
 def dump(path: Path, obj: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     ordered = {k: obj[k] for k in sorted(obj)}
-    path.write_text(json.dumps(ordered, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    # LF on every host: the catalogues are LF in the repo, and a Windows host
+    # must not write CRLF into them (2026-09-15 benchmark).
+    with open(path, "w", encoding="utf-8", newline="
+") as fh:
+        fh.write(json.dumps(ordered, ensure_ascii=False, indent=2) + "
+")
 
 
 def glossary_terms(locale: str) -> dict[str, str]:
@@ -1090,8 +1095,11 @@ def main() -> int:
           f"already carried {total_kept}   in {elapsed:.1f}s")
     if total_new and not args.dry_run:
         rate = total_new / max(elapsed, 0.001)
-        print(f"  {rate:.1f} strings/sec  ->  a 3,366-key locale is "
-              f"~{3366 / max(rate, 0.001) / 60:.1f} min at this rate")
+        # `outstanding` was counted before the loop by the loop's own rule; the
+        # old line divided a hard-coded 3,366 (a stale catalogue size).
+        left = max(outstanding - total_new, 0)
+        print(f"  {rate:.1f} strings/sec  ->  {left:,} strings still to translate for [{args.locale}]: "
+              f"~{left / max(rate, 0.001) / 60:.1f} min at this rate")
     if args.dry_run:
         print("\n  dry run — nothing written")
     else:
