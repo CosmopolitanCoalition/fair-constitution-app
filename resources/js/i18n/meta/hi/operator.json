@@ -349,7 +349,8 @@
   },
   "operator_identity.key_fingerprint": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "hindi-full-pass-sample-review wf_7f39ccd3-107"
   },
   "operator_identity.key_generated": {
     "status": "machine",

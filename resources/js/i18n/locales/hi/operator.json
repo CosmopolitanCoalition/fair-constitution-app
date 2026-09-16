@@ -86,7 +86,7 @@
   "operator_identity.enrolment_publishes_a_device_s_public_key_": "नामांकन डिवाइस की सार्वजनिक की प्रकाशित करता है; लिंकिंग एक नए बॉक्स पर पहले से नामांकित की के स्वामित्व को साबित करती है। कोई भी गुप्त जानकारी डिवाइस से बाहर नहीं जाती।",
   "operator_identity.expiredalready_fail_closedsoft_deleted_for": "समाप्त / पहले से ही फेल-क्लोज्ड / फोरेंसिक्स के लिए सॉफ्ट-डिलीट",
   "operator_identity.home_authority_attestsdevice_signs_the_wri": "होम अथॉरिटी सत्यापित करती है / डिवाइस रिट पर हस्ताक्षर करता है / नॉन-होम इंजन सत्यापित करता है / ≤ 24h TTL · एक्सपायरी स्वीप",
-  "operator_identity.key_fingerprint": "की फिंगरप्रिंट",
+  "operator_identity.key_fingerprint": "कुंजी फ़िंगरप्रिंट",
   "operator_identity.key_generated": "की जनरेट की गई {fmtDate}",
   "operator_identity.last_login": "पिछला लॉगिन {fmtDateTime}",
   "operator_identity.mesh_operator_id_not_linked_to_a_mesh_iden": "मेश ऑपरेटर आईडी अभी तक मेश पहचान से नहीं जुड़ी है",

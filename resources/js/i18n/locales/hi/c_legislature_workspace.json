@@ -168,7 +168,7 @@
   "session_console.last_balloting": "पिछला मतपत्र बंद हुआ {outcome} — विफल मतपत्र कभी ऑटो-लूप नहीं होते; नया मतपत्र खोलें (WF-LEG-02)",
   "session_console.minutes_hint": "सार्वजनिक रिकॉर्ड के लिए सील किया गया; गणपूर्ति-पूर्ण सत्र को स्थगित करने से बैठक से CLK-02 पुनः सक्रिय हो जाता है — पुष्टि में पुनः सक्रिय समय-सीमा दिखाई देती है।",
   "session_console.minutes_label": "मिनट्स",
-  "session_console.minutes_sealed": "मिनट्स सील हैं ·",
+  "session_console.minutes_sealed": "कार्यवृत्त सील हैं ·",
   "session_console.motion_adjourn": "स्थगित करें",
   "session_console.motion_other": "अन्य",
   "session_console.motion_procedural": "प्रक्रियात्मक",

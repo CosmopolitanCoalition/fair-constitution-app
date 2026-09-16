@@ -401,7 +401,8 @@
   },
   "education_civic_petition_detail.s1_detail": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "hindi-full-pass-sample-review wf_7f39ccd3-107"
   },
   "education_civic_petition_detail.s1_do": {
     "status": "machine",

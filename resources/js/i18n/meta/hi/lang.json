@@ -5649,7 +5649,8 @@
   },
   "Presider designated (F-SPK-007) — the engine blocks the subject from presiding.": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "hindi-full-pass-sample-review wf_7f39ccd3-107"
   },
   "Private draft saved. Publish it when you are ready to receive offers of help.": {
     "status": "machine",

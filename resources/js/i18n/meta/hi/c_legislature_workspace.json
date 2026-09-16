@@ -677,7 +677,8 @@
   },
   "session_console.minutes_sealed": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "hindi-full-pass-sample-review wf_7f39ccd3-107"
   },
   "session_console.motion_adjourn": {
     "status": "machine",

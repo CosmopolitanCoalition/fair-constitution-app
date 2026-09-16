@@ -789,7 +789,8 @@
   },
   "setup_reviewissuessection.of_jurisdictions_have_population": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "hindi-full-pass-sample-review wf_7f39ccd3-107"
   },
   "setup_reviewissuessection.orphan_jurisdictions": {
     "status": "machine",
@@ -3625,7 +3626,8 @@
   },
   "step5_simulate.timing_civics": {
     "status": "machine",
-    "provider": "ollama"
+    "provider": "review-fix",
+    "source": "hindi-full-pass-sample-review wf_7f39ccd3-107"
   },
   "step5_simulate.timing_claim_next": {
     "status": "machine",
