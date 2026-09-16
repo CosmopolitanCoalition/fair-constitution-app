@@ -244,6 +244,13 @@ class Provider:
             masked.append(m)
             kepts.append(k)
         outs = self._run(masked, target)
+        if len(texts) > 1 and all(o is None for o in outs):
+            # The whole batch failed (a reply that never parsed, or never came).
+            # Bisect: translate each half on its own, so a single poison string
+            # costs itself and not the batch. A batch of one that fails is
+            # genuinely untranslatable by this provider and stays None.
+            half = len(texts) // 2
+            return self.translate_batch(texts[:half], target) + self.translate_batch(texts[half:], target)
         # Edge whitespace is part of the string: a join fragment like " and " or
         # "Approving an adoption admits a " must keep its leading and trailing
         # spaces or the joined sentence runs together (Hindi reviews 2026-09-15,
@@ -923,6 +930,15 @@ def self_test() -> int:
         def _run(self, texts, target):
             return [t.strip() for t in texts]
     check("join fragment keeps its edge spaces", _Echo().translate_batch([" and ", "x "], "hi") == [" and ", "x "])
+    class _Poison(Provider):
+        name = "poison"
+        def _run(self, texts, target):
+            # The whole reply fails whenever the poison string is in the batch.
+            if any("POISON" in t for t in texts):
+                return [None] * len(texts)
+            return [t.upper() for t in texts]
+    got = _Poison().translate_batch(["one", "two", "POISON here", "four"], "xx")
+    check("a poisoned batch bisects to keep its good strings", got == ["ONE", "TWO", None, "FOUR"], str(got))
     m2, k2 = mask(cite)
     check("en-dash citation range masks whole",
           "§" not in m2 and unmask(m2, k2) == cite, m2)
@@ -1110,6 +1126,15 @@ def main() -> int:
             wrote = 0
             for (key, src_text), out in zip(batch, outs):
                 reason = qa(src_text, out, script)
+                if reason:
+                    # One retry alone: the string is the whole request this time.
+                    try:
+                        out2 = provider.translate_batch([src_text], args.locale)[0]
+                    except Exception:  # noqa: BLE001
+                        out2 = None
+                    reason2 = qa(src_text, out2, script)
+                    if reason2 is None:
+                        out, reason = out2, None
                 if reason:
                     total_skip += 1
                     meta.setdefault(key, {}).update(
