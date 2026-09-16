@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "സ്റ്റേറ്റ്ക്രാഫ്റ്റ് ലോകം",
+  "shell_devbar.dev_controls_not_part_of_the_application": "ഡെവ് കൺട്രോളുകൾ — ആപ്ലിക്കേഷന്റെ ഭാഗമല്ല",
+  "shell_devbar.impersonating": "{label} — {name}-നെ അനുകരിക്കുന്നു",
+  "shell_devbar.residency_tool_civic_residency": "താമസം ടൂൾ → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "നീതിന്യായ അവലോകനം pending · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "അടിയന്തര അധികാരം ഡാഷ്ബോർഡ് തുറക്കുക"
+}

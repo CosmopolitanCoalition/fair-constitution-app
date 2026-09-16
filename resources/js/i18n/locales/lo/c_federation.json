@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "ກຳລັງເຂົ້າຮ່ວມກຸ່ມ",
+  "federation_syncprogress.of_left": "ເຫຼືອ {fmtValue} ຈາກ {fmtValue2}~{fmtDuration}",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} ບັນທຶກ · {fmtNum2} ໜ້າກຳລັງນຳເຂົ້າພື້ນຖານເຂົ້າໃນຖານຂໍ້ມູນ…ນຳເຂົ້າສຳເລັດແລ້ວລໍຖ້າ…{fmtNum3}/ວິນາທີ",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "ທ່ານສາມາດອອກຈາກໜ້ານີ້ໄດ້ — ການຊິງຄ໌ຈະເຮັດວຽກຢູ່ເບື້ອງຫຼັງ ແລະ ຈະດຳເນີນຕໍ່ຖ້າຖືກຂັດຈັງຫວະ."
+}

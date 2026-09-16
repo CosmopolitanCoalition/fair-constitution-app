@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "ಕಾರ್ಯಾಂಗ ಚುನಾವಣೆ",
+  "election_kind.general": "ಸಾಮಾನ್ಯ ಚುನಾವಣೆ",
+  "election_kind.judicial": "ನ್ಯಾಯಾಂಗ ಚುನಾವಣೆ",
+  "election_kind.org_board_owner": "ಮಂಡಳಿ ಚುನಾವಣೆ (ಮಾಲೀಕರ ಸ್ಥಾನಗಳು)",
+  "election_kind.org_board_worker": "ಮಂಡಳಿ ಚುನಾವಣೆ (ಕಾರ್ಮಿಕರ ಸ್ಥಾನಗಳು)",
+  "election_kind.referendum": "ಜನಮತಸಂಗ್ರಹ",
+  "election_kind.restoration": "ಪುನಃಸ್ಥಾಪನೆ ಚುನಾವಣೆ",
+  "election_kind.special": "ವಿಶೇಷ ಚುನಾವಣೆ"
+}

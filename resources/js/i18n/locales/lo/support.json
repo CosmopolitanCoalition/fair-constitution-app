@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "ບົດລາຍງານດ້ານການປະພຶດ ແລະ ກົດໝາຍ ຈະຖືກສົ່ງໄປກວດສອບ. ການຍື່ນບົດລາຍງານຢູ່ທີ່ນີ້ ຈະບໍ່ມີການລຶບຂໍ້ມູນໃດໆ — ການລຶບເນື້ອຫາແມ່ນປະຕິບັດຕາມຂໍ້ຍົກເວັ້ນຂອງລັດຖະທຳມະນູນ (ກົນໄກ F-SOC-003), ບໍ່ແມ່ນຜ່ານແບບຟອມນີ້.",
+  "support_report.file_a_report": "ຍື່ນບົດລາຍງານ",
+  "support_report.file_report": "ຍື່ນບົດລາຍງານ",
+  "support_report.filed_from": "ຍື່ນຈາກ: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "ໃຊ້ຄຳສັບທຳມະດາໄດ້. ກະລຸນາລະບຸສິ່ງທີ່ທ່ານຄາດຫວັງ ແລະ ສິ່ງທີ່ທ່ານພົບເຫັນແທນ.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "ບົດລາຍງານຈະຖືກສົ່ງໄປຍັງກ່ອງຂໍ້ຄວາມຊ່ວຍເຫຼືອຂອງຜູ້ດຳເນີນການ ແລະ ຖືກຈັດແບ່ງຕາມໝວດໝູ່. ການຮັບຂໍ້ມູນນີ້ ຈະບໍ່ມີການແກ້ໄຂ ຫຼື ລຶບເນື້ອຫາດ້ວຍຕົນເອງ.",
+  "support_report.what_happened": "ເກີດຫຍັງຂຶ້ນ?",
+  "support_report.what_kind_of_report_is_this": "ບົດລາຍງານນີ້ແມ່ນປະເພດໃດ?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "ທ່ານຕ້ອງເຂົ້າສູ່ລະບົບກ່ອນຈຶ່ງຈະຍື່ນບົດລາຍງານໄດ້ — ກະລຸນາເຂົ້າສູ່ລະບົບ ແລ້ວກັບມາທີ່ໜ້ານີ້."
+}

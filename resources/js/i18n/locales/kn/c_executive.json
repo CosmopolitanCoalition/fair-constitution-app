@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "ಮಿತಿಗಿಂತ ಕಡಿಮೆ",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} ತುರ್ತು ವಿಧಾನಗಳು ನಿಯೋಜಿತ ವ್ಯಾಪ್ತಿಯನ್ನು ಘೋಷಿತ ಪ್ರದೇಶ ಮತ್ತು ಅವಧಿಯೊಳಗೆ ಮಾತ್ರ ವಿಸ್ತರಿಸುತ್ತವೆ · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "ನ್ಯಾಯಾಂಗ ಪರಿಶೀಲನೆಗೆ ಒಳಪಡುವ · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "ಜಾರಿ ಮಾಡುವ ಮೊದಲು ತಿರಸ್ಕರಿಸಲಾಗಿದೆ: {rejection_citation} ಆದೇಶವು ಎಂದಿಗೂ ಜಾರಿಗೆ ಬಂದಿಲ್ಲ; ತಿರಸ್ಕರಿಸಿದ ಪ್ರಯತ್ನವು ಸಾರ್ವಜನಿಕ ದಾಖಲೆಯಲ್ಲಿದೆ."
+}

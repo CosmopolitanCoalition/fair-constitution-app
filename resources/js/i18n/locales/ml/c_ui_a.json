@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "ഗ്രഹം",
+  "adm_chip.level_1": "രാജ്യം",
+  "adm_chip.level_2": "സംസ്ഥാനം / പ്രവിശ്യ",
+  "adm_chip.level_3": "കൗണ്ടി",
+  "adm_chip.level_4": "മുനിസിപ്പാലിറ്റി",
+  "adm_chip.level_5": "ടൗൺഷിപ്പ്",
+  "adm_chip.level_6": "അയൽപക്കങ്ങൾ",
+  "citation_line.as_implemented": "നടപ്പിലാക്കിയതുപോലെ",
+  "data_table.caption_scrollable": "{caption} (സ്ക്രോൾ ചെയ്യാവുന്നത്)",
+  "data_table.scrollable_table": "സ്ക്രോൾ ചെയ്യാവുന്ന പട്ടിക",
+  "history_pager.first_page": "ആദ്യ പേജ്",
+  "history_pager.load_error": "ഈ പേജ് ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല. വീണ്ടും ശ്രമിക്കുക.",
+  "history_pager.loading": "രേഖകൾ ലോഡ് ചെയ്യുന്നു…",
+  "history_pager.next": "അടുത്തത്",
+  "history_pager.previous": "മുമ്പത്തെത്"
+}

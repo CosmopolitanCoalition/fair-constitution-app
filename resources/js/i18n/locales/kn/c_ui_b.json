@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "ಸೇರಿಸಲಾಗಿದೆ:",
+  "law_diff.label": "ಕಾನೂನು ಪಠ್ಯದ ಬದಲಾವಣೆಗಳು",
+  "law_diff.removed": "ತೆಗೆದುಹಾಕಲಾಗಿದೆ:",
+  "planned_banner.default_body": "ವಿಶ್ವದ ಈ ಭಾಗವನ್ನು ನಿರ್ಮಾಣದ ಮೊದಲೇ ವಿನ್ಯಾಸಗೊಳಿಸಲಾಗಿದೆ. ಇಲ್ಲಿ ಯಾವುದೂ ಇನ್ನೂ ಕಾರ್ಯರೂಪಕ್ಕೆ ಬಂದಿಲ್ಲ ಮತ್ತು ಯಾವುದೇ ನೈಜ ಹಣ ಇಲ್ಲ.",
+  "planned_banner.title": "ಯೋಜಿಸಲಾಗಿದೆ — ಒಂದು ಪೂರ್ವನೋಟ.",
+  "selection_identity.aria_org": "{name} ರ ಸಂಸ್ಥೆ ದಾಖಲೆ, ಉಲ್ಲೇಖ {id}",
+  "selection_identity.aria_profile": "{name} ರ ಸಾರ್ವಜನಿಕ ಪ್ರೊಫೈಲ್, ಉಲ್ಲೇಖ {id}",
+  "selection_identity.org_reference": "ಸಂಸ್ಥೆಯ ಉಲ್ಲೇಖ:",
+  "selection_identity.organization_record": "ಸಂಸ್ಥೆಯ ದಾಖಲೆ",
+  "selection_identity.profile_reference": "ಪ್ರೊಫೈಲ್ ಉಲ್ಲೇಖ:",
+  "selection_identity.public_profile": "ಸಾರ್ವಜನಿಕ ಪ್ರೊಫೈಲ್"
+}

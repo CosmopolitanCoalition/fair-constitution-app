@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "ಕ್ಲಸ್ಟರ್‌ಗೆ ಸೇರುತ್ತಿದೆ",
+  "federation_syncprogress.of_left": "{fmtValue} ರಲ್ಲಿ {fmtValue2}~{fmtDuration} ಬಾಕಿ ಇದೆ",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} ದಾಖಲೆಗಳು · {fmtNum2} ಪುಟಗಳು ಡೇಟಾಬೇಸ್‌ಗೆ ಫೌಂಡೇಶನ್ ಅನ್ನು ಆಮದು ಮಾಡಿಕೊಳ್ಳಲಾಗುತ್ತಿದೆ…ಆಮದು ಮಾಡಿಕೊಳ್ಳಲಾಗಿದೆ ಕಾಯಲಾಗುತ್ತಿದೆ…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "ನೀವು ಈ ಪುಟವನ್ನು ಬಿಡಬಹುದು — ಸಿಂಕ್ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ನಡೆಯುತ್ತದೆ ಮತ್ತು ಅಡಚಣೆಯಾದಲ್ಲಿ ಪುನರಾರಂಭವಾಗುತ್ತದೆ."
+}

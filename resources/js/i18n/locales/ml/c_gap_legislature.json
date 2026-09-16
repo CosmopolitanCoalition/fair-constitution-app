@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "ഭരണനിർവഹണ വിഭാഗം തിരഞ്ഞെടുപ്പ്",
+  "election_kind.general": "പൊതു തിരഞ്ഞെടുപ്പ്",
+  "election_kind.judicial": "നീതിന്യായ വിഭാഗം തിരഞ്ഞെടുപ്പ്",
+  "election_kind.org_board_owner": "ബോർഡ് തിരഞ്ഞെടുപ്പ് (ഉടമ സീറ്റുകൾ)",
+  "election_kind.org_board_worker": "ബോർഡ് തിരഞ്ഞെടുപ്പ് (തൊഴിലാളി സീറ്റുകൾ)",
+  "election_kind.referendum": "ഹിതപരിശോധന",
+  "election_kind.restoration": "പുനഃസ്ഥാപന തിരഞ്ഞെടുപ്പ്",
+  "election_kind.special": "പ്രത്യേക തിരഞ്ഞെടുപ്പ്"
+}

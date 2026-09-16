@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "атқарушы билік сайлауы",
+  "election_kind.general": "жалпы сайлау",
+  "election_kind.judicial": "сот билігі сайлауы",
+  "election_kind.org_board_owner": "басқарма сайлауы (иелер орындары)",
+  "election_kind.org_board_worker": "басқарма сайлауы (жұмысшылар орындары)",
+  "election_kind.referendum": "референдум",
+  "election_kind.restoration": "қалпына келтіру сайлауы",
+  "election_kind.special": "арнайы сайлау"
+}

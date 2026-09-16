@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "പരിധിക്ക് താഴെ",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} അടിയന്തര രീതികൾ പ്രഖ്യാപിച്ച പ്രദേശത്തും കാലയളവിലും മാത്രം ചുമതലപ്പെടുത്തിയ പരിധി വിപുലീകരിക്കുന്നു · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "നീതിന്യായ പരിശോധനയ്ക്ക് വിധേയം · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "പുറപ്പെടുവിക്കുന്നതിന് മുൻപ് നിരസിച്ചു: {rejection_citation} ഉത്തരവ് ഒരിക്കലും പ്രാബല്യത്തിൽ വന്നില്ല; നിരസിച്ച ശ്രമം പൊതു രേഖയിലുണ്ട്."
+}

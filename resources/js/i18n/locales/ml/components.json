@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "കോസ്മിക് അഡ്രസ് ലോഡ് ചെയ്യുന്നു…",
+  "cosmicaddresspicker.multiverse": "മൾട്ടിവേഴ്സ് ▸",
+  "schemaupdatebanner.apply_updates": "അപ്‌ഡേറ്റുകൾ നടപ്പിലാക്കുക",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "ആവശ്യം: {pendingLabel} — ETL റൺ തുടങ്ങുന്നതിന് മുൻപ് നടപ്പിലാക്കുക.",
+  "setupstepper.build_districts": "മണ്ഡലങ്ങൾ നിർമ്മിക്കുക",
+  "setupstepper.confirm_seat_institutions": "സ്ഥാപനങ്ങൾ സ്ഥിരീകരിക്കുകയും സീറ്റുകൾ നൽകുകയും ചെയ്യുക",
+  "setupstepper.constitutional_defaults": "ഭരണഘടനാപരമായ ഡിഫോൾട്ടുകൾ",
+  "setupstepper.cosmic_address": "കോസ്മിക് അഡ്രസ്",
+  "setupstepper.map_data": "മാപ്പ് ഡാറ്റ",
+  "setupstepper.setup_progress": "സെറ്റപ്പ് പുരോഗതി"
+}

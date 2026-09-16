@@ -1,0 +1,26 @@
+{
+  "appshell.log_in": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "appshell.log_out": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "appshell.pseudo_en_xa": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "appshell.roles_derived": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "appshell.these_proceedings_are_public_record_art_ii": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "appshell.you_re_viewing_as_a_guest": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

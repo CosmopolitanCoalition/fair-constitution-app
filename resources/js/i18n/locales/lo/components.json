@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "ກຳລັງໂຫຼດທີ່ຢູ່ຈັກກະວານ...",
+  "cosmicaddresspicker.multiverse": "ພຫຸຈັກກະວານ ▸",
+  "schemaupdatebanner.apply_updates": "ນຳໃຊ້ການອັບເດດ",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "ຈຳເປັນ: {pendingLabel} — ໃຫ້ຕິດຕັ້ງກ່ອນເລີ່ມການເຮັດວຽກ ETL.",
+  "setupstepper.build_districts": "ສ້າງເຂດເລືອກຕັ້ງ",
+  "setupstepper.confirm_seat_institutions": "ຢືນຢັນ ແລະ ຈັດສັນບ່ອນນັ່ງໃຫ້ສະຖາບັນ",
+  "setupstepper.constitutional_defaults": "ຄ່າເລີ່ມຕົ້ນຂອງລັດຖະທຳມະນູນ",
+  "setupstepper.cosmic_address": "ທີ່ຢູ່ຈັກກະວານ",
+  "setupstepper.map_data": "ຂໍ້ມູນແຜນທີ່",
+  "setupstepper.setup_progress": "ຄວາມຄືບໜ້າໃນການຕັ້ງຄ່າ"
+}

@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Космикалық мекенжай жүктелуде…",
+  "cosmicaddresspicker.multiverse": "Мультиторт ▸",
+  "schemaupdatebanner.apply_updates": "Жаңартуларды қолдану",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Қажетті: {pendingLabel} — ETL іске қосылғанға дейін қолданыңыз.",
+  "setupstepper.build_districts": "Сайлау округтерін құру",
+  "setupstepper.confirm_seat_institutions": "Растау және мекемелерді орналастыру",
+  "setupstepper.constitutional_defaults": "Конституциялық стандарттар",
+  "setupstepper.cosmic_address": "Космикалық мекенжай",
+  "setupstepper.map_data": "Карта деректері",
+  "setupstepper.setup_progress": "Баптау барысы"
+}

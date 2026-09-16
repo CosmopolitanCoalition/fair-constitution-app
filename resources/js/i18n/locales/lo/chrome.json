@@ -1,0 +1,8 @@
+{
+  "appshell.log_in": "ເຂົ້າສູ່ລະບົບ",
+  "appshell.log_out": "ອອກຈາກລະບົບ",
+  "appshell.pseudo_en_xa": "ນາມແທນ (en-XA)",
+  "appshell.roles_derived": "ບົດບາດ (ທີ່ໄດ້ມາ): {roles}",
+  "appshell.these_proceedings_are_public_record_art_ii": "ຂະບວນການເຫຼົ່ານີ້ແມ່ນ ບັນທຶກສາທາລະນະ (Art. II §2). ລົງທະບຽນເພື່ອມີສ່ວນຮ່ວມ — ສະແດງຄວາມຄິດເຫັນ, ລົງຄະແນນ, ແລະ ສະໝັກຮັບເລືອກຕັ້ງ ເມື່ອ ການຢູ່ອາໄສ ຂອງທ່ານໄດ້ຮັບການຢືນຢັນແລ້ວ.",
+  "appshell.you_re_viewing_as_a_guest": "ທ່ານກຳລັງເບິ່ງໃນຖານະແຂກ"
+}

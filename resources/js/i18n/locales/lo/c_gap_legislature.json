@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "ການເລືອກຕັ້ງອຳນາດບໍລິຫານ",
+  "election_kind.general": "ການເລືອກຕັ້ງທົ່ວໄປ",
+  "election_kind.judicial": "ການເລືອກຕັ້ງອຳນາດຕຸລາການ",
+  "election_kind.org_board_owner": "ການເລືອກຕັ້ງຄະນະບໍລິຫານ (ບ່ອນນັ່ງເຈົ້າຂອງ)",
+  "election_kind.org_board_worker": "ການເລືອກຕັ້ງຄະນະບໍລິຫານ (ບ່ອນນັ່ງຄົນງານ)",
+  "election_kind.referendum": "ການລົງປະຊາມະຕິ",
+  "election_kind.restoration": "ການເລືອກຕັ້ງເພື່ອການຟື້ນຟູ",
+  "election_kind.special": "ການເລືອກຕັ້ງພິເສດ"
+}

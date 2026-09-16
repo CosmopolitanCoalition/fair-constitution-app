@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Мемлекеттік басқару әлемі",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Әзірлеуші бақылауы — қолданбаның бөлігі емес",
+  "shell_devbar.impersonating": "{label} — {name} атын қолдану",
+  "shell_devbar.residency_tool_civic_residency": "Тұрғылықты жер құралы → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Соттық қайта қарау күтуде · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Төтенше өкілеттіктер панелін ашу"
+}

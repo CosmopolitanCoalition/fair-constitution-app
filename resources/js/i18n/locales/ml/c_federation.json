@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "ക്ലസ്റ്ററിൽ ചേരുന്നു",
+  "federation_syncprogress.of_left": "{fmtValue2}~{fmtDuration}-ൽ {fmtValue} ബാക്കി",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} റെക്കോർഡുകൾ · {fmtNum2} പേജുകൾ. ഡാറ്റാബേസിലേക്ക് ഫൗണ്ടേഷൻ ഇംപോർട്ട് ചെയ്യുന്നു… ഇംപോർട്ട് ചെയ്തു. കാത്തിരിക്കുന്നു… {fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "നിങ്ങൾക്ക് ഈ പേജ് വിടാം — സിങ്ക് ബാക്ക്ഗ്രൗണ്ടിൽ നടക്കും, തടസ്സപ്പെട്ടാൽ അത് പുനരാരംഭിക്കുകയും ചെയ്യും."
+}

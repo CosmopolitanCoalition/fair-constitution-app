@@ -1,0 +1,7 @@
+{
+  "surface_aboutsurface.about_this_surface": "ກ່ຽວກັບໜ້ານີ້",
+  "surface_formcard.available_to": "ມີໃຫ້ສຳລັບ {form}",
+  "surface_formcard.submitting": "ກຳລັງສົ່ງ...",
+  "surface_pagescaffold.canonical_forms": "ຮູບແບບມາດຕະຖານ:",
+  "surface_pagescaffold.workflows": "ຂັ້ນຕອນການເຮັດວຽກ: {wf}"
+}

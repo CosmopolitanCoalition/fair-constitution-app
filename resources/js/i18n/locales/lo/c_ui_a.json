@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "ດາວເຄາະ",
+  "adm_chip.level_1": "ປະເທດ",
+  "adm_chip.level_2": "ລັດ / ແຂວງ",
+  "adm_chip.level_3": "ເມືອງ",
+  "adm_chip.level_4": "ເທດສະບານ",
+  "adm_chip.level_5": "ຕຳບົນ",
+  "adm_chip.level_6": "ຍ່ານທີ່ຢູ່",
+  "citation_line.as_implemented": "ຕາມທີ່ໄດ້ຈັດຕັ້ງປະຕິບັດ",
+  "data_table.caption_scrollable": "{caption} (ເລື່ອນໄດ້)",
+  "data_table.scrollable_table": "ຕາຕະລາງທີ່ເລື່ອນໄດ້",
+  "history_pager.first_page": "ໜ້າທຳອິດ",
+  "history_pager.load_error": "ບໍ່ສາມາດໂຫຼດໜ້ານີ້ໄດ້. ກະລຸນາລອງໃໝ່.",
+  "history_pager.loading": "ກຳລັງໂຫຼດຂໍ້ມູນ…",
+  "history_pager.next": "ຖັດໄປ",
+  "history_pager.previous": "ກ່ອນໜ້ານີ້"
+}

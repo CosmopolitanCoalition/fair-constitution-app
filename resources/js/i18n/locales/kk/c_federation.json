@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Кластерге қосылу",
+  "federation_syncprogress.of_left": "{fmtValue} қалды, {fmtValue2}~{fmtDuration} дейін",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} жазба · {fmtNum2} бет. Іргетасты деректер базасына импорттау… Импортталды. күту… {fmtNum3}/с",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Бұл беттен шығуға болады — синхронизация фондық режимде жұмыс істейді және үзілген жағдайда қайта басталады."
+}

@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Планета",
+  "adm_chip.level_1": "Ел",
+  "adm_chip.level_2": "Штат / Провинция",
+  "adm_chip.level_3": "Округ",
+  "adm_chip.level_4": "Муниципалитет",
+  "adm_chip.level_5": "Тауншип",
+  "adm_chip.level_6": "Аудан",
+  "citation_line.as_implemented": "іске асырылғандай",
+  "data_table.caption_scrollable": "{caption} (жылжытуға болады)",
+  "data_table.scrollable_table": "Жылжымалы кесте",
+  "history_pager.first_page": "Бірінші бет",
+  "history_pager.load_error": "Бұл бет жүктелмеді. Қайта көріңіз.",
+  "history_pager.loading": "Жазбалар жүктелуде…",
+  "history_pager.next": "Келесі",
+  "history_pager.previous": "Алдыңғы"
+}

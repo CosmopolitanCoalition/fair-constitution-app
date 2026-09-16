@@ -1,0 +1,22 @@
+{
+  "invite_landing.an_invite_carries_no_power_nobody_gains_a_": "ຄຳເຊີນບໍ່ມີອຳນາດໃດໆ — ບໍ່ມີໃຜໄດ້ຮັບສິດລົງຄະແນນ, ບ່ອນນັ່ງ, ຫຼື ຂໍ້ໄດ້ປຽບຈາກການເຊີນທ່ານ. ມັນເປັນພຽງປະຕູບານໜຶ່ງ.",
+  "invite_landing.browse_everything_every_place_on_earth_eve": "ຊອກຫາທຸກຢ່າງ — ທຸກສະຖານທີ່ໃນໂລກ, ທຸກບັນທຶກ, ທຸກການເລືອກຕັ້ງ, ທຸກກົດໝາຍ.",
+  "invite_landing.create_an_account": "ສ້າງບັນຊີ",
+  "invite_landing.either_way_you_ll_land_right_where_this_li": "ບໍ່ວ່າຈະທາງໃດ ທ່ານຈະໄປຮອດຈຸດທີ່ລິ້ງນີ້ຊີ້ໄປ — ຈຸດໝາຍປາຍທາງຖືກບັນທຶກໄວ້ແລ້ວ.",
+  "invite_landing.explore_first": "ສຳຫຼວດກ່ອນ",
+  "invite_landing.is_a_private_room_they_saved_you_a_seat_cr": "{destinationName} ແມ່ນຫ້ອງສ່ວນຕົວ — ພວກເຂົາໄດ້ຈອງບ່ອນນັ່ງໃຫ້ທ່ານ. ສ້າງບັນຊີເພື່ອເຂົ້າຮ່ວມ.",
+  "invite_landing.join_anyway": "ເຂົ້າຮ່ວມຢູ່ດີ",
+  "invite_landing.log_in": "ເຂົ້າສູ່ລະບົບ",
+  "invite_landing.look_around_first": "ເບິ່ງອ້ອມຂ້າງກ່ອນ",
+  "invite_landing.sign_up_join": "ລົງທະບຽນ ແລະ ເຂົ້າຮ່ວມ",
+  "invite_landing.step_in": "ກ້າວເຂົ້າໄປ",
+  "invite_landing.step_in_and_see_what_this_is_is_already_op": "ກ້າວເຂົ້າໄປເບິ່ງວ່າສິ່ງນີ້ແມ່ນຫຍັງ — {destinationName} ເປີດຢູ່ແລ້ວ. ທ່ານບໍ່ຈຳເປັນຕ້ອງມີບັນຊີເພື່ອເບິ່ງ.",
+  "invite_landing.that_link_is_no_longer_valid_but_the_door_": "ລິ້ງນັ້ນບໍ່ສາມາດໃຊ້ໄດ້ອີກຕໍ່ໄປ — ແຕ່ປະຕູຍັງເປີດຢູ່. ທຸກຄົນສາມາດເຂົ້າຮ່ວມໄດ້.",
+  "invite_landing.this_invite_link_has_expired": "ລິ້ງຄຳເຊີນນີ້ໝົດອາຍຸແລ້ວ",
+  "invite_landing.watch_any_public_room_every_hearing_meetin": "ເບິ່ງຫ້ອງສາທາລະນະໃດກໍໄດ້ — ທຸກການໄຕ່ສວນ, ການປະຊຸມ, ແລະ ການລົງຄະແນນ ແມ່ນເກີດຂຶ້ນຢ່າງເປີດເຜີຍ. ບ່ອນນັ່ງຜູ້ສັງເກດການແມ່ນຟຣີສະເໝີ.",
+  "invite_landing.what_you_can_do_right_now": "ສິ່ງທີ່ທ່ານສາມາດເຮັດໄດ້ໃນຕອນນີ້",
+  "invite_landing.when_you_want_a_voice_to_speak_on_the_reco": "ເມື່ອທ່ານຕ້ອງການມີສຽງ — ເພື່ອໃຫ້ຄຳໃຫ້ການ, ລົງຄະແນນ, ຫຼື ສະໝັກຮັບເລືອກຕັ້ງ — ໃຫ້ສ້າງບັນຊີ ແລະ ລະບຸບ່ອນທີ່ທ່ານຢູ່. ການມີການຢູ່ອາໄສແມ່ນຂໍ້ກຳນົດດຽວທີ່ມີ.",
+  "invite_landing.where_this_leads": "ສິ່ງນີ້ຈະນຳໄປສູ່",
+  "invite_landing.world_of_statecraft": "ໂລກແຫ່ງການປົກຄອງ",
+  "invite_landing.you_re_invited": "ທ່ານໄດ້ຮັບຄຳເຊີນ"
+}

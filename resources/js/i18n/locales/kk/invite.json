@@ -1,0 +1,22 @@
+{
+  "invite_landing.an_invite_carries_no_power_nobody_gains_a_": "Шақыру ешқандай өкілеттік бермейді — шақыру арқылы ешкім дауыс, орын немесе артықшылық алмайды. Бұл жай ғана есік.",
+  "invite_landing.browse_everything_every_place_on_earth_eve": "Барлығын қараңыз — Жер бетіндегі әрбір жерді, әрбір жазбаны, әрбір сайлауды, әрбір заңды.",
+  "invite_landing.create_an_account": "Аккаунт жасау",
+  "invite_landing.either_way_you_ll_land_right_where_this_li": "Қайсысы болса да, сіз осы сілтеме көрсеткен жерге барасыз — ба destination сақталған.",
+  "invite_landing.explore_first": "Алдымен зерттеу",
+  "invite_landing.is_a_private_room_they_saved_you_a_seat_cr": "{destinationName} — бұл жеке бөлме, олар сізге орын қалдырды. Аккаунт жасаңыз да, ішке кіріңіз.",
+  "invite_landing.join_anyway": "Бәрібір қосылу",
+  "invite_landing.log_in": "Кіру",
+  "invite_landing.look_around_first": "Алдымен айналаға қарау",
+  "invite_landing.sign_up_join": "Тіркелу және қосылу",
+  "invite_landing.step_in": "Кіру",
+  "invite_landing.step_in_and_see_what_this_is_is_already_op": "Кіріп, мұның не екенін көріңіз — {destinationName} әлдеқашан ашық. Көру үшін аккаунт қажет емес.",
+  "invite_landing.that_link_is_no_longer_valid_but_the_door_": "Бұл сілтеме енді жарамсыз — бірақ есік әлі ашық. Кез келген адам қосыла алады.",
+  "invite_landing.this_invite_link_has_expired": "Бұл шақыру сілтемесінің мерзімі өтті",
+  "invite_landing.watch_any_public_room_every_hearing_meetin": "Кез келген қоғамдық бөлмені бақылаңыз — әрбір тыңдау, жиналыс және дауыс беру ашық өтеді. Галерея әрқашан тегін.",
+  "invite_landing.what_you_can_do_right_now": "Қазір не істей аласыз",
+  "invite_landing.when_you_want_a_voice_to_speak_on_the_reco": "Егер сізге дауыс керек болса — ресми жазбада сөйлеу, дауыс беру немесе лауазымға үміткер болу үшін — аккаунт жасап, тұрғылықты жеріңізді көрсетіңіз. Бір жерде тұру — жалғыз талап.",
+  "invite_landing.where_this_leads": "Бұл қайда апарады",
+  "invite_landing.world_of_statecraft": "World of Statecraft",
+  "invite_landing.you_re_invited": "Сіз шақырылдыңыз"
+}

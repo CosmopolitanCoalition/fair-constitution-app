@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "ಗ್ರಹ",
+  "adm_chip.level_1": "ದೇಶ",
+  "adm_chip.level_2": "ರಾಜ್ಯ / ಪ್ರಾಂತ್ಯ",
+  "adm_chip.level_3": "ಕೌಂಟಿ",
+  "adm_chip.level_4": "ಮುನ್ಸಿಪಾಲಿಟಿ",
+  "adm_chip.level_5": "ಟೌನ್‌ಶಿಪ್",
+  "adm_chip.level_6": "ನೆಬರ್‌ಹುಡ್",
+  "citation_line.as_implemented": "ಜಾರಿಗೆ ತಂದಂತೆ",
+  "data_table.caption_scrollable": "{caption} (ಸ್ಕ್ರೋಲ್ ಮಾಡಬಹುದಾದ)",
+  "data_table.scrollable_table": "ಸ್ಕ್ರೋಲ್ ಮಾಡಬಹುದಾದ ಕೋಷ್ಟಕ",
+  "history_pager.first_page": "ಮೊದಲ ಪುಟ",
+  "history_pager.load_error": "ಈ ಪುಟವನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "history_pager.loading": "ದಾಖಲೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "history_pager.next": "ಮುಂದಿನ",
+  "history_pager.previous": "ಹಿಂದಿನ"
+}

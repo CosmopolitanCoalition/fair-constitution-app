@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "ಕಾಸ್ಮಿಕ್ ವಿಳಾಸವನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "cosmicaddresspicker.multiverse": "ಮಲ್ಟಿವರ್ಸ್ ▸",
+  "schemaupdatebanner.apply_updates": "ಅಪ್‌ಡೇಟ್‌ಗಳನ್ನು ಅನ್ವಯಿಸಿ",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "ಅಗತ್ಯ: {pendingLabel} — ETL ರನ್ ಪ್ರಾರಂಭಿಸುವ ಮೊದಲು ಅನ್ವಯಿಸಿ.",
+  "setupstepper.build_districts": "ಕ್ಷೇತ್ರಗಳನ್ನು ರಚಿಸಿ",
+  "setupstepper.confirm_seat_institutions": "ದೃಢೀಕರಿಸಿ ಮತ್ತು ಸಂಸ್ಥೆಗಳನ್ನು ನಿಯೋಜಿಸಿ",
+  "setupstepper.constitutional_defaults": "ಸಂವಿಧಾನದ ಪೂರ್ವನಿರ್ಧಾರಗಳು",
+  "setupstepper.cosmic_address": "ಕಾಸ್ಮಿಕ್ ವಿಳಾಸ",
+  "setupstepper.map_data": "ನಕ್ಷೆಯ ದತ್ತಾಂಶ",
+  "setupstepper.setup_progress": "ಸೆಟಪ್ ಪ್ರಗತಿ"
+}

@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "ನಡವಳಿಕೆ ಮತ್ತು ಕಾನೂನು ವರದಿಗಳನ್ನು ಪರಿಶೀಲನೆಗಾಗಿ ಕಳುಹಿಸಲಾಗುತ್ತದೆ. ಇಲ್ಲಿ ವರದಿ ಮಾಡುವುದರಿಂದ ಯಾವುದೇ ವಿಷಯವು ತೆಗೆದುಹಾಕಲ್ಪಡುವುದಿಲ್ಲ — ವಿಷಯದ ತೆಗೆದುಹಾಕುವಿಕೆಯು ಸಂವಿಧಾನದ ಹೊರತಡೆಗಳನ್ನು (F-SOC-003 ಕಾರ್ಯವಿಧಾನ) ಅನುಸರಿಸುತ್ತದೆ, ಈ ಫಾರ್ಮ್ ಅನ್ನು ಅಲ್ಲ.",
+  "support_report.file_a_report": "ವರದಿಯನ್ನು ಸಲ್ಲಿಸಿ",
+  "support_report.file_report": "ವರದಿ ಸಲ್ಲಿಸಿ",
+  "support_report.filed_from": "ಸಲ್ಲಿಸಿದ ಸ್ಥಳ: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "ಸರಳ ಪದಗಳು ಸಾಕು. ನೀವು ಏನನ್ನು ನಿರೀಕ್ಷಿಸಿದ್ದಿರಿ ಮತ್ತು ಬದಲಿಗೆ ಏನನ್ನು ಕಂಡಿರಿ ಎಂಬುದನ್ನು ಸೇರಿಸಿ.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "ವರದಿಗಳು ಆಪರೇಟರ್‌ನ ಬೆಂಬಲ ಇನ್‌ಬಾಕ್ಸ್‌ಗೆ ತಲುಪುತ್ತವೆ ಮತ್ತು ವರ್ಗದ ಆಧಾರದ ಮೇಲೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ. ಈ ಪ್ರಕ್ರಿಯೆಯು ಸ್ವತಃ ಯಾವುದೇ ವಿಷಯವನ್ನು ಸಂಪಾದಿಸುವುದಿಲ್ಲ ಅಥವಾ ತೆಗೆದುಹಾಕುವುದಿಲ್ಲ.",
+  "support_report.what_happened": "ಏನಾಯಿತು?",
+  "support_report.what_kind_of_report_is_this": "ಇದು ಯಾವ ರೀತಿಯ ವರದಿಯಾಗಿದೆ?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "ವರದಿಯನ್ನು ಸಲ್ಲಿಸಲು ನೀವು ಸೈನ್-ಇನ್ ಆಗಿರಬೇಕು — ಲಾಗ್-ಇನ್ ಮಾಡಿ ಮತ್ತು ಈ ಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ."
+}

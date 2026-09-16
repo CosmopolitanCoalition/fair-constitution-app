@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "നാവിഗേഷനും പഠനവും",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "പൂർണ്ണ പാഠങ്ങൾ പ്ലാൻ ചെയ്തു · ഘട്ടം 7 പ്രശ്നം റിപ്പോർട്ട് ചെയ്യുക",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "ഈ സ്ക്രീനിന് പിന്നിലെ പ്രവർത്തനരീതി",
+  "shellv2_menunav.all_screens_the_full_map": "എല്ലാ സ്ക്രീനുകളും — പൂർണ്ണ മാപ്പ്",
+  "shellv2_menunav.requires_planned": "{label} {label2} ആവശ്യമാണ് {prereq} {label3} പ്ലാൻ ചെയ്തു",
+  "shellv2_tourbar.guided_tour": "ഗൈഡഡ് ടൂർ",
+  "shellv2_tourbar.guided_tour_step_of": "ഗൈഡഡ് ടൂർ · ഘട്ടം {stepNumber} / {total}{title}{blurb}"
+}
