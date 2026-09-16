@@ -29,7 +29,8 @@ final class SurfaceMeta
      *     id: string, title: string, module: string, nav: string|null,
      *     roles: list<string>, workflows: list<string>,
      *     forms: list<array{id: string, name: string, alias: string|null, availableTo: list<string>, citation: string|null}>,
-     *     clocks: list<string>, citation: string|null
+     *     clocks: list<string>, citation: string|null,
+     *     video: array{id: string, source: string}|null
      * }
      */
     public static function for(string $id): array
@@ -41,6 +42,14 @@ final class SurfaceMeta
                 "Unknown CGA surface [{$id}] — add it to config/cga/surfaces.php."
             );
         }
+
+        // W-0449 (LE-3) — the assigned Learning Drawer film for this surface,
+        // when the operator has assigned one (media_surface_videos). Null when
+        // there is no assignment. The Learn flyout and the lesson page prefer
+        // this over the authored registry default. Schema-guarded in
+        // MediaMeta::surfaceOverride, so it is null before the media table
+        // exists (fresh box, the sqlite fixture without the media migration).
+        $assigned = MediaMeta::surfaceOverride($id);
 
         // Display strings pass through __() at build time so the shared
         // lang/en.json catalog can translate them. The config file stays raw
@@ -56,6 +65,7 @@ final class SurfaceMeta
             'forms'     => array_map(self::form(...), $record['forms'] ?? []),
             'clocks'    => $record['clocks'] ?? [],
             'citation'  => isset($record['citation']) ? __($record['citation']) : null,
+            'video'     => $assigned === null ? null : ['id' => $assigned, 'source' => 'assigned'],
         ];
     }
 

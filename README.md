@@ -131,6 +131,33 @@ and open the translation board at `/system/translations`: it queues the drafts f
 and each string you confirm or correct is recorded. The languages graded C in the status table
 are the ones that need a reader first.
 
+## Video library
+
+Every screen's Learning Drawer can open a short film, narrated and captioned in **77 languages**
+from one silent master: the Cosmopolitan Coalition website's 61 films, played by the same
+multi-track player the website uses. The app ships the catalog, not the media (54.8 GB at the
+website's quality: 17 GB of video, 38 GB of audio, 72 MB of captions).
+
+**Getting the films onto a box.** Inside the app, the **Map data** step has a **Video library**
+panel. It downloads the films from the public website into your local library, resumes after a
+stop, and can be halted and resumed. It pulls all 61 films by default, or the ones you pick. The
+same panel points the app at a folder you already have: set the library folder (`MEDIA_DIR`), then
+re-run the start script so the containers pick it up. `MEDIA_DIR` is the `Subjects` folder
+itself, laid out as `<Subject>/<Subject>-Silent.mp4`, `<Subject>/audio/<Subject>-<Language>.m4a`
+and `<Subject>/captions/<Subject>-<Language>.vtt`, the website's own layout. A folder that
+already holds that layout plays with no copy at all.
+
+From a shell, the same engine is `php artisan media:pull` (website download, queued), `--sync`
+for a box without a queue worker, `--source=folder --from=/media-source` to copy from a local
+folder mounted through `MEDIA_SOURCE_DIR`, `--status` and `--halt`. Only the website-quality
+files are copied; smaller variants in a source folder are ignored.
+
+**Adding or replacing a film.** `/videos/manage` uploads a silent master, its audio tracks and
+its caption tracks (the language is read from the `-<Language>` filename suffix, or chosen per
+file), and assigns any film to any screen's Learning Drawer. Reading the page is open to
+everyone; uploading and assigning is an operator tool during development. The library itself is
+at `/videos`.
+
 ## Advanced
 
 For people running servers or contributing code — none of this is needed for a normal install:

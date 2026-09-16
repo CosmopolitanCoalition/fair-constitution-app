@@ -107,6 +107,15 @@ class LearnController extends Controller
         $videoId = $this->lessonVideoId($current->surface_id);
         $video = $videoId === null ? null : MediaMeta::for($videoId);
 
+        // The film's source: an operator assignment (media_surface_videos) wins
+        // and is labelled 'assigned' so the lesson hides the demo note. Null
+        // leaves the client to resolve 'surface' vs 'default' from its own
+        // authored registry (lessonContent.js), preserving the K-2 behaviour.
+        $assigned = $current->surface_id !== null
+            ? MediaMeta::surfaceOverride($current->surface_id)
+            : null;
+        $videoSource = ($videoId !== null && $assigned === $videoId) ? 'assigned' : null;
+
         return Inertia::render('Learn/Lesson', [
             'surface' => SurfaceMeta::for('learn/lesson'),
             'track' => ['key' => $trackRow->key, 'title' => $trackRow->title],
@@ -124,6 +133,9 @@ class LearnController extends Controller
             // surface resolves to no film. baseUrl null => the player's poster.
             'video' => $video,
             'videoBaseUrl' => $video === null ? null : MediaMeta::baseUrl(),
+            // LE-3 / W-0449 — where the film came from: 'assigned' (operator
+            // assignment) hides the demo note; null lets the client decide.
+            'videoSource' => $videoSource,
             // W-0432 — the signed-in viewer's saved player prefs + the PUT
             // endpoint. Null for a guest (localStorage-only).
             ...\App\Http\Controllers\Media\VideoPrefsController::pageProps($request),
@@ -149,6 +161,14 @@ class LearnController extends Controller
     {
         if ($surfaceId === null) {
             return null;
+        }
+
+        // W-0449 (LE-3) — an operator assignment (media_surface_videos) wins
+        // over the authored registry. Confirmed against the catalog so a stale
+        // assignment never lets MediaMeta::for() throw onto the lesson page.
+        $assigned = MediaMeta::surfaceOverride($surfaceId);
+        if ($assigned !== null && in_array($assigned, MediaMeta::ids(), true)) {
+            return $assigned;
         }
 
         // Mirror of composables/lessonContent.js LEGACY_SURFACES.

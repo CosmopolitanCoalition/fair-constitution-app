@@ -33,6 +33,10 @@ const props = defineProps({
     // base URL is null in demo mode -> the player renders its own poster.
     video: { type: Object, default: null },
     videoBaseUrl: { type: String, default: null },
+    // LE-3 / W-0449 — where the film came from: 'assigned' (operator
+    // assignment) | 'surface' | 'default' | null. 'assigned' hides the demo
+    // note; null falls back to the authored registry's own label.
+    videoSource: { type: String, default: null },
     // W-0432: the signed-in viewer's saved player prefs + the PUT endpoint.
     // Null for a guest (the player uses localStorage only).
     videoPrefs: { type: Object, default: null },
@@ -46,9 +50,14 @@ const { t, locale } = useI18n({ useScope: 'global' });
 
 const chosen = reactive({});
 const lesson = computed(() => lessonContentFor(props.module.surface_id));
-// The film's source label rides the same registry entry the lesson text does.
-// 'default' means the demo fallback stands in for a not-yet-recorded film.
-const videoIsDefault = computed(() => lesson.value?.video?.source === 'default');
+// The film's source label. An operator assignment ('assigned') is a real film,
+// never the demo note. Otherwise it rides the same authored registry entry the
+// lesson text does: 'default' means the demo fallback stands in for a
+// not-yet-recorded film.
+const videoIsDefault = computed(() =>
+    props.videoSource
+        ? props.videoSource === 'default'
+        : lesson.value?.video?.source === 'default');
 watch(() => props.module.key, () => {
     for (const key of Object.keys(chosen)) delete chosen[key];
 });
@@ -88,7 +97,7 @@ const next = computed(() => {
             <MultiTrackVideoPlayer
                 :key="video.id"
                 :video="video"
-                :base-url="videoBaseUrl"
+                :base-url="video.available ? videoBaseUrl : null"
                 :initial-locale="locale"
                 :server-prefs="videoPrefs"
                 :prefs-endpoint="prefsEndpoint"

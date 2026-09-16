@@ -189,6 +189,20 @@ Route::post('/api/setup/wizard/step2/pull-option', [SetupController::class, 'set
 Route::get('/api/setup/wizard/step2/pull-progress', [SetupController::class, 'geodataPullProgress'])->name('api.setup.step2.pull-progress');
 Route::post('/api/setup/wizard/step2/pull-control', [SetupController::class, 'geodataPullControl'])
     ->middleware('auth')->name('api.setup.step2.pull-control');
+
+// Video library ingestion (W-0448) — status poll + start / control / local-path
+// write, the same posture as the geodata pull above. status is a public GET
+// (read-everywhere); start/control/path write and are auth-gated (the handler
+// additionally requires is_operator, same as saveArchivePath). Lane A fills the
+// controller; the routes are stubbed here so lanes never edit this file at once.
+Route::get('/api/setup/wizard/step2/media', [\App\Http\Controllers\Setup\MediaLibrarySetupController::class, 'status'])
+    ->name('api.setup.step2.media');
+Route::post('/api/setup/wizard/step2/media/pull', [\App\Http\Controllers\Setup\MediaLibrarySetupController::class, 'start'])
+    ->middleware('auth')->name('api.setup.step2.media.pull');
+Route::post('/api/setup/wizard/step2/media/control', [\App\Http\Controllers\Setup\MediaLibrarySetupController::class, 'control'])
+    ->middleware('auth')->name('api.setup.step2.media.control');
+Route::post('/api/setup/wizard/step2/media/path', [\App\Http\Controllers\Setup\MediaLibrarySetupController::class, 'savePath'])
+    ->middleware('auth')->name('api.setup.step2.media.path');
 // Setup v2 — download the pre-baked deployment script package (per OS × solo/join).
 Route::get('/api/setup/deploy-package', [SetupController::class, 'deployPackage'])
     ->middleware('auth')->name('api.setup.deploy-package');
@@ -420,6 +434,15 @@ Route::get('/learn/manage/{module}', [\App\Http\Controllers\Education\MaterialCo
 Route::post('/learn/manage', [\App\Http\Controllers\Education\MaterialController::class, 'store'])
     ->middleware(['auth', 'throttle:30,1'])
     ->name('learn.manage.store');
+// The video manager (W-0449). Reading is open (read-everywhere); uploading and
+// assigning films to surfaces is operator-only (is_operator), enforced by the
+// controller gate (operator ruling 2026-09-16; no R-23). These sit BEFORE the
+// /learn/{track}/{module?} catch-all. Lane B fills the bodies.
+Route::get('/videos/manage', [\App\Http\Controllers\Media\VideoManagerController::class, 'index'])->name('videos.manage');
+Route::post('/videos/manage', [\App\Http\Controllers\Media\VideoManagerController::class, 'store'])
+    ->middleware(['auth', 'throttle:30,1'])->name('videos.manage.store');
+Route::post('/videos/manage/assign', [\App\Http\Controllers\Media\VideoManagerController::class, 'assign'])
+    ->middleware(['auth', 'throttle:30,1'])->name('videos.manage.assign');
 Route::get('/learn/{track}/{module?}', [\App\Http\Controllers\Education\LearnController::class, 'lesson'])
     ->where(['track' => '[a-z0-9_-]+', 'module' => '[a-z0-9_-]+'])
     ->name('learn.lesson');

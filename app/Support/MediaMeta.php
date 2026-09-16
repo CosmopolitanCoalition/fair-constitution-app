@@ -2,6 +2,10 @@
 
 namespace App\Support;
 
+use App\Models\MediaSurfaceVideo;
+use App\Models\MediaVideo;
+use App\Services\Media\MediaLibraryService;
+use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 
 /**
@@ -14,18 +18,40 @@ use InvalidArgumentException;
  * languages.json (so it can never drift from the media on disk). Unknown video
  * ids throw — the same posture as SurfaceMeta.
  *
- * No media ships in the repo. `baseUrl()` is env-driven (CGA_MEDIA_BASE_URL);
- * null means the player renders the labelled poster placeholder and lights up
- * with real playback the moment the operator points it at the media host.
+ * W-0449: uploaded films (media_videos + media_video_tracks) merge on top of
+ * the generated registry. A DB row with the same id WINS, so an operator upload
+ * augments or overrides a registry entry without regenerating the file. Every
+ * record carries `source` ('registry' | 'upload') and `available` (is the
+ * master reachable — always true behind a remote base url, else whether the
+ * file is on disk under the local root).
+ *
+ * W-0448: `baseUrl()` prefers CGA_MEDIA_BASE_URL, else '/media' once the local
+ * library holds at least one master, else null (the player renders the
+ * labelled poster placeholder).
  */
 final class MediaMeta
 {
-    /** The media host base URL, or null (placeholder mode). */
+    /**
+     * The media host base URL, or null (placeholder mode).
+     *
+     * CGA_MEDIA_BASE_URL wins when set (a remote host). Otherwise the local
+     * library serves at '/media' once at least one master is on disk
+     * (nginx serves public/media). Null means no media anywhere yet.
+     */
     public static function baseUrl(): ?string
     {
         $url = config('cga.media.base_url');
+        if (is_string($url) && $url !== '') {
+            return rtrim($url, '/');
+        }
 
-        return is_string($url) && $url !== '' ? rtrim($url, '/') : null;
+        return app(MediaLibraryService::class)->present() ? '/media' : null;
+    }
+
+    /** The library root on disk (delegates to MediaLibraryService). */
+    public static function localRoot(): string
+    {
+        return app(MediaLibraryService::class)->root();
     }
 
     /**
@@ -40,39 +66,179 @@ final class MediaMeta
     }
 
     /**
-     * The whole catalog, each record enriched with the track language table it
-     * needs (so a page can hand one video straight to the player).
+     * The whole catalog (registry + uploaded), each record enriched with its
+     * track language table plus `source` and `available`, so a page can hand
+     * one video straight to the player.
      *
      * @return list<array<string, mixed>>
      */
     public static function all(): array
     {
-        return array_map(self::enrich(...), config('cga.media.videos', []));
+        $base = self::baseUrl();
+
+        return array_map(
+            static fn (array $v): array => self::withAvailability($v, $base),
+            self::catalog()
+        );
     }
 
     /**
-     * One video by id, or throw. Shaped exactly like an all() element.
+     * One video by id (registry or uploaded), or throw. Shaped exactly like an
+     * all() element.
      *
      * @return array<string, mixed>
      */
     public static function for(string $id): array
     {
-        foreach (config('cga.media.videos', []) as $video) {
+        $base = self::baseUrl();
+
+        foreach (self::catalog() as $video) {
             if (($video['id'] ?? null) === $id) {
-                return self::enrich($video);
+                return self::withAvailability($video, $base);
             }
         }
 
         throw new InvalidArgumentException(
             "Unknown media id [{$id}] — regenerate config/cga/media.php "
-            . '(node scripts/i18n/build_media_registry.mjs) or check the id.'
+            . '(node scripts/i18n/build_media_registry.mjs), upload it, or check the id.'
         );
     }
 
-    /** Every registered video id (for the registry cross-check test). */
+    /** Every registered video id (registry + uploaded). */
     public static function ids(): array
     {
-        return array_map(static fn (array $v): string => $v['id'], config('cga.media.videos', []));
+        return array_map(static fn (array $v): string => $v['id'], self::catalog());
+    }
+
+    /**
+     * The assigned film id for a surface, or null. Reads media_surface_videos
+     * (the Learning Drawer override). Schema-guarded so it is null before the
+     * table exists (fresh box, sqlite fixture without the media migration).
+     */
+    public static function surfaceOverride(string $surfaceId): ?string
+    {
+        if (! self::hasTable('media_surface_videos')) {
+            return null;
+        }
+
+        return MediaSurfaceVideo::query()->find($surfaceId)?->video_id;
+    }
+
+    /**
+     * The merged catalog WITHOUT `available` (the raw list MediaLibraryService
+     * reads without triggering baseUrl(), which is what avoids a
+     * baseUrl -> present -> catalog -> baseUrl loop). Registry order is kept;
+     * an uploaded row with the same id replaces the registry record in place;
+     * a new uploaded id appends. Each record carries `source`.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function catalog(): array
+    {
+        $byId = [];
+        $order = [];
+
+        foreach (config('cga.media.videos', []) as $video) {
+            $record = self::enrich($video) + ['source' => 'registry'];
+            $byId[$record['id']] = $record;
+            $order[] = $record['id'];
+        }
+
+        foreach (self::dbRecords() as $record) {
+            if (! isset($byId[$record['id']])) {
+                $order[] = $record['id'];
+            }
+            $byId[$record['id']] = $record; // an uploaded row wins
+        }
+
+        return array_map(static fn (string $id): array => $byId[$id], $order);
+    }
+
+    /**
+     * Uploaded films (media_videos) with their tracks (media_video_tracks),
+     * shaped like an enriched registry record. Schema-guarded (empty before
+     * the media migration runs).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function dbRecords(): array
+    {
+        if (! self::hasTable('media_videos')) {
+            return [];
+        }
+
+        $langs = self::languages();
+        $out = [];
+
+        foreach (MediaVideo::query()->with('tracks')->get() as $video) {
+            $tracks = ['audio' => [], 'captions' => []];
+
+            foreach ($video->tracks as $track) {
+                $meta = $langs[$track->code] ?? null;
+                $bucket = $track->kind === 'captions' ? 'captions' : 'audio';
+                $tracks[$bucket][] = [
+                    'code'   => $track->code,
+                    'name'   => $track->name,
+                    'native' => $meta['native'] ?? $track->name,
+                    'dir'    => $meta['dir'] ?? 'ltr',
+                    'locale' => $meta['locale'] ?? null,
+                ];
+            }
+
+            $slug = (string) $video->slug;
+
+            $out[] = [
+                'id'        => $video->id,
+                'subject'   => $video->subject,
+                'token'     => null,
+                'slug'      => $slug,
+                'master'    => $video->master,
+                'title'     => $video->title ?? $video->subject,
+                'title_key' => 'c_media.video.'.$slug,
+                'summary'   => $video->summary,
+                'poster'    => $video->poster ?? 'learn',
+                'seconds'   => $video->seconds !== null ? (float) $video->seconds : null,
+                'audio'     => $tracks['audio'],
+                'captions'  => $tracks['captions'],
+                'source'    => 'upload',
+            ];
+        }
+
+        return $out;
+    }
+
+    /** Per-request memo of the table probes (SurfaceMeta::for runs on every page). */
+    private static array $tables = [];
+
+    private static function hasTable(string $table): bool
+    {
+        return self::$tables[$table] ??= Schema::hasTable($table);
+    }
+
+    /** Forget the memo (tests that build the tables after the first probe). */
+    public static function forgetTableMemo(): void
+    {
+        self::$tables = [];
+    }
+
+    /**
+     * Attach `available` to a catalog record. A remote base url is always
+     * available; a local (or absent) base url is available only when the
+     * master file is on disk. `source` is preserved (defaulting to registry).
+     *
+     * @param  array<string, mixed>  $video
+     * @return array<string, mixed>
+     */
+    private static function withAvailability(array $video, ?string $base): array
+    {
+        $remote = is_string($base) && preg_match('#^https?://#i', $base) === 1;
+
+        $video['available'] = $remote
+            ? true
+            : app(MediaLibraryService::class)->masterExists($video);
+        $video['source'] = $video['source'] ?? 'registry';
+
+        return $video;
     }
 
     /**

@@ -96,7 +96,7 @@ function pick(id) {
                 v-if="current"
                 :video="current"
                 :playlist="videos"
-                :base-url="baseUrl"
+                :base-url="current.available ? baseUrl : null"
                 :initial-locale="locale"
                 :server-prefs="videoPrefs"
                 :prefs-endpoint="prefsEndpoint"
@@ -123,6 +123,14 @@ function pick(id) {
                     <span class="tk-title">
                         {{ t(v.title_key, v.title) }}
                         <Icon v-if="v.id === currentId" name="play" size="sm" />
+                        <!-- W-0449: an honest "not available" tag when a media
+                             host is configured but this film's master is not on
+                             the server yet. Hidden in poster mode (no baseUrl). -->
+                        <span
+                            v-if="baseUrl && v.available === false"
+                            class="tk-unavailable"
+                            :title="t('c_front.video_library.unavailable_hint', 'This film is not on this server yet.')"
+                        >{{ t('c_front.video_library.unavailable', 'Not available yet') }}</span>
                     </span>
                     <span class="tk-meta">{{ t('c_front.video_library.track_meta', { audio: v.audio.length, captions: v.captions.length }) }}</span>
                 </button>
@@ -131,3 +139,15 @@ function pick(id) {
 
     </PageScaffold>
 </template>
+
+<style scoped>
+/* W-0449: the honest "not available yet" tag in the film list. */
+.tk-unavailable {
+    margin-inline-start: var(--space-2, .5rem);
+    font-size: var(--text-xs, .75rem);
+    color: var(--gov-fg-subtle, #94a3b8);
+    border: 1px solid var(--gov-border, #344054);
+    border-radius: var(--radius-sm, .25rem);
+    padding-inline: .35rem;
+}
+</style>

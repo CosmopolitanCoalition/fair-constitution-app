@@ -102,15 +102,19 @@ const reportHref = computed(() => {
     return '/support/report?ref=' + encodeURIComponent(ref);
 });
 
-/* LE-3: deep-link the video library chip to this surface's assigned film
-   (?v=<id>, preselected by VideoLibraryController). Falls back to the plain
-   library when the surface has no authored entry. The demo note shows only
-   when the fallback film stands in for a not-yet-recorded lesson film. */
+/* LE-3 / W-0449: deep-link the video library chip to this surface's film
+   (?v=<id>, preselected by VideoLibraryController). An operator assignment
+   (surface.video, from media_surface_videos) wins over the authored registry
+   entry; both fall back to the plain library when neither exists. The demo
+   note shows only when the authored fallback film stands in for a
+   not-yet-recorded lesson film AND no assignment overrides it. */
+const assignedVideo = computed(() => surface.value?.video ?? null);
 const videoHref = computed(() => {
-    const id = education.value?.video?.id;
+    const id = assignedVideo.value?.id || education.value?.video?.id;
     return id ? '/videos?v=' + encodeURIComponent(id) : '/videos';
 });
-const videoIsDefault = computed(() => education.value?.video?.source === 'default');
+const videoIsDefault = computed(() =>
+    !assignedVideo.value && education.value?.video?.source === 'default');
 </script>
 
 <template>

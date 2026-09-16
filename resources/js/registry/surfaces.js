@@ -153,6 +153,8 @@ export const SITEMAP = [
         { id: 'learn', label: 'Learn & lessons', icon: 'graduation-cap', href: '/learn', contract: 'learn/learn-home.html' },
         /* R-23 (authoring body's agent) files F-EDU-002 here. Role-gated, so MenuNav shows it live to holders and dead-with-hint to others; the page itself stays readable (read-everywhere) and the engine is the real gate on publish. No mockup rel yet, so contract: null. */
         { id: 'material-manager', label: 'Manage training material', icon: 'file-text', href: '/learn/manage', contract: null, roles: ['R-23'] },
+        /* W-0449 — the video manager. Video publication is an OPERATOR tool, temporary during development (operator ruling 2026-09-16): the row carries NO roles key (the operator-only idiom, like operator/home and system/translations), the page reads for everyone (read-everywhere), and the controller gates upload/assign on is_operator. No mockup rel, so contract: null. */
+        { id: 'video-manager', label: 'Manage videos', icon: 'play', href: '/videos/manage', contract: null },
         { id: 'support-report', label: 'Report an issue', icon: 'flag', href: '/support/report', contract: 'support/report.html' },
         { id: 'support-tickets', label: 'Your reports', icon: 'list-checks', href: '/support/tickets', contract: 'support/tickets.html' },
         { id: 'accessibility', label: 'Accessibility', icon: 'shield', href: '/system/accessibility', contract: 'shared/accessibility.html' },

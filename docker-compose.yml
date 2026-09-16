@@ -51,6 +51,15 @@ services:
       # 10s of GB. Mount the SAME volume the etl writes, read-only, at /data so
       # the detector can see downloaded datasets where they actually land.
       - etl_geodata:/data:ro
+      # THE VIDEO LIBRARY (W-0448). MEDIA_DIR IS the Subjects folder; it is
+      # bind-mounted at public/media/Subjects so nginx serves the films at
+      # /media and the setup pull writes into it. app/horizon/scheduler mount it
+      # read-write (the pull writes); nginx mounts the same dir read-only. Set
+      # MEDIA_DIR=E:/Subjects to serve the operator's local copy with no copy.
+      - ${MEDIA_DIR:-./data/media}:/var/www/html/public/media/Subjects
+      # Optional read-only source for a local-folder pull (--source=folder
+      # --from=/media-source): the operator's existing copy, never written.
+      - ${MEDIA_SOURCE_DIR:-./data/media-source}:/media-source:ro
     environment:
       # Default to dev (local + debug) so Box A's `docker compose up` is unchanged;
       # deploy.sh sets APP_ENV=production / APP_DEBUG=false in .env for a deployed box.
@@ -99,6 +108,9 @@ services:
       # directory and tells the frontend which one to load. Override the
       # host path via PROTOMAPS_DIR in .env when needed.
       - ${PROTOMAPS_DIR:-./data/protomaps}:/var/www/html/public/maps/protomaps:ro
+      # THE VIDEO LIBRARY (W-0448) - same host dir, same container path, read
+      # only. nginx serves the films at /media (docker/nginx/default.conf).
+      - ${MEDIA_DIR:-./data/media}:/var/www/html/public/media/Subjects:ro
     depends_on:
       app:
         condition: service_healthy
@@ -507,6 +519,10 @@ services:
       # Same live-entrypoint override as the app service — see the comment
       # there for the rationale.
       - ./docker/php/entrypoint.sh:/usr/local/bin/fc-entrypoint.sh:ro
+      # THE VIDEO LIBRARY (W-0448) - read-write (the pull job writes) + the
+      # optional read-only local-folder source. See the app service.
+      - ${MEDIA_DIR:-./data/media}:/var/www/html/public/media/Subjects
+      - ${MEDIA_SOURCE_DIR:-./data/media-source}:/media-source:ro
     environment:
       # See the app service: the cap must be IN the env for the lane pool to be memory-bound.
       MEM_HORIZON: ${MEM_HORIZON:-}
@@ -543,6 +559,10 @@ services:
       # Same live-entrypoint override as the app service — see the comment
       # there for the rationale.
       - ./docker/php/entrypoint.sh:/usr/local/bin/fc-entrypoint.sh:ro
+      # THE VIDEO LIBRARY (W-0448) - read-write + the optional read-only
+      # local-folder source. See the app service.
+      - ${MEDIA_DIR:-./data/media}:/var/www/html/public/media/Subjects
+      - ${MEDIA_SOURCE_DIR:-./data/media-source}:/media-source:ro
     environment:
       MEM_HORIZON: ${MEM_HORIZON:-}
     command: php artisan schedule:work

@@ -1685,6 +1685,17 @@ return [
         'roles' => [], 'workflows' => [], 'forms' => [], 'clocks' => [], 'citation' => null,
     ],
 
+    // W-0449 — the video manager: upload films, assign them to surfaces for the
+    // Learning Drawer. Reading is open (read-everywhere). Publication is an
+    // OPERATOR tool, temporary during development (operator ruling 2026-09-16):
+    // the store and assign gate is is_operator ONLY, enforced in the controller.
+    // So the surface carries no role gate (roles => []), the operator-only idiom
+    // (operator/home, system/translations).
+    'learn/video-manager' => [
+        'title' => 'Manage videos', 'module' => 'learn', 'nav' => 'learn',
+        'roles' => [], 'workflows' => [], 'forms' => [], 'clocks' => [], 'citation' => null,
+    ],
+
     'economy/resident-agreements' => [
         'title'     => 'Resident agreements',
         'module'    => 'economy',

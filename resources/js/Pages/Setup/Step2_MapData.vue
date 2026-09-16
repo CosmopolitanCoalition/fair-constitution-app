@@ -349,6 +349,175 @@ function stopFlagPolling() {
     flagPollTimer = null
 }
 
+// ─── Video library (W-0448) ─────────────────────────────────────────────────
+// Self-hosted Coalition films for the Learning Drawer. Polls the media status
+// endpoint every 2 s while a pull runs; the controls SEIZE (halt / resume /
+// retry) exactly like the geodata run controls above.
+const media               = ref(null)
+const mediaSource         = ref('web')     // web | folder
+const mediaFrom           = ref('')        // source folder when mediaSource === 'folder'
+const mediaSubjectMode    = ref('all')     // all | pick
+const mediaSelected       = ref([])        // chosen subject folders
+const mediaBusy           = ref(false)
+const mediaError          = ref('')
+const mediaDirInput       = ref('')
+const mediaSourceDirInput = ref('')
+const savingMediaDir      = ref(false)
+const mediaDirError       = ref('')
+const mediaDirMessage     = ref('')
+const mediaDirCommand     = ref('')
+let mediaPollTimer = null
+// Measured item-completion rate for a rough ETA — an EMA of the items_done
+// delta between polls, never a fabricated bar.
+const mediaRate = { items: 0, at: 0, ips: 0 }
+
+const mediaPull = computed(() => media.value?.pull || null)
+const mediaPullActive = computed(() => !!mediaPull.value && ['running', 'halted'].includes(mediaPull.value.status))
+const mediaHasFilms = computed(() => (media.value?.inventory?.subjects_with_master || 0) > 0)
+const mediaProgressPct = computed(() => {
+    const p = mediaPull.value
+    if (!p || !p.items_total) return 0
+    return Math.min(100, Math.round((p.items_done / p.items_total) * 100))
+})
+const mediaEtaLabel = computed(() => {
+    const p = mediaPull.value
+    if (!p || p.status !== 'running' || mediaRate.ips <= 0) return ''
+    const left = Math.max(0, p.items_total - p.items_done)
+    if (left === 0) return ''
+    return t('c_setup.step2_media.progress_eta', { eta: mediaHumanDuration(left / mediaRate.ips) })
+})
+
+function mediaHumanBytes(n) {
+    n = Number(n) || 0
+    if (n <= 0) return '0 B'
+    const u = ['B', 'KB', 'MB', 'GB', 'TB']
+    const i = Math.min(u.length - 1, Math.floor(Math.log(n) / Math.log(1024)))
+    return `${(n / 1024 ** i).toFixed(1)} ${u[i]}`
+}
+function mediaHumanDuration(secs) {
+    secs = Math.round(secs)
+    if (secs < 90) return `${secs}s`
+    const m = Math.round(secs / 60)
+    if (m < 90) return `${m}m`
+    return `${Math.round(m / 60)}h`
+}
+
+async function fetchMedia() {
+    try {
+        const res = await fetch('/api/setup/wizard/step2/media', {
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' },
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        const p = data.pull
+        if (p && p.status === 'running') {
+            const now = Date.now() / 1000
+            if (mediaRate.at > 0 && now > mediaRate.at) {
+                const inst = (p.items_done - mediaRate.items) / (now - mediaRate.at)
+                if (inst > 0) mediaRate.ips = mediaRate.ips ? mediaRate.ips * 0.6 + inst * 0.4 : inst
+            }
+            mediaRate.items = p.items_done
+            mediaRate.at = now
+        }
+        media.value = data
+        if (mediaDirInput.value === '' && data.env_path) mediaDirInput.value = data.env_path
+        if (mediaPullActive.value && !mediaPollTimer) startMediaPolling()
+        if (!mediaPullActive.value) stopMediaPolling()
+    } catch (e) {
+        // swallow — the next poll retries
+    }
+}
+
+function startMediaPolling() {
+    stopMediaPolling()
+    mediaPollTimer = setInterval(fetchMedia, 2000)
+}
+function stopMediaPolling() {
+    if (mediaPollTimer) clearInterval(mediaPollTimer)
+    mediaPollTimer = null
+}
+
+async function startMediaPull() {
+    mediaError.value = ''
+    if (mediaSource.value === 'folder' && mediaFrom.value.trim() === '') {
+        mediaError.value = t('c_setup.step2_media.err_from_required', 'Enter the source folder to copy from.')
+        return
+    }
+    mediaBusy.value = true
+    try {
+        const body = { source: mediaSource.value }
+        if (mediaSource.value === 'folder') body.from = mediaFrom.value.trim()
+        if (mediaSubjectMode.value === 'pick' && mediaSelected.value.length) body.subjects = mediaSelected.value
+        const res = await csrfFetch('/api/setup/wizard/step2/media/pull', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+            mediaError.value = data.error || t('c_setup.step2_media.err_start', 'Could not start the download.')
+            return
+        }
+        await fetchMedia()
+        startMediaPolling()
+    } catch (e) {
+        mediaError.value = e.message || String(e)
+    } finally {
+        mediaBusy.value = false
+    }
+}
+
+async function mediaControl(action) {
+    mediaError.value = ''
+    try {
+        const res = await csrfFetch('/api/setup/wizard/step2/media/control', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+            mediaError.value = data.error || t('c_setup.step2_media.err_control', 'Could not send the control.')
+        }
+        await fetchMedia()
+        if (mediaPullActive.value) startMediaPolling()
+    } catch (e) {
+        mediaError.value = e.message || String(e)
+    }
+}
+
+async function saveMediaDir() {
+    mediaDirError.value = ''
+    mediaDirMessage.value = ''
+    mediaDirCommand.value = ''
+    const dir = mediaDirInput.value.trim()
+    const src = mediaSourceDirInput.value.trim()
+    if (dir === '' && src === '') {
+        mediaDirError.value = t('c_setup.step2_media.err_folder_required', 'Enter at least one folder path.')
+        return
+    }
+    savingMediaDir.value = true
+    try {
+        const res = await csrfFetch('/api/setup/wizard/step2/media/path', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ media_dir: dir || null, media_source_dir: src || null }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+            mediaDirError.value = data.error || t('c_setup.step2_media.err_save', 'Could not save the folder path.')
+            return
+        }
+        mediaDirMessage.value = data.message || t('c_setup.step2_media.folder_saved', 'Saved. Recreate the containers to apply it, then re-check.')
+        mediaDirCommand.value = data.command || 'docker compose up -d'
+    } catch (e) {
+        mediaDirError.value = e.message || String(e)
+    } finally {
+        savingMediaDir.value = false
+    }
+}
+
 // Save the local host folder(s) into .env via the backend. Needs a
 // container restart (docker compose up -d) to take effect, which the
 // backend tells us via the returned message.
@@ -746,10 +915,12 @@ const startButtonLabel = computed(() => {
 onMounted(() => {
     fetchSources()
     startPolling()
+    fetchMedia()
 })
 onBeforeUnmount(() => {
     stopPolling()
     stopFlagPolling()
+    stopMediaPolling()
 })
 </script>
 
@@ -900,6 +1071,23 @@ onBeforeUnmount(() => {
                             </div>
                             <div class="text-gray-600 text-[11px] font-mono mt-1 break-all">
                                 {{ sources.datasets.protomaps.path }}
+                            </div>
+                        </div>
+
+                        <!-- Video library (W-0448) — self-hosted Coalition films.
+                             Shown once at least one film's master is on disk. -->
+                        <div v-if="mediaHasFilms" class="rounded-md border border-gray-800 bg-gray-950/60 p-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span class="text-white text-sm font-semibold">
+                                    {{ t('c_setup.step2_media.card_title', 'Video library (Coalition films)') }}
+                                </span>
+                            </div>
+                            <div class="text-xs text-emerald-300">
+                                {{ t('c_setup.step2_media.card_films', { n: media.inventory.subjects_with_master, total: media.inventory.subjects_total }) }}
+                            </div>
+                            <div class="text-gray-400 text-[11px] mt-1">
+                                {{ t('c_setup.step2_media.card_tracks', { a: media.inventory.audio_tracks, c: media.inventory.caption_tracks }) }}
                             </div>
                         </div>
                     </div>
@@ -1158,6 +1346,167 @@ onBeforeUnmount(() => {
                         >
                             {{ startButtonLabel }}
                         </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Video library (W-0448) — self-hosted Coalition films for the
+                 Learning Drawer. Website download or local-folder copy, driven
+                 by the same resumable run engine as the geodata pull; the
+                 controls SEIZE (halt / resume / retry). -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
+                <div class="flex items-baseline justify-between mb-1">
+                    <h2 class="text-white font-semibold">{{ t('c_setup.step2_media.heading', 'Video library') }}</h2>
+                    <button type="button" @click="fetchMedia" class="text-xs text-gray-400 hover:text-gray-200">
+                        {{ t('c_setup.step2_media.recheck', 'Re-check') }}
+                    </button>
+                </div>
+                <p class="text-gray-400 text-xs mb-1">
+                    {{ t('c_setup.step2_media.help', 'Coalition films for the Learning Drawer, self-hosted. Pull them into your local library from the website, or copy them from a folder on this computer.') }}
+                </p>
+                <p class="text-gray-400 text-xs mb-4">
+                    {{ t('c_setup.step2_media.size_line', 'All 61 films total about 54.8 GB (video, audio and captions).') }}
+                </p>
+
+                <!-- Source -->
+                <div class="mb-4">
+                    <span class="block text-gray-300 text-xs mb-1">{{ t('c_setup.step2_media.source_label', 'Where to pull from') }}</span>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="flex items-center gap-2 text-gray-200 text-sm">
+                            <input type="radio" value="web" v-model="mediaSource" :disabled="mediaPullActive" />
+                            <span>{{ t('c_setup.step2_media.source_web', 'Download from the website') }}</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-gray-200 text-sm">
+                            <input type="radio" value="folder" v-model="mediaSource" :disabled="mediaPullActive" />
+                            <span>{{ t('c_setup.step2_media.source_folder', 'Copy from a local folder') }}</span>
+                        </label>
+                    </div>
+                    <label v-if="mediaSource === 'folder'" class="block mt-2 max-w-md">
+                        <span class="text-gray-300 text-xs">{{ t('c_setup.step2_media.from_label', 'Source folder to copy from') }}</span>
+                        <input type="text" v-model="mediaFrom" :disabled="mediaPullActive"
+                               :placeholder="t('c_setup.step2_media.from_ph', '/media-source')"
+                               class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700 text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none" />
+                    </label>
+                </div>
+
+                <!-- Subject picker -->
+                <div class="mb-4">
+                    <div class="flex flex-wrap gap-4 mb-1">
+                        <label class="flex items-center gap-2 text-gray-200 text-sm">
+                            <input type="radio" value="all" v-model="mediaSubjectMode" :disabled="mediaPullActive" />
+                            <span>{{ t('c_setup.step2_media.subject_all', 'All films (default)') }}</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-gray-200 text-sm">
+                            <input type="radio" value="pick" v-model="mediaSubjectMode" :disabled="mediaPullActive" />
+                            <span>{{ t('c_setup.step2_media.subject_pick', 'Choose films') }}</span>
+                        </label>
+                    </div>
+                    <select v-if="mediaSubjectMode === 'pick'" multiple v-model="mediaSelected" :disabled="mediaPullActive"
+                            :aria-label="t('c_setup.step2_media.subject_label', 'Films to pull')"
+                            class="w-full max-w-md h-40 bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs text-gray-100 focus:border-blue-500 focus:outline-none">
+                        <option v-for="f in (media?.films || [])" :key="f.subject" :value="f.subject">{{ f.title }}</option>
+                    </select>
+                    <p class="text-gray-400 text-[11px] mt-1">{{ t('c_setup.step2_media.subject_hint', 'Leave on all films to pull the whole library.') }}</p>
+                </div>
+
+                <!-- Download + controls -->
+                <div class="flex items-center gap-3 flex-wrap mb-4 min-w-0 max-w-full">
+                    <button type="button" @click="startMediaPull" :disabled="mediaBusy || mediaPullActive"
+                            class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors">
+                        {{ mediaBusy ? t('c_setup.step2_media.starting', 'Starting…') : t('c_setup.step2_media.download', 'Download') }}
+                    </button>
+                    <button v-if="mediaPull && mediaPull.status === 'running'" type="button" @click="mediaControl('halt')"
+                            class="px-3 py-2 rounded text-sm font-semibold border border-red-700 text-red-200 hover:bg-red-900/40">
+                        {{ t('c_setup.step2_media.halt', 'Halt') }}
+                    </button>
+                    <button v-if="mediaPull && mediaPull.status === 'halted'" type="button" @click="mediaControl('resume')"
+                            class="px-3 py-2 rounded text-sm font-semibold border border-emerald-700 text-emerald-200 hover:bg-emerald-900/40">
+                        {{ t('c_setup.step2_media.resume', 'Resume') }}
+                    </button>
+                    <button v-if="mediaPull && mediaPull.items_failed > 0" type="button" @click="mediaControl('retry_failed')"
+                            class="px-3 py-2 rounded text-sm font-semibold border border-amber-700 text-amber-200 hover:bg-amber-900/40">
+                        {{ t('c_setup.step2_media.retry_failed', 'Retry failed') }}
+                    </button>
+                    <span v-if="mediaError" class="text-red-400 text-xs">{{ mediaError }}</span>
+                </div>
+
+                <!-- Progress -->
+                <div v-if="mediaPull" class="mb-4">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="text-gray-300">
+                            {{ t('c_setup.step2_media.progress_files', { done: mediaPull.items_done, total: mediaPull.items_total }) }}
+                        </span>
+                        <span class="text-gray-400">
+                            {{ mediaPull.status === 'running' ? t('c_setup.step2_media.status_running', 'running')
+                                : mediaPull.status === 'halted' ? t('c_setup.step2_media.status_halted', 'halted')
+                                : mediaPull.status === 'failed' ? t('c_setup.step2_media.status_failed', 'some files failed')
+                                : t('c_setup.step2_media.status_done', 'complete') }}
+                        </span>
+                    </div>
+                    <div role="progressbar"
+                         :aria-valuenow="mediaPull.items_done"
+                         :aria-valuemin="0"
+                         :aria-valuemax="mediaPull.items_total"
+                         :aria-label="t('c_setup.step2_media.progress_label', 'Video library download progress')"
+                         class="h-2 w-full rounded bg-gray-800 overflow-hidden">
+                        <div class="h-full bg-emerald-500" :style="{ width: mediaProgressPct + '%' }"></div>
+                    </div>
+                    <div class="flex items-center gap-3 flex-wrap text-[11px] text-gray-400 mt-1">
+                        <span>{{ t('c_setup.step2_media.progress_bytes', { done: mediaHumanBytes(mediaPull.bytes_done) }) }}</span>
+                        <span v-if="mediaEtaLabel">{{ mediaEtaLabel }}</span>
+                        <span v-if="mediaPull.items_failed > 0" class="text-amber-300">
+                            {{ t('c_setup.step2_media.progress_failed', { n: mediaPull.items_failed }) }}
+                        </span>
+                    </div>
+
+                    <div v-if="mediaPull.current && mediaPull.current.length" class="mt-3">
+                        <p class="text-gray-300 text-xs mb-1">{{ t('c_setup.step2_media.current_heading', 'Downloading now') }}</p>
+                        <ul class="space-y-0.5">
+                            <li v-for="(c, i) in mediaPull.current" :key="i" class="text-[11px] text-gray-400 font-mono break-all">
+                                {{ t('c_setup.step2_media.current_item', { subject: c.subject, kind: c.kind }) }}
+                                <span v-if="c.bytes_expected">{{ mediaHumanBytes(c.bytes_done) }} / {{ mediaHumanBytes(c.bytes_expected) }}</span>
+                                <span v-else>{{ mediaHumanBytes(c.bytes_done) }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Local library folder -->
+                <div class="pt-4 border-t border-gray-800">
+                    <h3 class="text-white text-sm font-semibold mb-1">{{ t('c_setup.step2_media.folder_heading', 'Local library folder') }}</h3>
+                    <p class="text-gray-400 text-xs mb-3">
+                        {{ t('c_setup.step2_media.folder_help', 'MEDIA_DIR is the Subjects folder the app serves films from. MEDIA_SOURCE_DIR is an optional read-only folder a local copy is pulled from.') }}
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label class="block">
+                            <span class="text-gray-300 text-xs">{{ t('c_setup.step2_media.media_dir_label', 'Library folder (MEDIA_DIR)') }}</span>
+                            <input type="text" v-model="mediaDirInput"
+                                   :placeholder="t('c_setup.step2_media.media_dir_ph', 'E:/Subjects')"
+                                   class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700 text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none" />
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-300 text-xs">{{ t('c_setup.step2_media.media_source_label', 'Local source folder (MEDIA_SOURCE_DIR, optional)') }}</span>
+                            <input type="text" v-model="mediaSourceDirInput"
+                                   :placeholder="t('c_setup.step2_media.media_source_ph', '/media-source')"
+                                   class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700 text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none" />
+                        </label>
+                    </div>
+                    <div class="mt-3 flex items-center gap-3">
+                        <button type="button" @click="saveMediaDir" :disabled="savingMediaDir"
+                                class="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white px-4 py-1.5 rounded-md text-sm font-semibold transition-colors">
+                            {{ savingMediaDir ? t('c_setup.step2_media.saving', 'Saving…') : t('c_setup.step2_media.save_folder', 'Save folder path') }}
+                        </button>
+                        <span v-if="mediaDirError" class="text-red-400 text-xs">{{ mediaDirError }}</span>
+                    </div>
+                    <div v-if="mediaDirMessage" class="mt-3 rounded-md border border-emerald-800/70 bg-emerald-900/20 px-3 py-2 text-emerald-200 text-xs">
+                        <p>{{ mediaDirMessage }}</p>
+                        <div v-if="mediaDirCommand" class="mt-2 flex items-center gap-3 flex-wrap">
+                            <code class="select-all inline-block px-2.5 py-1.5 rounded bg-gray-950 border border-emerald-700/60 text-emerald-300 font-mono text-xs" data-no-i18n>{{ mediaDirCommand }}</code>
+                            <button type="button" @click="fetchMedia"
+                                    class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">
+                                {{ t('c_setup.step2_media.recheck', 'Re-check') }}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
