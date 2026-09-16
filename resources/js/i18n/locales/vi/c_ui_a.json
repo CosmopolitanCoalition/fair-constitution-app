@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Hành tinh",
+  "adm_chip.level_1": "Quốc gia",
+  "adm_chip.level_2": "Bang / Tỉnh",
+  "adm_chip.level_3": "Hạt",
+  "adm_chip.level_4": "Đô thị",
+  "adm_chip.level_5": "Xã",
+  "adm_chip.level_6": "Khu phố",
+  "citation_line.as_implemented": "đã được triển khai",
+  "data_table.caption_scrollable": "{caption} (có thể cuộn)",
+  "data_table.scrollable_table": "Bảng có thể cuộn",
+  "history_pager.first_page": "Trang đầu",
+  "history_pager.load_error": "Không thể tải trang này. Hãy thử lại.",
+  "history_pager.loading": "Đang tải hồ sơ…",
+  "history_pager.next": "Tiếp theo",
+  "history_pager.previous": "Trước đó"
+}

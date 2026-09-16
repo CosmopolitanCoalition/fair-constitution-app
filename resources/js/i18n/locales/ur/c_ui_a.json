@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "سیارہ",
+  "adm_chip.level_1": "ملک",
+  "adm_chip.level_2": "ریاست / صوبہ",
+  "adm_chip.level_3": "کاؤنٹی",
+  "adm_chip.level_4": "میونسپلٹی",
+  "adm_chip.level_5": "ٹاؤن شپ",
+  "adm_chip.level_6": "محلہ",
+  "citation_line.as_implemented": "جیسا کہ نافذ کیا گیا",
+  "data_table.caption_scrollable": "{caption} (اسکرول کے قابل)",
+  "data_table.scrollable_table": "اسکرول کے قابل ٹیبل",
+  "history_pager.first_page": "پہلا صفحہ",
+  "history_pager.load_error": "یہ صفحہ لوڈ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+  "history_pager.loading": "ریکارڈ لوڈ ہو رہے ہیں…",
+  "history_pager.next": "اگلا",
+  "history_pager.previous": "پچھلا"
+}

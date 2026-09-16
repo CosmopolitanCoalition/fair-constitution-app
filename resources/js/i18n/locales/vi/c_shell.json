@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Thế giới Quản trị Nhà nước",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Điều khiển cho nhà phát triển — không thuộc ứng dụng",
+  "shell_devbar.impersonating": "{label} — Đang giả danh {name}",
+  "shell_devbar.residency_tool_civic_residency": "Công cụ cư trú → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Đang chờ xem xét tư pháp · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Mở bảng điều khiển quyền hạn khẩn cấp"
+}

@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "Світ державного управління",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Елементи керування розробника — не частина програми",
+  "shell_devbar.impersonating": "{label} — Видаєте себе за {name}",
+  "shell_devbar.residency_tool_civic_residency": "Інструмент місце проживання → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Очікується судовий перегляд · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Відкрити панель надзвичайних повноважень"
+}

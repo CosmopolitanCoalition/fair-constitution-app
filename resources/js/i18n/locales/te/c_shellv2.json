@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "నావిగేషన్ మరియు నేర్చుకోండి",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "పూర్తి పాఠాలు ప్లాన్ చేయబడ్డాయి · దశ 7 సమస్యను నివేదించండి",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "ఈ స్క్రీన్ వెనుక ఉన్న యంత్రాంగం",
+  "shellv2_menunav.all_screens_the_full_map": "అన్ని స్క్రీన్‌లు — పూర్తి మ్యాప్",
+  "shellv2_menunav.requires_planned": "{label} {label2} అవసరం {prereq} {label3} ప్లాన్ చేయబడింది",
+  "shellv2_tourbar.guided_tour": "మార్గదర్శక పర్యటన",
+  "shellv2_tourbar.guided_tour_step_of": "మార్గదర్శక పర్యటన · దశ {stepNumber} / {total}{title}{blurb}"
+}

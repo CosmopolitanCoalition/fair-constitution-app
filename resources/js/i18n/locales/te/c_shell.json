@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "స్టేట్‌క్రాఫ్ట్ ప్రపంచం",
+  "shell_devbar.dev_controls_not_part_of_the_application": "డెవ్ కంట్రోల్స్ — అప్లికేషన్‌లో భాగం కాదు",
+  "shell_devbar.impersonating": "{label} — {name} గా నటించడం",
+  "shell_devbar.residency_tool_civic_residency": "నివాసం సాధనం → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "న్యాయ సమీక్ష పెండింగ్‌లో ఉంది · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "అత్యవసర అధికారాల డ్యాష్‌బోర్డ్‌ను తెరవండి"
+}

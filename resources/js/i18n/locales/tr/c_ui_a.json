@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Gezegen",
+  "adm_chip.level_1": "Ülke",
+  "adm_chip.level_2": "Eyalet / Vilayet",
+  "adm_chip.level_3": "İlçe",
+  "adm_chip.level_4": "Belediye",
+  "adm_chip.level_5": "Belde",
+  "adm_chip.level_6": "Mahalle",
+  "citation_line.as_implemented": "uygulandığı şekliyle",
+  "data_table.caption_scrollable": "{caption} (kaydırılabilir)",
+  "data_table.scrollable_table": "Kaydırılabilir tablo",
+  "history_pager.first_page": "İlk sayfa",
+  "history_pager.load_error": "Bu sayfa yüklenemedi. Tekrar deneyin.",
+  "history_pager.loading": "Kayıtlar yükleniyor…",
+  "history_pager.next": "Sonraki",
+  "history_pager.previous": "Önceki"
+}

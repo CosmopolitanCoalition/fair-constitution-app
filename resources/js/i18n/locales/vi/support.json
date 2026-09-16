@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Các báo cáo về hành vi và pháp lý được chuyển đi để xem xét. Việc gửi báo cáo tại đây không xóa bỏ bất kỳ nội dung nào — việc xóa nội dung tuân theo các quy định loại trừ của Hiến pháp (cơ chế F-SOC-003), không bao giờ thông qua biểu mẫu này.",
+  "support_report.file_a_report": "Gửi báo cáo",
+  "support_report.file_report": "Gửi báo cáo",
+  "support_report.filed_from": "Gửi từ: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Hãy dùng từ ngữ đơn giản. Hãy nêu rõ điều bạn mong đợi và điều bạn thực sự thấy.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Báo cáo sẽ được gửi đến hộp thư hỗ trợ của người vận hành và được phân loại theo danh mục. Quy trình tiếp nhận này không bao giờ tự chỉnh sửa hoặc xóa nội dung.",
+  "support_report.what_happened": "Chuyện gì đã xảy ra?",
+  "support_report.what_kind_of_report_is_this": "Đây là loại báo cáo nào?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Bạn cần đăng nhập để gửi báo cáo — hãy đăng nhập và quay lại trang này."
+}

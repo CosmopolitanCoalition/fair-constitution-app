@@ -1,0 +1,7 @@
+{
+  "surface_aboutsurface.about_this_surface": "Про цей інтерфейс",
+  "surface_formcard.available_to": "доступно для {form}",
+  "surface_formcard.submitting": "Надсилання…",
+  "surface_pagescaffold.canonical_forms": "Канонічні форми:",
+  "surface_pagescaffold.workflows": "Робочі процеси: {wf}"
+}

@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "کائناتی پتہ لوڈ ہو رہا ہے…",
+  "cosmicaddresspicker.multiverse": "ملٹی ورس ▸",
+  "schemaupdatebanner.apply_updates": "اپ ڈیٹس لاگو کریں",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "ضروری: {pendingLabel} — ETL رن شروع کرنے سے پہلے لاگو کریں۔",
+  "setupstepper.build_districts": "حلقے بنائیں",
+  "setupstepper.confirm_seat_institutions": "تصدیق کریں اور اداروں کو نشستیں دیں",
+  "setupstepper.constitutional_defaults": "آئینی ڈیفالٹس",
+  "setupstepper.cosmic_address": "کائناتی پتہ",
+  "setupstepper.map_data": "میپ ڈیٹا",
+  "setupstepper.setup_progress": "سیٹ اپ کی پیشرفت"
+}

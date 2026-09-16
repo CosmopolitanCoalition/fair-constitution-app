@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "انتظامیہ کا انتخاب",
+  "election_kind.general": "عام انتخاب",
+  "election_kind.judicial": "عدلیہ کا انتخاب",
+  "election_kind.org_board_owner": "بورڈ کا انتخاب (مالک کی نشستیں)",
+  "election_kind.org_board_worker": "بورڈ کا انتخاب (ورکر کی نشستیں)",
+  "election_kind.referendum": "ریفرنڈم",
+  "election_kind.restoration": "بحالی کا انتخاب",
+  "election_kind.special": "خصوصی انتخاب"
+}

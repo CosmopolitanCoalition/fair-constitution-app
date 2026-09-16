@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Приєднання до кластера",
+  "federation_syncprogress.of_left": "{fmtValue} з {fmtValue2}~{fmtDuration} залишилося",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} записів · {fmtNum2} сторінокІмпорт фундаменту в базу даних…Імпортованоочікування…{fmtNum3}/с",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Ви можете залишити цю сторінку — синхронізація працює у фоновому режимі та відновлюється після переривання."
+}

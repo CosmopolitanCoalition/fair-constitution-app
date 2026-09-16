@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "bầu cử cơ quan hành pháp",
+  "election_kind.general": "bầu cử tổng quát",
+  "election_kind.judicial": "bầu cử cơ quan tư pháp",
+  "election_kind.org_board_owner": "bầu cử hội đồng quản trị (ghế chủ sở hữu)",
+  "election_kind.org_board_worker": "bầu cử hội đồng quản trị (ghế công nhân)",
+  "election_kind.referendum": "trưng cầu dân ý",
+  "election_kind.restoration": "bầu cử khôi phục",
+  "election_kind.special": "bầu cử đặc biệt"
+}

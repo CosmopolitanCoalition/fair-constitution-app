@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "dưới ngưỡng",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} các phương pháp khẩn cấp chỉ mở rộng phạm vi ủy quyền trong khu vực và thời hạn đã công bố · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "có thể xem xét bởi tòa án · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Từ chối trước khi ban hành: {rejection_citation} Lệnh này chưa bao giờ có hiệu lực; nỗ lực bị từ chối đã được lưu trong hồ sơ công khai."
+}

@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "Планета",
+  "adm_chip.level_1": "Країна",
+  "adm_chip.level_2": "Штат / Провінція",
+  "adm_chip.level_3": "Округ",
+  "adm_chip.level_4": "Муніципалітет",
+  "adm_chip.level_5": "Громада",
+  "adm_chip.level_6": "Район",
+  "citation_line.as_implemented": "як впроваджено",
+  "data_table.caption_scrollable": "{caption} (з прокруткою)",
+  "data_table.scrollable_table": "Таблиця з прокруткою",
+  "history_pager.first_page": "Перша сторінка",
+  "history_pager.load_error": "Цю сторінку не вдалося завантажити. Спробуйте ще раз.",
+  "history_pager.loading": "Завантаження записів…",
+  "history_pager.next": "Далі",
+  "history_pager.previous": "Назад"
+}

@@ -1,0 +1,618 @@
+{
+  "module.civic": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.economy": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.electoral": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.executive": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.federation": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.judiciary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.jurisdictions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.learn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.legislature": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.operator": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.organizations": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.rooms": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.social": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.support": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "module.system": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.advocacy_basics.summary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.advocacy_basics.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.bench_basics.summary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.bench_basics.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.chamber_basics.summary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.chamber_basics.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.department_basics.summary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.department_basics.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.executive_basics.summary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.executive_basics.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.running_elections.summary": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "modules.running_elections.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.advocacy_basics.q1.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.advocacy_basics.q1.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.advocacy_basics.q1.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.advocacy_basics.q1.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.advocacy_basics.q1.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.advocacy_basics.q2.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.advocacy_basics.q2.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.advocacy_basics.q2.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.advocacy_basics.q2.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.advocacy_basics.q2.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q1.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q1.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q1.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q1.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q1.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q2.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q2.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q2.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q2.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q2.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q3.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q3.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q3.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q3.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.bench_basics.q3.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q1.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q1.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q1.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q1.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q1.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q2.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q2.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q2.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q2.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q2.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q3.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q3.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q3.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q3.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.chamber_basics.q3.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.department_basics.q1.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.department_basics.q1.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.department_basics.q1.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.department_basics.q1.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.department_basics.q1.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.department_basics.q2.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.department_basics.q2.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.department_basics.q2.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.department_basics.q2.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.department_basics.q2.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q1.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q1.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q1.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q1.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q1.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q2.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q2.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q2.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q2.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q2.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q3.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q3.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q3.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q3.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.executive_basics.q3.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q1.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q1.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q1.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q1.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q1.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q2.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q2.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q2.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q2.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q2.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q3.a": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q3.b": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q3.c": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q3.explain": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "q.running_elections.q3.prompt": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tracks.advocate.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tracks.board_of_governors.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tracks.election_board.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tracks.executive.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tracks.judiciary.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "tracks.legislature.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.about_fallback": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.after_this": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.all_tracks": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.also_part_many": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.also_part_one": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.back_to_learn": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.before_this": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.check_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.check_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.completed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.failed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.full_lessons": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.guided_journeys": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.guides_intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.guides_title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.how_to_use": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.intro": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.learning_paths": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.lesson_heading": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.lesson_video_demo_note": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.minutes": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.nothing_published": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.notice": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.open_journeys": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.passed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.recommended": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.related_actions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.report_issue": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.required_banner": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.resources": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.retake": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.score": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.sign_in_to_complete": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.step_of": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.submit_answers": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.the_why": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.up_next": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.video_library": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.watch_videos": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "ui.where_this_fits": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

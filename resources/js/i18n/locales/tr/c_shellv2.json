@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Gezinti ve öğrenme",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Tam dersler Planlandı · Aşama 7 Sorun bildir",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Bu ekranın arkasındaki mekanizma",
+  "shellv2_menunav.all_screens_the_full_map": "Tüm ekranlar — tam harita",
+  "shellv2_menunav.requires_planned": "{label} {label2} {prereq} {label3} Planlandı gerektirir",
+  "shellv2_tourbar.guided_tour": "Rehberli tur",
+  "shellv2_tourbar.guided_tour_step_of": "Rehberli tur · {stepNumber} / {total}{title}{blurb} adım"
+}

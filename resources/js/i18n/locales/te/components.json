@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "కాస్మిక్ అడ్రస్‌ను లోడ్ చేస్తోంది…",
+  "cosmicaddresspicker.multiverse": "మల్టీవర్స్ ▸",
+  "schemaupdatebanner.apply_updates": "అప్‌డేట్‌లను వర్తింపజేయి",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "అవసరం: {pendingLabel} — ETL రన్ ప్రారంభించే ముందు వర్తింపజేయండి.",
+  "setupstepper.build_districts": "నియోజకవర్గాలను నిర్మించు",
+  "setupstepper.confirm_seat_institutions": "సంస్థలను ధృవీకరించి, స్థానాలను కేటాయించు",
+  "setupstepper.constitutional_defaults": "రాజ్యాంగ 기본 విలువల",
+  "setupstepper.cosmic_address": "కాస్మిక్ అడ్రస్",
+  "setupstepper.map_data": "మ్యాప్ డేటా",
+  "setupstepper.setup_progress": "సెటప్ పురోగతి"
+}

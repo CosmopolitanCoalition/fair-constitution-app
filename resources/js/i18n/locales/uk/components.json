@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Завантаження космічної адреси…",
+  "cosmicaddresspicker.multiverse": "Мультивсесвіт ▸",
+  "schemaupdatebanner.apply_updates": "Застосувати оновлення",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Необхідно: {pendingLabel} — застосуйте перед запуском ETL.",
+  "setupstepper.build_districts": "Створити округи",
+  "setupstepper.confirm_seat_institutions": "Підтвердити та призначити установи",
+  "setupstepper.constitutional_defaults": "Конституційні значення за замовчуванням",
+  "setupstepper.cosmic_address": "Космічна адреса",
+  "setupstepper.map_data": "Дані карти",
+  "setupstepper.setup_progress": "Прогрес налаштування"
+}

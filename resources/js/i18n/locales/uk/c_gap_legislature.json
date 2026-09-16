@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "вибори виконавчої влади",
+  "election_kind.general": "загальні вибори",
+  "election_kind.judicial": "судові вибори",
+  "election_kind.org_board_owner": "вибори до правління (місця власників)",
+  "election_kind.org_board_worker": "вибори до правління (місця працівників)",
+  "election_kind.referendum": "референдум",
+  "election_kind.restoration": "вибори щодо відновлення",
+  "election_kind.special": "позачергові вибори"
+}

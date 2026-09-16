@@ -1,0 +1,46 @@
+{
+  "law_diff.added": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "law_diff.label": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "law_diff.removed": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "planned_banner.default_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "planned_banner.title": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "selection_identity.aria_org": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "selection_identity.aria_profile": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "selection_identity.org_reference": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "selection_identity.organization_record": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "selection_identity.profile_reference": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "selection_identity.public_profile": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

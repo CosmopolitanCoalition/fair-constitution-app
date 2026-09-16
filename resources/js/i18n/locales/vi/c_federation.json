@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Đang tham gia cụm",
+  "federation_syncprogress.of_left": "{fmtValue} trong số {fmtValue2}~{fmtDuration} còn lại",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} bản ghi · {fmtNum2} trangĐang nhập nền tảng vào cơ sở dữ liệu…Đã nhậpđang chờ…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Bạn có thể rời trang này — quá trình đồng bộ chạy ngầm và sẽ tiếp tục nếu bị gián đoạn."
+}

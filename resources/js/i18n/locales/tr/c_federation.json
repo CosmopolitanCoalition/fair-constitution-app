@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Kümeleşmeye katılıyor",
+  "federation_syncprogress.of_left": "{fmtValue} adet {fmtValue2}~{fmtDuration} kaldı",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} kayıt · {fmtNum2} sayfaTemel veriler veri tabanına aktarılıyor…Aktarıldıbekleniyor…{fmtNum3}/sn",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Bu sayfadan ayrılabilirsiniz — senkronizasyon arka planda çalışır ve kesilirse yeniden başlar."
+}

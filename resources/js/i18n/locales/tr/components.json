@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Kozmik adres yükleniyor…",
+  "cosmicaddresspicker.multiverse": "Çoklu Evren ▸",
+  "schemaupdatebanner.apply_updates": "Güncellemeleri uygula",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Gerekli: {pendingLabel} — bir ETL çalışması başlatmadan önce uygulayın.",
+  "setupstepper.build_districts": "Seçim Bölgelerini Oluştur",
+  "setupstepper.confirm_seat_institutions": "Onayla ve Kurumları Yerleştir",
+  "setupstepper.constitutional_defaults": "Anayasal Varsayılanlar",
+  "setupstepper.cosmic_address": "Kozmik Adres",
+  "setupstepper.map_data": "Harita Verileri",
+  "setupstepper.setup_progress": "Kurulum ilerlemesi"
+}

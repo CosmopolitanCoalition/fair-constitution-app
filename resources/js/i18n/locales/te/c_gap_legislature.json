@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "కార్యనిర్వాహక వ్యవస్థ ఎన్నిక",
+  "election_kind.general": "సాధారణ ఎన్నిక",
+  "election_kind.judicial": "న్యాయవ్యవస్థ ఎన్నిక",
+  "election_kind.org_board_owner": "బోర్డు ఎన్నిక (యజమాని స్థానాలు)",
+  "election_kind.org_board_worker": "బోర్డు ఎన్నిక (కార్మికుల స్థానాలు)",
+  "election_kind.referendum": "ప్రజాభిప్రాయ సేకరణ",
+  "election_kind.restoration": "పునరుద్ధరణ ఎన్నిక",
+  "election_kind.special": "ప్రత్యేక ఎన్నిక"
+}

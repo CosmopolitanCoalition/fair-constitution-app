@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "نیویگیشن اور سیکھیں",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "مکمل اسباق منصوبہ بند · مرحلہ 7 مسئلہ رپورٹ کریں",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "اس اسکرین کے پیچھے کا نظام",
+  "shellv2_menunav.all_screens_the_full_map": "تمام اسکرینیں — مکمل نقشہ",
+  "shellv2_menunav.requires_planned": "{label} {label2} ضرورت ہے {prereq} {label3} منصوبہ بند",
+  "shellv2_tourbar.guided_tour": "رہنمائی والا دورہ",
+  "shellv2_tourbar.guided_tour_step_of": "رہنمائی والا دورہ · مرحلہ {stepNumber} از {total}{title}{blurb}"
+}

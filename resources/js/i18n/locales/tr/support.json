@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Davranış ve hukuk raporları inceleme için yönlendirilir. Buradan bildirimde bulunmak hiçbir şeyi silmez — içerik kaldırma işlemleri bu formla değil, Anayasa'daki istisnaları ( F-SOC-003 mekanizmasını) takip eder.",
+  "support_report.file_a_report": "Rapor oluştur",
+  "support_report.file_report": "Raporla",
+  "support_report.filed_from": "Gönderilen yer: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Sade bir dil kullanabilirsiniz. Ne beklediğinizi ve bunun yerine ne gördüğünüzü belirtin.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Raporlar operatörün destek gelen kutusuna düşer ve kategoriye göre yönlendirilir. Bu giriş sistemi içeriği kendisi düzenlemez veya silmez.",
+  "support_report.what_happened": "Ne oldu?",
+  "support_report.what_kind_of_report_is_this": "Bu ne tür bir rapor?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Rapor oluşturmak için giriş yapmanız gerekir — giriş yapın ve bu sayfaya geri dönün."
+}

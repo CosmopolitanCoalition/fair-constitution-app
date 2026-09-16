@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "ప్రవర్తన మరియు చట్టపరమైన నివేదికలు సమీక్ష కోసం పంపబడతాయి. ఇక్కడ దాఖలు చేయడం వల్ల ఏదీ తొలగించబడదు — కంటెంట్ తొలగింపు రాజ్యాంగ మినహాయింపుల (F-SOC-003 యంత్రాంగం) ద్వారా జరుగుతుంది, ఈ ఫారమ్ ద్వారా కాదు.",
+  "support_report.file_a_report": "నివేదికను దాఖలు చేయండి",
+  "support_report.file_report": "నివేదిక దాఖలు చేయండి",
+  "support_report.filed_from": "దాఖలు చేసిన చోటు: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "సాధారణ పదాలు సరిపోతాయి. మీరు ఏమి ఆశించారో మరియు దానికి బదులుగా ఏమి చూశారో తెలియజేయండి.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "నివేదికలు ఆపరేటర్ సపోర్ట్ ఇన్‌బాక్స్‌కు చేరుకుంటాయి మరియు వర్గం ఆధారంగా పంపబడతాయి. ఈ ప్రక్రియ కంటెంట్‌ను స్వయంగా సవరించదు లేదా తొలగించదు.",
+  "support_report.what_happened": "ఏం జరిగింది?",
+  "support_report.what_kind_of_report_is_this": "ఇది ఎటువంటి నివేదిక?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "నివేదికను దాఖలు చేయడానికి మీరు సైన్-ఇన్ అవ్వాలి — లాగిన్ అయ్యి తిరిగి ఈ పేజీకి రండి."
+}

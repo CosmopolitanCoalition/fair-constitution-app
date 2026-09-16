@@ -1,0 +1,17 @@
+{
+  "adm_chip.level_0": "గ్రహం",
+  "adm_chip.level_1": "దేశం",
+  "adm_chip.level_2": "రాష్ట్రం / ప్రావిన్స్",
+  "adm_chip.level_3": "కౌంటీ",
+  "adm_chip.level_4": "మున్సిపాలిటీ",
+  "adm_chip.level_5": "టౌన్‌షిప్",
+  "adm_chip.level_6": "పొరుగు ప్రాంతం",
+  "citation_line.as_implemented": "అమలు చేసిన విధంగా",
+  "data_table.caption_scrollable": "{caption} (స్క్రోల్ చేయదగినది)",
+  "data_table.scrollable_table": "స్క్రోల్ చేయదగిన పట్టిక",
+  "history_pager.first_page": "మొదటి పేజీ",
+  "history_pager.load_error": "ఈ పేజీ లోడ్ కాలేదు. మళ్ళీ ప్రయత్నించండి.",
+  "history_pager.loading": "రికార్డులు లోడ్ అవుతున్నాయి…",
+  "history_pager.next": "తదుపరి",
+  "history_pager.previous": "ముందటి"
+}

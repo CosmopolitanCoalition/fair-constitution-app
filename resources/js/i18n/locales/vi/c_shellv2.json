@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "Điều hướng và tìm hiểu",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "Toàn bộ bài học Đã lập kế hoạch · Báo cáo sự cố Giai đoạn 7",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "Hệ thống vận hành phía sau màn hình này",
+  "shellv2_menunav.all_screens_the_full_map": "Tất cả màn hình — bản đồ đầy đủ",
+  "shellv2_menunav.requires_planned": "{label} {label2} Yêu cầu {prereq} {label3} Đã lập kế hoạch",
+  "shellv2_tourbar.guided_tour": "Hướng dẫn tham quan",
+  "shellv2_tourbar.guided_tour_step_of": "Hướng dẫn tham quan · bước {stepNumber} trên {total}{title}{blurb}"
+}

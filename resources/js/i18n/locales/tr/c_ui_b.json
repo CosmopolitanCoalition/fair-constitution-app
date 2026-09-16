@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "eklendi:",
+  "law_diff.label": "Yasa metni değişiklikleri",
+  "law_diff.removed": "kaldırıldı:",
+  "planned_banner.default_body": "Dünyanın bu bölümü kurulum öncesinde tasarlanmıştır. Henüz hiçbir şey canlı değildir ve hiçbir yerde gerçek para yoktur.",
+  "planned_banner.title": "Planlandı — bir önizleme.",
+  "selection_identity.aria_org": "{name} için kuruluş kaydı, referans {id}",
+  "selection_identity.aria_profile": "{name} için kamu profili, referans {id}",
+  "selection_identity.org_reference": "Kuruluş referansı:",
+  "selection_identity.organization_record": "Kuruluş kaydı",
+  "selection_identity.profile_reference": "Profil referansı:",
+  "selection_identity.public_profile": "Kamu profili"
+}

@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "کلسٹر میں شامل ہو رہا ہے",
+  "federation_syncprogress.of_left": "{fmtValue} میں سے {fmtValue2}~{fmtDuration} باقی ہیں",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} ریکارڈز · {fmtNum2} صفحات ڈیٹا بیس میں بنیاد درآمد کی جا رہی ہے…درآمد ہو گیا انتظار کریں…{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "آپ یہ صفحہ چھوڑ سکتے ہیں — سنک بیک گراؤنڈ میں چل رہا ہے اور تعطل کی صورت میں دوبارہ شروع ہو جائے گا۔"
+}

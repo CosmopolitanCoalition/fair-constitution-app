@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "జతచేయబడింది:",
+  "law_diff.label": "చట్టం పాఠ్య మార్పులు",
+  "law_diff.removed": "తొలగించబడింది:",
+  "planned_banner.default_body": "ప్రపంచంలోని ఈ భాగం బిల్డ్ కంటే ముందే రూపొందించబడింది. ఇక్కడ ఏదీ ఇంకా ప్రత్యక్షంగా లేదు మరియు ఎక్కడా నిజమైన డబ్బు లేదు.",
+  "planned_banner.title": "ప్రణాళిక చేయబడింది — ఒక ప్రివ్యూ.",
+  "selection_identity.aria_org": "{name} కోసం సంస్థ రికార్డు, రిఫరెన్స్ {id}",
+  "selection_identity.aria_profile": "{name} కోసం ప్రజా ప్రొఫైల్, రిఫరెన్స్ {id}",
+  "selection_identity.org_reference": "సంస్థ రిఫరెన్స్:",
+  "selection_identity.organization_record": "సంస్థ రికార్డు",
+  "selection_identity.profile_reference": "ప్రొఫైల్ రిఫరెన్స్:",
+  "selection_identity.public_profile": "ప్రజా ప్రొఫైల్"
+}

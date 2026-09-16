@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Đang tải địa chỉ vũ trụ…",
+  "cosmicaddresspicker.multiverse": "Đa vũ trụ ▸",
+  "schemaupdatebanner.apply_updates": "Áp dụng cập nhật",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Yêu cầu: {pendingLabel} — áp dụng trước khi chạy ETL.",
+  "setupstepper.build_districts": "Xây dựng Khu vực bầu cử",
+  "setupstepper.confirm_seat_institutions": "Xác nhận & Bố trí Thiết chế",
+  "setupstepper.constitutional_defaults": "Mặc định Hiến pháp",
+  "setupstepper.cosmic_address": "Địa chỉ Vũ trụ",
+  "setupstepper.map_data": "Dữ liệu Bản đồ",
+  "setupstepper.setup_progress": "Tiến độ thiết lập"
+}

@@ -1,0 +1,10 @@
+{
+  "election_kind.executive": "yürütme seçimi",
+  "election_kind.general": "genel seçim",
+  "election_kind.judicial": "yargı seçimi",
+  "election_kind.org_board_owner": "yönetim kurulu seçimi (sahip sandalyeleri)",
+  "election_kind.org_board_worker": "yönetim kurulu seçimi (işçi sandalyeleri)",
+  "election_kind.referendum": "referandum",
+  "election_kind.restoration": "yeniden kurma seçimi",
+  "election_kind.special": "ara seçim"
+}

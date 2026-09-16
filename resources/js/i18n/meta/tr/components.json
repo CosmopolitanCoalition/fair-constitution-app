@@ -1,0 +1,42 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "cosmicaddresspicker.multiverse": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "schemaupdatebanner.apply_updates": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setupstepper.build_districts": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setupstepper.confirm_seat_institutions": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setupstepper.constitutional_defaults": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setupstepper.cosmic_address": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setupstepper.map_data": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "setupstepper.setup_progress": {
+    "status": "machine",
+    "provider": "ollama"
+  }
+}

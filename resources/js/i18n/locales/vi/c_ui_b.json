@@ -1,0 +1,13 @@
+{
+  "law_diff.added": "đã thêm:",
+  "law_diff.label": "Thay đổi nội dung luật",
+  "law_diff.removed": "đã xóa:",
+  "planned_banner.default_body": "Phần này của thế giới được thiết kế trước khi xây dựng. Chưa có gì hoạt động thực tế và không có tiền thật ở đây.",
+  "planned_banner.title": "Đã lên kế hoạch — bản xem trước.",
+  "selection_identity.aria_org": "Hồ sơ tổ chức cho {name}, tham chiếu {id}",
+  "selection_identity.aria_profile": "Hồ sơ công khai cho {name}, tham chiếu {id}",
+  "selection_identity.org_reference": "Tham chiếu tổ chức:",
+  "selection_identity.organization_record": "Hồ sơ tổ chức",
+  "selection_identity.profile_reference": "Tham chiếu hồ sơ:",
+  "selection_identity.public_profile": "Hồ sơ công khai"
+}

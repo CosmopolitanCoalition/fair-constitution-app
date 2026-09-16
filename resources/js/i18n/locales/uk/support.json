@@ -1,0 +1,11 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": "Звіти про поведінку та правові звіти направляються на розгляд. Подання звіту тут нічого не видаляє — видалення контенту відбувається згідно з конституційними винятками (механізм F-SOC-003), а не через цю форму.",
+  "support_report.file_a_report": "Подати звіт",
+  "support_report.file_report": "Подати звіт",
+  "support_report.filed_from": "Подано з: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "Пишіть простою мовою. Опишіть, чого ви очікували та що побачили натомість.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "Звіти надходять до поштової скриньки підтримки оператора та розподіляються за категоріями. Ця форма приймання не редагує та не видаляє контент самостійно.",
+  "support_report.what_happened": "Що сталося?",
+  "support_report.what_kind_of_report_is_this": "Який це тип звіту?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "Щоб подати звіт, потрібно увійти в систему — увійдіть і поверніться на цю сторінку."
+}
