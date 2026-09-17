@@ -4,7 +4,24 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import NavigationProgress from '@/Components/Shell/NavigationProgress.vue';
-import { i18n } from '@/i18n/index.js';
+import { i18n, loadLocale } from '@/i18n/index.js';
+
+/* The catalogs are fetched, not bundled (see i18n/index.js). Load English (the
+   fallback) and the page's locale BEFORE the first paint so a French reader
+   never sees a flash of English or of raw keys; a failed fetch is logged and
+   the app mounts anyway. The initial locale is read from the Inertia root
+   element, the same data-page createInertiaApp reads. */
+function initialLocaleFromPage() {
+    try {
+        const page = JSON.parse(document.getElementById('app')?.dataset?.page ?? '{}');
+        return page?.props?.locale || null;
+    } catch {
+        return null;
+    }
+}
+
+const bootLocale = initialLocaleFromPage();
+await Promise.all([loadLocale('en'), bootLocale && bootLocale !== 'en' ? loadLocale(bootLocale) : null]);
 
 createInertiaApp({
     // One accessible indicator handles both Inertia and ordinary page links.

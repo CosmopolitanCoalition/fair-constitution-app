@@ -44,7 +44,7 @@ import Btn from '@/Components/Ui/Btn.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import CmdBar from '@/Components/ShellV2/CmdBar.vue';
 import { NAV } from '@/Navigation/nav.js';
-import { LOCALES, persistLocale } from '@/i18n/index.js';
+import { LOCALES, persistLocale, setLocale } from '@/i18n/index.js';
 
 const props = defineProps({
     /** Main width contract: 'default' (56rem) | 'wide' (96rem) | 'flush'. */
@@ -197,7 +197,9 @@ function applyDir(code) {
 }
 function onLocaleChange(event) {
     const code = event.target.value;
-    locale.value = code;
+    /* The catalog is fetched on first use (i18n/index.js): setLocale loads
+       the bundle, then flips the locale, so the switch never paints raw keys. */
+    setLocale(code);
     /* Persist the choice. Signed in: through the SAME F-IND-002 endpoint the
        settings panel uses, so the user row updates and server-rendered PHP
        follows on the next request. Guest: recorded server-side through

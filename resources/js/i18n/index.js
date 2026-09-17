@@ -15,56 +15,84 @@
 
 import { createI18n } from 'vue-i18n';
 
-/* Chrome dicts: the monolithic <code>.json per locale at the i18n root. Loaded
-   for EVERY locale that ships a root dict, not the five once statically
-   imported (en, es, ar, zh-Hans, hi) — a locale with a root dict but no import
-   rendered its chrome keys in English (fr and pt today; the target locales
-   tomorrow). The eager glob is inlined by Vite at build. `coverage.json` is the
-   one non-locale file at the root and is excluded by name; any other future
-   non-locale file is harmless because mergeNamespaces seeds only registered
-   codes and ignores the rest. A locale with no root dict is simply absent from
-   `base`, and mergeNamespaces seeds it empty exactly as the static form did. */
-const CHROME_MODULES = import.meta.glob('./*.json', { eager: true });
-const base = {};
-for (const path in CHROME_MODULES) {
-    const m = path.match(/^\.\/([^/]+)\.json$/);
-    if (!m || m[1] === 'coverage') continue;
-    base[m[1]] = CHROME_MODULES[path].default ?? CHROME_MODULES[path];
+/* THE CATALOGS ARE FETCHED, NEVER BUNDLED (WoS beta, 2026-09-17). This file
+   once inlined every locale through an eager import.meta.glob: with 76
+   languages that was 160 MB of JSON in the client bundle, the production build
+   ran out of heap and every visitor would have downloaded the whole world's
+   catalogs to read one. scripts/i18n/bundle_locales.mjs now writes ONE static
+   file per locale, public/i18n/<code>.json (the root chrome dict with every
+   namespace merged on top, the same shape mergeNamespaces used to build), and
+   loadLocale() fetches it the first time a locale is needed. Every registered
+   locale is still seeded as an empty message set, so availableLocales gates
+   exactly as before; the messages arrive when the bundle lands.
+
+   The Vite plugin in vite.config.js runs the bundler at build and dev-server
+   start (and on catalog changes in dev), so nothing here depends on the build
+   tool: this module stays importable outside Vite. */
+const BUNDLE_BASE = '/i18n';
+
+const loaded = new Set();
+const loading = new Map();
+
+/** The bundle url for a locale. en-XA carries no dict: it reads en. */
+export function localeBundleUrl(code) {
+    const c = code === 'en-XA' ? 'en' : code;
+    return `${BUNDLE_BASE}/${encodeURIComponent(c)}.json`;
 }
 
-/* Phase F — per-namespace, per-locale message files (locales/<code>/<ns>.json)
-   merged ON TOP of the monolithic chrome dicts above. Page/body translations
-   live here (one file per surface namespace) so they extend without colliding
-   with the chrome files. The monolithic files remain the chrome base
-   (app/nav/header/footer/demo/common). */
-const NS_MODULES = import.meta.glob('./locales/*/*.json', { eager: true });
-
-function mergeNamespaces(base) {
-    /* Seed EVERY registered code, not the five this once hardcoded. app.js gates
-       the initial locale on `availableLocales.includes(...)`, so a locale absent
-       here is silently discarded and the user renders English regardless of their
-       stored preference — invisibly, because missingWarn/fallbackWarn are false.
-       An empty object is enough to make the locale "available"; its messages fall
-       back to en until a catalog exists. */
-    const merged = {};
-    for (const l of ALL_LOCALES) merged[l.code] = { ...(base[l.code] ?? {}) };
-    for (const path in NS_MODULES) {
-        const m = path.match(/\.\/locales\/([^/]+)\/([^/]+)\.json$/);
-        if (!m) continue;
-        const [, code, ns] = m;
-        if (!merged[code]) merged[code] = {};
-        merged[code][ns] = { ...(merged[code][ns] || {}), ...(NS_MODULES[path].default ?? NS_MODULES[path]) };
-    }
-    // Early seeded curricula used c_education.learn.*. Keep those stored
-    // display keys readable without rewriting an existing world's records.
-    for (const messages of Object.values(merged)) {
-        if (!messages.c_learn) continue;
+/* Early seeded curricula used c_education.learn.*. Keep those stored display
+   keys readable without rewriting an existing world's records. */
+function withLegacyAliases(messages) {
+    if (messages && messages.c_learn) {
         messages.c_education ??= {};
         for (const [key, value] of Object.entries(messages.c_learn)) {
             messages.c_education['learn.' + key] ??= value;
         }
     }
-    return merged;
+    return messages;
+}
+
+/** True once a locale's bundle has been merged into the i18n instance. */
+export function localeLoaded(code) {
+    return loaded.has(code === 'en-XA' ? 'en' : code);
+}
+
+/**
+ * Fetch and install a locale's bundle (idempotent, one request per locale).
+ * Resolves false when the bundle cannot be fetched: the locale then renders
+ * through the English fallback, exactly as an untranslated locale always did,
+ * and the failure is logged, never thrown, so a page still mounts.
+ */
+export async function loadLocale(code, { fetcher } = {}) {
+    const c = code === 'en-XA' ? 'en' : code;
+    if (!c || loaded.has(c)) return true;
+    if (loading.has(c)) return loading.get(c);
+    const doFetch = fetcher ?? (typeof fetch === 'function' ? fetch : null);
+    if (!doFetch) return false;
+    const task = (async () => {
+        try {
+            const res = await doFetch(localeBundleUrl(c), { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const messages = withLegacyAliases(await res.json());
+            i18n.global.setLocaleMessage(c, messages);
+            loaded.add(c);
+            return true;
+        } catch (error) {
+            console.error(`i18n: could not load the ${c} catalog`, error);
+            return false;
+        } finally {
+            loading.delete(c);
+        }
+    })();
+    loading.set(c, task);
+    return task;
+}
+
+/** Switch the active locale, loading its bundle first. */
+export async function setLocale(code) {
+    await loadLocale(code);
+    i18n.global.locale.value = code;
+    return code;
 }
 
 /* THE locale registry now lives in ONE generated place — scripts/i18n/languages.py
@@ -133,10 +161,9 @@ export const i18n = createI18n({
     /* en-XA carries no dict of its own — everything falls back to en, then
        the postTranslation hook pseudo-localizes the resolved string. */
     fallbackLocale: { 'en-XA': ['en'], default: ['en'] },
-    messages: {
-        ...mergeNamespaces(base),
-        'en-XA': {},
-    },
+    /* Every registered locale is seeded EMPTY so availableLocales lists it
+       (app.js gates the initial locale on that list); loadLocale() fills it. */
+    messages: Object.fromEntries([...REGISTRY.map((l) => [l.code, {}]), ['en-XA', {}]]),
     /* CLDR plural selectors, generated per locale. vue-i18n's built-in selector
        resolves at most three forms; Arabic has six. Without this an Arabic
        plural renders the wrong branch at runtime while a form-counting check

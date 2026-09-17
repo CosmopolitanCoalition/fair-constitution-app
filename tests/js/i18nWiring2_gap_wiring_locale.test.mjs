@@ -106,11 +106,15 @@ test('gap 2 — Register.vue derives its language list from the registry (ALL_LO
 });
 
 // ── gap 3: glob-loaded chrome dicts, no static per-locale import ─────────────
-test('gap 3 — index.js loads chrome dicts by glob with no static per-locale import', () => {
+test('gap 3 — index.js fetches per-locale bundles with no static per-locale import and no eager glob', () => {
     const src = read(INDEX);
-    assert.match(src, /import\.meta\.glob\(\s*'\.\/\*\.json'\s*,\s*\{\s*eager:\s*true\s*\}\s*\)/,
-        'root chrome dicts are loaded by the eager glob');
-    assert.match(src, /m\[1\]\s*===\s*'coverage'/, 'coverage.json is excluded by name');
+    // 2026-09-17: the eager glob inlined 160 MB of catalogs into the client
+    // bundle (the beta build ran out of heap). Every locale is now a static
+    // bundle under /i18n fetched by loadLocale(); no glob remains.
+    assert.doesNotMatch(src, /import\.meta\.glob\(/, 'no import.meta.glob of the catalogs remains');
+    assert.match(src, /export\s+async\s+function\s+loadLocale\(/, 'index.js exports loadLocale');
+    assert.match(src, /export\s+async\s+function\s+setLocale\(/, 'index.js exports setLocale');
+    assert.match(src, /setLocaleMessage\(/, 'a fetched bundle is installed with setLocaleMessage');
     for (const code of ['en', 'es', 'ar', 'zh-Hans', 'hi']) {
         const re = new RegExp(`import\\s+\\w+\\s+from\\s+'\\./${code.replace('-', '\\-')}\\.json'`);
         assert.doesNotMatch(src, re, `no static import of ./${code}.json remains`);

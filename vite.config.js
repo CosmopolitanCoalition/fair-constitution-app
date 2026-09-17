@@ -3,6 +3,35 @@ import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import { fileURLToPath, URL } from 'node:url';
+import { bundleLocales, LOCALES_DIR, I18N_DIR } from './scripts/i18n/bundle_locales.mjs';
+
+/* THE LOCALE BUNDLES (WoS beta, 2026-09-17). The catalogs are NOT part of the
+   client bundle: scripts/i18n/bundle_locales.mjs writes one static JSON per
+   locale into public/i18n and the app fetches it on demand (i18n/index.js).
+   This plugin runs the bundler when a build starts and when the dev server
+   starts, and in dev re-runs it (then reloads the page) whenever a catalog
+   file changes, so neither `npm run build` nor `npm run dev` needs a step. */
+function cgaLocaleBundles() {
+    let timer = null;
+    return {
+        name: 'cga-locale-bundles',
+        buildStart() {
+            bundleLocales({ log: (m) => console.log(`  ${m}`) });
+        },
+        configureServer(server) {
+            server.watcher.add([LOCALES_DIR, I18N_DIR]);
+            server.watcher.on('all', (_event, file) => {
+                if (!file || !file.endsWith('.json')) return;
+                if (!file.startsWith(LOCALES_DIR) && !file.startsWith(I18N_DIR)) return;
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    bundleLocales({ log: (m) => console.log(`  ${m}`) });
+                    server.ws.send({ type: 'full-reload' });
+                }, 500);
+            });
+        },
+    };
+}
 
 // Host-side ports propagated by docker-compose (.env-driven). Defaults match
 // the parent checkout (vite on 5173, app on 8080); worktrees override via
@@ -20,6 +49,7 @@ export default defineConfig({
         }),
         tailwindcss(),
         vue(),
+        cgaLocaleBundles(),
     ],
     resolve: {
         alias: {
