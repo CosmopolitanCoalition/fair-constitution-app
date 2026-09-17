@@ -154,6 +154,17 @@ case "$*" in
       if [ "$max_zoom" -lt 6 ]; then max_zoom=6; fi
       if [ "$max_zoom" -gt 12 ]; then max_zoom=12; fi
     fi
+    # THE SERVING PROFILE (operator ruling 2026-09-17, serving-boot-prewarm = A):
+    # the prewarm worker and the autoscale pool share MEM_HORIZON, and a serving
+    # box runs its pool at boot, so the boot prewarm stops at zoom 6 (tiles
+    # above it are generated on first view) and is skipped outright while any
+    # run is active (`--unless-busy`, App\Support\RunsInFlight). The 6 + GiB
+    # rule stands on every other profile. CGA_PREWARM_MAX_ZOOM still overrides.
+    unless_busy=""
+    if [ "${CGA_MEM_PROFILE:-}" = "serving" ]; then
+      if [ -z "${CGA_PREWARM_MAX_ZOOM:-}" ] && [ "$max_zoom" -gt 6 ]; then max_zoom=6; fi
+      unless_busy="--unless-busy"
+    fi
     if [ "$run_prewarm" = "1" ]; then
       (
         # Wait until the app serves a request (implies Postgres + Redis online)
@@ -163,9 +174,9 @@ case "$*" in
             sleep 1
         done
         cd /var/www/html
-        echo "[entrypoint] dispatching raster (z0-${max_zoom}, MEM_HORIZON=${MEM_HORIZON:-unset}) + geojson prewarm to Horizon" >&2
-        php artisan rasters:prewarm --min-zoom=0 --max-zoom="$max_zoom" --land-only --queue 2>/dev/null || true
-        php artisan geojson:prewarm --queue 2>/dev/null || true
+        echo "[entrypoint] dispatching raster (z0-${max_zoom}, MEM_HORIZON=${MEM_HORIZON:-unset}, profile=${CGA_MEM_PROFILE:-unset}${unless_busy:+, $unless_busy}) + geojson prewarm to Horizon" >&2
+        php artisan rasters:prewarm --min-zoom=0 --max-zoom="$max_zoom" --land-only --queue $unless_busy 2>/dev/null || true
+        php artisan geojson:prewarm --queue $unless_busy 2>/dev/null || true
       ) &
     else
       echo "[entrypoint] boot prewarm skipped (MEM_HORIZON=${MEM_HORIZON:-unset} = ${mem_mb} MB; CGA_PREWARM=1 forces it)" >&2

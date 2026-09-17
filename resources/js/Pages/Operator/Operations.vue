@@ -17,7 +17,23 @@ defineOptions({ layout: AppShell });
 
 const { t } = useI18n();
 
+/* The instance class act (operator ruling 2026-09-17): a founded box flips to
+   scale_demo (arms demo mode) or back, recorded on the audit log. */
+const classDraft = ref(null);
+const classReason = ref('');
+const classBusy = ref(false);
+function submitInstanceClass() {
+    const target = classDraft.value ?? props.instanceClass;
+    if (classBusy.value || !target || target === props.instanceClass) return;
+    router.post('/operator/operations/instance-class', { class: target, reason: classReason.value.trim() || null }, {
+        preserveScroll: true,
+        onStart: () => { classBusy.value = true; },
+        onFinish: () => { classBusy.value = false; classDraft.value = null; classReason.value = ''; },
+    });
+}
+
 const props = defineProps({
+    instanceClass: { type: String, default: 'production' },
     authed: { type: Boolean, default: false },
     operator: { type: String, default: null },
     inventory: { type: Object, default: null },
@@ -144,6 +160,33 @@ const fmtDate = (iso) => (iso ? localeFmt.date(new Date(iso)) : '—');
 
         <template v-else>
             <!-- Tier legend -->
+            <!-- The instance class act (operator ruling 2026-09-17) -->
+            <section class="rounded-lg border border-slate-200 bg-white p-5" aria-labelledby="instance-class-h">
+                <h2 id="instance-class-h" class="text-sm font-semibold text-slate-900">{{ t('c_operator_pages.operations.instance_class_h', 'Instance class') }}</h2>
+                <p class="mt-1 text-sm text-slate-600">
+                    {{ t('c_operator_pages.operations.instance_class_body', 'production runs a real world. scale_demo arms demo mode: guests go through the motions, their writes are session-scoped and purged, nothing enters the permanent record. Changing the class is an operator act recorded on the audit log.') }}
+                </p>
+                <p class="mt-2 text-sm text-slate-700">
+                    {{ t('c_operator_pages.operations.instance_class_current', 'Current class') }}: <code>{{ instanceClass }}</code>
+                </p>
+                <form class="mt-3 flex flex-wrap items-end gap-3" @submit.prevent="submitInstanceClass">
+                    <label class="block text-sm text-slate-700">
+                        <span class="block text-xs font-medium text-slate-500">{{ t('c_operator_pages.operations.instance_class_target', 'New class') }}</span>
+                        <select :value="classDraft ?? instanceClass" data-no-i18n class="mt-1 rounded border border-slate-300 px-2 py-1.5 text-sm" @change="classDraft = $event.target.value">
+                            <option value="production">production</option>
+                            <option value="scale_demo">scale_demo</option>
+                        </select>
+                    </label>
+                    <label class="block text-sm text-slate-700">
+                        <span class="block text-xs font-medium text-slate-500">{{ t('c_operator_pages.operations.instance_class_reason', 'Reason (recorded)') }}</span>
+                        <input v-model="classReason" type="text" maxlength="200" class="mt-1 w-64 rounded border border-slate-300 px-2 py-1.5 text-sm" />
+                    </label>
+                    <button type="submit" :disabled="classBusy || (classDraft ?? instanceClass) === instanceClass"
+                            class="rounded bg-sky-700 px-3 py-1.5 text-sm font-medium text-white disabled:bg-slate-300">
+                        {{ classBusy ? t('c_operator_pages.operations.instance_class_saving', 'Recording…') : t('c_operator_pages.operations.instance_class_submit', 'Change class') }}
+                    </button>
+                </form>
+            </section>
             <section class="rounded-lg border border-slate-200 bg-white p-4">
                 <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ t('c_operator_pages.operations.apply_tiers', 'Apply tiers') }}</h2>
                 <ul class="mt-2 grid gap-2 sm:grid-cols-3">

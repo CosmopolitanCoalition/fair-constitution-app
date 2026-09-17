@@ -17360,6 +17360,41 @@
           "note": "Cloud box (WoS beta) reported the production build OOM at a 2,797 MB heap after the 76-language enable; beta down. Desk fix built and proven on box E: the build completes under the same cap, public/build 8.9 MB total (was a 160 MB+ bundle); 32 JS pins green."
         }
       ]
+    },
+    {
+      "id": "W-0452",
+      "title": "Serving-box boot: prewarm gate, derived scheduler cap, instance-class operator act",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "done_when": "On the serving profile the boot prewarm stops at zoom 6 and is skipped while any run is active; the scheduler cap floor is derived from the schedule's background fan-out; an operator act (console page and instance:class) flips a founded box between production and scale_demo with an audit entry; pins cover the detector, the skip, the flip and the command.",
+      "depends_on": [],
+      "detail": "Operator rulings 2026-09-17 on the three cloud-box findings (serving-boot-prewarm = A, serving-scheduler-cap = A with the note 'not a hard number', beta-instance-class = A). App\\Support\\RunsInFlight names the five run kinds; rasters:prewarm and geojson:prewarm take --unless-busy; the entrypoint caps zoom at 6 and passes the flag when CGA_MEM_PROFILE=serving (the profile now reaches the horizon container). get-started.sh and get-started.ps1 derive the scheduler floor as 128 MB plus 96 MB per runInBackground command in routes/console.php and give the scheduler 40 percent of the aux share. InstanceClass::change() is the single owner behind instance:class and POST /operator/operations/instance-class (the operations page card); the change is appended to the audit log on Postgres.",
+      "sources": [
+        {
+          "list": "cloud",
+          "ref": "WoS Cloud Demo reports 2026-09-17 01:40 and 02:10 UTC, FAIL 2, FAIL 3, QUESTION",
+          "title": "boot OOMs and the hybrid demo class",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Support/RunsInFlight.php",
+        "app/Support/InstanceClass.php",
+        "app/Console/Commands/InstanceClassCommand.php",
+        "docker/php/entrypoint.sh",
+        "get-started.sh",
+        "get-started.ps1",
+        "tests/Feature/OperatorRulings20260917Test.php"
+      ],
+      "history": [
+        {
+          "date": "2026-09-17",
+          "note": "Built after the operator's three answers (evening, Eastern). PHP: OperatorRulings20260917Test 5 tests + NavRoleGateParityTest OK (9 tests, 34 assertions). JS pins on the operations page: 16 pass. The beta flips with `php artisan instance:class scale_demo --yes --reason=...` after it pulls."
+        }
+      ]
     }
   ]
 }

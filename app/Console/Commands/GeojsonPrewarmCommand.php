@@ -47,12 +47,20 @@ class GeojsonPrewarmCommand extends Command
 {
     protected $signature = 'geojson:prewarm
         {--zooms=3,4,5,6 : Comma-separated Leaflet zoom levels to warm}
-        {--queue         : Dispatch as a Horizon-queued PrewarmGeojsonCachesJob and return; do not warm inline}';
+        {--queue         : Dispatch as a Horizon-queued PrewarmGeojsonCachesJob and return; do not warm inline}
+        {--unless-busy   : Do nothing while any engine run is active (serving-profile boot; operator ruling 2026-09-17)}';
 
     protected $description = 'Pre-build boundary + revealed GeoJSON caches for Earth and every giant scope so the mapper / viewer first-load instantly.';
 
     public function handle(): int
     {
+        // Serving-profile boot (operator ruling 2026-09-17): skipped while any
+        // run is active, since the prewarm shares the run's Horizon cap.
+        if ($this->option('unless-busy') && ($busy = \App\Support\RunsInFlight::any()) !== null) {
+            $this->info("Prewarm skipped: a {$busy} run is active (--unless-busy).");
+            return self::SUCCESS;
+        }
+
         if ($this->option('queue')) {
             PrewarmGeojsonCachesJob::dispatch((string) $this->option('zooms'));
             $this->info('Dispatched PrewarmGeojsonCachesJob to Horizon (queue=long-running).');

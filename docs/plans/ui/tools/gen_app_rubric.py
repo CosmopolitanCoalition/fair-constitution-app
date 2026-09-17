@@ -496,6 +496,9 @@ QUESTIONS = [
 ]
 # Operator answers (2026-07-29) — flip the 9 open to RESOLVED with the ruling folded in.
 _ANS = {
+ 'serving-boot-prewarm':('A','On the serving profile cap the boot prewarm at zoom 6 and skip it while any run is active; keep the 6 + GiB rule on the other profiles.',''),
+ 'serving-scheduler-cap':('A','Raise the scheduler floor and its aux share; the reconciliation still fits the host.','"Raise to something the box can handle per resize rules. not a hard number."'),
+ 'beta-instance-class':('A','Add an operator console act that flips a founded box to scale_demo with an audit entry; the beta flips before Krakow.',''),
  'video-publication-form':('A','Keep the tool with the audit entry; an operator tool for now, temporary during development.',"'it's an operator thing. this is temporary during development.'"),
  'video-library-size':('A','All 61 films (54.8 GB). The picker and resume make a full pull safe; a partial pull can follow later without rework.','"if the question is, are you sure you want to include all videos, the answer is yes"'),
  'languages-to-enable':('A','Enable all 75 now; the switcher states machine draft and the queue settles them over time.','"activate all languages in the app. since they are part of code they will be turned on by default."'),

@@ -56,6 +56,7 @@ class RasterTilePrewarmCommand extends Command
         {--max-zoom=5    : Last zoom level to warm (inclusive)}
         {--land-only     : Only generate tiles whose bbox overlaps a worldpop_rasters row}
         {--queue         : Dispatch as a Horizon-queued PrewarmRasterTilesJob and return; do not warm inline}
+        {--unless-busy   : Do nothing while any engine run is active (serving-profile boot; operator ruling 2026-09-17)}
         {--tile-keys=    : Path to a JSON file of ["z/x/y", ...]. When set, ignore zoom range/land-only and warm only those tiles. Used by the future map-editor invalidator for partial post-edit re-warms.}';
 
     protected $description = 'Pre-generate WorldPop raster tiles to disk cache so viewer first-loads are instant.';
@@ -70,6 +71,14 @@ class RasterTilePrewarmCommand extends Command
         if ($minZ < 0 || $maxZ < $minZ || $maxZ > 12) {
             $this->error("Bad zoom range: min={$minZ}, max={$maxZ}. Allowed 0-12.");
             return self::FAILURE;
+        }
+
+        // Serving-profile boot (operator ruling 2026-09-17): the prewarm worker
+        // and a run's pool share one Horizon cap, so while any run is active
+        // the prewarm is skipped, never queued behind it.
+        if ($this->option('unless-busy') && ($busy = \App\Support\RunsInFlight::any()) !== null) {
+            $this->info("Prewarm skipped: a {$busy} run is active (--unless-busy).");
+            return self::SUCCESS;
         }
 
         // --queue mode: hand the work to Horizon's long-running supervisor

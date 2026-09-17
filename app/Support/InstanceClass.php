@@ -105,6 +105,48 @@ class InstanceClass
         return self::current() === self::PRODUCTION;
     }
 
+    /**
+     * Change the class as an OPERATOR ACT on the record (operator ruling
+     * 2026-09-17, beta-instance-class = A): a founded box flips to scale_demo
+     * (or back) through this one owner, shared by `instance:class` and the
+     * operations console. The singleton row is updated, the per-request cache
+     * is flushed, and an audit entry `operator / instance_class.changed` is
+     * appended where the hash-chained log exists (Postgres); on the sqlite
+     * fixture the append is skipped and reported as not audited, never thrown.
+     *
+     * @return array{from: string, to: string, audited: bool}
+     */
+    public static function change(string $to, ?string $actorId = null, string $reason = ''): array
+    {
+        $to = self::normalize($to);
+        $from = self::current();
+
+        if ($to !== $from) {
+            DB::table('instance_settings')
+                ->whereNull('deleted_at')
+                ->update(['instance_class' => $to, 'updated_at' => now()]);
+            self::flush();
+        }
+
+        $audited = false;
+        try {
+            if (Schema::hasTable('audit_log') && DB::getDriverName() === 'pgsql') {
+                app(\App\Services\AuditService::class)->append(
+                    'operator',
+                    'instance_class.changed',
+                    ['from' => $from, 'to' => $to, 'reason' => $reason, 'changed' => $to !== $from],
+                    'instance_settings',
+                    $actorId,
+                );
+                $audited = true;
+            }
+        } catch (\Throwable) {
+            // The class changed; a missing audit sink is reported, not fatal.
+        }
+
+        return ['from' => $from, 'to' => $to, 'audited' => $audited];
+    }
+
     /** Forget the per-request cache (tests, and right after founding). */
     public static function flush(): void
     {

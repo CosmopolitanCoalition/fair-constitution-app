@@ -390,10 +390,21 @@ configure_host_memory() {
     # The aux share now also funds the LiveKit SFU and the TLS edge: both ran with NO cap
     # (LIMIT = the whole host, outside the closed budget; WoS 2026-09-08). Floors from the
     # measured idle residents on that box (livekit ~82 MiB, edge ~94 MiB) with room to work.
-    mem_matrix=$(clamp $(( aux_mb * 34 / 100 )) 160 4096)
-    mem_scheduler=$(clamp $(( aux_mb * 30 / 100 )) 384 2048)
-    mem_mas=$(clamp $(( aux_mb * 14 / 100 )) 48 1024)
-    mem_nginx=$(clamp $(( aux_mb * 7 / 100 )) 32 512)
+    # THE SCHEDULER FLOOR IS DERIVED (operator ruling 2026-09-17, serving-scheduler-cap
+    # = A, "not a hard number"): at :00 schedule:work forks every runInBackground
+    # command in routes/console.php at once (seven today: the four pumps, the
+    # chain-download, the two snapshots), each a full Laravel boot measured at 40 to
+    # 100 MB RSS, on top of the ~74 MB master and the inline clock job. The floor
+    # is that fan-out at 96 MB a child plus a 128 MB base, counted from the schedule
+    # itself so a new pump raises it; the aux share rises to 40 percent. A cap below
+    # the peak is a kill loop (the WoS beta lost two pumps at every boot at 489m).
+    sched_bg=$(grep -c -- '->runInBackground()' routes/console.php 2>/dev/null || echo 7)
+    [ "$sched_bg" -ge 1 ] 2>/dev/null || sched_bg=7
+    sched_floor=$(( 128 + sched_bg * 96 ))
+    mem_matrix=$(clamp $(( aux_mb * 30 / 100 )) 160 4096)
+    mem_scheduler=$(clamp $(( aux_mb * 40 / 100 )) "$sched_floor" 2048)
+    mem_mas=$(clamp $(( aux_mb * 10 / 100 )) 48 1024)
+    mem_nginx=$(clamp $(( aux_mb * 5 / 100 )) 32 512)
     mem_livekit=$(clamp $(( aux_mb * 10 / 100 )) 256 2048)
     mem_edge=$(clamp $(( aux_mb * 5 / 100 )) 128 1024)
 

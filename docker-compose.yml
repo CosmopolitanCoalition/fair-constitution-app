@@ -538,6 +538,9 @@ services:
     environment:
       # See the app service: the cap must be IN the env for the lane pool to be memory-bound.
       MEM_HORIZON: ${MEM_HORIZON:-}
+      # The memory profile (get-started derives it) gates the boot prewarm in the
+      # entrypoint: serving = zoom 6 and --unless-busy (operator ruling 2026-09-17).
+      CGA_MEM_PROFILE: ${CGA_MEM_PROFILE:-}
     command: php artisan horizon
     depends_on:
       postgres:

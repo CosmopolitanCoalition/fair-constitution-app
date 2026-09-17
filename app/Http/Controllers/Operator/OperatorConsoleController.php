@@ -35,6 +35,9 @@ class OperatorConsoleController extends Controller
         $authed = $operator !== null;
 
         return Inertia::render('Operator/Operations', [
+            // The instance class (operator ruling 2026-09-17): shown with the act
+            // that flips it; demo mode arms on scale_demo.
+            'instanceClass' => \App\Support\InstanceClass::current(),
             'authed' => $authed,
             'operator' => $authed ? ($operator->username ?? null) : null,
             'inventory' => $authed ? $infra->inventory() : null,
@@ -97,6 +100,29 @@ class OperatorConsoleController extends Controller
     }
 
     /** Phase 3 — the apply lifecycle poll (operator-gated): pending → applying → applied|failed. */
+    /**
+     * POST /operator/operations/instance-class — flip the instance class as
+     * an operator act on the record (operator ruling 2026-09-17). Operator-only;
+     * InstanceClass::change() is the single owner the console command shares.
+     */
+    public function setInstanceClass(Request $request): RedirectResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $data = $request->validate([
+            'class'  => ['required', 'in:production,scale_demo'],
+            'reason' => ['nullable', 'string', 'max:200'],
+        ]);
+
+        $result = \App\Support\InstanceClass::change(
+            $data['class'],
+            $request->user()?->id !== null ? (string) $request->user()->id : null,
+            (string) ($data['reason'] ?? 'operations console'),
+        );
+
+        return back()->with('status', 'instance-class:'.$result['from'].'>'.$result['to']);
+    }
+
     public function applyStatus(OperatorApplyService $apply): JsonResponse
     {
         return response()->json($apply->status());

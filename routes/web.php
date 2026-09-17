@@ -1628,6 +1628,10 @@ Route::middleware('auth:operator')->group(function () {
         ->name('operator.operations.tuning');
     Route::post('/operator/operations/tuning/reset', [\App\Http\Controllers\Operator\OperatorConsoleController::class, 'resetTuning'])
         ->name('operator.operations.tuning.reset');
+    // The instance class act (operator ruling 2026-09-17): production <-> scale_demo,
+    // recorded on the audit log. Operator-only in the handler.
+    Route::post('/operator/operations/instance-class', [\App\Http\Controllers\Operator\OperatorConsoleController::class, 'setInstanceClass'])
+        ->name('operator.operations.instance-class');
 
     // Operator Operations console (Phase 3) — restart-tier host-apply (LiveKit ICE
     // networking). The POST stages a desired-state control file; the host supervisor
