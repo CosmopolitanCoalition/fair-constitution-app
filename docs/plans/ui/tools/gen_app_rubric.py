@@ -23,6 +23,21 @@ import json, io, sys, os
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 QUESTIONS = [
+  {"id":"serving-boot-prewarm","q":"The beta (serving profile, MEM_HORIZON 2,516 MB) OOM-killed a Horizon worker at boot: the entrypoint dispatches the raster prewarm to zoom 8 (zoom = 6 + whole GiB of MEM_HORIZON) while the autoscale pool runs in the same cap. How should a serving box prewarm?","status":"open","lane":"ops",
+   "detail":"The zoom dial was set on 2026-09-08 from MEM_HORIZON alone; the pool that shares the cap is not counted. A 1 GB raster worker plus the pool does not fit 2.5 GB. Tiles above the prewarmed zoom are generated on demand, so a lower boot zoom costs first-view latency, not correctness.",
+   "options":[{"k":"A","t":"On the serving profile cap the boot prewarm at zoom 6 and skip it while any run is active; keep the 6 + GiB rule on the other profiles. [desk rec]"},
+    {"k":"B","t":"Count the pool: zoom = 6 + whole GiB of (MEM_HORIZON minus the pool reserve) on every profile."},
+    {"k":"C","t":"No boot prewarm on the serving profile; run rasters:prewarm by hand after a deploy."}]},
+  {"id":"serving-scheduler-cap","q":"The beta scheduler (MEM_SCHEDULER 489 MB) was OOM-restarted at the top of the minute: seven background artisan children start at once (the four pumps, the chain-download, the two snapshots) plus the clock job. Raise the scheduler share, or serialize the pumps?","status":"open","lane":"ops",
+   "detail":"The floor comment in get-started.sh measured four pumps at 40 to 60 MB each (peak about 375 MB); the schedule now forks seven at :00, each a full Laravel boot, so the peak is 500 to 700 MB. A cap below the peak is a kill loop, not a budget (the 2026-09-08 audit rule).",
+   "options":[{"k":"A","t":"Raise the scheduler floor to 768 MB and its aux share to 40 percent; the reconciliation still fits the host. [desk rec]"},
+    {"k":"B","t":"Stagger the pumps across the minute (offset seconds) so at most two boot at once; keep the cap."},
+    {"k":"C","t":"Both: raise the floor to 640 MB and stagger."}]},
+  {"id":"beta-instance-class","q":"The beta was founded as instance_class production (2026-07-05). Demo mode, its session capture and demo:void-expired are inert on a production instance, while the capture trigger now sits on 231 tables. You want a hybrid demo on the beta. Which path?","status":"open","lane":"demo",
+   "detail":"Demo mode (rulings C and A, 2026-09-10) was built for a scale_demo instance: guests go through the motions, writes are session-scoped and purged, nothing enters the permanent audit chain. On a production instance those guards stay off. A class flip is an identity change on a founded box: it needs an operator act on the record and a one-time purge policy for anything captured before the flip.",
+   "options":[{"k":"A","t":"Add an operator console act that flips a founded box to scale_demo with an audit entry; the beta flips before Krakow. [desk rec: the beta is the demo box by his order and this keeps one world]"},
+    {"k":"B","t":"Keep the beta production; found a separate scale_demo world for the conference."},
+    {"k":"C","t":"Keep production and let demo actions write for real (no session scoping)."}]},
   {"id":"video-library-size","q":"The Coalition video library at website quality is 54.8 GB (61 films: 17.1 GB video, 37.7 GB audio, 72 MB captions). The Step 2 download supports a subject filter and resumes. What does the fresh cloud box pull for Krakow?","status":"open","lane":"video",
    "detail":"All 61 films give every surface its assigned film (7 authored assignments plus the default introduction film). A subset cuts disk and download time on the cloud box; the player shows an honest poster for a film that is not present. The demo box disk size and the bandwidth on the day decide the cost.",
    "options":[{"k":"A","t":"All 61 films (54.8 GB). [desk rec: the picker and resume make a full pull safe; a partial pull can follow later without rework]"},

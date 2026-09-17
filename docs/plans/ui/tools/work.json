@@ -17323,6 +17323,39 @@
           "note": "Chrome dictionaries (evening, Eastern): the monolithic shell dict resources/js/i18n/<code>.json existed for 5 languages only and AppShellV2 reads 9 of its keys; translate_monolith.py gained --provider ollama --model and generated the 71 missing dictionaries with 0 QA skips (app.name kept as the English brand). Gate C1-missing 8,004 to 123; the rest is the earlier reader-queue residue."
         }
       ]
+    },
+    {
+      "id": "W-0451",
+      "title": "Locale catalogs fetched per language, never bundled (the beta build ran out of heap)",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "done_when": "npm run build completes under the beta's 2,797 MB node heap; no locale JSON is inlined in the client bundle; a page in any language boots with its catalog loaded before first paint; the language switch loads the new catalog before it flips.",
+      "depends_on": [],
+      "detail": "resources/js/i18n/index.js inlined every locale through an eager import.meta.glob: 160 MB of JSON in the client bundle. scripts/i18n/bundle_locales.mjs now writes public/i18n/<code>.json per locale (root chrome dict plus every namespace), a Vite plugin runs it at build and dev start and on catalog changes, index.js fetches a locale on first use (loadLocale, setLocale), app.js loads English and the page locale before mounting, both shells switch through setLocale, nginx serves /i18n with revalidation and gzips JSON, JS and CSS.",
+      "sources": [
+        {
+          "list": "cloud",
+          "ref": "WoS Cloud Demo report 2026-09-17 01:40 UTC, FAIL 1",
+          "title": "production front-end build cannot complete",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "scripts/i18n/bundle_locales.mjs",
+        "resources/js/i18n/index.js",
+        "resources/js/app.js",
+        "vite.config.js",
+        "tests/js/i18nLocaleBundles.test.mjs"
+      ],
+      "history": [
+        {
+          "date": "2026-09-17",
+          "note": "Cloud box (WoS beta) reported the production build OOM at a 2,797 MB heap after the 76-language enable; beta down. Desk fix built and proven on box E: the build completes under the same cap, public/build 8.9 MB total (was a 160 MB+ bundle); 32 JS pins green."
+        }
+      ]
     }
   ]
 }
