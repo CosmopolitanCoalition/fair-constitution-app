@@ -130,6 +130,7 @@
   "identity_verification.step_link_id": "2 · Linkitä henkilöllisyystodistus (valinnainen)",
   "identity_verification.step_live": "3 · Kerro asuinpaikkasi",
   "identity_verification.to_direct": "ohjaamiseksi.",
+  "identity_verification.via": "· kautta {via}",
   "identity_verification.where_you_are": "Sijaintisi",
   "journey.all_journeys": "Kaikki polut",
   "journey.coming": "Tulossa",

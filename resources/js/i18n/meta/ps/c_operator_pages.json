@@ -2348,6 +2348,34 @@
     "status": "machine",
     "provider": "ollama"
   },
+  "operations.instance_class_body": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.instance_class_current": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.instance_class_h": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.instance_class_reason": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.instance_class_saving": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.instance_class_submit": {
+    "status": "machine",
+    "provider": "ollama"
+  },
+  "operations.instance_class_target": {
+    "status": "machine",
+    "provider": "ollama"
+  },
   "operations.no_dns_cred": {
     "status": "machine",
     "provider": "ollama"

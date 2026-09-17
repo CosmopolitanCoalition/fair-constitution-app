@@ -529,7 +529,7 @@
     "provider": "ollama"
   },
   "identity_verification.via": {
-    "status": "review",
+    "status": "machine",
     "reason": "laravel token mismatch",
     "provider": "ollama"
   },
