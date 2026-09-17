@@ -17393,6 +17393,10 @@
         {
           "date": "2026-09-17",
           "note": "Built after the operator's three answers (evening, Eastern). PHP: OperatorRulings20260917Test 5 tests + NavRoleGateParityTest OK (9 tests, 34 assertions). JS pins on the operations page: 16 pass. The beta flips with `php artisan instance:class scale_demo --yes --reason=...` after it pulls."
+        },
+        {
+          "date": "2026-09-17",
+          "note": "Cloud box PASS on beee7caf (02:36 UTC): deploy.sh build in 11.65 s, public/build 5.7 MB, entry chunk 10 KB gzip; MEDIA_PULL_RESOLVE in place, overlay deleted; the full library pulled over the private origin (9,455 files, 54.8 GB, 0 failed); boot prewarm z0-6 with --unless-busy, no horizon OOM; scheduler 689 MB held the :40 tick with 10 commands. Two derivation observations fixed: the scaler had trimmed the 704 MB floor to 689 MB (the floor is now restored after scaling and Horizon gives up the difference, so the sum still fits) and the fan-out counts one foreground lane beyond the background commands (floor 128 + 96 x (bg + 1) = 800 MB today). instance:class NOT run by the operator's decision: the box stays production, the act is available."
         }
       ]
     }

@@ -392,7 +392,7 @@ function Configure-HostMemory {
         # The scheduler floor is derived from its :00 fan-out (operator ruling 2026-09-17):
         # every runInBackground command in routes/console.php boots at once, 96 MB a child
         # plus a 128 MB base. The aux share rises to 40 percent. See get-started.sh.
-        MEM_SCHEDULER = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.40) (128 + 96 * [Math]::Max(1, (Select-String -Path 'routes/console.php' -Pattern '->runInBackground\(\)' -ErrorAction SilentlyContinue | Measure-Object).Count)) 2048).ToString() + 'm' })
+        MEM_SCHEDULER = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.40) (128 + 96 * (1 + [Math]::Max(1, (Select-String -Path 'routes/console.php' -Pattern '->runInBackground\(\)' -ErrorAction SilentlyContinue | Measure-Object).Count))) 2048).ToString() + 'm' })
         MEM_MAS       = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.17) 48 1024).ToString() + 'm' })
         MEM_NGINX     = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.08) 32 512).ToString() + 'm' })
         REDIS_CACHE_MAXMEMORY = $(if ($open) { (Clamp ($totalMb / 10.0) 768 8192).ToString() + 'mb' } else { ([int]($rcMb * 0.85)).ToString() + 'mb' })

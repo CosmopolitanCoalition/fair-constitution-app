@@ -398,9 +398,13 @@ configure_host_memory() {
     # is that fan-out at 96 MB a child plus a 128 MB base, counted from the schedule
     # itself so a new pump raises it; the aux share rises to 40 percent. A cap below
     # the peak is a kill loop (the WoS beta lost two pumps at every boot at 489m).
+    # The peak counts the background commands PLUS ONE foreground lane: the
+    # inline commands (horizon:snapshot, demo:void-expired at :05) run one at a
+    # time in schedule:work's own foreground while the background ones are still
+    # booting (WoS 2026-09-17 02:40 tick: 6 background + 2 inline + the clock job).
     sched_bg=$(grep -c -- '->runInBackground()' routes/console.php 2>/dev/null || echo 7)
     [ "$sched_bg" -ge 1 ] 2>/dev/null || sched_bg=7
-    sched_floor=$(( 128 + sched_bg * 96 ))
+    sched_floor=$(( 128 + (sched_bg + 1) * 96 ))
     mem_matrix=$(clamp $(( aux_mb * 30 / 100 )) 160 4096)
     mem_scheduler=$(clamp $(( aux_mb * 40 / 100 )) "$sched_floor" 2048)
     mem_mas=$(clamp $(( aux_mb * 10 / 100 )) 48 1024)
@@ -433,6 +437,17 @@ configure_host_memory() {
       mem_nginx=$(( mem_nginx * avail / svc_sum ))
       mem_livekit=$(( mem_livekit * avail / svc_sum ))
       mem_edge=$(( mem_edge * avail / svc_sum ))
+      # THE SCHEDULER FLOOR SURVIVES THE SCALER (WoS 2026-09-17: the scaler trimmed
+      # 704m to 689m, so the peak-need floor was not a floor). A cap below the
+      # :00 fan-out is a kill loop, not a budget: restore the floor and take the
+      # difference from Horizon, the largest cap, so the collective sum still
+      # fits the budget (the guarantee stands).
+      if [ "$mem_scheduler" -lt "$sched_floor" ]; then
+        sched_gap=$(( sched_floor - mem_scheduler ))
+        mem_scheduler=$sched_floor
+        mem_horizon=$(( mem_horizon - sched_gap ))
+        say "      scheduler floor restored (${sched_floor}m); Horizon gives up ${sched_gap}m"
+      fi
     fi
 
     write_derived MEM_HORIZON "${mem_horizon}m"
