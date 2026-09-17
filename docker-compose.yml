@@ -15,6 +15,12 @@ services:
     # Harmless when unused. See docs/plans/phase-g-continuation/G8b-OVERLAY-EGRESS.md.
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      # A PRIVATE MEDIA ORIGIN (WoS 2026-09-17): the website download can read
+      # the coalition origin over a private network while keeping the public
+      # host name (TLS SNI and the WordPress https redirect need it).
+      # MEDIA_PULL_RESOLVE is one "host:ip" pair; the default maps a reserved
+      # name nothing resolves, so it is inert.
+      - "${MEDIA_PULL_RESOLVE:-media-pull.invalid:127.0.0.1}"
     working_dir: /var/www/html
     # -R lets php-fpm run its pool as root in dev. Windows bind mounts show
     # every file as root-owned, so running PHP as www-data causes permission
@@ -511,6 +517,12 @@ services:
     # needs the same host-daemon reachability as the app. See G8b-OVERLAY-EGRESS.md.
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      # A PRIVATE MEDIA ORIGIN (WoS 2026-09-17): the website download can read
+      # the coalition origin over a private network while keeping the public
+      # host name (TLS SNI and the WordPress https redirect need it).
+      # MEDIA_PULL_RESOLVE is one "host:ip" pair; the default maps a reserved
+      # name nothing resolves, so it is inert.
+      - "${MEDIA_PULL_RESOLVE:-media-pull.invalid:127.0.0.1}"
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
@@ -551,6 +563,12 @@ services:
     # G8b: parity with app/horizon for host-daemon reachability. See G8b-OVERLAY-EGRESS.md.
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      # A PRIVATE MEDIA ORIGIN (WoS 2026-09-17): the website download can read
+      # the coalition origin over a private network while keeping the public
+      # host name (TLS SNI and the WordPress https redirect need it).
+      # MEDIA_PULL_RESOLVE is one "host:ip" pair; the default maps a reserved
+      # name nothing resolves, so it is inert.
+      - "${MEDIA_PULL_RESOLVE:-media-pull.invalid:127.0.0.1}"
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html

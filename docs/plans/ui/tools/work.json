@@ -17238,6 +17238,10 @@
         {
           "date": "2026-09-16",
           "note": "Operator (evening, Eastern): the library plays on box E. Two follow-ups landed in 3c6789a6: the library and the player playlist follow his Multilingual Video Playlist.xspf order (resources/js/registry/media.playlist.json, read by build_media_registry.mjs; durations filled from it; Summary first) and the library page carries an info banner stating the films are samples from the Cosmopolitan Coalition website that show how the player works (two c_front keys, all 75 languages). Pins: mediaPlaylistOrder.test.mjs; VideoLibraryPageTest, MediaMetaMergeTest, LessonVideoTest updated (first film v-summary; poster state pinned on an empty root). Verified on box E: /videos opens on Summary, 61 of 61 available, baseUrl /media."
+        },
+        {
+          "date": "2026-09-17",
+          "note": "Cloud box (WoS beta) ran the first real website pull: 9,455 items planned, about 30 MB per second through Cloudflare, halted by the operator for transfer cost. Two findings fixed on the desk: media:pull could not continue a halted run (activePull counted halted as active) so MediaPullPlanner::resume and retryFailed are now the single owners shared by the wizard and the CLI (--resume, --retry-failed, both with --sync), and a halted run is named with the way to continue; a private origin is now a supported path through MEDIA_PULL_RESOLVE=host:ip (extra_hosts on app, horizon, scheduler) so the public host name stays on the request while the address is private. Pins: tests/Feature/MediaPullCommandTest.php (5 tests); media suites 23 tests OK."
         }
       ]
     },

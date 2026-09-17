@@ -40,6 +40,60 @@ class MediaPullPlanner
             ->first();
     }
 
+    /** The latest halted run, or null. */
+    public function haltedPull(): ?MediaPull
+    {
+        return MediaPull::query()->where('status', 'halted')->orderByDesc('created_at')->first();
+    }
+
+    /** The latest run of any status, or null. */
+    public function latestPull(): ?MediaPull
+    {
+        return MediaPull::query()->orderByDesc('created_at')->first();
+    }
+
+    /**
+     * Resume a halted run: flip it to running and (unless $dispatch is false,
+     * the --sync path) dispatch its pending items. The ONE owner of resume for
+     * the wizard control and the media:pull --resume flag (WoS 2026-09-17:
+     * the CLI refused a halted run because activePull() counts halted as
+     * active, and only the wizard could resume). Returns the count dispatched.
+     */
+    public function resume(MediaPull $pull, bool $dispatch = true): int
+    {
+        if ($pull->status !== 'halted') {
+            return 0;
+        }
+        $pull->forceFill(['status' => 'running', 'finished_at' => null, 'updated_at' => now()])->save();
+
+        return $dispatch ? $this->dispatchPending($pull) : 0;
+    }
+
+    /**
+     * Reset a run's failed items to pending, clear the failed counter, mark
+     * the run running and (unless $dispatch is false) dispatch. Returns
+     * [reset, dispatched]. The single owner for the wizard and the CLI.
+     *
+     * @return array{0: int, 1: int}
+     */
+    public function retryFailed(MediaPull $pull, bool $dispatch = true): array
+    {
+        $reset = DB::table('media_pull_items')
+            ->where('pull_id', $pull->id)
+            ->where('status', 'failed')
+            ->update(['status' => 'pending', 'error' => null, 'updated_at' => now()]);
+        if ($reset > 0) {
+            $pull->forceFill([
+                'status'       => 'running',
+                'items_failed' => 0,
+                'finished_at'  => null,
+                'updated_at'   => now(),
+            ])->save();
+        }
+
+        return [$reset, $dispatch ? $this->dispatchPending($pull) : 0];
+    }
+
     /**
      * Create a run and its items. Does NOT dispatch — the caller decides sync
      * or queued.

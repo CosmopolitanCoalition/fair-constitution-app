@@ -155,34 +155,22 @@ class MediaLibrarySetupController extends Controller
         }
 
         if ($data['action'] === 'resume') {
-            $pull = MediaPull::query()->where('status', 'halted')->orderByDesc('created_at')->first();
+            $pull = $planner->haltedPull();
             if ($pull === null) {
                 return response()->json(['ok' => true, 'pull' => $this->pullSummary($this->latestPull())]);
             }
-            $pull->forceFill(['status' => 'running', 'finished_at' => null, 'updated_at' => now()])->save();
-            $dispatched = $planner->dispatchPending($pull);
+            $dispatched = $planner->resume($pull);
 
             return response()->json(['ok' => true, 'dispatched' => $dispatched, 'pull' => $this->pullSummary($pull->fresh())]);
         }
 
-        // retry_failed: reset failed items to pending, clear the counter, re-run.
+        // retry_failed: reset failed items to pending, clear the counter, re-run
+        // (MediaPullPlanner::retryFailed is the single owner; the CLI shares it).
         $pull = $this->latestPull();
         if ($pull === null) {
             return response()->json(['ok' => true, 'pull' => null]);
         }
-        $reset = DB::table('media_pull_items')
-            ->where('pull_id', $pull->id)
-            ->where('status', 'failed')
-            ->update(['status' => 'pending', 'error' => null, 'updated_at' => now()]);
-        if ($reset > 0) {
-            $pull->forceFill([
-                'status'       => 'running',
-                'items_failed' => 0,
-                'finished_at'  => null,
-                'updated_at'   => now(),
-            ])->save();
-        }
-        $dispatched = $planner->dispatchPending($pull);
+        [$reset, $dispatched] = $planner->retryFailed($pull);
 
         return response()->json([
             'ok'         => true,

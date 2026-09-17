@@ -26,6 +26,11 @@ use Illuminate\Console\Command;
  *   php artisan media:pull --subjects="A,B"        only these subject folders
  *   php artisan media:pull --status                print the latest run's totals
  *   php artisan media:pull --halt                  halt the live run
+ *   php artisan media:pull --resume [--sync]       continue the halted run (its pending items)
+ *   php artisan media:pull --retry-failed [--sync] reset the latest run's failed items and re-run
+ *
+ * A halted run is never refused silently (WoS 2026-09-17): without --resume
+ * the command names it and says how to continue.
  */
 class MediaPullCommand extends Command
 {
@@ -36,6 +41,8 @@ class MediaPullCommand extends Command
         {--kinds=master,audio,captions : which file kinds to fetch}
         {--sync : run items inline instead of queueing (no Horizon)}
         {--halt : halt the live run and exit}
+        {--resume : continue the latest halted run (with --sync: inline)}
+        {--retry-failed : reset the failed items of the latest run to pending and re-run (with --sync: inline)}
         {--status : print the latest run status and exit}';
 
     protected $description = 'Fill the local video library from the website or a local folder (W-0448)';
@@ -48,6 +55,14 @@ class MediaPullCommand extends Command
 
         if ($this->option('halt')) {
             return $this->haltRun();
+        }
+
+        if ($this->option('resume')) {
+            return $this->resumeRun($planner, $transfer);
+        }
+
+        if ($this->option('retry-failed')) {
+            return $this->retryFailedRun($planner, $transfer);
         }
 
         $source = (string) $this->option('source');
@@ -64,8 +79,10 @@ class MediaPullCommand extends Command
             return self::INVALID;
         }
 
-        if ($planner->activePull() !== null) {
-            $this->error('A media pull is already running or halted. Use --status, or --halt first.');
+        if (($active = $planner->activePull()) !== null) {
+            $this->error($active->status === 'halted'
+                ? 'Run '.substr($active->id, 0, 8).' is halted. Continue it with media:pull --resume (add --sync to run inline), or inspect it with --status.'
+                : 'A media pull is already running. Use --status, or --halt first.');
 
             return self::FAILURE;
         }
@@ -140,6 +157,77 @@ class MediaPullCommand extends Command
         return self::SUCCESS;
     }
 
+    /** --resume: continue the latest halted run, queued or inline. */
+    private function resumeRun(MediaPullPlanner $planner, MediaTransfer $transfer): int
+    {
+        $pull = $planner->haltedPull();
+        if ($pull === null) {
+            $this->line('No halted media pull to resume. Use --status.');
+
+            return self::SUCCESS;
+        }
+
+        if ($this->option('sync')) {
+            $planner->resume($pull, dispatch: false);
+            $this->info('Resuming run '.substr($pull->id, 0, 8).' inline.');
+            $this->runInline($planner, $transfer, $pull->fresh());
+
+            return $this->finishStatus($pull->id);
+        }
+
+        $n = $planner->resume($pull);
+        $this->info(sprintf('Resumed run %s: dispatched %d pending item(s) to the long-running queue. Poll with media:pull --status.', substr($pull->id, 0, 8), $n));
+
+        return self::SUCCESS;
+    }
+
+    /** --retry-failed: reset the latest run's failed items and re-run them, queued or inline. */
+    private function retryFailedRun(MediaPullPlanner $planner, MediaTransfer $transfer): int
+    {
+        $pull = $planner->latestPull();
+        if ($pull === null) {
+            $this->line('No media pull has run.');
+
+            return self::SUCCESS;
+        }
+
+        if ($this->option('sync')) {
+            [$reset] = $planner->retryFailed($pull, dispatch: false);
+            $this->info(sprintf('Run %s: %d failed item(s) reset; running inline.', substr($pull->id, 0, 8), $reset));
+            $this->runInline($planner, $transfer, $pull->fresh());
+
+            return $this->finishStatus($pull->id);
+        }
+
+        [$reset, $n] = $planner->retryFailed($pull);
+        $this->info(sprintf('Run %s: %d failed item(s) reset, %d dispatched. Poll with media:pull --status.', substr($pull->id, 0, 8), $reset, $n));
+
+        return self::SUCCESS;
+    }
+
+    private function runInline(MediaPullPlanner $planner, MediaTransfer $transfer, MediaPull $pull): void
+    {
+        $planner->runSync($pull, $transfer, function ($item, array $result, int $i, int $total): void {
+            $this->line(sprintf(
+                '[%d/%d] %s %s/%s -> %s',
+                $i, $total, str_pad($result['status'], 7),
+                $item->subject, $item->kind,
+                isset($result['error']) ? $result['error'] : $this->humanBytes((int) ($result['bytes'] ?? 0))
+            ));
+        });
+    }
+
+    private function finishStatus(string $pullId): int
+    {
+        $fresh = MediaPull::query()->find($pullId);
+        $this->info(sprintf(
+            'Done: %d fetched, %d failed, status %s.',
+            (int) $fresh->items_done, (int) $fresh->items_failed, (string) $fresh->status
+        ));
+
+        return ($fresh->items_failed ?? 0) > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
     private function haltRun(): int
     {
         $pull = MediaPull::query()->where('status', 'running')->orderByDesc('created_at')->first();
@@ -149,7 +237,7 @@ class MediaPullCommand extends Command
             return self::SUCCESS;
         }
         $pull->forceFill(['status' => 'halted', 'updated_at' => now()])->save();
-        $this->info('Halted run '.substr($pull->id, 0, 8).'. In-flight items stop at their next tick; resume from the wizard or re-run media:pull after --status shows halted.');
+        $this->info('Halted run '.substr($pull->id, 0, 8).'. In-flight items stop at their next tick; continue with media:pull --resume (add --sync to run inline) or from the wizard.');
 
         return self::SUCCESS;
     }
