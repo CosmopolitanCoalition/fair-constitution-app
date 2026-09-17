@@ -2,13 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Controllers\JurisdictionController;
-use App\Http\Controllers\LegislatureController;
 use App\Jobs\PrewarmGeojsonCachesJob;
-use App\Models\Jurisdiction;
-use App\Services\ConstitutionalDefaults;
 use Illuminate\Console\Command;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -47,13 +42,21 @@ class GeojsonPrewarmCommand extends Command
 {
     protected $signature = 'geojson:prewarm
         {--zooms=3,4,5,6 : Comma-separated Leaflet zoom levels to warm}
+        {--legislature=* : Legislature id(s) to warm; default = the root legislatures (Earth on a planet box)}
         {--queue         : Dispatch as a Horizon-queued PrewarmGeojsonCachesJob and return; do not warm inline}
-        {--unless-busy   : Do nothing while any engine run is active (serving-profile boot; operator ruling 2026-09-17)}';
+        {--unless-busy   : Do nothing while any engine run is active (serving-profile boot; operator ruling 2026-09-17)}
+        {--status        : Print the prewarm ledger: done, failed and LOST units}';
 
     protected $description = 'Pre-build boundary + revealed GeoJSON caches for Earth and every giant scope so the mapper / viewer first-load instantly.';
 
     public function handle(): int
     {
+        $planner = app(\App\Services\Maps\GeojsonPrewarmPlanner::class);
+
+        if ($this->option('status')) {
+            return $this->printStatus($planner);
+        }
+
         // Serving-profile boot (operator ruling 2026-09-17): skipped while any
         // run is active, since the prewarm shares the run's Horizon cap.
         if ($this->option('unless-busy') && ($busy = \App\Support\RunsInFlight::any()) !== null) {
@@ -61,118 +64,67 @@ class GeojsonPrewarmCommand extends Command
             return self::SUCCESS;
         }
 
+        $legIds = array_values(array_filter((array) $this->option('legislature'))) ?: null;
+
         if ($this->option('queue')) {
-            PrewarmGeojsonCachesJob::dispatch((string) $this->option('zooms'));
-            $this->info('Dispatched PrewarmGeojsonCachesJob to Horizon (queue=long-running).');
+            PrewarmGeojsonCachesJob::dispatch((string) $this->option('zooms'), $legIds);
+            $this->info('Dispatched PrewarmGeojsonCachesJob to Horizon (queue=prewarm): it plans one unit per scope and zoom.');
             return self::SUCCESS;
         }
 
-        $zooms = array_values(array_filter(
-            array_map(fn ($z) => (int) trim($z), explode(',', (string) $this->option('zooms'))),
-            fn ($z) => $z >= 0 && $z <= 18
-        ));
-        if (!$zooms) $zooms = [3, 4, 5, 6];
+        $zooms = PrewarmGeojsonCachesJob::parseZooms((string) $this->option('zooms'));
 
-        $legislatures = DB::table('legislatures')->whereNull('deleted_at')->get();
-        if ($legislatures->isEmpty()) {
+        if (! DB::table('legislatures')->whereNull('deleted_at')->exists()) {
             $this->warn('No legislatures present — nothing to warm.');
             return self::SUCCESS;
         }
 
-        $jurisdictionCtl = app(JurisdictionController::class);
-        $legislatureCtl  = app(LegislatureController::class);
+        // Inline: the same bounded units, one after the other.
+        $units = $planner->plan($zooms, $legIds);
+        $planner->recordPlan($units);
+        $this->info(sprintf('%d units (scope x zoom).', count($units)));
 
-        $boundary = 0;
-        $revealed = 0;
-        $failed   = 0;
-
-        foreach ($legislatures as $leg) {
-            $rootId  = $leg->jurisdiction_id;
-            $rootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $rootId);
-            $seats   = (int) $leg->type_a_seats;
-            $thr     = ConstitutionalDefaults::giantThreshold($rootId);
-
-            // Root + every drillable giant REACHABLE from this legislature's
-            // root (WI-9). The previous version scanned ALL jurisdictions,
-            // which silently assumed the planet legislature — for a small
-            // root (San Marino: 34 k pop, 32 seats) nearly every country on
-            // Earth would satisfy pop × seats / rootPop ≥ threshold and get
-            // pointlessly warmed. The chained CTE mirrors wizardSteps():
-            // giants under non-giant parents aren't drillable, so they're
-            // correctly excluded. EXISTS(children) keeps the list to scopes
-            // the mapper actually opens. (PDO forbids reusing named params,
-            // hence the numbered aliases.)
-            $giantRows = DB::select(
-                "WITH RECURSIVE giant_tree AS (
-                     SELECT j.id
-                     FROM jurisdictions j
-                     WHERE j.parent_id = :root
-                       AND j.deleted_at IS NULL
-                       AND (CAST(j.population AS numeric) * :seats1 / :rootpop1) >= :thr1
-                     UNION ALL
-                     SELECT j.id
-                     FROM jurisdictions j
-                     JOIN giant_tree gt ON j.parent_id = gt.id
-                     WHERE j.deleted_at IS NULL
-                       AND (CAST(j.population AS numeric) * :seats2 / :rootpop2) >= :thr2
-                 )
-                 SELECT gt.id
-                 FROM giant_tree gt
-                 WHERE EXISTS (
-                     SELECT 1 FROM jurisdictions c
-                     WHERE c.parent_id = gt.id AND c.deleted_at IS NULL
-                 )",
-                [
-                    'root'   => $rootId,
-                    'seats1' => $seats, 'rootpop1' => $rootPop, 'thr1' => $thr,
-                    'seats2' => $seats, 'rootpop2' => $rootPop, 'thr2' => $thr,
-                ]
-            );
-
-            $scopeIds = array_values(array_unique(array_merge(
-                [$rootId],
-                array_map(fn ($r) => $r->id, $giantRows)
-            )));
-
-            $this->info(sprintf(
-                'Legislature %s: %d scopes × %d zooms (%d boundary + revealed payloads each)…',
-                $leg->id, count($scopeIds), count($zooms), 4
-            ));
-
-            foreach ($scopeIds as $sid) {
-                $jur = Jurisdiction::find($sid);
-                if (!$jur) continue;
-
-                foreach ($zooms as $z) {
-                    // Boundary geometry — viewer + mapper children layer. Pure
-                    // geometry; the rememberForever cache is populated as a side
-                    // effect of the controller call (we discard the response).
-                    foreach (['childrenGeoJson', 'selfGeoJson', 'siblingsGeoJson'] as $method) {
-                        try {
-                            $jurisdictionCtl->{$method}(Request::create("/warm?zoom={$z}", 'GET'), $jur);
-                            $boundary++;
-                        } catch (\Throwable $e) {
-                            $failed++;
-                            $this->warn("  {$method} {$sid} z{$z}: {$e->getMessage()}");
-                        }
-                    }
-
-                    // Revealed sub-district fills — mapper only. Heaviest at root.
-                    try {
-                        $legislatureCtl->revealedGeoJson(
-                            Request::create("/warm?scope={$sid}&zoom={$z}", 'GET'),
-                            $leg->id
-                        );
-                        $revealed++;
-                    } catch (\Throwable $e) {
-                        $failed++;
-                        $this->warn("  revealedGeoJson {$sid} z{$z}: {$e->getMessage()}");
-                    }
-                }
+        $built = $failed = 0;
+        foreach ($units as $i => $u) {
+            $key = \App\Services\Maps\GeojsonPrewarmPlanner::unitKey($u['leg'], $u['scope'], $u['zoom']);
+            $planner->mark($key, 'started');
+            $r = $planner->build($u['leg'], $u['scope'], $u['zoom']);
+            foreach ($r['messages'] as $m) {
+                $this->warn('  '.$m);
             }
+            if ($r['failed'] > 0) {
+                $planner->mark($key, 'failed', ['messages' => array_slice($r['messages'], 0, 5)]);
+                $failed += $r['failed'];
+            } else {
+                $planner->mark($key, 'done', ['built' => $r['built']]);
+            }
+            $built += $r['built'];
+            $this->line(sprintf('  [%d/%d] %s: %d payloads', $i + 1, count($units), $key, $r['built']));
         }
 
-        $this->info("GeoJSON prewarm complete: {$boundary} boundary payloads, {$revealed} revealed payloads, {$failed} failures.");
-        return self::SUCCESS;
+        $this->info("GeoJSON prewarm complete: {$built} payloads, {$failed} failures.");
+        return $failed > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    /** --status: the ledger, with LOST units named (a killed worker cannot report). */
+    private function printStatus(\App\Services\Maps\GeojsonPrewarmPlanner $planner): int
+    {
+        $st = $planner->status();
+        if ($st['planned_at'] === null) {
+            $this->line('No GeoJSON prewarm plan recorded on this box.');
+            return self::SUCCESS;
+        }
+        $this->line('Planned: '.$st['planned_at']);
+        $c = $st['counts'];
+        $this->line(sprintf('Units:   %d planned, %d done, %d running, %d pending, %d failed, %d lost',
+            $c['planned'], $c['done'], $c['running'], $c['pending'], $c['failed'], $c['lost']));
+        foreach ($st['failed'] as $k) {
+            $this->line("  failed   {$k}");
+        }
+        foreach ($st['lost'] as $k) {
+            $this->line("  LOST     {$k}  (started, never finished: the worker was killed)");
+        }
+
+        return ($c['lost'] > 0 || $c['failed'] > 0) ? self::FAILURE : self::SUCCESS;
     }
 }

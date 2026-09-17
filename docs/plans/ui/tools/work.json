@@ -17397,6 +17397,10 @@
         {
           "date": "2026-09-17",
           "note": "Cloud box PASS on beee7caf (02:36 UTC): deploy.sh build in 11.65 s, public/build 5.7 MB, entry chunk 10 KB gzip; MEDIA_PULL_RESOLVE in place, overlay deleted; the full library pulled over the private origin (9,455 files, 54.8 GB, 0 failed); boot prewarm z0-6 with --unless-busy, no horizon OOM; scheduler 689 MB held the :40 tick with 10 commands. Two derivation observations fixed: the scaler had trimmed the 704 MB floor to 689 MB (the floor is now restored after scaling and Horizon gives up the difference, so the sum still fits) and the fan-out counts one foreground lane beyond the background commands (floor 128 + 96 x (bg + 1) = 800 MB today). instance:class NOT run by the operator's decision: the box stays production, the act is available."
+        },
+        {
+          "date": "2026-09-17",
+          "note": "Boot kill re-attributed by the cloud box's isolated test (02:58 UTC): the GeoJSON prewarm worker allocates over 1.6 GB within two seconds of starting, before any scope; the raster gate was never the cause. Root cause read in code: PrewarmGeojsonCachesJob fetched every legislature on the planet (940,327 rows in one query) and then ran a query per row. Operator approved the rewrite with two limits: no data change, no display change. Built: GeojsonPrewarmPlanner plans the ROOT legislatures only (Earth on a planet box) plus the giants the mapper drills into, one PrewarmGeojsonUnitJob per scope and zoom on the prewarm lane (one worker, so the warm is staggered), a cache ledger with geojson:prewarm --status naming LOST units, --legislature= for others. The map queries are the controllers' own, untouched; a coordinate-precision edit and a vertex-count estimate the desk had started were reverted and removed on the operator's order. Box E: 320 units planned in 1 s, the Earth unit built in 2 m 35 s, no kill, ledger exact. Pins: GeojsonPrewarmPlannerTest (ledger), OperatorRulings20260917Test. The beta pulls tomorrow (its session is off for the night)."
         }
       ]
     }
