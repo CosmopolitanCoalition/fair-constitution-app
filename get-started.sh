@@ -13,6 +13,10 @@
 #   ./get-started.sh --reconfigure  (change the map-data folder etc. and recreate)
 #   ./get-started.sh --rederive     (re-measure the host and rewrite the derived sizes; never updates code)
 #   ./get-started.sh --no-pull      (start without checking for a code update)
+#   ./get-started.sh --boot         (the boot check: when the host's RAM or cores changed, re-derive
+#                                    the sizes and recreate the running services; never updates code)
+#   ./get-started.sh --install-boot-unit   (Linux + systemd: run the boot check at every boot)
+#   ./get-started.sh --print-boot-unit     (print that unit and exit)
 #
 # A box that takes code only on the desk's word (GOOD TO PULL) sets CGA_NO_PULL=1
 # in .env once, or in the shell; every run then skips the update check.
@@ -25,12 +29,17 @@ REPO="CosmopolitanCoalition/fair-constitution-app"
 BRANCH="main"
 RECONFIGURE=0
 REDERIVE_ONLY=0
+BOOT=0
+BOOT_UNIT=""
 NO_PULL="${CGA_NO_PULL:-0}"
 for a in "$@"; do
   case "$a" in
     --reconfigure) RECONFIGURE=1 ;;
     --rederive)    REDERIVE_ONLY=1 ;;
     --no-pull)     NO_PULL=1 ;;
+    --boot)        BOOT=1 ;;
+    --install-boot-unit) BOOT_UNIT=install ;;
+    --print-boot-unit)   BOOT_UNIT=print ;;
   esac
 done
 
@@ -167,6 +176,8 @@ if [ "$NO_PULL" != "1" ] && [ -f .env ] && grep -qE '^CGA_NO_PULL=[[:space:]]*(1
 fi
 if [ "$REDERIVE_ONLY" = "1" ]; then
   say "      Update check skipped (--rederive never changes the code)."
+elif [ "$BOOT" = "1" ] || [ -n "$BOOT_UNIT" ]; then
+  say "      Update check skipped (the boot check never changes the code)."
 elif [ "$NO_PULL" = "1" ]; then
   say "      Update check skipped (--no-pull / CGA_NO_PULL=1): this box updates on the desk's word only."
 elif [ "$JUST_DOWNLOADED" != "1" ] && command -v git >/dev/null 2>&1; then
@@ -330,6 +341,14 @@ configure_host_memory() {
     REDERIVE=1
     say "  host RAM changed (${prev_host} -> ${total_mb} MB): re-deriving every ledger value"
   fi
+  # THE CORES TRIGGER (operator order 2026-09-19): a resize that changes the
+  # cores and keeps the RAM re-derives too. The lane pools and the postgres
+  # parallel posture are sized from the cores.
+  prev_cores="$(get_env DERIVED_HOST_CORES)"
+  if [ -n "$prev_cores" ] && [ "$prev_cores" != "$cores" ] && [ "${REDERIVE:-0}" != "1" ]; then
+    REDERIVE=1
+    say "  host cores changed (${prev_cores} -> ${cores}): re-deriving every ledger value"
+  fi
   write_derived() { # key fresh-value
     cur="$(get_env "$1")"
     if [ -z "$cur" ]; then
@@ -348,6 +367,7 @@ configure_host_memory() {
   # global work_mem ≤ 64MB (per-connection safety; districting lanes raise
   # their own sessions via HostCapacity::laneWorkMemMb).
   write_derived DERIVED_HOST_MB "$total_mb"
+  write_derived DERIVED_HOST_CORES "$cores"
   write_derived POSTGRES_MEM_LIMIT "${pg_mb}m"
   write_derived PG_SHARED_BUFFERS  "$(clamp $(( pg_mb / 9 )) 128  512)MB"
   write_derived PG_EFFECTIVE_CACHE "$(clamp $(( pg_mb * 80 / 100 )) 256 210000)MB"
@@ -579,6 +599,94 @@ if [ "$REDERIVE_ONLY" = "1" ]; then
   say "  postgres  — POSTGRES_MEM_LIMIT + every PG_* value"
   say "  redis_queue — REDIS_QUEUE_MAXMEMORY"
   say "  docker compose up -d --force-recreate postgres redis_queue   (when the box is quiet)"
+  exit 0
+fi
+
+# THE BOOT UNIT (operator order 2026-09-19: the cloud boxes resize themselves;
+# the containers must return at boot and the sizes must follow the new host).
+# Docker's restart policy (unless-stopped on every service) brings the
+# containers back; a container keeps the caps it was CREATED with, so after a
+# resize the unit below runs the boot check, which re-derives and recreates.
+boot_unit_text() {
+  cat <<UNIT
+[Unit]
+Description=Cosmopolitan Governance App boot check: re-derive host sizing after a resize
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=$(id -un)
+WorkingDirectory=$APP_DIR
+ExecStart=/usr/bin/env bash $APP_DIR/get-started.sh --boot
+TimeoutStartSec=1800
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+}
+if [ "$BOOT_UNIT" = "print" ]; then
+  boot_unit_text
+  exit 0
+fi
+if [ "$BOOT_UNIT" = "install" ]; then
+  command -v systemctl >/dev/null 2>&1 || fail "The boot unit needs systemd (Linux). On this host, start Docker at login and run ./get-started.sh --boot after a resize."
+  SUDO=""; [ "$(id -u)" = "0" ] || SUDO="sudo"
+  unit_tmp="$(mktemp)"
+  boot_unit_text > "$unit_tmp"
+  $SUDO install -m 0644 "$unit_tmp" /etc/systemd/system/cga-boot.service
+  rm -f "$unit_tmp"
+  $SUDO systemctl daemon-reload
+  $SUDO systemctl enable docker.service >/dev/null 2>&1 || true
+  $SUDO systemctl enable cga-boot.service
+  say "Installed /etc/systemd/system/cga-boot.service. At every boot: Docker returns the containers, then the boot check re-derives and recreates them when the host changed."
+  say "  See the last run:  journalctl -u cga-boot.service -b"
+  exit 0
+fi
+
+# --boot: the boot check. Bounded and quiet: no update, no prompt, no build,
+# no browser. When the host is the one the ledger was derived on, it does
+# nothing (Docker's restart policy already returned the services). When the
+# RAM or the cores changed, configure_host_memory re-derives every ledger
+# value; the services that are RUNNING are recreated with the new caps (a
+# service the operator stopped stays stopped), the config cache is re-baked
+# and Horizon restarts so the lane pools take the new widths.
+if [ "$BOOT" = "1" ]; then
+  [ "$FIRST_RUN" != "1" ] || fail "--boot is for an installed box. Run ./get-started.sh once first."
+  say "Boot check: measuring the host..."
+  configure_host_memory
+  if [ "${REDERIVE:-0}" != "1" ]; then
+    say "Host unchanged: nothing to re-derive."
+    exit 0
+  fi
+  # Docker starts the restart-policy containers while it comes up: wait for
+  # the set to settle before it is read.
+  i=0
+  while [ "$i" -lt 30 ]; do
+    pending="$(docker compose ps --services --status restarting --status created 2>/dev/null | tr '\n' ' ')"
+    [ -z "${pending// /}" ] && break
+    i=$((i+1)); sleep 2
+  done
+  svcs="$(docker compose ps --services --status running 2>/dev/null | tr '\n' ' ')"
+  if [ -z "${svcs// /}" ]; then
+    say "Host changed and .env is re-derived. No service is running, so nothing was recreated."
+    exit 0
+  fi
+  say "Host changed: recreating the running services with the re-derived sizes: $svcs"
+  # shellcheck disable=SC2086
+  docker compose up -d $svcs || fail "The recreate failed. .env already holds the re-derived sizes; run:  docker compose up -d"
+  case " $svcs " in
+    *" app "*)
+      i=0
+      while [ "$i" -lt 60 ]; do
+        if docker compose exec -T app php -v >/dev/null 2>&1; then break; fi
+        i=$((i+1)); sleep 5
+      done
+      docker compose exec -T app php artisan config:cache >/dev/null 2>&1 || say "  config:cache did not run; run it once the app is up."
+      docker compose restart horizon scheduler >/dev/null 2>&1 || true
+      ;;
+  esac
+  say "Boot check done."
   exit 0
 fi
 

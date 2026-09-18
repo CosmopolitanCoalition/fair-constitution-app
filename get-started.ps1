@@ -449,6 +449,14 @@ function Configure-HostMemory {
         $Rederive = $true
         Say "  host RAM changed ($prevHost -> $totalMb MB): re-deriving every ledger value"
     }
+    # THE CORES TRIGGER (operator order 2026-09-19, mirrors get-started.sh): a
+    # resize that changes the cores and keeps the RAM re-derives too.
+    $derived['DERIVED_HOST_CORES'] = "$cores"
+    $prevCores = Get-EnvValue 'DERIVED_HOST_CORES'
+    if ($prevCores -ne '' -and $prevCores -ne "$cores" -and -not $Rederive) {
+        $Rederive = $true
+        Say "  host cores changed ($prevCores -> $cores): re-deriving every ledger value"
+    }
     $wrote = @()
     foreach ($k in $derived.Keys) {
         $cur = Get-EnvValue $k

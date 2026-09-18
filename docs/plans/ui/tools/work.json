@@ -17484,6 +17484,40 @@
           "note": "Built on the desk. Harnesses run the real scripts with stubbed docker and git: tests/deploy/test_get_started_contracts.sh (8 cases, 24 assertions, pass), test_installer_contracts.sh with new cases 8a to 8d (pass), test_installer_contracts.ps1 with 8a and 8b (pass). OperatorRulings20260917Test 5 tests OK. Derived on a 15,990 MB geodata host: MEM_HORIZON 1776m (was 1066m), etl 3331m, every cap together 12,787 of the 12,792 MB budget. The demo box verifies at its next pull."
         }
       ]
+    },
+    {
+      "id": "W-0455",
+      "title": "Boot and resize: the etl returns at boot; a boot check re-derives and recreates after a RAM or cores change",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "done_when": "Every compose service carries restart: unless-stopped (the etl included); get-started.sh --boot does nothing on an unchanged host and, after a RAM or cores change, re-derives the ledger, recreates only the running services, re-bakes the config cache and restarts Horizon, with no pull, no build and no prompt; --install-boot-unit installs a systemd oneshot that runs it after docker.service; the harness and the compose pin pass.",
+      "depends_on": [],
+      "detail": "Operator order 2026-09-19 (the demo and beta boxes resize themselves) and WoS demo box flag 6. docker-compose.yml: the etl service was the only long-running service with no restart policy, so after a VM stop and start the ETL supervisor stayed Exited (0) while geodata:pump and geodata:chain-download kept ticking. get-started.sh: DERIVED_HOST_CORES joins DERIVED_HOST_MB as a re-derive trigger (get-started.ps1 mirrors the trigger); --boot is the bounded boot path; --install-boot-unit / --print-boot-unit write /etc/systemd/system/cga-boot.service (Type=oneshot, After and Requires docker.service, the installing user, TimeoutStartSec 1800) and enable docker.service. A service the operator stopped stays stopped: the boot check reads the RUNNING set after Docker's own restart settles. NOTE for a box that pulls this commit: its existing etl container still carries the old policy until one `docker compose up -d etl` recreates it.",
+      "sources": [
+        {
+          "list": "cloud",
+          "ref": "WoS Cloud Demo flag 6, 2026-09-19; operator question 2026-09-19 on boot and auto-rederive",
+          "title": "etl does not return after a VM stop/start; boxes resize themselves",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "docker-compose.yml",
+        "get-started.sh",
+        "get-started.ps1",
+        "README.md",
+        "tests/js/composeRestartPolicy.test.mjs",
+        "tests/deploy/test_get_started_contracts.sh"
+      ],
+      "history": [
+        {
+          "date": "2026-09-19",
+          "note": "Built on the desk. tests/deploy/test_get_started_contracts.sh now holds 12 cases (the real script, stubbed docker and git): same host = no change; RAM 16384 -> 32768 re-derives, recreates `app horizon postgres` only, re-bakes the cache, restarts Horizon; cores 8 -> 16 with the same RAM re-derives (PG_MAX_WORKER_PROCESSES 8 -> 16); the unit text is pinned. tests/js/composeRestartPolicy.test.mjs 2 pass; `docker compose config -q` exit 0. Not yet run on a real systemd host: the demo box is the first."
+        }
+      ]
     }
   ]
 }

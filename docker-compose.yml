@@ -601,6 +601,12 @@ services:
       context: .
       dockerfile: docker/etl/Dockerfile
     container_name: ${CONTAINER_PREFIX:-fc}_etl
+    # The supervisor returns after a host stop/start like every other service
+    # (WoS demo box 2026-09-19: after a VM stop and start the etl stayed
+    # "Exited (0)" with restart policy "no", while geodata:pump and
+    # geodata:chain-download kept ticking against a supervisor that was not
+    # there). A run resumes across a resize only when its supervisor is up.
+    restart: unless-stopped
     working_dir: /etl
     # P.1.2: give the ETL supervisor up to 60 s to forward SIGTERM to its
     # active subprocess and let Python's finally blocks close DB

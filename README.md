@@ -106,6 +106,15 @@ them later from inside the app. To change the folder afterward, re-run the start
 for you, no Docker commands needed. (You can also preseed it non-interactively by setting
 `CGA_ARCHIVE_PATH` before running.)
 
+**A host that resizes (cloud boxes).** Every service returns at boot through Docker's restart
+policy. A container keeps the memory caps it was created with, so after a resize the sizes must be
+re-derived and the services recreated. On Linux with systemd, install the boot check once:
+`./get-started.sh --install-boot-unit`. At every boot it runs `./get-started.sh --boot`: when the
+host's RAM or cores changed it re-derives every value in the `DERIVED_KEYS` ledger, recreates the
+services that are running, re-bakes the config cache and restarts Horizon. On an unchanged host it
+does nothing. It never updates the code. A box that takes code only on the desk's word sets
+`CGA_NO_PULL=1` in `.env`; `--rederive` and `--boot` never pull in any case.
+
 Inside the app, the **Map data** step shows what it detected, lets you scope the import to a
 single country for a fast first world, or download the datasets over the internet country by
 country. The full planet is ~14 GB of source data and a 6–12 hour import.
