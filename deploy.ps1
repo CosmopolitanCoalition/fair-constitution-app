@@ -199,6 +199,13 @@ Set-EnvVar "VITE_HOST_PORT"      "$VitePort"
 Set-EnvVar "FEDERATION_SELF_URL" $SelfUrl
 
 if ($PublicUrl) {
+  # A public node never carries the dev view-as tool (parity with deploy.sh; operator order
+  # 2026-09-18). config/cga.php defaults cga.impersonation to ON when the key is absent, so a
+  # fresh public deploy failed launch:assert-clean. An explicit true was refused above; an
+  # absent key is written false here. A key the operator set is left alone.
+  if (-not (@(Get-Content .env) | Where-Object { $_ -like 'CGA_IMPERSONATION=*' })) {
+    Set-EnvVar "CGA_IMPERSONATION" "false"
+  }
   # The public identity (parity with deploy.sh public set_env block). These are LOCKED after
   # the first boot; see the -PublicUrl block above for why.
   Set-EnvVar "APP_URL"               $PublicUrl

@@ -215,6 +215,14 @@ set_env VITE_HOST_PORT     "$VITE_PORT"
 set_env FEDERATION_SELF_URL "$SELF_URL"
 
 if [[ -n "$PUBLIC_URL" ]]; then
+  # A public node never carries the dev view-as tool (operator order 2026-09-18; WoS demo
+  # box 2026-09-17). config/cga.php defaults cga.impersonation to ON when the key is absent,
+  # so a fresh public deploy failed launch:assert-clean ("IMPERSONATION IS ON") although its
+  # /dev routes cannot register outside APP_ENV=local. An explicit true was refused at the
+  # door above; an absent key is written false here. A key the operator set is left alone.
+  if ! grep -qE '^CGA_IMPERSONATION=' .env; then
+    set_env CGA_IMPERSONATION false
+  fi
   # The public identity. See the --public-url block above for why these are locked.
   set_env APP_URL "$PUBLIC_URL"
   set_env MATRIX_DOMAIN "$PUBLIC_HOST"

@@ -331,6 +331,24 @@ AssertAbsent   "identity not rotated"    $art "federation:init --rotate"
 AssertContains "mint recovery printed"   $out "cluster:keys:mint --max-uses=1"
 Remove-Item -Recurse -Force $ws
 
+# (8) -PublicUrl and the dev view-as key (operator order 2026-09-18; parity with the bash
+# harness). An ABSENT CGA_IMPERSONATION reads as ON in config/cga.php and launch:assert-clean
+# refuses a public launch, so the public deploy writes false when the key is absent and
+# leaves a set key alone. The runs stop at the stubbed matrix:setup failure; .env is written first.
+Write-Host "== (8a) -PublicUrl, CGA_IMPERSONATION absent -> written false =="
+$ws = New-Workspace $realKey @() -Public
+$rc = Invoke-Case $ws @{ PgFails = 0; Resume = 0; Join = 0; MatrixSetup = 1; Bundle = 1 } `
+        @('-PublicUrl','https://earth.example.org','-MediaIp','203.0.113.10','-Project','t8a')
+AssertCount "key written false once" (Join-Path $ws '.env') "CGA_IMPERSONATION=false" 1
+Remove-Item -Recurse -Force $ws
+
+Write-Host "== (8b) -PublicUrl, CGA_IMPERSONATION=false already set -> left alone =="
+$ws = New-Workspace $realKey @('CGA_IMPERSONATION=false') -Public
+$rc = Invoke-Case $ws @{ PgFails = 0; Resume = 0; Join = 0; MatrixSetup = 1; Bundle = 1 } `
+        @('-PublicUrl','https://earth.example.org','-MediaIp','203.0.113.10','-Project','t8b')
+AssertCount "one key line, not two" (Join-Path $ws '.env') "CGA_IMPERSONATION=" 1
+Remove-Item -Recurse -Force $ws
+
 Write-Host ""
 if ($script:fails -eq 0) {
   Write-Host "ALL INSTALLER CONTRACT CASES PASSED (pwsh)"

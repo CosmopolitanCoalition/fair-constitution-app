@@ -11,6 +11,11 @@
 # Or, if you already downloaded the code, run it from inside that folder:
 #   ./get-started.sh                (first run, or normal start)
 #   ./get-started.sh --reconfigure  (change the map-data folder etc. and recreate)
+#   ./get-started.sh --rederive     (re-measure the host and rewrite the derived sizes; never updates code)
+#   ./get-started.sh --no-pull      (start without checking for a code update)
+#
+# A box that takes code only on the desk's word (GOOD TO PULL) sets CGA_NO_PULL=1
+# in .env once, or in the shell; every run then skips the update check.
 #
 # To preseed without any prompts (automation): set CGA_ARCHIVE_PATH before running.
 
@@ -19,7 +24,15 @@ set -euo pipefail
 REPO="CosmopolitanCoalition/fair-constitution-app"
 BRANCH="main"
 RECONFIGURE=0
-for a in "$@"; do [ "$a" = "--reconfigure" ] && RECONFIGURE=1; done
+REDERIVE_ONLY=0
+NO_PULL="${CGA_NO_PULL:-0}"
+for a in "$@"; do
+  case "$a" in
+    --reconfigure) RECONFIGURE=1 ;;
+    --rederive)    REDERIVE_ONLY=1 ;;
+    --no-pull)     NO_PULL=1 ;;
+  esac
+done
 
 say()  { printf '\033[36m%s\033[0m\n' "$*"; }
 fail() { printf '\n\033[31m%s\033[0m\n' "$*" >&2; exit 1; }
@@ -143,8 +156,20 @@ cd "$APP_DIR"
 # when it changed, apply it after step 5 (migrations + interface build +
 # worker restart). ZIP-era installs get connected to the update channel once;
 # settings (.env) and data are untracked and untouched by any of this.
+#
+# THE UPDATE CHECK IS SKIPPED (operator order 2026-09-18; WoS demo box
+# 2026-09-17) under --rederive, which re-measures the host and must never
+# change the code as a side effect, and under --no-pull / CGA_NO_PULL=1 (the
+# shell or .env), for a box that takes code only on the desk's GOOD TO PULL.
 UPDATED=0
-if [ "$JUST_DOWNLOADED" != "1" ] && command -v git >/dev/null 2>&1; then
+if [ "$NO_PULL" != "1" ] && [ -f .env ] && grep -qE '^CGA_NO_PULL=[[:space:]]*(1|true|on|yes)[[:space:]]*$' .env; then
+  NO_PULL=1
+fi
+if [ "$REDERIVE_ONLY" = "1" ]; then
+  say "      Update check skipped (--rederive never changes the code)."
+elif [ "$NO_PULL" = "1" ]; then
+  say "      Update check skipped (--no-pull / CGA_NO_PULL=1): this box updates on the desk's word only."
+elif [ "$JUST_DOWNLOADED" != "1" ] && command -v git >/dev/null 2>&1; then
   if [ ! -d .git ]; then
     say "      Connecting this install to the update channel (one-time)..."
     git init -q \
@@ -357,11 +382,11 @@ configure_host_memory() {
     write_derived MEM_EDGE      "${total_mb}m"
   else
     # THE HORIZON FLOOR (WoS 2026-09-02, 41 restarts on a 4 GB host): the
-    # idle fleet alone is nine workers (default 2, long-running 2,
-    # autoscale 2, sim 2, prewarm 1) at ~64 MB resident plus the master,
-    # ~700 MB before any job runs, so a 512 MB cap was a kill loop at
-    # idle. 1024 funds the idle fleet plus one heavy job at its recycle
-    # bound (HostCapacity::workerRecycleHeavyMb, itself bounded by this cap).
+    # idle tree alone (the master, the supervisors and every pool's floor
+    # lanes) is resident before any job runs, so a cap below it is a kill
+    # loop at idle. The floor is derived below (hz_floor) and funds that
+    # tree plus one heavy job at its recycle floor
+    # (HostCapacity::workerRecycleHeavyMb, itself bounded by this cap).
     #
     # Floors = the measured PEAK need of each service, not its idle need
     # (WoS 2026-09-02). Matrix idles at ~110 MB. The scheduler idles at
@@ -380,7 +405,22 @@ configure_host_memory() {
     # every service, so an over-commit is an OOM loop, not a slowdown. The
     # reconciliation below turns the closed budget from a hope (shares sum to
     # 1000) into a GUARANTEE (sum of ACTUAL caps <= budget).
-    mem_horizon=$(clamp $(( budget_mb * sh_horizon / 1000 )) 1024 65536)
+    # THE HORIZON FLOOR IS DERIVED (operator ruling 2026-09-18,
+    # horizon-idle-throttle = C: the floor fix now, the idle throttle after
+    # Krakow). The fixed 1024 came from a nine-worker count of 2026-09-02. The
+    # tree has grown since: six supervisors, each its own PHP process, and every
+    # pool holds at least two lanes at idle (HostCapacity clamps each width to
+    # max(2, ...)). On the WoS demo box (16 GB, geodata) the cap derived to
+    # 1066m against a resident tree of 1.1 to 1.45 GB: a worker was killed every
+    # 10 to 20 seconds at rest. The floor is now the smallest tree Horizon can
+    # run, counted from config/horizon.php so a new supervisor raises it:
+    #   (master + supervisors + two lanes per supervisor) x 80 MB a process
+    #   (measured 61 MB on box E and 80 MB on the WoS demo box; a floor funds
+    #   the peak) + one heavy job at its recycle floor (256 MB).
+    hz_sups=$(grep -cE "^        'supervisor-[a-z0-9-]+' => \[" config/horizon.php 2>/dev/null || echo 6)
+    [ "$hz_sups" -ge 1 ] 2>/dev/null || hz_sups=6
+    hz_floor=$(( (1 + hz_sups + 2 * hz_sups) * 80 + 256 ))
+    mem_horizon=$(clamp $(( budget_mb * sh_horizon / 1000 )) "$hz_floor" 65536)
     mem_app=$(clamp $(( budget_mb * sh_app / 1000 )) 128 8192)
     mem_vite=$(clamp $(( budget_mb * sh_vite / 1000 )) 256 4096)
     mem_etl=$(clamp $(( budget_mb * sh_etl / 1000 )) 96 262144)
@@ -448,6 +488,38 @@ configure_host_memory() {
         mem_horizon=$(( mem_horizon - sched_gap ))
         say "      scheduler floor restored (${sched_floor}m); Horizon gives up ${sched_gap}m"
       fi
+      # THE HORIZON FLOOR SURVIVES THE SCALER TOO (WoS demo 2026-09-17: the
+      # scaler and the scheduler restoration took 1279m down to 1066m, below
+      # the resident tree). The gap comes from the largest of the etl, app and
+      # vite caps, one donor at a time; a donor keeps at least half of its
+      # scaled cap, so the phase's own heavy (the etl under geodata) still
+      # runs. The moves are zero-sum: the collective fit stands. A host too
+      # small for the floor is told so: Horizon runs kill-heavy there, and the
+      # idle throttle (rubric horizon-idle-throttle, after Krakow) is the fix.
+      if [ "$mem_horizon" -lt "$hz_floor" ]; then
+        hz_gap=$(( hz_floor - mem_horizon ))
+        etl_keep=$(( mem_etl / 2 )); app_keep=$(( mem_app / 2 )); vite_keep=$(( mem_vite / 2 ))
+        while [ "$hz_gap" -gt 0 ]; do
+          donor=etl; spare=$(( mem_etl - etl_keep ))
+          if [ $(( mem_app - app_keep )) -gt "$spare" ]; then donor=app; spare=$(( mem_app - app_keep )); fi
+          if [ $(( mem_vite - vite_keep )) -gt "$spare" ]; then donor=vite; spare=$(( mem_vite - vite_keep )); fi
+          [ "$spare" -gt 0 ] || break
+          take=$hz_gap; [ "$take" -le "$spare" ] || take=$spare
+          case "$donor" in
+            etl)  mem_etl=$(( mem_etl - take )) ;;
+            app)  mem_app=$(( mem_app - take )) ;;
+            vite) mem_vite=$(( mem_vite - take )) ;;
+          esac
+          mem_horizon=$(( mem_horizon + take ))
+          hz_gap=$(( hz_gap - take ))
+          say "      Horizon floor: ${donor} gives up ${take}m"
+        done
+        if [ "$hz_gap" -gt 0 ]; then
+          say "      Horizon floor ${hz_floor}m cannot be met on this host (${mem_horizon}m): Horizon runs kill-heavy here."
+        else
+          say "      Horizon floor restored (${hz_floor}m)"
+        fi
+      fi
     fi
 
     write_derived MEM_HORIZON "${mem_horizon}m"
@@ -499,7 +571,7 @@ configure_host_memory() {
 # burst box throttling up or down — re-measure and overwrite every value
 # still in the DERIVED_KEYS ledger, report what changed, and stop. The
 # operator recreates the named services when ready; nothing boots here.
-if [ "${1:-}" = "--rederive" ]; then
+if [ "$REDERIVE_ONLY" = "1" ]; then
   REDERIVE=1
   say "Re-deriving host-sized values (hand-pinned values — those removed from DERIVED_KEYS — stay untouched)..."
   configure_host_memory

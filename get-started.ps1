@@ -8,7 +8,11 @@ param(
     # still listed in the .env DERIVED_KEYS ledger, reports what changed, and
     # stops. Hand-pinned values (edited AND removed from DERIVED_KEYS) are
     # never clobbered. Recreate postgres / redis_queue afterwards.
-    [switch]$Rederive
+    [switch]$Rederive,
+    # Start without checking for a code update. A box that takes code only on
+    # the desk's word (GOOD TO PULL) sets CGA_NO_PULL=1 in .env once, or in the
+    # shell; every run then skips the update check. -Rederive skips it always.
+    [switch]$NoPull
 )
 
 # Cosmopolitan Governance App - get started (Windows 10/11)
@@ -249,8 +253,21 @@ Set-Location $AppDir
 # migrations + interface build + worker restart). ZIP-era installs get
 # connected to the update channel once; settings (.env) and data are untracked
 # and untouched by any of this.
+#
+# THE UPDATE CHECK IS SKIPPED (operator order 2026-09-18; WoS demo box
+# 2026-09-17) under -Rederive, which re-measures the host and must never change
+# the code as a side effect, and under -NoPull / CGA_NO_PULL=1 (the shell or
+# .env), for a box that takes code only on the desk's GOOD TO PULL.
 $updated = $false
-if (-not $justDownloaded -and (Get-Command git -ErrorAction SilentlyContinue)) {
+$skipPull = [bool]$NoPull -or ($env:CGA_NO_PULL -match '^(1|true|on|yes)$')
+if (-not $skipPull -and (Test-Path '.env')) {
+    $skipPull = [bool](@(Get-Content '.env') | Where-Object { $_ -match '^CGA_NO_PULL=\s*(1|true|on|yes)\s*$' })
+}
+if ($Rederive) {
+    Say '      Update check skipped (-Rederive never changes the code).'
+} elseif ($skipPull) {
+    Say "      Update check skipped (-NoPull / CGA_NO_PULL=1): this box updates on the desk's word only."
+} elseif (-not $justDownloaded -and (Get-Command git -ErrorAction SilentlyContinue)) {
     if (-not (Test-Path '.git')) {
         Say '      Connecting this install to the update channel (one-time)...'
         Invoke-Git init
@@ -338,11 +355,18 @@ function Configure-HostMemory {
     }
     $rcMb  = Clamp ($budgetMb * $sh.rcache / 1000.0) 256 16384
     $rqMb  = Clamp ($budgetMb * $sh.rqueue / 1000.0) 226 1024
-    # Floors = the measured PEAK need (WoS 2026-09-02): scheduler 384 (the
-    # schedule:work parent plus five concurrent artisan children), horizon
-    # 1024 (the nine-worker idle fleet, the master and one heavy job), aux
-    # pot 640 (the sum of the four service floors). Mirrors get-started.sh.
+    # Floors = the measured PEAK need (WoS 2026-09-02): the scheduler floor
+    # (derived from its :00 fan-out, below), the Horizon floor (derived from
+    # its supervisor tree, below), aux pot 640 (the sum of the four service
+    # floors). Mirrors get-started.sh.
     $auxMb = Clamp ($budgetMb * $sh.aux / 1000.0) 640 4096
+    # THE HORIZON FLOOR IS DERIVED (operator ruling 2026-09-18, mirrors
+    # get-started.sh): the smallest tree Horizon can run, counted from
+    # config/horizon.php: (master + supervisors + two lanes per supervisor) x
+    # 80 MB a process + one heavy job at its recycle floor (256 MB).
+    $hzSups = (Select-String -Path 'config/horizon.php' -Pattern "^        'supervisor-[a-z0-9-]+' => \[" -ErrorAction SilentlyContinue | Measure-Object).Count
+    if ($hzSups -lt 1) { $hzSups = 6 }
+    $hzFloor = (1 + $hzSups + 2 * $hzSups) * 80 + 256
     $open  = ($profile -eq 'open')
     if ($open) { $rqMb = [int]((Clamp ($totalMb / 20.0) 192 512) * 100 / 85) }
 
@@ -382,7 +406,7 @@ function Configure-HostMemory {
         # so eviction (or the queue's volatile-ttl shed) always fires
         # before the cgroup killer reaps the whole redis.
         HOST_BUDGET_PCT = $budgetPct.ToString()
-        MEM_HORIZON = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.horizon / 1000.0) 1024 65536).ToString() + 'm' })
+        MEM_HORIZON = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.horizon / 1000.0) $hzFloor 65536).ToString() + 'm' })
         MEM_APP     = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.app / 1000.0) 128 8192).ToString() + 'm' })
         MEM_VITE    = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.vite / 1000.0) 256 4096).ToString() + 'm' })
         ETL_MEM_LIMIT = $(if ($open) { '0' } else { (Clamp ($budgetMb * $sh.etl / 1000.0) 96 262144).ToString() + 'm' })

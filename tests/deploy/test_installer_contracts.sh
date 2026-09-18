@@ -291,6 +291,42 @@ assert_absent   "identity not rotated"       "$WS/art.log" "federation:init --ro
 assert_contains "mint-a-fresh-key recovery" "$WS/out.log" "cluster:keys:mint"
 rm -rf "$WS"
 
+# ── (8) --public-url and the dev view-as key (operator order 2026-09-18) ──────────────
+# config/cga.php reads an ABSENT CGA_IMPERSONATION as ON and launch:assert-clean refuses a
+# public launch while it is on (WoS demo box 2026-09-17). The public deploy writes false
+# when the key is absent, leaves a set key alone, and still refuses an explicit true.
+# The runs stop at the stubbed matrix:setup failure; .env is written before that point.
+echo "== (8a) --public-url, CGA_IMPERSONATION absent -> written false =="
+WS="$(make_workspace "$REAL_KEY" "" public)"
+RC="$(STUB_MATRIX_SETUP_RC=1 STUB_BUNDLE_RC=1 run_case "$WS" \
+        --public-url https://earth.example.org --media-ip 203.0.113.10 --project t8a)"
+assert_count    "key written false once"     "$WS/.env" "CGA_IMPERSONATION=false" "1"
+rm -rf "$WS"
+
+echo "== (8b) --public-url, CGA_IMPERSONATION=false already set -> left alone =="
+WS="$(make_workspace "$REAL_KEY" "" public)"
+printf 'CGA_IMPERSONATION=false\n' >> "$WS/.env"
+RC="$(STUB_MATRIX_SETUP_RC=1 STUB_BUNDLE_RC=1 run_case "$WS" \
+        --public-url https://earth.example.org --media-ip 203.0.113.10 --project t8b)"
+assert_count    "one key line, not two"      "$WS/.env" "CGA_IMPERSONATION=" "1"
+rm -rf "$WS"
+
+echo "== (8c) --public-url, CGA_IMPERSONATION=true -> refused at the door =="
+WS="$(make_workspace "$REAL_KEY" "" public)"
+printf 'CGA_IMPERSONATION=true\n' >> "$WS/.env"
+RC="$(run_case "$WS" --public-url https://earth.example.org --media-ip 203.0.113.10 --project t8c)"
+assert_eq       "non-zero exit"              "$RC" "1"
+assert_contains "names the key"              "$WS/out.log" "CGA_IMPERSONATION is enabled"
+assert_contains "the true value is kept"     "$WS/.env" "CGA_IMPERSONATION=true"
+rm -rf "$WS"
+
+echo "== (8d) a LAN deploy (no --public-url) never writes the key =="
+WS="$(make_workspace "$REAL_KEY")"
+RC="$(run_case "$WS" --self-url http://box.invalid:8080 --project t8d)"
+assert_eq       "exit 0"                     "$RC" "0"
+assert_absent   "key not written"            "$WS/.env" "CGA_IMPERSONATION"
+rm -rf "$WS"
+
 echo ""
 if [[ "$FAILS" -eq 0 ]]; then
   echo "ALL INSTALLER CONTRACT CASES PASSED"

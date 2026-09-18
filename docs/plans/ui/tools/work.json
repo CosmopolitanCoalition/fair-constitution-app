@@ -17448,6 +17448,42 @@
           "note": "Docker came up on box E. PHP pins green in fc_app: MediaPullReclaimTest, MediaPullCommandTest, MediaLibrarySetupControllerTest, MediaTransferTest, BindMountCheckTest, MediaLibraryServiceTest, MediaMetaMergeTest = 48 tests, 142 assertions, OK. Committed and pushed."
         }
       ]
+    },
+    {
+      "id": "W-0454",
+      "title": "Start and deploy scripts: no-pull gate, public deploy writes impersonation off, derived Horizon floor",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "done_when": "get-started --rederive never pulls; --no-pull and CGA_NO_PULL=1 (shell or .env) skip the update check; a public deploy writes CGA_IMPERSONATION=false when the key is absent; the Horizon cap floor derives from the supervisor tree in config/horizon.php and survives the budget scaler; the harnesses run the real scripts and pass.",
+      "depends_on": [],
+      "detail": "Operator orders 2026-09-18 and 2026-09-19 on the WoS demo box flags 1, 2 and 3 (rubric horizon-idle-throttle = C: the floor fix now, the idle throttle after Krakow). Flag 1: get-started.sh and get-started.ps1 parse --rederive / --no-pull (-Rederive / -NoPull) and read CGA_NO_PULL from the shell or .env; the update check is skipped under any of them, so a box that takes code only on the desk's GOOD TO PULL never updates as a side effect. Flag 2: deploy.sh and deploy.ps1 write CGA_IMPERSONATION=false on a public deploy when the key is absent (config/cga.php reads an absent key as on, and launch:assert-clean refuses a public launch while it is on); an explicit true is still refused at the door; .env.example documents the key, commented. Flag 3: the Horizon floor is (master + supervisors + two lanes per supervisor) x 80 MB + 256 MB, the supervisors counted from config/horizon.php (six today = 1,776 MB); after the scaler the gap comes from the largest of the etl, app and vite caps, a donor keeps half of its scaled cap, the moves are zero-sum; a host too small for the floor is told so. Measured on box E 2026-09-19 (read-only, /proc): master 61 MB, six supervisors 60 MB each, 48 idle workers 61 MB each; all six supervisors run, the provision pool included. OPEN FLAG for the deferred idle throttle: a 4 GB geodata host lands Horizon at 574 MB against the 1,776 MB floor (kill-heavy); HostCapacity::idleFleetMb omits the provision pool and the supervisor processes.",
+      "sources": [
+        {
+          "list": "cloud",
+          "ref": "WoS Cloud Demo (demo.worldofstatecraft.org) flags 1, 2, 3, 2026-09-17",
+          "title": "rederive pulls main; fresh public deploy fails assert-clean; Horizon cap below its idle tree",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "get-started.sh",
+        "get-started.ps1",
+        "deploy.sh",
+        "deploy.ps1",
+        ".env.example",
+        "tests/deploy/test_get_started_contracts.sh",
+        "tests/deploy/test_installer_contracts.sh",
+        "tests/deploy/test_installer_contracts.ps1"
+      ],
+      "history": [
+        {
+          "date": "2026-09-19",
+          "note": "Built on the desk. Harnesses run the real scripts with stubbed docker and git: tests/deploy/test_get_started_contracts.sh (8 cases, 24 assertions, pass), test_installer_contracts.sh with new cases 8a to 8d (pass), test_installer_contracts.ps1 with 8a and 8b (pass). OperatorRulings20260917Test 5 tests OK. Derived on a 15,990 MB geodata host: MEM_HORIZON 1776m (was 1066m), etl 3331m, every cap together 12,787 of the 12,792 MB budget. The demo box verifies at its next pull."
+        }
+      ]
     }
   ]
 }
