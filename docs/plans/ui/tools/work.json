@@ -17216,7 +17216,9 @@
         "app/Http/Controllers/Setup/MediaLibrarySetupController.php",
         "resources/js/Pages/Setup/Step2_MapData.vue",
         "tests/Unit/MediaTransferTest.php",
-        "tests/Feature/MediaLibrarySetupControllerTest.php"
+        "tests/Feature/MediaLibrarySetupControllerTest.php",
+        "tests/Feature/MediaPullReclaimTest.php",
+        "tests/js/mediaResumeStale.test.mjs"
       ],
       "history": [
         {
@@ -17242,6 +17244,14 @@
         {
           "date": "2026-09-17",
           "note": "Cloud box (WoS beta) ran the first real website pull: 9,455 items planned, about 30 MB per second through Cloudflare, halted by the operator for transfer cost. Two findings fixed on the desk: media:pull could not continue a halted run (activePull counted halted as active) so MediaPullPlanner::resume and retryFailed are now the single owners shared by the wizard and the CLI (--resume, --retry-failed, both with --sync), and a halted run is named with the way to continue; a private origin is now a supported path through MEDIA_PULL_RESOLVE=host:ip (extra_hosts on app, horizon, scheduler) so the public host name stays on the request while the address is private. Pins: tests/Feature/MediaPullCommandTest.php (5 tests); media suites 23 tests OK."
+        },
+        {
+          "date": "2026-09-18",
+          "note": "Operator order (from Poland, by VPN): build the stale-claim reclaim. WoS demo box run c2c584c0 ended with 9,448 of 9,455 done and seven masters stuck `running` (their lanes were killed mid-file); resume found nothing pending, retry found nothing failed and a new run was refused. Built on the desk: MediaPullPlanner::reclaimStale returns a `running` item with no row movement for MediaTransfer::staleAfterSeconds() (derived from the transfer's own timeouts: 1,290 s) to `pending`, bytes kept; resume, retryFailed, the wizard's Resume and every finishing lane (settle) apply it; media:pull --resume now heals a running run, --requeue-running returns every running item, --status names stalled items; the Step 2 Resume button shows on a running run with stalled items. A static three-reviewer pass (claude-opus-4-8) found one defect, fixed: THE CLAIM FENCE, every write after the claim carries the attempts token, and the transfer's tick stops a lane whose item was re-claimed (status `superseded`, nothing published, no counter moved). Pins written: tests/Feature/MediaPullReclaimTest.php (11), tests/Unit/MediaTransferTest.php (+1), tests/js/mediaResumeStale.test.mjs (2 pass; a11ySetupWizard 10 and i18nWiring_i18n_setup 6 pass). HELD, NOT COMMITTED: Docker Desktop was down on box E, so no PHP pin has run. The commit waits for a green PHP run."
+        },
+        {
+          "date": "2026-09-19",
+          "note": "Docker came up on box E. PHP pins green in fc_app: MediaPullReclaimTest, MediaPullCommandTest, MediaLibrarySetupControllerTest, MediaTransferTest, BindMountCheckTest, MediaLibraryServiceTest, MediaMetaMergeTest = 48 tests, 142 assertions, OK. Committed and pushed."
         }
       ]
     },
@@ -17401,6 +17411,41 @@
         {
           "date": "2026-09-17",
           "note": "Boot kill re-attributed by the cloud box's isolated test (02:58 UTC): the GeoJSON prewarm worker allocates over 1.6 GB within two seconds of starting, before any scope; the raster gate was never the cause. Root cause read in code: PrewarmGeojsonCachesJob fetched every legislature on the planet (940,327 rows in one query) and then ran a query per row. Operator approved the rewrite with two limits: no data change, no display change. Built: GeojsonPrewarmPlanner plans the ROOT legislatures only (Earth on a planet box) plus the giants the mapper drills into, one PrewarmGeojsonUnitJob per scope and zoom on the prewarm lane (one worker, so the warm is staggered), a cache ledger with geojson:prewarm --status naming LOST units, --legislature= for others. The map queries are the controllers' own, untouched; a coordinate-precision edit and a vertex-count estimate the desk had started were reverted and removed on the operator's order. Box E: 320 units planned in 1 s, the Earth unit built in 2 m 35 s, no kill, ledger exact. Pins: GeojsonPrewarmPlannerTest (ledger), OperatorRulings20260917Test. The beta pulls tomorrow (its session is off for the night)."
+        }
+      ]
+    },
+    {
+      "id": "W-0453",
+      "title": "Setup archive bind check: an archive on its own data disk is reported as applied",
+      "phase": "P1",
+      "order": 68,
+      "kind": "fix",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "On a Linux host whose ARCHIVE_PATH folder sits on a separate disk, /setup map-data sources reports archive_bind_ok true and apply_pending false before any data lands; a half-applied change still reports pending; Docker Desktop still answers null; the unit pin is green.",
+      "depends_on": [],
+      "detail": "WoS demo box flag 4 (2026-09-17), operator word 2026-09-18: fine to implement as long as it breaks nothing. /proc/self/mountinfo field 4 is the bind's root INSIDE its source filesystem, so an archive at /mnt/data/archive on a data disk reads /archive and the old equality test answered false. App\\Support\\BindMountCheck owns the rule: applied when the .env path ends with field 4 at a path boundary; a whole-disk bind is applied when its device differs from the application folder's device, unknown otherwise. SetupController::mapDataSources calls it; the removed loop also stopped shadowing the method's $root variable.",
+      "sources": [
+        {
+          "list": "cloud",
+          "ref": "WoS Cloud Demo (demo.worldofstatecraft.org) flag 4, 2026-09-17",
+          "title": "false apply-pending on a separate archive disk",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Support/BindMountCheck.php",
+        "app/Http/Controllers/SetupController.php",
+        "tests/Unit/BindMountCheckTest.php"
+      ],
+      "history": [
+        {
+          "date": "2026-09-18",
+          "note": "Built on the desk with a pure unit pin (8 cases). A static review (claude-opus-4-8) found no defect. HELD, NOT COMMITTED: Docker Desktop was down on box E, so the PHP pin has not run."
+        },
+        {
+          "date": "2026-09-19",
+          "note": "Docker came up on box E. PHP pins green in fc_app: MediaPullReclaimTest, MediaPullCommandTest, MediaLibrarySetupControllerTest, MediaTransferTest, BindMountCheckTest, MediaLibraryServiceTest, MediaMetaMergeTest = 48 tests, 142 assertions, OK. Committed and pushed."
         }
       ]
     }

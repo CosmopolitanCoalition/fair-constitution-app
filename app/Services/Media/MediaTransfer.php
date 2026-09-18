@@ -39,6 +39,21 @@ class MediaTransfer
     /** Streaming copy / append buffer. */
     private const CHUNK_BYTES = 1048576;
 
+    /**
+     * The longest a LIVE transfer can go without touching its item row, in
+     * seconds. Derived from the transfer's own bounds, never a second number:
+     * a live lane ticks every TICK_SECONDS while bytes flow, and the longest
+     * silence is MAX_NO_PROGRESS attempts that each connect and then stall to
+     * the read timeout (after which the item is written `failed`), plus one
+     * read timeout of margin for the segment merge. A `running` item silent
+     * for longer than this has no worker (the lane was killed mid-item); the
+     * planner's stale-claim reclaim returns it to the pool.
+     */
+    public static function staleAfterSeconds(): int
+    {
+        return self::MAX_NO_PROGRESS * (self::CONNECT_TIMEOUT + self::READ_TIMEOUT) + self::READ_TIMEOUT;
+    }
+
     public function __construct(
         private readonly MediaLibraryService $library,
         private ?Client $http = null,
@@ -77,6 +92,10 @@ class MediaTransfer
             // The run was halted mid-transfer. Keep the .part; leave the item
             // pending so a resume continues it.
             return ['status' => 'pending', 'bytes' => $this->size($part)];
+        } catch (SupersededSignal) {
+            // The claim was reclaimed and another lane took the item. This lane
+            // writes nothing more: the caller records no status and no counter.
+            return ['status' => 'superseded', 'bytes' => $this->size($part)];
         } catch (\Throwable $e) {
             // Keep the .part on failure (the next attempt resumes it).
             return ['status' => 'failed', 'bytes' => $this->size($part), 'error' => mb_substr($e->getMessage(), 0, 900)];
@@ -118,7 +137,7 @@ class MediaTransfer
                 $this->touch($item, $bytes);
 
                 return ['status' => 'done', 'bytes' => $bytes];
-            } catch (HaltSignal $e) {
+            } catch (HaltSignal|SupersededSignal $e) {
                 throw $e;
             } catch (\Throwable $e) {
                 // A retry is worthwhile only while the .part keeps growing. Three
@@ -200,6 +219,10 @@ class MediaTransfer
             }
             $body->close();
         }
+
+        // A lane that lost its claim never merges: the segment path may now be
+        // the new lane's file.
+        $this->assertOwned($item);
 
         // Merge the segment into the .part, preserving progress on a halt.
         if ($resume > 0 && $status === 206) {
@@ -321,12 +344,31 @@ class MediaTransfer
             ->exists();
     }
 
+    /**
+     * The progress write, fenced to the claim (the attempts value the lane
+     * claimed with). A reclaim returns an item to the pool without reaching
+     * its worker; when another lane then claims it, attempts moves on, this
+     * write matches no row and the old lane stops at this tick.
+     */
     private function touch(MediaPullItem $item, int $bytes): void
     {
-        DB::table('media_pull_items')
+        $n = DB::table('media_pull_items')
             ->where('id', $item->id)
+            ->where('attempts', (int) $item->attempts)
             ->update(['bytes_done' => $bytes, 'updated_at' => now()]);
+        if ($n === 0) {
+            $this->assertOwned($item);
+        }
         $item->bytes_done = $bytes;
+    }
+
+    /** Throws when another lane has claimed the item since this lane did. */
+    private function assertOwned(MediaPullItem $item): void
+    {
+        $attempts = DB::table('media_pull_items')->where('id', $item->id)->value('attempts');
+        if ($attempts !== null && (int) $attempts !== (int) $item->attempts) {
+            throw new SupersededSignal;
+        }
     }
 
     private function setExpected(MediaPullItem $item, ?int $expected): void
@@ -402,3 +444,10 @@ class MediaTransfer
  * pull() and reported as `pending` so a resume continues the same .part.
  */
 class HaltSignal extends \RuntimeException {}
+
+/**
+ * Thrown when the lane finds that another lane has claimed its item (the
+ * stale-claim reclaim returned it to the pool). Caught in pull() and reported
+ * as `superseded`: the old lane records nothing.
+ */
+class SupersededSignal extends \RuntimeException {}

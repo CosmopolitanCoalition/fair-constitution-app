@@ -26,11 +26,20 @@ use Illuminate\Console\Command;
  *   php artisan media:pull --subjects="A,B"        only these subject folders
  *   php artisan media:pull --status                print the latest run's totals
  *   php artisan media:pull --halt                  halt the live run
- *   php artisan media:pull --resume [--sync]       continue the halted run (its pending items)
+ *   php artisan media:pull --resume [--sync]       continue the halted run (its pending items); on a
+ *                                                  running run, return its stalled items to the pool
+ *   php artisan media:pull --requeue-running       return EVERY running item to the pool and re-run it
+ *                                                  (the lanes are known dead: a Horizon restart or a kill)
  *   php artisan media:pull --retry-failed [--sync] reset the latest run's failed items and re-run
  *
  * A halted run is never refused silently (WoS 2026-09-17): without --resume
  * the command names it and says how to continue.
+ *
+ * A lane killed mid-item cannot report, so its item stays `running` (WoS demo
+ * box 2026-09-17: seven masters, the run never closed). --resume and
+ * --retry-failed return such stale claims to the pool first
+ * (MediaPullPlanner::reclaimStale, window = MediaTransfer::staleAfterSeconds);
+ * --status names them; --requeue-running seizes every running item at once.
  */
 class MediaPullCommand extends Command
 {
@@ -41,7 +50,8 @@ class MediaPullCommand extends Command
         {--kinds=master,audio,captions : which file kinds to fetch}
         {--sync : run items inline instead of queueing (no Horizon)}
         {--halt : halt the live run and exit}
-        {--resume : continue the latest halted run (with --sync: inline)}
+        {--resume : continue the latest halted run, or heal the running one: stalled items return to the pool (with --sync: inline)}
+        {--requeue-running : return EVERY running item of the live run to the pool and re-run it (use when the lanes are dead)}
         {--retry-failed : reset the failed items of the latest run to pending and re-run (with --sync: inline)}
         {--status : print the latest run status and exit}';
 
@@ -57,8 +67,8 @@ class MediaPullCommand extends Command
             return $this->haltRun();
         }
 
-        if ($this->option('resume')) {
-            return $this->resumeRun($planner, $transfer);
+        if ($this->option('resume') || $this->option('requeue-running')) {
+            return $this->resumeRun($planner, $transfer, force: (bool) $this->option('requeue-running'));
         }
 
         if ($this->option('retry-failed')) {
@@ -149,6 +159,17 @@ class MediaPullCommand extends Command
         $this->line('Source:  '.$pull->source.($pull->source_ref ? ' ('.$pull->source_ref.')' : ''));
         $this->line('Status:  '.$pull->status);
         $this->line(sprintf('Items:   %d done, %d failed of %d', $pull->items_done, $pull->items_failed, $pull->items_total));
+        $running = \App\Models\MediaPullItem::query()->where('pull_id', $pull->id)->where('status', 'running')->count();
+        $stale = app(MediaPullPlanner::class)->staleCount($pull);
+        if ($running > 0) {
+            $this->line(sprintf('Running: %d item(s)', $running));
+        }
+        if ($stale > 0) {
+            $this->line(sprintf(
+                'STALLED: %d running item(s) with no progress for over %d s (the lane was killed). Return them to the pool with media:pull --resume.',
+                $stale, MediaTransfer::staleAfterSeconds()
+            ));
+        }
         $this->line('Bytes:   '.$this->humanBytes((int) $pull->bytes_done).' of '.$this->humanBytes((int) $pull->bytes_total));
         if ($pull->error) {
             $this->line('Error:   '.$pull->error);
@@ -157,12 +178,30 @@ class MediaPullCommand extends Command
         return self::SUCCESS;
     }
 
-    /** --resume: continue the latest halted run, queued or inline. */
-    private function resumeRun(MediaPullPlanner $planner, MediaTransfer $transfer): int
+    /**
+     * --resume: continue the latest halted run, or heal the running one (its
+     * stale claims return to the pool), queued or inline. $force is
+     * --requeue-running: every running item returns, whatever its age.
+     */
+    private function resumeRun(MediaPullPlanner $planner, MediaTransfer $transfer, bool $force = false): int
     {
-        $pull = $planner->haltedPull();
+        $pull = $planner->activePull();
         if ($pull === null) {
             $this->line('No halted media pull to resume. Use --status.');
+
+            return self::SUCCESS;
+        }
+
+        $wasRunning = $pull->status === 'running';
+        $ids = $planner->reclaimStale($pull, $force);
+        $reclaimed = count($ids);
+        if ($reclaimed > 0) {
+            $this->info(sprintf('Run %s: %d stalled item(s) returned to the pool.', substr($pull->id, 0, 8), $reclaimed));
+        } elseif ($wasRunning) {
+            $this->line(sprintf(
+                'Run %s is running and has no stalled item (window %d s). Nothing to resume. Use --status, or --requeue-running when the lanes are known dead.',
+                substr($pull->id, 0, 8), MediaTransfer::staleAfterSeconds()
+            ));
 
             return self::SUCCESS;
         }
@@ -175,7 +214,9 @@ class MediaPullCommand extends Command
             return $this->finishStatus($pull->id);
         }
 
-        $n = $planner->resume($pull);
+        // A halted run dispatches every pending item; a running run only the
+        // items the reclaim returned (its other pending items hold a queued job).
+        $n = $wasRunning ? $planner->dispatchItems($pull, $ids) : $planner->resume($pull);
         $this->info(sprintf('Resumed run %s: dispatched %d pending item(s) to the long-running queue. Poll with media:pull --status.', substr($pull->id, 0, 8), $n));
 
         return self::SUCCESS;

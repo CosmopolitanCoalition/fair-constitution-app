@@ -4662,24 +4662,21 @@ class SetupController extends Controller
         $anyPresent = ($gbCount > 0 || $wpCount > 0 || count($pmFiles) > 0);
         // THE BIND CHECK (WoS 2026-09-02): an applied bind over an EMPTY folder
         // was reported as "the containers haven't picked it up yet". On a
-        // Linux host /proc/self/mountinfo names the host path behind /archive
-        // (field 4); when it equals the .env value the bind is applied and
-        // the folder is simply empty. Docker Desktop shows a VM path there,
-        // so the check answers null and the old advice stands.
+        // Linux host /proc/self/mountinfo names the folder behind /archive
+        // (field 4, the bind's root inside its source disk); when the .env
+        // path ends with it the bind is applied and the folder is simply
+        // empty. An archive on its own data disk has a field 4 BELOW that
+        // disk's mount point, so equality reported a false pending state
+        // (WoS demo 2026-09-17); BindMountCheck owns the identity rule. Docker
+        // Desktop shows a VM path there, so the check answers null and the old
+        // advice stands.
         $bindOk = null;
         if (is_string($archiveEnv) && str_starts_with($archiveEnv, '/') && is_readable('/proc/self/mountinfo')) {
-            foreach (file('/proc/self/mountinfo', FILE_IGNORE_NEW_LINES) ?: [] as $line) {
-                $f = preg_split('/\s+/', $line);
-                if (($f[4] ?? '') !== '/archive') {
-                    continue;
-                }
-                $root = rtrim(str_replace('\\040', ' ', $f[3] ?? ''), '/');
-                if (str_starts_with($root, '/run/desktop/') || str_starts_with($root, '/host_mnt/')) {
-                    break;                       // Docker Desktop: a VM path, not comparable
-                }
-                $bindOk = ($root === rtrim($archiveEnv, '/'));
-                break;
-            }
+            $bindOk = \App\Support\BindMountCheck::applied(
+                file('/proc/self/mountinfo', FILE_IGNORE_NEW_LINES) ?: [],
+                '/archive',
+                $archiveEnv,
+            );
         }
         $archiveEmpty = ($bindOk === true && ! $anyPresent);
         $applyPending = (! $isDefaultPath && $gbCount === 0 && $wpCount === 0 && $bindOk !== true);

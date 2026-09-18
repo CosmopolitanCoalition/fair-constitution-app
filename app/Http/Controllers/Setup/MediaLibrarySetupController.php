@@ -155,7 +155,10 @@ class MediaLibrarySetupController extends Controller
         }
 
         if ($data['action'] === 'resume') {
-            $pull = $planner->haltedPull();
+            // The halted run, else the running one: resume first returns stale
+            // claims (a lane killed mid-item) to the pool, so the control heals
+            // a run that is `running` with no live lane (WoS demo 2026-09-17).
+            $pull = $planner->activePull();
             if ($pull === null) {
                 return response()->json(['ok' => true, 'pull' => $this->pullSummary($this->latestPull())]);
             }
@@ -266,6 +269,10 @@ class MediaLibrarySetupController extends Controller
             'finished_at'  => optional($pull->finished_at)->toIso8601String(),
             'error'        => $pull->error,
             'current'      => $current,
+            // Running items with no movement past the stale window: the lane was
+            // killed. The page offers Resume on a running run when this is > 0.
+            'items_stale'         => app(MediaPullPlanner::class)->staleCount($pull),
+            'stale_after_seconds' => \App\Services\Media\MediaTransfer::staleAfterSeconds(),
         ];
     }
 }

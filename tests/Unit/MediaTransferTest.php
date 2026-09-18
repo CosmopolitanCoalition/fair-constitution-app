@@ -43,6 +43,29 @@ class MediaTransferTest extends TestCase
         parent::tearDown();
     }
 
+    /**
+     * The claim fence (2026-09-18): a reclaim returns an item to the pool
+     * without reaching its worker. Once another lane claims it (attempts moves
+     * on), the old lane stops at its next tick and publishes nothing.
+     */
+    public function test_a_lane_whose_claim_moved_on_is_superseded_and_publishes_nothing(): void
+    {
+        $srcBase = $this->tmp('media-transfer-src-superseded');
+        $rel = 'Subjects/Test Film/Test Film-Silent.mp4';
+        $this->putFile($srcBase.'/'.$rel, 'the-master-bytes');
+
+        $item = $this->item('master', $rel, 'Test Film/Test Film-Silent.mp4');
+        // Another lane claimed the item after this lane loaded it.
+        \Illuminate\Support\Facades\DB::table('media_pull_items')->where('id', $item->id)->increment('attempts');
+
+        $result = (new MediaTransfer(new MediaLibraryService))->pull($item, 'folder', $srcBase);
+
+        $this->assertSame('superseded', $result['status']);
+        $this->assertFileDoesNotExist($this->root.'/Test Film/Test Film-Silent.mp4', 'a superseded lane never publishes the file');
+
+        $this->rmrf($srcBase);
+    }
+
     public function test_folder_source_copies_and_verifies(): void
     {
         $srcBase = $this->tmp('media-transfer-src');

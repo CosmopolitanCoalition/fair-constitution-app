@@ -1419,7 +1419,9 @@ onBeforeUnmount(() => {
                             class="px-3 py-2 rounded text-sm font-semibold border border-red-700 text-red-200 hover:bg-red-900/40">
                         {{ t('c_setup.step2_media.halt', 'Halt') }}
                     </button>
-                    <button v-if="mediaPull && mediaPull.status === 'halted'" type="button" @click="mediaControl('resume')"
+                    <!-- Resume also shows on a running run that holds stalled items (a lane
+                         killed mid-file): the control heals the state it recovers from. -->
+                    <button v-if="mediaPull && (mediaPull.status === 'halted' || (mediaPull.status === 'running' && mediaPull.items_stale > 0))" type="button" @click="mediaControl('resume')"
                             class="px-3 py-2 rounded text-sm font-semibold border border-emerald-700 text-emerald-200 hover:bg-emerald-900/40">
                         {{ t('c_setup.step2_media.resume', 'Resume') }}
                     </button>

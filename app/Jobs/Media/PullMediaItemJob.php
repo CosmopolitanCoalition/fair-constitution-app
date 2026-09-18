@@ -4,6 +4,7 @@ namespace App\Jobs\Media;
 
 use App\Models\MediaPull;
 use App\Models\MediaPullItem;
+use App\Services\Media\MediaPullPlanner;
 use App\Services\Media\MediaTransfer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -26,7 +27,9 @@ use Illuminate\Support\Facades\DB;
  *      lanes never fight over the same file;
  *   3. runs the transfer, records done / failed / skipped / pending;
  *   4. increments the run counters atomically and closes the run when no item
- *      is left pending or running.
+ *      is left pending or running;
+ *   5. fences every write after the claim to its claim token (attempts), so a
+ *      lane whose item was reclaimed and re-claimed records nothing.
  *
  * All state is a committed boundary — a kill mid-run costs one item, not the
  * pass (ETL paradigm: resumable).
@@ -78,29 +81,44 @@ class PullMediaItemJob implements ShouldQueue
         }
         $item->refresh();
 
+        // THE CLAIM FENCE: attempts is this lane's claim token. A reclaim can
+        // return the item to the pool while this lane is still alive; once
+        // another lane claims it (attempts + 1) every write below matches no
+        // row, so a superseded lane never records a status or moves a counter.
+        $claim = (int) $item->attempts;
+
         [$kind, $base] = $this->route($pull);
 
         $result = $transfer->pull($item, $kind, $base);
         $status = $result['status'];
         $bytes = (int) ($result['bytes'] ?? 0);
 
+        if ($status === 'superseded') {
+            return;
+        }
+
         if ($status === 'pending') {
             // Halted mid-transfer. Return the item to the pool; no counter move.
             DB::table('media_pull_items')
                 ->where('id', $this->itemId)
+                ->where('attempts', $claim)
                 ->update(['status' => 'pending', 'bytes_done' => $bytes, 'updated_at' => now()]);
 
             return;
         }
 
-        DB::table('media_pull_items')
+        $recorded = DB::table('media_pull_items')
             ->where('id', $this->itemId)
+            ->where('attempts', $claim)
             ->update([
                 'status'     => $status,
                 'bytes_done' => $bytes,
                 'error'      => $result['error'] ?? null,
                 'updated_at' => now(),
             ]);
+        if ($recorded === 0) {
+            return;                              // superseded at the last step
+        }
 
         // A done or skipped file advances items_done; only a real fetch adds
         // its bytes to the run total (a skip was already on disk).
@@ -114,7 +132,9 @@ class PullMediaItemJob implements ShouldQueue
             DB::table('media_pulls')->where('id', $this->pullId)->increment('items_failed', 1, ['updated_at' => now()]);
         }
 
-        $this->closeIfDrained($this->pullId);
+        // The planner owns the close: it first returns any stale claim (a
+        // sibling lane killed mid-item) to the pool, then closes a drained run.
+        app(MediaPullPlanner::class)->settle($this->pullId);
     }
 
     /**
@@ -136,32 +156,5 @@ class PullMediaItemJob implements ShouldQueue
         }
 
         return ['web', $base];
-    }
-
-    /** Close the run once no item is pending or running (done, or failed if any failed). */
-    private function closeIfDrained(string $pullId): void
-    {
-        $remaining = DB::table('media_pull_items')
-            ->where('pull_id', $pullId)
-            ->whereIn('status', ['pending', 'running'])
-            ->count();
-        if ($remaining > 0) {
-            return;
-        }
-
-        $failed = DB::table('media_pull_items')
-            ->where('pull_id', $pullId)
-            ->where('status', 'failed')
-            ->count();
-
-        // Only a running run closes here — never override a halt.
-        DB::table('media_pulls')
-            ->where('id', $pullId)
-            ->where('status', 'running')
-            ->update([
-                'status'      => $failed > 0 ? 'failed' : 'done',
-                'finished_at' => now(),
-                'updated_at'  => now(),
-            ]);
     }
 }
