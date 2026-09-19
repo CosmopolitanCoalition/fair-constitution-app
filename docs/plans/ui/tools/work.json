@@ -17518,6 +17518,40 @@
           "note": "Built on the desk. tests/deploy/test_get_started_contracts.sh now holds 12 cases (the real script, stubbed docker and git): same host = no change; RAM 16384 -> 32768 re-derives, recreates `app horizon postgres` only, re-bakes the cache, restarts Horizon; cores 8 -> 16 with the same RAM re-derives (PG_MAX_WORKER_PROCESSES 8 -> 16); the unit text is pinned. tests/js/composeRestartPolicy.test.mjs 2 pass; `docker compose config -q` exit 0. Not yet run on a real systemd host: the demo box is the first."
         }
       ]
+    },
+    {
+      "id": "W-0456",
+      "title": "The size-family allocator: every service keeps its need, the surplus is shared, no collisions on any host",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "done_when": "On every host of the two families (Raspberry Pi 1 to 8 GB; Azure D2als to D96als) and every closed profile, the derived caps hold six laws: they fit the budget, every running service keeps its resident need when the needs fit, no cap is zero or negative, each cap is monotonic in the host size, a host below the resident minimum is named as such, and the Horizon cap funds the whole tree of the lanes it is granted; the family gate and the PHP lane pins pass.",
+      "depends_on": [],
+      "detail": "Operator order 2026-09-19: 'the formulas for derivation need to not have problems', on every size, accounted for before writing code. The old path clamped each share to a floor, scaled every non-postgres cap by one factor that ignored the floors, then restored two floors by taking from other services (donors). Swept over the family it met every need only from 16 GB serving up: the login service got 54m against a 102 MiB resident on the 16 GB geodata box, the app lost half its cap on the 8 GB serving box, Horizon went negative on 2 GB and a 1 GB host over-committed by 4.6 GB. THE ALLOCATOR (get-started.sh, mirrored in get-started.ps1) is one closed-form rule: each service has a NEED (resident minimum, measured or derived) and a WANT (its profile share of the budget, never below the need); wants fit -> every WANT; needs fit but wants do not -> cap = need + (want-need) x f with one f for all, so the ratios hold above the needs and the sum is the budget; needs do not fit -> caps = need x f and the script names the minimum host. A service the box does not run (dev server, voice SFU, public edge) holds its need as a cap and claims nothing. HostCapacity::autoscaleWorkers() now bounds lanes by lanesThatFit() (the whole supervisor tree charged, a third lane and after at the 400 MB working size), replacing the 3/4-of-cap-at-400 bound that ignored the provision pool and the supervisor processes; idleFleetMb() counts them too. The Horizon NEED in the shell is HostCapacity::horizonNeedMb() at two lanes: one model, two readers.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "operator order 2026-09-19 (sizing must not collide on any family size); WoS beta D8als->D4als resize report",
+          "title": "the derivation formulas must hold on every size",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "get-started.sh",
+        "get-started.ps1",
+        "app/Support/HostCapacity.php",
+        "tests/deploy/test_sizing_family.sh",
+        "tests/Unit/HostCapacityLanesTest.php",
+        "tests/deploy/test_get_started_contracts.sh"
+      ],
+      "history": [
+        {
+          "date": "2026-09-19",
+          "note": "Built after a read-only family sweep found the collisions. tests/deploy/test_sizing_family.sh runs the REAL get-started.sh --rederive for 12 sizes x 3 profiles (stubbed docker/git), holds six laws and prints the metrics table; it passes. tests/Unit/HostCapacityLanesTest.php 8 tests, 542 assertions; OperatorRulings20260917Test 5 tests; the start-script contract harness 12 cases. get-started.ps1 parses clean and its allocator matches the shell within integer-rounding. Both families verified: needs held from D4als serving / Pi-8G up, BELOW-MINIMUM named and never over-committed below that."
+        }
+      ]
     }
   ]
 }

@@ -348,27 +348,77 @@ function Configure-HostMemory {
         $pgMb = Clamp ($totalMb * 0.60) 1024 262144
     } elseif ($profile -eq 'mapping') {
         $sh = @{ pg=260; etl=15;  horizon=430; app=25; vite=70; rcache=75; rqueue=60; aux=65 }
-        $pgMb = Clamp ($budgetMb * $sh.pg / 1000.0) 1024 262144
+    } elseif ($profile -eq 'serving') {
+        # A public box after setup: reads, rooms, login. Postgres and the app carry the load;
+        # Horizon runs background jobs only; no ingest. Mirrors get-started.sh.
+        $sh = @{ pg=380; etl=10;  horizon=200; app=140; vite=20; rcache=80; rqueue=40; aux=130 }
     } else {
         $sh = @{ pg=340; etl=340; horizon=100; app=30; vite=50; rcache=60; rqueue=40; aux=40 }
-        $pgMb = Clamp ($budgetMb * $sh.pg / 1000.0) 1024 262144
     }
-    $rcMb  = Clamp ($budgetMb * $sh.rcache / 1000.0) 256 16384
-    $rqMb  = Clamp ($budgetMb * $sh.rqueue / 1000.0) 226 1024
-    # Floors = the measured PEAK need (WoS 2026-09-02): the scheduler floor
-    # (derived from its :00 fan-out, below), the Horizon floor (derived from
-    # its supervisor tree, below), aux pot 640 (the sum of the four service
-    # floors). Mirrors get-started.sh.
     $auxMb = Clamp ($budgetMb * $sh.aux / 1000.0) 640 4096
-    # THE HORIZON FLOOR IS DERIVED (operator ruling 2026-09-18, mirrors
-    # get-started.sh): the smallest tree Horizon can run, counted from
-    # config/horizon.php: (master + supervisors + two lanes per supervisor) x
-    # 80 MB a process + one heavy job at its recycle floor (256 MB).
+    $open  = ($profile -eq 'open')
+
+    # ── THE ALLOCATOR (operator order 2026-09-19; mirrors get-started.sh) ──────
+    # Every service keeps its NEED; only the WANT above the need is shared, by
+    # one factor, so the profile ratios hold and the sum equals the budget. No
+    # scaler, no donor. A service the box does not run holds its need as a cap
+    # and claims nothing. See get-started.sh for the full contract; the size
+    # family is gated by tests/deploy/test_sizing_family.sh.
     $hzSups = (Select-String -Path 'config/horizon.php' -Pattern "^        'supervisor-[a-z0-9-]+' => \[" -ErrorAction SilentlyContinue | Measure-Object).Count
     if ($hzSups -lt 1) { $hzSups = 6 }
-    $hzFloor = (1 + $hzSups + 2 * $hzSups) * 80 + 256
-    $open  = ($profile -eq 'open')
-    if ($open) { $rqMb = [int]((Clamp ($totalMb / 20.0) 192 512) * 100 / 85) }
+    $hzMaster = [int](Clamp ($totalMb * 16 / 1024.0) 64 256)
+    $needHorizon = $hzMaster + ($hzSups + 2 * $hzSups - 1) * 64 + 2 * 192
+    $bg = [Math]::Max(1, (Select-String -Path 'routes/console.php' -Pattern '->runInBackground\(\)' -ErrorAction SilentlyContinue | Measure-Object).Count)
+    $needScheduler = 128 + ($bg + 1) * 96
+
+    $cprof = ',' + (Get-EnvValue 'COMPOSE_PROFILES') + ','
+    $cfile = Get-EnvValue 'COMPOSE_FILE'
+    $runVite    = if ($cprof -like '*,dev,*')   { 1 } else { 0 }
+    $runLivekit = if ($cprof -like '*,voice,*') { 1 } else { 0 }
+    $runEdge    = 0
+    if ($cfile -like '*docker-compose.public.yml*') { $runEdge = 1; $runLivekit = 1 }
+
+    $svc = [System.Collections.ArrayList]::new()
+    function Claim($name, $need, $want, $ceiling, $runs) {
+        if (-not $runs) { return @{ name=$name; cap=[int]$need; claim=$false } }
+        $w = [int]$want; if ($w -gt $ceiling) { $w = $ceiling }; if ($w -lt $need) { $w = $need }
+        return @{ name=$name; need=[int]$need; want=$w; claim=$true }
+    }
+    if ($open) {
+        # 'open' keeps its legacy uncapped posture (host size everywhere).
+        $rqMb = [int]((Clamp ($totalMb / 20.0) 192 512) * 100 / 85)
+    } else {
+        [void]$svc.Add((Claim 'pg_mb'         1024            ($budgetMb * $sh.pg      / 1000) 262144 $true))
+        [void]$svc.Add((Claim 'mem_horizon'   $needHorizon    ($budgetMb * $sh.horizon / 1000)  65536 $true))
+        [void]$svc.Add((Claim 'mem_app'       128             ($budgetMb * $sh.app     / 1000)   8192 $true))
+        [void]$svc.Add((Claim 'mem_vite'      256             ($budgetMb * $sh.vite    / 1000)   4096 $runVite))
+        [void]$svc.Add((Claim 'mem_etl'       96              ($budgetMb * $sh.etl     / 1000) 262144 $true))
+        [void]$svc.Add((Claim 'rc_mb'         256             ($budgetMb * $sh.rcache  / 1000)  16384 $true))
+        [void]$svc.Add((Claim 'rq_mb'         226             ($budgetMb * $sh.rqueue  / 1000)   1024 $true))
+        [void]$svc.Add((Claim 'mem_matrix'    160             ($auxMb * 30 / 100)                4096 $true))
+        [void]$svc.Add((Claim 'mem_scheduler' $needScheduler  ($auxMb * 40 / 100)                2048 $true))
+        [void]$svc.Add((Claim 'mem_mas'       128             ($auxMb * 10 / 100)                1024 $true))
+        [void]$svc.Add((Claim 'mem_nginx'     32              ($auxMb * 5  / 100)                 512 $true))
+        [void]$svc.Add((Claim 'mem_livekit'   256             ($auxMb * 10 / 100)                2048 $runLivekit))
+        [void]$svc.Add((Claim 'mem_edge'      128             ($auxMb * 5  / 100)                1024 $runEdge))
+        $sumNeed = 0; $sumWant = 0
+        foreach ($c in $svc) { if ($c.claim) { $sumNeed += $c.need; $sumWant += $c.want } }
+        $caps = @{}
+        foreach ($c in $svc) {
+            if (-not $c.claim) { $caps[$c.name] = $c.cap; continue }
+            if ($sumWant -le $budgetMb) { $caps[$c.name] = $c.want }
+            elseif ($sumNeed -le $budgetMb) { $caps[$c.name] = [int]($c.need + ($c.want - $c.need) * ($budgetMb - $sumNeed) / [double]($sumWant - $sumNeed)) }
+            else { $v = [int]($c.need * $budgetMb / [double]$sumNeed); if ($v -lt 8) { $v = 8 }; $caps[$c.name] = $v }
+        }
+        $pgMb = $caps['pg_mb']; $rcMb = $caps['rc_mb']; $rqMb = $caps['rq_mb']
+        if ($sumWant -le $budgetMb) { }
+        elseif ($sumNeed -le $budgetMb) { Say "      the shares want ${sumWant}m of a ${budgetMb}m budget: every service keeps its need (${sumNeed}m in all) and the rest is shared by the $profile ratios" }
+        else {
+            $minHost = [int]($sumNeed * 100 / $budgetPct) + 1
+            Say "      THIS HOST IS BELOW THE RESIDENT MINIMUM OF THIS SERVICE SET: the services need ${sumNeed}m at rest, the budget is ${budgetMb}m."
+            Say "      Every cap is scaled to fit, so the host is never over-committed; services run kill-heavy. Minimum host for this set: ${minHost} MB."
+        }
+    }
 
     # THE HEADROOM LAW (2026-08-02, the AUS-ADM0 backend kill-loop): a giant
     # boundary INSERT is ONE backend whose transient is set by the DATA (the
@@ -406,19 +456,18 @@ function Configure-HostMemory {
         # so eviction (or the queue's volatile-ttl shed) always fires
         # before the cgroup killer reaps the whole redis.
         HOST_BUDGET_PCT = $budgetPct.ToString()
-        MEM_HORIZON = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.horizon / 1000.0) $hzFloor 65536).ToString() + 'm' })
-        MEM_APP     = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.app / 1000.0) 128 8192).ToString() + 'm' })
-        MEM_VITE    = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.vite / 1000.0) 256 4096).ToString() + 'm' })
-        ETL_MEM_LIMIT = $(if ($open) { '0' } else { (Clamp ($budgetMb * $sh.etl / 1000.0) 96 262144).ToString() + 'm' })
+        MEM_HORIZON = $(if ($open) { "${totalMb}m" } else { "$($caps['mem_horizon'])m" })
+        MEM_APP     = $(if ($open) { "${totalMb}m" } else { "$($caps['mem_app'])m" })
+        MEM_VITE    = $(if ($open) { "${totalMb}m" } else { "$($caps['mem_vite'])m" })
+        ETL_MEM_LIMIT = $(if ($open) { '0' } else { "$($caps['mem_etl'])m" })
         MEM_REDIS_CACHE = $(if ($open) { "${totalMb}m" } else { "${rcMb}m" })
         MEM_REDIS_QUEUE = $(if ($open) { "${totalMb}m" } else { "${rqMb}m" })
-        MEM_MATRIX    = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.35) 160 4096).ToString() + 'm' })
-        # The scheduler floor is derived from its :00 fan-out (operator ruling 2026-09-17):
-        # every runInBackground command in routes/console.php boots at once, 96 MB a child
-        # plus a 128 MB base. The aux share rises to 40 percent. See get-started.sh.
-        MEM_SCHEDULER = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.40) (128 + 96 * (1 + [Math]::Max(1, (Select-String -Path 'routes/console.php' -Pattern '->runInBackground\(\)' -ErrorAction SilentlyContinue | Measure-Object).Count))) 2048).ToString() + 'm' })
-        MEM_MAS       = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.17) 48 1024).ToString() + 'm' })
-        MEM_NGINX     = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.08) 32 512).ToString() + 'm' })
+        MEM_MATRIX    = $(if ($open) { "${totalMb}m" } else { "$($caps['mem_matrix'])m" })
+        MEM_SCHEDULER = $(if ($open) { "${totalMb}m" } else { "$($caps['mem_scheduler'])m" })
+        MEM_MAS       = $(if ($open) { "${totalMb}m" } else { "$($caps['mem_mas'])m" })
+        MEM_NGINX     = $(if ($open) { "${totalMb}m" } else { "$($caps['mem_nginx'])m" })
+        MEM_LIVEKIT   = $(if ($open) { "${totalMb}m" } else { "$($caps['mem_livekit'])m" })
+        MEM_EDGE      = $(if ($open) { "${totalMb}m" } else { "$($caps['mem_edge'])m" })
         REDIS_CACHE_MAXMEMORY = $(if ($open) { (Clamp ($totalMb / 10.0) 768 8192).ToString() + 'mb' } else { ([int]($rcMb * 0.85)).ToString() + 'mb' })
         # Parallel posture: workers=cores, parallel=cores/2, per_gather
         # small (many concurrent lanes beat wide gathers), maintenance=cores/4.

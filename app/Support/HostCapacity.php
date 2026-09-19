@@ -66,17 +66,85 @@ class HostCapacity
         // THE APPETITE DERIVES FROM THE MEMORY SHARE (WoS 2026-09-02): a cap
         // limits what Horizon may hold, it does not shrink what the lanes
         // ask for, so on a small host the pool blew its cap and looped
-        // through kills. The lane count now also fits the container's
-        // memory share: three quarters of MEM_HORIZON for lanes (the rest
-        // is the master and the idle pools of the other supervisors), at
-        // 5/6 of the worker recycle bound per lane (a lane recycles at
-        // 480 MB, so its resident size sits below it). No cap known
-        // (the open profile writes the host size) = no memory bound.
+        // through kills. The lane count also fits the container's memory
+        // share (MEM_HORIZON). No cap known = no memory bound.
+        //
+        // THE LANES FIT THE WHOLE TREE (operator order 2026-09-19, the size-family
+        // sweep). The old bound (three quarters of the cap at 400 MB a lane)
+        // dated from four pools of two idle lanes. Every pool now holds the full
+        // lane width at idle, a fifth pool (provision) was added, and each
+        // supervisor is its own PHP process, so the quarter left for "the rest"
+        // under-funded it: a 1776 MB cap was granted three lanes whose tree needs
+        // 2176 MB. lanesThatFit() charges the master, every supervisor, every
+        // pool's idle lanes and the active pool's growth to the recycle floor, and
+        // returns the widest lane count the cap funds. get-started's Horizon need
+        // is this same model at two lanes, so a cap at its floor always fits.
         $memCap = self::horizonMemoryCapMb();
-        $laneMb = (int) round(\App\Jobs\AutoscaleWorkerJob::MEMORY_RECYCLE_BYTES / 1048576 * 5 / 6);
-        $memLanes = $memCap > 0 ? (int) floor($memCap * 0.75 / max(64, $laneMb)) : PHP_INT_MAX;
+        $memLanes = $memCap > 0 ? self::lanesThatFit($memCap, self::horizonMasterMemoryMb()) : PHP_INT_MAX;
 
         return max(2, min(max(4, $connCap), max(2, $memLanes), (int) floor((self::cpuCores() - $reserve) / $busyFactor)));
+    }
+
+    /** Supervisors defined in config/horizon.php (HostCapacityTest pins the count against the config). */
+    public const SUPERVISORS = 6;
+
+    /** A lane's resident size at the recycle floor, MB: workerRecycleHeavyMb() never goes below it. */
+    public const HEAVY_FLOOR_MB = 256;
+
+    /**
+     * Worker processes Horizon holds at idle for a lane width: the pool widths
+     * of config/horizon.php (default, long-running, autoscale, provision, sim,
+     * prewarm). Every 'simple'-balance pool runs its full width at idle. Pure.
+     */
+    public static function fleetFor(int $aw, ?int $provision = null): int
+    {
+        $aw          = max(2, $aw);
+        $default     = max(2, (int) ceil($aw / 3));
+        $longRunning = max(2, min(count(\App\Models\GeodataFlag::CATEGORIES), $aw));
+        $prewarm     = max(1, min(4, (int) ceil($aw / 4)));
+
+        return $default + $longRunning + $aw + ($provision ?? $aw) + $aw + $prewarm;
+    }
+
+    /**
+     * What the Horizon container holds with ONE pool active at $aw lanes, MB:
+     * the master at its limit, every supervisor and every idle lane at the
+     * measured idle size, and the active pool's lanes grown to $laneMb. Pure.
+     * At the default $laneMb (the recycle floor) and $aw = 2 this is the
+     * smallest tree Horizon runs: get-started.sh (need_horizon) and
+     * get-started.ps1 mirror that value as the Horizon need.
+     */
+    public static function horizonNeedMb(int $aw, int $masterMb, ?int $laneMb = null): int
+    {
+        $aw = max(2, $aw);
+        $laneMb ??= self::HEAVY_FLOOR_MB;
+
+        return $masterMb
+            + (self::SUPERVISORS + self::fleetFor($aw)) * self::PER_WORKER_IDLE_MB
+            + $aw * ($laneMb - self::PER_WORKER_IDLE_MB);
+    }
+
+    /** A lane's working resident size, MB: 5/6 of its recycle bound (it recycles at 480, so it sits below). */
+    public static function laneWorkMb(): int
+    {
+        return (int) round(\App\Jobs\AutoscaleWorkerJob::MEMORY_RECYCLE_BYTES / 1048576 * 5 / 6);
+    }
+
+    /**
+     * The widest lane count whose whole tree a Horizon cap funds. Two lanes
+     * are the floor (two-ended draining needs both). A third lane and every
+     * lane after it is charged at its WORKING size, so a wide pool keeps a
+     * recycle bound near the lane's real appetite and is never squeezed to the
+     * recycle floor to admit more lanes. Pure.
+     */
+    public static function lanesThatFit(int $capMb, int $masterMb): int
+    {
+        $aw = 2;
+        while ($aw < 512 && self::horizonNeedMb($aw + 1, $masterMb, self::laneWorkMb()) <= $capMb) {
+            $aw++;
+        }
+
+        return $aw;
     }
 
     /**
@@ -139,26 +207,21 @@ class HostCapacity
     private const PER_WORKER_IDLE_MB = 64;
 
     /**
-     * The idle worker fleet a closed Horizon cap must fund before any job
-     * runs, DERIVED from the actual supervisor widths (operator ruling
-     * 2026-09-08: a hard-coded 9*64 undercounted the fleet on any host wider
-     * than the clamped-small box, so the heavy-recycle bound below over-granted
-     * and Horizon blew its own cap). Every 'simple'-balance supervisor runs its
-     * maxProcesses at idle, so the fleet scales with autoscaleWorkers(). These
-     * widths MIRROR config/horizon.php (supervisor-1, long-running, autoscale,
-     * sim, prewarm) — keep in lockstep. Acyclic: autoscaleWorkers() reads the
-     * memory CONSTANT (AutoscaleWorkerJob::MEMORY_RECYCLE_BYTES), never this.
-     * On the clamped-small box (autoscaleWorkers()=2) this returns 9*64=576,
-     * matching the retired constant, so no small-box regression.
+     * The idle tree a closed Horizon cap must fund before any job runs,
+     * DERIVED from the actual supervisor widths (operator ruling 2026-09-08).
+     * Every 'simple'-balance supervisor runs its maxProcesses at idle, so the
+     * fleet scales with autoscaleWorkers(); each supervisor is one more PHP
+     * process. fleetFor() owns the widths and MIRRORS config/horizon.php
+     * (supervisor-1, long-running, autoscale, provision, sim, prewarm); keep
+     * them in lockstep. Acyclic: autoscaleWorkers() reads horizonNeedMb(),
+     * never this.
      */
     public static function idleFleetMb(): int
     {
-        $aw          = self::autoscaleWorkers();
-        $default     = self::defaultQueueWorkers();
-        $longRunning = max(2, min(count(\App\Models\GeodataFlag::CATEGORIES), $aw));
-        $prewarm     = max(1, min(4, (int) ceil($aw / 4)));
-        // default + long-running + autoscale + sim + prewarm
-        $fleet = $default + $longRunning + $aw + $aw + $prewarm;
+        // Every pool AND every supervisor process (size-family sweep 2026-09-19:
+        // the provision pool and the six supervisors were not counted, so the
+        // recycle bound below over-granted by about 900 MB on a 16 GB mapping box).
+        $fleet = self::fleetFor(self::autoscaleWorkers(), self::provisionWorkers()) + self::SUPERVISORS;
 
         return $fleet * self::PER_WORKER_IDLE_MB;
     }
@@ -180,7 +243,7 @@ class HostCapacity
         if ($capMb > 0) {
             $room  = max(0, $capMb - self::horizonMasterMemoryMb() - self::idleFleetMb());
             $lanes = max(2, self::autoscaleWorkers());
-            $heavy = min($heavy, max(256, self::PER_WORKER_IDLE_MB + intdiv($room, $lanes)));
+            $heavy = min($heavy, max(self::HEAVY_FLOOR_MB, self::PER_WORKER_IDLE_MB + intdiv($room, $lanes)));
         }
 
         return $heavy;

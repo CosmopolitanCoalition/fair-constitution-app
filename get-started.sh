@@ -304,6 +304,116 @@ configure_host_memory() {
     pg_mb=$(clamp $(( budget_mb * sh_pg / 1000 )) 1024 262144)
   fi
 
+  # ── THE ALLOCATOR (operator order 2026-09-19: "the formulas for derivation
+  # need to not have problems", on EVERY size of the family) ─────────────────
+  # The old path clamped each share to a floor, scaled every non-postgres cap
+  # by one factor when the sum passed the budget (the factor ignored the
+  # floors), then restored two floors by taking from other services. Swept
+  # over the family (Pi 1 to 8 GB, Azure D2als to D96als, three profiles) it
+  # met every need only from 16 GB serving upward: the login service got 54m
+  # against a 102 MiB resident on the 16 GB geodata box, the app lost half its
+  # cap on the 8 GB serving box, Horizon went NEGATIVE on a 2 GB host and a
+  # 1 GB host over-committed by 4.6 GB.
+  #
+  # One rule now, closed form, no scaler, no restoration, no donor:
+  #   NEED     what a service holds resident to work at all (measured, or
+  #            derived from a count). A service the box does not run (the dev
+  #            server, the voice SFU, the public edge) has no claim.
+  #   WANT     the profile share of the budget, never below the NEED.
+  #   wants fit the budget           -> every service gets its WANT.
+  #   needs fit, wants do not        -> cap = NEED + (WANT - NEED) x f, one f
+  #                                     for all, so the profile's ratios hold
+  #                                     above the needs and the sum is the budget.
+  #   the needs themselves do not fit -> the host is below the resident minimum
+  #                                     of this service set: caps = NEED x f,
+  #                                     and the script names the minimum host.
+  # Every cap is monotonic in the host size and no cap is ever zero or negative.
+  # Postgres takes part like every service: its sub-settings derive from the
+  # FINAL pg_mb below, and its NEED (1024) is the headroom-law floor.
+  # tests/deploy/test_sizing_family.sh sweeps the whole family on every change.
+  if [ "$profile" != "open" ]; then
+    cprof=",$(get_env COMPOSE_PROFILES),"
+    cfile="$(get_env COMPOSE_FILE)"
+    run_vite=0; run_livekit=0; run_edge=0
+    case "$cprof" in *",dev,"*)   run_vite=1;; esac
+    case "$cprof" in *",voice,"*) run_livekit=1;; esac
+    case "$cfile" in *docker-compose.public.yml*) run_edge=1; run_livekit=1;; esac
+
+    # THE HORIZON NEED mirrors HostCapacity (one model, two readers): the
+    # master at its memory limit, every supervisor and every pool's floor
+    # lanes idle at 64 MB a process (measured 64 on WoS 2026-09-02 and 61 on
+    # box E 2026-09-19), and the two lanes of one active pool grown to the
+    # recycle floor (256 MB). Supervisors are counted from config/horizon.php,
+    # so a new pool raises the need. Every pool's floor width is 2, the
+    # prewarm pool's is 1.
+    hz_sups=$(grep -cE "^        'supervisor-[a-z0-9-]+' => \[" config/horizon.php 2>/dev/null || echo 6)
+    [ "$hz_sups" -ge 1 ] 2>/dev/null || hz_sups=6
+    hz_master=$(clamp $(( total_mb * 16 / 1024 )) 64 256)
+    need_horizon=$(( hz_master + (hz_sups + 2 * hz_sups - 1) * 64 + 2 * (256 - 64) ))
+    # THE SCHEDULER NEED (operator ruling 2026-09-17, "not a hard number"): at
+    # :00 schedule:work forks every runInBackground command at once, each a
+    # Laravel boot measured at 40 to 100 MB, plus one foreground lane, on a
+    # 128 MB base. Counted from the schedule so a new pump raises it.
+    sched_bg=$(grep -c -- '->runInBackground()' routes/console.php 2>/dev/null || echo 7)
+    [ "$sched_bg" -ge 1 ] 2>/dev/null || sched_bg=7
+    need_scheduler=$(( 128 + (sched_bg + 1) * 96 ))
+
+    aux_pot=$(clamp $(( budget_mb * sh_aux / 1000 )) 640 4096)
+    A_VAR=(); A_NEED=(); A_WANT=()
+    claim() { # var need share-want ceiling runs
+      local want=$3
+      if [ "$5" != "1" ]; then printf -v "$1" '%s' "$2"; return 0; fi   # not run: its need as a cap, no claim
+      if [ "$want" -gt "$4" ]; then want=$4; fi
+      if [ "$want" -lt "$2" ]; then want=$2; fi
+      A_VAR+=("$1"); A_NEED+=("$2"); A_WANT+=("$want")
+      return 0
+    }
+    #     variable       need              share of the budget                     ceiling  runs
+    claim pg_mb          1024              $(( budget_mb * sh_pg / 1000 ))      262144  1
+    claim mem_horizon    "$need_horizon"   $(( budget_mb * sh_horizon / 1000 ))  65536  1
+    claim mem_app        128               $(( budget_mb * sh_app / 1000 ))       8192  1
+    claim mem_vite       256               $(( budget_mb * sh_vite / 1000 ))      4096  "$run_vite"
+    claim mem_etl        96                $(( budget_mb * sh_etl / 1000 ))     262144  1
+    claim rc_mb          256               $(( budget_mb * sh_rcache / 1000 ))   16384  1
+    claim rq_mb          226               $(( budget_mb * sh_rqueue / 1000 ))    1024  1
+    # The aux pot's members. Needs are the measured warm residents: matrix
+    # ~110 MB, the login service 102 MiB after a day (WoS beta 2026-09-19; its
+    # old 48 floor had it killed as it warmed), nginx small, the SFU ~82 MiB
+    # idle with room to work, the TLS edge 80 to 94 MiB.
+    claim mem_matrix     160               $(( aux_pot * 30 / 100 ))              4096  1
+    claim mem_scheduler  "$need_scheduler" $(( aux_pot * 40 / 100 ))              2048  1
+    claim mem_mas        128               $(( aux_pot * 10 / 100 ))              1024  1
+    claim mem_nginx      32                $(( aux_pot * 5 / 100 ))                512  1
+    claim mem_livekit    256               $(( aux_pot * 10 / 100 ))              2048  "$run_livekit"
+    claim mem_edge       128               $(( aux_pot * 5 / 100 ))               1024  "$run_edge"
+
+    sum_need=0; sum_want=0; i=0
+    while [ "$i" -lt "${#A_VAR[@]}" ]; do
+      sum_need=$(( sum_need + A_NEED[i] )); sum_want=$(( sum_want + A_WANT[i] )); i=$(( i + 1 ))
+    done
+    i=0
+    while [ "$i" -lt "${#A_VAR[@]}" ]; do
+      if [ "$sum_want" -le "$budget_mb" ]; then
+        cap=${A_WANT[i]}
+      elif [ "$sum_need" -le "$budget_mb" ]; then
+        cap=$(( A_NEED[i] + (A_WANT[i] - A_NEED[i]) * (budget_mb - sum_need) / (sum_want - sum_need) ))
+      else
+        cap=$(( A_NEED[i] * budget_mb / sum_need ))
+        if [ "$cap" -lt 8 ]; then cap=8; fi
+      fi
+      printf -v "${A_VAR[i]}" '%s' "$cap"
+      i=$(( i + 1 ))
+    done
+    if [ "$sum_want" -le "$budget_mb" ]; then
+      :
+    elif [ "$sum_need" -le "$budget_mb" ]; then
+      say "      the shares want ${sum_want}m of a ${budget_mb}m budget: every service keeps its need (${sum_need}m in all) and the rest is shared by the ${profile} ratios"
+    else
+      say "      THIS HOST IS BELOW THE RESIDENT MINIMUM OF THIS SERVICE SET: the services need ${sum_need}m at rest, the budget is ${budget_mb}m."
+      say "      Every cap is scaled to fit, so the host is never over-committed; services run kill-heavy. Minimum host for this set: $(( sum_need * 100 / budget_pct + 1 )) MB."
+    fi
+  fi
+
   # THE HEADROOM LAW (2026-08-02): a giant boundary INSERT is one backend
   # whose transient is set by the DATA (largest single feature on Earth),
   # not by this host — shared_buffers stays SMALL so (cap - shared_buffers)
@@ -401,147 +511,7 @@ configure_host_memory() {
     write_derived MEM_LIVEKIT   "${total_mb}m"
     write_derived MEM_EDGE      "${total_mb}m"
   else
-    # THE HORIZON FLOOR (WoS 2026-09-02, 41 restarts on a 4 GB host): the
-    # idle tree alone (the master, the supervisors and every pool's floor
-    # lanes) is resident before any job runs, so a cap below it is a kill
-    # loop at idle. The floor is derived below (hz_floor) and funds that
-    # tree plus one heavy job at its recycle floor
-    # (HostCapacity::workerRecycleHeavyMb, itself bounded by this cap).
-    #
-    # Floors = the measured PEAK need of each service, not its idle need
-    # (WoS 2026-09-02). Matrix idles at ~110 MB. The scheduler idles at
-    # ~74 MB, but schedule:work spawns background artisan children every
-    # minute (autoscale:pump, sim:pump, geodata:chain-download,
-    # geodata:pump) plus horizon:snapshot every five, each a full Laravel
-    # boot at 40 to 60 MB RSS, so its peak is ~375 MB. A cap below the peak
-    # need is a kill loop, not a budget.
-    #
-    # Compute every container cap FIRST, then RECONCILE the collective sum
-    # to the budget (operator ruling 2026-09-08, the derivation audit). The
-    # shares sum to 1000 per mille, but the fixed floors do NOT scale down,
-    # so on a small host the clamp pins caps to their floors and the pinned
-    # sum passes the budget (a 4 GB geodata box oversubscribes once the
-    # pg/etl shares and the horizon/aux floors are added). memswap == mem on
-    # every service, so an over-commit is an OOM loop, not a slowdown. The
-    # reconciliation below turns the closed budget from a hope (shares sum to
-    # 1000) into a GUARANTEE (sum of ACTUAL caps <= budget).
-    # THE HORIZON FLOOR IS DERIVED (operator ruling 2026-09-18,
-    # horizon-idle-throttle = C: the floor fix now, the idle throttle after
-    # Krakow). The fixed 1024 came from a nine-worker count of 2026-09-02. The
-    # tree has grown since: six supervisors, each its own PHP process, and every
-    # pool holds at least two lanes at idle (HostCapacity clamps each width to
-    # max(2, ...)). On the WoS demo box (16 GB, geodata) the cap derived to
-    # 1066m against a resident tree of 1.1 to 1.45 GB: a worker was killed every
-    # 10 to 20 seconds at rest. The floor is now the smallest tree Horizon can
-    # run, counted from config/horizon.php so a new supervisor raises it:
-    #   (master + supervisors + two lanes per supervisor) x 80 MB a process
-    #   (measured 61 MB on box E and 80 MB on the WoS demo box; a floor funds
-    #   the peak) + one heavy job at its recycle floor (256 MB).
-    hz_sups=$(grep -cE "^        'supervisor-[a-z0-9-]+' => \[" config/horizon.php 2>/dev/null || echo 6)
-    [ "$hz_sups" -ge 1 ] 2>/dev/null || hz_sups=6
-    hz_floor=$(( (1 + hz_sups + 2 * hz_sups) * 80 + 256 ))
-    mem_horizon=$(clamp $(( budget_mb * sh_horizon / 1000 )) "$hz_floor" 65536)
-    mem_app=$(clamp $(( budget_mb * sh_app / 1000 )) 128 8192)
-    mem_vite=$(clamp $(( budget_mb * sh_vite / 1000 )) 256 4096)
-    mem_etl=$(clamp $(( budget_mb * sh_etl / 1000 )) 96 262144)
-    rc_mb=$(clamp $(( budget_mb * sh_rcache / 1000 )) 256 16384)
-    rq_mb=$(clamp $(( budget_mb * sh_rqueue / 1000 )) 226 1024)
-    aux_mb=$(clamp $(( budget_mb * sh_aux / 1000 )) 640 4096)
-    # The aux share now also funds the LiveKit SFU and the TLS edge: both ran with NO cap
-    # (LIMIT = the whole host, outside the closed budget; WoS 2026-09-08). Floors from the
-    # measured idle residents on that box (livekit ~82 MiB, edge ~94 MiB) with room to work.
-    # THE SCHEDULER FLOOR IS DERIVED (operator ruling 2026-09-17, serving-scheduler-cap
-    # = A, "not a hard number"): at :00 schedule:work forks every runInBackground
-    # command in routes/console.php at once (seven today: the four pumps, the
-    # chain-download, the two snapshots), each a full Laravel boot measured at 40 to
-    # 100 MB RSS, on top of the ~74 MB master and the inline clock job. The floor
-    # is that fan-out at 96 MB a child plus a 128 MB base, counted from the schedule
-    # itself so a new pump raises it; the aux share rises to 40 percent. A cap below
-    # the peak is a kill loop (the WoS beta lost two pumps at every boot at 489m).
-    # The peak counts the background commands PLUS ONE foreground lane: the
-    # inline commands (horizon:snapshot, demo:void-expired at :05) run one at a
-    # time in schedule:work's own foreground while the background ones are still
-    # booting (WoS 2026-09-17 02:40 tick: 6 background + 2 inline + the clock job).
-    sched_bg=$(grep -c -- '->runInBackground()' routes/console.php 2>/dev/null || echo 7)
-    [ "$sched_bg" -ge 1 ] 2>/dev/null || sched_bg=7
-    sched_floor=$(( 128 + (sched_bg + 1) * 96 ))
-    mem_matrix=$(clamp $(( aux_mb * 30 / 100 )) 160 4096)
-    mem_scheduler=$(clamp $(( aux_mb * 40 / 100 )) "$sched_floor" 2048)
-    mem_mas=$(clamp $(( aux_mb * 10 / 100 )) 48 1024)
-    mem_nginx=$(clamp $(( aux_mb * 5 / 100 )) 32 512)
-    mem_livekit=$(clamp $(( aux_mb * 10 / 100 )) 256 2048)
-    mem_edge=$(clamp $(( aux_mb * 5 / 100 )) 128 1024)
-
-    # THE COLLECTIVE-FIT RECONCILIATION (operator ruling 2026-09-08). If the
-    # caps oversubscribe, scale the NON-postgres caps proportionally to fit
-    # (budget_mb - pg_mb). Postgres is EXEMPT on purpose: its sub-settings
-    # (shared_buffers/work_mem/... above) are already derived from pg_mb, and
-    # THE HEADROOM LAW needs the pg cap whole to fund the largest single
-    # giant-feature insert. Proportional scaling keeps each profile's
-    # relative priority and always fits the host, so a small box runs
-    # kill-heavy, never over-committed (the Pi doctrine). On a host big
-    # enough for the floors this is a no-op.
-    svc_sum=$(( mem_horizon + mem_app + mem_vite + mem_etl + rc_mb + rq_mb + mem_matrix + mem_scheduler + mem_mas + mem_nginx + mem_livekit + mem_edge ))
-    avail=$(( budget_mb - pg_mb ))
-    if [ "$avail" -gt 0 ] && [ "$svc_sum" -gt "$avail" ]; then
-      say "      caps oversubscribe (${svc_sum}m non-pg + ${pg_mb}m pg > ${budget_mb}m budget) — scaling non-pg caps to fit"
-      mem_horizon=$(( mem_horizon * avail / svc_sum ))
-      mem_app=$(( mem_app * avail / svc_sum ))
-      mem_vite=$(( mem_vite * avail / svc_sum ))
-      mem_etl=$(( mem_etl * avail / svc_sum ))
-      rc_mb=$(( rc_mb * avail / svc_sum ))
-      rq_mb=$(( rq_mb * avail / svc_sum ))
-      mem_matrix=$(( mem_matrix * avail / svc_sum ))
-      mem_scheduler=$(( mem_scheduler * avail / svc_sum ))
-      mem_mas=$(( mem_mas * avail / svc_sum ))
-      mem_nginx=$(( mem_nginx * avail / svc_sum ))
-      mem_livekit=$(( mem_livekit * avail / svc_sum ))
-      mem_edge=$(( mem_edge * avail / svc_sum ))
-      # THE SCHEDULER FLOOR SURVIVES THE SCALER (WoS 2026-09-17: the scaler trimmed
-      # 704m to 689m, so the peak-need floor was not a floor). A cap below the
-      # :00 fan-out is a kill loop, not a budget: restore the floor and take the
-      # difference from Horizon, the largest cap, so the collective sum still
-      # fits the budget (the guarantee stands).
-      if [ "$mem_scheduler" -lt "$sched_floor" ]; then
-        sched_gap=$(( sched_floor - mem_scheduler ))
-        mem_scheduler=$sched_floor
-        mem_horizon=$(( mem_horizon - sched_gap ))
-        say "      scheduler floor restored (${sched_floor}m); Horizon gives up ${sched_gap}m"
-      fi
-      # THE HORIZON FLOOR SURVIVES THE SCALER TOO (WoS demo 2026-09-17: the
-      # scaler and the scheduler restoration took 1279m down to 1066m, below
-      # the resident tree). The gap comes from the largest of the etl, app and
-      # vite caps, one donor at a time; a donor keeps at least half of its
-      # scaled cap, so the phase's own heavy (the etl under geodata) still
-      # runs. The moves are zero-sum: the collective fit stands. A host too
-      # small for the floor is told so: Horizon runs kill-heavy there, and the
-      # idle throttle (rubric horizon-idle-throttle, after Krakow) is the fix.
-      if [ "$mem_horizon" -lt "$hz_floor" ]; then
-        hz_gap=$(( hz_floor - mem_horizon ))
-        etl_keep=$(( mem_etl / 2 )); app_keep=$(( mem_app / 2 )); vite_keep=$(( mem_vite / 2 ))
-        while [ "$hz_gap" -gt 0 ]; do
-          donor=etl; spare=$(( mem_etl - etl_keep ))
-          if [ $(( mem_app - app_keep )) -gt "$spare" ]; then donor=app; spare=$(( mem_app - app_keep )); fi
-          if [ $(( mem_vite - vite_keep )) -gt "$spare" ]; then donor=vite; spare=$(( mem_vite - vite_keep )); fi
-          [ "$spare" -gt 0 ] || break
-          take=$hz_gap; [ "$take" -le "$spare" ] || take=$spare
-          case "$donor" in
-            etl)  mem_etl=$(( mem_etl - take )) ;;
-            app)  mem_app=$(( mem_app - take )) ;;
-            vite) mem_vite=$(( mem_vite - take )) ;;
-          esac
-          mem_horizon=$(( mem_horizon + take ))
-          hz_gap=$(( hz_gap - take ))
-          say "      Horizon floor: ${donor} gives up ${take}m"
-        done
-        if [ "$hz_gap" -gt 0 ]; then
-          say "      Horizon floor ${hz_floor}m cannot be met on this host (${mem_horizon}m): Horizon runs kill-heavy here."
-        else
-          say "      Horizon floor restored (${hz_floor}m)"
-        fi
-      fi
-    fi
-
+    # The caps were allocated above (THE ALLOCATOR); this branch writes them.
     write_derived MEM_HORIZON "${mem_horizon}m"
     write_derived MEM_APP     "${mem_app}m"
     write_derived MEM_VITE    "${mem_vite}m"
@@ -555,7 +525,13 @@ configure_host_memory() {
     write_derived MEM_NGINX     "${mem_nginx}m"
     write_derived MEM_LIVEKIT   "${mem_livekit}m"
     write_derived MEM_EDGE      "${mem_edge}m"
-    say "      collective caps: $(( pg_mb + mem_horizon + mem_app + mem_vite + mem_etl + rc_mb + rq_mb + mem_matrix + mem_scheduler + mem_mas + mem_nginx + mem_livekit + mem_edge ))m of ${budget_mb}m budget (${profile})"
+    # The sum counts the services this box runs (a service it does not run
+    # holds its need as a cap and claims nothing from the budget).
+    caps_sum=0; i=0
+    while [ "$i" -lt "${#A_VAR[@]}" ]; do
+      v="${A_VAR[i]}"; caps_sum=$(( caps_sum + ${!v} )); i=$(( i + 1 ))
+    done
+    say "      collective caps: ${caps_sum}m of ${budget_mb}m budget (${profile}; needs ${sum_need}m)"
   fi
   # Parallel posture: workers=cores, parallel=cores/2, per_gather small
   # (many concurrent lanes beat wide gathers), maintenance=cores/4.

@@ -15,13 +15,12 @@
 #   (4) CGA_NO_PULL=1  — in .env, or in the shell: never pulls (a box that takes code only
 #                        on the desk's GOOD TO PULL).
 #   (5) flag order     — `--no-pull --rederive` still takes the rederive branch.
-#   (6) Horizon floor  — derived from the supervisor tree in config/horizon.php and it
-#                        SURVIVES the budget scaler: 16 GB geodata host (the demo box shape)
-#                        lands MEM_HORIZON at the floor, the etl gives up the gap, and the
-#                        non-postgres caps still fit the budget.
-#   (7) new supervisor — a seventh supervisor in config/horizon.php raises the floor.
-#   (8) tiny host      — a 4 GB host cannot meet the floor: the script says so and no donor
-#                        is taken below half of its scaled cap.
+#   (6) needs kept     — 16 GB geodata host (the demo box shape): Horizon, the login service
+#                        and the scheduler hold their needs, no donor is used, the caps fit.
+#   (7) new supervisor — a seventh supervisor in config/horizon.php raises the Horizon need.
+#   (8) tiny host      — a 4 GB host is below the resident minimum: the script says so, names
+#                        the minimum host, and never over-commits.
+#   The whole size family is swept by tests/deploy/test_sizing_family.sh.
 #
 # The boot check (operator order 2026-09-19: the cloud boxes resize themselves):
 #
@@ -151,41 +150,48 @@ assert_contains "took the rederive branch"    "$WS/out.log" "Re-deriving host-si
 assert_absent   "no git pull"                 "$WS/git.log" "pull"
 rm -rf "$WS"
 
-echo "== (6) the Horizon floor survives the scaler (16 GB geodata host) =="
+echo "== (6) 16 GB geodata host: every service keeps its need and the caps fit =="
 WS="$(make_workspace 15990 geodata)"
 RC="$(run_case "$WS" -- --rederive)"
 SUPS="$(grep -cE "^        'supervisor-[a-z0-9-]+' => \[" "$REPO/config/horizon.php")"
-FLOOR=$(( (1 + SUPS + 2 * SUPS) * 80 + 256 ))
-HZ="$(env_mb "$WS/.env" MEM_HORIZON)"
+MASTER=$(( 15990 * 16 / 1024 )); (( MASTER > 256 )) && MASTER=256
+NEED_HZ=$(( MASTER + (SUPS + 2 * SUPS - 1) * 64 + 2 * 192 ))
 assert_eq       "exit 0"                      "$RC" "0"
-assert_ge       "MEM_HORIZON at or above the derived floor" "$HZ" "$FLOOR"
-assert_contains "the floor was restored"      "$WS/out.log" "Horizon floor restored (${FLOOR}m)"
-assert_contains "the etl gave up the gap"     "$WS/out.log" "Horizon floor: etl gives up"
+assert_ge       "MEM_HORIZON holds the Horizon need" "$(env_mb "$WS/.env" MEM_HORIZON)" "$NEED_HZ"
+assert_ge       "the login service holds its need"  "$(env_mb "$WS/.env" MEM_MAS)" "128"
+assert_ge       "the scheduler holds its need"      "$(env_mb "$WS/.env" MEM_SCHEDULER)" "800"
+assert_contains "says the needs are kept"     "$WS/out.log" "every service keeps its need"
+assert_absent   "no donor, no restoration"    "$WS/out.log" "gives up"
 BUDGET=$(( 15990 * 80 / 100 ))
-SUM=0
-for k in POSTGRES_MEM_LIMIT MEM_HORIZON MEM_APP MEM_VITE ETL_MEM_LIMIT MEM_REDIS_CACHE MEM_REDIS_QUEUE \
-         MEM_MATRIX MEM_SCHEDULER MEM_MAS MEM_NGINX MEM_LIVEKIT MEM_EDGE; do
+SUM=0   # the services a LAN box runs (no dev server, no voice SFU, no public edge)
+for k in POSTGRES_MEM_LIMIT MEM_HORIZON MEM_APP ETL_MEM_LIMIT MEM_REDIS_CACHE MEM_REDIS_QUEUE \
+         MEM_MATRIX MEM_SCHEDULER MEM_MAS MEM_NGINX; do
   v="$(env_mb "$WS/.env" "$k")"; SUM=$(( SUM + ${v:-0} ))
 done
-assert_le       "every cap together still fits the budget" "$SUM" "$BUDGET"
+assert_le       "the running caps fit the budget" "$SUM" "$BUDGET"
 rm -rf "$WS"
 
-echo "== (7) a new supervisor raises the floor =="
+echo "== (7) a new supervisor raises the Horizon need =="
 WS="$(make_workspace 15990 geodata)"
 sed -i.bak "s#^        'supervisor-prewarm' => \[#        'supervisor-extra' => [],\n        'supervisor-prewarm' => [#" "$WS/config/horizon.php" && rm -f "$WS/config/horizon.php.bak"
 RC="$(run_case "$WS" -- --rederive)"
-FLOOR7=$(( (1 + (SUPS + 1) + 2 * (SUPS + 1)) * 80 + 256 ))
-HZ7="$(env_mb "$WS/.env" MEM_HORIZON)"
-assert_ge       "MEM_HORIZON follows the larger tree" "$HZ7" "$FLOOR7"
+NEED_HZ7=$(( MASTER + ((SUPS + 1) + 2 * (SUPS + 1) - 1) * 64 + 2 * 192 ))
+assert_ge       "MEM_HORIZON follows the larger tree" "$(env_mb "$WS/.env" MEM_HORIZON)" "$NEED_HZ7"
 rm -rf "$WS"
 
-echo "== (8) a 4 GB host cannot meet the floor and is told so =="
+echo "== (8) a 4 GB host is below the resident minimum and is told so =="
 WS="$(make_workspace 4096 geodata)"
 RC="$(run_case "$WS" -- --rederive)"
 assert_eq       "exit 0"                      "$RC" "0"
-assert_contains "the shortfall is stated"     "$WS/out.log" "cannot be met on this host"
-ETL="$(env_mb "$WS/.env" ETL_MEM_LIMIT)"
-assert_ge       "the etl keeps a working cap" "$ETL" "128"
+assert_contains "the shortfall is stated"     "$WS/out.log" "BELOW THE RESIDENT MINIMUM"
+assert_contains "the minimum host is named"   "$WS/out.log" "Minimum host for this set"
+assert_ge       "no cap is zero or negative"  "$(env_mb "$WS/.env" MEM_HORIZON)" "8"
+SUM=0
+for k in POSTGRES_MEM_LIMIT MEM_HORIZON MEM_APP ETL_MEM_LIMIT MEM_REDIS_CACHE MEM_REDIS_QUEUE \
+         MEM_MATRIX MEM_SCHEDULER MEM_MAS MEM_NGINX; do
+  v="$(env_mb "$WS/.env" "$k")"; SUM=$(( SUM + ${v:-0} ))
+done
+assert_le       "the host is never over-committed" "$SUM" "$(( 4096 * 80 / 100 ))"
 rm -rf "$WS"
 
 echo "== (9) --boot on the same host changes nothing =="
