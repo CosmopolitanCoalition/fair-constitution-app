@@ -70,8 +70,10 @@ class GeodataPumpCommand extends Command
             $run->forceFill(['status' => 'running', 'updated_at' => now()])->save();
         }
 
-        // ── pg-crash breaker: pause claims ~10 min while Postgres recovers ──
-        $this->breakerTick($run);
+        // The pg-crash breaker is retired (operator order 2026-09-19): LLM-
+        // invented app logic, never Postgres behaviour, that paused claims on
+        // ANY postmaster restart — including a deliberate re-derive or recreate.
+        // A dead worker is caught by the reclaim pass below.
 
         // ── Reclaims: stale running items go back to pending (set-based) ────
         // Python workers heartbeat their claim every ~20 s, so 30 min of
@@ -536,42 +538,6 @@ class GeodataPumpCommand extends Command
         \App\Jobs\WorldBuildJob::dispatch((string) $run->id);
     }
 
-    /**
-     * pg crash/recovery detection → pause claims 10 min (pause-only, never a
-     * governor). Fingerprint = postmaster start time || stats_reset. Parity
-     * with AutoscalePumpCommand::breakerTick.
-     */
-    private function breakerTick(GeodataRun $run): void
-    {
-        try {
-            $fp = (string) (DB::selectOne("
-                SELECT pg_postmaster_start_time()::text || '|' ||
-                       COALESCE((SELECT stats_reset::text FROM pg_stat_database
-                                  WHERE datname = current_database()), '') AS fp
-            ")->fp ?? '');
-        } catch (\Throwable) {
-            return;
-        }
-        if ($fp === '') {
-            return;
-        }
-        if ($run->pg_fingerprint === null) {
-            GeodataRun::query()->whereKey($run->id)->update(['pg_fingerprint' => $fp]);
-            $run->pg_fingerprint = $fp;
-
-            return;
-        }
-        if ($run->pg_fingerprint !== $fp) {
-            GeodataRun::query()->whereKey($run->id)->update([
-                'pg_fingerprint' => $fp,
-                'paused_until'   => now()->addMinutes(10),
-                'last_error'     => 'pg crash/recovery detected '.now()->toIso8601String().' — claims paused 10 min',
-                'updated_at'     => now(),
-            ]);
-            $run->refresh();
-            Log::warning('Geodata breaker: pg crash detected, pausing claims', ['run_id' => $run->id]);
-        }
-    }
 
     private function vacuumChurned(string $enteredPhase): void
     {

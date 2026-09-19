@@ -2397,91 +2397,16 @@ def process_geojson_file(
                                       for r in _cur.fetchall()}
         except Exception:
             existing_shape_ids = set()
-        # THE GIANT-PARSE GATE (2026-08-02, six kernel OOM kills across two
-        # generations): a Nunavut-class feature costs hundreds of MB as a
-        # parsed Python dict PLUS its re-serialized JSON string — BEFORE the
-        # insert gate ever engages. Three such parses concurrently bust the
-        # etl cgroup no matter how the inserts are serialized. The metadata
-        # CSV already knows which levels carry monsters (max_vertices), so a
-        # level above the threshold takes a SESSION advisory lock for its
-        # whole file pass: one giant-feature PARSE in the container at a
-        # time — the legacy single-threaded condition, applied only where
-        # the geometry demands it. Light levels never touch the lock.
-        # SHARED/EXCLUSIVE (v2, after CAN died WHILE holding the v1 gate): the
-        # v1 gate serialized giants against each other, but the RANGE SWARM
-        # kept eating the container beside the monster. Same trick as the
-        # insert gate, one level up: EVERY file pass holds this session lock
-        # SHARED (zero contention among themselves); a giant level takes it
-        # EXCLUSIVE — it waits for in-flight passes to finish their windows,
-        # then parses with the WHOLE CONTAINER to itself, releases, and the
-        # swarm resumes. Legacy's condition, exactly, only when geometry
-        # demands it.
-        _giant_parse_locked = None   # 'exclusive' | 'shared'
-        try:
-            _mv = int(float(meta_row.get("maxVertices") or 0))
-        except (TypeError, ValueError):
-            _mv = 0
-        _mv_thresh = int(os.environ.get("CGA_ETL_GIANT_VERTICES", "0") or 0) or 1_000_000
-        with get_cursor(conn) as _cur:
-            if _mv >= _mv_thresh:
-                # GATE v3 — DEFER TO THE TAIL WHEN THE FIELD IS CROWDED
-                # (2026-08-03, CAN exit -9 twice in one morning WITH the
-                # funding fix in). The v2 exclusive lock serializes giants
-                # against other BOUNDARY passes, but the raster overlap runs
-                # beside it ungated — so "the container runs this alone" was
-                # only true among boundary lanes. Nunavut's parse is an
-                # IRREDUCIBLE ~800 MB atom: it cannot be chunked, only given
-                # room, and at cold start (largest-first claims giants FIRST,
-                # ten lanes hot) that room does not exist. Room at the TAIL is
-                # guaranteed — the phase cannot drain past a pending giant, so
-                # the field must thin until it is effectively alone. Yield is
-                # cheap (this check runs BEFORE any parse); the worker's
-                # post-yield family skip keeps the lane productive meanwhile.
-                # EXPERIMENT CONCLUDED (operator order 2026-08-05, run
-                # 019fd200): the crowded field held until two IRREDUCIBLE
-                # giants coincided — CAN ADM1 (5.39M vertices) + the IND
-                # raster load, SIGKILLed in the same minute (exit -9 pair).
-                # Deferral is back ON by default: the monster waits for a
-                # thin field and takes the exclusive parse floor.
-                # CGA_ETL_GIANT_CROWD_GATE=0 restores the crowded experiment.
-                _gate_on = os.environ.get("CGA_ETL_GIANT_CROWD_GATE", "1") == "1"
-                if _gate_on:
-                    _solo_max = int(os.environ.get("CGA_ETL_GIANT_SOLO_OPEN", "0") or 0) or 2
-                    _cur.execute(
-                        "SELECT COUNT(*) AS n FROM geodata_items "
-                        " WHERE status = 'running' AND id::text <> COALESCE(%s, '')",
-                        (os.environ.get("CGA_ETL_ITEM_ID"),),
-                    )
-                    _crowd = int(_cur.fetchone()["n"])
-                    if _crowd > _solo_max:
-                        raise GiantFloorYield(
-                            f"{iso3} ADM{adm_n}: giant needs the container "
-                            f"(~irreducible parse) but {_crowd} other items are "
-                            f"running — deferring to the tail (limit {_solo_max})")
-                    log.info("%s ADM%d: giant-parse gate — max_vertices=%s, EXCLUSIVE "
-                             "(field thin: %d other running; the container runs this alone)",
-                             iso3, adm_n, f"{_mv:,}", _crowd)
-                    _cur.execute("SELECT pg_advisory_lock(hashtext('cga_giant_parse'))")
-                    _giant_parse_locked = 'exclusive'
-                else:
-                    log.info("%s ADM%d: GIANT IN THE CROWD — max_vertices=%s, "
-                             "shared floor, field keeps running (crowd gate off)",
-                             iso3, adm_n, f"{_mv:,}")
-                    _cur.execute("SELECT pg_try_advisory_lock_shared(hashtext('cga_giant_parse')) AS got")
-                    if not bool(_cur.fetchone()["got"]):
-                        raise GiantFloorYield(f"{iso3} ADM{adm_n}: a giant holds the parse floor")
-                    _giant_parse_locked = 'shared'
-            else:
-                # YIELD, never wait resident (operator, 2026-08-02: "why can't
-                # you do what the solo run could do — the hardware is
-                # unchanged"): legacy's giant was truly ALONE. A light pass
-                # that can't take the floor immediately EXITS free instead of
-                # parking ~150 MB at the door; its item requeues and resumes
-                # after the giant's turn.
-                _cur.execute("SELECT pg_try_advisory_lock_shared(hashtext('cga_giant_parse')) AS got")
-                if not bool(_cur.fetchone()["got"]):
-                    raise GiantFloorYield(f"{iso3} ADM{adm_n}: a giant holds the parse floor")
-                _giant_parse_locked = 'shared'
+        # The giant-parse gate is retired (operator order 2026-09-19): the
+        # per-file advisory lock that made a giant level parse with the whole
+        # container to itself, and deferred it to the tail while the field was
+        # crowded (the count-of-2 crowd gate). It was the same LLM-invented
+        # deferral removed at the claim layer (see GeodataClaims.claim_next): it
+        # looped a giant between pending and the head of the pile and stopped a
+        # big host from parsing giants in parallel. Boundary levels now parse
+        # like any other pass. Container memory safety rests on earlyoom (armed
+        # at setup), the cgroup, and the chunked, resumable pump.
+        _giant_parse_locked = None
 
         # Range window: replaces the DB-count resume skip entirely (range
         # re-runs are idempotent through their deterministic slugs).

@@ -132,8 +132,12 @@ class AutoscalePumpCommand extends Command
             ])->save();
         }
 
-        // ── pg-crash breaker: pause claims while Postgres recovers ─────────
-        $this->breakerTick($run);
+        // The pg-crash breaker is retired (operator order 2026-09-19): it was
+        // LLM-invented app logic, never Postgres behaviour, and it paused claims
+        // on ANY postmaster restart — including a deliberate re-derive or
+        // `docker compose up -d postgres`, which the sizing and boot paths do.
+        // A genuinely absent backend is already handled by the reclaim-on-
+        // backend-absence pass below and by each worker's own retry.
 
         // Sizing retired (operator plan 2026-08-31): phase 2 wrote every
         // fact, acceptance verified it — a queued run flips straight to
@@ -513,13 +517,6 @@ class AutoscalePumpCommand extends Command
     }
 
     /**
-     * Detect a Postgres crash/recovery and pause claims for 10 minutes so a
-     * recovering PG isn't stampeded by the full worker pool. Fingerprint =
-     * postmaster start time + stats_reset (a backend-OOM crash recovery
-     * moves stats_reset WITHOUT a postmaster restart). Pause-only — no
-     * width, no AIMD: a circuit breaker, not a governor.
-     */
-    /**
      * PHASE-2 LIVENESS (operator plan 2026-08-31): a building world with a
      * stale lease gets its job re-dispatched — the sizing-dispatch throttle
      * pattern, no new schedule entry. Never fires beside a truly active run
@@ -543,63 +540,6 @@ class AutoscalePumpCommand extends Command
         if ($building !== null) {
             DB::table('world_builds')->where('id', $building->id)->update(['lease_at' => now(), 'updated_at' => now()]);
             \App\Jobs\WorldBuildJob::dispatch();
-        }
-    }
-
-    private function breakerTick(AutoscaleRun $run): void
-    {
-        try {
-            $fp = (string) (DB::selectOne("
-                SELECT pg_postmaster_start_time()::text || '|' ||
-                       COALESCE((SELECT stats_reset::text FROM pg_stat_database
-                                  WHERE datname = current_database()), '') AS fp
-            ")->fp ?? '');
-        } catch (\Throwable) {
-            return; // PG unreachable — workers are failing anyway; next pump retries.
-        }
-        if ($fp === '') {
-            return;
-        }
-
-        if ($run->pg_fingerprint === null) {
-            AutoscaleRun::query()->whereKey($run->id)->update(['pg_fingerprint' => $fp]);
-            $run->pg_fingerprint = $fp;
-
-            return;
-        }
-
-        if ($run->pg_fingerprint !== $fp) {
-            // PROBE, NEVER A TIMER (operator, 2026-08-30): the fingerprint
-            // query above only succeeds when postgres is already answering,
-            // so recovery is over the moment a crash is detectable. Claims
-            // resume after two consecutive healthy probes 15 s apart (the
-            // pair filters a flapping mid-recovery restart); the old flat
-            // 10-minute pause was pure dead time.
-            $healthy = 0;
-            for ($i = 0; $i < 40 && $healthy < 2; $i++) {
-                try {
-                    $inRecovery = (bool) (DB::selectOne('SELECT pg_is_in_recovery() AS r')->r ?? true);
-                    $healthy = $inRecovery ? 0 : $healthy + 1;
-                } catch (\Throwable) {
-                    $healthy = 0;
-                }
-                if ($healthy < 2) {
-                    sleep(15);
-                }
-            }
-            AutoscaleRun::query()->whereKey($run->id)->update([
-                'pg_fingerprint' => $fp,
-                'paused_until'   => $healthy >= 2 ? null : now()->addSeconds(30),
-                'last_error'     => $healthy >= 2
-                    ? null
-                    : 'pg crash/recovery detected '.now()->toIso8601String().' — probe still failing, retrying',
-                'updated_at'     => now(),
-            ]);
-            $run->refresh();
-            Log::warning('Autoscale breaker: pg restart detected', [
-                'run_id'  => $run->id,
-                'resumed' => $healthy >= 2,
-            ]);
         }
     }
 

@@ -286,16 +286,20 @@ class GeodataPullEngineTest extends TestCase
         });
     }
 
-    public function test_breaker_pauses_claims_on_pg_fingerprint_change(): void
+    public function test_a_pg_restart_does_not_pause_claims(): void
     {
+        // The pg-crash breaker is retired (operator order 2026-09-19): it paused
+        // claims for 10 minutes on ANY postmaster restart, including a deliberate
+        // re-derive or `docker compose up -d postgres`. A fingerprint left over
+        // from a prior run no longer pauses anything; the pump claims normally.
         $this->onLivePg(function () {
             $run = $this->makeRun('boundaries', ['pg_fingerprint' => 'stale-fingerprint|old']);
             $this->addItem($run, 'boundary_iso', ['iso_code' => 'AAA']);
 
-            Artisan::call('geodata:pump'); // detects the fingerprint mismatch
+            Artisan::call('geodata:pump');
             $fresh = $run->fresh();
-            $this->assertTrue($fresh->isPaused());
-            $this->assertNull(GeodataClaims::next($fresh, (string) Str::uuid()));
+            $this->assertFalse($fresh->isPaused(), 'a pg restart no longer pauses claims');
+            $this->assertNotNull(GeodataClaims::next($fresh, (string) Str::uuid()), 'the pump claims normally');
         });
     }
 

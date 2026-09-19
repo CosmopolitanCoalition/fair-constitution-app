@@ -66,7 +66,10 @@ class SimPullEnginePinTest extends TestCase
                 'a halted run must hand out ZERO claims'
             );
 
-            // Resume, then PAUSE via the breaker.
+            // Resume, then a future paused_until parks claims. The pg-crash
+            // breaker that used to WRITE this was retired (operator order
+            // 2026-09-19); the claim gate still honours a paused_until, so a
+            // pause set by any means (a future manual control) parks the engine.
             $run->forceFill(['halt_requested_at' => null, 'paused_until' => now()->addMinutes(10)])->save();
             $this->assertNull(
                 SimClaims::next($run->fresh(), (string) Str::uuid()),

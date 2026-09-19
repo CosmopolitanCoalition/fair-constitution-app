@@ -147,8 +147,10 @@ class SimPumpCommand extends Command
             return self::SUCCESS;
         }
 
-        // 3. Breaker.
-        $this->breakerTick($run);
+        // 3. The pg-crash breaker is retired (operator order 2026-09-19): LLM-
+        // invented app logic that paused claims on any postmaster restart,
+        // including a deliberate re-derive or recreate. A dead worker is caught
+        // by the reclaim below.
 
         // 4. Stale-claim reclaim — set-based, both lanes.
         $this->reclaim($run);
@@ -509,43 +511,6 @@ class SimPumpCommand extends Command
         return $total;
     }
 
-    /**
-     * A backend-OOM crash-recovery moves stats_reset WITHOUT a postmaster
-     * restart, so the fingerprint is both values. Pause-only — a circuit
-     * breaker, not a governor: no width dial, no AIMD.
-     */
-    private function breakerTick(SimRun $run): void
-    {
-        try {
-            $fp = DB::selectOne(
-                "SELECT pg_postmaster_start_time()::text || '|' ||
-                        COALESCE((SELECT stats_reset::text FROM pg_stat_database
-                                   WHERE datname = current_database()), '') AS fp"
-            );
-        } catch (\Throwable) {
-            return; // PG unreachable — next tick retries. Never a violation.
-        }
-
-        if ($fp === null) {
-            return;
-        }
-
-        if ($run->pg_fingerprint === null) {
-            $run->forceFill(['pg_fingerprint' => $fp->fp])->save();
-
-            return;
-        }
-
-        if ($run->pg_fingerprint !== $fp->fp) {
-            $run->forceFill([
-                'paused_until' => now()->addMinutes(10),
-                'pg_fingerprint' => $fp->fp,
-                'last_error' => 'pg crash/recovery detected — claims paused 10 min',
-            ])->save();
-
-            Log::warning('Sim breaker: pg crash detected, pausing claims');
-        }
-    }
 
     /** Reclaim claims whose worker died, with a longer grace for the network lane. */
     private function reclaim(SimRun $run): void

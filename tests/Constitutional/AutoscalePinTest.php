@@ -703,21 +703,12 @@ class AutoscalePinTest extends TestCase
             $this->flipToMapping($run);
             $this->assertSame('mapping', $run->refresh()->status);
 
-            // ── a. breaker: a changed pg fingerprint pauses claims ────────
-            $run->forceFill(['pg_fingerprint' => 'bogus-previous-fingerprint'])->save();
-            Artisan::call('autoscale:pump');
-            $run->refresh();
-            $this->assertNotNull($run->paused_until, 'a fingerprint change pauses claims');
-            (new AutoscaleWorkerJob((string) $run->id))->handle();
-            $this->assertSame(0, DB::table('apportionment_ledger_scopes')
-                ->where('status', 'running')->count(),
-                'a paused run hands out no claims');
-            $this->assertSame(0, LedgerHeader::query()
-                ->where('kind', 'single')->where('map_status', 'running')->count(),
-                'singles batches respect the pause too');
-            $run->forceFill(['paused_until' => now()->subMinute()])->save();
+            // The pg-crash breaker sub-test is retired (operator order
+            // 2026-09-19): the breaker that paused claims on a fingerprint
+            // change was removed from every pump. A run is no longer paused by
+            // a Postgres restart.
 
-            // ── b. stale-claim reclaim: claim a scope, "die", pump revives ─
+            // ── stale-claim reclaim: claim a scope, "die", pump revives ─
             // Drain singles + precompute first so the ladder reaches scopes.
             $probeToken = (string) Str::uuid();
             $scopeClaim = null;
