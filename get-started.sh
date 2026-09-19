@@ -17,6 +17,11 @@
 #                                    the sizes and recreate the running services; never updates code)
 #   ./get-started.sh --install-boot-unit   (Linux + systemd: run the boot check at every boot)
 #   ./get-started.sh --print-boot-unit     (print that unit and exit)
+#   ./get-started.sh --no-boot-unit        (do NOT arm the boot check this run)
+#
+# A normal setup on Linux + systemd arms the boot check by itself (like earlyoom),
+# so a box that resizes itself re-derives on reboot with no hand step. Opt out with
+# --no-boot-unit or CGA_NO_BOOT_UNIT=1.
 #
 # A box that takes code only on the desk's word (GOOD TO PULL) sets CGA_NO_PULL=1
 # in .env once, or in the shell; every run then skips the update check.
@@ -31,6 +36,7 @@ RECONFIGURE=0
 REDERIVE_ONLY=0
 BOOT=0
 BOOT_UNIT=""
+NO_BOOT_UNIT="${CGA_NO_BOOT_UNIT:-0}"
 NO_PULL="${CGA_NO_PULL:-0}"
 for a in "$@"; do
   case "$a" in
@@ -40,6 +46,7 @@ for a in "$@"; do
     --boot)        BOOT=1 ;;
     --install-boot-unit) BOOT_UNIT=install ;;
     --print-boot-unit)   BOOT_UNIT=print ;;
+    --no-boot-unit) NO_BOOT_UNIT=1 ;;
   esac
 done
 
@@ -601,22 +608,48 @@ TimeoutStartSec=1800
 WantedBy=multi-user.target
 UNIT
 }
+# Install (or refresh) the systemd boot unit. $1 = "loud" prints the result and
+# treats a failure as fatal (the explicit --install-boot-unit); "quiet" is the
+# automatic install during a normal setup — Linux + systemd only, never fatal,
+# exactly like the earlyoom arm in configure_host_memory.
+install_boot_unit() {
+  local mode="$1" SUDO="" unit_tmp
+  if ! command -v systemctl >/dev/null 2>&1; then
+    [ "$mode" = "loud" ] && fail "The boot unit needs systemd (Linux). On this host, start Docker at login and run ./get-started.sh --boot after a resize."
+    return 0
+  fi
+  [ "$(id -u)" = "0" ] || SUDO="sudo"
+  unit_tmp="$(mktemp)"
+  boot_unit_text > "$unit_tmp"
+  # The unit embeds this box's path and user, so re-write it whenever they could
+  # have changed (a move, a fresh clone); enable is idempotent.
+  if $SUDO install -m 0644 "$unit_tmp" /etc/systemd/system/cga-boot.service 2>/dev/null \
+     && $SUDO systemctl daemon-reload 2>/dev/null \
+     && $SUDO systemctl enable cga-boot.service >/dev/null 2>&1; then
+    $SUDO systemctl enable docker.service >/dev/null 2>&1 || true
+    rm -f "$unit_tmp"
+    if [ "$mode" = "loud" ]; then
+      say "Installed /etc/systemd/system/cga-boot.service. At every boot: Docker returns the containers, then the boot check re-derives and recreates them when the host changed."
+      say "  See the last run:  journalctl -u cga-boot.service -b"
+    else
+      say "      Boot check armed (cga-boot.service): a resize + reboot re-derives on its own."
+    fi
+    return 0
+  fi
+  rm -f "$unit_tmp"
+  # A quiet install that could not get sudo is not fatal — the box still works,
+  # it just needs `./get-started.sh --boot` by hand after a resize.
+  [ "$mode" = "loud" ] && fail "Could not install the boot unit (needs sudo). Re-run as root, or run ./get-started.sh --boot by hand after a resize."
+  say "      Boot check NOT armed (no permission to install the systemd unit): run 'sudo ./get-started.sh --install-boot-unit' once, or './get-started.sh --boot' by hand after a resize."
+  return 0
+}
+
 if [ "$BOOT_UNIT" = "print" ]; then
   boot_unit_text
   exit 0
 fi
 if [ "$BOOT_UNIT" = "install" ]; then
-  command -v systemctl >/dev/null 2>&1 || fail "The boot unit needs systemd (Linux). On this host, start Docker at login and run ./get-started.sh --boot after a resize."
-  SUDO=""; [ "$(id -u)" = "0" ] || SUDO="sudo"
-  unit_tmp="$(mktemp)"
-  boot_unit_text > "$unit_tmp"
-  $SUDO install -m 0644 "$unit_tmp" /etc/systemd/system/cga-boot.service
-  rm -f "$unit_tmp"
-  $SUDO systemctl daemon-reload
-  $SUDO systemctl enable docker.service >/dev/null 2>&1 || true
-  $SUDO systemctl enable cga-boot.service
-  say "Installed /etc/systemd/system/cga-boot.service. At every boot: Docker returns the containers, then the boot check re-derives and recreates them when the host changed."
-  say "  See the last run:  journalctl -u cga-boot.service -b"
+  install_boot_unit loud
   exit 0
 fi
 
@@ -752,6 +785,15 @@ fi
 if [ "${REDERIVE:-0}" = "1" ] || [ "$UPDATED" = "1" ] || [ "$FIRST_RUN" = "1" ] || [ "$JUST_DOWNLOADED" = "1" ]; then
   docker compose exec -T app php artisan config:cache >/dev/null 2>&1 || true
   docker compose restart horizon scheduler >/dev/null 2>&1 || true
+fi
+
+# THE BOOT UNIT ARMS ITSELF ON A NORMAL SETUP (operator order 2026-09-19: the
+# boxes resize themselves and must re-derive on reboot WITHOUT a hand step).
+# Same posture as the earlyoom arm above: Linux + systemd only, idempotent,
+# never fatal. After this a resize + reboot re-derives with zero human action.
+# --no-boot-unit opts out; a box that manages its own init skips it.
+if [ "$NO_BOOT_UNIT" != "1" ] && [ "$(uname -s)" = "Linux" ]; then
+  install_boot_unit quiet
 fi
 
 PORT="$(grep -E '^[[:space:]]*NGINX_HOST_PORT=' .env | tail -1 | cut -d= -f2 | tr -d '[:space:]' || true)"
