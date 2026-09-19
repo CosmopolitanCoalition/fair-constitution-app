@@ -3,6 +3,7 @@
 namespace App\Services\Economy;
 
 use App\Models\Economy\EconomicAccount;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -242,7 +243,13 @@ class AccountService
 
             $entryGroup = $this->ledger->post($kind, $legs);
 
-            $this->applyBalanceMany($sums);
+            $timed = SimTimer::isOpen('stage.training_scope');
+            if ($timed) { SimTimer::open('training.wallet_balances'); }
+            try {
+                $this->applyBalanceMany($sums);
+            } finally {
+                if ($timed) { SimTimer::close('training.wallet_balances'); }
+            }
 
             return $entryGroup;
         });

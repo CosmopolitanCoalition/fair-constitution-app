@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Economy\AccountService;
 use App\Services\Economy\IssuanceService;
 use App\Services\SettingsResolver;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -186,8 +187,19 @@ class TrainingStipendService
         }
 
         foreach ($groups as $g) {
-            $this->issuance->mint($g['currency'], $g['treasury_id'], $g['total'], 'training stipend batch (F-EDU-001, once per person)');
-            $this->accounts->creditManyFromTreasury($g['treasury_id'], $g['credits'], $g['currency_id'], 'stipend');
+            $timed = SimTimer::isOpen('stage.training_scope');
+            if ($timed) { SimTimer::open('training.stipend_mint'); }
+            try {
+                $this->issuance->mint($g['currency'], $g['treasury_id'], $g['total'], 'training stipend batch (F-EDU-001, once per person)');
+            } finally {
+                if ($timed) { SimTimer::close('training.stipend_mint'); }
+            }
+            if ($timed) { SimTimer::open('training.stipend_credit'); }
+            try {
+                $this->accounts->creditManyFromTreasury($g['treasury_id'], $g['credits'], $g['currency_id'], 'stipend');
+            } finally {
+                if ($timed) { SimTimer::close('training.stipend_credit'); }
+            }
         }
     }
 }

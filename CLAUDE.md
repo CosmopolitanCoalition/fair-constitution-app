@@ -10,6 +10,14 @@ neighborhood to planetary scale.
 
 Repository: https://github.com/CosmopolitanCoalition/fair-constitution-app
 
+**Step 5 developer/benchmarker coordination (operator 2026-09-20):** Before
+Step 5 handoff work, read the "Operator communication protocol" in
+`docs/operations/SIMULATION_PHASE3_PERFORMANCE.md`. Developer and benchmarker
+alternate one completed handoff each; no intermediate or duplicate messages.
+The operator relays the handoffs manually; do not message the other task directly.
+This rule survives automatic context compaction. Work remains within Step 5;
+the separate Claude storage/monitoring/shutdown loop is left alone.
+
 ---
 
 ## SESSION START — READ THESE DOCS FIRST

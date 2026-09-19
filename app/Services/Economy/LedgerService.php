@@ -3,6 +3,7 @@
 namespace App\Services\Economy;
 
 use App\Services\AuditService;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -79,69 +80,83 @@ class LedgerService
         }
 
         $entryGroup = (string) Str::uuid();
+        $timed = SimTimer::isOpen('stage.training_scope');
+        // These bytes and identifiers do not depend on the chain head. Prepare
+        // them before joining the global append queue, not while holding it.
+        $rows = [];
+        $canonical = [];
+        foreach ($legs as $leg) {
+            $payload = [
+                'entry_group' => $entryGroup,
+                'account_type' => $leg['account_type'],
+                'account_id' => $leg['account_id'],
+                'currency_id' => $leg['currency_id'],
+                'direction' => $leg['direction'],
+                'amount' => $this->trimAmount((string) $leg['amount']),
+                'kind' => $kind,
+                'ref_type' => $refType,
+                'ref_id' => $refId,
+            ];
+            $canonical[] = AuditService::canonicalJson($payload);
+            $rows[] = array_replace($payload, [
+                'id' => (string) Str::uuid(),
+                'amount' => $leg['amount'],
+            ]);
+        }
+        $deltas = $this->treasuryDeltas($legs);
 
-        $write = function () use ($kind, $legs, $refType, $refId, $entryGroup): string {
+        $write = function () use ($rows, $canonical, $deltas, $entryGroup, $timed): string {
             // Serialize every appender so no two anchor on the same head.
-            DB::statement('SELECT pg_advisory_xact_lock(?)', [self::APPEND_LOCK_KEY]);
-
-            $head = DB::selectOne('SELECT hash FROM ledger_entries ORDER BY seq DESC LIMIT 1');
-            $prevHash = $head->hash ?? AuditService::GENESIS_PREV_HASH;
-
-            // BATCH APPEND (2026-09-07). The chain is computed in PHP (each
-            // link still anchors on the previous hash, identical to the verify
-            // walk), then the whole set is written in ONE bulk insert instead
-            // of a round-trip per leg. A mass disbursement (a stipend to
-            // thousands) used to be thousands of sequential INSERTs under this
-            // global lock; now it is a single insert, so the lock is held for
-            // a fraction of the time and the ledger stops being the serial
-            // wall. Balances are grouped too (one update per account).
-            $now = now();
-            $rows = [];
-            foreach ($legs as $leg) {
-                // Canonicalize the amount on the way IN with the same
-                // function the verify walk uses on the way out. Postgres
-                // returns numeric(24,6) zero-padded ("10.000000"), so hashing
-                // the caller's raw string ("10", "10.00", 10.5) would produce
-                // a chain that cannot be re-verified from the stored row.
-                $payload = [
-                    'entry_group'  => $entryGroup,
-                    'account_type' => $leg['account_type'],
-                    'account_id'   => $leg['account_id'],
-                    'currency_id'  => $leg['currency_id'],
-                    'direction'    => $leg['direction'],
-                    'amount'       => $this->trimAmount((string) $leg['amount']),
-                    'kind'         => $kind,
-                    'ref_type'     => $refType,
-                    'ref_id'       => $refId,
-                ];
-
-                $canonical = AuditService::canonicalJson($payload);
-                $hash      = AuditService::chainHash($prevHash, $canonical);
-
-                $rows[] = [
-                    'id'           => (string) Str::uuid(),
-                    'entry_group'  => $entryGroup,
-                    'account_type' => $leg['account_type'],
-                    'account_id'   => $leg['account_id'],
-                    'currency_id'  => $leg['currency_id'],
-                    'direction'    => $leg['direction'],
-                    'amount'       => $leg['amount'],
-                    'kind'         => $kind,
-                    'ref_type'     => $refType,
-                    'ref_id'       => $refId,
-                    'prev_hash'    => $prevHash,
-                    'hash'         => $hash,
-                    'created_at'   => $now,
-                ];
-
-                $prevHash = $hash;
+            if ($timed) { SimTimer::open('training.ledger_lock_wait'); }
+            try {
+                DB::statement('SELECT pg_advisory_xact_lock(?)', [self::APPEND_LOCK_KEY]);
+            } finally {
+                if ($timed) { SimTimer::close('training.ledger_lock_wait'); }
             }
 
-            foreach (array_chunk($rows, 500) as $chunk) {
-                DB::table('ledger_entries')->insert($chunk);
-            }
+            // Keep the head read AFTER lock acquisition, in a separate statement:
+            // a snapshot obtained before waiting could anchor to an old head.
+            if ($timed) { SimTimer::open('training.ledger_locked_post'); }
+            try {
+                $head = DB::selectOne('SELECT hash FROM ledger_entries ORDER BY seq DESC LIMIT 1');
+                $prevHash = $head->hash ?? AuditService::GENESIS_PREV_HASH;
+                $now = now();
+                foreach ($rows as $i => &$row) {
+                    $row['prev_hash'] = $prevHash;
+                    $row['hash'] = AuditService::chainHash($prevHash, $canonical[$i]);
+                    $row['created_at'] = $now;
+                    $prevHash = $row['hash'];
+                }
+                unset($row);
 
-            $this->applyToBalanceBatch($legs);
+                $chunks = array_chunk($rows, 500);
+                foreach ($chunks as $i => $chunk) {
+                    if ($i === array_key_last($chunks) && count($deltas) === 1) {
+                        // Training's mint and disbursement each touch one
+                        // treasury. Append + its balance update share a SQL
+                        // statement, saving one round trip under the lock.
+                        // The data-modifying CTE runs even if no account matches,
+                        // preserving the existing posting behavior.
+                        $query = DB::table('ledger_entries');
+                        $sql = $query->getGrammar()->compileInsert($query, $chunk);
+                        $bindings = array_merge(...array_map('array_values', $chunk));
+                        DB::statement(
+                            'WITH appended AS ('.$sql.') UPDATE treasury_accounts
+                             SET balance = balance + ?::numeric, updated_at = ? WHERE id = ?::uuid',
+                            [...$bindings, reset($deltas), $now, array_key_first($deltas)]
+                        );
+                    } else {
+                        DB::table('ledger_entries')->insert($chunk);
+                    }
+                }
+                if (count($deltas) !== 1) {
+                    $this->applyTreasuryDeltas($deltas);
+                }
+            } finally {
+                // The transaction-scoped lock can outlive post(): callers may
+                // still credit wallets or write issuance records before commit.
+                if ($timed) { SimTimer::close('training.ledger_locked_post'); }
+            }
 
             return $entryGroup;
         };
@@ -272,14 +287,13 @@ class LedgerService
         }
     }
 
-    /** @param array<string, mixed> $leg */
     /**
-     * Apply a whole batch's treasury balances at once: group every treasury leg
+     * Prepare a whole batch's treasury balances: group every treasury leg
      * by account and net its signed deltas, so a set that debits one treasury a
      * thousand times issues ONE update, not a thousand. economic_accounts are
      * still applied by the caller (AccountService), exactly as before.
      */
-    private function applyToBalanceBatch(array $legs): void
+    private function treasuryDeltas(array $legs): array
     {
         $deltas = [];
         foreach ($legs as $leg) {
@@ -292,6 +306,11 @@ class LedgerService
             $deltas[$leg['account_id']] = bcadd($deltas[$leg['account_id']] ?? '0', $signed, 6);
         }
 
+        return array_map(fn (string $delta) => $this->sqlNumeric($delta), $deltas);
+    }
+
+    private function applyTreasuryDeltas(array $deltas): void
+    {
         $now = now();
         foreach ($deltas as $accountId => $delta) {
             DB::table('treasury_accounts')

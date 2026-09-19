@@ -17969,6 +17969,40 @@
           "note": "52 PHP tests / 1,015 assertions passed across counter durability/concurrency, worker and pump regressions, memory budgeting, heartbeat and reporting. Counter fixture settles 50 items with two shared-row merges; failure and rollback retain deltas. Bash and PowerShell each pass 36 host/profile sizing cases; PowerShell also checks automatic profile redetection and pins. All DB fixtures isolated; sizing uses stubbed Docker and configuration I/O. No live-world, remote, resize or service-control changes."
         }
       ]
+    },
+    {
+      "id": "W-0468",
+      "title": "Shorten and measure Phase 6 training-stipend ledger serialization",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Bounded D001 implementation and isolated integrity, concurrency, rollback and once-only stipend tests pass, with deployment and measurement guidance recorded.",
+      "detail": "LedgerService prepares canonical payloads, row identifiers and treasury deltas before acquiring its append lock. A single-treasury posting combines its last bounded insert chunk with the treasury update, removing one round trip per posting. Fresh head reads remain after lock acquisition; chain hashes, amounts, balances, durability and transaction boundaries remain intact. Training-only timers separate lock acquisition, locked post work, wallets and complete mint/disbursement calls. No migration; refresh drained Horizon workers. Keep demo Redis settings and 73 workers unchanged. Record D001 stale audit statistics correction and use the recovered baseline; no live speedup claimed.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "D001 completed demo handoff, 2026-09-20",
+          "title": "Phase 6 money-ledger contention after statistics correction",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Economy/LedgerService.php",
+        "app/Services/Economy/AccountService.php",
+        "app/Services/Education/TrainingStipendService.php",
+        "tests/Feature/TrainingLedgerPerformanceTest.php",
+        "tests/Support/training_ledger_worker.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "19 tests / 1,329 assertions passed: 10 isolated PostgreSQL tests and 9 existing database-free ledger checks. Actual batch credit uses four SQL statements instead of five. Checked 502-row chunking, canonical hashes/order, amounts/balances, mint/burn supply, outer rollback, treasury/wallet failures, two waiting concurrent writers, database immutability, once-only real training handler and timer boundaries. All DB writes in guarded disposable databases. D001 confirms 5604e477 deployed but no demonstrated Phase 6 code speedup; targeted ANALYZE recovered 308,365 jurisdictions/hour. New patch awaits remote benchmark via one operator-relayed handoff."
+        }
+      ]
     }
   ]
 }

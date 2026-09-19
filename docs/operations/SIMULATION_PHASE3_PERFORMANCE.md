@@ -4,6 +4,131 @@ This is the deployment/measurement handoff for the demo-box Astra. The local
 developer changes code and pushes it; the demo-box operator owns application of
 these migrations and measurements on the running simulation.
 
+## Operator communication protocol — 2026-09-20
+
+This protocol continues across automatic context compaction and new turns.
+Read it before any Step 5 handoff work. The operator relays complete handoffs
+manually; do not send messages directly to the other task.
+
+- **Develop and Commit** works in the Windows E: checkout: inspect the received
+  recommendation, implement a justified Step 5 fix, complete internal tests,
+  commit and push. It does not operate the remote demo server.
+- **Deploy and Benchmark** works on the demo server: receive the completed
+  handoff, deploy, finish the measurements, then send one consolidated result
+  and next recommendation.
+- Alternate strictly: recommendation → completed developer handoff → completed
+  deployment/benchmark → next recommendation. Send no intermediate cross-task
+  status, partial patch, speculative recommendation or duplicate prompt.
+- Developer handoffs include the pushed revision, finished test results,
+  deployment requirements and measurement guidance. A rejected recommendation
+  must not be turned into fabricated work: establish the reason before returning
+  one final disposition. An actual blocker is reported to the operator.
+- Keep work within Step 5. Leave the separate Claude loop's disk expansion,
+  resource monitoring and final server shutdown alone.
+- After compaction, recover the current exchange from the latest messages and
+  this file. Identify whose turn it is before acting. A drafted handoff is not
+  proof of delivery; never resend or launch a second exchange just because
+  context was compacted.
+
+Current exchange: **D001 received from the operator**. The implementation and
+internal tests below are complete. The developer's final response supplies the
+pushed commit for manual relay; then Deploy and Benchmark owns the next turn.
+No direct cross-task message has been sent. D001 confirms remote `5604e477`,
+including `0dfba8f6`; older deployment statements below are historical. Do not
+infer deployment of this new patch until a completed demo handoff confirms it.
+
+## D001 response: Phase 6 money-ledger contention — 2026-09-20
+
+### Completed demo evidence, supplied by the operator
+
+D001 reports the same run `01a0ba29-3dbb-7181-8654-2d41ce1dea86`, training,
+with 73 workers and zero review items. Deployment of `5604e477` retained its
+completed 914,453-item worklist. Training produces no world-counter deltas, so
+that patch has **no demonstrated Phase 6 execution speedup**; generation was
+already complete and its cursor change was not benchmarked in this phase.
+
+Weighted throughput was 303,654 jurisdictions/hour before deployment, 172,287
+after deployment with stale statistics, then 308,365 on the same code after a
+separate targeted `ANALYZE audit_log (ref, event, actor_user_id, rejected)`.
+The existing actor index then replaced the reference index for the actual
+training-completion lookup. This is a statistics correction, not evidence of
+counter-patch improvement or regression. Use the recovered baseline, and capture
+a fresh pre-deployment window, for the next comparison.
+
+**Empty-to-populated lesson:** statistics collected before a phase may badly
+underestimate a new event/ref as that phase fills the table. A static fixture's
+correct plan does not establish the live plan. Inspect bounded planner examples
+and statistics if the lookup regresses; separate any targeted statistics
+maintenance from code benchmark windows. No new audit index or automatic
+whole-table maintenance is included in this patch.
+
+The measured remaining wait is on money-ledger key `0x4c45444752` (64 waiting
+sessions in one snapshot), not the audit-chain key. Post-statistics audit wait
+was approximately 0.14 ms, while training took approximately 808 ms per scope.
+
+### Implemented and internally tested
+
+- `LedgerService::post` prepares canonical payloads, row UUIDs and net treasury
+  deltas before acquiring its append lock. Amount normalization and chain-hash
+  inputs are unchanged. The head is still read in a separate statement **after**
+  acquiring the transaction-scoped lock, so waiting writers see the committed
+  head. Only head-dependent chaining remains inside that section.
+- For a posting touching one treasury (both training mint and disbursement),
+  the final bounded insert chunk and its treasury update share one PostgreSQL
+  data-modifying CTE. This removes one database round trip per posting. Multiple
+  treasuries retain the existing update path. Inserts remain at most 500 rows per
+  chunk. No lock, durability, policy or transaction boundary is relaxed.
+- Narrow timers distinguish append-lock waiting, the remainder of `post`, wallet
+  updates, and complete mint/disbursement calls. They run only while a simulation
+  `stage.training_scope` timer is open, not on ordinary user payments.
+
+Validation: **19 tests / 1,329 assertions passed**: 10 disposable-PostgreSQL tests
+(1,288 assertions) and 9 existing database-free ledger integrity tests (41).
+These cover exact canonical hashes, posting order, amounts and balances; a
+502-row posting across chunks; mint/burn supply; outer rollback and failures in
+treasury/wallet updates; two independent concurrent writers actually waiting on
+the lock; append-only database guards; single-writer/validation rules; and the
+real training handler plus achievement and stipend services paying only once
+across retakes and repeated batch commits. The ordinary batch credit now issues
+four SQL statements instead of five. No development-world or remote data was
+used as a write fixture. This proves the query reduction and checked invariants,
+**not a production throughput gain**.
+
+### Deploy and benchmark this completed patch
+
+1. Capture a fresh Phase 6 baseline if still available. Under demo operator
+   control, halt and drain at item boundaries, pull the exact commit from the
+   developer's final response, refresh drained Horizon workers, and resume the
+   same run. This changes worker PHP only: **no migration, frontend build,
+   scheduler refresh, PostgreSQL restart or Redis recreation is required**.
+2. Keep 73 workers and the current Redis settings unchanged: temporary 2 GiB
+   runtime cap, 870 MiB data limit, same persistence/eviction. The installer
+   sizing correction remains separate and is not part of this benchmark.
+3. Compare multiple steady direct-completion windows and `lane.item_total`,
+   `stage.training_scope` / `training.arm`, plus these new timer deltas:
+
+   | Timer | Meaning |
+   |---|---|
+   | `training.ledger_lock_wait` | Advisory-lock acquisition per ledger posting |
+   | `training.ledger_locked_post` | After acquisition through head read, chained inserts and treasury update |
+   | `training.wallet_balances` | Bulk wallet updates after the disbursement posting |
+   | `training.stipend_mint` | Full mint call, including issuer check, ledger posting, issuance event and owned transaction commit |
+   | `training.stipend_credit` | Full bulk disbursement, including posting, wallets and owned transaction commit |
+
+   `ledger_locked_post` is **not the full lifetime of the transaction lock**:
+   wallet/issuance work and transaction commit can follow it. These scopes are
+   nested; do not sum them. Counts are per call/posting, not per jurisdiction;
+   compare total-microsecond deltas per completed scope when attributing costs.
+   Workers flush timing accumulators in batches, so single tiny windows mislead.
+4. Use bounded samples of newly completed scopes and newly appended ledger
+   links, plus sampled issuance/wallet deltas where a before snapshot exists.
+   Confirm healthy leases and zero new review/failed-holder results. Do not run
+   a planet-wide ledger verification for this benchmark. If Phase 6 has ended,
+   do not reset the world to recreate it; report that limitation.
+5. Finish the comparison and return **one consolidated result and next bounded
+   Step 5 recommendation**, relayed by the operator. Leave the separate Claude
+   monitoring/storage/shutdown loop alone.
+
 ## Counter contention and persistent Redis sizing — 2026-09-20
 
 The operator reports `e9fc8ade` deployed, while `0dfba8f6` remains undeployed.
