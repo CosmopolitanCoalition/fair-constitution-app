@@ -372,6 +372,7 @@
   "step1_constants.worker_parity_hint": "Default of defaults: <span class=&quot;text-gray-300&quot;>2000</span> · Art. III §6 · must be ≥ first-seat threshold.",
   "step1_constants.worker_parity_label": "Worker : Shareholder Parity (employees)",
   "step2_map_data.accept_confirm": "Open data flags remain: {critical} critical, {warning} warning, {info} info.\n\nAccepting closes the repair window with these flags outstanding. Accept anyway?",
+  "step2_map_data.accept_incomplete_confirm": "The world build is still running (sizing legislatures and drawing maps). Proceed anyway? The build keeps running in the background.",
   "step2_map_data.activation_mode_aria": "Activation mode",
   "step2_map_data.apply_pending_body": "You pointed the app at <code class=\"text-amber-200 break-all\">{path}</code>, but the containers haven't picked it up yet. Run this in the app folder (it <strong>recreates</strong> the containers — a stop/start or restart is <strong>not</strong> enough), then click Re-check:",
   "step2_map_data.apply_pending_title": "Your folder isn't loaded yet",

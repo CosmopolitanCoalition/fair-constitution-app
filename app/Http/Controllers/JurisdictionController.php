@@ -806,6 +806,7 @@ class JurisdictionController extends Controller
             acknowledgeOpenFlags: $request->boolean('acknowledge_open_flags'),
             startAutoscale: $request->boolean('start_autoscale'),
             gateOnVerifier: $mode === 'eager' || $request->boolean('start_autoscale'),
+            forceIncompleteBuild: $request->boolean('force'),
             initiatorUserId: $request->user()?->getKey(),
         );
 

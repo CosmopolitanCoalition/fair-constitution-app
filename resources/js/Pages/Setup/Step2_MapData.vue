@@ -798,6 +798,24 @@ async function acceptHere() {
             data = await res.json().catch(() => ({}))
         }
 
+        // The world build is still running: the operator can proceed anyway
+        // (force). The build continues in the background; acceptance stamps and
+        // starts the run now (operator order 2026-09-19 — a gate the operator
+        // cannot pass is a wall).
+        if (res.status === 422 && data.world_build_incomplete) {
+            const ok = confirm(
+                t('c_setup.step2_map_data.accept_incomplete_confirm',
+                  'The world build is still running (sizing legislatures and drawing maps). Proceed anyway? The build keeps running in the background.')
+            )
+            if (!ok) return
+            res = await csrfFetch('/api/jurisdictions/accept-maps', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...acceptBody, acknowledge_open_flags: true, force: true }),
+            })
+            data = await res.json().catch(() => ({}))
+        }
+
         if (!res.ok || !data.ok) {
             advanceError.value = data.error || t('c_setup.step2_map_data.err_accept', { status: res.status })
             return

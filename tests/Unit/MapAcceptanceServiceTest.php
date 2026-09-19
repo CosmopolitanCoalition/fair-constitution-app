@@ -174,6 +174,25 @@ final class MapAcceptanceServiceTest extends TestCase
         self::assertSame(0, DB::table('autoscale_runs')->count());
     }
 
+    public function test_the_operator_can_force_past_an_incomplete_world_build(): void
+    {
+        // Operator order 2026-09-19: a gate the operator cannot pass is a wall.
+        // With force, an incomplete build is accepted and the run starts; the
+        // build keeps running in the background.
+        $this->seedInstance();
+
+        $service = new MapAcceptanceService($this->incompleteReport());
+        $result = $service->accept(new MapAcceptanceOptions(
+            mode: 'eager',
+            gateOnVerifier: true,
+            forceIncompleteBuild: true,
+        ));
+
+        self::assertSame(MapAcceptanceResult::ACCEPTED, $result->outcome);
+        self::assertNotNull($this->currentInstance()->map_accepted_at);
+        self::assertSame(1, DB::table('autoscale_runs')->count());
+    }
+
     // ---- restore-style manual acceptance: mode written, no run -------------
 
     public function test_manual_restore_style_acceptance_stamps_mode_without_a_run(): void

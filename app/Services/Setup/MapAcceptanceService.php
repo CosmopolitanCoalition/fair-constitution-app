@@ -52,10 +52,13 @@ class MapAcceptanceService
 
         // THE ACCEPT GATE (operator plan 2026-08-31): a request that would
         // START the drawing verifies the world build FIRST, before anything
-        // stamps. An incomplete build returns the live progress report.
-        // Non-run modes (manual / population) and the restore door skip the
-        // gate.
-        if ($opts->gateOnVerifier) {
+        // stamps. An incomplete build returns the live progress report — BUT
+        // the operator can proceed anyway (forceIncompleteBuild, operator order
+        // 2026-09-19: a hard block the operator could not pass is not a gate, it
+        // is a wall; the escape-hatch law says the operator can always continue
+        // with the state documented). Non-run modes (manual / population) and
+        // the restore door skip the gate entirely.
+        if ($opts->gateOnVerifier && ! $opts->forceIncompleteBuild) {
             $report = ($this->worldReport)();
             if (empty($report['complete'])) {
                 return new MapAcceptanceResult(

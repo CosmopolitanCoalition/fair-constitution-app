@@ -16,6 +16,7 @@ final class MapAcceptanceOptions
      * @param  bool     $acknowledgeOpenFlags  the confirm-dialog acknowledgment for open geodata flags
      * @param  bool     $startAutoscale    the re-hook flag: start the planet build on an already-accepted instance
      * @param  bool     $gateOnVerifier    run the world-build verifier before stamping (eager or re-hook)
+     * @param  bool     $forceIncompleteBuild  operator override: proceed even when the world build is not complete
      * @param  ?string  $initiatorUserId   the operator who started the run, or null for a CLI/restore door
      */
     public function __construct(
@@ -24,6 +25,7 @@ final class MapAcceptanceOptions
         public readonly bool $acknowledgeOpenFlags = false,
         public readonly bool $startAutoscale = false,
         public readonly bool $gateOnVerifier = true,
+        public readonly bool $forceIncompleteBuild = false,
         public readonly ?string $initiatorUserId = null,
     ) {}
 
