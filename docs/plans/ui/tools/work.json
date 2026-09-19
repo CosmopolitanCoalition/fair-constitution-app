@@ -17712,6 +17712,10 @@
         {
           "date": "2026-09-19",
           "note": "23 PHP tests / 210 assertions passed, including the actual claim UPDATE on 20,000 synthetic tied-position items in nonce PostgreSQL schemas, absence of Sort after the index, concurrent claim uniqueness, valid and failed-build retries, and real worker activity before/after the lease migration. 19 JavaScript tests passed, including rendered activity states on both pages and recent timing summaries. No production speedup claimed. Index-only needs no restart; reporting code requires drained Horizon workers to refresh before operator resume."
+        },
+        {
+          "date": "2026-09-19",
+          "note": "Remote operator confirmed 6d8a8670 deployed at 73 workers. Throughput 441,763/hour before versus 1,309,246-1,324,174/hour after; acquisition 478.8 ms to 2.6-2.8 ms. Full claim plan has no Sort, all 923,095 source items reconciled with zero duplicate inserts, completion marker true, and no review items in the measured state. Remaining audit wait 170.6-173.3 ms per item."
         }
       ]
     },
@@ -17747,6 +17751,43 @@
         {
           "date": "2026-09-19",
           "note": "Focused validation: 34 unique tests / 311 assertions passed across the main 30-test suite and the final 9-test queue/governance pass (five queue tests overlap; the final pass also proves the cache lock expired). Covers partial/empty and duplicate batches, halt/resume, cursor transaction rollback, phase advancement, overlapping pumps, and both audit batch modes with valid chain links. Test-fixture incident: five test run records were accidentally created in the local development DB due to a copied connection name; all five exact IDs were removed after verifying no work items or workers. Local scheduler also republished existing education configuration. Fixture now uses maintenance-only administration and verifies raw/Eloquent routing to its disposable DB before creating runs. Remote demo untouched; no production performance claim."
+        },
+        {
+          "date": "2026-09-19",
+          "note": "Remote operator confirmed 6d8a8670 deployed at 73 workers. Throughput 441,763/hour before versus 1,309,246-1,324,174/hour after; acquisition 478.8 ms to 2.6-2.8 ms. Full claim plan has no Sort, all 923,095 source items reconciled with zero duplicate inserts, completion marker true, and no review items in the measured state. Remaining audit wait 170.6-173.3 ms per item."
+        }
+      ]
+    },
+    {
+      "id": "W-0462",
+      "title": "Shorten the audit append critical section without changing the chain",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Payload preparation moves outside the audit lock, single append uses one head-read/insert statement after separate lock acquisition, existing hash bytes and durability are preserved, isolated concurrency and regression checks pass, and the deployment handoff is committed.",
+      "detail": "Follow-up to the remote Phase 4 audit measurements. AuditService prepares canonical JSON before acquiring its existing transaction advisory lock. Single append combines the latest-head read and INSERT in one statement, using PostgreSQL built-in SHA-256 on the exact PHP-canonical UTF-8 bytes. Acquisition remains a separate statement so Read Committed obtains a fresh head after waiting. Owned transactions commit before model hydration; caller-owned transactions and individual-batch chain linking remain unchanged. Two SQL statements per append instead of three, excluding unchanged begin/commit. No migration, frontend build, relaxed durability or worker-count change. Refresh drained Horizon workers before remote resume. Production speedup awaits the demo-box measurement.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-19 demo-box 6d8a8670 benchmarks and audit bottleneck report",
+          "title": "audit lock waiting after the claim-index deployment",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/AuditService.php",
+        "tests/Feature/AuditAppendPerformanceTest.php",
+        "tests/Support/audit_append_worker.php",
+        "tests/Feature/SimPhaseQueueTest.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-19",
+          "note": "13 tests / 249 assertions passed in disposable PostgreSQL databases and DB-free checks. Exact canonical hashes, Unicode/nested/large payloads, metadata, missing genesis, outer rollback, batch modes, original immutable triggers, and two waiting PHP writers plus an intervening parent commit verified. The concurrent fixture produced a 42-entry unbroken chain. Raw SQL and model connections are verified before writes; no local-world or remote-demo database writes in this pass. Production measurement remains remote-owned."
         }
       ]
     }

@@ -4,6 +4,56 @@ This is the deployment/measurement handoff for the demo-box Astra. The local
 developer changes code and pushes it; the demo-box operator owns application of
 these migrations and measurements on the running simulation.
 
+## Audit append follow-up
+
+The demo-box operator confirmed `6d8a8670` at unchanged concurrency (73 workers):
+441,763 elections/hour before versus 1,309,246–1,324,174/hour afterward.
+Acquisition fell from 478.8 ms to 2.6–2.8 ms. All 923,095 generation sources were
+examined with zero duplicate inserts. The remaining measured cost was audit-lock
+acquisition: 170.6–173.3 ms inside 173.3–176.0 ms final audit commits.
+
+The next patch shortens the existing audit critical section:
+
+- Canonical JSON preparation happens before acquiring the chain lock, for both
+  collapsed and individually retained batch entries.
+- A single append reads the latest head and inserts its successor in one SQL
+  statement after acquiring the lock. The append uses two SQL statements
+  instead of three (transaction begin/commit are unchanged).
+- PostgreSQL hashes the exact canonical UTF-8 string supplied by the existing
+  PHP canonicalizer. It does not hash PostgreSQL's reformatted JSON. The PHP
+  chain verifier, payload shape, per-item entry count, and global lock are unchanged.
+- For transactions owned by append, model hydration happens after commit.
+  Caller-owned transactions still contain their mutation and audit entry.
+
+Lock acquisition deliberately remains a separate statement. PostgreSQL's
+[Read Committed snapshots](https://www.postgresql.org/docs/17/transaction-iso.html#XACT-READ-COMMITTED)
+let the subsequent head read see the previous writer's commit. Hashing uses
+[built-in SHA-256 and UTF-8 conversion](https://www.postgresql.org/docs/17/functions-binarystring.html);
+no extension or schema change is needed.
+
+**Deployment:** halt and drain under operator control, pull `main`, refresh
+Horizon before resuming the same run. This patch changes only the audit service;
+there is no new migration, frontend build, database restart, concurrency change,
+or audit rewrite. Earlier migrations remain required when upgrading from older
+commits. Apply the existing PHP/opcache reload policy for web processes too.
+
+Remeasure the same `lane.claim_next`, `stage.count_election`, `audit.commit`, and
+`audit.lock_wait` counters over comparable windows. The latest remote baseline
+above is the comparison point. No production speedup is claimed for this patch.
+
+Validation: 13 focused tests / 249 assertions passed. They cover exact hashes for
+Unicode, nested structures and larger payloads; returned metadata; missing
+genesis; rollback; both batch formats; original database immutability triggers;
+and two concurrent PHP writers forced to wait while a third changes the head.
+The latter completes a 42-entry chain with no forks. Each SQL/Eloquent connection
+is checked against a disposable `audit_test_*` database before writes; its admin
+connection targets only the `postgres` maintenance database. This pass performed
+no local-world or remote-demo database writes.
+
+```bash
+docker compose exec -T -e RUN_SIM_INDEX_PG_TESTS=1 app php vendor/bin/phpunit tests/Feature/AuditAppendPerformanceTest.php tests/Feature/SimPhaseQueueTest.php tests/Feature/AuditChainSmokeTest.php --filter 'AuditAppendPerformanceTest|SimPhaseQueueTest|canonical_json|chain_hash|simulated_chain'
+```
+
 ## Phase 4 follow-up: generation barrier, cursor, and audit measurements
 
 The full-queue remote sample reported 503 ms acquisition versus 104 ms processing

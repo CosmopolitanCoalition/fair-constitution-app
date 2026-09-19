@@ -156,6 +156,13 @@ class AuditService
             return 0;
         }
 
+        // Normalize independent payloads before taking the global chain lock.
+        // Only linking each prepared payload to the current head is serialized.
+        foreach ($acts as &$act) {
+            $act['payload'] = self::canonicalJson($act['payload']);
+        }
+        unset($act);
+
         $write = function () use ($acts): int {
             // One lock hold for the whole flush — the head read is current and
             // the chain cannot fork, exactly as append() guarantees per row.
@@ -174,7 +181,7 @@ class AuditService
             foreach ($acts as $act) {
                 // Hash over the canonical payload, the same bytes append() and
                 // verifyChain() use, so a bulk-written row verifies identically.
-                $canonical = self::canonicalJson($act['payload']);
+                $canonical = $act['payload'];
                 $hash = self::chainHash($prevHash, $canonical);
 
                 $rows[] = [
@@ -256,34 +263,40 @@ class AuditService
             ]);
         }
 
+        $canonical = self::canonicalJson($payload);
         $insert = function () use (
-            $module, $event, $payload, $ref, $actorId, $jurisdictionId, $rejected, $blockedReason
-        ): AuditEntry {
-            // Serialize every appender so no two can anchor on the same head.
+            $module, $event, $canonical, $ref, $actorId, $jurisdictionId, $rejected, $blockedReason
+        ): object {
+            // Keep lock acquisition in its OWN statement. Under READ COMMITTED,
+            // the following statement sees the head committed by the prior owner.
+            // Putting the wait and head read in one CTE could use a stale snapshot.
             $this->acquireAppendLock();
 
-            $head = DB::selectOne('SELECT seq, hash FROM audit_log ORDER BY seq DESC LIMIT 1');
-
-            if ($head === null) {
-                throw new RuntimeException('audit_log genesis row missing — run migrations.');
-            }
-
-            $canonical = self::canonicalJson($payload);
-            $hash      = self::chainHash($head->hash, $canonical);
-
+            // One round trip while holding the lock, instead of fetching the
+            // head into PHP and sending it back. Hash the original canonical
+            // UTF-8 text, never PostgreSQL's differently formatted jsonb::text.
             $row = DB::selectOne(
-                'INSERT INTO audit_log
+                "INSERT INTO audit_log
                     (occurred_at, actor_user_id, module, event, ref, jurisdiction_id,
                      payload, prev_hash, hash, rejected, blocked_reason, created_at)
-                 VALUES (now(), ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, now())
-                 RETURNING *',
-                [$actorId, $module, $event, $ref, $jurisdictionId, $canonical, $head->hash, $hash, $rejected, $blockedReason]
+                 SELECT now(), ?, ?, ?, ?, ?, input.canonical::jsonb, head.hash,
+                        encode(sha256(convert_to(head.hash || input.canonical, 'UTF8')), 'hex'),
+                        ?, ?, now()
+                   FROM (SELECT hash FROM audit_log ORDER BY seq DESC LIMIT 1) head
+                   CROSS JOIN (VALUES (?::text)) AS input(canonical)
+                 RETURNING *",
+                [$actorId, $module, $event, $ref, $jurisdictionId, $rejected, $blockedReason, $canonical]
             );
 
-            return (new AuditEntry)->newFromBuilder($row);
+            if ($row === null) {
+                throw new RuntimeException('audit_log genesis row missing — run migrations.');
+            }
+            return $row;
         };
 
-        return DB::transactionLevel() > 0 ? $insert() : DB::transaction($insert);
+        $row = DB::transactionLevel() > 0 ? $insert() : DB::transaction($insert);
+        // With an owned transaction, release the lock before model hydration.
+        return (new AuditEntry)->newFromBuilder($row);
     }
 
     /**
