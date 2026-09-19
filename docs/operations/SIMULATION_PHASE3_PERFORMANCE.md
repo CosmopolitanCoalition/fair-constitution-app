@@ -4,6 +4,62 @@ This is the deployment/measurement handoff for the demo-box Astra. The local
 developer changes code and pushes it; the demo-box operator owns application of
 these migrations and measurements on the running simulation.
 
+## Phase 5: active member count index
+
+The remote operator confirmed `c1e36516` deployed with valid sampled audit links.
+Phase 4 completed all 914,453 items with zero review items. Its final before/after
+windows were both about 1.22 million elections/hour: the audit patch did not
+produce a measured throughput gain. Phase 5 then exposed a separate growing
+cost: `seat.seated` repeatedly scans `legislature_members` by election.
+
+Migration `2026_09_19_213000_index_active_members_by_election.php` adds
+`legislature_members_active_election_idx` on `(election_id)` with predicate
+`deleted_at IS NULL AND status IN ('elected', 'seated')`. It matches the actual
+count in `SeatingStage` without changing that query or certification behavior.
+
+One coordinator checks database-volume space and existing index builds,
+preserves local configuration edits, pulls `main`, and applies:
+
+```bash
+docker compose exec -T app php artisan migrate --force --isolated=1 --path=database/migrations/2026_09_19_213000_index_active_members_by_election.php
+```
+
+This index-only patch needs **no Horizon, scheduler, PostgreSQL restart or
+frontend build**. The migration disables its wrapping transaction and builds
+concurrently. Normal reads/writes remain permitted, but the build consumes
+resources and can wait for old transactions or snapshots. Do not wrap it in an
+external transaction or start a second competing build. A valid existing index
+is retained; an interrupted invalid build is recovered on retry unless still
+actively building. Do not alter simulation run controls solely for this patch.
+
+Verify with bounded catalog and per-election planner queries:
+
+```sql
+SELECT indisvalid, indisready, pg_get_indexdef(indexrelid)
+FROM pg_index
+WHERE indexrelid = to_regclass('legislature_members_active_election_idx');
+
+EXPLAIN (FORMAT JSON)
+SELECT count(*) FROM legislature_members
+WHERE election_id = '<election-uuid>' AND status IN ('elected', 'seated')
+  AND deleted_at IS NULL;
+
+SELECT part, count, total_us, max_us FROM sim_timings
+WHERE run_id = '<run-uuid>' AND part IN
+  ('seat.seated', 'stage.seat_scope', 'audit.commit', 'audit.lock_wait');
+```
+
+Compare several counter-difference windows after the build finishes, at unchanged
+concurrency. The remote baseline rose from 18 ms to about 71 ms for the member
+count; no post-index production improvement is claimed yet.
+
+Validation: 3 tests / 29 assertions pass in disposable `seat_index_test_*`
+databases. The bound-parameter count over a 20,010-row fixture changes from a
+sequential scan to the new index and returns identical results. Tests also cover
+valid-index reuse, failed concurrent-build recovery, rollback retaining the
+primary key, and updates to active status and soft deletion. No local-world or
+remote-demo schema changes were applied by the developer.
+
 ## Audit append follow-up
 
 The demo-box operator confirmed `6d8a8670` at unchanged concurrency (73 workers):

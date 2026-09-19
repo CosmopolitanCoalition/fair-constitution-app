@@ -17788,6 +17788,42 @@
         {
           "date": "2026-09-19",
           "note": "13 tests / 249 assertions passed in disposable PostgreSQL databases and DB-free checks. Exact canonical hashes, Unicode/nested/large payloads, metadata, missing genesis, outer rollback, batch modes, original immutable triggers, and two waiting PHP writers plus an intervening parent commit verified. The concurrent fixture produced a 42-entry unbroken chain. Raw SQL and model connections are verified before writes; no local-world or remote-demo database writes in this pass. Production measurement remains remote-owned."
+        },
+        {
+          "date": "2026-09-19",
+          "note": "Remote operator deployed c1e36516, verified 257 new audit rows with valid hashes and continuous links. Phase 4 before/after throughput was about 1.22 million elections/hour, with no material gain measured. Phase 4 completed 914,453 items with zero review. Phase 5 exposed the independent member-count index gap tracked in W-0463."
+        }
+      ]
+    },
+    {
+      "id": "W-0463",
+      "title": "Index active legislature members by election for the Phase 5 seating count",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "An additive concurrent migration matches SeatingStage member-count filtering; isolated PostgreSQL plans use the index and counts remain correct; retry and rollback checks pass; deployment instructions are committed.",
+      "detail": "Confirmed the actual SeatingStage query filters election_id, elected/seated status and deleted_at IS NULL. Adds legislature_members_active_election_idx on election_id with exactly that partial predicate. No application query, certification, simulation control or worker-count changes. Migration is nontransactional and concurrent, retains a valid existing index, and recovers an inactive invalid build. Index-only deployment needs no service restart or frontend assets. Demo-box operator owns live application and measurement; no production speedup claimed.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-19 Phase 5 remote member-count query plans and timing windows",
+          "title": "growing member table scanned once per seating item",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Demo/Stages/SeatingStage.php",
+        "database/migrations/2026_09_19_213000_index_active_members_by_election.php",
+        "tests/Feature/SeatingMemberIndexTest.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-19",
+          "note": "3 tests / 29 assertions passed against disposable databases only. On 20,010 fixture rows, the bound-parameter count changes from Seq Scan to the new index with identical results. Valid index retained on rerun, invalid concurrent build recovered, down removes only the new index, and status/soft-delete changes keep counts correct. No live-world migration was applied."
         }
       ]
     }
