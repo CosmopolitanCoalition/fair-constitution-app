@@ -2355,6 +2355,15 @@ class SetupController extends Controller
             'current'              => $current,
             'bars'                 => $bars,         // Phase P.1 stacked bars
             'progress'             => $progress,
+            // THE WORLD BUILD IS VISIBLE ON STEP 2 (operator order 2026-09-19,
+            // the ETL paradigm's VISIBLE law). After the ETL finishes, the
+            // world build (sizing legislatures, drawing maps, apportionment)
+            // runs BEFORE the operator can accept — and the accept gate refuses
+            // until it is done. Its live report was only on the Step-3 dashboard
+            // the operator cannot reach yet, so Step 2 showed a bare 422. It
+            // rides this poll now (null during ingestion, cheap: worldBuildBlock
+            // returns null with no world_builds row and caches the report 15 s).
+            'world_build'          => $this->worldBuildBlock(),
             'error_pause'          => $errorPause,   // null when no pause active
             'handoff'              => $handoff,      // download done, pull run not started (chained_at, waiting_seconds)
             'log_tail'             => $logTail,

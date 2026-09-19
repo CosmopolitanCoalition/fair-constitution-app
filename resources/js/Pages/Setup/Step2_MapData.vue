@@ -37,6 +37,11 @@ const done                = ref(null)
 const failed              = ref(null)
 const progress            = ref(null)
 const current             = ref(null)
+// The world build (sizing legislatures, drawing maps, apportionment) runs
+// AFTER the ETL and BEFORE the operator can accept. Its live report rides the
+// step2 poll so Step 2 shows the progress instead of a bare 422 (operator
+// order 2026-09-19, the ETL paradigm's VISIBLE law). { status, report, ... }.
+const worldBuild          = ref(null)
 // Phase P.1 stacked-progress-bars state — written by the Python ETL via
 // heartbeat.bar_start / bar_update / bar_complete / worldpop_advance_country
 // and surfaced by SetupController::mapDataProgress as `bars`. Drives the
@@ -262,6 +267,7 @@ async function fetchProgress() {
         events.value         = Array.isArray(data.events) ? data.events : []   // P.3
         errorPause.value     = data.error_pause || null
         handoff.value        = data.handoff || null
+        worldBuild.value     = data.world_build || null
         // The `review` block is no longer rendered in Step 2 — the legacy
         // inline ReviewIssuesSection moved into the Jurisdiction Viewer's
         // drill-down panels (see the comment above the "4. Review & Accept"
@@ -280,7 +286,13 @@ async function fetchProgress() {
         // each call still costs hundreds of ms to read progress.json + tail
         // the log + sum jurisdictions_counts. The terminal state is the
         // steady state — re-polling adds no value.
-        if (lifecycle.value === 'done' || lifecycle.value === 'failed') {
+        //
+        // EXCEPTION: keep polling while the world build is still running (the
+        // ETL is done but the world is being sized/drawn), so the world-build
+        // panel updates live until it completes and Continue unlocks (operator
+        // order 2026-09-19, the VISIBLE law).
+        const buildInFlight = worldBuild.value && worldBuild.value.status !== 'complete'
+        if ((lifecycle.value === 'done' || lifecycle.value === 'failed') && ! buildInFlight) {
             stopPolling()
             // A finished run may have changed what's on disk (a download run
             // populated /archive). Refresh the detected-data panel once.
@@ -303,7 +315,11 @@ async function startPolling() {
     // interval will be re-armed by submitRun() if the operator starts a new
     // run from this page.
     await fetchProgress()
-    if (lifecycle.value === 'done' || lifecycle.value === 'failed') return
+    // Keep polling while the world build is still running, even though the ETL
+    // reached a terminal state — the world-build panel must update live until
+    // Continue unlocks (operator order 2026-09-19, the VISIBLE law).
+    const buildInFlight = worldBuild.value && worldBuild.value.status !== 'complete'
+    if ((lifecycle.value === 'done' || lifecycle.value === 'failed') && ! buildInFlight) return
     pollTimer = setInterval(fetchProgress, 2000)
 }
 
@@ -875,6 +891,57 @@ async function advance() {
 // ─── Derived UI state ───────────────────────────────────────────────────────
 
 const canAdvance = computed(() => counts.value.adm0 > 0 && counts.value.adm1 > 0)
+
+// The world-build progress panel (operator order 2026-09-19, the VISIBLE law):
+// real counts from WorldBuildVerifier, never a fabricated bar. The apportionment
+// done/total is the main measure (every scope's districts); the checklist names
+// each remaining blocker so the operator sees exactly what the accept gate waits
+// on. Null until the build starts (no world_builds row yet).
+function wbPct(done, total) {
+    return total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 100
+}
+const worldBuildView = computed(() => {
+    const wb = worldBuild.value
+    const r = wb?.report
+    if (!wb || !r) return null
+    const leg = r.legislatures || {}
+    const app = r.apportionment || {}
+    const adj = r.adjacency || {}
+    const maps = r.maps || {}
+    const total = Number(app.total || 0)
+
+    // The four planet-scale phases, each with its real done / total (never a
+    // fabricated bar). apportionment carries the total; maps and block keys are
+    // per-ledger-row, so their total is the same; adjacency has its own total.
+    const apDone = Number(app.done || 0)
+    const adjTotal = Number(adj.total || 0)
+    const adjDone = Math.max(0, adjTotal - Number(adj.open || 0))
+    const mapsDone = Math.max(0, total - Number(maps.unstamped || 0))
+    const keysDone = Math.max(0, total - Number(r.block_keys_missing || 0))
+    const phases = [
+        { key: 'apportion', label: t('c_setup.step2_map_data.wb_apportion', 'Districting legislatures'), done: apDone, total, pct: wbPct(apDone, total) },
+        { key: 'adjacency', label: t('c_setup.step2_map_data.wb_adjacency', 'Computing area adjacency'), done: adjDone, total: adjTotal, pct: wbPct(adjDone, adjTotal) },
+        { key: 'maps', label: t('c_setup.step2_map_data.wb_maps', 'Stamping maps'), done: mapsDone, total, pct: wbPct(mapsDone, total) },
+        { key: 'keys', label: t('c_setup.step2_map_data.wb_keys', 'Assigning block keys'), done: keysDone, total, pct: wbPct(keysDone, total) },
+    ].filter(p => p.total > 0)
+
+    // The small, count-to-zero prerequisites (sizing headers, the root board).
+    const checklist = [
+        { label: t('c_setup.step2_map_data.wb_missing_headers', 'Legislatures to size'), count: Number(leg.missing_headers || 0) },
+        { label: t('c_setup.step2_map_data.wb_unsized_parents', 'Parent areas to size'), count: Number(leg.unsized_parents || 0) },
+        { label: t('c_setup.step2_map_data.wb_unsized_leaves', 'Leaf areas to size'), count: Number(leg.unsized_leaves || 0) },
+        { label: t('c_setup.step2_map_data.wb_apportion_failed', 'Districting failures'), count: Number(app.failed || 0), warn: true },
+        { label: t('c_setup.step2_map_data.wb_board', 'Root board not ready'), count: r.board ? 0 : 1 },
+    ].filter(row => row.count > 0)
+
+    return {
+        building: wb.status !== 'complete' && !r.complete,
+        complete: wb.status === 'complete' || !!r.complete,
+        failed: wb.status === 'failed',
+        lastError: wb.last_error || null,
+        phases, checklist,
+    }
+})
 
 // ONE BUTTON IN THE CONTINUE SPOT (operator, 2026-08-04). "Accept Map Data &
 // Continue" and "Continue" were two buttons in two places that did the same
@@ -1636,6 +1703,39 @@ onBeforeUnmount(() => {
                     {{ t('c_setup.step2_map_data.review_body', 'The import finished. Open the jurisdiction viewer to inspect boundaries, populations, raster overlays, dual-footprint relationships, and the map health checks — then accept the map data there (planet scope). Click Continue below once accepted — that triggers apportionment.') }}
                 </p>
                 <p class="text-gray-400 text-[11px] mb-3" v-html="t('c_setup.step2_map_data.review_repair_note', 'Accepting closes the repair window, so work anything you intend to repair <span class=&quot;text-gray-400&quot;>before</span> you accept.')"></p>
+
+                <!-- THE WORLD BUILD, VISIBLE (operator order 2026-09-19, the ETL
+                     paradigm's VISIBLE law). After the ETL, the world is sized,
+                     drawn and keyed before acceptance; the accept gate waits on
+                     it, and this is what Continue is blocked behind. Every bar is
+                     a real done / total from WorldBuildVerifier — never fabricated. -->
+                <div v-if="worldBuildView" class="mb-4 rounded-md border p-3"
+                     :class="worldBuildView.complete ? 'border-emerald-800/60 bg-emerald-950/20' : 'border-sky-800/60 bg-sky-950/20'">
+                    <div class="flex items-baseline justify-between mb-2 gap-3 flex-wrap">
+                        <span class="text-white text-sm font-semibold">
+                            <span v-if="worldBuildView.building" class="inline-block w-2 h-2 rounded-full bg-sky-400 animate-pulse mr-1.5 align-middle"></span>
+                            {{ worldBuildView.complete
+                                ? t('c_setup.step2_map_data.wb_complete', 'World build complete — click Continue')
+                                : t('c_setup.step2_map_data.wb_building', 'Building the world — sizing legislatures, drawing maps') }}
+                        </span>
+                        <span v-if="worldBuildView.building" class="text-[11px] text-sky-300/80">{{ t('c_setup.step2_map_data.wb_gate_note', 'Continue unlocks when this finishes') }}</span>
+                    </div>
+                    <div v-for="p in worldBuildView.phases" :key="p.key" class="mb-2 last:mb-0">
+                        <div class="flex items-baseline justify-between text-[11px] mb-0.5">
+                            <span class="text-gray-300">{{ p.label }}</span>
+                            <span class="text-gray-400 font-mono tabular-nums">{{ p.done.toLocaleString() }} / {{ p.total.toLocaleString() }} ({{ p.pct }}%)</span>
+                        </div>
+                        <div class="h-1.5 rounded bg-gray-800 overflow-hidden">
+                            <div class="h-full transition-all" :class="p.pct >= 100 ? 'bg-emerald-500' : 'bg-sky-500'" :style="{ width: p.pct + '%' }"></div>
+                        </div>
+                    </div>
+                    <ul v-if="worldBuildView.checklist.length" class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+                        <li v-for="(c, i) in worldBuildView.checklist" :key="i" :class="c.warn ? 'text-red-300' : 'text-gray-400'">
+                            {{ c.label }}: <span class="font-mono tabular-nums">{{ c.count.toLocaleString() }}</span>
+                        </li>
+                    </ul>
+                    <p v-if="worldBuildView.failed && worldBuildView.lastError" class="mt-2 text-[11px] text-red-300 font-mono break-all">{{ worldBuildView.lastError }}</p>
+                </div>
 
                 <!-- The map health scan, sitting directly above the findings it
                      produced. It ran as part of the pull, but it is measurement,
