@@ -17552,6 +17552,48 @@
           "note": "Built after a read-only family sweep found the collisions. tests/deploy/test_sizing_family.sh runs the REAL get-started.sh --rederive for 12 sizes x 3 profiles (stubbed docker/git), holds six laws and prints the metrics table; it passes. tests/Unit/HostCapacityLanesTest.php 8 tests, 542 assertions; OperatorRulings20260917Test 5 tests; the start-script contract harness 12 cases. get-started.ps1 parses clean and its allocator matches the shell within integer-rounding. Both families verified: needs held from D4als serving / Pi-8G up, BELOW-MINIMUM named and never over-committed below that."
         }
       ]
+    },
+    {
+      "id": "W-0457",
+      "title": "The simulate choice moves to the Step 4 lock, with a population dial (default 0.1 %) and the roster-floor override",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "done_when": "On a sandbox world the end of Step 4 shows the Dev simulate checkbox, a number box with a sliding scale for the percent of the population to simulate (default 0.1) and a checkbox that overrides the dial where it leaves a place with too few people to simulate; the lock stores all three and routes the ladder to Step 5 or Step 6 by the choice; a Start on the Step 5 page runs at the stored dial and floor; Step 2 no longer carries the checkbox; the PHP and JS pins pass.",
+      "depends_on": [],
+      "detail": "Operator order 2026-09-19. Before: the Dev checkbox sat beside the Step 2 acceptance, the Step 5 page could not set the dial or the floor (SimRunControl::cliOptions dropped every option it did not list), and sim:start defaulted to 1 %, which the demo box measured at about 69.5M people on the planet dataset against about 8.7M at 0.1 %. Verified first that nothing in Step 3 or Step 4 reads simulate_at_scale: its only readers are SetupLadder::applies(5) and the Step 6 close. App\\Support\\SimDial is the single owner of the default (0.1), the bounds (0..100, four decimals) and the two reads (lockWrites at the Step 4 lock, startOptions at the Step 5 start). completeStep4 writes the choices BEFORE the ladder walks, so a fresh box reaches Step 5 by the choice made at the lock; a box that did not migrate gets a named 409, never a silent default. MapAcceptanceService keeps a stored choice on a re-acceptance (the headless maps:accept --simulate door can still turn it on; a mode other than eager or a production world clears it). The slider is logarithmic (0.01 to 100) so the low end is usable; the number box is exact and accepts 0. The Step 5 run card shows the dial a run was created with, or the stored choice a new run will use. Migration 2026_09_19_120000 adds instance_settings.sim_sample_pct and sim_roster_floor.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "operator order 2026-09-19 (move the Dev checkbox to the end of Step 4; number box with sliding scale, default 0.1 %; override checkbox)",
+          "title": "the simulate choice, the dial and the override at the Step 4 lock",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Support/SimDial.php",
+        "app/Http/Controllers/SetupController.php",
+        "app/Services/Demo/SimRunControl.php",
+        "app/Services/Setup/MapAcceptanceService.php",
+        "app/Console/Commands/SimStartCommand.php",
+        "database/migrations/2026_09_19_120000_instance_settings_sim_dial.php",
+        "resources/js/lib/simDial.js",
+        "resources/js/Pages/Setup/Step4_ScaleUp.vue",
+        "resources/js/Pages/Setup/Step5_Simulate.vue",
+        "resources/js/Pages/Setup/Step2_MapData.vue",
+        "tests/Unit/SimDialTest.php",
+        "tests/Unit/MapAcceptanceServiceTest.php",
+        "tests/js/simDial.test.mjs",
+        "tests/js/step5Readiness.test.mjs"
+      ],
+      "history": [
+        {
+          "date": "2026-09-19",
+          "note": "Built and pinned. PHP (one-off container, box E stack down): SimDialTest 7 tests, MapAcceptanceServiceTest with 3 new tests, SetupLadderTest, SimScopeTest: 30 tests, 182 assertions, all pass. JS: simDial 10, i18nWiring_i18n_setup 6 (compiles the three pages), a11ySetupWizard 10, step5Readiness 3 (its stubs predated the Head and vue-i18n wiring of the page and failed before this change; repaired). New en strings only; other locales fall back to en until a translation pass. Not walked in a browser: the box E stack was down."
+        }
+      ]
     }
   ]
 }

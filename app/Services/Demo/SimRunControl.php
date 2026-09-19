@@ -94,7 +94,7 @@ class SimRunControl
      * concurrent run (the single-run law — one run holds the engine), exactly as
      * `sim:start` does, because it IS `sim:start` that ultimately runs.
      *
-     * @param  array<string,mixed>  $options  world-version, turnout, adm-max, limit, resume
+     * @param  array<string,mixed>  $options  world-version, turnout, adm-max, limit, aspects, sample-pct, no-floor, resume
      * @return array{ok: bool, reason: ?string, queued?: bool, resumed?: bool}
      */
     public function start(array $options, ?string $actor): array
@@ -130,7 +130,7 @@ class SimRunControl
                 : 'Enumerating the worklist — the bars come alive within the minute.',
         ]);
 
-        RunSimStartJob::dispatch($this->cliOptions($options), $actor);
+        RunSimStartJob::dispatch(self::cliOptions($options), $actor);
 
         // The operator's ACT of starting is itself audited, distinct from the
         // command's own `sim.enumerated` — every dev/operator control leaves a mark.
@@ -138,7 +138,7 @@ class SimRunControl
             module: 'simworld',
             event: $resume ? 'sim.resume_requested' : 'sim.start_requested',
             payload: [
-                'options' => $this->cliOptions($options),
+                'options' => self::cliOptions($options),
                 'actor' => $actor,
                 'dev_control' => true,
             ],
@@ -363,12 +363,24 @@ class SimRunControl
      * and the job both consume. Only the options the command declares are passed
      * through; everything else is dropped rather than smuggled onto the child.
      *
+     * Pure and public: the unit-tested seam that proves the page's dial and
+     * floor reach the command (2026-09-19; before that the page could not set
+     * either, so every page start ran at the command default).
+     *
      * @param  array<string,mixed>  $options
      * @return array<string,mixed>
      */
-    private function cliOptions(array $options): array
+    public static function cliOptions(array $options): array
     {
         $out = [];
+
+        if (isset($options['sample-pct']) && is_numeric($options['sample-pct'])) {
+            $out['--sample-pct'] = \App\Support\SimDial::clamp($options['sample-pct']);
+        }
+        if (! empty($options['no-floor'])) {
+            $out['--no-floor'] = true;
+        }
+
 
         if (isset($options['world-version'])) {
             $out['--world-version'] = (int) $options['world-version'];

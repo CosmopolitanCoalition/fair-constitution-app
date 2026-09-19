@@ -33,7 +33,7 @@ class SimStartCommand extends Command
     protected $signature = 'sim:start
                             {--world-version=1 : Determinism version — bump to regenerate the world}
                             {--turnout=62 : Percent of population that casts a ballot}
-                            {--sample-pct=1 : Percent of a leaf population to materialize as people (parents inherit via bind-up)}
+                            {--sample-pct=0.1 : Percent of a leaf population to materialize as people (parents inherit via bind-up); the default is SimDial::DEFAULT_PCT}
                             {--adm-max=6 : Deepest adm level to populate}
                             {--limit= : Only enumerate the N largest jurisdictions (a smoke run)}
                             {--jurisdiction= : Scope the world to this jurisdiction and its subtree (slug or UUID) — the narrow co-test posture}
@@ -139,7 +139,7 @@ class SimStartCommand extends Command
                 'options' => [
                     'version' => $version,
                     'turnout_pct' => $turnout,
-                    'sample_pct' => max(0.0, (float) $this->option('sample-pct')),
+                    'sample_pct' => \App\Support\SimDial::clamp($this->option('sample-pct')),
                     'adm_max' => $admMax,
                     'limit' => $limit,
                     'no_floor' => (bool) $this->option('no-floor'),

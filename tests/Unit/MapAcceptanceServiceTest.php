@@ -221,6 +221,44 @@ final class MapAcceptanceServiceTest extends TestCase
         self::assertSame(0, DB::table('autoscale_runs')->count());
     }
 
+    // ---- the simulate choice belongs to the Step 4 lock (2026-09-19) ---------
+
+    public function test_acceptance_keeps_a_simulate_choice_made_at_the_step_4_lock(): void
+    {
+        $this->seedInstance(['game_mode' => 'sandbox', 'simulate_at_scale' => true]);
+
+        // The page no longer sends the flag: simulateAtScale defaults false.
+        $service = new MapAcceptanceService($this->completeReport());
+        $result = $service->accept(new MapAcceptanceOptions(mode: 'eager', gateOnVerifier: true));
+
+        self::assertSame(MapAcceptanceResult::ACCEPTED, $result->outcome);
+        self::assertTrue((bool) $this->currentInstance()->simulate_at_scale);
+    }
+
+    public function test_acceptance_without_the_flag_leaves_a_fresh_world_not_simulating(): void
+    {
+        $this->seedInstance(['game_mode' => 'sandbox']);
+
+        $service = new MapAcceptanceService($this->completeReport());
+        $service->accept(new MapAcceptanceOptions(mode: 'eager', gateOnVerifier: true));
+
+        self::assertFalse((bool) $this->currentInstance()->simulate_at_scale);
+    }
+
+    public function test_a_mode_other_than_eager_or_a_production_world_clears_the_simulate_choice(): void
+    {
+        $this->seedInstance(['game_mode' => 'sandbox', 'simulate_at_scale' => true]);
+        $service = new MapAcceptanceService($this->incompleteReport()); // never called: gate off
+        $service->accept(new MapAcceptanceOptions(mode: 'manual', acknowledgeOpenFlags: true, gateOnVerifier: false));
+        self::assertFalse((bool) $this->currentInstance()->simulate_at_scale, 'Step 5 needs Step 4, and Step 4 needs eager');
+
+        DB::table('instance_settings')->delete();
+        $this->seedInstance(['game_mode' => 'production', 'simulate_at_scale' => true]);
+        $service = new MapAcceptanceService($this->completeReport());
+        $service->accept(new MapAcceptanceOptions(mode: 'eager', gateOnVerifier: true, simulateAtScale: true));
+        self::assertFalse((bool) $this->currentInstance()->simulate_at_scale, 'a production world never simulates');
+    }
+
     // ---- the open-flags acknowledgment gate --------------------------------
 
     public function test_open_flags_block_a_fresh_acceptance_without_acknowledgment(): void

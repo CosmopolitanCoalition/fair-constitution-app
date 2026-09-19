@@ -170,10 +170,9 @@ class SetupController extends Controller
         }
 
         if ($n === 2) {
-            // THE THREE ACTIVATION MODES dropdown (operator, 2026-08-08):
-            // the simulate sub-option only renders on a sandbox world.
-            $extra['is_dev_world'] = $settings->game_mode === 'sandbox';
-            $extra['scale_mode']   = (string) ($settings->institution_scale_mode ?? 'eager');
+            // THE THREE ACTIVATION MODES dropdown (operator, 2026-08-08). The
+            // simulate sub-option moved to the Step 4 lock (2026-09-19).
+            $extra['scale_mode'] = (string) ($settings->institution_scale_mode ?? 'eager');
         }
 
         if ($n === 4) {
@@ -3796,6 +3795,13 @@ class SetupController extends Controller
      * POST /api/setup/wizard/step4/complete — LOCK the scaled world: Step 4 is
      * done when its run is done. Advances the ladder; Step 5 opens when it
      * applies, else Step 6.
+     *
+     * THE SIMULATE CHOICE LIVES HERE (operator order 2026-09-19, moved from map
+     * acceptance): nothing in Step 3 or Step 4 reads it, so it is chosen at the
+     * lock, with the population dial and the roster floor beside it. Body, all
+     * optional: simulate_at_scale, sim_sample_pct, sim_roster_floor. They are
+     * written BEFORE the ladder walks, so the lock routes to Step 5 or Step 6
+     * by the choice just made.
      */
     public function completeStep4(Request $request, ProvisionRunControl $control): JsonResponse
     {
@@ -3809,6 +3815,24 @@ class SetupController extends Controller
                 'ok'    => false,
                 'error' => __('The Step 4 run is not done. Wait for it, or roll it back and start again.'),
             ], 409);
+        }
+
+        $writes = \App\Support\SimDial::lockWrites(
+            $request->only(['simulate_at_scale', 'sim_sample_pct', 'sim_roster_floor']),
+            $settings->game_mode,
+        );
+        if ($writes !== []) {
+            // A box that pulled the code and did not migrate has no dial columns.
+            // Refuse loudly: a silent skip would start the run at a dial the
+            // operator did not choose.
+            if ((isset($writes['sim_sample_pct']) || isset($writes['sim_roster_floor']))
+                && ! \Illuminate\Support\Facades\Schema::hasColumn('instance_settings', 'sim_sample_pct')) {
+                return response()->json([
+                    'ok'    => false,
+                    'error' => __('The simulation dial columns are missing. Run the migrations (php artisan migrate --force), then lock again.'),
+                ], 409);
+            }
+            $settings->forceFill($writes);
         }
 
         $settings->setup_step_completed = SetupLadder::completed(4, $settings);
@@ -3857,6 +3881,9 @@ class SetupController extends Controller
         $known = array_values(array_diff(\App\Models\SimRun::ALL_ASPECTS, ['base']));
         $aspects = array_values(array_intersect((array) $request->input('aspects', []), $known));
 
+        // THE DIAL AND THE FLOOR come from the Step 4 lock (SimDial), never from
+        // the command default: a start from the page runs at the operator's
+        // stored choice. A resume keeps the run's own stored options.
         $options = [
             'world-version' => $request->integer('world_version', 1),
             'turnout'       => $request->integer('turnout', 62),
@@ -3864,7 +3891,7 @@ class SetupController extends Controller
             'limit'         => $request->input('limit'),
             'aspects'       => $aspects === [] ? null : $aspects,
             'resume'        => $request->boolean('resume'),
-        ];
+        ] + \App\Support\SimDial::startOptions($settings);
 
         $result = $control->start($options, $request->user()?->username ?? 'operator');
 
@@ -4236,6 +4263,7 @@ class SetupController extends Controller
                 'world'   => $snap->world(),
                 'readiness' => app(WorldReadiness::class)->report(null),
                 'control' => app(SimRunControl::class)->control(),
+                'dial'    => $this->step5Dial(null),
             ];
         }
 
@@ -4283,6 +4311,28 @@ class SetupController extends Controller
             'world'   => $snap->world(),
             'readiness' => app(WorldReadiness::class)->report($run),
             'control' => app(SimRunControl::class)->control(),
+            'dial'    => $this->step5Dial($run),
+        ];
+    }
+
+    /**
+     * The simulation dial for the Step 5 page. `next_*` is the stored Step 4
+     * choice a new run starts with. `run_*` is what THIS run was created with
+     * (the dial is fixed when the run is created; null when there is no run or
+     * the run predates the option).
+     *
+     * @return array{next_sample_pct: float, next_roster_floor: bool, run_sample_pct: ?float, run_roster_floor: ?bool}
+     */
+    private function step5Dial(?\App\Models\SimRun $run): array
+    {
+        $stored = \App\Support\SimDial::fromSettings(InstanceSettings::current());
+        $opts   = $run?->options;
+
+        return [
+            'next_sample_pct'   => $stored['sample_pct'],
+            'next_roster_floor' => $stored['roster_floor'],
+            'run_sample_pct'    => is_array($opts) && isset($opts['sample_pct']) ? (float) $opts['sample_pct'] : null,
+            'run_roster_floor'  => is_array($opts) && array_key_exists('no_floor', $opts) ? ! (bool) $opts['no_floor'] : null,
         ];
     }
 
@@ -4986,6 +5036,10 @@ class SetupController extends Controller
             'game_mode'                     => $settings->game_mode, // production | sandbox | null (not yet chosen)
             'institution_scale_mode'        => (string) ($settings->institution_scale_mode ?? 'eager'),
             'simulate_at_scale'             => (bool) $settings->simulate_at_scale,
+            // THE SIMULATION DIAL (2026-09-19): chosen at the Step 4 lock, read by the Step 5 start.
+            'sim_sample_pct'                => \App\Support\SimDial::fromSettings($settings)['sample_pct'],
+            'sim_roster_floor'              => \App\Support\SimDial::fromSettings($settings)['roster_floor'],
+            'sim_leaf_cap'                  => \App\Services\Demo\Stages\IdentityStage::MAX_PER_JURISDICTION,
             // THE WIZARD LADDER (Wave 6): every step with its status; the pages render the stepper from it.
             'ladder'                        => SetupLadder::describe($settings),
             'next_step'                     => min(SetupLadder::LAST, SetupLadder::next($settings)),

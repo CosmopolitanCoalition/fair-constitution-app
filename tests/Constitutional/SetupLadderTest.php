@@ -8,9 +8,10 @@ use Tests\TestCase;
 
 /**
  * CONSTITUTIONAL PIN — THE WIZARD LADDER (operator ruling 2026-09-05,
- * wizard-ladder A): Steps 0 to 6; the scale choice and the simulate choice
- * made at map acceptance decide whether Steps 4 and 5 open; a step that does
- * not apply is skipped, never shown as pending. The counter convention holds:
+ * wizard-ladder A): Steps 0 to 6; the scale choice (map acceptance) decides
+ * whether Step 4 opens and the simulate choice (the Step 4 lock, 2026-09-19)
+ * decides whether Step 5 opens; a step that does not apply is skipped, never
+ * shown as pending. The counter convention holds:
  * setup_step_completed = n means steps 0..n-1 are done and the next is n.
  * DB-free: the ladder is pure functions over the settings row.
  */

@@ -7,6 +7,7 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import StageBars from '@/Components/Progress/StageBars.vue'
 import { csrfFetch } from '@/lib/csrf'
+import { DIAL_DEFAULT, SLIDER_STEPS, clampPct, oneIn, pctFromSlider, sliderFromPct } from '@/lib/simDial'
 
 const { t } = useI18n()
 
@@ -206,8 +207,32 @@ async function rollback(shells) {
     const r = await post('/api/setup/wizard/step4/rollback', { shells }, 'rollback')
     if (r) notice.value = t('c_setup.step4_scale_up.notice_rolled_back', { list: Object.entries(r.deleted || {}).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${localeFmt.number(v)}`).join(', ') })
 }
+// ── THE SIMULATE CHOICE (operator order 2026-09-19) ─────────────────────────
+// Moved here from the end of Step 2: nothing in Step 3 or Step 4 reads it, so
+// it is chosen at the lock. Sandbox worlds only. Three controls, stored by the
+// lock and read by the Step 5 start:
+//   simulate     does Step 5 (Simulate) open at all
+//   dial         percent of each leaf population minted as people (default 0.1)
+//   rosterFloor  where the dial leaves a place with too few people to contest
+//                its election, mint the shortfall there; off = that place
+//                goes to review
+const isDevWorld  = computed(() => props.settings.game_mode === 'sandbox')
+const simulate    = ref(!!props.settings.simulate_at_scale)
+const dial        = ref(clampPct(props.settings.sim_sample_pct ?? DIAL_DEFAULT))
+const rosterFloor = ref(props.settings.sim_roster_floor !== false)
+const sliderPos   = computed(() => sliderFromPct(dial.value))
+const dialOneIn   = computed(() => oneIn(dial.value))
+function commitDial(e) {
+    dial.value = clampPct(e.target.value)
+    e.target.value = String(dial.value)   // the box shows the value that will be stored
+}
+function onSlide(e) { dial.value = pctFromSlider(e.target.value) }
+
 async function lockAndContinue() {
-    const r = await post('/api/setup/wizard/step4/complete', {}, 'continue')
+    const body = isDevWorld.value
+        ? { simulate_at_scale: simulate.value, sim_sample_pct: dial.value, sim_roster_floor: rosterFloor.value }
+        : {}
+    const r = await post('/api/setup/wizard/step4/complete', body, 'continue')
     if (r?.next) router.visit(r.next)
 }
 
@@ -425,6 +450,46 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                     <a :href="`/legislatures/${r.slug || r.legislature_id}`" target="_blank" class="text-blue-300 hover:underline shrink-0">{{ r.name }} <span class="text-gray-400">{{ admLabel(r.adm_level) }}</span></a>
                     <span class="text-gray-400 truncate">{{ r.reason }}</span>
                 </div>
+            </div>
+        </section>
+
+        <!-- The simulate choice: stored by the lock, read by the Step 5 start (sandbox worlds only) -->
+        <section v-if="isDevWorld" class="bg-violet-900/10 border border-violet-900/40 rounded-lg p-5 mb-6">
+            <h2 class="text-violet-200 font-semibold mb-1">{{ t('c_setup.step4_scale_up.sim_heading', 'Simulation') }}</h2>
+            <p class="text-gray-400 text-xs mb-3">{{ t('c_setup.step4_scale_up.sim_intro', 'Sandbox world only. The lock stores these choices. Step 5 (Simulate) opens when the box is checked.') }}</p>
+
+            <label class="flex items-center gap-2 text-sm text-violet-200 select-none cursor-pointer">
+                <input type="checkbox" v-model="simulate" class="accent-violet-500" />
+                {{ t('c_setup.step2_map_data.dev_simulate', 'Dev: simulate the data at scale after the build (sandbox world only)') }}
+            </label>
+
+            <div v-if="simulate" class="mt-4 space-y-4">
+                <div>
+                    <label for="sim-dial" class="block text-sm text-gray-200 mb-1.5">{{ t('c_setup.step4_scale_up.sim_dial_label', 'Population to simulate') }}</label>
+                    <div class="flex items-center gap-3">
+                        <input id="sim-dial" type="number" min="0" max="100" step="0.01" inputmode="decimal"
+                               :value="dial" @change="commitDial"
+                               class="w-28 bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white tabular-nums focus:outline-none focus:border-violet-500" />
+                        <span class="text-gray-300 text-sm">%</span>
+                        <input type="range" min="0" :max="SLIDER_STEPS" step="1" :value="sliderPos" @input="onSlide"
+                               :aria-label="t('c_setup.step4_scale_up.sim_dial_slider_aria', 'Population to simulate, sliding scale')"
+                               class="flex-1 min-w-0 accent-violet-500" />
+                    </div>
+                    <p class="text-gray-400 text-xs mt-1.5">
+                        <span v-if="dialOneIn">{{ t('c_setup.step4_scale_up.sim_dial_one_in', { n: n(dialOneIn) }) }}</span>
+                        <span v-else>{{ t('c_setup.step4_scale_up.sim_dial_zero', 'No sample. Each place mints only the people its elections need.') }}</span>
+                        {{ t('c_setup.step4_scale_up.sim_dial_cap', { cap: n(settings.sim_leaf_cap) }) }}
+                    </p>
+                    <p v-if="dial >= 1" class="text-amber-300 text-xs mt-1">{{ t('c_setup.step4_scale_up.sim_dial_high', 'A high dial mints many more people and rows. Check the free disk before you lock.') }}</p>
+                </div>
+
+                <label class="flex items-start gap-2 text-sm text-gray-200 select-none cursor-pointer">
+                    <input type="checkbox" v-model="rosterFloor" class="accent-violet-500 mt-0.5" />
+                    <span>
+                        {{ t('c_setup.step4_scale_up.sim_floor_label', 'Override the dial where it leaves a place with too few people to simulate') }}
+                        <span class="block text-gray-400 text-xs mt-0.5">{{ t('c_setup.step4_scale_up.sim_floor_help', 'Checked: that place mints the people its election needs. Not checked: that place goes to review.') }}</span>
+                    </span>
+                </label>
             </div>
         </section>
 

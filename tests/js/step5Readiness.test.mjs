@@ -12,6 +12,16 @@ import { parse, compileScript } from '@vue/compiler-sfc';
 
 const base = new URL('../../resources/js/', import.meta.url);
 
+const catalogue = JSON.parse(await readFile(new URL('i18n/locales/en/c_setup.json', base), 'utf8'));
+
+// vue-i18n's t(): t(key) · t(key, default) · t(key, named) · t(key, default, { named }).
+function translate(key, a, b) {
+    const named = (a && typeof a === 'object') ? a : (b?.named ?? (b && typeof b === 'object' ? b : {}));
+    const fallback = typeof a === 'string' ? a : key;
+    const message = catalogue[key.replace(/^c_setup\./, '')] ?? fallback;
+    return message.replace(/\{(\w+)\}/g, (m, k) => (k in named ? String(named[k]) : m));
+}
+
 async function render(progress) {
     const context = vm.createContext({ URLSearchParams, console, setInterval: () => 0, clearInterval: () => {}, Date });
     const stub = { setup: (props, { slots }) => () => Vue.h('div', slots.default?.()) };
@@ -24,7 +34,14 @@ async function render(progress) {
             for (const [k, v] of Object.entries(values)) this.setExport(k, v);
         }, { context });
         if (name === 'vue') return syn(Vue);
-        if (name === '@inertiajs/vue3') return syn({ router: { visit() {} } });
+        // The page is wired through vue-i18n (catalogue lane, 2026-09-15): the
+        // stub resolves each key from the en catalogue, then the inline
+        // default, and fills {named} parameters, as vue-i18n does.
+        if (name === 'vue-i18n') return syn({ useI18n: () => ({ t: translate }) });
+        if (name.endsWith('/useLocaleFormat')) return syn({ useLocaleFormat: () => ({ number: v => String(v ?? 0) }) });
+        // Head joined the page with the accessibility pass (every step page
+        // carries a <Head title>); the stub renders it as an empty wrapper.
+        if (name === '@inertiajs/vue3') return syn({ router: { visit() {} }, Head: stub });
         if (name.endsWith('/csrf')) return syn({ csrfFetch: async () => ({ ok: true, json: async () => ({}) }) });
         return syn({ default: stub });
     });

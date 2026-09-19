@@ -142,10 +142,14 @@ class MapAcceptanceService
             //   manual     → nothing starts; the Activate controls build the
             //                world by hand.
             // simulate_at_scale is dev-only (game_mode sandbox), eager only.
+            // The operator chooses it at the Step 4 lock (2026-09-19), so a
+            // re-acceptance KEEPS a stored choice; the request flag (the
+            // headless maps:accept --simulate door) can only turn it on. A
+            // mode other than eager, or a world that is not a sandbox, clears it.
             $mode = $opts->mode;
             $simulate = $mode === 'eager'
-                && $opts->simulateAtScale
-                && $instance->game_mode === 'sandbox';
+                && $instance->game_mode === 'sandbox'
+                && ($opts->simulateAtScale || (bool) $instance->simulate_at_scale);
 
             $instance->forceFill([
                 'map_accepted_at' => now(),

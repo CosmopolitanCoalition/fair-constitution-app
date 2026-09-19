@@ -1780,6 +1780,7 @@
     "The seated leg has not been opened.": "The seated leg has not been opened.",
     "The seed list for the post-game redraft — every \"as implemented\" marker resolves here": "The seed list for the post-game redraft — every \"as implemented\" marker resolves here",
     "The selected share recipient no longer exists.": "The selected share recipient no longer exists.",
+    "The simulation dial columns are missing. Run the migrations (php artisan migrate --force), then lock again.": "The simulation dial columns are missing. Run the migrations (php artisan migrate --force), then lock again.",
     "The simulation run is not done yet. Let it finish before locking Step 5.": "The simulation run is not done yet. Let it finish before locking Step 5.",
     "The speaking queue has been updated.": "The speaking queue has been updated.",
     "The speaking queue is full. Please try again after a speaker is recognized.": "The speaking queue is full. Please try again after a speaker is recognized.",

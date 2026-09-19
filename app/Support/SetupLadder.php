@@ -6,8 +6,9 @@ use App\Models\InstanceSettings;
 
 /**
  * THE WIZARD LADDER (operator ruling 2026-09-05, wizard-ladder A): Steps 0 to
- * 6, one page each. The scale choice and the simulate choice made at map
- * acceptance decide whether Steps 4 and 5 open; a step that does not apply is
+ * 6, one page each. The scale choice (made at map acceptance) decides whether
+ * Step 4 opens. The simulate choice (made at the Step 4 lock, operator order
+ * 2026-09-19) decides whether Step 5 opens. A step that does not apply is
  * skipped, never shown as pending.
  *
  *   0  Cosmic Address

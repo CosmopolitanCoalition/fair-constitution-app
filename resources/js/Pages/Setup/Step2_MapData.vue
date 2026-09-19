@@ -25,7 +25,6 @@ const { t } = useI18n()
 const props = defineProps({
     step: { type: Number, required: true },
     settings: { type: Object, required: true },
-    is_dev_world: { type: Boolean, default: false },
     scale_mode: { type: String, default: 'eager' },
 })
 
@@ -745,15 +744,15 @@ const accepting = ref(false)
 //                at its resident threshold)
 //   manual     — Activate & Scale Manually (Activate controls + governance
 //                forms; nothing automatic)
-// Dev sandbox worlds add "simulate at scale" under eager: the sim populates
-// the built world through the real governance engine.
+// The Dev "simulate at scale" choice is NOT made here (operator order
+// 2026-09-19): nothing in Step 3 or Step 4 reads it, so it moved to the Step 4
+// lock, beside the population dial and the roster floor.
 const MODE_OPTS = [
     { v: 'eager',      t: t('c_setup.step2_map_data.mode_eager', 'Activate & Scale Institutions Now') },
     { v: 'population', t: t('c_setup.step2_map_data.mode_population', 'Activate & Scale Institutions As Players Join') },
     { v: 'manual',     t: t('c_setup.step2_map_data.mode_manual', 'Activate & Scale Institutions Manually') },
 ]
-const scaleMode       = ref(props.scale_mode || 'eager')
-const simulateAtScale = ref(false)
+const scaleMode = ref(props.scale_mode || 'eager')
 const rehooking = ref(false)
 const rehookMsg = ref('')
 
@@ -787,10 +786,7 @@ async function acceptHere() {
     accepting.value = true
     advanceError.value = ''
     try {
-        const acceptBody = {
-            scale_mode: scaleMode.value,
-            simulate_at_scale: scaleMode.value === 'eager' && simulateAtScale.value,
-        }
+        const acceptBody = { scale_mode: scaleMode.value }
         let res = await csrfFetch('/api/jurisdictions/accept-maps', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1819,14 +1815,9 @@ onBeforeUnmount(() => {
                                 class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
                             <option v-for="o in MODE_OPTS" :key="o.v" :value="o.v">{{ o.t }}</option>
                         </select>
-                        <label v-if="is_dev_world && scaleMode === 'eager'"
-                               class="flex items-center gap-2 text-xs text-violet-300 select-none cursor-pointer">
-                            <input type="checkbox" v-model="simulateAtScale" class="accent-violet-500" />
-                            {{ t('c_setup.step2_map_data.dev_simulate', 'Dev: simulate the data at scale after the build (sandbox world only)') }}
-                        </label>
                         <span class="text-[11px] text-gray-400 max-w-md text-right">
                             {{ scaleMode === 'eager'
-                                ? t('c_setup.step2_map_data.mode_desc_eager', 'PREBUILD only: every legislature sized, every map drawn, institution shells provisioned. Simulated people, orgs & bills is the separate Dev option below.')
+                                ? t('c_setup.step2_map_data.mode_desc_eager', 'PREBUILD only: every legislature sized, every map drawn, institution shells provisioned. Simulated people, orgs & bills is the separate Dev option at the end of Step 4.')
                                 : scaleMode === 'population'
                                     ? t('c_setup.step2_map_data.mode_desc_population', 'Nothing pre-built — each place boots automatically as verified residents cross its threshold (5–9).')
                                     : t('c_setup.step2_map_data.mode_desc_manual', 'Nothing automatic — Activate per jurisdiction on the list, draw maps, build institutions through their forms; on sandbox worlds each activated row also gets a Simulate button.') }}

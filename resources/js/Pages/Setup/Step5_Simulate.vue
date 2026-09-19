@@ -84,6 +84,21 @@ const canStart  = computed(() => !run.value || ['failed', 'done'].includes(run.v
 const locked    = computed(() => (props.settings.setup_step_completed ?? 0) >= 6)
 const refused   = computed(() => !!props.control_refusal)
 
+// THE DIAL (2026-09-19): fixed when a run is created, so a live or halted run
+// shows ITS OWN values; with no run to keep (none, failed or done) the line
+// shows the stored Step 4 choice the next start will use.
+const dialLine = computed(() => {
+    const d = data.value?.dial
+    if (!d) return ''
+    const onOff = (v) => v
+        ? t('c_setup.step5_simulate.dial_floor_on', 'override on')
+        : t('c_setup.step5_simulate.dial_floor_off', 'override off')
+    if (!canStart.value && d.run_sample_pct != null) {
+        return t('c_setup.step5_simulate.dial_this_run', { pct: d.run_sample_pct, floor: onOff(d.run_roster_floor !== false) })
+    }
+    return t('c_setup.step5_simulate.dial_next_run', { pct: d.next_sample_pct, floor: onOff(d.next_roster_floor !== false) })
+})
+
 // ── World-readiness guard (G1) ───────────────────────────────────────────────
 // The Lock control opens only when the completion guard would pass: the run is
 // done, the acceptance scan minted verify items, and none are in review. A
@@ -337,6 +352,11 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                     </div>
                     <div class="text-gray-400 text-sm mt-1" v-if="run">
                         {{ t('c_setup.step5_simulate.ledger_summary', { done: n(ledger.done), running: n(ledger.running), pending: n(ledger.pending), review: n(ledger.review) }) }}
+                    </div>
+                    <!-- THE DIAL: what this run was created with, or what a new run will use -->
+                    <div class="text-violet-300 text-xs mt-1" v-if="dialLine">
+                        {{ dialLine }}
+                        <a v-if="canStart" href="/setup/step/4" class="underline underline-offset-2 hover:text-violet-200">{{ t('c_setup.step5_simulate.dial_change', 'Change it at the end of Step 4.') }}</a>
                     </div>
                     <div class="text-red-300 text-xs mt-1" v-if="run?.last_error">{{ run.last_error }}</div>
                 </div>

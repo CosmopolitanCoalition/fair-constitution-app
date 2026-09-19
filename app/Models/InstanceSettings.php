@@ -38,6 +38,8 @@ class InstanceSettings extends Model
         'map_accepted_at',                // P.6 — operator confirmed map data
         'institution_scale_mode',         // 2026-08-08 — 'eager' | 'population' | 'manual' (the three activation modes)
         'simulate_at_scale',              // 2026-08-08 — dev-only (game_mode sandbox): sim populates after the eager build
+        'sim_sample_pct',                 // 2026-09-19 — the simulation dial, chosen at the Step 4 lock (App\Support\SimDial)
+        'sim_roster_floor',               // 2026-09-19 — mint the shortfall where the dial leaves a place uncontestable
         'apportionment_completed_at',
         'apportionment_log',
         'setup_districts_confirmed_at',
@@ -82,6 +84,8 @@ class InstanceSettings extends Model
         'pending_constitutional_defaults' => 'array',
         'map_accepted_at' => 'datetime',
         'simulate_at_scale' => 'boolean',
+        'sim_sample_pct' => 'float',
+        'sim_roster_floor' => 'boolean',
         'apportionment_completed_at' => 'datetime',
         'setup_districts_confirmed_at' => 'datetime',
         'signing_key_generated_at' => 'datetime',
