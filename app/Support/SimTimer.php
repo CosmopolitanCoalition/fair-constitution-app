@@ -40,6 +40,11 @@ final class SimTimer
         return self::$enabled ??= (bool) config('cga.sim.timings', true);
     }
 
+    public static function isOpen(string $part): bool
+    {
+        return isset(self::$open[$part]);
+    }
+
     public static function open(string $part): void
     {
         if (self::on()) {

@@ -17714,6 +17714,41 @@
           "note": "23 PHP tests / 210 assertions passed, including the actual claim UPDATE on 20,000 synthetic tied-position items in nonce PostgreSQL schemas, absence of Sort after the index, concurrent claim uniqueness, valid and failed-build retries, and real worker activity before/after the lease migration. 19 JavaScript tests passed, including rendered activity states on both pages and recent timing summaries. No production speedup claimed. Index-only needs no restart; reporting code requires drained Horizon workers to refresh before operator resume."
         }
       ]
+    },
+    {
+      "id": "W-0461",
+      "title": "Guard phase advancement with completed queue generation and measure final audit commits",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Queue completion is durable, overlapping pumps remain serialized beyond the cache TTL, counting generation resumes from an atomic bounded source cursor, audit lock acquisition and final commits have separate counters, and focused internal checks pass.",
+      "detail": "Phase 4 follow-up to the remote operator measurements. The existing claim index remains the first deployment priority. SimPumpCommand now takes a PostgreSQL session advisory lock in addition to its cache lock. Existing phase_timings JSON stores a worklist completion marker; missing markers resume generation rather than permitting advancement from an empty partial queue. Counting selects source items using the existing run/kind/unit_key unique index, processes host-derived batches, and atomically commits each cursor with its inserts. Unique conflict handling preserves existing items without the repeated target anti-join. Other phase generators retain their existing SQL behind the completion barrier and check halt at chunk boundaries. SimWorkerJob and AuditService add nested audit.commit and audit.lock_wait timings without changing audit transactions or chain construction. No new migration. Remote deployment and production remeasurement remain with the demo-box operator.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-19 remote Phase 4 benchmarks and generation/audit findings",
+          "title": "Phase 4 queue management",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Console/Commands/SimPumpCommand.php",
+        "app/Jobs/SimWorkerJob.php",
+        "app/Services/AuditService.php",
+        "app/Support/SimTimer.php",
+        "tests/Feature/SimPhaseQueueTest.php",
+        "tests/Constitutional/SimCountingMintScopeTest.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-19",
+          "note": "Focused validation: 34 unique tests / 311 assertions passed across the main 30-test suite and the final 9-test queue/governance pass (five queue tests overlap; the final pass also proves the cache lock expired). Covers partial/empty and duplicate batches, halt/resume, cursor transaction rollback, phase advancement, overlapping pumps, and both audit batch modes with valid chain links. Test-fixture incident: five test run records were accidentally created in the local development DB due to a copied connection name; all five exact IDs were removed after verifying no work items or workers. Local scheduler also republished existing education configuration. Fixture now uses maintenance-only administration and verifies raw/Eloquent routing to its disposable DB before creating runs. Remote demo untouched; no production performance claim."
+        }
+      ]
     }
   ]
 }

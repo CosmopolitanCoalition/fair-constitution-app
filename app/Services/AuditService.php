@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AuditChainReconciliation;
 use App\Models\AuditEntry;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -158,7 +159,7 @@ class AuditService
         $write = function () use ($acts): int {
             // One lock hold for the whole flush — the head read is current and
             // the chain cannot fork, exactly as append() guarantees per row.
-            DB::statement('SELECT pg_advisory_xact_lock(?)', [self::APPEND_LOCK_KEY]);
+            $this->acquireAppendLock();
 
             $head = DB::selectOne('SELECT hash FROM audit_log ORDER BY seq DESC LIMIT 1');
 
@@ -204,6 +205,23 @@ class AuditService
         return DB::transactionLevel() > 0 ? $write() : DB::transaction($write);
     }
 
+    private function acquireAppendLock(): void
+    {
+        // Only the simulated item's final commit opts into these counters.
+        // Includes the SQL round trip as well as the advisory-lock wait.
+        $timed = SimTimer::isOpen('audit.commit');
+        if ($timed) {
+            SimTimer::open('audit.lock_wait');
+        }
+        try {
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [self::APPEND_LOCK_KEY]);
+        } finally {
+            if ($timed) {
+                SimTimer::close('audit.lock_wait');
+            }
+        }
+    }
+
     public function append(
         string $module,
         string $event,
@@ -242,7 +260,7 @@ class AuditService
             $module, $event, $payload, $ref, $actorId, $jurisdictionId, $rejected, $blockedReason
         ): AuditEntry {
             // Serialize every appender so no two can anchor on the same head.
-            DB::statement('SELECT pg_advisory_xact_lock(?)', [self::APPEND_LOCK_KEY]);
+            $this->acquireAppendLock();
 
             $head = DB::selectOne('SELECT seq, hash FROM audit_log ORDER BY seq DESC LIMIT 1');
 

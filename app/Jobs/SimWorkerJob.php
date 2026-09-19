@@ -395,16 +395,21 @@ class SimWorkerJob implements ShouldQueue
         // item's acts as individual chained rows in one bulk insert instead —
         // same lock-once discipline, same rows append() would have written.
         // Every other kind keeps the collapsed one-entry-per-item form.
-        if ($item->kind === 'training_scope') {
-            $audit->commitBatchIndividual();
-        } else {
-            // One hash-chained entry for the whole item, the global lock taken once.
-            $audit->commitBatch(
-                'simworld',
-                'sim.'.$item->kind,
-                'WF-SYS-04',
-                ! empty($item->jurisdiction_id) ? (string) $item->jurisdiction_id : null,
-            );
+        SimTimer::open('audit.commit');
+        try {
+            if ($item->kind === 'training_scope') {
+                $audit->commitBatchIndividual();
+            } else {
+                // One hash-chained entry for the whole item, the global lock taken once.
+                $audit->commitBatch(
+                    'simworld',
+                    'sim.'.$item->kind,
+                    'WF-SYS-04',
+                    ! empty($item->jurisdiction_id) ? (string) $item->jurisdiction_id : null,
+                );
+            }
+        } finally {
+            SimTimer::close('audit.commit');
         }
 
         return $result;

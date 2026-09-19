@@ -169,6 +169,8 @@ class SimGovernanceWiringTest extends TestCase
     private function mint(string $runId, string $phase): int
     {
         $run = SimRun::query()->find($runId);
+        // The real pump publishes the incoming phase before minting its queue.
+        $run->forceFill(['phase' => $phase])->save();
         $cmd = app(SimPumpCommand::class);
         $ref = new \ReflectionMethod($cmd, 'mintWorklist');
         $ref->setAccessible(true);

@@ -4,6 +4,72 @@ This is the deployment/measurement handoff for the demo-box Astra. The local
 developer changes code and pushes it; the demo-box operator owns application of
 these migrations and measurements on the running simulation.
 
+## Phase 4 follow-up: generation barrier, cursor, and audit measurements
+
+The full-queue remote sample reported 503 ms acquisition versus 104 ms processing
+per item, with the claim index still absent. Apply the already-published claim
+index first. This follow-up does not add workers or alter vote counting.
+
+- The pump now holds a PostgreSQL session advisory lock in addition to its
+  existing cache lock. It stays exclusive if generation exceeds the cache TTL,
+  while individual chunks still commit. Normal exit/disconnect releases it.
+- Each phase records `phase_timings[phase].worklist.complete`. An empty queue
+  cannot advance until generation has finished. An interrupted generator is
+  resumed on the next pump. Missing markers on an upgraded run are reconciled
+  using the existing items; they are not assumed complete.
+- Counting walks the existing `(run_id, kind, unit_key)` unique index with a
+  durable cursor. Each host-sized source batch is bounded before election/race
+  joins. Insertion uses the unique conflict guard instead of repeatedly
+  comparing against the growing target queue. Cursor and inserts commit in one
+  transaction. A batch with zero inserts still advances the source cursor.
+  Other phases retain their existing generators behind the completion barrier.
+- `audit.commit` measures the simulated item's final batch commit.
+  `audit.lock_wait` measures its advisory-lock acquisition SQL, including the
+  round trip. The latter is nested inside the former, which is inside the stage
+  timer. Do not add these overlapping durations. The hash chain, transaction
+  boundaries, append ordering, and durability are unchanged.
+
+Validation passed: 34 unique PHP tests / 311 assertions across the focused
+queue, claims, timing, counting-scope, and governance checks.
+
+No new migration or frontend build is required for **this** follow-up. The two
+migrations described below still apply if upgrading from `22105523`.
+
+Deployment order: the operator halts and drains the run, waits for any old
+`sim:pump` process to exit, preserves local configuration edits, and pulls
+`main`. Apply the claim-index and worker-activity migrations below. Refresh
+Horizon and the scheduler so old pump/worker code cannot coexist with the new
+code, then let the operator resume the same run. PostgreSQL needs no restart.
+Do not rewind the simulation. On the first updated pump, counting may make one
+cursor pass over existing source items to establish a trustworthy completion
+marker; existing target items are retained, including their settled states.
+
+Read generation progress from CLI chunk output or this single-row query:
+
+```sql
+SELECT phase, phase_timings -> phase -> 'worklist' AS generation
+FROM sim_runs WHERE id = '<run-uuid>';
+
+SELECT part, count, total_us, max_us FROM sim_timings
+WHERE run_id = '<run-uuid>' AND part IN
+  ('lane.claim_next', 'stage.count_election', 'count.persist',
+   'audit.commit', 'audit.lock_wait');
+```
+
+Compare differences over several windows within the same phase, after the
+index has completed. Audit timers only describe updated workers. No production
+speedup is claimed for the generation change or audit instrumentation.
+
+Validation incident on the local development box: the first version of the
+new test fixture copied a database connection name incorrectly. It wrote five
+test run records to the local development database. All five exact IDs were
+removed after verifying they had no work items or workers. The local scheduler
+had advanced one empty test run and republished the existing education catalog
+from configuration at 20:23:06 UTC; its prior row values were not captured and
+were not reconstructed. No remote demo connection was used. The corrected
+fixture uses a dedicated maintenance connection and verifies both raw SQL and
+Eloquent resolve to its disposable database before creating any run.
+
 ## Follow-up: claim ordering and worker activity
 
 The claim index was published separately as `5b132712` so it can be applied

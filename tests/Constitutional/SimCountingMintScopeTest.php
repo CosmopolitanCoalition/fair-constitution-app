@@ -84,6 +84,8 @@ final class SimCountingMintScopeTest extends TestCase
             )'
         );
 
+        $fixture->statement('CREATE UNIQUE INDEX sim_items_unit_uq ON sim_items (run_id, kind, unit_key)');
+
         $this->usable = true;
     }
 
@@ -142,10 +144,9 @@ final class SimCountingMintScopeTest extends TestCase
             'updated_at' => $now,
         ]);
 
-        // Run the EXACT production mint statement. Every placeholder binds the
-        // run id (the production binding rule).
+        // Run the EXACT production mint statement with a bounded source roster.
         $sql = SimPumpCommand::countingMintSql();
-        $bindings = array_fill(0, substr_count($sql, '?'), $run);
+        $bindings = [$run, json_encode($fixture->table('sim_items')->where('run_id', $run)->where('kind', 'election_scope')->pluck('id')->all()), $run];
         $minted = $fixture->affectingStatement($sql, $bindings);
 
         $counts = $fixture->table('sim_items')->where('kind', 'count_election')->get();
@@ -163,7 +164,7 @@ final class SimCountingMintScopeTest extends TestCase
             'a second open election of the jurisdiction is not swept in'
         );
 
-        // Idempotent: a re-mint adds nothing (the NOT EXISTS guard holds).
+        // Idempotent: a re-mint adds nothing (the unique conflict guard holds).
         $again = $fixture->affectingStatement($sql, $bindings);
         $this->assertSame(0, $again, 'a re-mint is a no-op');
     }
@@ -203,7 +204,7 @@ final class SimCountingMintScopeTest extends TestCase
         ]);
 
         $sql = SimPumpCommand::countingMintSql();
-        $minted = $fixture->affectingStatement($sql, array_fill(0, substr_count($sql, '?'), $run));
+        $minted = $fixture->affectingStatement($sql, [$run, json_encode($fixture->table('sim_items')->where('run_id', $run)->where('kind', 'election_scope')->pluck('id')->all()), $run]);
 
         $this->assertSame(0, $minted, 'a scope with no produced election mints no counting work');
     }

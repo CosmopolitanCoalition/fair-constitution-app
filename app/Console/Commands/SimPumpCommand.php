@@ -16,12 +16,10 @@ use Illuminate\Support\Facades\Log;
 /**
  * The simulated-world run's ONLY liveness root.
  *
- * Every duty below is idempotent and seconds-long, so a missed tick costs a
- * minute and a double tick costs nothing. This is the lesson of the autoscale
- * re-engineering: the self-rescheduling orchestrator tick-chain was deleted
- * after it worked for ~3 of 26 hours, and a plain every-minute pump plus pull
- * workers replaced it. A rare double pump is harmless BY CONSTRUCTION, not by
- * lock.
+ * A scheduled tick and worker kicks share the pump. Phase generation may take
+ * longer than the cache lock's TTL, so a database session lock serializes pumps
+ * across committed chunks. Durable generation state makes interruption resumable
+ * and prevents an empty, partially generated queue being treated as drained.
  *
  * Duties, in order:
  *   1. supersede duplicate runs (oldest unfinished wins)
@@ -70,8 +68,13 @@ class SimPumpCommand extends Command
 
     private const LEASE_STALE_MINUTES = 10;
 
-    /** THE ETL RULE chunk size for phase-transition minting. */
-    private const MINT_CHUNK = 25000;
+    /** Session lock survives the Redis lock TTL; released on exit or DB disconnect. */
+    public const ADVISORY_LOCK_KEY = 0x53494d50554d50; // SIMPUMP
+
+    private static function mintChunk(): int
+    {
+        return HostCapacity::enumerationChunk();
+    }
 
     public function __construct(private readonly AuditService $audit)
     {
@@ -92,10 +95,31 @@ class SimPumpCommand extends Command
             return self::SUCCESS;
         }
 
+        // Generation can outlive the cache TTL. Hold a session advisory lock
+        // across its individually committed chunks, not one giant transaction.
+        $pdo = null;
+        $held = false;
         try {
+            if (DB::getDriverName() === 'pgsql') {
+                $pdo = DB::connection()->getPdo();
+                $query = $pdo->prepare('SELECT pg_try_advisory_lock(?)');
+                $query->execute([self::ADVISORY_LOCK_KEY]);
+                $held = (bool) $query->fetchColumn();
+                if (! $held) {
+                    return self::SUCCESS;
+                }
+            }
             return $this->runPump();
         } finally {
-            $lock->release();
+            try {
+                if ($held) {
+                    // Use the owning PDO, never reconnect to unlock a new session.
+                    $query = $pdo->prepare('SELECT pg_advisory_unlock(?)');
+                    $query->execute([self::ADVISORY_LOCK_KEY]);
+                }
+            } finally {
+                $lock->release();
+            }
         }
     }
 
@@ -143,7 +167,7 @@ class SimPumpCommand extends Command
         // pending). SimStartCommand now flips the run to 'running' as its LAST
         // step, once the worklist is fully minted; only then does the pump touch
         // it. A start that dies mid-enumeration leaves a queued run for --resume.
-        if ($run->status === 'queued') {
+        if (! $run->isClaimable()) {
             return self::SUCCESS;
         }
 
@@ -227,37 +251,98 @@ class SimPumpCommand extends Command
      */
     public static function countingMintSql(): string
     {
-        return "INSERT INTO sim_items
+        // The caller binds a cheap, indexed source roster FIRST. Neither stale
+        // target statistics nor an anti-join can expand this into a planet scan.
+        return "WITH source_items AS MATERIALIZED (
+                    SELECT s.* FROM sim_items s
+                    WHERE s.run_id = ? AND s.kind = 'election_scope'
+                      AND s.id IN (SELECT value::uuid FROM jsonb_array_elements_text(?::jsonb))
+                )
+                INSERT INTO sim_items
                     (id, run_id, kind, status, jurisdiction_id, race_id, adm_level, unit_key,
                      position, est_cost, metrics, created_at, updated_at)
                  SELECT gen_random_uuid(), ?, 'count_election', 'pending',
                         e.jurisdiction_id, e.id, s.adm_level, e.id::text,
                         s.position, 0, '{}', now(), now()
-                   FROM elections e
-                   JOIN sim_items s
-                     ON s.run_id = ? AND s.kind = 'election_scope'
-                    AND s.race_id = e.id AND s.status = 'done'
-                  WHERE e.status NOT IN ('certified', 'cancelled')
+                   FROM source_items s
+                   JOIN elections e ON s.race_id = e.id
+                  WHERE s.status = 'done' AND e.status NOT IN ('certified', 'cancelled')
                     AND EXISTS (SELECT 1 FROM election_races r WHERE r.election_id = e.id)
-                    AND NOT EXISTS (
-                        SELECT 1 FROM sim_items x
-                         WHERE x.run_id = ? AND x.kind = 'count_election'
-                           AND x.unit_key = e.id::text
-                    )
-                  LIMIT ".self::MINT_CHUNK;
+                 ON CONFLICT (run_id, kind, unit_key) DO NOTHING";
+    }
+
+    /** Persist generation progress; completed means every source was examined. */
+    private function generationState(SimRun $run, array $state): void
+    {
+        $timings = $run->phase_timings ?? [];
+        $timings[$run->phase]['worklist'] = $state;
+        $run->forceFill(['phase_timings' => $timings])->save();
+    }
+
+    private function ensureWorklist(SimRun $run): bool
+    {
+        if ($run->phase_timings[$run->phase]['worklist']['complete'] ?? false) {
+            return true;
+        }
+        // Missing state on an older installation is deliberately incomplete.
+        // Replaying the idempotent generator reconciles already-minted items.
+        $this->mintWorklist($run, $run->phase);
+
+        return (bool) ($run->phase_timings[$run->phase]['worklist']['complete'] ?? false);
+    }
+
+    private function mintCountingWorklist(SimRun $run): int
+    {
+        $state = $run->phase_timings['counting']['worklist'] ?? [];
+        $total = 0;
+        while (true) {
+            $run->refresh();
+            if (! $run->isClaimable() || $run->phase !== 'counting') {
+                return $total;
+            }
+            // Existing unique (run_id, kind, unit_key) index is also this cursor's
+            // ordered access path. Do NOT filter eligibility before the limit.
+            $source = DB::table('sim_items')->where('run_id', $run->id)
+                ->where('kind', 'election_scope')
+                ->when(isset($state['cursor']), fn ($q) => $q->where('unit_key', '>', $state['cursor']))
+                ->orderBy('unit_key')->limit(self::mintChunk())->get(['id', 'unit_key']);
+            if ($source->isEmpty()) {
+                $this->generationState($run, array_replace($state, ['complete' => true]));
+                return $total;
+            }
+            // The inserted chunk and its cursor commit together. A crash cannot
+            // advance past unwritten work; duplicates on upgrade are harmless.
+            $n = DB::transaction(function () use ($run, $source, &$state): int {
+                $n = DB::affectingStatement(self::countingMintSql(), [
+                    $run->id, json_encode($source->pluck('id')->all(), JSON_THROW_ON_ERROR), $run->id,
+                ]);
+                $state = [
+                    'complete' => false, 'cursor' => $source->last()->unit_key,
+                    'scanned' => ($state['scanned'] ?? 0) + $source->count(),
+                    'minted' => ($state['minted'] ?? 0) + $n,
+                ];
+                $this->generationState($run, $state);
+                return $n;
+            });
+            $total += $n;
+            $this->line("counting queue: {$state['scanned']} sources examined, {$state['minted']} new items");
+        }
     }
 
     /**
      * Mint the worklist for a phase we are entering. Bounded, individually
-     * committed chunks with a NOT-EXISTS guard, so a pump that dies mid-mint
-     * resumes cleanly on the next tick and a double pump is a no-op (THE ETL
-     * RULE).
+     * committed chunks. Counting uses a durable source cursor and a unique
+     * conflict guard; other phases retain their existing NOT-EXISTS generator.
+     * A missing completion marker makes the next pump resume generation.
      *
      * Ordering is LARGEST-FIRST via `position`, carried over from the item the
      * work derives from.
      */
     private function mintWorklist(SimRun $run, string $phase): int
     {
+        if ($phase === 'counting') {
+            return $this->mintCountingWorklist($run);
+        }
         // Only stages whose worklist is derived post-hoc are minted here;
         // `cohort_scope` is enumerated by sim:start from the jurisdiction table.
         $sql = match ($phase) {
@@ -284,7 +369,7 @@ class SimPumpCommand extends Command
                          WHERE x.run_id = ? AND x.kind = 'identity_batch'
                            AND x.unit_key = c.jurisdiction_id::text
                     )
-                  LIMIT ".self::MINT_CHUNK,
+                  LIMIT ".self::mintChunk(),
             // One election per jurisdiction that has a chamber AND a roster.
             'elections' => "INSERT INTO sim_items
                     (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
@@ -302,12 +387,7 @@ class SimPumpCommand extends Command
                          WHERE x.run_id = ? AND x.kind = 'election_scope'
                            AND x.unit_key = l.jurisdiction_id::text
                     )
-                  LIMIT ".self::MINT_CHUNK,
-            // One counting item per ELECTION this run scheduled. The election id
-            // rides in race_id — the item's spare reference column — because
-            // counting and seating act on an election, not a jurisdiction.
-            'counting' => self::countingMintSql(),
-
+                  LIMIT ".self::mintChunk(),
             // One seating item per election whose races have all been counted.
             'seating' => "INSERT INTO sim_items
                     (id, run_id, kind, status, jurisdiction_id, race_id, adm_level, unit_key,
@@ -325,7 +405,7 @@ class SimPumpCommand extends Command
                          WHERE x.run_id = ? AND x.kind = 'seat_scope'
                            AND x.unit_key = e.id::text
                     )
-                  LIMIT ".self::MINT_CHUNK,
+                  LIMIT ".self::mintChunk(),
 
             // One governance item per JURISDICTION whose seating landed — keyed
             // on the seat_scope done item, and per-jurisdiction (not per
@@ -360,7 +440,7 @@ class SimPumpCommand extends Command
                          WHERE x.run_id = ? AND x.kind = 'governance_scope'
                            AND x.unit_key = j.jurisdiction_id::text
                     )
-                  LIMIT ".self::MINT_CHUNK,
+                  LIMIT ".self::mintChunk(),
 
             // The bench (operator 2026-08-08 — the courtroom gap): one
             // judiciary item per jurisdiction whose growth-dial item settled.
@@ -381,7 +461,7 @@ class SimPumpCommand extends Command
                          WHERE x.run_id = ? AND x.kind = 'judiciary_scope'
                            AND x.unit_key = s.jurisdiction_id::text
                     )
-                  LIMIT ".self::MINT_CHUNK,
+                  LIMIT ".self::mintChunk(),
 
             // CENSUS-FLAVORED civics (2026-08-08, rubric B): one item per
             // jurisdiction whose bench item settled — real per-capita rates,
@@ -400,7 +480,7 @@ class SimPumpCommand extends Command
                          WHERE x.run_id = ? AND x.kind = 'civics_scope'
                            AND x.unit_key = s.jurisdiction_id::text
                     )
-                  LIMIT ".self::MINT_CHUNK,
+                  LIMIT ".self::mintChunk(),
 
             // TRAINING (W7 item 7): one item per jurisdiction whose seating
             // landed — DISTINCT ON so a two-chamber place trains once. Keyed on
@@ -428,7 +508,7 @@ class SimPumpCommand extends Command
                          WHERE x.run_id = ? AND x.kind = 'training_scope'
                            AND x.unit_key = j.jurisdiction_id::text
                     )
-                  LIMIT ".self::MINT_CHUNK,
+                  LIMIT ".self::mintChunk(),
 
             // THE MONEY PLANE (W7 item 8): one stipend item per LEAF jurisdiction
             // that minted residents. LEAF-ONLY (2026-09-07): with nested
@@ -458,7 +538,7 @@ class SimPumpCommand extends Command
                          WHERE x.run_id = ? AND x.kind = 'stipend_scope'
                            AND x.unit_key = s.jurisdiction_id::text
                     )
-                  LIMIT ".self::MINT_CHUNK,
+                  LIMIT ".self::mintChunk(),
 
             // THE ACCEPTANCE SCAN (G1): one verify_scope item per legislature-
             // bearing jurisdiction in the run's OWN enrolled scope. Keyed over
@@ -487,12 +567,13 @@ class SimPumpCommand extends Command
                          WHERE x.run_id = ? AND x.kind = 'verify_scope'
                            AND x.unit_key = s.jurisdiction_id::text
                     )
-                  LIMIT ".self::MINT_CHUNK,
+                  LIMIT ".self::mintChunk(),
 
             default => null,
         };
 
         if ($sql === null) {
+            $this->generationState($run, ['complete' => true]);
             return 0;
         }
 
@@ -504,10 +585,15 @@ class SimPumpCommand extends Command
         $total = 0;
 
         do {
+            $run->refresh();
+            if (! $run->isClaimable() || $run->phase !== $phase) {
+                return $total;
+            }
             $n = DB::affectingStatement($sql, $bindings);
             $total += $n;
         } while ($n > 0);
 
+        $this->generationState($run, ['complete' => true]);
         return $total;
     }
 
@@ -566,6 +652,11 @@ class SimPumpCommand extends Command
      */
     private function advancePhase(SimRun $run): void
     {
+        // Empty today is not drained until enumeration has durably finished.
+        // This also resumes a generator killed after publishing the new phase.
+        if (! $this->ensureWorklist($run)) {
+            return;
+        }
         $kinds = $run->currentKinds();
 
         // An empty-kind phase (enumerating / profiling) has nothing to wait for,
