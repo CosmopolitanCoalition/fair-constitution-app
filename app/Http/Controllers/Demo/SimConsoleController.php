@@ -20,14 +20,9 @@ use Inertia\Response;
  * while a generation run happens, the way the district mapper's Step-3 page is
  * left open while lane 1 works.
  *
- * THE PATTERN IS DELIBERATE AND BORROWED WHOLE. There is no progress table:
- * every poll runs a fresh `COUNT(*) FILTER (…) GROUP BY kind` against
- * `sim_items_claim_idx`, exactly as `SetupController::autoscaleProgress()` does
- * — "real numbers every 2 s, never the pump's once-a-minute denormalized
- * copies". The run row's counters exist for the pump's own bookkeeping and are
- * deliberately NOT what the bars read, because a counter refreshed once a
- * minute makes a working engine look frozen (the operator's own finding on
- * autoscale run 2).
+ * Progress bars read the same short-lived, timestamped SimSnapshot sample as
+ * Step 5. Concurrent viewers share the aggregate instead of repeating a scan.
+ * Controls and the worker strip remain fresh on every poll.
  *
  * The worker strip reads `sim_worker_leases`, which was made byte-compatible
  * with `autoscale_worker_leases` for precisely this reason: the substrate the
@@ -57,7 +52,7 @@ class SimConsoleController extends Controller
         ]);
     }
 
-    /** Polled every 2 s by the page. Cheap, index-only, never cached. */
+    /** Polled every 2 s; progress aggregates are shared across viewers. */
     public function progress(): JsonResponse
     {
         return response()->json($this->snapshot());
@@ -127,6 +122,8 @@ class SimConsoleController extends Controller
             ];
         }
 
+        $progress = $this->snap->progress($run);
+
         return [
             'control' => $control,
             'run' => [
@@ -144,7 +141,8 @@ class SimConsoleController extends Controller
                 'workers_target' => HostCapacity::autoscaleWorkers(),
                 'phase_timings' => $run->phase_timings,
             ],
-            'stages' => $this->snap->stages($run),
+            'stages' => $progress['stages'],
+            'progress_snapshot' => array_intersect_key($progress, array_flip(['snapshot_at', 'snapshot_stale', 'snapshot_state'])),
             'workers' => $this->snap->lanes($run),
             'live_items' => $this->liveItems($run),
             'review_items' => $this->snap->reviewItems($run),

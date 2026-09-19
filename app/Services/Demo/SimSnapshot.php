@@ -19,15 +19,11 @@ use Illuminate\Support\Facades\DB;
  * other would show it as a raw slug. So every read lives HERE, once, and both
  * surfaces are thin callers that shape the same numbers to their own chrome.
  *
- * THE CHEAP / EXPENSIVE SPLIT (the Step 4 anti-tax lesson). The stage bars are a
- * fresh index-only GROUP BY on `sim_items` and run on every poll — real numbers,
- * never the pump's once-a-minute counters. `world()` never scans on the poll
- * thread (ruling A): its headline figures read O(1) counters off the run row,
- * and its four whole-table scope figures (chambers, jurisdictions, population
- * and electorate sums) read the scheduler-warmed SetupProgressRollup 'world'
- * snapshot, served last-known with a timestamp and warmed off-thread on a cold
- * miss. `world()` also keeps a brief WORLD_TTL cache so a burst of pollers
- * shares one read.
+ * Progress counts share one timestamped, ten-second cache across both pages.
+ * A single aggregate supplies totals, stage bars and layers. A cache lock makes
+ * concurrent viewers reuse the previous sample while one reader refreshes it.
+ * Run/phase/status changes get a distinct key; controls and worker leases stay
+ * fresh. world() separately reads run counters and the warmed scope rollup.
  */
 class SimSnapshot
 {
@@ -35,6 +31,129 @@ class SimSnapshot
     public const WORLD_TTL = 10;
 
     public const WORLD_KEY = 'sim:world';
+
+    public const PROGRESS_TTL = 10;
+
+    /** Retain a previous sample while another reader refreshes it. */
+    private const PROGRESS_RETAIN = 600;
+
+    /**
+     * Shared counts only: no viewer identity, permissions or control state.
+     * On a cold concurrent miss, return "computing" instead of another scan.
+     */
+    public function progress(SimRun $run): array
+    {
+        $key = 'sim:progress:v1:'.$run->id.':'.$run->phase.':'.$run->status;
+        $cached = Cache::get($key);
+        if (is_array($cached) && now()->timestamp - $cached['computed_ts'] < self::PROGRESS_TTL) {
+            return $cached;
+        }
+
+        $lock = Cache::lock($key.':refresh', self::PROGRESS_RETAIN);
+        if (! $lock->get()) {
+            return $cached
+                ? array_replace($cached, ['snapshot_stale' => true])
+                : $this->emptyProgress();
+        }
+
+        try {
+            // Another reader may have published between our get and lock.
+            $cached = Cache::get($key);
+            if (is_array($cached) && now()->timestamp - $cached['computed_ts'] < self::PROGRESS_TTL) {
+                return $cached;
+            }
+            $snapshot = $this->computeProgress($run);
+            Cache::put($key, $snapshot, self::PROGRESS_RETAIN);
+
+            return $snapshot;
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function emptyProgress(): array
+    {
+        return [
+            'ledger' => array_fill_keys(['total', 'done', 'running', 'pending', 'review'], 0),
+            'stages' => [], 'layers' => [],
+            'rate' => ['rate_per_h' => null, 'rate_label' => null],
+            'snapshot_at' => null, 'computed_ts' => 0,
+            'snapshot_stale' => true, 'snapshot_state' => 'computing',
+        ];
+    }
+
+    private function computeProgress(SimRun $run): array
+    {
+        // One run-scoped aggregate, using the existing (run,kind,level,status)
+        // index. The ledger includes even kinds not yet known by the UI.
+        $rows = DB::table('sim_items')
+            ->where('run_id', $run->id)
+            ->selectRaw("kind, COALESCE(adm_level, 99) AS adm_level,
+                COUNT(*) AS total,
+                COUNT(*) FILTER (WHERE status = 'done') AS done,
+                COUNT(*) FILTER (WHERE status = 'running') AS running,
+                COUNT(*) FILTER (WHERE status = 'pending') AS pending,
+                COUNT(*) FILTER (WHERE status IN ('review','failed')) AS review")
+            ->groupBy('kind', DB::raw('COALESCE(adm_level, 99)'))
+            ->get();
+
+        $out = $this->emptyProgress();
+        $byKind = [];
+        $byLevel = [];
+        $currentKinds = $run->currentKinds();
+        foreach ($rows as $row) {
+            $kind = $row->kind;
+            $level = (int) $row->adm_level;
+            $byKind[$kind] ??= array_fill_keys(array_keys($out['ledger']), 0);
+            if (in_array($kind, $currentKinds, true)) {
+                $byLevel[$level] ??= array_fill_keys(array_keys($out['ledger']), 0);
+            }
+            foreach (array_keys($out['ledger']) as $metric) {
+                $count = (int) $row->$metric;
+                $out['ledger'][$metric] += $count;
+                $byKind[$kind][$metric] += $count;
+                if (in_array($kind, $currentKinds, true)) {
+                    $byLevel[$level][$metric] += $count;
+                }
+            }
+        }
+
+        foreach (SimRun::PHASE_KINDS as $phase => $kinds) {
+            foreach ($kinds as $kind) {
+                if (isset($byKind[$kind])) {
+                    $out['stages'][] = [
+                        'kind' => $kind, 'phase' => $phase,
+                        'label' => self::LABELS[$kind] ?? $kind,
+                        'total' => $byKind[$kind]['total'], 'done' => $byKind[$kind]['done'],
+                        'running' => $byKind[$kind]['running'], 'review' => $byKind[$kind]['review'],
+                        'is_current' => $phase === $run->phase,
+                    ];
+                }
+            }
+        }
+
+        $labels = [0 => 'Planet', 1 => 'Countries', 2 => 'States / Provinces',
+            3 => 'Counties', 4 => 'Municipalities', 5 => 'Townships',
+            6 => 'Neighborhoods', 99 => 'Other'];
+        ksort($byLevel);
+        foreach ($byLevel as $level => $counts) {
+            $counts['pending'] = max(0, $counts['total'] - $counts['done'] - $counts['review'] - $counts['running']);
+            $out['layers'][] = [
+                'key' => "level:{$level}", 'adm_level' => $level,
+                'label' => $labels[$level] ?? "Level {$level}",
+                ...$counts,
+                'status' => $counts['done'] >= $counts['total'] ? 'done'
+                    : ($counts['running'] > 0 || $counts['done'] > 0 ? 'running' : 'pending'),
+            ];
+        }
+        $out['rate'] = $this->computeWindowedRate($run);
+        $out['snapshot_at'] = now()->toIso8601String();
+        $out['computed_ts'] = now()->timestamp;
+        $out['snapshot_stale'] = false;
+        $out['snapshot_state'] = 'ready';
+
+        return $out;
+    }
 
     /** The rate window, matching the Step 4 page: items finished in the last 10 min. */
     public const RATE_WINDOW_SECS = 600;
@@ -65,56 +184,10 @@ class SimSnapshot
             ?? SimRun::query()->orderByDesc('created_at')->first();
     }
 
-    /**
-     * One bar per item kind — the fresh GROUP BY that IS the progress store,
-     * ordered by the phase DAG so it reads top-to-bottom as the run proceeds.
-     *
-     * @return list<array<string,mixed>>
-     */
+    /** Stage bars from the shared progress sample, in phase order. */
     public function stages(SimRun $run): array
     {
-        $rows = DB::table('sim_items')
-            ->where('run_id', $run->id)
-            ->selectRaw("
-                kind,
-                COUNT(*)                                              AS total,
-                COUNT(*) FILTER (WHERE status = 'done')               AS done,
-                COUNT(*) FILTER (WHERE status = 'running')            AS running,
-                COUNT(*) FILTER (WHERE status IN ('review','failed')) AS review
-            ")
-            ->groupBy('kind')
-            ->get()
-            ->keyBy('kind');
-
-        $order = [];
-        foreach (SimRun::PHASE_KINDS as $phase => $kinds) {
-            foreach ($kinds as $kind) {
-                $order[$kind] = $phase;
-            }
-        }
-
-        $stages = [];
-
-        foreach ($order as $kind => $phase) {
-            $row = $rows->get($kind);
-
-            if ($row === null) {
-                continue; // a stage with no worklist is not yet minted
-            }
-
-            $stages[] = [
-                'kind' => $kind,
-                'phase' => $phase,
-                'label' => self::LABELS[$kind] ?? $kind,
-                'total' => (int) $row->total,
-                'done' => (int) $row->done,
-                'running' => (int) $row->running,
-                'review' => (int) $row->review,
-                'is_current' => $phase === $run->phase,
-            ];
-        }
-
-        return $stages;
+        return $this->progress($run)['stages'];
     }
 
     /**
@@ -181,26 +254,15 @@ class SimSnapshot
         return ['total' => count($work), 'phases' => $phases];
     }
 
-    /**
-     * One fresh aggregate over the whole worklist — the tiles' Total / Done /
-     * Running / Review. Index-only; cheap on every poll.
-     *
-     * @return array<string,int>
-     */
+    /** Totals from the same sample as the stage and layer bars. */
     public function ledger(SimRun $run): array
     {
-        $row = DB::table('sim_items')
-            ->where('run_id', $run->id)
-            ->selectRaw("
-                COUNT(*)                                              AS total,
-                COUNT(*) FILTER (WHERE status = 'done')               AS done,
-                COUNT(*) FILTER (WHERE status = 'running')            AS running,
-                COUNT(*) FILTER (WHERE status = 'pending')            AS pending,
-                COUNT(*) FILTER (WHERE status IN ('review','failed')) AS review
-            ")
-            ->first();
+        return $this->progress($run)['ledger'];
+    }
 
-        return array_map('intval', (array) $row);
+    public function windowedRate(SimRun $run): array
+    {
+        return $this->progress($run)['rate'];
     }
 
     /**
@@ -211,7 +273,7 @@ class SimSnapshot
      *
      * @return array{rate_per_h: ?int, rate_label: ?string}
      */
-    public function windowedRate(SimRun $run): array
+    private function computeWindowedRate(SimRun $run): array
     {
         if ($run->status !== 'running') {
             return ['rate_per_h' => null, 'rate_label' => null];
@@ -233,68 +295,10 @@ class SimSnapshot
         ];
     }
 
-    /**
-     * SEGMENTED PER-LAYER BARS over sim_items.adm_level — one bar per ADM layer,
-     * done | running | review | the void, the same shape the Step 4 page uses.
-     *
-     * @return list<array<string,mixed>>
-     */
+    /** Current-phase layers from the shared progress sample. */
     public function layers(SimRun $run): array
     {
-        // SCOPED TO THE CURRENT PHASE (2026-09-07). The layer bars show only the
-        // phase now running, so each phase fills 0 -> 100% and the bars never
-        // "rewind" when the next phase mints a fresh, larger worklist. The page
-        // nests these under the current phase and collapses the finished ones.
-        $kinds = $run->currentKinds();
-        if ($kinds === []) {
-            return [];
-        }
-
-        $rows = DB::table('sim_items')
-            ->where('run_id', $run->id)
-            ->whereIn('kind', $kinds)
-            ->selectRaw("
-                COALESCE(adm_level, 99) AS adm_level,
-                COUNT(*)                                              AS total,
-                COUNT(*) FILTER (WHERE status = 'done')               AS done,
-                COUNT(*) FILTER (WHERE status = 'running')            AS running,
-                COUNT(*) FILTER (WHERE status IN ('review','failed')) AS review
-            ")
-            ->groupBy(DB::raw('COALESCE(adm_level, 99)'))
-            ->orderBy('adm_level')
-            ->get();
-
-        $labels = [
-            0 => 'Planet', 1 => 'Countries', 2 => 'States / Provinces',
-            3 => 'Counties', 4 => 'Municipalities', 5 => 'Townships',
-            6 => 'Neighborhoods', 99 => 'Other',
-        ];
-
-        $layers = [];
-        foreach ($rows as $r) {
-            $lvl = (int) $r->adm_level;
-            $tot = (int) $r->total;
-            $done = (int) $r->done;
-            $review = (int) $r->review;
-            $running = (int) $r->running;
-            $pending = max(0, $tot - $done - $review - $running);
-            $status = $done >= $tot ? 'done'
-                : ($running > 0 || $done > 0 ? 'running' : 'pending');
-
-            $layers[] = [
-                'key' => "level:{$lvl}",
-                'adm_level' => $lvl,
-                'label' => $labels[$lvl] ?? "Level {$lvl}",
-                'total' => $tot,
-                'done' => $done,
-                'running' => $running,
-                'review' => $review,
-                'pending' => $pending,
-                'status' => $status,
-            ];
-        }
-
-        return $layers;
+        return $this->progress($run)['layers'];
     }
 
     /**

@@ -4,9 +4,8 @@ const localeFmt = useLocaleFormat();
  * The simulated-world populate console.
  *
  * Built to be LEFT OPEN while a run happens — the same job Step3_Districts.vue
- * does for the district mapper. Everything here comes from a fresh aggregate
- * every 2 s; there is no progress table and nothing is cached, so a number that
- * moves means work actually happened.
+ * does for the district mapper. Counts share a timestamped progress sample
+ * across viewers; controls and worker leases are fresh on every poll.
  *
  * Numbers tween rather than jump, because a counter that snaps between polls
  * reads as a glitch and a counter that eases reads as a machine working.
@@ -27,6 +26,7 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue'
  * tell lane 3 — do not fork it back apart.
  */
 import StageBars from '@/Components/Progress/StageBars.vue'
+import SnapshotStamp from '@/Components/Progress/SnapshotStamp.vue'
 import { csrfFetch } from '@/lib/csrf'
 
 /**
@@ -183,7 +183,7 @@ const statusTone = computed(() => {
                 <div>
                     <h1 class="text-2xl font-semibold text-gray-100">{{ t('c_operator_pages.sim_console.h1', 'Simulated world — populate engine') }}</h1>
                     <p class="mt-1 text-sm text-gray-400">
-                        {{ t('c_operator_pages.sim_console.subtitle', 'Live. Refreshes every 2 seconds from the work queue itself — no cached counters.') }}
+                        {{ t('c_setup.progress_snapshot.cadence') }}
                     </p>
                 </div>
                 <div class="text-right text-xs text-gray-400">
@@ -193,6 +193,7 @@ const statusTone = computed(() => {
                             {{ instanceClass }}
                         </span>
                     </div>
+                    <SnapshotStamp :snapshot="data.progress_snapshot" />
                     <div v-if="lastPoll">{{ t('c_operator_pages.sim_console.updated', { time: localeFmt.time(lastPoll) }) }}</div>
                 </div>
             </header>

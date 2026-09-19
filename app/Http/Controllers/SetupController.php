@@ -4242,8 +4242,8 @@ class SetupController extends Controller
      * The Step 5 (Simulate) progress payload — the sim's run, stage bars, lanes
      * and review list, shaped like the Step 4 page. Reads through SimSnapshot
      * (the single owner shared with the /simworld console), so the two surfaces
-     * cannot drift. The cheap parts are fresh per poll; the produced-world
-     * counts are cached in SimSnapshot.
+     * cannot drift. Run controls and worker leases are fresh per poll; progress
+     * counts share a timestamped sample across observers.
      */
     private function step5ProgressPayload(): array
     {
@@ -4267,11 +4267,12 @@ class SetupController extends Controller
             ];
         }
 
-        $ledger  = $snap->ledger($run);
-        $stages  = $snap->stages($run);
+        $progress = $snap->progress($run);
+        $ledger  = $progress['ledger'];
+        $stages  = $progress['stages'];
         $lanes   = $snap->lanes($run);
         $elapsed = $run->started_at !== null ? max(0, (int) now()->diffInSeconds($run->started_at, true)) : null;
-        $rate    = $snap->windowedRate($run);
+        $rate    = $progress['rate'];
 
         // ETA divides the remaining worklist by the WINDOWED rate — accurate
         // because the rate itself is real recent throughput, not a since-start
@@ -4304,7 +4305,8 @@ class SetupController extends Controller
             'ledger'  => $ledger,
             'stages'  => $stages,
             'phase_plan' => $snap->phaseOverview($run, $stages),
-            'layers'  => $snap->layers($run),
+            'layers'  => $progress['layers'],
+            'progress_snapshot' => array_intersect_key($progress, array_flip(['snapshot_at', 'snapshot_stale', 'snapshot_state'])),
             'lanes'   => $lanes,
             'review'  => $snap->reviewItems($run),
             'timings' => $snap->timings($run),

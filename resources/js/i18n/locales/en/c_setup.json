@@ -1032,5 +1032,9 @@
   "step5_simulate.inactive_heading": "Places with no election",
   "step5_simulate.inactive_zero_population": "{n} with zero population",
   "step5_simulate.inactive_too_few_residents": "{n} with fewer residents than the election needs",
-  "step5_simulate.inactive_note": "The simulation never mints more people than a place has real residents. These places close as done. They are not errors."
+  "step5_simulate.inactive_note": "The simulation never mints more people than a place has real residents. These places close as done. They are not errors.",
+  "progress_snapshot.updated": "Progress measured at {time}",
+  "progress_snapshot.refreshing": "Refreshing counts…",
+  "progress_snapshot.computing": "Measuring progress…",
+  "progress_snapshot.cadence": "Live worker activity. Progress counts are shared across viewers and refreshed every 10 seconds."
 }

@@ -17636,6 +17636,41 @@
           "note": "Built and pinned on box E. Live PG (rolled back): IdentityStageTest 14 tests (3 new: the ceiling, zero is zero, the pure rule), ElectionStageTest with 3 new (too few residents closes; six residents contest; the verdict seam). sqlite: WorldReadinessGuardTest 22 tests (4 new). JS: simCeiling 6, simDial 10, i18nWiring_i18n_setup 6, a11ySetupWizard 10, step5Readiness 3. Not run at planet scale: a sim run is the operator's trigger."
         }
       ]
+    },
+    {
+      "id": "W-0459",
+      "title": "Speed up Step 5 resident selection and share progress aggregates across observers",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "done_when": "Concurrent additive migrations cover the active-resident jurisdiction/user lookup and recent simulation completions; both progress surfaces share dated, short-lived counts; isolated PostgreSQL and SQLite tests pass; deployment and remeasurement instructions are committed.",
+      "depends_on": [],
+      "detail": "Operator order 2026-09-19 after the remote Astra/Opus Phase 3 measurements. Adds residency_active_jurisdiction_user_idx (jurisdiction_id, user_id) WHERE is_active and sim_items_run_finished_done_idx (run_id, finished_at) WHERE status=done, outside migration transactions with failed-build recovery. SimSnapshot shares one run/phase/status sample for ten seconds; a single grouped query supplies totals, stages and layers, plus the indexed rate query. A cache lock prevents observers duplicating refreshes, returning a dated stale sample or computing on concurrent cold misses. Both pages display the measurement timestamp. Candidate selection, workers, buffer sizing and simulation control are unchanged. Development and internal tests complete; the demo-box Astra still owns applying the migrations and measuring actual throughput. No live-world migrations applied locally or remotely by this pass.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-19 remote Phase 3 bottleneck report and authorization to implement/push",
+          "title": "resident lookup index and dashboard scans",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "database/migrations/2026_09_19_190000_index_active_residents_by_jurisdiction_user.php",
+        "database/migrations/2026_09_19_191000_index_sim_recent_completions.php",
+        "app/Services/Demo/SimSnapshot.php",
+        "tests/Feature/SimulationPerformanceIndexesTest.php",
+        "tests/Unit/SimProgressSnapshotTest.php",
+        "tests/js/simProgressSnapshot.test.mjs",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-19",
+          "note": "Local validation: 27 PHP tests, 173 assertions, no skips (including real concurrent DDL and EXPLAIN in nonce PostgreSQL schemas; SQLite cache fixtures). 27 JavaScript checks passed, including rendered snapshot labels and compilation of both affected Vue pages. Existing valid indexes retained, failed concurrent builds retried, resident order unchanged, plans use the lookup index without Sort at LIMIT 9 and 40. Production speedup remains for the demo-box measurement."
+        }
+      ]
     }
   ]
 }

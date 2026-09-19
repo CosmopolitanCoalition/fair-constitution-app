@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import StageBars from '@/Components/Progress/StageBars.vue'
+import SnapshotStamp from '@/Components/Progress/SnapshotStamp.vue'
 import { csrfFetch } from '@/lib/csrf'
 
 const { t } = useI18n()
@@ -40,6 +41,7 @@ const pollStamp = ref(Date.now())
 
 const run    = computed(() => data.value?.run ?? null)
 const ledger = computed(() => data.value?.ledger ?? {})
+const progressPending = computed(() => data.value?.progress_snapshot?.snapshot_state === 'computing')
 const stages = computed(() => data.value?.stages ?? [])
 const phasePlan = computed(() => data.value?.phase_plan ?? { total: 0, phases: [] })
 const layers = computed(() => data.value?.layers ?? [])
@@ -310,11 +312,11 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
         <section class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.tile_work_items', 'Work items') }}</div>
-                <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ n(ledger.total) }}</div>
+                <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ progressPending ? '—' : n(ledger.total) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.tile_done', 'Done') }}</div>
-                <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ n(ledger.done) }}</div>
+                <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ progressPending ? '—' : n(ledger.done) }}</div>
                 <div class="text-gray-400 text-xs mt-1">{{ t('c_setup.step5_simulate.in_review', { n: n(ledger.review) }) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
@@ -350,7 +352,8 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                         <span v-if="!run">{{ t('c_setup.step5_simulate.no_run', 'No simulation run yet') }}</span>
                         <span v-else>{{ t('c_setup.step5_simulate.run_label', 'Run') }} {{ run.id.slice(0, 8) }} · {{ run.status }}<span v-if="run.phase && run.status === 'running'"> · {{ run.phase }}</span><span v-if="run.halt_requested && run.status !== 'halted'"> · {{ t('c_setup.step5_simulate.halting', 'halting') }}</span></span>
                     </div>
-                    <div class="text-gray-400 text-sm mt-1" v-if="run">
+                    <SnapshotStamp :snapshot="data?.progress_snapshot" />
+                    <div class="text-gray-400 text-sm mt-1" v-if="run && !progressPending">
                         {{ t('c_setup.step5_simulate.ledger_summary', { done: n(ledger.done), running: n(ledger.running), pending: n(ledger.pending), review: n(ledger.review) }) }}
                     </div>
                     <!-- THE DIAL: what this run was created with, or what a new run will use -->
