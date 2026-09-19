@@ -27,6 +27,8 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue'
  */
 import StageBars from '@/Components/Progress/StageBars.vue'
 import SnapshotStamp from '@/Components/Progress/SnapshotStamp.vue'
+import SimTimingSummary from '@/Components/Progress/SimTimingSummary.vue'
+import { activityLabel, activitySeconds } from '@/lib/simWorkerActivity'
 import { csrfFetch } from '@/lib/csrf'
 
 /**
@@ -336,6 +338,8 @@ const statusTone = computed(() => {
                     <StageBars :stages="stages" :poll-ms="2000" />
                 </section>
 
+                <SimTimingSummary :timings="data.timings || []" />
+
                 <!-- WORKER STRIP — one honest line per live worker. -->
                 <section v-if="workers.length" class="rounded-lg border border-gray-700/50 bg-gray-900/30 p-3">
                     <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">
@@ -344,9 +348,9 @@ const statusTone = computed(() => {
                     <ul class="mt-2 space-y-1 font-mono text-xs text-gray-400">
                         <li v-for="w in workers" :key="w.id" class="flex items-baseline gap-2">
                             <span class="text-gray-600">{{ w.id }}</span>
-                            <span class="text-gray-300">{{ w.claim_type || t('c_operator_pages.sim_console.idle', 'idle') }}</span>
+                            <span class="text-gray-300">{{ activityLabel(w, t) }}</span>
                             <span class="truncate text-gray-400">{{ w.claim_label }}</span>
-                            <span v-if="w.claim_secs !== null" class="ml-auto text-gray-600">{{ w.claim_secs }}s</span>
+                            <span v-if="activitySeconds(w) != null" class="ml-auto text-gray-400">{{ activitySeconds(w) }}s {{ t('c_setup.worker_activity.in_state') }}</span>
                         </li>
                     </ul>
                 </section>

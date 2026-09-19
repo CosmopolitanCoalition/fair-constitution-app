@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import * as Vue from 'vue';
 import { renderToString } from '@vue/server-renderer';
 import { parse, compileScript } from '@vue/compiler-sfc';
+import * as workerActivity from '../../resources/js/lib/simWorkerActivity.js';
 
 // G1 — the Step 5 page surfaces the world-readiness rollup and gates the Lock
 // control on the guard. This also serves as the SFC syntax gate (no Vite dev
@@ -43,6 +44,7 @@ async function render(progress) {
         // carries a <Head title>); the stub renders it as an empty wrapper.
         if (name === '@inertiajs/vue3') return syn({ router: { visit() {} }, Head: stub });
         if (name.endsWith('/csrf')) return syn({ csrfFetch: async () => ({ ok: true, json: async () => ({}) }) });
+        if (name.endsWith('/simWorkerActivity')) return syn(workerActivity);
         return syn({ default: stub });
     });
     await mod.evaluate();

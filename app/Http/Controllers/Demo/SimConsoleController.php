@@ -144,6 +144,7 @@ class SimConsoleController extends Controller
             'stages' => $progress['stages'],
             'progress_snapshot' => array_intersect_key($progress, array_flip(['snapshot_at', 'snapshot_stale', 'snapshot_state'])),
             'workers' => $this->snap->lanes($run),
+            'timings' => $this->snap->timings($run),
             'live_items' => $this->liveItems($run),
             'review_items' => $this->snap->reviewItems($run),
             'world' => $this->world(),

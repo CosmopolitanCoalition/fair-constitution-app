@@ -317,6 +317,12 @@ class SimSnapshot
             ->map(fn ($w) => [
                 'id' => substr((string) $w->id, 0, 8),
                 'lane' => $w->lane,
+                // A pre-update worker with no claim is unknown, not idle.
+                'activity' => in_array($w->activity ?? null, ['acquiring', 'executing', 'waiting'], true)
+                    ? $w->activity : ($w->claim_type ? 'executing' : 'unknown'),
+                'activity_secs' => ($w->activity_started_at ?? $w->claim_started_at)
+                    ? max(0, (int) now()->diffInSeconds(\Carbon\Carbon::parse($w->activity_started_at ?? $w->claim_started_at), true))
+                    : null,
                 'claim_type' => $w->claim_type,
                 'claim_label' => $w->claim_label,
                 'claim_secs' => $w->claim_started_at
@@ -363,19 +369,7 @@ class SimSnapshot
      */
     public function timings(SimRun $run): array
     {
-        return DB::table('sim_timings')
-            ->where('run_id', (string) $run->id)
-            ->get()
-            ->map(fn ($t) => [
-                'part' => $t->part,
-                'count' => (int) $t->count,
-                'avg_ms' => $t->count > 0 ? round($t->total_us / $t->count / 1000, 2) : 0.0,
-                'max_ms' => round($t->max_us / 1000, 2),
-                'total_s' => round($t->total_us / 1_000_000, 1),
-            ])
-            ->sortByDesc('total_s')
-            ->values()
-            ->all();
+        return app(SimTimingSnapshot::class)->rows($run);
     }
 
     /** The sim's worker target for this host (the pool tile). */

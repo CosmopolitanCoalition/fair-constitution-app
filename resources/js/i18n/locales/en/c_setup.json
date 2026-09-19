@@ -1036,5 +1036,18 @@
   "progress_snapshot.updated": "Progress measured at {time}",
   "progress_snapshot.refreshing": "Refreshing counts…",
   "progress_snapshot.computing": "Measuring progress…",
-  "progress_snapshot.cadence": "Live worker activity. Progress counts are shared across viewers and refreshed every 10 seconds."
+  "progress_snapshot.cadence": "Live worker activity. Progress counts are shared across viewers and refreshed every 10 seconds.",
+  "worker_activity.acquiring": "Acquiring work",
+  "worker_activity.executing": "Executing items",
+  "worker_activity.waiting": "No claim available · checking phase",
+  "worker_activity.unknown": "Activity not reported",
+  "worker_activity.housekeeping": "Between items (housekeeping)",
+  "worker_activity.in_state": "in this state",
+  "worker_activity.recent_heading": "Recent worker timings",
+  "worker_activity.recent_note": "Average time per reported operation over the latest available window, up to 60 seconds. Counters arrive in batches. A quick execution can finish between dashboard polls.",
+  "worker_activity.samples": "{count} samples over {seconds}s",
+  "worker_activity.measuring": "Collecting a recent sample…",
+  "worker_activity.sampled": "Timings sampled at {time}",
+  "worker_activity.all_run_details": "Cumulative averages and totals for the entire run",
+  "worker_activity.timing_note": "These totals include earlier performance. Use the recent averages above to compare changes. Acquisition is measured separately; between-item time covers housekeeping, not the database claim. Stage and substage timers overlap, so their bars are not exclusive shares of worker utilization."
 }

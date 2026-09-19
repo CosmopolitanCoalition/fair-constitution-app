@@ -66,6 +66,8 @@ class SimWorkerJob implements ShouldQueue
 
     private bool $stopping = false;
 
+    private bool $reportsActivity = false;
+
     public function __construct(public readonly string $runId)
     {
         $this->onQueue('sim');
@@ -79,6 +81,10 @@ class SimWorkerJob implements ShouldQueue
             return;
         }
 
+        // Probe once per worker, never per claim. Older installations can
+        // keep working until the additive lease migration is applied.
+        $this->reportsActivity = \Illuminate\Support\Facades\Schema::hasColumns('sim_worker_leases', ['activity', 'activity_started_at']);
+
         $token = (string) Str::uuid();
         $startedAt = microtime(true);
         $failures = 0;
@@ -90,6 +96,7 @@ class SimWorkerJob implements ShouldQueue
             'run_id' => $run->id,
             'started_at' => now(),
             'last_seen_at' => now(),
+            ...$this->activityFields('acquiring'),
         ]);
 
         if (function_exists('pcntl_signal')) {
@@ -122,8 +129,19 @@ class SimWorkerJob implements ShouldQueue
                     break;
                 }
 
-                // The gap between one claim's end and the next acquisition — a
-                // lane sitting idle is a lane not working (Step 4's lesson).
+                // Move the existing clear-claim write to BEFORE acquisition.
+                // This adds no per-item lease write and makes a blocked claim
+                // visible as acquiring, rather than falsely reporting idle.
+                DB::table('sim_worker_leases')->where('id', $token)->update([
+                    'claim_type' => null,
+                    'claim_label' => null,
+                    'claim_started_at' => null,
+                    'last_seen_at' => now(),
+                    ...$this->activityFields('acquiring'),
+                ]);
+
+                // Housekeeping between items (run refresh, reporting, timer
+                // flush). Acquisition is timed SEPARATELY below.
                 if ($prevEnd !== null) {
                     SimTimer::record('lane.between_claims', (int) round((hrtime(true) - $prevEnd) / 1000));
                 }
@@ -133,6 +151,10 @@ class SimWorkerJob implements ShouldQueue
                 SimTimer::close('lane.claim_next');
 
                 if ($item === null) {
+                    DB::table('sim_worker_leases')->where('id', $token)->update([
+                        'last_seen_at' => now(),
+                        ...$this->activityFields('waiting'),
+                    ]);
                     // Nothing to claim in the current phase — it has drained,
                     // or every remaining item is running under a sibling worker.
                     // Kick the pump NOW so the phase advances the instant its
@@ -151,6 +173,7 @@ class SimWorkerJob implements ShouldQueue
                     'claim_label' => $this->label($item),
                     'claim_started_at' => now(),
                     'last_seen_at' => now(),
+                    ...$this->activityFields('executing'),
                 ]);
 
                 // Per-stage timing: `stage.<kind>` is the whole execute for that
@@ -211,13 +234,6 @@ class SimWorkerJob implements ShouldQueue
                     }
                 }
 
-                DB::table('sim_worker_leases')->where('id', $token)->update([
-                    'claim_type' => null,
-                    'claim_label' => null,
-                    'claim_started_at' => null,
-                    'last_seen_at' => now(),
-                ]);
-
                 $prevEnd = hrtime(true);
                 if (++$claimsSinceFlush >= 25) {
                     SimTimer::flush((string) $run->id);
@@ -232,6 +248,13 @@ class SimWorkerJob implements ShouldQueue
             } catch (\Throwable) {
             }
         }
+    }
+
+    private function activityFields(string $activity): array
+    {
+        return $this->reportsActivity
+            ? ['activity' => $activity, 'activity_started_at' => now()]
+            : [];
     }
 
     /** Dispatch one claimed unit to its stage. */

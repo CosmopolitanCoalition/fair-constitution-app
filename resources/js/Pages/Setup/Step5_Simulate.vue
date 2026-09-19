@@ -7,6 +7,8 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import StageBars from '@/Components/Progress/StageBars.vue'
 import SnapshotStamp from '@/Components/Progress/SnapshotStamp.vue'
+import SimTimingSummary from '@/Components/Progress/SimTimingSummary.vue'
+import { workerActivity, workerBusy, activityLabel, activitySeconds } from '@/lib/simWorkerActivity'
 import { csrfFetch } from '@/lib/csrf'
 
 const { t } = useI18n()
@@ -57,7 +59,7 @@ const readiness = computed(() => data.value?.readiness ?? { run_done: false, ver
 const SHOW_TIMINGS = true
 const timingMax = computed(() => Math.max(1, ...timings.value.map(t => t.total_s || 0)))
 const TIMING_LABELS = {
-    'lane.between_claims': t('c_setup.step5_simulate.timing_between_claims', 'Between claims (idle + acquire)'),
+    'lane.between_claims': t('c_setup.worker_activity.housekeeping'),
     'lane.claim_next': t('c_setup.step5_simulate.timing_claim_next', 'Claim acquisition'),
     'stage.cohort_scope': t('c_setup.step5_simulate.timing_cohort', 'Cohorts (who lives where)'),
     'stage.identity_batch': t('c_setup.step5_simulate.timing_identity', 'Identities (minting people)'),
@@ -132,12 +134,13 @@ function layerTitle(l) {
 // ── Lane strip ───────────────────────────────────────────────────────────────
 const warn = computed(() => run.value?.lane_warn_seconds ?? [30, 120])
 function laneSecs(w) {
-    if (w.claim_secs == null) return null
-    return w.claim_secs + Math.floor((nowTick.value - pollStamp.value) / 1000)
+    const seconds = activitySeconds(w)
+    if (seconds == null) return null
+    return seconds + Math.floor((nowTick.value - pollStamp.value) / 1000)
 }
 function laneLevel(w) {
     const s = laneSecs(w)
-    if (s == null || !w.claim_type) return 'normal'
+    if (s == null || !workerBusy(w)) return 'normal'
     if (s >= warn.value[1]) return 'red'
     if (s >= warn.value[0]) return 'amber'
     return 'normal'
@@ -161,7 +164,7 @@ const KIND_LABELS = {
     stipend_scope: t('c_setup.step5_simulate.kind_stipend', 'Paying the civic stipend'),
     verify_scope: t('c_setup.step5_simulate.kind_verify', 'Verifying the world'),
 }
-function kindLabel(k) { return KIND_LABELS[k] ?? (k || t('c_setup.step5_simulate.between_claims', 'between claims')) }
+function kindLabel(k) { return KIND_LABELS[k] ?? (k || t('c_setup.worker_activity.unknown')) }
 function admLabel(a) {
     const labels = [
         t('c_setup.step5_simulate.adm_0', 'Planet'), t('c_setup.step5_simulate.adm_1', 'Countries'),
@@ -171,17 +174,16 @@ function admLabel(a) {
     ]
     return labels[a] ?? (a != null ? t('c_setup.step5_simulate.adm_level', { level: a }) : '')
 }
-// One section per claim kind, idle lanes last.
+// Group executing lanes by kind; acquisition and waiting are explicit states.
 const laneSections = computed(() => {
-    const byKind = {}
-    const idle = []
+    const groups = new Map()
     for (const w of lanes.value) {
-        if (!w.claim_type) { idle.push(w); continue }
-        ;(byKind[w.claim_type] ??= []).push(w)
+        const executing = workerActivity(w) === 'executing'
+        const key = executing ? `kind:${w.claim_type}` : `activity:${workerActivity(w)}`
+        if (!groups.has(key)) groups.set(key, { key, title: executing ? kindLabel(w.claim_type) : activityLabel(w, t), list: [] })
+        groups.get(key).list.push(w)
     }
-    const sections = Object.entries(byKind).map(([kind, list]) => ({ key: kind, title: kindLabel(kind), list }))
-    if (idle.length) sections.push({ key: 'idle', title: t('c_setup.step5_simulate.lane_section_idle', 'Between claims'), list: idle })
-    return sections
+    return [...groups.values()]
 })
 
 async function poll() {
@@ -493,7 +495,9 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             <div class="text-gray-400 text-xs mt-1.5">{{ t('c_setup.step5_simulate.inactive_note', 'The simulation never mints more people than a place has real residents. These places close as done. They are not errors.') }}</div>
         </section>
 
-        <!-- Lane strip: grouped by kind, warn-coloured -->
+        <SimTimingSummary v-if="run" :timings="timings" />
+
+        <!-- Lane strip: grouped by activity and kind, warn-coloured -->
         <section v-if="lanes.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
             <h2 class="text-white font-semibold mb-3">{{ t('c_setup.step5_simulate.lanes_heading', 'Lanes') }}
                 <span class="text-gray-400 font-normal text-sm">{{ t('c_setup.step5_simulate.lanes_sub', { live: lanes.length, pool: run?.pool ?? '—' }) }}</span>
@@ -508,19 +512,19 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                             <div class="flex items-center justify-between gap-3">
                                 <span class="flex items-center gap-2 min-w-0">
                                     <span class="w-1.5 h-1.5 rounded-full shrink-0"
-                                          :class="w.claim_type ? [laneTone[laneLevel(w)].dot, 'animate-pulse'] : 'bg-gray-600'" aria-hidden="true"></span>
-                                    <span v-if="w.claim_type" class="truncate min-w-0" :class="laneTone[laneLevel(w)].label">
-                                        {{ w.claim_label || kindLabel(w.claim_type) }}
+                                          :class="workerBusy(w) ? [laneTone[laneLevel(w)].dot, 'animate-pulse'] : 'bg-gray-600'" aria-hidden="true"></span>
+                                    <span v-if="workerActivity(w) === 'executing'" class="truncate min-w-0" :class="laneTone[laneLevel(w)].label">
+                                        {{ activityLabel(w, t) }} · {{ w.claim_label || kindLabel(w.claim_type) }}
                                     </span>
-                                    <span v-else class="text-gray-400 italic">{{ t('c_setup.step5_simulate.between_claims', 'between claims') }}</span>
+                                    <span v-else class="text-gray-400 italic">{{ activityLabel(w, t) }}</span>
                                 </span>
                                 <span class="flex items-center gap-2 tabular-nums shrink-0" :class="laneTone[laneLevel(w)].clock">
-                                    <span v-if="w.claim_type">{{ fmtSecs(laneSecs(w)) }} {{ t('c_setup.step5_simulate.on_claim', 'on claim') }}<span v-if="laneLevel(w) !== 'normal'"> ({{ laneLevel(w) }})</span></span>
+                                    <span v-if="laneSecs(w) != null">{{ fmtSecs(laneSecs(w)) }} {{ t('c_setup.worker_activity.in_state') }}<span v-if="laneLevel(w) !== 'normal'"> ({{ laneLevel(w) }})</span></span>
                                     <span class="font-mono text-gray-600">{{ w.id }}</span>
                                 </span>
                             </div>
                             <div class="h-1 bg-gray-900 rounded overflow-hidden mt-1.5">
-                                <div v-if="w.claim_type" class="h-full w-1/4 rounded animate-pulse" :class="laneTone[laneLevel(w)].pulse"></div>
+                                <div v-if="workerBusy(w)" class="h-full w-1/4 rounded animate-pulse" :class="laneTone[laneLevel(w)].pulse"></div>
                                 <div v-else class="h-full w-0"></div>
                             </div>
                         </li>
@@ -532,9 +536,9 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
         <!-- Timing: where the time goes, across all lanes -->
         <section v-if="SHOW_TIMINGS && timings.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
             <h2 class="text-white font-semibold mb-1">{{ t('c_setup.step5_simulate.timing_heading', 'Timing') }}
-                <span class="text-gray-400 font-normal text-sm">{{ t('c_setup.step5_simulate.timing_sub', 'where the time goes · avg per part, total across all lanes') }}</span>
+                <span class="text-gray-400 font-normal text-sm">{{ t('c_setup.worker_activity.all_run_details') }}</span>
             </h2>
-            <p class="text-gray-400 text-xs mb-3" v-html="t('c_setup.step5_simulate.timing_note', 'The bar is each part\'s share of total lane-seconds. Watch <span class=&quot;text-amber-300&quot;>Between claims</span>: a lane that sits idle is a lane not working. Compare a stage\'s avg before and after a change to prove it faster or slower.')"></p>
+            <p class="text-gray-400 text-xs mb-3">{{ t('c_setup.worker_activity.timing_note') }}</p>
             <div class="space-y-1 text-xs overflow-x-auto" tabindex="0" role="region" :aria-label="t('c_setup.step5_simulate.timings_region', 'Timings (scrollable)')">
                 <div v-for="tm in timings" :key="tm.part" class="flex items-center gap-3 min-w-[20rem]">
                     <span class="w-56 shrink-0 truncate" :class="timingTone(tm.part)">{{ timingLabel(tm.part) }}</span>

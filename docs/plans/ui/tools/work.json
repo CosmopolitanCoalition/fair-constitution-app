@@ -17669,6 +17669,49 @@
         {
           "date": "2026-09-19",
           "note": "Local validation: 27 PHP tests, 173 assertions, no skips (including real concurrent DDL and EXPLAIN in nonce PostgreSQL schemas; SQLite cache fixtures). 27 JavaScript checks passed, including rendered snapshot labels and compilation of both affected Vue pages. Existing valid indexes retained, failed concurrent builds retried, resident order unchanged, plans use the lookup index without Sort at LIMIT 9 and 40. Production speedup remains for the demo-box measurement."
+        },
+        {
+          "date": "2026-09-19",
+          "note": "Remote operator reported 22105523 deployed: both indexes valid and used; candidate fielding 15-21 ms versus about 2450 ms, short election windows 649k-815k/hour versus about 85k/hour, zero review items in the sampled state. No PostgreSQL or Horizon restart needed for that patch."
+        }
+      ]
+    },
+    {
+      "id": "W-0460",
+      "title": "Index full simulation claim ordering and distinguish acquiring work from execution",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "done_when": "An additive concurrent index matches the full claim ordering; both dashboards distinguish acquisition from execution and show recent counter deltas; internal PostgreSQL, SQLite and rendered Vue checks pass; deployment instructions are committed.",
+      "depends_on": [],
+      "detail": "Authorized follow-up to the remote claim bottleneck report. Adds sim_items_claim_order_idx (run_id, kind, status, position, id), preserving claim SQL, SKIP LOCKED and worker counts. The index shipped separately as 5b132712. Phase 3 finished before delivery, so its production improvement was not measured. Later phases share SimClaims; compare acquisition within the same phase. Nullable worker lease activity fields distinguish acquiring, executing and no claim available; legacy workers report unknown when no claim is visible. Reuses existing per-item lease writes. Both progress pages show shared ten-second samples of up to sixty seconds of timing deltas; cumulative totals remain separately labelled. No local live-world migrations, restarts or run-control actions. Development and internal tests complete; remote deployment and measurement remain with the demo-box operator.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-19 remote work-claim bottleneck report and authorization to implement/push",
+          "title": "full claim ordering and accurate worker activity display",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "database/migrations/2026_09_19_200000_index_sim_claim_order.php",
+        "database/migrations/2026_09_19_201000_sim_worker_activity.php",
+        "app/Jobs/SimWorkerJob.php",
+        "app/Services/Demo/SimSnapshot.php",
+        "app/Services/Demo/SimTimingSnapshot.php",
+        "resources/js/Components/Progress/SimTimingSummary.vue",
+        "resources/js/lib/simWorkerActivity.js",
+        "tests/Feature/SimClaimPerformanceTest.php",
+        "tests/Unit/SimWorkerReportingTest.php",
+        "tests/js/simWorkerActivity.test.mjs",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-19",
+          "note": "23 PHP tests / 210 assertions passed, including the actual claim UPDATE on 20,000 synthetic tied-position items in nonce PostgreSQL schemas, absence of Sort after the index, concurrent claim uniqueness, valid and failed-build retries, and real worker activity before/after the lease migration. 19 JavaScript tests passed, including rendered activity states on both pages and recent timing summaries. No production speedup claimed. Index-only needs no restart; reporting code requires drained Horizon workers to refresh before operator resume."
         }
       ]
     }
