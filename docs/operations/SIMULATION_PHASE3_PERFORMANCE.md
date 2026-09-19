@@ -4,6 +4,90 @@ This is the deployment/measurement handoff for the demo-box Astra. The local
 developer changes code and pushes it; the demo-box operator owns application of
 these migrations and measurements on the running simulation.
 
+## Counter contention and persistent Redis sizing — 2026-09-20
+
+The operator reports `e9fc8ade` deployed, while `0dfba8f6` remains undeployed.
+The 219 Redis-related review items recovered successfully. Heartbeat-only writes
+fell about 66%, but no throughput gain was established. Comparable slowdowns
+preceded the heartbeat deployment (662–679k/hour at 21:58–21:59 versus deployment
+at 22:09). The 897k/hour versus 604–641k/hour comparison does not isolate a patch
+regression. Observed waits on the shared `sim_runs` counter row explain time
+outside the seating timer; audit contention remains another serialized cost.
+
+### Application change and benchmark deployment
+
+`SimWorldCounters` stores each worker's deltas in a separate durable PostgreSQL
+row. A DONE settlement and its delta commit together. Every 25 items, on worker
+exit and before a phase-ending pump kick, the worker merges its row into the
+shared run counters. Merge plus deletion is one transaction. A crash or failed
+merge leaves committed deltas for a later pump; phase advancement waits until
+they are merged. The pump reads only host-bounded batches. Existing run counters
+are the retained baseline; no historical recount or reset is required.
+
+New timings are `lane.item_total` (acquisition through settlement and periodic
+flush work), `lane.settle` and `lane.counter_flush`. Merge averages are per merge,
+not per item. These timings contain nested work and must not be summed. The
+existing `stage.*` timer still excludes settlement. A worker also recycles at the
+smaller of its existing 480 MiB bound and the host-derived Horizon heavy-worker
+limit, rather than exceeding the memory budget on small hosts.
+
+For a controlled comparison, **keep the demo's current Redis settings unchanged**:
+
+1. Halt and drain under operator control; pull the reviewed revision. This also
+   includes the still-undeployed `0dfba8f6` queue-generation change.
+2. Apply only the additive counter table migration:
+
+   ```bash
+   docker compose exec -T app php artisan migrate --force --isolated=1 --path=database/migrations/2026_09_20_003000_create_sim_world_counter_deltas.php
+   ```
+
+3. Refresh drained Horizon and scheduler processes, then resume the same run.
+   No frontend build, PostgreSQL restart, Redis recreation or sizing re-derive
+   is needed for this application benchmark. Without the migration, workers
+   retain the old immediate-counter fallback.
+4. Compare several direct settled-item throughput windows at unchanged worker
+   count and Redis settings. Include the new full-item timer, counter-flush
+   frequency, audit waiting and worker recycling. Verify pending deltas drain
+   on halt and compare bounded completed-item samples. A migration rollback
+   refuses to discard pending deltas; merge them before reverting the code.
+
+Validation: 52 focused PHP tests / 1,015 assertions passed. Fifty settlements
+produce two shared-counter updates in the fixture. Tests cover all counter
+types, reviewed items, retained baselines, atomic settlement rollback, interrupted
+merge/retry, orphan recovery without leases, overlapping mergers, legacy fallback,
+memory-derived recycling, and existing worker/pump/heartbeat regressions. No
+production throughput gain is claimed before remote measurement.
+
+### Durable sizing change (apply separately)
+
+Both installers now allocate persistent queue Redis with a 480 MiB minimum need
+and 2 GiB ceiling inside the existing closed host budget. Its data limit is 40%
+of its allocated cap: another 40% budgets dirty copy-on-write pages, leaving 20%
+for process/buffer overhead. Thus a funded minimum holds 192 MiB of data; a
+2 GiB allocation derives 819 MiB. This is a budgeting policy, not a guarantee
+against every possible workload. Redis documents the fork/copy-on-write behavior
+for [snapshots and AOF rewrites](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/).
+Persistence and eviction settings are unchanged. The open profile retains its
+existing queue data limit; explicit operator pins remain respected.
+
+PowerShell now re-detects automatic geodata/mapping profiles on explicit
+re-derive, as Bash does. Bash's printed re-derive instructions now cover every
+changed service cap. Re-derive deliberately writes configuration only; it does
+not itself apply caps to running containers. During separate maintenance, use
+the existing re-derive workflow, inspect the resulting ledger and recreate all
+affected services. Check current Redis memory before reducing its data limit.
+Do not replace the demonstrated live 2 GiB cap with the old 1 GiB configuration.
+
+The Linux boot reconciliation implementation already exists in `get-started.sh`.
+A missing installed unit is a deployment gap, not missing source code. The
+operator can use `./get-started.sh --install-boot-unit` on that Linux box; no unit
+was installed or remote setting changed by the developer.
+
+Both sizing suites passed 36 host/profile cases each, plus PowerShell automatic
+profile, open-profile and hand-pin checks. The Linux sweep verifies aggregate
+budget, minimum needs, positive/monotonic caps, lane funding and Redis headroom.
+Hosts below the service set's resident minimum continue to report that condition.
+
 ## Look-ahead: bounded queue generation for phases 6–11
 
 The later generators still searched past prior output on every batch. Training

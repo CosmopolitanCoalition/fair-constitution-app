@@ -28,7 +28,7 @@
 #
 # The needs are re-stated here on purpose (an independent statement of the contract, not a read
 # of the script's own variables): postgres 1024, app 128, etl 96, redis cache 256, redis queue
-# 226, matrix 160, login service (mas) 128, nginx 32, voice SFU 256, TLS edge 128, scheduler
+# 480 (192 MB queue + persistence headroom), matrix 160, login service (mas) 128, nginx 32, voice SFU 256, TLS edge 128, scheduler
 # 128 + 96 x (background commands + 1), Horizon = master + (supervisors + 2 x supervisors - 1)
 # x 64 + 2 x 192.
 #
@@ -89,7 +89,7 @@ DOCKER
   chmod +x "$ws/bin/"*
   ( cd "$ws" && PATH="$ws/bin:$PATH" bash get-started.sh --rederive > out.log 2>&1 < /dev/null ); RC=$?
 }
-val() { grep -E "^$1=" "$ws/.env" | tail -1 | cut -d= -f2 | tr -d 'mMB'; }
+val() { grep -E "^$1=" "$ws/.env" | tail -1 | cut -d= -f2 | tr -d 'mMbB'; }
 
 [[ "$TABLE_ONLY" == 1 ]] || echo "== the size-family gate: $(echo $CLOUD $LAN | wc -w | tr -d ' ') sizes x 3 profiles, supervisors=$SUPS, background commands=$BG =="
 printf '%-6s %-7s %-8s %7s | %6s %6s %6s %6s %6s %5s %5s %5s %4s %4s %4s %4s | %5s %6s | %s\n' \
@@ -114,7 +114,7 @@ for family in cloud lan; do
       # the services this box runs, their caps and needs
       names=(postgres horizon app etl scheduler rcache rqueue matrix mas nginx)
       caps=("$pg" "$hz" "$app" "$etl" "$sch" "$rc" "$rq" "$mtx" "$mas" "$ngx")
-      needs=(1024 "$need_hz" 128 96 "$NEED_SCHED" 256 226 160 128 32)
+      needs=(1024 "$need_hz" 128 96 "$NEED_SCHED" 256 480 160 128 32)
       if [[ "$family" == cloud ]]; then names+=(sfu edge); caps+=("$lk" "$edge"); needs+=(256 128); fi
       sum=0; sum_need=0
       for i in "${!caps[@]}"; do sum=$(( sum + caps[i] )); sum_need=$(( sum_need + needs[i] )); done
@@ -122,6 +122,8 @@ for family in cloud lan; do
       # L1, L3
       (( sum <= budget )) || breach "$tag: L1 caps ${sum}m exceed the budget ${budget}m"
       for i in "${!caps[@]}"; do (( caps[i] >= 8 )) || breach "$tag: L3 ${names[i]} cap is ${caps[i]}m"; done
+      rq_data=$(val REDIS_QUEUE_MAXMEMORY)
+      (( rq_data * 5 <= rq * 2 )) || breach "$tag: Redis data ${rq_data}m leaves insufficient persistence headroom in ${rq}m"
       # L2, L5
       if (( sum_need <= budget )); then
         regime="needs held"

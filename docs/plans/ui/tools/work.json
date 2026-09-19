@@ -17861,6 +17861,10 @@
         {
           "date": "2026-09-19",
           "note": "15 tests / 91 assertions passed: six SQLite heartbeat tests, seven reporting tests and two actual PostgreSQL worker-loop tests in disposable nonce schemas. Covers same-second bursts, timestamp boundaries, immediate activity reporting, long-item beats, backward clocks, rollback, different/missing leases, failed-write retry and legacy activity schema. No live-world records, remote access or simulation control changes."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Remote operator deployed e9fc8ade and recovered all 219 Redis-related reviews after an OOM. Heartbeat writes fell about 66%; no overall throughput gain established. Similar 662-679k/hour congestion preceded the patch, so the 897k vs 604-641k windows do not establish a regression. Shared run-counter lock waits identified outside the stage timer. 0dfba8f6 was not yet deployed."
         }
       ]
     },
@@ -17894,6 +17898,75 @@
         {
           "date": "2026-09-20",
           "note": "21 tests / 250 assertions passed in dedicated disposable PostgreSQL databases. All six cursor paths cover empty batches, halt/resume, duplicates across and within batches, settled target preservation, marker-free reconciliation and atomic rollback. Leaf stipend and enrolled verification semantics retained. Actual two-source training insert over 20,000 rows uses sim_items and elections primary keys without Seq Scan. Actual training gate query uses the existing actor index and distinguishes tracks. Existing counting, advisory-lock, barrier and audit regressions pass. No local-world or remote-demo changes."
+        }
+      ]
+    },
+    {
+      "id": "W-0466",
+      "title": "Batch simulation progress counters durably and time the full item loop",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Focused implementation and internal recovery/regression checks pass, with deployment and measurement instructions recorded.",
+      "detail": "Per-worker PostgreSQL delta rows replace each item's shared sim_runs increment. DONE and delta commit together. Workers merge every 25 claims and at exit/no-work; the pump recovers orphaned deltas in host-sized batches and waits before advancing a drained phase. Increment and deletion are atomic, preserving committed deltas after failed merges. Existing totals are retained. Adds lane.item_total, lane.settle and lane.counter_flush. Additive table migration required, then drained Horizon/scheduler refresh. Keep Redis settings fixed during remote remeasurement; no measured production gain claimed.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-20 heartbeat deployment, shared-counter waits and Redis sizing audit",
+          "title": "Phase 5 contention and Redis OOM findings",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Support/SimWorldCounters.php",
+        "app/Jobs/SimWorkerJob.php",
+        "app/Console/Commands/SimPumpCommand.php",
+        "database/migrations/2026_09_20_003000_create_sim_world_counter_deltas.php",
+        "tests/Feature/SimWorldCounterBatchTest.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "52 PHP tests / 1,015 assertions passed across counter durability/concurrency, worker and pump regressions, memory budgeting, heartbeat and reporting. Counter fixture settles 50 items with two shared-row merges; failure and rollback retain deltas. Bash and PowerShell each pass 36 host/profile sizing cases; PowerShell also checks automatic profile redetection and pins. All DB fixtures isolated; sizing uses stubbed Docker and configuration I/O. No live-world, remote, resize or service-control changes."
+        }
+      ]
+    },
+    {
+      "id": "W-0467",
+      "title": "Budget persistent queue Redis headroom and honor the worker recycle allocation",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Focused implementation and internal recovery/regression checks pass, with deployment and measurement instructions recorded.",
+      "detail": "Both host-sizing installers reserve persistence room: persistent queue data uses 40% of the allocated cap, with a 480 MiB need and 2 GiB ceiling within the existing closed-budget allocator. Open-profile data settings and explicit pins are retained. PowerShell redetects automatic profiles on re-derive; Bash re-derive output lists all affected service caps. SimWorkerJob uses the smaller of its 480 MiB bound and the host-derived Horizon recycle limit. Boot reconciliation code already exists; installing its missing Linux unit remains a deployment action. Sizing re-derive/recreation is separate from the application benchmark.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-20 heartbeat deployment, shared-counter waits and Redis sizing audit",
+          "title": "Phase 5 contention and Redis OOM findings",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "get-started.sh",
+        "get-started.ps1",
+        "app/Jobs/SimWorkerJob.php",
+        "tests/Unit/HostCapacityLanesTest.php",
+        "tests/deploy/test_sizing_family.sh",
+        "tests/deploy/test_queue_redis_sizing.ps1",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "52 PHP tests / 1,015 assertions passed across counter durability/concurrency, worker and pump regressions, memory budgeting, heartbeat and reporting. Counter fixture settles 50 items with two shared-row merges; failure and rollback retain deltas. Bash and PowerShell each pass 36 host/profile sizing cases; PowerShell also checks automatic profile redetection and pins. All DB fixtures isolated; sizing uses stubbed Docker and configuration I/O. No live-world, remote, resize or service-control changes."
         }
       ]
     }

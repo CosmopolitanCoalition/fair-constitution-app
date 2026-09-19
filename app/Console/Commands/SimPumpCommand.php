@@ -8,6 +8,7 @@ use App\Jobs\SimWorkerJob;
 use App\Services\AuditService;
 use App\Support\HostCapacity;
 use App\Support\SimClaims;
+use App\Support\SimWorldCounters;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -146,6 +147,9 @@ class SimPumpCommand extends Command
         }
 
         $run = $runs->first();
+
+        // Recover committed deltas left by a killed worker, also while halted.
+        if (SimWorldCounters::available()) { SimWorldCounters::flush((string) $run->id); }
 
         // 1. Supersede — one live run at a time; the oldest unfinished wins.
         foreach ($runs->slice(1) as $dupe) {
@@ -569,6 +573,15 @@ class SimPumpCommand extends Command
 
         if ($open) {
             return;
+        }
+
+        // A worker's DONE status and delta commit together. Do not finish a
+        // phase before all its durable progress has reached the headline row.
+        if (SimWorldCounters::available()) {
+            SimWorldCounters::flush((string) $run->id);
+            if (DB::table('sim_world_counter_deltas')->where('run_id', $run->id)->exists()) {
+                return; // another bounded pump pass (or the owning worker) merges it
+            }
         }
 
         // Skip phases not in the run's chosen scope (dependency-aware). The

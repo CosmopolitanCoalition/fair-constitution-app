@@ -332,7 +332,7 @@ function Configure-HostMemory {
     if ($cur -ne '') { $budgetPct = [int]$cur }
     $budgetMb = [int]($totalMb * $budgetPct / 100)
     $profile = Get-EnvValue 'CGA_MEM_PROFILE'
-    if ($profile -eq '') {
+    if ($profile -eq '' -or ($Rederive -and $profile -in @('geodata', 'mapping'))) {
         $profile = 'geodata'
         try {
             $probe = & docker compose exec -T postgres psql -U ($(Get-EnvValue 'DB_USERNAME'), 'fc_user' | Where-Object { $_ })[0] -d ($(Get-EnvValue 'DB_DATABASE'), 'fair_constitution' | Where-Object { $_ })[0] -t -A -c 'SELECT 1 FROM autoscale_runs LIMIT 1' 2>$null
@@ -386,7 +386,7 @@ function Configure-HostMemory {
     }
     if ($open) {
         # 'open' keeps its legacy uncapped posture (host size everywhere).
-        $rqMb = [int]((Clamp ($totalMb / 20.0) 192 512) * 100 / 85)
+        $rqDataMb = [int](Clamp ($totalMb / 20.0) 192 512)
     } else {
         [void]$svc.Add((Claim 'pg_mb'         1024            ($budgetMb * $sh.pg      / 1000) 262144 $true))
         [void]$svc.Add((Claim 'mem_horizon'   $needHorizon    ($budgetMb * $sh.horizon / 1000)  65536 $true))
@@ -394,7 +394,8 @@ function Configure-HostMemory {
         [void]$svc.Add((Claim 'mem_vite'      256             ($budgetMb * $sh.vite    / 1000)   4096 $runVite))
         [void]$svc.Add((Claim 'mem_etl'       96              ($budgetMb * $sh.etl     / 1000) 262144 $true))
         [void]$svc.Add((Claim 'rc_mb'         256             ($budgetMb * $sh.rcache  / 1000)  16384 $true))
-        [void]$svc.Add((Claim 'rq_mb'         226             ($budgetMb * $sh.rqueue  / 1000)   1024 $true))
+        # Persistent queue: 40% data + 40% copy-on-write + 20% overhead.
+        [void]$svc.Add((Claim 'rq_mb'         480             ($budgetMb * $sh.rqueue  / 1000)   2048 $true))
         [void]$svc.Add((Claim 'mem_matrix'    160             ($auxMb * 30 / 100)                4096 $true))
         [void]$svc.Add((Claim 'mem_scheduler' $needScheduler  ($auxMb * 40 / 100)                2048 $true))
         [void]$svc.Add((Claim 'mem_mas'       128             ($auxMb * 10 / 100)                1024 $true))
@@ -477,7 +478,7 @@ function Configure-HostMemory {
         PG_PARALLEL_MAINTENANCE = (Clamp ($cores / 4.0) 1 8).ToString()
         # The queue redis (volatile-ttl: TTL'd horizon metadata self-trims,
         # queue payloads never evict) sizes from its budget share.
-        REDIS_QUEUE_MAXMEMORY   = ([int]($rqMb * 0.85)).ToString() + 'mb'
+        REDIS_QUEUE_MAXMEMORY   = $(if ($open) { "${rqDataMb}mb" } else { ([int][Math]::Floor($rqMb * 0.40)).ToString() + 'mb' })
         PG_AUTOVACUUM_COST_LIMIT = (Clamp (200 * $cores / 2.0) 200 2000).ToString()
     }
 

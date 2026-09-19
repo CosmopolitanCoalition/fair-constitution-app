@@ -13,6 +13,24 @@ use Tests\TestCase;
  */
 class HostCapacityLanesTest extends TestCase
 {
+    public function test_simulation_recycles_at_the_budgeted_worker_limit(): void
+    {
+        $env = \Illuminate\Support\Env::getRepository();
+        $keys = ['CGA_AUTOSCALE_WORKERS', 'CGA_PROVISION_WORKERS', 'MEM_HORIZON'];
+        $old = array_combine($keys, array_map(fn ($key) => $env->get($key), $keys));
+        try {
+            $env->set('CGA_AUTOSCALE_WORKERS', '2');
+            $env->set('CGA_PROVISION_WORKERS', '2');
+            $env->set('MEM_HORIZON', HostCapacity::horizonNeedMb(2, HostCapacity::horizonMasterMemoryMb()).'m');
+            $method = new \ReflectionMethod(\App\Jobs\SimWorkerJob::class, 'memoryRecycleBytes');
+            $this->assertSame(256 * 1048576, $method->invoke(null));
+            $env->set('MEM_HORIZON', '65536m');
+            $this->assertSame(480 * 1048576, $method->invoke(null));
+        } finally {
+            foreach ($old as $key => $value) { $value === null ? $env->clear($key) : $env->set($key, $value); }
+        }
+    }
+
     public function test_the_supervisor_count_matches_the_horizon_config(): void
     {
         $this->assertSame(HostCapacity::SUPERVISORS, count(config('horizon.defaults')));

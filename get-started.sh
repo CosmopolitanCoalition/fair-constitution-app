@@ -382,7 +382,10 @@ configure_host_memory() {
     claim mem_vite       256               $(( budget_mb * sh_vite / 1000 ))      4096  "$run_vite"
     claim mem_etl        96                $(( budget_mb * sh_etl / 1000 ))     262144  1
     claim rc_mb          256               $(( budget_mb * sh_rcache / 1000 ))   16384  1
-    claim rq_mb          226               $(( budget_mb * sh_rqueue / 1000 ))    1024  1
+    # Persistent Redis needs copy-on-write room: data <= 40% of the cap,
+    # another 40% for dirty fork pages, 20% for overhead/buffers. A 192 MB
+    # queue therefore needs 480 MB; the large-host cap is 2 GiB, not 1 GiB.
+    claim rq_mb          480               $(( budget_mb * sh_rqueue / 1000 ))    2048  1
     # The aux pot's members. Needs are the measured warm residents: matrix
     # ~110 MB, the login service 102 MiB after a day (WoS beta 2026-09-19; its
     # old 48 floor had it killed as it warmed), nginx small, the SFU ~82 MiB
@@ -510,7 +513,7 @@ configure_host_memory() {
     write_derived MEM_REDIS_CACHE "${total_mb}m"
     write_derived MEM_REDIS_QUEUE "${total_mb}m"
     write_derived REDIS_CACHE_MAXMEMORY "$(clamp $(( total_mb / 10 )) 768 8192)mb"
-    rq_mb=$(clamp $(( total_mb / 20 )) 192 512); rq_mb=$(( rq_mb * 100 / 85 ))
+    rq_data_mb=$(clamp $(( total_mb / 20 )) 192 512)
     write_derived MEM_MATRIX    "${total_mb}m"
     write_derived MEM_SCHEDULER "${total_mb}m"
     write_derived MEM_MAS       "${total_mb}m"
@@ -550,7 +553,8 @@ configure_host_memory() {
   # untouched-TTL queue payloads never evict) sizes from its budget share;
   # the split itself is host-independent wiring, written once, never
   # rederived.
-  write_derived REDIS_QUEUE_MAXMEMORY "$(( rq_mb * 85 / 100 ))mb"
+  [ "$profile" = "open" ] || rq_data_mb=$(( rq_mb * 40 / 100 ))
+  write_derived REDIS_QUEUE_MAXMEMORY "${rq_data_mb}mb"
   write_derived PG_AUTOVACUUM_COST_LIMIT "$(clamp $(( 200 * cores / 2 )) 200 2000)"
   [ -n "$(get_env REDIS_QUEUE_HOST)" ] || set_env REDIS_QUEUE_HOST redis_queue
   set_env DERIVED_KEYS "$ledger"
@@ -579,9 +583,10 @@ if [ "$REDERIVE_ONLY" = "1" ]; then
   say "Re-deriving host-sized values (hand-pinned values — those removed from DERIVED_KEYS — stay untouched)..."
   configure_host_memory
   say "Done. Changed values apply on service RECREATE:"
+  say "  every capped service — its MEM_* share of the closed budget"
   say "  postgres  — POSTGRES_MEM_LIMIT + every PG_* value"
-  say "  redis_queue — REDIS_QUEUE_MAXMEMORY"
-  say "  docker compose up -d --force-recreate postgres redis_queue   (when the box is quiet)"
+  say "  redis pair — REDIS_*_MAXMEMORY + MEM_REDIS_*"
+  say "  docker compose up -d   (when the box is quiet; recreates changed services)"
   exit 0
 fi
 

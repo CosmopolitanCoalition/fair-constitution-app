@@ -14,6 +14,8 @@ use App\Services\Demo\Stages\IdentityStage;
 use App\Services\AuditService;
 use App\Support\SimClaims;
 use App\Support\SimTimer;
+use App\Support\SimWorldCounters;
+use App\Support\HostCapacity;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -68,6 +70,8 @@ class SimWorkerJob implements ShouldQueue
 
     private bool $reportsActivity = false;
 
+    private bool $batchesCounters = false;
+
     /** Last committed lease timestamp, in the database binding's precision. */
     private ?array $lastHeartbeat = null;
 
@@ -87,9 +91,11 @@ class SimWorkerJob implements ShouldQueue
         // Probe once per worker, never per claim. Older installations can
         // keep working until the additive lease migration is applied.
         $this->reportsActivity = \Illuminate\Support\Facades\Schema::hasColumns('sim_worker_leases', ['activity', 'activity_started_at']);
+        $this->batchesCounters = SimWorldCounters::available();
 
         $token = (string) Str::uuid();
         $startedAt = microtime(true);
+        $memoryRecycleBytes = self::memoryRecycleBytes();
         $failures = 0;
         $prevEnd = null;          // hrtime mark at the end of the last claim
         $claimsSinceFlush = 0;    // flush the timer every ~25 claims
@@ -119,10 +125,11 @@ class SimWorkerJob implements ShouldQueue
                     break;
                 }
 
-                if (memory_get_usage(true) > self::MEMORY_RECYCLE_BYTES) {
+                if (memory_get_usage(true) > $memoryRecycleBytes) {
                     break;
                 }
 
+                $itemStarted = hrtime(true);
                 // Re-read the run EVERY iteration: halt, pause and phase are all
                 // live state, and a worker that caches them keeps working after
                 // an operator has told the world to stop.
@@ -156,6 +163,7 @@ class SimWorkerJob implements ShouldQueue
                     $this->updateLease($token, [
                         ...$this->activityFields('waiting'),
                     ]);
+                    if ($this->batchesCounters) { SimWorldCounters::flush($this->runId, $token); }
                     // Nothing to claim in the current phase — it has drained,
                     // or every remaining item is running under a sibling worker.
                     // Kick the pump NOW so the phase advances the instant its
@@ -193,25 +201,7 @@ class SimWorkerJob implements ShouldQueue
                         : SimItem::STATUS_DONE;
                     $reason = $metrics['_reason'] ?? null;
                     unset($metrics['_verdict'], $metrics['_reason']);
-                    $this->settle($item->id, $verdict, $metrics, $reason);
-                    if ($verdict === SimItem::STATUS_DONE) {
-                        // Stamp the election an election_scope produced onto its
-                        // own race_id, so the counting mint binds a count item
-                        // to THIS election, not to every open election of the
-                        // jurisdiction (debt row 43). A scope that produced no
-                        // election (blocked, no board) leaves race_id null and
-                        // mints nothing, which is correct.
-                        if ($item->kind === 'election_scope' && ! empty($metrics['election_id'])) {
-                            DB::table('sim_items')->where('id', $item->id)
-                                ->update(['race_id' => (string) $metrics['election_id']]);
-                        }
-                        // O(1) world counters (G3): the pump maintains the
-                        // headline figures per committed item so the Step 5
-                        // poll reads them off the run row instead of scanning
-                        // users/legislatures/cohorts. Deltas, never the source
-                        // of truth — see SimSnapshot::computeWorld.
-                        $this->maintainWorldCounters($run, $item->kind, $metrics);
-                    }
+                    $this->settleWithCounters($run, $item, $verdict, $metrics, $reason, $token);
                     $failures = 0;
                 } catch (\Throwable $e) {
                     SimTimer::close($part); // no-op if already closed
@@ -230,22 +220,28 @@ class SimWorkerJob implements ShouldQueue
                     ]);
 
                     if ($failures >= self::MAX_CONSECUTIVE_FAILURES) {
-                        break; // infrastructure is unwell; the pump reseeds shortly
+                        $this->stopping = true; // exit after timing/flush; pump reseeds
                     }
                 }
 
-                $prevEnd = hrtime(true);
                 if (++$claimsSinceFlush >= 25) {
+                    if ($this->batchesCounters) { SimWorldCounters::flush($this->runId, $token); }
                     SimTimer::flush((string) $run->id);
                     $claimsSinceFlush = 0;
                 }
+                SimTimer::record('lane.item_total', (int) ((hrtime(true) - $itemStarted) / 1000));
+                $prevEnd = hrtime(true);
             }
         } finally {
-            SimTimer::flush($this->runId); // survive the lane's exit
-            // Best effort: if the connection died, the pump culls stale leases.
             try {
-                DB::table('sim_worker_leases')->where('id', $token)->delete();
-            } catch (\Throwable) {
+                if ($this->batchesCounters) { SimWorldCounters::flush($this->runId, $token); }
+            } finally {
+                SimTimer::flush($this->runId); // survive the lane's exit
+                // Counter deltas outlive the lease if the worker or merge dies.
+                try {
+                    DB::table('sim_worker_leases')->where('id', $token)->delete();
+                } catch (\Throwable) {
+                }
             }
         }
     }
@@ -255,6 +251,12 @@ class SimWorkerJob implements ShouldQueue
         return $this->reportsActivity
             ? ['activity' => $activity, 'activity_started_at' => now()]
             : [];
+    }
+
+    private static function memoryRecycleBytes(): int
+    {
+        // Horizon checks its limit only when this long-lived job returns.
+        return min(self::MEMORY_RECYCLE_BYTES, HostCapacity::workerRecycleHeavyMb() * 1048576);
     }
 
     /** Dispatch one claimed unit to its stage. */
@@ -467,6 +469,30 @@ class SimWorkerJob implements ShouldQueue
             : null;
     }
 
+    private function settleWithCounters(SimRun $run, object $item, string $verdict, array $metrics, ?string $reason, string $token): void
+    {
+        $persist = function () use ($run, $item, $verdict, $metrics, $reason, $token): void {
+            $this->settle($item->id, $verdict, $metrics, $reason);
+            if ($verdict === SimItem::STATUS_DONE) {
+                // Counting must remain bound to the election this scope produced.
+                if ($item->kind === 'election_scope' && ! empty($metrics['election_id'])) {
+                    DB::table('sim_items')->where('id', $item->id)
+                        ->update(['race_id' => (string) $metrics['election_id']]);
+                }
+                $this->maintainWorldCounters($run, $item->kind, $metrics, $token);
+            }
+        };
+        SimTimer::open('lane.settle');
+        try {
+            // DONE and its durable counter delta commit or roll back together.
+            $hasCounters = $this->batchesCounters && in_array($item->kind,
+                ['identity_batch', 'election_scope', 'cohort_scope', 'seat_scope'], true);
+            $hasCounters ? DB::transaction($persist) : $persist();
+        } finally {
+            SimTimer::close('lane.settle');
+        }
+    }
+
     private function settle(string $itemId, string $status, array $metrics = [], ?string $reason = null): void
     {
         DB::table('sim_items')->where('id', $itemId)->update([
@@ -488,13 +514,13 @@ class SimWorkerJob implements ShouldQueue
      * Maintain the O(1) world counters on the run row (G3). Called once per
      * item that settles DONE. The counts come from the stage's own returned
      * metrics — IdentityStage separates minted from reused, so people_founded
-     * grows only by NEW rows. A crashed chunk can leave a counter off by one
-     * chunk; the figures that must be exact (chambers total, population sums)
-     * are recomputed per phase in SimSnapshot, never derived from these.
+     * grows only by NEW rows. With the delta migration, settlement and the
+     * counter delta are atomic, and merging is retry-safe after a worker crash.
+     * Older installations retain the previous immediate-increment fallback.
      *
      * @param array<string,mixed> $metrics
      */
-    private function maintainWorldCounters(SimRun $run, string $kind, array $metrics): void
+    private function maintainWorldCounters(SimRun $run, string $kind, array $metrics, ?string $token = null): void
     {
         if (! self::countersPresent()) {
             return; // additive migration not applied on this box — poll reads zeros
@@ -538,7 +564,11 @@ class SimWorkerJob implements ShouldQueue
             return;
         }
 
-        DB::table('sim_runs')->where('id', $run->id)->incrementEach($inc, ['updated_at' => now()]);
+        if ($this->batchesCounters && $token !== null) {
+            SimWorldCounters::record((string) $run->id, $token, $inc);
+        } else {
+            DB::table('sim_runs')->where('id', $run->id)->incrementEach($inc, ['updated_at' => now()]);
+        }
     }
 
     /** @var array<string,bool> keyed by connection name */
