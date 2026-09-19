@@ -71,6 +71,17 @@ class SimPumpCommand extends Command
     /** Session lock survives the Redis lock TTL; released on exit or DB disconnect. */
     public const ADVISORY_LOCK_KEY = 0x53494d50554d50; // SIMPUMP
 
+    /** Completed upstream rosters, traversed with the existing unique index. */
+    private const CURSOR_SOURCES = [
+        'counting' => 'election_scope',
+        'training' => 'seat_scope',
+        'governance' => 'seat_scope',
+        'judiciary' => 'governance_scope',
+        'civics' => 'judiciary_scope',
+        'stipends' => 'identity_batch',
+        'verifying' => 'cohort_scope',
+    ];
+
     private static function mintChunk(): int
     {
         return HostCapacity::enumerationChunk();
@@ -291,19 +302,67 @@ class SimPumpCommand extends Command
         return (bool) ($run->phase_timings[$run->phase]['worklist']['complete'] ?? false);
     }
 
-    private function mintCountingWorklist(SimRun $run): int
+    /**
+     * Phases 6–11 derive work only from a bounded, materialized source batch.
+     * Keep the existing eligibility rules; unique conflicts collapse both
+     * multi-chamber jurisdictions and items already present on an upgraded run.
+     */
+    public static function scopedMintSql(string $phase): string
     {
-        $state = $run->phase_timings['counting']['worklist'] ?? [];
+        $sourceKind = self::CURSOR_SOURCES[$phase] ?? throw new \InvalidArgumentException('Unknown cursor phase.');
+        $targetKind = match ($phase) {
+            'training' => 'training_scope', 'governance' => 'governance_scope',
+            'judiciary' => 'judiciary_scope', 'civics' => 'civics_scope',
+            'stipends' => 'stipend_scope', 'verifying' => 'verify_scope',
+            default => throw new \InvalidArgumentException('Not a jurisdiction-scoped phase.'),
+        };
+        $seated = in_array($phase, ['training', 'governance'], true);
+        $jurisdiction = $seated ? 'e.jurisdiction_id' : 's.jurisdiction_id';
+        // Cast the bounded source key, not the indexed elections primary key.
+        $join = $seated ? 'JOIN elections e ON e.id = s.unit_key::uuid' : '';
+        $eligible = match ($phase) {
+            // A leaf pays once; ancestors must not pay its residents again.
+            'stipends' => "s.status = 'done' AND NOT EXISTS (
+                SELECT 1 FROM jurisdictions ch
+                WHERE ch.parent_id = s.jurisdiction_id AND ch.deleted_at IS NULL)",
+            // Verify every enrolled chamber, even a cohort with a review verdict.
+            'verifying' => 'EXISTS (SELECT 1 FROM legislatures l
+                WHERE l.jurisdiction_id = s.jurisdiction_id AND l.deleted_at IS NULL)',
+            default => "s.status = 'done'",
+        };
+
+        return "WITH source_items AS MATERIALIZED (
+                    SELECT s.* FROM sim_items s
+                    WHERE s.run_id = ? AND s.kind = '{$sourceKind}'
+                      AND s.id IN (SELECT value::uuid FROM jsonb_array_elements_text(?::jsonb))
+                )
+                INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT DISTINCT ON ({$jurisdiction})
+                        gen_random_uuid(), ?, '{$targetKind}', 'pending',
+                        {$jurisdiction}, s.adm_level, {$jurisdiction}::text,
+                        s.position, 0, '{}', now(), now()
+                   FROM source_items s {$join}
+                  WHERE {$eligible}
+                  ORDER BY {$jurisdiction}, s.unit_key
+                 ON CONFLICT (run_id, kind, unit_key) DO NOTHING";
+    }
+
+    private function mintCursorWorklist(SimRun $run, string $phase): int
+    {
+        $state = $run->phase_timings[$phase]['worklist'] ?? [];
+        $sql = $phase === 'counting' ? self::countingMintSql() : self::scopedMintSql($phase);
         $total = 0;
         while (true) {
             $run->refresh();
-            if (! $run->isClaimable() || $run->phase !== 'counting') {
+            if (! $run->isClaimable() || $run->phase !== $phase) {
                 return $total;
             }
             // Existing unique (run_id, kind, unit_key) index is also this cursor's
             // ordered access path. Do NOT filter eligibility before the limit.
             $source = DB::table('sim_items')->where('run_id', $run->id)
-                ->where('kind', 'election_scope')
+                ->where('kind', self::CURSOR_SOURCES[$phase])
                 ->when(isset($state['cursor']), fn ($q) => $q->where('unit_key', '>', $state['cursor']))
                 ->orderBy('unit_key')->limit(self::mintChunk())->get(['id', 'unit_key']);
             if ($source->isEmpty()) {
@@ -312,8 +371,8 @@ class SimPumpCommand extends Command
             }
             // The inserted chunk and its cursor commit together. A crash cannot
             // advance past unwritten work; duplicates on upgrade are harmless.
-            $n = DB::transaction(function () use ($run, $source, &$state): int {
-                $n = DB::affectingStatement(self::countingMintSql(), [
+            $n = DB::transaction(function () use ($run, $source, $sql, &$state): int {
+                $n = DB::affectingStatement($sql, [
                     $run->id, json_encode($source->pluck('id')->all(), JSON_THROW_ON_ERROR), $run->id,
                 ]);
                 $state = [
@@ -325,14 +384,14 @@ class SimPumpCommand extends Command
                 return $n;
             });
             $total += $n;
-            $this->line("counting queue: {$state['scanned']} sources examined, {$state['minted']} new items");
+            $this->line("{$phase} queue: {$state['scanned']} sources examined, {$state['minted']} new items");
         }
     }
 
     /**
      * Mint the worklist for a phase we are entering. Bounded, individually
-     * committed chunks. Counting uses a durable source cursor and a unique
-     * conflict guard; other phases retain their existing NOT-EXISTS generator.
+     * committed chunks. Counting and phases 6–11 use durable source cursors
+     * and unique conflict guards; earlier phases retain their existing SQL.
      * A missing completion marker makes the next pump resume generation.
      *
      * Ordering is LARGEST-FIRST via `position`, carried over from the item the
@@ -340,8 +399,8 @@ class SimPumpCommand extends Command
      */
     private function mintWorklist(SimRun $run, string $phase): int
     {
-        if ($phase === 'counting') {
-            return $this->mintCountingWorklist($run);
+        if (isset(self::CURSOR_SOURCES[$phase])) {
+            return $this->mintCursorWorklist($run, $phase);
         }
         // Only stages whose worklist is derived post-hoc are minted here;
         // `cohort_scope` is enumerated by sim:start from the jurisdiction table.
@@ -404,168 +463,6 @@ class SimPumpCommand extends Command
                         SELECT 1 FROM sim_items x
                          WHERE x.run_id = ? AND x.kind = 'seat_scope'
                            AND x.unit_key = e.id::text
-                    )
-                  LIMIT ".self::mintChunk(),
-
-            // One governance item per JURISDICTION whose seating landed — keyed
-            // on the seat_scope done item, and per-jurisdiction (not per
-            // election) because the growth dial matures a chamber, which is a
-            // property of the place. GovernanceStage then files the real
-            // F-LEG-009/014/016 acts; the defers-with-reason gates inside it
-            // (bicameral Type B unseated, no delegatable executive, at target)
-            // mean a place that cannot yet grow is a cheap no-op, not a retry
-            // storm — the item still completes.
-            'governance' => "INSERT INTO sim_items
-                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
-                     position, est_cost, metrics, created_at, updated_at)
-                 SELECT gen_random_uuid(), ?, 'governance_scope', 'pending',
-                        j.jurisdiction_id, j.adm_level, j.jurisdiction_id::text,
-                        j.position, 0, '{}', now(), now()
-                   FROM (
-                       -- DISTINCT ON: a jurisdiction may have more than one
-                       -- election with a seated chamber (e.g. both chambers),
-                       -- but the growth dial matures the PLACE once — collapse
-                       -- to a single item per jurisdiction so one pass cannot
-                       -- mint duplicates before the NOT EXISTS guard sees them.
-                       SELECT DISTINCT ON (e.jurisdiction_id)
-                              e.jurisdiction_id, s.adm_level, s.position
-                         FROM elections e
-                         JOIN sim_items s
-                           ON s.run_id = ? AND s.kind = 'seat_scope'
-                          AND s.unit_key = e.id::text AND s.status = 'done'
-                        ORDER BY e.jurisdiction_id
-                   ) j
-                  WHERE NOT EXISTS (
-                        SELECT 1 FROM sim_items x
-                         WHERE x.run_id = ? AND x.kind = 'governance_scope'
-                           AND x.unit_key = j.jurisdiction_id::text
-                    )
-                  LIMIT ".self::mintChunk(),
-
-            // The bench (operator 2026-08-08 — the courtroom gap): one
-            // judiciary item per jurisdiction whose growth-dial item settled.
-            // JudiciaryStage files the real F-LEG-017 + per-seat F-LEG-021 and
-            // defers-with-reason where a place cannot yet form (leaf committee
-            // mode, unseated Type B half, no provisioned shell).
-            'judiciary' => "INSERT INTO sim_items
-                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
-                     position, est_cost, metrics, created_at, updated_at)
-                 SELECT gen_random_uuid(), ?, 'judiciary_scope', 'pending',
-                        s.jurisdiction_id, s.adm_level, s.jurisdiction_id::text,
-                        s.position, 0, '{}', now(), now()
-                   FROM sim_items s
-                  WHERE s.run_id = ? AND s.kind = 'governance_scope'
-                    AND s.status = 'done'
-                    AND NOT EXISTS (
-                        SELECT 1 FROM sim_items x
-                         WHERE x.run_id = ? AND x.kind = 'judiciary_scope'
-                           AND x.unit_key = s.jurisdiction_id::text
-                    )
-                  LIMIT ".self::mintChunk(),
-
-            // CENSUS-FLAVORED civics (2026-08-08, rubric B): one item per
-            // jurisdiction whose bench item settled — real per-capita rates,
-            // sampled rows, true counts in metrics (CivicsStage).
-            'civics' => "INSERT INTO sim_items
-                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
-                     position, est_cost, metrics, created_at, updated_at)
-                 SELECT gen_random_uuid(), ?, 'civics_scope', 'pending',
-                        s.jurisdiction_id, s.adm_level, s.jurisdiction_id::text,
-                        s.position, 0, '{}', now(), now()
-                   FROM sim_items s
-                  WHERE s.run_id = ? AND s.kind = 'judiciary_scope'
-                    AND s.status = 'done'
-                    AND NOT EXISTS (
-                        SELECT 1 FROM sim_items x
-                         WHERE x.run_id = ? AND x.kind = 'civics_scope'
-                           AND x.unit_key = s.jurisdiction_id::text
-                    )
-                  LIMIT ".self::mintChunk(),
-
-            // TRAINING (W7 item 7): one item per jurisdiction whose seating
-            // landed — DISTINCT ON so a two-chamber place trains once. Keyed on
-            // seat_scope so every seated place is trained BEFORE its governance /
-            // judiciary / civics acts run (the phase now sits between seating and
-            // governance); TrainingStage trains ALL of that jurisdiction's
-            // seated holder types that exist at this point — the chamber.
-            'training' => "INSERT INTO sim_items
-                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
-                     position, est_cost, metrics, created_at, updated_at)
-                 SELECT gen_random_uuid(), ?, 'training_scope', 'pending',
-                        j.jurisdiction_id, j.adm_level, j.jurisdiction_id::text,
-                        j.position, 0, '{}', now(), now()
-                   FROM (
-                       SELECT DISTINCT ON (e.jurisdiction_id)
-                              e.jurisdiction_id, s.adm_level, s.position
-                         FROM elections e
-                         JOIN sim_items s
-                           ON s.run_id = ? AND s.kind = 'seat_scope'
-                          AND s.unit_key = e.id::text AND s.status = 'done'
-                        ORDER BY e.jurisdiction_id
-                   ) j
-                  WHERE NOT EXISTS (
-                        SELECT 1 FROM sim_items x
-                         WHERE x.run_id = ? AND x.kind = 'training_scope'
-                           AND x.unit_key = j.jurisdiction_id::text
-                    )
-                  LIMIT ".self::mintChunk(),
-
-            // THE MONEY PLANE (W7 item 8): one stipend item per LEAF jurisdiction
-            // that minted residents. LEAF-ONLY (2026-09-07): with nested
-            // residency a parent's residents ARE its bound-up descendants, so a
-            // per-jurisdiction stipend paid every person once PER ANCESTOR (5-6x
-            // over-disbursement) AND turned the root's item into an O(all
-            // residents) serial hashed-ledger write that hung the phase
-            // (Poland's item disbursed to 70k in one 9-minute transaction,
-            // blocking every lane). A person receives ONE civic stipend, from
-            // the leaf they live in; ancestors do not re-pay their descendants.
-            'stipends' => "INSERT INTO sim_items
-                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
-                     position, est_cost, metrics, created_at, updated_at)
-                 SELECT gen_random_uuid(), ?, 'stipend_scope', 'pending',
-                        s.jurisdiction_id, s.adm_level, s.jurisdiction_id::text,
-                        s.position, 0, '{}', now(), now()
-                   FROM sim_items s
-                  WHERE s.run_id = ? AND s.kind = 'identity_batch'
-                    AND s.status = 'done'
-                    AND NOT EXISTS (
-                        SELECT 1 FROM jurisdictions ch
-                         WHERE ch.parent_id = s.jurisdiction_id
-                           AND ch.deleted_at IS NULL
-                    )
-                    AND NOT EXISTS (
-                        SELECT 1 FROM sim_items x
-                         WHERE x.run_id = ? AND x.kind = 'stipend_scope'
-                           AND x.unit_key = s.jurisdiction_id::text
-                    )
-                  LIMIT ".self::mintChunk(),
-
-            // THE ACCEPTANCE SCAN (G1): one verify_scope item per legislature-
-            // bearing jurisdiction in the run's OWN enrolled scope. Keyed over
-            // the run's cohort_scope items (the enrolled roster) — bounded to
-            // the run's own worklist, never a planet scan of jurisdictions — with
-            // an EXISTS on the jurisdiction's own legislatures FK so only
-            // chamber-bearing scopes are verified. NOT EXISTS makes a re-mint a
-            // no-op, so the do/while terminates when every in-scope
-            // legislature-bearing jurisdiction has its verify item (rows-inserted
-            // → 0, correct here because every SELECTed row IS inserted).
-            'verifying' => "INSERT INTO sim_items
-                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
-                     position, est_cost, metrics, created_at, updated_at)
-                 SELECT gen_random_uuid(), ?, 'verify_scope', 'pending',
-                        s.jurisdiction_id, s.adm_level, s.jurisdiction_id::text,
-                        s.position, 0, '{}', now(), now()
-                   FROM sim_items s
-                  WHERE s.run_id = ? AND s.kind = 'cohort_scope'
-                    AND EXISTS (
-                        SELECT 1 FROM legislatures l
-                         WHERE l.jurisdiction_id = s.jurisdiction_id
-                           AND l.deleted_at IS NULL
-                    )
-                    AND NOT EXISTS (
-                        SELECT 1 FROM sim_items x
-                         WHERE x.run_id = ? AND x.kind = 'verify_scope'
-                           AND x.unit_key = s.jurisdiction_id::text
                     )
                   LIMIT ".self::mintChunk(),
 

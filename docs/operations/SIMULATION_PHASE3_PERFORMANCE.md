@@ -4,6 +4,57 @@ This is the deployment/measurement handoff for the demo-box Astra. The local
 developer changes code and pushes it; the demo-box operator owns application of
 these migrations and measurements on the running simulation.
 
+## Look-ahead: bounded queue generation for phases 6–11
+
+The later generators still searched past prior output on every batch. Training
+and chamber growth also deduplicated the full seated-election roster before the
+outer LIMIT. `SimPumpCommand` now shares the existing counting cursor loop with
+all six remaining phases. It reads a host-sized source batch through the existing
+`(run_id, kind, unit_key)` unique index, then materializes only that batch for
+eligibility checks and joins. Inserts and cursor advancement commit together;
+zero eligible rows or duplicate-only batches still advance the source cursor.
+
+| Phase | Source roster | Eligibility retained |
+| --- | --- | --- |
+| 6 Training | Seating items | Done items with an election; one task per jurisdiction |
+| 7 Growing chambers | Seating items | Same one-per-jurisdiction rule |
+| 8 Seating courts | Chamber-growth items | Done upstream items |
+| 9 Civic life | Court-seating items | Done upstream items |
+| 10 Civic stipend | Identity items | Done items in leaves; live children exclude a parent |
+| 11 Verification | Enrolled cohort items | A non-deleted legislature exists, regardless of cohort verdict |
+
+Training and growth now cast the bounded source key to UUID instead of casting
+the election primary key to text. This permits indexed election joins. Duplicate
+jurisdictions across batches use the existing unique conflict guard. Existing
+pending, running or settled targets are never updated by generation.
+
+**Deployment:** halt and drain under operator control; pull `main`; refresh both
+Horizon and the scheduler so worker-triggered and scheduled pumps use the new
+code; resume the same run. No migration, frontend build or PostgreSQL restart is
+needed. Preserve existing completed worklist markers. An incomplete older queue
+with no cursor is reconciled from its sources, preserving every existing item.
+Do not clear a completed queue merely to benchmark this change.
+
+Measure queue-generation duration and `phase_timings[phase].worklist` progress
+(`cursor`, `scanned`, `minted`, `complete`) at the next natural phase transition.
+Confirm phase advancement waits for completion and work drain. Processing rates
+and per-stage timings remain separate measurements: this patch changes the queue
+generator, not the constitutional actions performed by each stage.
+
+Validation: 21 tests / 250 assertions pass in disposable PostgreSQL databases.
+All six new cursor paths cover empty first batches, halt/resume, duplicate
+jurisdictions within/across batches, pre-existing settled targets, reconciliation
+without a marker, and atomic insert/cursor rollback. Tests retain leaf-only
+stipends and verification of enrolled chambers even with reviewed cohort items.
+A two-source batch over 20,000 source items and elections uses both primary-key
+indexes with no sequential scan. Existing counting and pump-lock checks pass.
+
+Training-completion inspection found the existing actor index already supplies
+the equality lookup in `TrainingGateService::hasCompleted`. The actual query uses
+that index on a 20,000-row fixture and correctly distinguishes completed tracks.
+No extra audit index is added. Production cost for this lookup, other per-holder
+work and later-stage actions remains for the demo-box operator to measure.
+
 ## Follow-up: remove identical heartbeat-only writes
 
 `SimWorkerJob` now remembers the last successfully committed lease timestamp.

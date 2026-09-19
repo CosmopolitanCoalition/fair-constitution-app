@@ -17863,6 +17863,39 @@
           "note": "15 tests / 91 assertions passed: six SQLite heartbeat tests, seven reporting tests and two actual PostgreSQL worker-loop tests in disposable nonce schemas. Covers same-second bursts, timestamp boundaries, immediate activity reporting, long-item beats, backward clocks, rollback, different/missing leases, failed-write retry and legacy activity schema. No live-world records, remote access or simulation control changes."
         }
       ]
+    },
+    {
+      "id": "W-0465",
+      "title": "Extend bounded resumable queue generation to simulation phases 6 through 11",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "All remaining phase queues enumerate bounded upstream batches with atomic cursors, retain existing eligibility and deduplication, pass isolated recovery and query-plan checks, and have deployment instructions.",
+      "detail": "SimPumpCommand shares the counting cursor loop with training, governance, judiciary, civics, stipends and verifying. Host-derived source batches precede eligibility and joins, eliminating repeated whole-roster deduplication and target anti-joins. Training and growth cast bounded source keys to UUID so election joins can use the primary key. Existing unique conflicts preserve every previously created target; zero-insert batches still advance. Leaf-only stipends and verification of all enrolled chamber-bearing places remain unchanged. The actual training completion lookup uses the existing actor index on the private fixture, so no speculative audit index is added. Refresh drained Horizon and scheduler processes before remote resume; no migration or frontend build. Stage execution performance awaits live measurement.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-20 remote look-ahead recommendations for phases 6-11",
+          "title": "later queue generation and training completion lookups",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Console/Commands/SimPumpCommand.php",
+        "app/Services/Education/TrainingGateService.php",
+        "tests/Feature/SimPhaseQueueTest.php",
+        "tests/Constitutional/SimCountingMintScopeTest.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "21 tests / 250 assertions passed in dedicated disposable PostgreSQL databases. All six cursor paths cover empty batches, halt/resume, duplicates across and within batches, settled target preservation, marker-free reconciliation and atomic rollback. Leaf stipend and enrolled verification semantics retained. Actual two-source training insert over 20,000 rows uses sim_items and elections primary keys without Seq Scan. Actual training gate query uses the existing actor index and distinguishes tracks. Existing counting, advisory-lock, barrier and audit regressions pass. No local-world or remote-demo changes."
+        }
+      ]
     }
   ]
 }

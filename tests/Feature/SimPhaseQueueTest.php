@@ -9,6 +9,7 @@ use App\Support\SimTimer;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Illuminate\Console\OutputStyle;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -28,7 +29,7 @@ class SimPhaseQueueTest extends TestCase
             $this->markTestSkipped('Opt in to the disposable PostgreSQL queue fixture.');
         }
         $this->original = DB::getDefaultConnection();
-        config(['database.connections.phase_admin' => array_replace(config('database.connections.pgsql'), ['database' => 'postgres', 'name' => 'phase_admin'])]);
+        config(['database.connections.phase_admin' => array_replace(config('database.connections.pgsql'), ['database' => 'postgres', 'name' => 'phase_admin', 'url' => null])]);
         $admin = DB::connection('phase_admin');
         $this->assertSame('postgres', $admin->selectOne('SELECT current_database() AS name')->name);
         $this->fixture = 'phase_test_'.bin2hex(random_bytes(8));
@@ -149,6 +150,175 @@ class SimPhaseQueueTest extends TestCase
         $this->assertSame([], $run->fresh()->phase_timings);
         $this->assertTrue($this->invoke('ensureWorklist', $run->fresh()));
         $this->assertSame(2, DB::table('sim_items')->where('kind', 'count_election')->count());
+    }
+
+    public static function laterPhases(): array
+    {
+        return [
+            ['training', 'seat_scope', 'training_scope'],
+            ['governance', 'seat_scope', 'governance_scope'],
+            ['judiciary', 'governance_scope', 'judiciary_scope'],
+            ['civics', 'judiciary_scope', 'civics_scope'],
+            ['stipends', 'identity_batch', 'stipend_scope'],
+            ['verifying', 'cohort_scope', 'verify_scope'],
+        ];
+    }
+
+    private function uuid(int $value): string
+    {
+        return sprintf('00000000-0000-0000-0000-%012d', $value);
+    }
+
+    /** Same-place duplicates straddle batches; first batch has no eligible work. */
+    private function laterRoster(string $phase, string $sourceKind): SimRun
+    {
+        $run = $this->runModel();
+        $run->forceFill(['phase' => $phase])->save();
+        DB::statement('CREATE TABLE legislatures (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), jurisdiction_id uuid, deleted_at timestamptz)');
+        DB::statement('CREATE INDEX fixture_leg_jur ON legislatures(jurisdiction_id)');
+        DB::statement('CREATE TABLE jurisdictions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), parent_id uuid, deleted_at timestamptz)');
+        DB::statement('CREATE INDEX fixture_jur_parent ON jurisdictions(parent_id)');
+        foreach ([101, 102, 103, 103, 104, 104, 103, 105] as $i => $jurisdiction) {
+            $key = $this->uuid($i + 1);
+            $jur = $this->uuid($jurisdiction);
+            DB::table('elections')->insert(['id' => $key, 'jurisdiction_id' => $jur, 'status' => 'certified']);
+            DB::table('sim_items')->insert([
+                'id' => (string) Str::uuid(), 'run_id' => $run->id, 'kind' => $sourceKind,
+                'unit_key' => $key, 'jurisdiction_id' => $jur,
+                'status' => $i < 2 || ($phase === 'verifying' && $i === 4) ? 'review' : 'done',
+                'adm_level' => 2, 'position' => 97,
+            ]);
+        }
+        // Stipends exclude parents with live children, but not deleted children.
+        if ($phase === 'stipends') {
+            DB::table('sim_items')->where('run_id', $run->id)->where('unit_key', $this->uuid(1))->update(['status' => 'done']);
+        }
+        DB::table('jurisdictions')->insert([
+            ['parent_id' => $this->uuid(101), 'deleted_at' => null],
+            ['parent_id' => $this->uuid(103), 'deleted_at' => now()],
+        ]);
+        foreach ([102, 103, 103, 104, 105] as $jurisdiction) {
+            DB::table('legislatures')->insert(['jurisdiction_id' => $this->uuid($jurisdiction),
+                'deleted_at' => $jurisdiction === 102 ? now() : null]);
+        }
+        // A different run's source and an unenrolled chamber cannot leak in.
+        DB::table('sim_items')->insert(['id' => (string) Str::uuid(), 'run_id' => (string) Str::uuid(),
+            'kind' => $sourceKind, 'status' => 'done', 'unit_key' => $this->uuid(9),
+            'jurisdiction_id' => $this->uuid(106)]);
+        DB::table('legislatures')->insert(['jurisdiction_id' => $this->uuid(106)]);
+        DB::table('elections')->insert(['id' => $this->uuid(9), 'jurisdiction_id' => $this->uuid(106)]);
+
+        return $run;
+    }
+
+    #[DataProvider('laterPhases')]
+    public function test_later_queues_resume_after_empty_chunks_and_preserve_existing_work(string $phase, string $sourceKind, string $targetKind): void
+    {
+        $run = $this->laterRoster($phase, $sourceKind);
+        $existing = (string) Str::uuid();
+        DB::table('sim_items')->insert(['id' => $existing, 'run_id' => $run->id,
+            'kind' => $targetKind, 'status' => 'done', 'unit_key' => $this->uuid(103),
+            'jurisdiction_id' => $this->uuid(103), 'metrics' => '{"preserved":true}']);
+        $this->watch = true;
+        DB::listen(function ($query) use ($run) {
+            if ($this->watch && str_starts_with($query->sql, 'update "sim_runs"')) {
+                $this->watch = false;
+                DB::table('sim_runs')->where('id', $run->id)->update(['halt_requested_at' => now()]);
+            }
+        });
+        $this->assertFalse($this->invoke('ensureWorklist', $run));
+        $state = $run->fresh()->phase_timings[$phase]['worklist'];
+        $this->assertSame($this->uuid(2), $state['cursor']);
+        $this->assertSame(2, $state['scanned']);
+        $this->assertSame(0, $state['minted']);
+        $this->assertFalse($state['complete']);
+        $run->forceFill(['halt_requested_at' => null])->save();
+        $this->assertTrue($this->invoke('ensureWorklist', $run));
+        $state = $run->fresh()->phase_timings[$phase]['worklist'];
+        $this->assertSame(8, $state['scanned']);
+        $this->assertSame(2, $state['minted']);
+        $targets = DB::table('sim_items')->where('run_id', $run->id)->where('kind', $targetKind);
+        $this->assertEqualsCanonicalizing([$this->uuid(103), $this->uuid(104), $this->uuid(105)], $targets->pluck('jurisdiction_id')->all());
+        $retained = DB::table('sim_items')->where('id', $existing)->first();
+        $this->assertSame('done', $retained->status);
+        $this->assertSame(['preserved' => true], json_decode($retained->metrics, true));
+        $this->assertSame(2, (clone $targets)->where('status', 'pending')->where('position', 97)->where('adm_level', 2)->count());
+        // Missing markers on an old installation reconcile without rewriting targets.
+        $run->forceFill(['phase_timings' => []])->save();
+        $this->assertTrue($this->invoke('ensureWorklist', $run));
+        $this->assertSame(0, $run->fresh()->phase_timings[$phase]['worklist']['minted']);
+        $this->assertSame(3, $targets->count());
+    }
+
+    #[DataProvider('laterPhases')]
+    public function test_later_queue_insert_and_cursor_rollback_together(string $phase, string $sourceKind, string $targetKind): void
+    {
+        $run = $this->laterRoster($phase, $sourceKind);
+        // Resume after the deliberately ineligible first batch.
+        $run->forceFill(['phase_timings' => [$phase => ['worklist' => ['cursor' => $this->uuid(2), 'scanned' => 2, 'minted' => 0, 'complete' => false]]]])->save();
+        $this->watch = true;
+        DB::listen(function ($query) {
+            if ($this->watch && str_starts_with($query->sql, 'update "sim_runs"')) {
+                $this->watch = false;
+                throw new \RuntimeException('fixture interrupted chunk');
+            }
+        });
+        try {
+            $this->invoke('ensureWorklist', $run);
+            $this->fail('Fixture must interrupt the atomic chunk.');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('fixture interrupted chunk', $e->getMessage());
+        }
+        $this->assertSame(0, DB::table('sim_items')->where('kind', $targetKind)->count());
+        $this->assertSame($this->uuid(2), $run->fresh()->phase_timings[$phase]['worklist']['cursor']);
+        $this->assertTrue($this->invoke('ensureWorklist', $run->fresh()));
+        $this->assertSame(3, DB::table('sim_items')->where('kind', $targetKind)->count());
+    }
+
+    public function test_training_completion_lookup_uses_the_existing_actor_index(): void
+    {
+        DB::statement('CREATE TABLE audit_log (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), actor_user_id uuid, ref text, event text, rejected boolean, payload jsonb)');
+        DB::statement('CREATE INDEX audit_log_actor_user_id_index ON audit_log(actor_user_id)');
+        DB::statement("INSERT INTO audit_log (actor_user_id,ref,event,rejected,payload)
+            SELECT md5(g::text)::uuid, 'F-EDU-001', 'education.training_completed', false,
+                '{\"track_key\":\"legislature\"}'::jsonb FROM generate_series(1,20000) g");
+        DB::statement('ANALYZE audit_log'); // private fixture only
+        $user = (new \App\Models\User)->forceFill(['id' => md5('123')]);
+        $gate = app(\App\Services\Education\TrainingGateService::class);
+        $query = DB::pretend(fn () => $gate->hasCompleted($user, 'legislature'))[0];
+        $bindings = str_contains($query['query'], '?') ? $query['bindings'] : [];
+        $plan = json_encode(DB::select('EXPLAIN (FORMAT JSON) '.$query['query'], $bindings));
+        $this->assertStringContainsString('audit_log_actor_user_id_index', $plan);
+        $this->assertTrue($gate->hasCompleted($user, 'legislature'));
+        $this->assertFalse($gate->hasCompleted($user, 'judiciary'));
+    }
+
+    public function test_training_generation_joins_only_the_bounded_sources_by_index(): void
+    {
+        $run = $this->runModel();
+        DB::statement("INSERT INTO elections (id,jurisdiction_id,status)
+            SELECT md5(g::text)::uuid, md5((g+200000)::text)::uuid, 'certified'
+            FROM generate_series(1,20000) g");
+        DB::statement("INSERT INTO sim_items (id,run_id,kind,status,jurisdiction_id,unit_key,position)
+            SELECT md5((g+100000)::text)::uuid, ?::uuid, 'seat_scope', 'done',
+                md5((g+200000)::text)::uuid, (md5(g::text)::uuid)::text, 97
+            FROM generate_series(1,20000) g", [$run->id]);
+        DB::statement('ANALYZE elections'); DB::statement('ANALYZE sim_items');
+        $bindings = [$run->id, json_encode([md5('100001'), md5('100002')]), $run->id];
+        // ANALYZE executes only this two-source batch in the private database.
+        $plan = json_decode(DB::selectOne('EXPLAIN (ANALYZE, FORMAT JSON) '.SimPumpCommand::scopedMintSql('training'), $bindings)->{'QUERY PLAN'}, true);
+        $text = json_encode($plan);
+        $this->assertStringContainsString('elections_pkey', $text);
+        $this->assertStringContainsString('sim_items_pkey', $text);
+        $this->assertStringNotContainsString('Seq Scan', $text);
+        $walk = function (array $node) use (&$walk): void {
+            if (($node['Subplan Name'] ?? null) === 'CTE source_items') {
+                $this->assertSame(2, $node['Actual Rows']);
+            }
+            foreach ($node['Plans'] ?? [] as $child) { $walk($child); }
+        };
+        $walk($plan[0]['Plan']);
+        $this->assertSame(2, DB::table('sim_items')->where('kind', 'training_scope')->count());
     }
 
     public function test_a_second_pump_cannot_enter_after_the_cache_lock_expires(): void
