@@ -4,6 +4,39 @@ This is the deployment/measurement handoff for the demo-box Astra. The local
 developer changes code and pushes it; the demo-box operator owns application of
 these migrations and measurements on the running simulation.
 
+## Follow-up: remove identical heartbeat-only writes
+
+`SimWorkerJob` now remembers the last successfully committed lease timestamp.
+Acquiring, executing and waiting activity updates still write immediately. A
+stage's heartbeat callback skips its UPDATE only when it would send the exact
+same timestamp for the same lease. Comparison uses Laravel's actual date binding
+precision (seconds), so this introduces no longer heartbeat interval. Long-item
+callbacks still write whenever their bound timestamp changes. Failed writes,
+missing leases and writes inside a transaction cannot prime this cache.
+
+The purpose is to remove redundant database round trips and updates from fast
+items. This does not change audit locking, durability, claims, concurrency or
+stale-worker thresholds. The production throughput effect remains unmeasured.
+
+**Deployment:** under operator control, halt and drain the same run, pull `main`,
+refresh Horizon workers, then resume. This worker-only change needs no migration,
+frontend build, scheduler refresh or PostgreSQL restart.
+
+Compare direct settled-item throughput and timer differences over multiple
+windows at unchanged concurrency. Track `stage.seat_scope`, `lane.claim_next`,
+`audit.commit` and `audit.lock_wait`; the last two are nested, not additive.
+Where statement statistics are already available, compare heartbeat-only UPDATE
+calls per completed item separately from activity updates. No new statistics
+extension is required. Verify fresh leases and a bounded sample of completed
+election outcomes as before.
+
+Validation: 15 tests / 91 assertions pass. In-memory SQLite checks cover repeated
+callbacks within one stored second, second boundaries, immediate activity
+changes, long items, backward clock changes, rollback, missing/different leases,
+and retry after a failed write. Two existing PostgreSQL worker-loop checks pass
+in disposable nonce schemas, including installations without activity columns.
+No live-world records or remote-demo state were changed by this pass.
+
 ## Phase 5: active member count index
 
 The remote operator confirmed `c1e36516` deployed with valid sampled audit links.
@@ -49,9 +82,23 @@ WHERE run_id = '<run-uuid>' AND part IN
   ('seat.seated', 'stage.seat_scope', 'audit.commit', 'audit.lock_wait');
 ```
 
-Compare several counter-difference windows after the build finishes, at unchanged
-concurrency. The remote baseline rose from 18 ms to about 71 ms for the member
-count; no post-index production improvement is claimed yet.
+Remote operator result for `9d4e7bec`, at unchanged 73-worker concurrency:
+
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| Time-weighted throughput | 359,753/hour | 830,703/hour |
+| Member count (`seat.seated`) | 345.72–390.01 ms | 0.407–0.409 ms |
+| Full seating item | 587.47–632.09 ms | 286.21–292.23 ms |
+| Claim acquisition | 49.85–67.18 ms | 6.83–7.17 ms |
+
+The two before and two after windows show 2.31x throughput. They process different
+elections sequentially, not an identical replay. Counters flush in batches of
+25. The index built live in 3m 1s without halt or restart, became valid/ready,
+and changed the plan to an Index Only Scan. A bounded 100-election sample found
+no certification or seated-count discrepancies. At 21:40:37 UTC, 238,283 of
+914,453 items were complete with zero review items. Audit lock wait remained
+177.1–181.5 ms (about 62% of the stage). Its increase accompanied the higher
+throughput; it does not indicate a slower indexed count.
 
 Validation: 3 tests / 29 assertions pass in disposable `seat_index_test_*`
 databases. The bound-parameter count over a 20,010-row fixture changes from a

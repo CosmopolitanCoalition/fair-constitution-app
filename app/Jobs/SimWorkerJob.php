@@ -68,6 +68,9 @@ class SimWorkerJob implements ShouldQueue
 
     private bool $reportsActivity = false;
 
+    /** Last committed lease timestamp, in the database binding's precision. */
+    private ?array $lastHeartbeat = null;
+
     public function __construct(public readonly string $runId)
     {
         $this->onQueue('sim');
@@ -132,11 +135,10 @@ class SimWorkerJob implements ShouldQueue
                 // Move the existing clear-claim write to BEFORE acquisition.
                 // This adds no per-item lease write and makes a blocked claim
                 // visible as acquiring, rather than falsely reporting idle.
-                DB::table('sim_worker_leases')->where('id', $token)->update([
+                $this->updateLease($token, [
                     'claim_type' => null,
                     'claim_label' => null,
                     'claim_started_at' => null,
-                    'last_seen_at' => now(),
                     ...$this->activityFields('acquiring'),
                 ]);
 
@@ -151,8 +153,7 @@ class SimWorkerJob implements ShouldQueue
                 SimTimer::close('lane.claim_next');
 
                 if ($item === null) {
-                    DB::table('sim_worker_leases')->where('id', $token)->update([
-                        'last_seen_at' => now(),
+                    $this->updateLease($token, [
                         ...$this->activityFields('waiting'),
                     ]);
                     // Nothing to claim in the current phase — it has drained,
@@ -168,11 +169,10 @@ class SimWorkerJob implements ShouldQueue
                     break;
                 }
 
-                DB::table('sim_worker_leases')->where('id', $token)->update([
+                $this->updateLease($token, [
                     'claim_type' => $item->kind,
                     'claim_label' => $this->label($item),
                     'claim_started_at' => now(),
-                    'last_seen_at' => now(),
                     ...$this->activityFields('executing'),
                 ]);
 
@@ -440,11 +440,31 @@ class SimWorkerJob implements ShouldQueue
         }
     }
 
-    /** HEARTBEAT (W7 item 1): keep the lease fresh mid-item so a long claim is
-     * not mistaken for a dead worker. Mirrors ProvisionWorkerJob::touch. */
+    /** Keep long claims alive; repeated callbacks need not write identical timestamps. */
     private function touch(string $token): void
     {
-        DB::table('sim_worker_leases')->where('id', $token)->update(['last_seen_at' => now()]);
+        $this->updateLease($token, [], heartbeatOnly: true);
+    }
+
+    private function updateLease(string $token, array $patch, bool $heartbeatOnly = false): void
+    {
+        $connection = DB::connection();
+        // Compare the exact value Laravel would send, not a new heartbeat
+        // interval. Its normal date binding has second precision. Activity
+        // changes always write; only an identical heartbeat-only write skips.
+        $stamp = $connection->prepareBindings([now()])[0];
+        if ($heartbeatOnly && $this->lastHeartbeat === [$token, $stamp]) {
+            return;
+        }
+
+        $affected = $connection->table('sim_worker_leases')->where('id', $token)
+            ->update([...$patch, 'last_seen_at' => $stamp]);
+
+        // A transaction may roll back. Never use an uncommitted heartbeat
+        // (or a missing lease) to suppress a later durable write.
+        $this->lastHeartbeat = $affected > 0 && $connection->transactionLevel() === 0
+            ? [$token, $stamp]
+            : null;
     }
 
     private function settle(string $itemId, string $status, array $metrics = [], ?string $reason = null): void

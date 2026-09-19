@@ -17805,7 +17805,7 @@
       "blocker": "none",
       "depends_on": [],
       "done_when": "An additive concurrent migration matches SeatingStage member-count filtering; isolated PostgreSQL plans use the index and counts remain correct; retry and rollback checks pass; deployment instructions are committed.",
-      "detail": "Confirmed the actual SeatingStage query filters election_id, elected/seated status and deleted_at IS NULL. Adds legislature_members_active_election_idx on election_id with exactly that partial predicate. No application query, certification, simulation control or worker-count changes. Migration is nontransactional and concurrent, retains a valid existing index, and recovers an inactive invalid build. Index-only deployment needs no service restart or frontend assets. Demo-box operator owns live application and measurement; no production speedup claimed.",
+      "detail": "Confirmed the actual SeatingStage query filters election_id, elected/seated status and deleted_at IS NULL. Adds legislature_members_active_election_idx on election_id with exactly that partial predicate. No application query, certification, simulation control or worker-count changes. Migration is nontransactional and concurrent, retains a valid existing index, and recovers an inactive invalid build. Index-only deployment needs no service restart or frontend assets. Demo-box operator deployed 9d4e7bec and confirmed 2.31x throughput at unchanged 73-worker concurrency; see measured history.",
       "sources": [
         {
           "list": "operator",
@@ -17824,6 +17824,43 @@
         {
           "date": "2026-09-19",
           "note": "3 tests / 29 assertions passed against disposable databases only. On 20,010 fixture rows, the bound-parameter count changes from Seq Scan to the new index with identical results. Valid index retained on rerun, invalid concurrent build recovered, down removes only the new index, and status/soft-delete changes keep counts correct. No live-world migration was applied."
+        },
+        {
+          "date": "2026-09-19",
+          "note": "Remote operator deployed 9d4e7bec and built the index live in 3m 1s without halt or restart. Two-window time-weighted throughput rose from 359,753/hour to 830,703/hour. Member count fell from 345.72-390.01 ms to 0.407-0.409 ms; planner uses Index Only Scan. All 100 sampled election outcomes match certification and active-member counts. At 21:40:37 UTC, 238,283/914,453 items complete, zero review. Audit lock wait remains 177.1-181.5 ms. Sequential production windows, not an identical replay."
+        }
+      ]
+    },
+    {
+      "id": "W-0464",
+      "title": "Remove redundant simulation heartbeat writes at the same stored timestamp",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Identical heartbeat-only writes are skipped without extending the heartbeat interval; activity transitions and rollback safety remain intact; focused tests pass and deployment instructions are committed.",
+      "detail": "SimWorkerJob compares each heartbeat to the last successfully committed timestamp for the same lease, using the exact Laravel date binding precision. Activity writes always execute and also refresh the remembered timestamp. A callback writing an identical value skips the redundant UPDATE. Different timestamps still write immediately; missing rows, failed writes and transactional writes do not prime the cache. Audit semantics, concurrency, reclaim thresholds and long-item callbacks remain unchanged. Refresh drained Horizon workers for deployment. No migration or frontend build. Production effect awaits remote measurement.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-19 Phase 5 index benchmark and heartbeat-write finding",
+          "title": "redundant heartbeat updates after removing the member-count scan",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Jobs/SimWorkerJob.php",
+        "tests/Unit/SimWorkerHeartbeatTest.php",
+        "tests/Unit/SimWorkerReportingTest.php",
+        "tests/Feature/SimClaimPerformanceTest.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-19",
+          "note": "15 tests / 91 assertions passed: six SQLite heartbeat tests, seven reporting tests and two actual PostgreSQL worker-loop tests in disposable nonce schemas. Covers same-second bursts, timestamp boundaries, immediate activity reporting, long-item beats, backward clocks, rollback, different/missing leases, failed-write retry and legacy activity schema. No live-world records, remote access or simulation control changes."
         }
       ]
     }
