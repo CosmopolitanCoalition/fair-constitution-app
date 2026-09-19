@@ -477,6 +477,19 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             </div>
         </section>
 
+        <!-- LAWFUL INACTIVE places (operator ruling 2026-09-19): the simulation
+             never mints more people than a place has real residents, and zero is
+             zero. These places close DONE with no election. Counted, not errors. -->
+        <section v-if="run && ((world.places_zero_population ?? 0) + (world.places_too_few_residents ?? 0)) > 0"
+                 class="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6">
+            <div class="text-gray-400 text-xs uppercase tracking-wide">{{ t('c_setup.step5_simulate.inactive_heading', 'Places with no election') }}</div>
+            <div class="flex flex-wrap gap-x-8 gap-y-1 mt-1.5 text-sm text-gray-200 tabular-nums">
+                <span>{{ t('c_setup.step5_simulate.inactive_zero_population', { n: n(world.places_zero_population) }) }}</span>
+                <span>{{ t('c_setup.step5_simulate.inactive_too_few_residents', { n: n(world.places_too_few_residents) }) }}</span>
+            </div>
+            <div class="text-gray-400 text-xs mt-1.5">{{ t('c_setup.step5_simulate.inactive_note', 'The simulation never mints more people than a place has real residents. These places close as done. They are not errors.') }}</div>
+        </section>
+
         <!-- Lane strip: grouped by kind, warn-coloured -->
         <section v-if="lanes.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
             <h2 class="text-white font-semibold mb-3">{{ t('c_setup.step5_simulate.lanes_heading', 'Lanes') }}

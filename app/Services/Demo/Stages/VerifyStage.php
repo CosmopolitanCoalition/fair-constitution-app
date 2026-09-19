@@ -46,6 +46,22 @@ final class VerifyStage
         $gaps = [];
         $metrics = ['jurisdiction_id' => $jurisdictionId, 'aspects' => $aspects];
 
+        // LAWFUL INACTIVE PLACES (operator ruling 2026-09-19,
+        // sim-roster-vs-real-population = C). A place with zero population, or
+        // with fewer real residents than its election needs, has no government
+        // to verify: the run closed it DONE with no election, by law. It settles
+        // done here with the reason recorded. Without this, every such place
+        // files "legislature has zero seats" or "seated 0/5" and the step cannot
+        // close without documented exclusions for places that are not defects.
+        $inactive = self::lawfulInactive($jurisdictionId, $runId, $version);
+        if ($inactive !== null) {
+            SimTimer::record('verify.scan', (int) ((hrtime(true) - $mScan) / 1000));
+            $metrics['inactive'] = $inactive;
+            $metrics['_verdict'] = 'done';
+
+            return $metrics;
+        }
+
         // ── Representatives: every legislature of this jurisdiction seated ──
         // (elections aspect — seating is what the elections lane produces).
         if (in_array('elections', $aspects, true)) {
@@ -189,6 +205,46 @@ final class VerifyStage
         $metrics['_reason'] = implode('; ', array_slice($gaps, 0, 6));
 
         return $metrics;
+    }
+
+    /**
+     * The lawful-inactive reason for a place, or null when the place must be
+     * verified. Two bounded reads, both on a unique key: the place's own cohort
+     * row, and this run's own election item for it.
+     */
+    private static function lawfulInactive(string $jurisdictionId, ?string $runId, int $version): ?string
+    {
+        if (IdentityStage::populationOf($jurisdictionId, $version) === 0) {
+            // Zero is zero only where there is no sized chamber to verify. A
+            // zero-row place that still carries seats is an anomaly and takes
+            // the full scan below.
+            $sized = DB::table('legislatures')
+                ->where('jurisdiction_id', $jurisdictionId)
+                ->whereNull('deleted_at')
+                ->where('total_seats', '>', 0)
+                ->exists();
+
+            if (! $sized) {
+                return IdentityStage::INACTIVE_ZERO_POPULATION;
+            }
+        }
+
+        if ($runId === null) {
+            return null;
+        }
+
+        $metrics = DB::table('sim_items')
+            ->where('run_id', $runId)
+            ->where('kind', 'election_scope')
+            ->where('unit_key', $jurisdictionId)
+            ->where('status', 'done')
+            ->value('metrics');
+
+        $decoded = is_string($metrics) ? json_decode($metrics, true) : null;
+
+        return is_array($decoded) && ($decoded['inactive'] ?? null) === IdentityStage::INACTIVE_TOO_FEW_RESIDENTS
+            ? IdentityStage::INACTIVE_TOO_FEW_RESIDENTS
+            : null;
     }
 
     /**

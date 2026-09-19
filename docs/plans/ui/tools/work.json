@@ -17594,6 +17594,48 @@
           "note": "Built and pinned. PHP (one-off container, box E stack down): SimDialTest 7 tests, MapAcceptanceServiceTest with 3 new tests, SetupLadderTest, SimScopeTest: 30 tests, 182 assertions, all pass. JS: simDial 10, i18nWiring_i18n_setup 6 (compiles the three pages), a11ySetupWizard 10, step5Readiness 3 (its stubs predated the Head and vue-i18n wiring of the page and failed before this change; repaired). New en strings only; other locales fall back to en until a translation pass. Not walked in a browser: the box E stack was down."
         }
       ]
+    },
+    {
+      "id": "W-0458",
+      "title": "The simulation ceiling: never more simulated people than real residents, and zero is zero",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "done_when": "IdentityStage caps every roster (race floor, visible sample, dial sample, election top-up) at the place's real population; a zero-population place mints nobody; an election whose place has fewer real residents than it needs candidates closes DONE with no election instead of throwing; VerifyStage settles both kinds of place done; both are counted on the run and shown on the Step 5 page; the live-PG and sqlite pins pass.",
+      "depends_on": [
+        "W-0457"
+      ],
+      "detail": "Operator ruling 2026-09-19, rubric sim-roster-vs-real-population = C, clarified 'ceiling at real population'. Before: the roster was max(rosterSize, dial sample, election top-up) with rosterSize = max(12, seats + 1 per race), and no term capped it at the real population, so every one of the 17,251 zero-population places minted 12 people and every place with 1 to 11 residents minted at least 12. Measured on box E (the demo's dataset): 903,500 leaves; 8,625 places have 1 to 5 residents and 6,303 have 6 to 11; 8,676 elections are short by law (fewer real residents than seats + 1) and in every one of them ALL races are scoped to the place itself, none is a child-scoped race inside a parent's election. So a short-by-law election closes WHOLE (no candidates, election_id null, no count/seat/governance item: the posture of a blocked chamber), and a MIXED election (some scopes short, none measured) is thrown to review, never half-fielded, because seating refuses an election with an uncounted race. A short roster in a place that HAS the people is still the original review. VerifyStage: zero population with no sized chamber, or this run's election item closed too_few_residents, settles done with the reason; a zero-row place that still carries seats takes the full scan. Two O(1) counters on sim_runs (places_zero_population, places_too_few_residents), maintained by SimWorkerJob beside the world counters, served by SimSnapshot::world and shown on Step 5. Found in passing and corrected: three IdentityStageTest need pins had failed on live PG since the 2026-09-07 sample rework (they ran at the default 1 % sample, so a 40,000 leaf minted 400 against the 12 they assert); they now pin the need with the sample off.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "rubric sim-roster-vs-real-population = C (2026-09-19) and the same-day clarification 'Ceiling at real population'",
+          "title": "the ceiling at the real population; zero is zero",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Demo/Stages/IdentityStage.php",
+        "app/Services/Demo/Stages/ElectionStage.php",
+        "app/Services/Demo/Stages/VerifyStage.php",
+        "app/Jobs/SimWorkerJob.php",
+        "app/Services/Demo/SimSnapshot.php",
+        "database/migrations/2026_09_19_150000_sim_runs_inactive_counters.php",
+        "resources/js/Pages/Setup/Step5_Simulate.vue",
+        "resources/js/Pages/Setup/Step4_ScaleUp.vue",
+        "tests/Constitutional/IdentityStageTest.php",
+        "tests/Constitutional/ElectionStageTest.php",
+        "tests/Unit/WorldReadinessGuardTest.php",
+        "tests/js/simCeiling.test.mjs"
+      ],
+      "history": [
+        {
+          "date": "2026-09-19",
+          "note": "Built and pinned on box E. Live PG (rolled back): IdentityStageTest 14 tests (3 new: the ceiling, zero is zero, the pure rule), ElectionStageTest with 3 new (too few residents closes; six residents contest; the verdict seam). sqlite: WorldReadinessGuardTest 22 tests (4 new). JS: simCeiling 6, simDial 10, i18nWiring_i18n_setup 6, a11ySetupWizard 10, step5Readiness 3. Not run at planet scale: a sim run is the operator's trigger."
+        }
+      ]
     }
   ]
 }

@@ -42,6 +42,15 @@ final class IdentityStage
     public const VISIBLE_SAMPLE = 12;
 
     /**
+     * LAWFUL INACTIVE PLACES (operator ruling 2026-09-19). Two reasons a place
+     * closes DONE with no election, each counted on the run and shown on the
+     * Step 5 page. Neither is an error.
+     */
+    public const INACTIVE_ZERO_POPULATION = 'zero_population';
+
+    public const INACTIVE_TOO_FEW_RESIDENTS = 'too_few_residents';
+
+    /**
      * A SANITY ceiling, not a budget. The largest lawful roster on the real
      * planet is Earth's — 1,999 type_a seats across 282 districts plus a
      * 1,141-seat type_b chamber = Σ(seats+1) ≈ 3,423 — so nothing legitimate
@@ -88,11 +97,27 @@ final class IdentityStage
         // The sample is capped at MAX_PER_JURISDICTION so one mega-leaf (a city
         // of millions) never mints an unbounded single item.
         $mRost = hrtime(true);
+        $population = max(0, (int) ($cohort->population ?? 0));
+
+        // ZERO IS ZERO (operator ruling 2026-09-19, sim-roster-vs-real-population
+        // = C): a place with zero population mints nobody. It is a lawful
+        // inactive place, as the districting law already treats a zero-population
+        // head. Decided before rosterSize, so an empty place never pays for a
+        // race-plan walk.
+        if ($population === 0) {
+            SimTimer::record('id.roster', (int) ((hrtime(true) - $mRost) / 1000));
+
+            return [
+                'users' => 0, 'confirmations' => 0, 'reused' => 0,
+                'population' => 0, 'wanted' => 0, 'ceiling_held' => 0,
+                'inactive' => self::INACTIVE_ZERO_POPULATION,
+            ];
+        }
+
         $isLeaf = ! DB::table('jurisdictions')
             ->where('parent_id', $jurisdictionId)
             ->whereNull('deleted_at')
             ->exists();
-        $population = max(0, (int) ($cohort->population ?? 0));
         $popTarget = $isLeaf
             ? min(self::MAX_PER_JURISDICTION, (int) ceil($population * max(0.0, $samplePct) / 100))
             : 0;
@@ -101,7 +126,16 @@ final class IdentityStage
         // roster covers Σ(seats+1) even where rosterSize under-reports — a
         // composite parent whose races racePlan scopes to its children while
         // createRaces scopes them to the parent. Zero when not supplied.
-        $needed = max(self::rosterSize($jurisdictionId), $popTarget, $minFloor);
+        $wanted = max(self::rosterSize($jurisdictionId), $popTarget, $minFloor);
+
+        // THE CEILING (same ruling, operator's clarification "ceiling at real
+        // population"): a place never holds more simulated people than it has
+        // real residents. The dial sample already obeys this (it is a share of
+        // the population); the race floor, the visible sample and the election
+        // top-up did not. A place with fewer residents than its election needs
+        // is then short by LAW, and ElectionStage closes it as a counted "too
+        // few residents" result, never an error.
+        $needed = self::cappedRoster($wanted, $population);
 
         // Idempotent by construction: a re-handed unit tops the roster up to
         // size rather than minting a second one.
@@ -125,8 +159,16 @@ final class IdentityStage
             ->count();
         SimTimer::record('id.roster', (int) ((hrtime(true) - $mRost) / 1000));
 
+        // What the page counts: how far the ceiling held the roster below what
+        // the races and the sample asked for.
+        $ceiling = [
+            'population'   => $population,
+            'wanted'       => $wanted,
+            'ceiling_held' => max(0, $wanted - $needed),
+        ];
+
         if ($existing >= $needed) {
-            return ['users' => 0, 'confirmations' => 0, 'reused' => $existing];
+            return ['users' => 0, 'confirmations' => 0, 'reused' => $existing] + $ceiling;
         }
 
         $seed = (string) $cohort->seed;
@@ -231,7 +273,32 @@ final class IdentityStage
             'confirmations' => count($confirmations),
             'wallets' => $wallets,
             'reused' => $existing,
-        ];
+        ] + $ceiling;
+    }
+
+    /**
+     * THE CEILING, as a pure rule: the roster a place may hold is what it wants,
+     * never above its real population. Zero population gives zero.
+     */
+    public static function cappedRoster(int $wanted, int $population): int
+    {
+        return max(0, min($wanted, $population));
+    }
+
+    /**
+     * The real population the ceiling reads: the cohort's own row for this
+     * world version (CohortStage copies jurisdictions.population). Null when
+     * the place has no cohort. One owner, read by this stage, ElectionStage and
+     * VerifyStage.
+     */
+    public static function populationOf(string $jurisdictionId, int $version): ?int
+    {
+        $population = DB::table('jurisdiction_cohorts')
+            ->where('jurisdiction_id', $jurisdictionId)
+            ->where('version', $version)
+            ->value('population');
+
+        return $population === null ? null : max(0, (int) $population);
     }
 
     /**

@@ -58,7 +58,10 @@ class IdentityStageTest extends TestCase
             // per-clump PARENT sizing by the panels test.)
             $this->assertSame(16, IdentityStage::rosterSize($jid));
 
-            $result = IdentityStage::run($jid, null, 1);
+            // The NEED is pinned with the population sample OFF (samplePct 0.0): the
+            // sample is the dial's share of the residents, a separate term since the
+            // 2026-09-07 rework, and it would swamp the need this test measures.
+            $result = IdentityStage::run($jid, null, 1, null, 0.0);
 
             $this->assertSame(16, $result['users']);
             $this->assertLessThan(
@@ -121,7 +124,10 @@ class IdentityStageTest extends TestCase
 
             $this->assertSame(IdentityStage::VISIBLE_SAMPLE, IdentityStage::rosterSize($jid));
 
-            $result = IdentityStage::run($jid, null, 1);
+            // The NEED is pinned with the population sample OFF (samplePct 0.0): the
+            // sample is the dial's share of the residents, a separate term since the
+            // 2026-09-07 rework, and it would swamp the need this test measures.
+            $result = IdentityStage::run($jid, null, 1, null, 0.0);
             $this->assertSame(IdentityStage::VISIBLE_SAMPLE, $result['users']);
         });
     }
@@ -325,7 +331,10 @@ class IdentityStageTest extends TestCase
             }
             DB::table('residency_confirmations')->insert($rows);
 
-            $result = IdentityStage::run($jid, null, 1);
+            // The NEED is pinned with the population sample OFF (samplePct 0.0): the
+            // sample is the dial's share of the residents, a separate term since the
+            // 2026-09-07 rework, and it would swamp the need this test measures.
+            $result = IdentityStage::run($jid, null, 1, null, 0.0);
 
             $this->assertSame(
                 IdentityStage::VISIBLE_SAMPLE,
@@ -416,6 +425,61 @@ class IdentityStageTest extends TestCase
                 'the parent roster must cover its per-clump PANELS (Σ seats+1), not just its districts'
             );
         });
+    }
+
+    // ---- THE CEILING (operator ruling 2026-09-19, sim-roster-vs-real-population = C,
+    // clarified "ceiling at real population") ---------------------------------
+
+    /** A place never holds more simulated people than it has real residents. */
+    public function test_the_ceiling_never_mints_more_people_than_live_there(): void
+    {
+        $this->onLivePg(function () {
+            $jid = $this->jurisdiction(population: 4);
+            $this->legislature($jid, typeA: 5, typeB: 0, districtSeats: [5]);
+            CohortStage::run($jid, null, 1, 62);
+
+            // The races want 6 (seats + 1) and the visible sample wants 12.
+            $this->assertSame(12, IdentityStage::rosterSize($jid));
+
+            $result = IdentityStage::run($jid, null, 1);
+
+            $this->assertSame(4, $result['users'], 'four residents live here, so four are minted');
+            $this->assertSame(4, $result['population']);
+            $this->assertSame(12, $result['wanted']);
+            $this->assertSame(8, $result['ceiling_held']);
+
+            // The election-time top-up obeys the same ceiling: it asks for 6 and gets none.
+            $again = IdentityStage::run($jid, null, 1, null, 0.0, 6);
+            $this->assertSame(0, $again['users']);
+            $this->assertSame(4, $again['reused']);
+        });
+    }
+
+    /** Zero is zero: an empty place mints nobody and says why. */
+    public function test_a_zero_population_place_mints_nobody(): void
+    {
+        $this->onLivePg(function () {
+            $jid = $this->jurisdiction(population: 0);
+            $this->legislature($jid, typeA: 0, typeB: 0);
+            CohortStage::run($jid, null, 1, 62);
+
+            $result = IdentityStage::run($jid, null, 1);
+
+            $this->assertSame(0, $result['users']);
+            $this->assertSame(0, $result['confirmations']);
+            $this->assertSame(IdentityStage::INACTIVE_ZERO_POPULATION, $result['inactive']);
+            $this->assertSame(0, DB::table('residency_confirmations')->where('jurisdiction_id', $jid)->count());
+        });
+    }
+
+    /** The ceiling is a pure rule. DB-free. */
+    public function test_the_ceiling_rule(): void
+    {
+        $this->assertSame(0, IdentityStage::cappedRoster(12, 0));
+        $this->assertSame(4, IdentityStage::cappedRoster(12, 4));
+        $this->assertSame(12, IdentityStage::cappedRoster(12, 12));
+        $this->assertSame(16, IdentityStage::cappedRoster(16, 5_000_000));
+        $this->assertSame(0, IdentityStage::cappedRoster(0, 50));
     }
 
     private function jurisdiction(int $population, array $languages = ['en']): string

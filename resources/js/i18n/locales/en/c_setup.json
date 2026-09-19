@@ -1022,10 +1022,15 @@
   "step4_scale_up.sim_dial_cap": "One place mints at most {cap} people.",
   "step4_scale_up.sim_dial_high": "A high dial mints many more people and rows. Check the free disk before you lock.",
   "step4_scale_up.sim_floor_label": "Override the dial where it leaves a place with too few people to simulate",
-  "step4_scale_up.sim_floor_help": "Checked: that place mints the people its election needs. Not checked: that place goes to review.",
+  "step4_scale_up.sim_floor_help": "Checked: that place mints the people its election needs, never more than its real population. Not checked: that place goes to review.",
   "step5_simulate.dial_this_run": "This run: population sample {pct} %, dial {floor}. The dial is fixed when a run is created.",
   "step5_simulate.dial_next_run": "A new run uses: population sample {pct} %, dial {floor}.",
   "step5_simulate.dial_floor_on": "override on",
   "step5_simulate.dial_floor_off": "override off",
-  "step5_simulate.dial_change": "Change it at the end of Step 4."
+  "step5_simulate.dial_change": "Change it at the end of Step 4.",
+  "step4_scale_up.sim_ceiling_note": "A place with zero population mints nobody. A place with fewer residents than its election needs closes with no election. Step 5 counts both.",
+  "step5_simulate.inactive_heading": "Places with no election",
+  "step5_simulate.inactive_zero_population": "{n} with zero population",
+  "step5_simulate.inactive_too_few_residents": "{n} with fewer residents than the election needs",
+  "step5_simulate.inactive_note": "The simulation never mints more people than a place has real residents. These places close as done. They are not errors."
 }

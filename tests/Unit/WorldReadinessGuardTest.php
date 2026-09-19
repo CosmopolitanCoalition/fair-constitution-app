@@ -36,7 +36,7 @@ class WorldReadinessGuardTest extends TestCase
         foreach ([
             'instance_settings', 'sim_runs', 'sim_items', 'jurisdictions',
             'legislatures', 'legislature_members', 'executives', 'judiciaries',
-            'organizations', 'boards',
+            'organizations', 'boards', 'jurisdiction_cohorts',
         ] as $t) {
             Schema::dropIfExists($t);
         }
@@ -76,6 +76,14 @@ class WorldReadinessGuardTest extends TestCase
             $t->integer('items_review')->default(0);
             $t->integer('open_items')->default(0);
             $t->timestamps();
+        });
+
+        // The cohort row carries the real population the ceiling law reads.
+        Schema::create('jurisdiction_cohorts', function ($t) {
+            $t->string('id')->primary();
+            $t->string('jurisdiction_id');
+            $t->integer('version')->default(1);
+            $t->unsignedBigInteger('population')->default(0);
         });
 
         Schema::create('sim_items', function ($t) {
@@ -159,6 +167,13 @@ class WorldReadinessGuardTest extends TestCase
         ]);
 
         return $id;
+    }
+
+    private function cohort(string $jur, int $population): void
+    {
+        DB::table('jurisdiction_cohorts')->insert([
+            'id' => (string) Str::uuid(), 'jurisdiction_id' => $jur, 'version' => 1, 'population' => $population,
+        ]);
     }
 
     private function legislature(string $jur, int $seats, int $seated): void
@@ -362,6 +377,64 @@ class WorldReadinessGuardTest extends TestCase
         $m = VerifyStage::run($jur, (string) $run->id, 1);
 
         $this->assertSame('done', $m['_verdict']);
+    }
+
+    // ── lawful inactive places (operator ruling 2026-09-19, the ceiling law) ──
+
+    public function test_a_zero_population_place_with_no_sized_chamber_verifies_done(): void
+    {
+        $run = $this->makeRun('running');
+        $jur = $this->jurisdiction('Empty');
+        $this->legislature($jur, 0, 0);
+        $this->cohort($jur, 0);
+
+        $m = VerifyStage::run($jur, (string) $run->id, 1);
+
+        $this->assertSame('done', $m['_verdict'], 'zero is zero: not "legislature has zero seats"');
+        $this->assertSame('zero_population', $m['inactive']);
+    }
+
+    public function test_a_zero_population_place_that_still_carries_seats_takes_the_full_scan(): void
+    {
+        $run = $this->makeRun('running');
+        $jur = $this->jurisdiction('Anomaly');
+        $this->legislature($jur, 9, 0);
+        $this->cohort($jur, 0);
+
+        $m = VerifyStage::run($jur, (string) $run->id, 1);
+
+        $this->assertSame('review', $m['_verdict']);
+        $this->assertStringContainsString('below the majority', $m['_reason']);
+    }
+
+    public function test_a_place_closed_for_too_few_residents_verifies_done(): void
+    {
+        $run = $this->makeRun('running');
+        $jur = $this->jurisdiction('Hamlet');
+        $this->legislature($jur, 5, 0);
+        $this->cohort($jur, 4);
+        DB::table('sim_items')->insert([
+            'id' => (string) Str::uuid(), 'run_id' => (string) $run->id, 'kind' => 'election_scope',
+            'status' => 'done', 'jurisdiction_id' => $jur, 'unit_key' => $jur,
+            'metrics' => json_encode(['election_id' => null, 'inactive' => 'too_few_residents']),
+        ]);
+
+        $m = VerifyStage::run($jur, (string) $run->id, 1);
+
+        $this->assertSame('done', $m['_verdict']);
+        $this->assertSame('too_few_residents', $m['inactive']);
+    }
+
+    public function test_an_unseated_populated_place_is_still_a_gap(): void
+    {
+        $run = $this->makeRun('running');
+        $jur = $this->jurisdiction('Unseated');
+        $this->legislature($jur, 5, 0);
+        $this->cohort($jur, 40_000);
+
+        $m = VerifyStage::run($jur, (string) $run->id, 1);
+
+        $this->assertSame('review', $m['_verdict'], 'the ceiling law never hides a real defect');
     }
 
     // ── rollup ─────────────────────────────────────────────────────────────────

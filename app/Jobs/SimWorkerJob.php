@@ -463,6 +463,17 @@ class SimWorkerJob implements ShouldQueue
                 if ($confs > 0) {
                     $inc['residencies_founded'] = $confs;
                 }
+                // LAWFUL INACTIVE (ruling 2026-09-19): zero is zero.
+                if (($metrics['inactive'] ?? null) === IdentityStage::INACTIVE_ZERO_POPULATION && self::inactiveCountersPresent()) {
+                    $inc['places_zero_population'] = 1;
+                }
+                break;
+            case 'election_scope':
+                // LAWFUL INACTIVE (same ruling): fewer real residents than the
+                // election needs, so the ceiling closed it.
+                if (($metrics['inactive'] ?? null) === IdentityStage::INACTIVE_TOO_FEW_RESIDENTS && self::inactiveCountersPresent()) {
+                    $inc['places_too_few_residents'] = 1;
+                }
                 break;
             case 'cohort_scope':
                 // One cohort per settled scope.
@@ -484,6 +495,17 @@ class SimWorkerJob implements ShouldQueue
 
     /** @var array<string,bool> keyed by connection name */
     private static array $countersPresent = [];
+
+    /** @var array<string,bool> keyed by connection name */
+    private static array $inactiveCountersPresent = [];
+
+    /** The 2026-09-19 lawful-inactive counters; a box that did not migrate counts nothing, never throws. */
+    private static function inactiveCountersPresent(): bool
+    {
+        $conn = DB::connection()->getName();
+
+        return self::$inactiveCountersPresent[$conn] ??= \Illuminate\Support\Facades\Schema::hasColumn('sim_runs', 'places_too_few_residents');
+    }
 
     private static function countersPresent(): bool
     {

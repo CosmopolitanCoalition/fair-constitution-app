@@ -577,6 +577,64 @@ class ElectionStageTest extends TestCase
         });
     }
 
+    // ---- TOO FEW RESIDENTS (operator ruling 2026-09-19, the ceiling law) --------
+
+    /** Four residents cannot contest a 5-seat race: the election closes, it does not throw. */
+    public function test_a_place_with_too_few_residents_closes_with_no_election(): void
+    {
+        $this->onLivePg(function () {
+            $jid = $this->jurisdiction(4);
+            $this->legislature($jid, 5, 0, [5]);
+            $this->electionBoard($jid);
+            CohortStage::run($jid, null, 1, 62);
+            IdentityStage::run($jid, null, 1);
+
+            $result = ElectionStage::run($jid, null, 1);
+
+            $this->assertNull($result['election_id'], 'no election id, so no count or seating item follows');
+            $this->assertSame([IdentityStage::INACTIVE_TOO_FEW_RESIDENTS], $result['blocked_kinds']);
+            $this->assertSame(IdentityStage::INACTIVE_TOO_FEW_RESIDENTS, $result['inactive']);
+            $this->assertSame(0, $result['candidacies']);
+            $this->assertSame(
+                ['residents' => 4, 'needed' => 6, 'population' => 4],
+                $result['too_few_residents'][$jid],
+            );
+            $this->assertSame(
+                4,
+                DB::table('residency_confirmations')->where('jurisdiction_id', $jid)->where('is_active', true)->count(),
+                'the top-up never minted past the real population',
+            );
+        });
+    }
+
+    /** Six residents are enough for a 5-seat race: the ceiling does not touch a contestable place. */
+    public function test_a_place_with_just_enough_residents_contests(): void
+    {
+        $this->onLivePg(function () {
+            $jid = $this->jurisdiction(6);
+            $this->legislature($jid, 5, 0, [5]);
+            $this->electionBoard($jid);
+            CohortStage::run($jid, null, 1, 62);
+            IdentityStage::run($jid, null, 1);
+
+            $result = ElectionStage::run($jid, null, 1);
+
+            $this->assertNotNull($result['election_id']);
+            $this->assertSame(6, $result['candidacies']);
+            $this->assertSame([], $result['blocked_kinds']);
+        });
+    }
+
+    /** The verdict seam. DB-free. */
+    public function test_the_short_scope_verdict(): void
+    {
+        $this->assertSame(IdentityStage::INACTIVE_TOO_FEW_RESIDENTS, ElectionStage::shortScopeVerdict(6, 4));
+        $this->assertSame(IdentityStage::INACTIVE_TOO_FEW_RESIDENTS, ElectionStage::shortScopeVerdict(6, 0));
+        $this->assertSame('short', ElectionStage::shortScopeVerdict(6, 6), 'the people exist: a short roster is a defect, review');
+        $this->assertSame('short', ElectionStage::shortScopeVerdict(6, 2_000_000));
+        $this->assertSame('short', ElectionStage::shortScopeVerdict(6, null), 'no cohort is an anomaly, review');
+    }
+
     private function world(int $typeA, int $typeB, array $districtSeats): string
     {
         $jid = $this->jurisdiction(2_000_000);

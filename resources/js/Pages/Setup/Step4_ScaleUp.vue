@@ -487,7 +487,8 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                     <input type="checkbox" v-model="rosterFloor" class="accent-violet-500 mt-0.5" />
                     <span>
                         {{ t('c_setup.step4_scale_up.sim_floor_label', 'Override the dial where it leaves a place with too few people to simulate') }}
-                        <span class="block text-gray-400 text-xs mt-0.5">{{ t('c_setup.step4_scale_up.sim_floor_help', 'Checked: that place mints the people its election needs. Not checked: that place goes to review.') }}</span>
+                        <span class="block text-gray-400 text-xs mt-0.5">{{ t('c_setup.step4_scale_up.sim_floor_help', 'Checked: that place mints the people its election needs, never more than its real population. Not checked: that place goes to review.') }}</span>
+                        <span class="block text-gray-400 text-xs mt-0.5">{{ t('c_setup.step4_scale_up.sim_ceiling_note', 'A place with zero population mints nobody. A place with fewer residents than its election needs closes with no election. Step 5 counts both.') }}</span>
                     </span>
                 </label>
             </div>

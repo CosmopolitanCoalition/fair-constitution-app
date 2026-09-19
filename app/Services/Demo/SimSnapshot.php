@@ -419,6 +419,9 @@ class SimSnapshot
         $residencies = (int) ($run->residencies_founded ?? 0);
         $cohorts     = (int) ($run->cohorts ?? 0);
         $governed    = (int) ($run->chambers_governed ?? 0);
+        // LAWFUL INACTIVE places (ruling 2026-09-19): closed DONE with no election.
+        $zeroPop     = (int) ($run->places_zero_population ?? 0);
+        $tooFew      = (int) ($run->places_too_few_residents ?? 0);
 
         $scope    = $this->worldScope();
         $chambers = (int) $scope['values']['chambers'];
@@ -427,6 +430,8 @@ class SimSnapshot
             'chambers' => $chambers,
             'chambers_governed' => $governed,
             'chambers_awaiting_election' => max(0, $chambers - $governed),
+            'places_zero_population' => $zeroPop,
+            'places_too_few_residents' => $tooFew,
             'jurisdictions' => (int) $scope['values']['jurisdictions'],
             'cohorts' => $cohorts,
             'people' => $people,

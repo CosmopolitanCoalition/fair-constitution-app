@@ -40,7 +40,9 @@ final class ElectionStage
     private function __construct() {}
 
     /**
-     * @return array{election_id: ?string, races: int, candidacies: int, blocked_kinds: list<string>}
+     * @return array<string,mixed>  election_id (?string), races, candidacies,
+     *         blocked_kinds (list), and on a too-few-residents close: inactive
+     *         and too_few_residents (the first scopes, for the review reader).
      */
     public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null, bool $noFloor = false): array
     {
@@ -88,7 +90,7 @@ final class ElectionStage
 
             if ($existingRaces->isNotEmpty()) {
                 $mField = hrtime(true);
-                $candidacies = self::fieldCandidates(
+                $fielded = self::fieldCandidates(
                     $jurisdictionId,
                     $runId,
                     (string) $existing->id,
@@ -99,10 +101,14 @@ final class ElectionStage
                 );
                 SimTimer::record('election.field', (int) ((hrtime(true) - $mField) / 1000));
 
+                if ($fielded['too_few'] !== []) {
+                    return self::tooFewResidents($existingRaces->count(), $fielded['too_few']);
+                }
+
                 return [
                     'election_id' => (string) $existing->id,
                     'races' => $existingRaces->count(),
-                    'candidacies' => $candidacies,
+                    'candidacies' => $fielded['candidacies'],
                     'blocked_kinds' => [],
                 ];
             }
@@ -177,7 +183,7 @@ final class ElectionStage
         SimTimer::record('election.schedule', (int) ((hrtime(true) - $mSched) / 1000));
 
         $mField = hrtime(true);
-        $candidacies = self::fieldCandidates(
+        $fielded = self::fieldCandidates(
             $jurisdictionId,
             $runId,
             (string) $election->id,
@@ -188,12 +194,56 @@ final class ElectionStage
         );
         SimTimer::record('election.field', (int) ((hrtime(true) - $mField) / 1000));
 
+        if ($fielded['too_few'] !== []) {
+            return self::tooFewResidents($races->count(), $fielded['too_few']);
+        }
+
         return [
             'election_id' => (string) $election->id,
             'races' => $races->count(),
-            'candidacies' => $candidacies,
+            'candidacies' => $fielded['candidacies'],
             'blocked_kinds' => $blockedKinds,
         ];
+    }
+
+    /**
+     * TOO FEW RESIDENTS (operator ruling 2026-09-19, sim-roster-vs-real-population
+     * = C, "ceiling at real population"). The place has fewer real residents
+     * than its election needs candidates, and the ceiling forbids minting more
+     * people than live there. The election cannot be contested, so nobody is
+     * fielded and the item closes DONE with no election id: no count, seating or
+     * governance item follows (the same posture as a blocked chamber or a place
+     * with no board). Counted on the run and shown on the Step 5 page.
+     *
+     * @param  array<string,array{residents:int,needed:int,population:int}>  $tooFew  by race scope
+     * @return array<string,mixed>
+     */
+    private static function tooFewResidents(int $races, array $tooFew): array
+    {
+        return [
+            'election_id' => null,
+            'races' => $races,
+            'candidacies' => 0,
+            'blocked_kinds' => [IdentityStage::INACTIVE_TOO_FEW_RESIDENTS],
+            'inactive' => IdentityStage::INACTIVE_TOO_FEW_RESIDENTS,
+            'too_few_residents' => array_slice($tooFew, 0, 5, true),
+        ];
+    }
+
+    /**
+     * The verdict for a race scope whose roster is still short after the
+     * top-up. Pure: the pinned seam of the ceiling law.
+     *
+     *   'too_few_residents'  the real population is below the need, so the
+     *                        ceiling is the cause: lawful, the election closes.
+     *   'short'              the place has the people and the roster does not
+     *                        (the override is off, or an anomaly): review.
+     */
+    public static function shortScopeVerdict(int $needed, ?int $population): string
+    {
+        return $population !== null && $population < $needed
+            ? IdentityStage::INACTIVE_TOO_FEW_RESIDENTS
+            : 'short';
     }
 
     /**
@@ -240,6 +290,10 @@ final class ElectionStage
      * scope's roster within an election. The per-scope cursor prevents reuse
      * inside a scope, and the insertOrIgnore below absorbs any cross-scope repeat
      * (dropping the duplicate), so the constraint always holds.
+     *
+     * @return array{candidacies:int, too_few: array<string,array{residents:int,needed:int,population:int}>}
+     *         too_few is non-empty when the whole election is short by law
+     *         (the ceiling); nobody was fielded and the caller closes it.
      */
     private static function fieldCandidates(
         string $jurisdictionId,
@@ -249,9 +303,10 @@ final class ElectionStage
         int $version,
         ?\Closure $beat = null,
         bool $noFloor = false
-    ): int {
+    ): array {
         // Group each race under the jurisdiction whose residents may contest it.
         $byScope = [];
+        $tooFew = [];
 
         foreach ($races as $race) {
             $scope = ! empty($race->jurisdiction_id) ? (string) $race->jurisdiction_id : $jurisdictionId;
@@ -300,6 +355,22 @@ final class ElectionStage
             }
 
             if (count($roster) < $needed) {
+                // THE CEILING (operator ruling 2026-09-19): a scope with fewer
+                // REAL residents than its races need is short by law, not by a
+                // defect. It is recorded and fields nobody; the election closes
+                // below as "too few residents".
+                $population = IdentityStage::populationOf($scope, $version);
+
+                if (self::shortScopeVerdict($needed, $population) === IdentityStage::INACTIVE_TOO_FEW_RESIDENTS) {
+                    $tooFew[$scope] = [
+                        'residents' => count($roster),
+                        'needed' => $needed,
+                        'population' => (int) $population,
+                    ];
+
+                    continue;
+                }
+
                 throw new \RuntimeException(sprintf(
                     'Roster too small to contest this election: %d residents in jurisdiction %s for %d '
                     .'seats+1 slots even after the floor top-up. The identities stage must size to '
@@ -337,6 +408,33 @@ final class ElectionStage
             }
         }
 
+        // A short-by-law scope closes the WHOLE election: nobody is fielded, so
+        // no half-contested election reaches the count (seating refuses an
+        // election with an uncounted race). When only SOME scopes are short the
+        // place is not a tiny place, it is a parent with a tiny constituent:
+        // that is surfaced for review, never silently half-fielded. Measured on
+        // the planet dataset 2026-09-19: 8,676 elections are short by law, all
+        // of them whole; none is mixed.
+        if ($tooFew !== []) {
+            if (count($tooFew) < count($byScope)) {
+                $first = array_key_first($tooFew);
+
+                throw new \RuntimeException(sprintf(
+                    'Too few residents in %d of %d race scopes of this election (first: %s has %d residents for %d '
+                    .'seats+1 slots, real population %d). The other scopes can be contested, so the election is '
+                    .'not closed; a constituent this small needs a ruling.',
+                    count($tooFew),
+                    count($byScope),
+                    $first,
+                    $tooFew[$first]['residents'],
+                    $tooFew[$first]['needed'],
+                    $tooFew[$first]['population'],
+                ));
+            }
+
+            return ['candidacies' => 0, 'too_few' => $tooFew];
+        }
+
         // Bounded chunks, each its own committed statement (THE ETL RULE).
         // insertOrIgnore, not insert: a kill mid-loop leaves committed chunks
         // behind, and the reclaimed item re-runs the whole stage. The roster
@@ -354,6 +452,6 @@ final class ElectionStage
         // the research layer supplies it.
         $rng->next();
 
-        return count($rows);
+        return ['candidacies' => count($rows), 'too_few' => []];
     }
 }
