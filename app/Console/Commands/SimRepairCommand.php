@@ -11,9 +11,20 @@ class SimRepairCommand extends Command
     protected $signature = 'sim:repair {source? : Completed original run UUID} {--scope=* : Exact pilot jurisdiction UUID, repeatable} {--repair-version=1} {--resume= : Repair run whose enumeration was interrupted} {--apply= : Apply a completed repair plan} {--status= : Read a repair manifest page as JSON} {--after= : Manifest continuation key} {--refresh-plan= : Reclassify an older drained inspection without restarting it} {--recover-noops= : Correct proven no-op receipts for this halted repair run and exact --scope values}';
     protected $description = 'Plan or explicitly apply a bounded, resumable in-place Step 5 repair';
 
+    protected function configure(): void
+    {
+        parent::configure();
+        $this->addOption('enable-election-recovery', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
+            'Record authorized supplementary elections and unfinished-count recovery on this halted repair run');
+    }
+
     public function handle(SimRepairControl $control): int
     {
         try {
+            if ($id = $this->option('enable-election-recovery')) {
+                $this->line(json_encode($control->enableElectionRecovery(SimRun::findOrFail($id)), JSON_PRETTY_PRINT));
+                return self::SUCCESS;
+            }
             if ($id = $this->option('refresh-plan')) {
                 $this->line(json_encode($control->refreshInventory(SimRun::findOrFail($id)), JSON_PRETTY_PRINT));
                 return self::SUCCESS;

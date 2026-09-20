@@ -239,6 +239,9 @@ class AuditService
         bool $rejected = false,
         ?string $blockedReason = null,
     ): AuditEntry {
+        if (\App\Services\Demo\RepairChairAudit::active()) {
+            return \App\Services\Demo\RepairChairAudit::append(compact('module', 'event', 'payload', 'ref', 'actorId', 'jurisdictionId', 'rejected', 'blockedReason'));
+        }
         // BATCH MODE: buffer the act instead of chaining it now. The returned
         // entry is a placeholder (no seq); only PublicRecordService reads a
         // seq back, and it defers via deferRecordSeq() in batch mode.

@@ -162,7 +162,7 @@ class CertificationService implements CertificationPipeline
 
         if ($isSpecial) {
             $vacancy     = $election->vacancy_id !== null ? Vacancy::query()->find($election->vacancy_id) : null;
-            $vacatedSeat = $vacancy !== null ? LegislatureMember::query()->find($vacancy->seat_id) : null;
+            $vacatedSeat = $vacancy?->seat_type === 'legislature_members' ? LegislatureMember::query()->find($vacancy->seat_id) : null;
 
             $originalEndsOn = $this->originalExpiry($vacatedSeat, $legislature);
             $window         = self::inheritedWindow($certifiedAt, $originalEndsOn);
@@ -204,7 +204,7 @@ class CertificationService implements CertificationPipeline
                 // type_b seats are numbered chamber-wide (see $typeBSeatNo above);
                 // a special election preserves the vacated seat's own number.
                 $seatNo = $isSpecial
-                    ? ($vacatedSeat?->seat_no ?? $result->seat_no)
+                    ? ($vacatedSeat?->seat_no ?? $vacancy?->replacement_seat_no ?? $result->seat_no)
                     : ($race->seat_kind === ElectionRace::SEAT_KIND_TYPE_B ? ++$typeBSeatNo : $result->seat_no);
 
                 $specs[] = [

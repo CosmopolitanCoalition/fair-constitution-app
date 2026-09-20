@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 /** Scope-local acceptance and plan. No domain writes, no descendant/world scan. */
 class SimRepairInspector
 {
-    public const REVISION = 2;
+    public const REVISION = 3;
 
     public function inspect(SimRun $run, string $jurisdiction, ?\Closure $beat = null): array
     {
@@ -28,6 +28,7 @@ class SimRepairInspector
         $electionId = (json_decode($electionMetrics ?? '{}', true) ?: [])['election_id'] ?? null;
         $election = $electionId ? DB::table('elections')->where('id', $electionId)->first() : null;
         $out['election_id'] = $electionId;
+        $recovery = (bool) ($run->options['repair_election_recovery'] ?? false);
         $underfilled = false;
         if ($election) {
             $races = DB::table('election_races')->where('election_id', $electionId)->whereNull('deleted_at')->orderBy('id')->get(['id','seats','seat_kind']);
@@ -44,15 +45,15 @@ class SimRepairInspector
                 }
                 $underfilled = $underfilled || $count < (int) $race->seats;
             }
-            if ($out['race_states']['counted_deficient'] > 0) {
+            if ($out['race_states']['counted_deficient'] > 0 && ! $recovery) {
                 $out['blockers'][] = 'Completed counts have fewer candidates than seats: preserve recorded results; an authorized election recovery decision is required.';
             }
             if ($election->status !== 'certified') {
-                $out['actions'][] = ['kind' => 'election', 'target' => $electionId];
+                $out['actions'][] = ['kind' => $recovery ? 'election_recovery' : 'election', 'target' => $electionId];
                 if (! in_array($election->status, ['scheduled','approval_open'], true)) {
                     $out['blockers'][] = 'Election is beyond nomination: preserve existing counts; an authorized recovery decision is required.';
                 }
-            } elseif ($underfilled) {
+            } elseif ($underfilled && ! $recovery) {
                 $out['blockers'][] = 'Certified election has fewer candidates than seats: preserve certification; countback/vacancy recovery needs an authorized lifecycle decision.';
             }
         } elseif (in_array('elections', $aspects, true)) {
@@ -61,7 +62,8 @@ class SimRepairInspector
         $seated = $leg ? DB::table('legislature_members')->where('legislature_id', $leg->id)->whereNull('deleted_at')
             ->whereNull('vacated_at')->whereNotNull('user_id')->whereIn('status', ['elected','seated'])->select('seat_type')->get() : collect();
         if ($leg && $seated->count() < (int) $leg->total_seats && $election?->status === 'certified') {
-            $out['blockers'][] = 'Certified legislature still has unfilled seats; do not rewrite its term or manufacture members.';
+            if ($recovery) { $out['actions'][] = ['kind' => 'election_recovery', 'target' => $electionId]; }
+            else { $out['blockers'][] = 'Certified legislature still has unfilled seats; do not rewrite its term or manufacture members.'; }
         }
         if ($leg && $seated->where('seat_type', 'b')->count() < (int) $leg->type_b_seats) {
             $out['acceptance_gaps'][] = 'Type B representation below the apportioned total.';

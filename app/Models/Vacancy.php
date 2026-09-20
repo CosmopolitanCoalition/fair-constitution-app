@@ -38,6 +38,8 @@ class Vacancy extends Model
         'id',
         'seat_type',
         'seat_id',
+        'unfilled_seat_no',
+        'replacement_seat_no',
         'legislature_id',
         'jurisdiction_id',
         'declared_by',

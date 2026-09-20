@@ -58,6 +58,60 @@ class SimRepairControl
         });
     }
 
+    /** Record the operator's recovery choice without starting or replaying work. */
+    public function enableElectionRecovery(SimRun $run): array
+    {
+        $this->guard();
+        DB::transaction(function () use ($run): void {
+            $run = SimRun::whereKey($run->id)->lockForUpdate()->firstOrFail();
+            if (! ($run->options['repair_source_run'] ?? null) || $run->status !== 'halted' || ! $run->haltRequested()
+                || ! in_array($run->phase, ['repair_planning', 'repairing'], true)
+                || DB::table('sim_worker_leases')->where('run_id', $run->id)->exists()
+                || DB::table('sim_items')->where('run_id', $run->id)->where('status', 'running')->exists()) {
+                throw new \RuntimeException('Enable election recovery on the drained, halted repair run.');
+            }
+            if ($run->options['repair_election_recovery'] ?? false) { return; }
+            $options = $run->options; $options['repair_election_recovery'] = true;
+            $timings = $run->phase_timings;
+            if ($run->phase === 'repair_planning') {
+                $options['repair_inspector_revision'] = 0; $options['repair_plan_complete'] = false;
+                unset($timings['repair_planning']['reclassification'], $timings['repair_planning']['summary']);
+            }
+            $run->forceFill(['options' => $options, 'phase_timings' => $timings])->save();
+            app(AuditService::class)->append('simworld', 'sim.election_recovery_authorized', [
+                'run_id' => $run->id, 'source_run_id' => $options['repair_source_run'],
+                'policy' => 'Supplement never-filled certified seats; supersede deficient unfinished synthetic counts; preserve existing terms and history',
+            ], 'WF-SYS-04');
+        });
+        $run->refresh(); $cursor = null; $retried = 0;
+        if ($run->phase === 'repairing') {
+            // D015 already applied the full run. Revisit only election-blocked
+            // reviews, retaining their prior outcome and every successful item.
+            do {
+                $rows = DB::table('sim_items')->where('run_id', $run->id)->where('kind', 'repair_scope')->where('status', 'review')
+                    ->when($cursor, fn ($q) => $q->where('id', '>', $cursor))->orderBy('id')->limit(HostCapacity::sweepChunk())->get();
+                foreach ($rows as $row) {
+                    $retried += DB::transaction(function () use ($run, $row): int {
+                        $fresh = SimRun::whereKey($run->id)->lockForUpdate()->firstOrFail();
+                        if ($fresh->status !== 'halted' || ! $fresh->haltRequested()) { throw new \RuntimeException('Keep the repair halted during review recovery.'); }
+                        $plan = app(SimRepairInspector::class)->inspect($fresh, $row->jurisdiction_id);
+                        if ($plan['blockers'] !== [] || ! collect($plan['actions'])->contains('kind', 'election_recovery')) { return 0; }
+                        $old = json_decode($row->metrics ?? '{}', true);
+                        app(AuditService::class)->append('simworld', 'sim.election_review_requeued', ['run_id' => $run->id, 'item_id' => $row->id,
+                            'previous_reason' => $row->reason], 'WF-SYS-04', jurisdictionId: $row->jurisdiction_id);
+                        return DB::table('sim_items')->where('id', $row->id)->where('status', 'review')->update([
+                            'status' => 'pending', 'claim_token' => null, 'reason' => null, 'finished_at' => null, 'updated_at' => now(),
+                            'metrics' => json_encode(['_previous_election_review' => $old, 'recovery_enabled' => true]),
+                        ]);
+                    });
+                }
+                $cursor = $rows->last()?->id;
+            } while ($rows->count() === HostCapacity::sweepChunk());
+        }
+        return ['election_recovery' => true, 'reviews_requeued' => $retried, 'phase' => $run->phase,
+            'next' => $run->phase === 'repairing' ? 'Resume this same halted run.' : 'Refresh the inventory, then Apply this same run.'];
+    }
+
     public function enumerate(SimRun $run): int
     {
         $this->guard();
@@ -124,6 +178,7 @@ class SimRepairControl
             'plan_complete' => (bool) ($run->options['repair_plan_complete'] ?? false) && ($run->options['repair_inspector_revision'] ?? 1) >= SimRepairInspector::REVISION,
             'classification_stale' => ($run->options['repair_inspector_revision'] ?? 1) < SimRepairInspector::REVISION,
             'authorized' => (bool) ($run->options['repair_apply_authorized'] ?? false),
+            'election_recovery' => (bool) ($run->options['repair_election_recovery'] ?? false),
             'summary' => ($run->options['repair_inspector_revision'] ?? 1) < SimRepairInspector::REVISION ? null : ($run->phase_timings['repair_planning']['summary'] ?? null),
             'items' => $page->values()->all(), 'next' => $rows->count() > 50 ? $page->last()->unit_key : null];
     }
@@ -172,8 +227,8 @@ class SimRepairControl
                 }
                 if (($run->options['repair_inspector_revision'] ?? 1) >= SimRepairInspector::REVISION) { return; }
                 $timings = $run->phase_timings; $options = $run->options;
-                if (! isset($timings['repair_planning']['reclassification'])) {
-                    $timings['repair_planning']['reclassification'] = ['cursor' => null, 'scanned' => 0, 'refreshed' => 0, 'complete' => false];
+                if (($timings['repair_planning']['reclassification']['revision'] ?? 0) !== SimRepairInspector::REVISION) {
+                    $timings['repair_planning']['reclassification'] = ['revision' => SimRepairInspector::REVISION, 'cursor' => null, 'scanned' => 0, 'refreshed' => 0, 'complete' => false];
                     unset($timings['repair_planning']['summary']);
                 }
                 $options['repair_plan_complete'] = false;
@@ -191,7 +246,8 @@ class SimRepairControl
                         ->orderBy('unit_key')->limit(HostCapacity::sweepChunk())->get(['id','unit_key','jurisdiction_id','status','metrics']);
                     foreach ($rows as $row) {
                         $metrics = json_decode($row->metrics ?? '{}', true);
-                        if ($row->status === 'done' && collect($metrics['plan']['actions'] ?? [])->contains('kind', 'election')) {
+                        if ($row->status === 'done' && (! empty($metrics['plan']['blockers'])
+                            || collect($metrics['plan']['actions'] ?? [])->contains(fn ($a) => in_array($a['kind'], ['election', 'election_recovery'], true)))) {
                             $updated = app(SimRepairService::class)->run($run, $row, planning: true);
                             unset($updated['_verdict']);
                             $updated['_previous_inventory'] = $metrics;

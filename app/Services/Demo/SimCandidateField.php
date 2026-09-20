@@ -25,6 +25,13 @@ class SimCandidateField
             $scopes = $scopes->sortBy(fn ($group, $id) => [-max(array_map(fn ($p) => (int) ($levels[$p] ?? 0), $group->first()->pool)), count($group->first()->pool), (string) $id]);
             $existing = DB::table('candidacies')->where('election_id', $electionId)->get(['user_id','race_id','status']);
             $used = array_fill_keys($existing->pluck('user_id')->all(), true);
+            // A supplementary contest fills an empty seat, never awards an
+            // already-serving legislator a second seat in the same chamber.
+            if ($election->kind === Election::KIND_SPECIAL) {
+                foreach (DB::table('legislature_members')->where('legislature_id', $election->legislature_id)
+                    ->whereNull('deleted_at')->whereNull('vacated_at')->whereNotNull('user_id')
+                    ->whereIn('status', ['elected', 'seated'])->pluck('user_id') as $id) { $used[$id] = true; }
+            }
             $rows = []; $tooFew = [];
             foreach ($scopes as $scope => $group) {
                 $pool = $group->first()->pool;

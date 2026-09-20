@@ -37,11 +37,14 @@ class SimRepairService
                 fn () => app(SimChairService::class)->complete($action['target']));
         }
         if ($before['blockers'] === [] && ! ($before['verification']['inactive'] ?? null)) {
-            $election = collect($before['actions'])->firstWhere('kind', 'election');
+            $election = collect($before['actions'])->first(fn ($a) => in_array($a['kind'], ['election', 'election_recovery'], true));
             $electionApplied = true;
             if ($election) {
                 if ($halted()) { throw new SimRepairPaused('Repair halted before election recovery.'); }
-                $effect = $this->action($run, $jurisdiction, 'election', $election['target'], function () use ($election, $source, $version, $beat, $run): array {
+                $effect = $this->action($run, $jurisdiction, $election['kind'], $election['target'], function () use ($election, $source, $version, $beat, $run): array {
+                    if ($election['kind'] === 'election_recovery') {
+                        return app(SimElectionRecovery::class)->recover($run, $election['target'], $beat);
+                    }
                     $fields = app(SimCandidateField::class)->fill($election['target'], $source, $version, $beat, (bool) ($run->options['no_floor'] ?? false));
                     if ($fields['too_few'] !== []) { throw new \RuntimeException('Election cannot be repaired above its real-population ceiling.'); }
                     $count = CountingStage::run($election['target'], $source, $version, $beat);
@@ -100,7 +103,7 @@ class SimRepairService
         if ($plan['verification']['inactive'] ?? null) { return 'lawfully_inactive'; }
         if ($plan['blockers'] !== []) { return 'blocked_recovery'; }
         $kinds = array_column($plan['actions'], 'kind');
-        foreach (['election','governance','judiciary','civics','chair'] as $kind) {
+        foreach (['election_recovery','election','governance','judiciary','civics','chair'] as $kind) {
             if (in_array($kind, $kinds, true)) { return $kind; }
         }
         return $plan['acceptance_gaps'] === [] && empty($plan['verification']['gaps']) ? 'already_clear' : 'acceptance_review';
@@ -183,6 +186,9 @@ class SimRepairService
                     }
                     return ['kind' => $kind, 'status' => $receipt->status, 'result' => $saved, 'reused' => true];
                 }
+                // Dominant D015 path only: retain individual events and exact
+                // public-record links, but acquire the global lock at the end.
+                if ($kind === 'chair') { RepairChairAudit::begin(); }
                 $result = $perform();
                 $status = ($result['status'] ?? null) === 'blocked' ? 'blocked'
                     : (SimRepairReceiptRecovery::isPrerequisiteNoop($kind, $result) ? 'deferred' : 'applied');
@@ -195,6 +201,7 @@ class SimRepairService
                 }
                 app(\App\Services\AuditService::class)->append('simworld', 'sim.repair_action', $key + ['status' => $status, 'result' => $result], 'WF-SYS-04');
                 $query->update(['status' => $status, 'result' => json_encode($result, JSON_THROW_ON_ERROR), 'updated_at' => now()]);
+                if ($kind === 'chair') { RepairChairAudit::flush(); }
                 return ['kind' => $kind, 'status' => $status, 'result' => $result];
             });
         } catch (\Throwable $error) {
@@ -210,6 +217,9 @@ class SimRepairService
             DB::table('sim_repair_receipts')->where($key)->whereIn('status', ['planned','deferred'])
                 ->update(['status' => 'blocked', 'result' => json_encode($result), 'updated_at' => now()]);
             return ['kind' => $kind, 'status' => 'blocked', 'result' => $result];
-        } finally { SimTimer::record('repair.'.$kind, (int) ((hrtime(true) - $began) / 1000)); }
+        } finally {
+            if ($kind === 'chair') { RepairChairAudit::end(); SimTimer::close('repair.audit_commit'); }
+            SimTimer::record('repair.'.$kind, (int) ((hrtime(true) - $began) / 1000));
+        }
     }
 }

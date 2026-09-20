@@ -30,12 +30,13 @@ manually; do not send messages directly to the other task.
   proof of delivery; never resend or launch a second exchange just because
   context was compacted.
 
-Current exchange: **D014 received; dependency and no-op receipt corrections are in
-[the D014 handoff](STEP5_REPAIR_D014_HANDOFF.md)**. The hotfix and pilot succeeded:
-three scopes repaired, two protected election cases in review. The full inventory
-`01a0bed7-d6c6-7399-b288-44053ffe00e1` is completed and halted before application.
-Use the same run/version; correct only identified no-op receipts and refresh its
-classifications before Apply. Do not create another run or restart the world.
+Current exchange: **D015 received; full repair already running on 96f840aa**.
+The operator explicitly authorized supplemental elections for never-filled seats
+and Earth's deficient-count recovery. The dominant chair audit bottleneck and
+both recovery paths are addressed in [the completed D015 response](STEP5_REPAIR_D015_HANDOFF.md).
+Continue `01a0bed7-d6c6-7399-b288-44053ffe00e1`, repair version 1. Halt/drain,
+deploy, record the settled recovery choice and Resume. Do not repeat the already
+completed D014 receipt correction/refresh/Apply or create another run.
 The final developer response supplies the pushed revision and completed tests.
 No direct cross-task messages or remote actions.
 Older D010 performance results below are historical evidence, not repair results.

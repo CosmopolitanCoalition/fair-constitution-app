@@ -5,9 +5,10 @@ commit containing this document (the final developer response supplies its SHA).
 No remote operation or cross-task message was performed. The original run is
 `01a0ba29-3dbb-7181-8654-2d41ce1dea86`; it must not be restarted or reset.
 
-**Current D014 continuation:** the pilot repaired three scopes. Continue the
-completed full inventory `01a0bed7-d6c6-7399-b288-44053ffe00e1` using
-[the dependency-fix handoff](STEP5_REPAIR_D014_HANDOFF.md). Do not create another run.
+**Current D015 continuation:** the full repair is running on `96f840aa`.
+Use [the chair-audit and authorized election recovery handoff](STEP5_REPAIR_D015_HANDOFF.md)
+to halt/drain, deploy, enable the settled recovery choice and resume the SAME run
+`01a0bed7-d6c6-7399-b288-44053ffe00e1`. No new inventory or world restart.
 
 **Historical D013 continuation:** D012 was deployed, but inspection exposed the worker
 claim-type width defect. Follow [the D013 hotfix handoff](STEP5_REPAIR_D013_HANDOFF.md)

@@ -112,7 +112,7 @@ class PublicRecordService
                 jurisdictionId: $attrs['jurisdiction_id'] ?? null,
             );
 
-            $record = PublicRecord::create([
+            $attributes = [
                 'id'                   => $id,
                 'kind'                 => $kind,
                 'title'                => $title,
@@ -130,7 +130,12 @@ class PublicRecordService
                 'translations'         => $attrs['translations'] ?? [],
                 'supersedes_record_id' => $attrs['supersedes_record_id'] ?? null,
                 'published_at'         => now(),
-            ]);
+            ];
+
+            if (\App\Services\Demo\RepairChairAudit::active()) {
+                return \App\Services\Demo\RepairChairAudit::record($entry, $attributes);
+            }
+            $record = PublicRecord::create($attributes);
 
             return $record;
         };

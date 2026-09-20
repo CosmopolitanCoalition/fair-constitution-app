@@ -1525,6 +1525,12 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
             if ($member?->elected_in_race_id !== null) {
                 $race = ElectionRace::query()->find($member->elected_in_race_id);
             }
+        } elseif ($vacancy->seat_type === 'election_races' && $vacancy->unfilled_seat_no !== null) {
+            $race = ElectionRace::query()->findOrFail($vacancy->seat_id);
+            if ((string) $race->election->legislature_id !== (string) $vacancy->legislature_id
+                || $race->election->status !== Election::STATUS_CERTIFIED) {
+                throw new \RuntimeException('Unfilled vacancy must belong to a certified election of this chamber.');
+            }
         }
 
         return [$member, $race];

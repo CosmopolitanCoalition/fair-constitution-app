@@ -18465,7 +18465,7 @@
       "blocker": "none",
       "depends_on": [],
       "done_when": "Durable inspection/apply, action receipts, real civic workflows, fresh-run fixes and bounded acceptance pass internal tests; a completed deployment/pilot handoff is committed.",
-      "detail": "D012 response: separate resumable repair run inventories the original verification worklist and pauses before explicit apply. Action receipts commit atomically with domain effects and audit; independent heartbeats and fenced settlement support interruption. Election-wide distinct candidates respect race footprints and population ceilings; exactly five members can delegate; canonical Type B checks enable committees/courts; real board chair ballots finish after seating. Pilot success never certifies the world. Certified/deficient counted-election recovery remains explicitly blocked under W-0482. No Phase 10 payment replay or source-run reset.",
+      "detail": "D012 response: separate resumable repair run inventories the original verification worklist and pauses before explicit apply. Action receipts commit atomically with domain effects and audit; independent heartbeats and fenced settlement support interruption. Election-wide distinct candidates respect race footprints and population ceilings; exactly five members can delegate; canonical Type B checks enable committees/courts; real board chair ballots finish after seating. Pilot success never certifies the world. Authorized certified/deficient election recovery is implemented under W-0482. No Phase 10 payment replay or source-run reset.",
       "sources": [
         {
           "list": "operator",
@@ -18492,7 +18492,11 @@
         "docs/operations/STEP5_REPAIR_D013_HANDOFF.md",
         "app/Services/Demo/SimRepairReceiptRecovery.php",
         "docs/operations/step5-benchmarks/D014.md",
-        "docs/operations/STEP5_REPAIR_D014_HANDOFF.md"
+        "docs/operations/STEP5_REPAIR_D014_HANDOFF.md",
+        "app/Services/Demo/RepairChairAudit.php",
+        "tests/Feature/RepairChairAuditTest.php",
+        "docs/operations/step5-benchmarks/D015.md",
+        "docs/operations/STEP5_REPAIR_D015_HANDOFF.md"
       ],
       "history": [
         {
@@ -18506,22 +18510,26 @@
         {
           "date": "2026-09-20",
           "note": "D014 confirms the width hotfix and real pilot: three scopes repaired, two election cases protected; full inventory completed and halted. Corrected a second gap: mixed deficient completed counts now block planning, election failure/unmet postconditions stop dependent work, proven no-ops are deferred. Scope-targeted receipt correction preserves original results/timestamps and appends audit; successful receipts remain unchanged. Bounded saved-cursor reclassification retains the existing full inventory and blocks stale Apply. 38 tests / 440 assertions passed, including mixed counts, independent real chair success, four no-op corrections/repeats, eligible continuation without duplicate votes/terms/payments, retained full-seat counts, inventory gate/reclassification and actual PostgreSQL worker regressions. No new election policy, source reset, migration or frontend build."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D015 measured 31,760 repairs/hour with 70-72 audit-lock waiters. Independent chair actions now stage individual events and public records in transaction-local PostgreSQL storage, then lock/flush/link immediately before durable commit. Actual second PHP process completes while first prepares ballot evidence. Savepoint/rollback, public-record audit links and repeat receipts pass. 55 tests / 963 assertions across combined gate. New lock/flush/commit timers support remote benchmark; no speedup claimed before measurement. Other action types retain synchronous audit behavior."
         }
       ]
     },
     {
       "id": "W-0482",
-      "title": "Decide and implement recovery for never-filled seats in certified elections",
+      "title": "Recover never-filled certified seats and deficient unfinished synthetic elections",
       "phase": "P3",
       "order": 69,
       "kind": "fix",
-      "status": "blocked",
-      "blocker": "operator",
+      "status": "done",
+      "blocker": null,
       "depends_on": [
         "W-0481"
       ],
       "done_when": "An authorized lifecycle handles never-filled seats without rewriting certified winners, completed tabulations, closed votes, audit history or term ends; real recovery and repeat-run tests pass.",
-      "detail": "D012 permits independent fixes when safe existing election recovery is unavailable. VacancyService requires an existing member and scheduleSpecial derives the replacement from that member, so neither currently represents a never-occupied seat. Proposed decision: supplemental elections only for never-filled seats, preserving original winners/certification and term end, with a proper vacancy representation. Until authorized and implemented, these scopes remain blocked/review; chair repairs can still proceed independently. Do not invent members, lower voting thresholds or force verification success.",
+      "detail": "Operator explicitly authorized both paths on 2026-09-20. Supplemental real special elections fill only never-filled seats, preserve existing certified members and inherit original term ends. Unfinished nomination-stage deficient counts are superseded with hashes/rounds/results retained; sufficient completed counts remain. Source-bound synthetic-only recovery preserves old blocked receipts, uses a new atomic action receipt, enforces full seating before dependent work, and continues the existing already-applied run without replaying payments.",
       "sources": [
         {
           "list": "operator",
@@ -18534,7 +18542,10 @@
         "app/Services/VacancyService.php",
         "app/Services/ElectionLifecycleService.php",
         "app/Services/Demo/SimRepairInspector.php",
-        "docs/operations/STEP5_REPAIR_HANDOFF.md"
+        "docs/operations/STEP5_REPAIR_HANDOFF.md",
+        "app/Services/Demo/SimElectionRecovery.php",
+        "tests/Feature/SimElectionRecoveryTest.php",
+        "docs/operations/STEP5_REPAIR_D015_HANDOFF.md"
       ],
       "history": [
         {
@@ -18544,6 +18555,10 @@
         {
           "date": "2026-09-20",
           "note": "D014 also identifies 69 complete deficient Earth counts beside 90 uncounted deficient races and 355 complete full-seat counts. The protected-count recovery disposition remains separate. D014 dependency correction keeps these scopes in review and prevents false successful downstream receipts."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Authorized and implemented; real PostgreSQL special/general counting and certification, mixed counts, retained original officeholders/terms, interrupted rollback and repeat delivery verified. D015 already-applied run supported: enable recorded choice while halted, requeue only eligible election reviews, retain DONE and pending work; Resume same run/version. Combined final focused suite 55 tests / 963 assertions. Remote outcomes remain for deployment verification."
         }
       ]
     }
