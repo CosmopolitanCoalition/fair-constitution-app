@@ -18538,6 +18538,10 @@
         {
           "date": "2026-09-20",
           "note": "Operator explicitly approved unattended Step 5 checks and necessary tested/pushed/deployed repair fixes. Updated existing check-demo-repair-progress heartbeat to carry this authority; earlier read-only/pending approval is superseded. Safe same-run drain/refresh/resume, exclusive deployment lock, audit/payment guarantees and independent Claude loop remain protected. At 15:50:42 UTC 355,517/923,095 repairs complete, zero review, 73 healthy workers; world completion still pending."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D017 deployed 08cc9c2a: corrected aggregate Type A counts masking Type B vacancies; scoped requeue preserves unrelated reviews. 34 disposable PostgreSQL tests / 453 assertions passed. Both exact live retries passed: two special elections with inherited term ends and 17 judges with matching active terms. Original 903,500 stipend items preserved. At 17:20:55 UTC 752,041/923,095 repaired, 93 review, 73 healthy workers. Zero-electorate panel treatment awaits explicit operator decision; not claimed complete. Evidence: docs/operations/STEP5_REPAIR_D017_HANDOFF.md and remote evidence/D017."
         }
       ]
     },

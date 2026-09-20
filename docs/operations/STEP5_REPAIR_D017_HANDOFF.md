@@ -1,5 +1,15 @@
 # D017: Type B vacancy detection during the existing repair
 
+**Deployed and verified:** `08cc9c2a4d0ce74a5de11df13c94dc635440aacc`.
+Both named retries below are DONE and pass all four institutional completion
+checks. Two real special elections each seated one member with the original
+2031-09-19 term end; the courts now have 6 and 11 judges, all with matching active
+terms. The original 903,500 stipend items remain DONE. Public Step 5 returns 200.
+Only Horizon refreshed; configuration checksums and other service identities,
+start times and memory limits stayed unchanged. No speedup is claimed by this
+correctness patch. Remote evidence: `evidence/D017/` (commands, checksums,
+service checks, requeue result, per-scope outcomes and acceptance).
+
 2026-09-20. This developer owns local fixes and direct SSH deployment under the
 operator's explicit unattended Step 5 authorization. Same repair run:
 `01a0bed7-d6c6-7399-b288-44053ffe00e1`; no new inventory or Apply.
