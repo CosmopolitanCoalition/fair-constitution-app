@@ -122,13 +122,25 @@ and unchanged-service checks. At the measured pace the remaining work is about
 two hours; larger repair cases can change that and world completion is not yet
 established.
 
-Read-only heartbeat `check-demo-repair-progress` checks this same run every
-10 minutes and reports meaningful changes. Automatic approval rejected a
-persistent automation empowered to develop/push/deploy; explicit operator
-approval was requested and remains pending. The accepted heartbeat must NOT
-perform those writes or run-control actions. Current active-turn deployments
-were separately authorized and completed. Do not confuse that distinction
-after compaction or silently expand the read-only heartbeat's authority.
+Heartbeat `check-demo-repair-progress` checks this same run every 10 minutes.
+On September 20 the operator explicitly answered **"approved"** to unattended
+development, testing, pushing and deployment of necessary Step 5 repair fixes.
+The automation was successfully updated to carry that authority. This resolves
+the earlier automatic-approval rejection; approval is no longer pending.
+
+Use bounded diagnostics and evidence-based changes, guarded disposable test
+databases, main-branch commits, the exclusive remote developer deployment lock,
+and the established halt/drain/refresh/resume procedure. Preserve this existing
+world and run, configuration, certifications, audit history and once-only
+payments. Do not repeat inventory/Apply, alter policy or worker counts, weaken
+durability, reset the world, or interfere with the independent Claude loop.
+Report meaningful changes and completed results; after repair completion perform
+bounded acceptance checks, report remaining blockers and remove the heartbeat.
+Advancing setup or shutting down the host requires separate authorization.
+
+At 15:50:42 UTC the run remained healthy: 355,517 of 923,095 repairs complete,
+567,507 pending, 71 running, zero review, and 73 fresh workers. Evidence:
+`evidence/D016-AWARD/snapshot-approved-check.json`. Completion is not yet established.
 
 ## Remote Codex login diagnosis
 

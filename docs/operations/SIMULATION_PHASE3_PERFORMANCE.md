@@ -13,6 +13,17 @@ unnecessary. Follow the bounded drain/deploy/resume procedure below; do not wait
 for manual relay or message other tasks. Earlier role separation below is history.
 Current results: [D016 direct deployment](STEP5_REPAIR_D016_DEPLOYMENT.md).
 
+**Unattended continuation approved:** on September 20 the operator explicitly
+approved the existing ten-minute heartbeat to develop, test, push and deploy
+necessary Step 5 repair fixes using the same safe procedure. The automation
+`check-demo-repair-progress` was updated successfully. Earlier read-only limits
+and pending-approval notes are superseded. Keep the existing run, require
+evidence and targeted tests, serialize deployments with the remote deployment
+lock, and preserve audit/ledger durability and once-only payments. No world
+restart, policy change, payment replay, or interference with the Claude loop.
+At completion perform bounded acceptance, report blockers and remove the
+heartbeat; do not advance setup or shut down the host without separate approval.
+
 This protocol continues across automatic context compaction and new turns.
 Read it before any Step 5 handoff work. The operator relays complete handoffs
 manually; do not send messages directly to the other task.
