@@ -13,6 +13,14 @@ unnecessary. Follow the bounded drain/deploy/resume procedure below; do not wait
 for manual relay or message other tasks. Earlier role separation below is history.
 Current results: [D016 direct deployment](STEP5_REPAIR_D016_DEPLOYMENT.md).
 
+**Disk expansion authorization (September 20 evening):** the operator permits
+adding 64 GiB to Azure disk `WoS-Demo-data` in resource group `WoS` when `/data`
+has less than 32 GiB free. Recheck free space and the current Azure disk size,
+use managed identity, and add exactly 64 GiB. Before rescanning/growing the
+filesystem, resolve the device actually mounted at `/data`; NVMe names can
+change after a VM resize. Do not resize the VM, change disk performance, remove
+data, or overlap another storage operation under this disk-only authorization.
+
 **Population clarification (September 20):** the operator confirmed zero
 population means zero government; the existing population ceiling also applies
 to Type B panels. Correct the allocation defect in fresh runs and the existing

@@ -275,10 +275,13 @@ configure_host_memory() {
   # ingesting box is geodata-led. Only an AUTO profile (geodata/mapping)
   # re-detects; a hand-pinned 'open' (operator-only) is never clobbered.
   if [ -z "$profile" ] || { [ "${REDERIVE:-0}" = "1" ] && { [ "$profile" = "geodata" ] || [ "$profile" = "mapping" ]; }; }; then
-    if docker compose exec -T postgres psql -U "${DB_USERNAME:-fc_user}" -d "${DB_DATABASE:-fair_constitution}" -t -A -c "SELECT 1 FROM autoscale_runs LIMIT 1" 2>/dev/null | grep -q 1; then
-      profile=mapping
+    # A stopped database during a resize is not evidence of an empty world.
+    # Keep the previous automatic profile if inspection is unavailable.
+    if detected_runs=$(docker compose exec -T postgres psql -U "${DB_USERNAME:-fc_user}" -d "${DB_DATABASE:-fair_constitution}" -t -A -c "SELECT 1 FROM autoscale_runs LIMIT 1" 2>/dev/null); then
+      if printf '%s\n' "$detected_runs" | grep -q 1; then profile=mapping; else profile=geodata; fi
     else
-      profile=geodata
+      profile=${profile:-geodata}
+      say "      Database unavailable: retaining $profile profile; re-derive with postgres online to recheck."
     fi
   fi
   # 'open' (operator pin only, never auto-detected): the legacy overcommit
@@ -587,6 +590,9 @@ if [ "$REDERIVE_ONLY" = "1" ]; then
   say "  postgres  — POSTGRES_MEM_LIMIT + every PG_* value"
   say "  redis pair — REDIS_*_MAXMEMORY + MEM_REDIS_*"
   say "  docker compose up -d   (when the box is quiet; recreates changed services)"
+  say "  docker compose exec -T app php artisan config:cache"
+  say "  docker compose restart horizon scheduler"
+  say "  Rebuilding the config cache is required: old cached worker counts survive container recreation."
   exit 0
 fi
 

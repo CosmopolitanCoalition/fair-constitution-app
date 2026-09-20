@@ -87,7 +87,7 @@ esac
 case "\$full" in
   *"--status restarting"*)        exit 0;;
   *"ps --services --status running"*) printf 'app\nhorizon\npostgres\n'; exit 0;;
-  *psql*)                         exit 1;;
+  *psql*)                         [[ "\${STUB_DB_AVAILABLE:-0}" == "1" ]] || exit 1; printf '%s\\n' "\${STUB_DB_RUNS:-}"; exit 0;;
   *)                              exit 0;;
 esac
 DOCKER
@@ -121,6 +121,18 @@ assert_absent   "no git pull"                 "$WS/git.log" "pull"
 assert_absent   "no git fetch"                "$WS/git.log" "fetch"
 assert_contains "says why"                    "$WS/out.log" "Update check skipped (--rederive"
 assert_contains "took the rederive branch"    "$WS/out.log" "Re-deriving host-sized values"
+assert_contains "names the required cache refresh" "$WS/out.log" "php artisan config:cache"
+rm -rf "$WS"
+
+echo "== resize with stopped database preserves the established profile =="
+WS="$(make_workspace 16384 mapping)"
+RC="$(run_case "$WS" -- --rederive)"
+assert_eq "offline rederive exits successfully" "$RC" "0"
+assert_contains "mapping retained when database is stopped" "$WS/.env" "CGA_MEM_PROFILE=mapping"
+RC="$(run_case "$WS" STUB_COMPOSE_OK=1 STUB_DB_AVAILABLE=1 -- --rederive)"
+assert_contains "reachable empty database selects geodata" "$WS/.env" "CGA_MEM_PROFILE=geodata"
+RC="$(run_case "$WS" STUB_COMPOSE_OK=1 STUB_DB_AVAILABLE=1 STUB_DB_RUNS=1 -- --rederive)"
+assert_contains "reachable existing world selects mapping" "$WS/.env" "CGA_MEM_PROFILE=mapping"
 rm -rf "$WS"
 
 echo "== (3) --no-pull never pulls =="
