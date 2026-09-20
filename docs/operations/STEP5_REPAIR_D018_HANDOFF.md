@@ -34,7 +34,24 @@ historical candidacy/count preservation, rollback after adjustment, repeated cal
 refusal to rewrite certified/count history, scoped retry guards and worker paths.
 **54 tests / 607 assertions passed** (SimElectionRecoveryTest,
 SimRepairIntegrationTest, SimRepairWorkerTest, TypeBDistrictMapperTest).
-Live deployment results will be recorded after validation.
+Deployed **`4e0dc44aac3be275a41a655628b8f41f72499943`** at **17:59 UTC**.
+Horizon alone refreshed; configuration checksums and all other inspected service
+identities/start times/caps stayed unchanged. Original ledger head stayed unchanged
+while drained. The same repair resumed; no migration or new Apply.
+
+**188** proven ceiling failures requeued; **160 now DONE**, **28 remain in review**
+with additional election/government issues. Another **36** unrelated reviews were
+retained. A bounded live acceptance checked 20 successful scopes: 27 zero-population
+panel races soft-retired, all maps/memberships retained, group/legislature totals
+matched their panels, and 78 historical candidacies retained. Audit and money
+samples each passed 129 hashes / 128 links. All 903,500 original stipend items
+remain DONE. Public Step 5 returned HTTP 200. Evidence: remote `evidence/D018/`.
+
+At **18:01:02 UTC / 20:01 Warsaw**: **830,897 / 923,095 DONE**, 92,061 pending,
+73 running, **64 review**, all 73 workers fresh. This is continuing progress, not
+world acceptance. No additional throughput gain is claimed. The unattended
+monitor retains the exact checkpoint and remaining failure samples in STATE.json
+and D018/acceptance.json; do not repeatedly retry unchanged failures.
 
 PHP-only release: obtain the exclusive deployment lock, halt/drain the same run,
 refresh Horizon, pull, retry inspected scopes, resume. No migration, frontend build,

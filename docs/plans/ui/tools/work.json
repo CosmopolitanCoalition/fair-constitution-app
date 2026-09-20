@@ -18542,6 +18542,10 @@
         {
           "date": "2026-09-20",
           "note": "D017 deployed 08cc9c2a: corrected aggregate Type A counts masking Type B vacancies; scoped requeue preserves unrelated reviews. 34 disposable PostgreSQL tests / 453 assertions passed. Both exact live retries passed: two special elections with inherited term ends and 17 judges with matching active terms. Original 903,500 stipend items preserved. At 17:20:55 UTC 752,041/923,095 repaired, 93 review, 73 healthy workers. Zero-electorate panel treatment awaits explicit operator decision; not claimed complete. Evidence: docs/operations/STEP5_REPAIR_D017_HANDOFF.md and remote evidence/D017."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D018: operator confirmed existing population ceiling (zero population => zero government). Fixed fresh clumped-panel seat allocations and legacy open synthetic races without changing territory, certified results, historical candidacies, quorum rules or payments. Guarded scoped retry retains prior failed receipts. 54 targeted tests / 607 assertions passed. Runtime commit 4e0dc44a; deployed via authorized SSH at 17:59 UTC, Horizon only. 160/188 targeted retries DONE; 28 additional failures and 36 other reviews remain. At 18:01 UTC 830,897/923,095 repaired, 64 review, 73 healthy workers. Bounded acceptance: 20 scopes, 27 zero-seat panels, 78 historical candidacies retained; both chain tails passed 129 hashes/128 links and all 903,500 original stipend items remain DONE. Other tiny-electorate/court reviews are not claimed resolved; see docs/operations/STEP5_REPAIR_D018_HANDOFF.md."
         }
       ]
     },

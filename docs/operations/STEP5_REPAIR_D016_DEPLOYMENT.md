@@ -1,5 +1,8 @@
 # D016 direct deployment and repair benchmark
 
+**Current population-ceiling correction:** see [D018](STEP5_REPAIR_D018_HANDOFF.md).
+The operator confirmed the existing zero-population rule; no policy decision is pending.
+
 **New review incident (17:00 UTC onward):** see
 [D017 vacancy detection and unresolved zero-electorate cases](STEP5_REPAIR_D017_HANDOFF.md).
 Later heartbeat checkpoints are in the remote `STATE.json`; earlier zero-review
