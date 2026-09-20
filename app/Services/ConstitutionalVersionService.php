@@ -37,6 +37,23 @@ class ConstitutionalVersionService
 
     private static ?string $cached = null;
 
+    /**
+     * D021 changed ONLY supermajority(1/2), not STV, candidacy, seat allocation,
+     * or certification math. The complete hardened-surface fingerprints pin
+     * this one reviewed transition; any further surface edit fails closed.
+     * This does NOT declare federation or legislative-vote compatibility.
+     */
+    public function permitsElectionCertification(?string $pinned, string $kind, string $method): bool
+    {
+        $current = $this->derive();
+        if ($pinned === null || $pinned === $current) { return true; }
+
+        return $pinned === 'cv1.ac7230fe88c24e2fcd8f323f5e160b78'
+            && $current === 'cv1.35f8a64e89b09eda7046ff11a3d94f6c'
+            && in_array($kind, ['general', 'special'], true)
+            && $method === 'stv_droop';
+    }
+
     /** The derived constitutional_version, e.g. `cv1.<32 hex>`. Memoized per process. */
     public function derive(): string
     {

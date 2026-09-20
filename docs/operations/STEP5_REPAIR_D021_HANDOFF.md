@@ -57,3 +57,44 @@ Independent Claude storage/monitoring/shutdown work is untouched.
 
 The four remaining election candidate-allocation failures are separate and are
 not claimed fixed. No throughput benefit is claimed. Live acceptance pending.
+
+## Live deployment and compatibility correction
+
+`8968410a` deployed at 19:41 UTC, Horizon only. All 23 court retries and the
+one governance retry completed successfully. Bounded checks cover 24 appointed
+courts/174 distinct-within-court judges with matching active terms, residency and
+armed clocks. All 130 previously seated judges and their terms are unchanged.
+The original failed delegation, tallies and casts remain unchanged; a separate
+new act adopted. All 903,500 original stipend items remain DONE.
+
+The changed supermajority method also changed the full constitutional fingerprint,
+which caused remaining older elections to refuse certification. This was missed
+in the initial test fixtures, which created elections under the current code.
+The same run was halted/drained; failed election actions rolled back, preserving
+their old counts. These new reviews are not lost world data or successful repairs.
+
+The follow-up preserves both version identities and the normal mismatch guard.
+Only the exact reviewed transition from `cv1.ac7230fe88c24e2fcd8f323f5e160b78`
+to `cv1.35f8a64e89b09eda7046ff11a3d94f6c` permits certification of unchanged
+general/special STV elections. A test reconstructs the entire old fingerprint by
+removing only the approved two-member threshold branch and its comment, proving
+all other hardened counting/apportionment/finalist code identical. Any different
+source/destination, method or contest kind fails closed. Federation and legislative
+vote compatibility are NOT relaxed. Original election pins remain unchanged;
+certification audit payloads record both versions and the explicit compatibility.
+
+`sim:repair --retry-compatible-elections=RUN --scope=UUID` recovers only the
+precise rolled-back fingerprint refusal, under the existing halted/drained/source
+and explicit recovery guards. Previous failed receipts remain in history;
+unrelated failures and already-completed work are retained. Use at most 100
+exact scopes per call. No inventory, Apply, payment replay or election repinning.
+
+Combined validation: **66 tests / 2,242 assertions**. Includes real certification
+refusal/rollback/retry, unchanged original version, repeat idempotence, unknown
+version rejection, actual CLI, sealed-count and certified-officeholder recovery
+with pre-D021 version pins, plus court/worker/threshold regressions. Fixtures are
+guarded disposable PostgreSQL; no write tests ran on the live demo.
+
+Deploy the follow-up under the same exclusive lock while halted, refresh Horizon
+only, retry the exact compatible failures, resume the same repair. No migration,
+frontend build, scheduler/PG/Redis restart or concurrency change.

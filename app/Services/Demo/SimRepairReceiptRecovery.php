@@ -9,6 +9,60 @@ use Illuminate\Support\Facades\DB;
 /** Explicit, scope-targeted correction of D014's demonstrably effect-free receipts. */
 class SimRepairReceiptRecovery
 {
+    /** Retry only the rolled-back D021 fingerprint refusal; no repinning or recount reset. */
+    public function retryCompatibleElections(SimRun $run, array $scopes): array
+    {
+        if ($reason = app(SimRunControl::class)->refusalReason()) { throw new \RuntimeException($reason); }
+        if ($scopes === [] || count($scopes) > 100) { throw new \RuntimeException('Name 1–100 exact election compatibility retry scopes.'); }
+        return DB::transaction(function () use ($run, $scopes): array {
+            $run = SimRun::whereKey($run->id)->lockForUpdate()->firstOrFail();
+            if (! ($run->options['repair_source_run'] ?? null) || $run->status !== 'halted' || ! $run->haltRequested()
+                || $run->phase !== 'repairing' || ! ($run->options['repair_apply_authorized'] ?? false)
+                || ! ($run->options['repair_election_recovery'] ?? false)
+                || DB::table('sim_worker_leases')->where('run_id', $run->id)->exists()
+                || DB::table('sim_items')->where('run_id', $run->id)->where('status', 'running')->exists()) {
+                throw new \RuntimeException('Compatibility retry requires the drained, halted, authorized repair run.');
+            }
+            $retried = []; $retained = [];
+            foreach (array_unique($scopes) as $scope) {
+                $item = DB::table('sim_items')->where('run_id', $run->id)->where('kind', 'repair_scope')
+                    ->where('unit_key', $scope)->where('status', 'review')->lockForUpdate()->first();
+                $source = DB::table('sim_items')->where('run_id', $run->options['repair_source_run'])
+                    ->where('kind', 'election_scope')->where('unit_key', $scope)->value('metrics');
+                $id = json_decode($source ?? '{}', true)['election_id'] ?? null;
+                $election = $id ? \App\Models\Election::find($id) : null;
+                if (! $item || ! $election || $election->jurisdiction_id !== $scope || $election->kind !== 'general'
+                    || ! in_array($election->status, ['scheduled', 'approval_open'], true)
+                    || $election->constitutional_version !== 'cv1.ac7230fe88c24e2fcd8f323f5e160b78'
+                    || ! app(\App\Services\ConstitutionalVersionService::class)->permitsElectionCertification(
+                        $election->constitutional_version, $election->kind, $election->voting_method)) {
+                    $retained[] = $scope; continue;
+                }
+                $key = ['source_run_id' => $run->options['repair_source_run'], 'repair_version' => (int) ($run->options['repair_version'] ?? 1),
+                    'target_id' => $id, 'jurisdiction_id' => $scope];
+                $receipts = DB::table('sim_repair_receipts')->where($key)->whereIn('kind', ['election','election_recovery'])
+                    ->where('status', 'blocked')->lockForUpdate()->get();
+                $matches = $receipts->filter(function ($receipt) use ($election) {
+                    $result = json_decode($receipt->result ?? '{}', true);
+                    return ($result['exception'] ?? null) === 'ConstitutionalViolation'
+                        && str_starts_with($result['reason'] ?? '', "Election [{$election->id}] opened under constitutional_version [{$election->constitutional_version}] but the deployed version has changed");
+                });
+                if ($matches->count() !== 1 || $receipts->count() !== 1) { $retained[] = $scope; continue; }
+                $receipt = $matches->first(); $result = json_decode($receipt->result, true);
+                app(AuditService::class)->append('simworld', 'sim.election_compatibility_retry', $key + ['run_id' => $run->id,
+                    'item_id' => $item->id, 'pinned_version' => $election->constitutional_version, 'previous' => $result], 'WF-SYS-04', jurisdictionId: $scope);
+                DB::table('sim_repair_receipts')->where($key)->where('kind', $receipt->kind)->update(['status' => 'deferred',
+                    'result' => json_encode(['reason' => 'D021 STV compatibility: original pinned contest and counts preserved.',
+                        '_prior_receipts' => [['status' => $receipt->status, 'result' => $result, 'updated_at' => $receipt->updated_at]]]), 'updated_at' => now()]);
+                DB::table('sim_items')->where('id', $item->id)->update(['status' => 'pending', 'claim_token' => null,
+                    'reason' => null, 'finished_at' => null, 'updated_at' => now(),
+                    'metrics' => json_encode(['_previous_compatibility_review' => json_decode($item->metrics ?? '{}', true)])]);
+                $retried[] = $scope;
+            }
+            return ['retried' => $retried, 'retained' => $retained];
+        });
+    }
+
     /** Resume only a partially seated court with enough lawful, distinct court residents. */
     public function retryCourtRosters(SimRun $run, array $scopes): array
     {

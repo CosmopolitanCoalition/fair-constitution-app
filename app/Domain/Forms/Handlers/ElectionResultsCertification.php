@@ -102,7 +102,10 @@ class ElectionResultsCertification implements FormHandler
         // that predate version-pinning (null) are grandfathered.
         $pinned = $election->constitutional_version;
 
-        if ($pinned !== null && $pinned !== app(ConstitutionalVersionService::class)->derive()) {
+        $versions = app(ConstitutionalVersionService::class);
+        // A narrowly reviewed release pair may change legislative thresholds
+        // without changing this STV contest. Never rewrite its pinned version.
+        if (! $versions->permitsElectionCertification($pinned, $election->kind, $election->voting_method)) {
             throw new ConstitutionalViolation(
                 "Election [{$election->id}] opened under constitutional_version [{$pinned}] but the deployed "
                 .'version has changed — certifying would seal a count under rules that moved mid-contest. '
@@ -157,6 +160,10 @@ class ElectionResultsCertification implements FormHandler
             'count_record_hash' => $countRecordHash,
             'races_certified' => count($recordHashes),
             'superseded_certification' => $superseded,
+            'election_constitutional_version' => $pinned,
+            'deployed_constitutional_version' => $versions->derive(),
+            'counting_compatibility' => $pinned !== null && $pinned !== $versions->derive()
+                ? 'D021_tiny_chamber_only_STV_unchanged' : null,
         ], $pipelineExtra);
     }
 

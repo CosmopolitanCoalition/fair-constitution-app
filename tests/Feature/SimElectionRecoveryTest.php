@@ -34,7 +34,9 @@ class SimElectionRecoveryTest extends TestCase
         $board = ElectionBoard::create(['jurisdiction_id' => $scope, 'is_bootstrap' => true, 'status' => 'active']);
         ElectionBoardMember::create(['election_board_id' => $board->id, 'user_id' => null, 'status' => 'seated']);
         $e = Election::create(['jurisdiction_id' => $scope, 'legislature_id' => $leg->id, 'election_board_id' => $board->id,
-            'kind' => 'general', 'status' => 'scheduled']);
+            // Existing-world counts were created before the tiny-chamber rule.
+            // Every recovery regression must preserve this original version.
+            'kind' => 'general', 'status' => 'scheduled', 'constitutional_version' => 'cv1.ac7230fe88c24e2fcd8f323f5e160b78']);
         $a = ElectionRace::create(['election_id' => $e->id, 'jurisdiction_id' => $scope, 'seat_kind' => 'type_a', 'seats' => 5, 'finalist_count' => 15]);
         $b = ElectionRace::create(['election_id' => $e->id, 'jurisdiction_id' => $scope, 'seat_kind' => 'type_b', 'seats' => 5, 'finalist_count' => 15]);
         for ($i = 0; $i < 20; $i++) {

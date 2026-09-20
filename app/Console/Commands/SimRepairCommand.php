@@ -14,6 +14,8 @@ class SimRepairCommand extends Command
     protected function configure(): void
     {
         parent::configure();
+        $this->addOption('retry-compatible-elections', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
+            'Retry only rolled-back D021 STV-version refusals on a drained halted run, with exact --scope values');
         $this->addOption('enable-election-recovery', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
             'Record authorized supplementary elections and unfinished-count recovery on this halted repair run');
         $this->addOption('retry-population-ceiling', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
@@ -29,6 +31,10 @@ class SimRepairCommand extends Command
     public function handle(SimRepairControl $control): int
     {
         try {
+            if ($id = $this->option('retry-compatible-elections')) {
+                $this->line(json_encode(app(\App\Services\Demo\SimRepairReceiptRecovery::class)->retryCompatibleElections(SimRun::findOrFail($id), $this->option('scope')), JSON_PRETTY_PRINT));
+                return self::SUCCESS;
+            }
             if ($id = $this->option('retry-court-rosters')) {
                 $this->line(json_encode(app(\App\Services\Demo\SimRepairReceiptRecovery::class)->retryCourtRosters(SimRun::findOrFail($id), $this->option('scope')), JSON_PRETTY_PRINT));
                 return self::SUCCESS;

@@ -374,6 +374,59 @@ class SimRepairIntegrationTest extends TestCase
         self::assertSame($terms, DB::table('terms')->count()); self::assertSame($counts, DB::table('tabulations')->count());
     }
 
+    public function test_compatible_version_retry_preserves_the_original_election_pin_and_rejects_other_failures(): void
+    {
+        $scope = $this->place();
+        $leg = Legislature::create(['jurisdiction_id' => $scope, 'term_number' => 1, 'status' => 'forming',
+            'total_seats' => 5, 'type_a_seats' => 5, 'type_b_seats' => 0, 'quorum_required' => 3]);
+        $board = \App\Models\ElectionBoard::create(['jurisdiction_id' => $scope, 'is_bootstrap' => true, 'status' => 'active']);
+        \App\Models\ElectionBoardMember::create(['election_board_id' => $board->id, 'user_id' => null, 'status' => 'seated']);
+        for ($i = 0; $i < 6; $i++) { $this->resident($scope, $this->person()); }
+        \App\Services\Demo\Stages\CohortStage::run($scope, null, 1, 62);
+        $source = $this->source([$scope]); $e = $this->bindElection($source, $scope, $leg, 0, 5, 'scheduled');
+        $old = 'cv1.ac7230fe88c24e2fcd8f323f5e160b78';
+        DB::table('elections')->where('id', $e)->update(['election_board_id' => $board->id, 'constitutional_version' => $old]);
+        $run = app(SimRepairControl::class)->start($source->id); $options = $run->options;
+        $options['repair_apply_authorized'] = true; $options['repair_election_recovery'] = true;
+        $run->forceFill(['options' => $options, 'phase' => 'repairing', 'status' => 'running'])->save();
+        $service = app(SimRepairService::class); $item = (object) ['jurisdiction_id' => $scope];
+        // An unreviewed version still refuses at REAL certification and rolls
+        // the whole election action back, as the deployed D021 incident did.
+        $future = new class extends \App\Services\ConstitutionalVersionService { public function derive(): string { return 'cv1.unreviewed'; } };
+        $this->app->instance(\App\Services\ConstitutionalVersionService::class, $future);
+        $counts = DB::table('tabulations')->count(); $members = DB::table('legislature_members')->count();
+        $result = $service->run($run, $item);
+        self::assertSame('review', $result['_verdict']);
+        self::assertStringContainsString('constitutional_version', json_encode($result));
+        self::assertSame($counts, DB::table('tabulations')->count());
+        self::assertSame($members, DB::table('legislature_members')->count());
+        self::assertSame('scheduled', DB::table('elections')->where('id', $e)->value('status'));
+        $itemId = $this->id(); DB::table('sim_items')->insert(['id' => $itemId, 'run_id' => $run->id, 'kind' => 'repair_scope',
+            'unit_key' => $scope, 'jurisdiction_id' => $scope, 'status' => 'review', 'metrics' => json_encode($result)]);
+        $run->forceFill(['status' => 'halted', 'halt_requested_at' => now()])->save();
+        $retry = app(\App\Services\Demo\SimRepairReceiptRecovery::class);
+        self::assertSame([], $retry->retryCompatibleElections($run, [$scope])['retried'], 'Future math cannot bypass version protection.');
+        $this->app->instance(\App\Services\ConstitutionalVersionService::class, new \App\Services\ConstitutionalVersionService());
+        $receipt = DB::table('sim_repair_receipts')->where('target_id', $e)->first();
+        DB::table('sim_repair_receipts')->where('target_id', $e)->update(['result' => '{"reason":"unrelated","exception":"ConstitutionalViolation"}']);
+        self::assertSame([], $retry->retryCompatibleElections($run, [$scope])['retried']);
+        DB::table('sim_repair_receipts')->where('target_id', $e)->update(['result' => $receipt->result]);
+        self::assertSame(0, \Illuminate\Support\Facades\Artisan::call('sim:repair', ['--retry-compatible-elections' => $run->id, '--scope' => [$scope]]));
+        self::assertSame([$scope], json_decode(\Illuminate\Support\Facades\Artisan::output(), true)['retried']);
+        self::assertSame([], $retry->retryCompatibleElections($run, [$scope])['retried']);
+        $run->forceFill(['status' => 'running', 'halt_requested_at' => null])->save();
+        $result = $service->run($run, $item);
+        self::assertSame('done', $result['_verdict'], json_encode($result));
+        self::assertSame($old, DB::table('elections')->where('id', $e)->value('constitutional_version'));
+        self::assertSame('certified', DB::table('elections')->where('id', $e)->value('status'));
+        self::assertSame(5, DB::table('legislature_members')->where('election_id', $e)->count());
+        $history = json_decode(DB::table('sim_repair_receipts')->where('target_id', $e)->value('result'), true);
+        self::assertStringContainsString('constitutional_version', json_encode($history['_prior_receipts']));
+        $counts = DB::table('tabulations')->count(); $terms = DB::table('terms')->count();
+        self::assertSame('done', $service->run($run, $item)['_verdict']);
+        self::assertSame($counts, DB::table('tabulations')->count()); self::assertSame($terms, DB::table('terms')->count());
+    }
+
     public function test_fresh_board_seating_elects_a_chair_and_existing_board_repair_is_atomic(): void
     {
         $scope = $this->place(); $people = [$this->person(), $this->person(), $this->person()];

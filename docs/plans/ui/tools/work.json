@@ -18502,7 +18502,9 @@
         "tests/Feature/PublicationIndexRetirementTest.php",
         "docs/operations/STEP5_REPAIR_D016_DEPLOYMENT.md",
         "docs/operations/STEP5_REPAIR_D020_HANDOFF.md",
-        "docs/operations/STEP5_REPAIR_D021_HANDOFF.md"
+        "docs/operations/STEP5_REPAIR_D021_HANDOFF.md",
+        "tests/Constitutional/ElectionVersionCompatibilityTest.php",
+        "app/Services/ConstitutionalVersionService.php"
       ],
       "history": [
         {
@@ -18560,6 +18562,10 @@
         {
           "date": "2026-09-20",
           "note": "D021 corrects D020 court diagnosis: actual F-LEG-037/F-LEG-021 nominee eligibility is court jurisdiction; simulator unnecessarily restricted each constituent to its own residents. Keep preferred local nominees and fill shortages with distinct eligible court residents; no bench-minimum/quota/duplicate-seat exception. Operator explicitly approved unanimity for one/two-member bodies, with larger thresholds and historical votes unchanged. Scoped guarded retries and real court/delegation regressions: 46 tests / 2026 assertions pass. Same repair halted pending deployment; four candidate-allocation failures remain separate."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D021 live: 23 court retries and one tiny-chamber delegation passed; 174 judges checked, 130 prior judges/terms and old failed vote/casts unchanged. Initial release changed full constitutional fingerprint, blocking older elections; halted same run. Follow-up admits only exact reviewed unchanged-STV release pair, preserves pinned versions, logs compatibility and targets rolled-back failures. Complete prior hardened surface reconstructed in regression; unknown versions remain rejected. 66 tests / 2242 assertions pass, including original-version sealed-count and supplemental recovery. Live continuation pending."
         }
       ]
     },
