@@ -197,6 +197,9 @@ class TrainingStipendService
                 // credit and this ONE durable commit; its second acquisition is
                 // reentrant, so the group does not rejoin the global lock queue.
                 DB::transaction(function () use ($g, $timed, $ownsTransaction): void {
+                    if (\App\Services\Demo\RepairChairAudit::active()) {
+                        \App\Services\Demo\RepairChairAudit::reserveTrainingPaymentLocks();
+                    }
                     if ($timed) { SimTimer::open('training.stipend_mint'); }
                     try {
                         $this->issuance->mint($g['currency'], $g['treasury_id'], $g['total'], 'training stipend batch (F-EDU-001, once per person)');

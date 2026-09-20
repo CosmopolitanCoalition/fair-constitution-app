@@ -74,6 +74,42 @@ final class RepairChairAudit
             ->where('act->rejected', false)->where('act->actorId', $user)->where('act->payload->track_key', $track)->exists();
     }
 
+    /**
+     * The minted-training tail needs both chains until its outer commit. Join
+     * the audit queue before owning money, but never wait for money while
+     * owning audit: an ordinary writer may already hold money and need audit.
+     * Rolling back ONLY the reservation savepoint releases a failed attempt's
+     * locks, keeping the completed training work and its staged evidence intact.
+     */
+    public static function reserveTrainingPaymentLocks(): void
+    {
+        if (! self::$active || DB::transactionLevel() < 1) { throw new \LogicException('No atomic repair collection'); }
+        $level = DB::transactionLevel();
+        $money = \App\Services\Economy\LedgerService::APPEND_LOCK_KEY;
+        SimTimer::open('repair.training_append_wait');
+        try {
+            while (true) {
+                DB::beginTransaction();
+                DB::statement('SELECT pg_advisory_xact_lock(?)', [AuditService::APPEND_LOCK_KEY]);
+                $acquired = DB::selectOne('SELECT pg_try_advisory_xact_lock(?) AS acquired', [$money])->acquired;
+                if ($acquired) {
+                    DB::commit(); // savepoint only; both locks survive to the action commit
+                    return;
+                }
+                DB::rollBack(); // release audit so the existing money owner can finish
+
+                // Wait without holding audit, then release this temporary
+                // reservation and retry the pair. No spin loop or session locks.
+                DB::beginTransaction();
+                DB::statement('SELECT pg_advisory_xact_lock(?)', [$money]);
+                DB::rollBack();
+            }
+        } finally {
+            if (DB::transactionLevel() > $level) { DB::rollBack($level); }
+            SimTimer::close('repair.training_append_wait');
+        }
+    }
+
     public static function flush(): void
     {
         if (! self::$active || DB::transactionLevel() < 1) { throw new \LogicException('No atomic repair collection'); }

@@ -6,6 +6,13 @@ these migrations and measurements on the running simulation.
 
 ## Operator communication protocol — 2026-09-20
 
+**Current operator override:** this Windows developer now owns development,
+SSH deployment, and benchmarking for the same repair run. The operator explicitly
+authorized `ssh wos-demo` and confirmed that a separate remote Codex session is
+unnecessary. Follow the bounded drain/deploy/resume procedure below; do not wait
+for manual relay or message other tasks. Earlier role separation below is history.
+Current results: [D016 direct deployment](STEP5_REPAIR_D016_DEPLOYMENT.md).
+
 This protocol continues across automatic context compaction and new turns.
 Read it before any Step 5 handoff work. The operator relays complete handoffs
 manually; do not send messages directly to the other task.

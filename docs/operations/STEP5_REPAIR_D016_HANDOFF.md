@@ -1,5 +1,8 @@
 # D016 response: combined repair performance fixes
 
+**Deployed and measured:** [direct deployment results](STEP5_REPAIR_D016_DEPLOYMENT.md).
+The first release measured 4.05× repair throughput at unchanged host settings.
+
 2026-09-20. Developer release for the EXISTING repair run
 `01a0bed7-d6c6-7399-b288-44053ffe00e1`, repair version 1. Incoming measurement:
 52,278 scopes/hour on 7aa09548 was insufficient. No remote speedup is claimed

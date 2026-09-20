@@ -18499,7 +18499,8 @@
         "docs/operations/STEP5_REPAIR_D015_HANDOFF.md",
         "docs/operations/STEP5_REPAIR_D016_HANDOFF.md",
         "docs/operations/step5-benchmarks/D016.md",
-        "tests/Feature/PublicationIndexRetirementTest.php"
+        "tests/Feature/PublicationIndexRetirementTest.php",
+        "docs/operations/STEP5_REPAIR_D016_DEPLOYMENT.md"
       ],
       "history": [
         {
@@ -18521,6 +18522,10 @@
         {
           "date": "2026-09-20",
           "note": "D016 measured 52,278 repairs/hour (1.55x), insufficient. Combined release adds forward-only UUIDv7 audit/publication IDs, late transactional audit sealing across all repair actions, exact achievement/IP seals and staged training reads, bounded grouped chairs and bulk ballots, paged large evidence, and guarded redundant publication index retirement. 70 tests / 4,372 assertions passed in disposable PostgreSQL and DB-free fixtures; two chairs use one append, three-seat SQL 64 to 50. No remote speedup claimed. Operator explicitly authorized SSH deployment after remote Codex authentication failed; same run/version, existing world and payment history retained."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Operator authorized direct SSH deployment. eacd0a88 deployed; unchanged-settings repair throughput measured 80,159 to 324,376/hour (4.05x), zero review, sampled chairs/publication seals and audit/money links passed. Focused follow-up prevents minted training repairs retaining the money lock while waiting for audit; reservation savepoint yields safely to legacy writers. Combined 94 tests / 6,038 assertions passed, including concurrent repair groups, both lock orders, timeout recovery, rollback and once-only payment. Remote follow-up measurement pending."
         }
       ]
     },

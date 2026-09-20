@@ -7,6 +7,7 @@ use App\Models\Economy\Currency;
 use App\Models\Economy\LedgerEntry;
 use App\Models\User;
 use App\Services\AuditService;
+use App\Services\Demo\RepairChairAudit;
 use App\Services\Economy\AccountService;
 use App\Services\Economy\IssuanceService;
 use App\Services\Economy\LedgerService;
@@ -81,6 +82,7 @@ class TrainingLedgerPerformanceTest extends TestCase
             if (is_resource($process)) { proc_close($process); }
         }
         TrainingStipendService::resetBatch();
+        RepairChairAudit::end();
         Str::createUuidsNormally();
         $this->resetTimers();
         if ($this->fixture !== null) {
@@ -500,7 +502,13 @@ class TrainingLedgerPerformanceTest extends TestCase
         $this->assertBalances('10000', '0');
     }
 
-    public function test_concurrent_training_groups_cannot_interleave_mint_and_disbursement(): void
+    public static function concurrentTrainingModes(): array
+    {
+        return ['ordinary' => ['training'], 'repair' => ['repair_training']];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('concurrentTrainingModes')]
+    public function test_concurrent_training_groups_cannot_interleave_mint_and_disbursement(string $mode): void
     {
         $stipend = $this->bufferTrainingStipend();
         $people = [];
@@ -517,7 +525,7 @@ class TrainingLedgerPerformanceTest extends TestCase
         foreach ($people as $person) {
             $process = proc_open([PHP_BINARY, base_path('tests/Support/training_ledger_worker.php')], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
             $this->assertIsResource($process); $this->children[] = [$process, $pipes];
-            fwrite($pipes[0], json_encode(['connection' => DB::connection()->getConfig(), 'mode' => 'training', 'user' => $person['id']], JSON_THROW_ON_ERROR)."\n");
+            fwrite($pipes[0], json_encode(['connection' => DB::connection()->getConfig(), 'mode' => $mode, 'user' => $person['id']], JSON_THROW_ON_ERROR)."\n");
             stream_set_timeout($pipes[1], 10);
             $ready = json_decode(fgets($pipes[1]) ?: '{}', true);
             $this->assertTrue($ready['ready'] ?? false); $pids[] = $ready['pid'];
@@ -553,6 +561,109 @@ class TrainingLedgerPerformanceTest extends TestCase
         $this->assertBalances('10000', '10');
         $this->assertSame('30.000000', app(IssuanceService::class)->supply($this->currency));
         $this->assertChain();
+    }
+
+    public function test_repair_waiting_for_audit_does_not_own_the_money_lock(): void
+    {
+        $this->exerciseRepairLocks(AuditService::APPEND_LOCK_KEY, AuditService::APPEND_LOCK_KEY, LedgerService::APPEND_LOCK_KEY);
+    }
+
+    public function test_repair_yields_audit_to_a_legacy_money_owner_then_retries_without_deadlock(): void
+    {
+        $this->exerciseRepairLocks(LedgerService::APPEND_LOCK_KEY, LedgerService::APPEND_LOCK_KEY, AuditService::APPEND_LOCK_KEY);
+    }
+
+    private function exerciseRepairLocks(int $held, int $waiting, int $free): void
+    {
+        $this->bufferTrainingStipend(); TrainingStipendService::resetBatch();
+        $user = DB::table('residency_confirmations')->value('user_id');
+        DB::beginTransaction(); DB::statement('SELECT pg_advisory_xact_lock(?)', [$held]);
+        $process = proc_open([PHP_BINARY, base_path('tests/Support/training_ledger_worker.php')],
+            [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        $this->assertIsResource($process); $index = count($this->children); $this->children[$index] = [$process, $pipes];
+        fwrite($pipes[0], json_encode(['connection' => DB::connection()->getConfig(), 'mode' => 'repair_training', 'user' => $user])."\n");
+        stream_set_timeout($pipes[1], 10);
+        $ready = json_decode(fgets($pipes[1]) ?: '{}', true); $this->assertTrue($ready['ready'] ?? false);
+        fwrite($pipes[0], "GO\n");
+        $locks = fn (int $key) => DB::table('pg_locks')->where('pid', $ready['pid'])->where('locktype', 'advisory')
+            ->where('classid', intdiv($key, 4294967296))->where('objid', $key % 4294967296);
+        $deadline = microtime(true) + 5;
+        do {
+            $blocked = $locks($waiting)->where('granted', false)->exists();
+            if ($blocked) { break; }
+            usleep(10000);
+        } while (microtime(true) < $deadline);
+        $this->assertTrue($blocked, 'Child must reach the real contended append path.');
+        $this->assertFalse($locks($free)->where('granted', true)->exists(), 'Never retain one chain while waiting for the other.');
+        $this->assertTrue(DB::selectOne('SELECT pg_try_advisory_xact_lock(?) AS ok', [$free])->ok);
+        app(AuditService::class)->append('fixture', 'legacy.writer', []);
+        DB::commit();
+        $this->assertSame("DONE\n", fgets($pipes[1]));
+        fclose($pipes[0]); fclose($pipes[1]); $errors = stream_get_contents($pipes[2]); fclose($pipes[2]);
+        $this->assertSame(0, proc_close($process), $errors); unset($this->children[$index]);
+        $this->assertBalances('10000', '10'); $this->assertChain();
+        $this->assertSame(1, DB::table('issuance_events')->count());
+        $this->assertSame(1, DB::table('audit_log')->where('event', 'repair.training')->count());
+        $this->assertTrue(app(AuditService::class)->verifyChain());
+    }
+
+    public function test_repair_training_payment_remains_once_only_with_exact_achievement_seals(): void
+    {
+        $learner = $this->trainingLearner(); $stipend = app(TrainingStipendService::class);
+        $payload = ['track_key' => 'fixture', 'module_key' => 'first', 'passed' => true, 'score_pct' => 100];
+        for ($pass = 0; $pass < 2; $pass++) {
+            DB::transaction(function () use ($learner, $stipend, $payload) {
+                RepairChairAudit::begin(); $stipend->beginBatch();
+                app(TrainingCompletion::class)->handle($learner, $payload);
+                app(TrainingCompletion::class)->handle($learner, $payload);
+                $stipend->commitBatch(); $stipend->commitBatch(); RepairChairAudit::flush();
+            });
+            RepairChairAudit::end(); SimTimer::close('repair.audit_commit');
+        }
+        $this->assertBalances('10000', '10'); $this->assertSame(1, DB::table('issuance_events')->count());
+        $this->assertSame(3, DB::table('ledger_entries')->count()); $this->assertChain();
+        $award = DB::table('achievements')->sole();
+        $this->assertGreaterThan(0, $award->audit_seq);
+        $this->assertSame('achievement/earned', DB::table('audit_log')->where('seq', $award->audit_seq)->value('event'));
+        $this->assertTrue(app(AuditService::class)->verifyChain());
+    }
+
+    public function test_repair_payment_failure_rolls_back_training_achievement_money_and_both_reservations(): void
+    {
+        $learner = $this->trainingLearner(); $stipend = app(TrainingStipendService::class);
+        DB::statement('ALTER TABLE economic_accounts ADD CONSTRAINT fixture_wallet CHECK (balance = 0)');
+        try {
+            DB::transaction(function () use ($learner, $stipend) {
+                RepairChairAudit::begin(); $stipend->beginBatch();
+                app(TrainingCompletion::class)->handle($learner, ['track_key' => 'fixture', 'module_key' => 'first', 'passed' => true, 'score_pct' => 100]);
+                $stipend->commitBatch(); RepairChairAudit::flush();
+            });
+            $this->fail('Wallet failure must propagate.');
+        } catch (\Illuminate\Database\QueryException $e) { $this->assertStringContainsString('fixture_wallet', $e->getMessage()); }
+        RepairChairAudit::end();
+        foreach (['achievements','education_progress','issuance_events','ledger_entries'] as $table) { $this->assertSame(0, DB::table($table)->count()); }
+        $this->assertSame(1, DB::table('audit_log')->count()); $this->assertSame(0, DB::transactionLevel());
+        $this->assertSame(0, DB::table('pg_locks')->whereRaw('pid=pg_backend_pid()')->where('locktype','advisory')->count());
+        $this->assertBalances('10000', '0');
+    }
+
+    public function test_repair_reservation_timeout_preserves_outer_work_and_can_retry(): void
+    {
+        $this->bufferTrainingStipend(); TrainingStipendService::resetBatch(); $config = DB::connection()->getConfig();
+        $other = new \PDO('pgsql:host='.$config['host'].';port='.$config['port'].';dbname='.$config['database'], $config['username'], $config['password']);
+        $other->beginTransaction(); $other->exec('SELECT pg_advisory_xact_lock('.AuditService::APPEND_LOCK_KEY.')');
+        DB::beginTransaction(); RepairChairAudit::begin();
+        app(AuditService::class)->append('fixture','retained',[]);
+        DB::statement("SET LOCAL lock_timeout='100ms'");
+        try { RepairChairAudit::reserveTrainingPaymentLocks(); $this->fail('Reservation should time out.'); }
+        catch (\Illuminate\Database\QueryException $e) { $this->assertSame('55P03', $e->errorInfo[0]); }
+        $this->assertSame(1, DB::transactionLevel());
+        $this->assertSame(1, DB::table('pg_temp.sim_repair_chair_audit')->count());
+        $this->assertFalse(SimTimer::isOpen('repair.training_append_wait'));
+        $other->rollBack();
+        RepairChairAudit::reserveTrainingPaymentLocks(); RepairChairAudit::flush(); DB::commit(); RepairChairAudit::end();
+        $this->assertSame(1, DB::table('audit_log')->where('event','retained')->count());
+        $this->assertTrue(app(AuditService::class)->verifyChain());
     }
 
     private function bufferTrainingStipend(): TrainingStipendService
