@@ -748,11 +748,16 @@ class ConstitutionalValidator
      * Supermajority threshold over ALL serving members (never just those
      * present): ceil(serving × numerator/denominator), clamped so it can
      * never fall below majority + 1, i.e. floor(serving/2) + 2.
+     * Operator ruling 2026-09-20: one/two serving members require unanimity;
+     * a threshold may not demand a nonexistent extra member in those bodies.
      *
      *   supermajority(8) = 6   supermajority(9) = 6   supermajority(6) = 5
      */
     public static function supermajority(int $serving, int $numerator = 2, int $denominator = 3): int
     {
+        if ($serving === 1 || $serving === 2) {
+            return $serving;
+        }
         $fraction = intdiv($serving * $numerator + $denominator - 1, $denominator); // integer ceil
         $majorityPlus1 = intdiv($serving, 2) + 2;
 

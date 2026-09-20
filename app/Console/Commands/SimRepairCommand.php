@@ -20,11 +20,23 @@ class SimRepairCommand extends Command
             'Retry proven population-ceiling election failures on this halted run, using exact --scope values');
         $this->addOption('retry-small-electorates', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
             'Retry proven tiny-panel election failures on this halted run, using exact --scope values');
+        $this->addOption('retry-tiny-governance', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
+            'Retry an impossible tiny-chamber delegation threshold on this halted run, preserving the failed vote');
+        $this->addOption('retry-court-rosters', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
+            'Retry deferred court seats with eligible court-jurisdiction residents, preserving seated judges');
     }
 
     public function handle(SimRepairControl $control): int
     {
         try {
+            if ($id = $this->option('retry-court-rosters')) {
+                $this->line(json_encode(app(\App\Services\Demo\SimRepairReceiptRecovery::class)->retryCourtRosters(SimRun::findOrFail($id), $this->option('scope')), JSON_PRETTY_PRINT));
+                return self::SUCCESS;
+            }
+            if ($id = $this->option('retry-tiny-governance')) {
+                $this->line(json_encode(app(\App\Services\Demo\SimRepairReceiptRecovery::class)->retryTinyGovernance(SimRun::findOrFail($id), $this->option('scope')), JSON_PRETTY_PRINT));
+                return self::SUCCESS;
+            }
             if ($id = $this->option('retry-small-electorates')) {
                 $this->line(json_encode(app(\App\Services\Demo\SimRepairReceiptRecovery::class)->retryPopulationCeiling(SimRun::findOrFail($id), $this->option('scope'), true), JSON_PRETTY_PRINT));
                 return self::SUCCESS;

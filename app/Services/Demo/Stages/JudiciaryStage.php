@@ -31,8 +31,8 @@ use Illuminate\Support\Facades\DB;
  * equal — Earth: 1 × 232 = 232), floored at min_judges. So this stage files
  * the real F-LEG-017 creation act, the seated members carry the supermajority
  * vote, and then EVERY vacant seat is filled the constitutional way: a
- * per-seat F-LEG-021 nomination by its constituent (nominee = a real resident
- * of that constituent) whose consent vote the chamber carries — the exact
+ * per-seat F-LEG-021 nomination by its constituent (nominee = an eligible
+ * resident of the court's jurisdiction) whose consent vote the chamber carries — the exact
  * sequence PhaseEDemoCommand::standUpJudiciary proves against the pins
  * (10-year CLK-09 terms arm per seat; the court flips appointed only when
  * every seat consents).
@@ -48,7 +48,7 @@ use Illuminate\Support\Facades\DB;
  *     fill through committeeNominate(), the same consent pipeline (rubric
  *     sim-leaf-courts = A, 2026-08-08: full courts everywhere BEFORE the
  *     demo);
- *   - a constituent without a resident to nominate defers that seat.
+ *   - an exhausted court-wide eligible resident pool defers remaining seats.
  */
 final class JudiciaryStage
 {
@@ -161,7 +161,8 @@ final class JudiciaryStage
         // ── 2. Seat the bench: per-seat F-LEG-021 nominate (a real resident of
         //       the nominating constituent) + the consent vote. ───────────────
         // The nominee pool: a constituent-nominated seat draws from ITS
-        // constituent's residents (Art. IV §2 — each nominates its own); a
+        // constituent's residents as a preference; eligibility is the court's
+        // jurisdiction (JudicialNominationService::nominee). A
         // committee-nominated seat (leaf court) draws from the jurisdiction's
         // own residents. Same consent pipeline either way, one consent vote per
         // seat (the constitutional per-seat consent is unchanged here).
@@ -177,10 +178,9 @@ final class JudiciaryStage
         // re-plucked the growing `taken` set and looked up residents per seat.
         // Each probe fetches only as many distinct residents as that pool has
         // seats to fill, ordered by user_id for a deterministic assignment,
-        // and excludes residents already on this bench. Assignment is otherwise
-        // identical: each seat gets a distinct active resident of its pool, or
-        // defers when the pool is dry. Nothing about the F-LEG-021 nomination or
-        // its consent vote changes; this only removes read overhead.
+        // and excludes residents already on this bench. Local assignments are
+        // preserved before the bounded court-jurisdiction fallback below.
+        // F-LEG-021 eligibility and the consent process remain unchanged.
         $poolOf = static fn ($seat): string => $seat->seat_class === JudicialSeat::CLASS_CONSTITUENT_NOMINATED
             ? (string) $seat->nominating_jurisdiction_id
             : $jurisdictionId;
@@ -198,15 +198,13 @@ final class JudiciaryStage
         SimTimer::record('judiciary.resident_pools', (int) ((hrtime(true) - $mPools) / 1000));
 
         $mNominate = hrtime(true);
-        $assigned = [];
+        $assigned = []; $nominees = []; $short = [];
         $deferredSeats = 0;
         foreach ($vacant as $seat) {
             $beat && $beat();
             $poolJurisdictionId = $poolOf($seat);
 
             if ($poolJurisdictionId === '') {
-                $deferredSeats++;
-
                 continue;
             }
 
@@ -223,12 +221,31 @@ final class JudiciaryStage
             }
 
             if ($nomineeId === null) {
-                $deferredSeats++;   // no resident to nominate yet
-
+                $short[] = $seat->id;
                 continue;
             }
 
             $assigned[$nomineeId] = true;
+            $nominees[$seat->id] = $nomineeId;
+        }
+
+        if ($short !== []) {
+            // The real F-LEG-037/F-LEG-021 eligibility rule is association
+            // with the COURT jurisdiction, not the nominating constituent.
+            // Preserve every preferred local nominee first, then fill only
+            // shortages from the court's remaining distinct residents.
+            $fallback = self::residentPools([$jurisdictionId => count($short) + count($assigned)], (string) $judiciary->id, $beat)[$jurisdictionId];
+            $fallback = array_values(array_filter($fallback, fn ($id) => ! isset($assigned[$id])));
+            foreach ($short as $seatId) {
+                if ($fallback === []) { break; }
+                $id = array_shift($fallback); $assigned[$id] = true; $nominees[$seatId] = $id;
+            }
+        }
+
+        foreach ($vacant as $seat) {
+            $beat && $beat();
+            $nomineeId = $nominees[$seat->id] ?? null;
+            if ($nomineeId === null) { $deferredSeats++; continue; }
 
             // Stage the nomination (no per-seat vote); the bench consents once
             // below. The VACANT guard and nominee association are enforced inside.

@@ -81,6 +81,13 @@ The application is BUILT. The plans served as what to build; they are done servi
 
 ## Technology Stack
 
+**Operator ruling 2026-09-20 (tiny chambers):** one- and two-member bodies require
+unanimity for a supermajority decision. The majority-plus-one lower bound applies
+unchanged from three serving members upward; zero-member bodies cannot adopt.
+Existing closed vote thresholds/outcomes remain historical snapshots. Recovery
+uses a new act and real vote, never rewrites a failed vote. This explicit ruling
+supersedes contrary small-body implications of the older threshold table below.
+
 | Layer | Technology |
 |---|---|
 | Backend | Laravel 12, PHP 8.4 |

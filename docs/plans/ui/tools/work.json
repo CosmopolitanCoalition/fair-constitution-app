@@ -18501,7 +18501,8 @@
         "docs/operations/step5-benchmarks/D016.md",
         "tests/Feature/PublicationIndexRetirementTest.php",
         "docs/operations/STEP5_REPAIR_D016_DEPLOYMENT.md",
-        "docs/operations/STEP5_REPAIR_D020_HANDOFF.md"
+        "docs/operations/STEP5_REPAIR_D020_HANDOFF.md",
+        "docs/operations/STEP5_REPAIR_D021_HANDOFF.md"
       ],
       "history": [
         {
@@ -18555,6 +18556,10 @@
         {
           "date": "2026-09-20",
           "note": "D020 deployed 1874b1ca at 19:01 UTC: 97 retries, 76 pass all acceptance, 17 election recoveries expose court shortages, four candidate shortages remain. Four tiny elections certified with one ballot/quota/winner each; both bounded chains 129 hashes/128 links pass; original 903500 stipends DONE. At 19:10 UTC 908766/923095 DONE, 28 review, 73 fresh workers. Remaining 23 courts conflict with population/equal-quota/minimum-bench requirements; one two-member Type B chamber needs three yes votes under current formula; operator clarification requested before protected-policy changes. Same run continues."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D021 corrects D020 court diagnosis: actual F-LEG-037/F-LEG-021 nominee eligibility is court jurisdiction; simulator unnecessarily restricted each constituent to its own residents. Keep preferred local nominees and fill shortages with distinct eligible court residents; no bench-minimum/quota/duplicate-seat exception. Operator explicitly approved unanimity for one/two-member bodies, with larger thresholds and historical votes unchanged. Scoped guarded retries and real court/delegation regressions: 46 tests / 2026 assertions pass. Same repair halted pending deployment; four candidate-allocation failures remain separate."
         }
       ]
     },

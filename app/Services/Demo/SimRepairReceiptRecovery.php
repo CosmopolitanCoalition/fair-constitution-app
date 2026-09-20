@@ -9,6 +9,112 @@ use Illuminate\Support\Facades\DB;
 /** Explicit, scope-targeted correction of D014's demonstrably effect-free receipts. */
 class SimRepairReceiptRecovery
 {
+    /** Resume only a partially seated court with enough lawful, distinct court residents. */
+    public function retryCourtRosters(SimRun $run, array $scopes): array
+    {
+        if ($reason = app(SimRunControl::class)->refusalReason()) { throw new \RuntimeException($reason); }
+        if ($scopes === [] || count($scopes) > 100) { throw new \RuntimeException('Name 1–100 exact court retry scopes.'); }
+        return DB::transaction(function () use ($run, $scopes): array {
+            $run = SimRun::whereKey($run->id)->lockForUpdate()->firstOrFail();
+            if (! ($run->options['repair_source_run'] ?? null) || $run->status !== 'halted' || ! $run->haltRequested()
+                || $run->phase !== 'repairing' || ! ($run->options['repair_apply_authorized'] ?? false)
+                || DB::table('sim_worker_leases')->where('run_id', $run->id)->exists()
+                || DB::table('sim_items')->where('run_id', $run->id)->where('status', 'running')->exists()) {
+                throw new \RuntimeException('Court retry requires the drained, halted, authorized repair run.');
+            }
+            $retried = []; $retained = [];
+            foreach (array_unique($scopes) as $scope) {
+                $item = DB::table('sim_items')->where('run_id', $run->id)->where('kind', 'repair_scope')
+                    ->where('unit_key', $scope)->where('status', 'review')->lockForUpdate()->first();
+                $court = \App\Models\Judiciary::where('jurisdiction_id', $scope)->where('status', 'creating')->first();
+                if (! $item || ! $court) { $retained[] = $scope; continue; }
+                $key = ['source_run_id' => $run->options['repair_source_run'], 'repair_version' => (int) ($run->options['repair_version'] ?? 1),
+                    'kind' => 'judiciary', 'target_id' => $court->id, 'jurisdiction_id' => $scope];
+                $receipt = DB::table('sim_repair_receipts')->where($key)->lockForUpdate()->first();
+                $result = json_decode($receipt->result ?? '{}', true);
+                if (! $receipt || $receipt->status !== 'blocked' || ! preg_match('/^\d+ seat\(s\) deferred$/D', $result['skipped'] ?? '')) {
+                    $retained[] = $scope; continue;
+                }
+                $seats = DB::table('judicial_seats')->where('judiciary_id', $court->id)->whereNull('deleted_at')->get(['status','user_id']);
+                $vacant = $seats->where('status', 'vacant')->count();
+                if ($vacant === 0 || $seats->contains(fn ($s) => ! in_array($s->status, ['seated','vacant'], true))) { $retained[] = $scope; continue; }
+                $available = DB::table('residency_confirmations')->where('jurisdiction_id', $scope)->where('is_active', true)
+                    ->whereNotIn('user_id', $seats->pluck('user_id')->filter()->all())
+                    ->select('user_id')->distinct()->orderBy('user_id')->limit($vacant)->get();
+                if ($available->count() < $vacant) { $retained[] = $scope; continue; }
+                $replacement = ['reason' => 'D021: use existing court-jurisdiction nominee eligibility; preserve all seated judges.',
+                    '_prior_receipts' => [['status' => $receipt->status, 'result' => $result, 'updated_at' => $receipt->updated_at]]];
+                app(AuditService::class)->append('simworld', 'sim.court_roster_retry', $key + ['run_id' => $run->id,
+                    'item_id' => $item->id, 'previous' => $result], 'WF-SYS-04', jurisdictionId: $scope);
+                DB::table('sim_repair_receipts')->where($key)->update(['status' => 'deferred', 'result' => json_encode($replacement), 'updated_at' => now()]);
+                DB::table('sim_items')->where('id', $item->id)->update(['status' => 'pending', 'claim_token' => null,
+                    'reason' => null, 'finished_at' => null, 'updated_at' => now(),
+                    'metrics' => json_encode(['_previous_court_review' => json_decode($item->metrics ?? '{}', true)])]);
+                $retried[] = $scope;
+            }
+            return ['retried' => $retried, 'retained' => $retained];
+        });
+    }
+
+    /** Permit a NEW delegation act after the operator's tiny-chamber ruling; never amend old votes. */
+    public function retryTinyGovernance(SimRun $run, array $scopes): array
+    {
+        if ($reason = app(SimRunControl::class)->refusalReason()) { throw new \RuntimeException($reason); }
+        if ($scopes === [] || count($scopes) > 100) { throw new \RuntimeException('Name 1–100 exact governance retry scopes.'); }
+        return DB::transaction(function () use ($run, $scopes): array {
+            $run = SimRun::whereKey($run->id)->lockForUpdate()->firstOrFail();
+            if (! ($run->options['repair_source_run'] ?? null) || $run->status !== 'halted' || ! $run->haltRequested()
+                || $run->phase !== 'repairing' || ! ($run->options['repair_apply_authorized'] ?? false)
+                || DB::table('sim_worker_leases')->where('run_id', $run->id)->exists()
+                || DB::table('sim_items')->where('run_id', $run->id)->where('status', 'running')->exists()) {
+                throw new \RuntimeException('Governance retry requires the drained, halted, authorized repair run.');
+            }
+            $retried = []; $retained = [];
+            foreach (array_unique($scopes) as $scope) {
+                $item = DB::table('sim_items')->where('run_id', $run->id)->where('kind', 'repair_scope')
+                    ->where('unit_key', $scope)->where('status', 'review')->lockForUpdate()->first();
+                $leg = \App\Models\Legislature::where('jurisdiction_id', $scope)->first();
+                if (! $item || ! $leg || ! DB::table('executives')->where('jurisdiction_id', $scope)
+                    ->whereNull('deleted_at')->where('status', 'forming')->exists()) { $retained[] = $scope; continue; }
+                $key = ['source_run_id' => $run->options['repair_source_run'], 'repair_version' => (int) ($run->options['repair_version'] ?? 1),
+                    'kind' => 'governance', 'target_id' => $leg->id, 'jurisdiction_id' => $scope];
+                $receipt = DB::table('sim_repair_receipts')->where($key)->lockForUpdate()->first();
+                $result = json_decode($receipt->result ?? '{}', true);
+                if (! $receipt || $receipt->status !== 'blocked' || ($result['departments']['skipped'] ?? null) !== 'delegation vote did not adopt') {
+                    $retained[] = $scope; continue;
+                }
+                $vote = \App\Models\ChamberVote::where('body_type', 'legislature')->where('body_id', $leg->id)
+                    ->where('vote_type', 'exec_delegate')->orderByDesc('opened_at')->orderByDesc('id')->first();
+                if (! $vote || $vote->status !== 'closed' || $vote->outcome !== 'failed' || $vote->threshold_basis !== 'supermajority') {
+                    $retained[] = $scope; continue;
+                }
+                $members = $leg->members()->whereIn('status', ['elected','seated'])->whereNull('vacated_at')->get();
+                $tallies = DB::table('chamber_vote_tallies')->where('vote_id', $vote->id)->get();
+                $correctable = 0; $valid = $members->count() === (int) $vote->serving_snapshot && $tallies->isNotEmpty();
+                foreach ($tallies as $tally) {
+                    $serving = $vote->bicameral ? $members->filter(fn ($m) => $m->seatKind() === $tally->lane)->count() : $members->count();
+                    $valid = $valid && $serving === (int) $tally->serving;
+                    if ($tally->passed) { continue; }
+                    $tiny = in_array($serving, [1, 2], true) && (int) $tally->required_yes > $serving
+                        && (int) $tally->yes === $serving && $tally->quorate
+                        && (int) $tally->no === 0 && (int) $tally->abstain === 0;
+                    $valid = $valid && $tiny; $correctable += (int) $tiny;
+                }
+                if (! $valid || $correctable === 0) { $retained[] = $scope; continue; }
+                $replacement = ['reason' => 'D021: operator authorized unanimity for one/two-member chambers; submit a new act.',
+                    '_prior_receipts' => [['status' => $receipt->status, 'result' => $result, 'updated_at' => $receipt->updated_at]]];
+                app(AuditService::class)->append('simworld', 'sim.tiny_governance_retry', $key + ['run_id' => $run->id,
+                    'item_id' => $item->id, 'preserved_failed_vote_id' => $vote->id, 'previous' => $result], 'WF-SYS-04', jurisdictionId: $scope);
+                DB::table('sim_repair_receipts')->where($key)->update(['status' => 'deferred', 'result' => json_encode($replacement), 'updated_at' => now()]);
+                DB::table('sim_items')->where('id', $item->id)->update(['status' => 'pending', 'claim_token' => null,
+                    'reason' => null, 'finished_at' => null, 'updated_at' => now(),
+                    'metrics' => json_encode(['_previous_governance_review' => json_decode($item->metrics ?? '{}', true)])]);
+                $retried[] = $scope;
+            }
+            return ['retried' => $retried, 'retained' => $retained];
+        });
+    }
+
     /** Retry only rolled-back election failures with a demonstrated panel cap defect. */
     public function retryPopulationCeiling(SimRun $run, array $scopes, bool $tinyElectorates = false): array
     {

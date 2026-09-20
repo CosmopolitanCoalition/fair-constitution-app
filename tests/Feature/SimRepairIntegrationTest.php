@@ -153,6 +153,60 @@ class SimRepairIntegrationTest extends TestCase
         self::assertSame($votes, DB::table('chamber_votes')->where('legislature_id', $leg->id)->count());
     }
 
+    public function test_tiny_chamber_ruling_uses_new_delegation_vote_and_preserves_the_historical_failed_act(): void
+    {
+        [$scope, $leg] = $this->chamber(5, 2); $source = $this->source([$scope]);
+        $source->forceFill(['options' => ['scope_aspects' => ['governance'], 'no_floor' => true]])->save();
+        $this->bindElection($source, $scope, $leg, 7, 7);
+        $exec = $this->id(); DB::table('executives')->insert(['id' => $exec, 'jurisdiction_id' => $scope, 'type' => 'committee', 'term_number' => 1, 'status' => 'forming', 'created_at' => now(), 'updated_at' => now()]);
+        $members = $leg->members()->get(); $actor = \App\Models\User::findOrFail($members->first()->user_id);
+        $act = app(\App\Domain\Engine\ConstitutionalEngine::class)->file('F-LEG-014', $actor, [
+            'legislature_id' => $leg->id, 'jurisdiction_id' => $scope, 'delegated_scope' => 'Historical fixture act', 'member_count' => 5, 'interest' => [],
+        ]);
+        $vote = \App\Models\ChamberVote::findOrFail($act->recorded['vote_id']);
+        // Reproduce the PRE-ruling snapshot before any casts; the real close
+        // path must fail, and that historical result must survive recovery.
+        DB::table('chamber_vote_tallies')->where('vote_id', $vote->id)->where('lane', 'type_b')->update(['required_yes' => 3]);
+        app(\App\Services\ChamberVoteService::class)->castManyYes($vote, $members);
+        self::assertSame('failed', $vote->refresh()->outcome);
+        $oldVote = DB::table('chamber_votes')->where('id', $vote->id)->first();
+        $oldTallies = DB::table('chamber_vote_tallies')->where('vote_id', $vote->id)->orderBy('id')->get();
+        $oldCasts = DB::table('vote_casts')->where('vote_id', $vote->id)->orderBy('id')->get();
+        $run = app(SimRepairControl::class)->start($source->id); $options = $run->options; $options['repair_apply_authorized'] = true;
+        $run->forceFill(['options' => $options, 'phase' => 'repairing', 'status' => 'running'])->save();
+        $itemId = $this->id();
+        DB::table('sim_items')->insert(['id' => $itemId, 'run_id' => $run->id, 'kind' => 'repair_scope', 'unit_key' => $scope,
+            'jurisdiction_id' => $scope, 'status' => 'review', 'metrics' => '{"old":true}']);
+        $key = ['source_run_id' => $source->id, 'repair_version' => 1, 'jurisdiction_id' => $scope, 'kind' => 'governance', 'target_id' => $leg->id];
+        DB::table('sim_repair_receipts')->insert($key + ['status' => 'blocked', 'result' => json_encode([
+            'departments' => ['delegated' => false, 'skipped' => 'delegation vote did not adopt'], 'reason' => 'Repair action did not meet its required postcondition.',
+        ])]);
+        $recovery = app(\App\Services\Demo\SimRepairReceiptRecovery::class);
+        try { $recovery->retryTinyGovernance($run, [$scope]); self::fail('Must halt first'); }
+        catch (\RuntimeException $error) { self::assertStringContainsString('drained, halted', $error->getMessage()); }
+        $run->forceFill(['status' => 'halted', 'halt_requested_at' => now()])->save();
+        self::assertSame([], $recovery->retryTinyGovernance($run, [$this->id()])['retried']);
+        DB::table('chamber_vote_tallies')->where('vote_id', $vote->id)->where('lane', 'type_b')->update(['yes' => 1, 'no' => 1]);
+        self::assertSame([], $recovery->retryTinyGovernance($run, [$scope])['retried'], 'A genuinely opposed act cannot use this correction.');
+        DB::table('chamber_vote_tallies')->where('vote_id', $vote->id)->where('lane', 'type_b')->update(['yes' => 2, 'no' => 0]);
+        self::assertSame([$scope], $recovery->retryTinyGovernance($run, [$scope])['retried']);
+        self::assertSame([], $recovery->retryTinyGovernance($run, [$scope])['retried']);
+        self::assertSame('pending', DB::table('sim_items')->where('id', $itemId)->value('status'));
+        $run->forceFill(['status' => 'running', 'halt_requested_at' => null])->save();
+        $service = app(SimRepairService::class); $item = (object) ['jurisdiction_id' => $scope];
+        $result = $service->run($run, $item);
+        self::assertSame('done', $result['_verdict'], json_encode($result));
+        self::assertSame('delegated', DB::table('executives')->where('id', $exec)->value('status'));
+        self::assertSame(1, DB::table('chamber_votes')->where('body_id', $leg->id)->where('vote_type', 'exec_delegate')->where('outcome', 'adopted')->count());
+        self::assertEquals($oldVote, DB::table('chamber_votes')->where('id', $vote->id)->first());
+        self::assertEquals($oldTallies, DB::table('chamber_vote_tallies')->where('vote_id', $vote->id)->orderBy('id')->get());
+        self::assertEquals($oldCasts, DB::table('vote_casts')->where('vote_id', $vote->id)->orderBy('id')->get());
+        $counts = [DB::table('chamber_votes')->count(), DB::table('terms')->count(), DB::table('ledger_entries')->count()];
+        self::assertSame('done', $service->run($run, $item)['_verdict']);
+        self::assertSame($counts, [DB::table('chamber_votes')->count(), DB::table('terms')->count(), DB::table('ledger_entries')->count()]);
+        self::assertStringContainsString('delegation vote did not adopt', DB::table('sim_repair_receipts')->where($key)->value('result'));
+    }
+
     public function test_lowercase_type_b_allows_real_committee_growth_and_court_creation(): void
     {
         [$scope, $leg] = $this->chamber(5, 5);
@@ -164,6 +218,61 @@ class SimRepairIntegrationTest extends TestCase
         self::assertTrue($result['filed'], json_encode($result));
         self::assertSame('appointed', DB::table('judiciaries')->where('id', $court)->value('status'), json_encode($result));
         self::assertSame(5, DB::table('judicial_seats')->where('judiciary_id', $court)->where('status', 'seated')->whereNotNull('term_id')->count());
+    }
+
+    public function test_court_roster_recovery_uses_real_court_residents_preserving_local_nominees_and_seated_terms(): void
+    {
+        [$scope, $leg] = $this->chamber(5, 5);
+        $people = $leg->members()->orderBy('user_id')->pluck('user_id')->all();
+        $children = [];
+        foreach ([1, 1000] as $population) {
+            $child = $this->place(7); $children[] = $child;
+            DB::table('jurisdictions')->where('id', $child)->update(['parent_id' => $scope, 'population' => $population]);
+            Legislature::create(['jurisdiction_id' => $child, 'term_number' => 1, 'status' => 'forming', 'total_seats' => 5, 'type_a_seats' => 5, 'type_b_seats' => 0]);
+        }
+        $this->resident($children[0], $people[0]);
+        foreach (array_slice($people, 1, 3) as $person) { $this->resident($children[1], $person); }
+        DB::table('residency_confirmations')->where('jurisdiction_id', $scope)->whereNotIn('user_id', array_slice($people, 0, 4))->update(['is_active' => false]);
+        $court = $this->id(); DB::table('judiciaries')->insert(['id' => $court, 'jurisdiction_id' => $scope, 'type' => 'appointed', 'status' => 'forming', 'min_judges' => 5, 'court_name' => 'Eligible court resident fixture', 'created_at' => now(), 'updated_at' => now()]);
+        $first = JudiciaryStage::run($scope, null, 1);
+        self::assertSame('creating', $first['status']); self::assertSame(4, $first['seats_seated']);
+        self::assertSame('2 seat(s) deferred', $first['skipped']);
+        $oldSeats = DB::table('judicial_seats')->where('judiciary_id', $court)->where('status', 'seated')->orderBy('id')->get();
+        $oldTerms = DB::table('terms')->whereIn('id', $oldSeats->pluck('term_id'))->orderBy('id')->get();
+        $source = $this->source([$scope]); $run = app(SimRepairControl::class)->start($source->id); $options = $run->options; $options['repair_apply_authorized'] = true;
+        $run->forceFill(['options' => $options, 'phase' => 'repairing', 'status' => 'running'])->save();
+        $item = $this->id(); DB::table('sim_items')->insert(['id' => $item, 'run_id' => $run->id, 'kind' => 'repair_scope', 'unit_key' => $scope, 'jurisdiction_id' => $scope, 'status' => 'review', 'metrics' => '{"old":true}']);
+        $key = ['source_run_id' => $source->id, 'repair_version' => 1, 'jurisdiction_id' => $scope, 'kind' => 'judiciary', 'target_id' => $court];
+        DB::table('sim_repair_receipts')->insert($key + ['status' => 'blocked', 'result' => json_encode($first + ['reason' => 'Repair action did not meet its required postcondition.'])]);
+        $retry = app(\App\Services\Demo\SimRepairReceiptRecovery::class);
+        try { $retry->retryCourtRosters($run, [$scope]); self::fail('Must halt first'); }
+        catch (\RuntimeException $error) { self::assertStringContainsString('drained, halted', $error->getMessage()); }
+        $run->forceFill(['status' => 'halted', 'halt_requested_at' => now()])->save();
+        self::assertSame([], $retry->retryCourtRosters($run, [$scope])['retried'], 'Do not retry when there are no unused eligible nominees.');
+        DB::table('residency_confirmations')->where('jurisdiction_id', $scope)->update(['is_active' => true]);
+        self::assertSame([$scope], $retry->retryCourtRosters($run, [$scope])['retried']);
+        self::assertSame([], $retry->retryCourtRosters($run, [$scope])['retried']);
+        $service = app(SimRepairService::class); $action = new \ReflectionMethod($service, 'action');
+        $result = $action->invoke($service, $run, $scope, 'judiciary', $court,
+            fn () => JudiciaryStage::run($scope, $source->id, 1),
+            fn () => DB::table('judiciaries')->where('id', $court)->value('status') === 'appointed');
+        self::assertSame('applied', $result['status'], json_encode($result));
+        $seats = DB::table('judicial_seats')->where('judiciary_id', $court)->where('status', 'seated')->get();
+        self::assertCount(6, $seats); self::assertCount(6, $seats->pluck('user_id')->unique());
+        self::assertSame(5, (int) DB::table('judiciaries')->where('id', $court)->value('min_judges'));
+        self::assertCount(3, $seats->where('nominating_jurisdiction_id', $children[0]));
+        self::assertCount(3, $seats->where('nominating_jurisdiction_id', $children[1]));
+        self::assertEquals($oldSeats, DB::table('judicial_seats')->whereIn('id', $oldSeats->pluck('id'))->orderBy('id')->get());
+        self::assertEquals($oldTerms, DB::table('terms')->whereIn('id', $oldTerms->pluck('id'))->orderBy('id')->get());
+        self::assertSame(2, $seats->where('nominating_jurisdiction_id', $children[0])->where('user_id', '!=', $people[0])->count());
+        foreach ($seats as $seat) {
+            self::assertTrue(DB::table('residency_confirmations')->where('jurisdiction_id', $scope)->where('user_id', $seat->user_id)->where('is_active', true)->exists());
+            self::assertTrue(DB::table('clock_timers')->where('clock_id', 'CLK-09')->where('subject_id', $seat->term_id)->where('state', 'armed')->exists());
+        }
+        $terms = DB::table('terms')->count(); $votes = DB::table('chamber_votes')->count();
+        self::assertSame('already operating', JudiciaryStage::run($scope, $source->id, 1)['skipped']);
+        self::assertSame($terms, DB::table('terms')->count()); self::assertSame($votes, DB::table('chamber_votes')->count());
+        self::assertStringContainsString('2 seat(s) deferred', DB::table('sim_repair_receipts')->where($key)->value('result'));
     }
 
     private function bindElection(SimRun $source, string $scope, Legislature $leg, int $candidates, int $seats, string $status = 'certified'): string

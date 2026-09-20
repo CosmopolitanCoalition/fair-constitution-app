@@ -22,6 +22,21 @@ use Tests\TestCase;
  */
 class SupermajorityTest extends TestCase
 {
+    public function test_operator_ruling_requires_unanimity_in_one_and_two_member_bodies_only(): void
+    {
+        foreach ([[2, 3], [51, 100], [3, 4], [1, 1]] as [$numerator, $denominator]) {
+            foreach ([1, 2] as $serving) {
+                self::assertSame($serving, ConstitutionalValidator::supermajority($serving, $numerator, $denominator));
+                self::assertSame($serving, ConstitutionalValidator::quorum($serving));
+            }
+            foreach (range(3, 300) as $serving) {
+                self::assertSame(max(intdiv($serving * $numerator + $denominator - 1, $denominator), intdiv($serving, 2) + 2),
+                    ConstitutionalValidator::supermajority($serving, $numerator, $denominator));
+            }
+        }
+        self::assertSame(2, ConstitutionalValidator::supermajority(0), 'An empty body cannot adopt an act.');
+    }
+
     public function test_two_thirds_supermajority_on_known_chambers(): void
     {
         // The canonical examples from the validator's contract.
