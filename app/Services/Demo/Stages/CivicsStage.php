@@ -180,11 +180,14 @@ final class CivicsStage
             // co-determined governor board and the genesis IP dedication all land
             // the same way a live charter would — the register is not empty.
             $out['cgcs'] = self::chartCgcs($j, $legislature, $seated, $beat, $orgCounts[Organization::TYPE_COMMON_GOOD_CORP] ?? 0);
+            SimTimer::record('civics.cgc_charter', (int) ((hrtime(true) - $mCgcs) / 1000));
 
             // Seat the governor (public) side of the CGC boards — the overseeing
             // executive committee's people, or residents where none stood up.
+            $mGovernors = hrtime(true);
             $out['cgc_governors'] = app(\App\Services\Demo\SimBoardService::class)
                 ->seatCgcGovernors((string) $j->id, $beat);
+            SimTimer::record('civics.cgc_governors', (int) ((hrtime(true) - $mGovernors) / 1000));
             SimTimer::record('civics.cgcs', (int) ((hrtime(true) - $mCgcs) / 1000));
         }
 

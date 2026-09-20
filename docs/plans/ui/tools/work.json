@@ -18267,6 +18267,76 @@
           "note": "10 tests / 108 assertions passed using guarded nonce PostgreSQL and private SQLite fixtures. Independent child processes prove one owner, three serialized legacy duplicates with zero scans, survival across commits, process-death recovery and a later legitimate sweep. Failure/lost-session cleanup, caller-transaction preservation and exact deleted/governed/state/threshold crossing behavior pass. No live-world writes, remote access or service-control actions. D003 and D004 archived as historical evidence; no historical recommendations bundled into the D005 implementation."
         }
       ]
+    },
+    {
+      "id": "W-0476",
+      "title": "Keep Phase 9 CGC board reads jurisdiction-scoped under stale statistics",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "The scoped query, maintenance eligibility and recovery pass isolated regression tests; deployment and honest comparison requirements are committed.",
+      "detail": "The real CGC lookup uses scope-first organization-ID keyset pages and explicit boardable probes. It keeps non-deleted inactive CGCs, NULL/stale board_id pointers, vacancy-only seating, executive-first holders, one rotation across pages, civil terms and clocks. The former unordered cross-board selection is now explicitly ordered by organization then board ID. Adds charter, governor and board-lookup timings nested within civics.cgcs. No new index, policy or sampling changes.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "D007, 2026-09-20",
+          "title": "Phase 9 stale board statistics and unattended maintenance",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Demo/SimBoardService.php",
+        "app/Services/Demo/Stages/CivicsStage.php",
+        "tests/Feature/CgcBoardLookupTest.php",
+        "tests/Unit/SimBoardTermTest.php",
+        "docs/operations/step5-benchmarks/D007.md",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "Integrated D007 suite: 26 tests / 409 assertions passed in guarded nonce PostgreSQL and private SQLite fixtures. Stale department-only distributions reproduce the old join plan; scoped single/multi-ID probes and real ANALYZE recovery pass. Exact eligibility, cross-page holder rotation, terms/clocks/repeats, unchanged application rows, independent duplicates, killed process, persistent cooldown, SQL timeout, competing maintenance and reconnect recovery pass. No live-world writes, remote access or service controls. Demo throughput remains unmeasured for this patch; D007’s earlier 3.51x is a manual statistics recovery on unchanged code."
+        }
+      ]
+    },
+    {
+      "id": "W-0477",
+      "title": "Refresh demonstrated Step 5 board statistics automatically after population",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "The scoped query, maintenance eligibility and recovery pass isolated regression tests; deployment and honest comparison requirements are committed.",
+      "detail": "One scheduled check on the existing long-running queue targets boards(boardable_type) during active civics. PostgreSQL session ownership, persistent check/attempt cooldowns, host-derived population/time/buffer bounds, explicit target restrictions and NOWAIT table-maintenance exclusion prevent duplicate or blocking refreshes. Separate metadata tables record attempts, skip reasons, success and crash/timeout recovery. A durable change baseline handles column-only ANALYZE retaining the modification counter. Ordinary autovacuum is unchanged; no global counts, planner overrides or simulation outcome writes. D006 is archived separately; its remaining scan rewrite is not bundled.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "D007, 2026-09-20",
+          "title": "Phase 9 stale board statistics and unattended maintenance",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Demo/SimulationStatisticsMaintenance.php",
+        "app/Jobs/MaintainSimulationStatisticsJob.php",
+        "routes/console.php",
+        "database/migrations/2026_09_20_073000_create_sim_statistics_maintenance.php",
+        "tests/Feature/SimulationStatisticsMaintenanceTest.php",
+        "tests/Support/simulation_statistics_worker.php",
+        "docs/operations/step5-benchmarks/D007.md",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "Integrated D007 suite: 26 tests / 409 assertions passed in guarded nonce PostgreSQL and private SQLite fixtures. Stale department-only distributions reproduce the old join plan; scoped single/multi-ID probes and real ANALYZE recovery pass. Exact eligibility, cross-page holder rotation, terms/clocks/repeats, unchanged application rows, independent duplicates, killed process, persistent cooldown, SQL timeout, competing maintenance and reconnect recovery pass. No live-world writes, remote access or service controls. Demo throughput remains unmeasured for this patch; D007’s earlier 3.51x is a manual statistics recovery on unchanged code."
+        }
+      ]
     }
   ]
 }

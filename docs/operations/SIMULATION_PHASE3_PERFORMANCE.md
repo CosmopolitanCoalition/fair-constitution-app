@@ -30,14 +30,179 @@ manually; do not send messages directly to the other task.
   proof of delivery; never resend or launch a second exchange just because
   context was compacted.
 
-Current exchange: **D003, D004 and D005 received through the operator; D005 is
-the current priority**. D003/D004 are historical evidence. D005 confirms the
-demo is on `e8e0910c` in Phase 8. The developer completed the focused duplicate
-CLK-06 sweep fix and internal tests below; the final response supplies its
-pushed revision for manual relay. Deploy and Benchmark owns deployment and
-the next completed comparison. No direct cross-task messages or remote actions.
-Do not infer deployment of a new revision from its push. D003's old shutdown
-paragraph is superseded by the established bounded halt/drain/refresh procedure.
+Current exchange: **D007 received; its scoped CGC lookup and automatic statistics
+maintenance are the current developer handoff below**. D006 arrived during this
+work and is recorded as historical deployment evidence, not added to this patch.
+D007 reports the demo on `5a78d6a1` in Phase 9; do not infer a later deployment or
+current phase from elapsed time. The final developer response supplies the pushed
+revision containing this section. Deploy and Benchmark owns deployment and the
+next completed comparison. No direct cross-task messages or remote actions.
+D003/D004 nomination/payment candidates and D006's surviving population-scan
+rewrite remain separate. D003's old shutdown paragraph remains superseded by the
+established bounded halt/drain/refresh procedure.
+
+## D007 response: scoped CGC boards and unattended statistics — 2026-09-20
+
+### Evidence and scope
+
+[D007's operator-relayed evidence](step5-benchmarks/D007.md) records a manual
+`ANALYZE boards (boardable_type)` on unchanged `5a78d6a1`: 199,635 → 701,215
+scopes/hour, or 3.51×. This is a measured operational statistics correction,
+**not this patch's measured speedup**. Fresh statistics relieved the immediate
+problem before development. Audit serialization remains a separate bottleneck.
+
+[D006](step5-benchmarks/D006.md), received during development, confirms D005's
+guard reduced 25 population-sweep clients to one and preserved later scheduled
+evaluations. Its initial matched windows changed 454,320 → 464,306 courts/hour
+(+2.20%); a later ten-minute window was 485,832/hour. These sequential changes
+do not establish a large attributable speedup. The surviving scan's source-work
+pagination recommendation is **not implemented in D007**.
+
+### Scoped query and timings
+
+`SimBoardService::seatCgcGovernors()` first reads non-deleted CGC organization IDs
+within the jurisdiction. It then probes boards using explicit IDs **and**
+`boardable_type`, retaining non-deleted/not-dissolved board predicates. This
+prevents a reorderable global boards/organizations join from choosing the
+organization-board prefix before applying jurisdiction scope. No index is added.
+
+The organization roster is keyset-paged using `HostCapacity::sweepChunk()` and
+every eligible page is consumed. This is a batch size, not a roster cap.
+`organizations.board_id` is never substituted for the boardable relationship:
+NULL and stale pointers are covered, and inactive but non-deleted CGCs remain
+eligible. Existing executive-first holder selection, deduplication, resident
+sampling, vacancy-only seating, settings-resolved terms and CLK-09 effects stay
+intact. One holder cursor spans all pages.
+
+The former cross-board query had **no promised order**. The new traversal uses
+organization ID, then board ID; seat order remains `seat_no`. On jurisdictions
+with several CGCs this makes assignment stable across page boundaries, but it
+does not promise to reproduce an incidental prior planner/heap order. Already
+seated holders are retained. The multi-board regression asserts the complete
+holder rotation, terms/clocks and no additional writes on a repeat run.
+
+New nested timings are `civics.cgc_charter`, `civics.cgc_governors` and
+`civics.cgc_board_lookup`. Lookup measures each read batch, not time paused while
+seats are written. Charter and governors sit within `civics.cgcs`; lookup sits
+within governors. Do not add these overlapping timers together, and account for
+batch invocation counts when comparing per-scope costs.
+
+### Automatic maintenance behavior
+
+One scheduled job per minute uses the **existing `long-running` queue**; no new
+supervisor or simulation lanes. It performs a cheap eligibility check. The only
+reviewed target is **`boards (boardable_type)` during an active, unhalted `civics`
+phase**. A delayed job rechecks the current phase and all eligibility conditions.
+An empty/not-yet-populated phase cannot trigger an initial refresh.
+
+Normal autovacuum/autoanalyze is retained without changing any global or table
+settings. PostgreSQL's table controls are based on changed-row volume, whereas
+D007 demonstrated a new category becoming significant before that trigger. The
+check records the target's `reloptions`, effective global defaults and catalog
+estimates for diagnosis. Changing the permanent table threshold alone would not
+target this particular category transition. See the PostgreSQL 17 documentation
+on [automatic analyze controls](https://www.postgresql.org/docs/17/runtime-config-autovacuum.html)
+and [column-specific ANALYZE](https://www.postgresql.org/docs/17/sql-analyze.html).
+
+The earlier Phase 6 evidence was inspected: D001's separate four-column
+`ANALYZE audit_log (ref, event, actor_user_id, rejected)` restored the actor-index
+lookup. That remains recorded in its existing section below. This patch does
+**not** add audit-log maintenance or any speculative remaining-phase targets;
+each additional target needs its own reviewed population/eligibility evidence.
+
+| Decision | Bound and reason |
+|---|---|
+| Check cadence | At most once per minute after acquiring ownership; queued duplicates read the persistent cooldown. |
+| Initial population | `max(50, min(1000, HostCapacity::sweepChunk()))` recorded civic-stage completions, plus that many catalog-estimated modifications and an actual organization-board existence probe. This scales the initial sample with the existing host batch rule rather than waiting for a fraction of a multi-million-row table. |
+| Progress source | Existing `(run_id, part)` timer row. If timings are absent/disabled, at most the same bounded number of done-item IDs from the existing claim index; no full worklist/table count. |
+| First refresh | Initial population exists but the board-type histogram still lacks `organizations`. |
+| Later material change | At least the larger of five initial-population batches or 2% of estimated table rows changed, with a 15-minute interval from the latest table analysis. This gives normal autoanalyze room to act while addressing the observed 10% threshold gap. |
+| Refresh/retry cooldown | Five minutes after an attempt; a fresh external analysis also suppresses immediate work. Checks that skip do not execute ANALYZE. |
+| SQL budgets | Metadata statements: 3 seconds. Target table lock: NOWAIT; any later lock waits: 250 ms. ANALYZE execution: `clamp(120 / sqrt(max(1, hostGiB / 4)), 30, 120)` seconds, rounded up. Small hosts get more time, not wider concurrency. |
+| Buffer bound | ANALYZE buffer ring is 1–8 MiB, limited by host memory/8 and PostgreSQL shared buffers/64. It does not change global work memory or planner choices. |
+| Ownership | Nonblocking PostgreSQL session advisory lock `0x53494D53544154` per database; no expiring ownership TTL. Reconnect is fenced. |
+| Other maintenance | Acquire `ShareUpdateExclusive` on this table with NOWAIT in the analyze transaction. This conflicts with concurrent ANALYZE/VACUUM/index maintenance while allowing ordinary DML. Contention records `deferred`, without blocking simulation progress. |
+
+Column-only ANALYZE need not reset `n_mod_since_analyze`. Therefore the durable
+state also records a baseline of total inserts/updates/deletes, relation OID and
+database statistics-reset timestamp. Subsequent checks use changes since that
+baseline (bounded by the ordinary modification estimate). Fresh observed
+external analysis may establish a baseline **without** claiming a successful
+application maintenance run. Counter resets or table replacement invalidate the
+old baseline. This prevents repeatedly refreshing unchanged data after cooldown.
+
+Two small, additive metadata tables keep operational evidence separate from
+simulation outcomes:
+
+- `sim_statistics_maintenance`: latest check/reason/evidence, cooldowns, baseline,
+  last attempt and last **successfully recorded** refresh.
+- `sim_statistics_attempts`: target, run/phase, reason, start/end, status, error
+  and the evidence/budgets of each attempted refresh.
+
+Exceptions/timeouts never create simulation review items. Only a committed,
+successful refresh advances the success marker. A killed/lost worker leaves a
+durable running attempt; the next owner marks it abandoned, honors cooldown and
+may retry. If ANALYZE committed but the success record was interrupted, the
+record remains conservative rather than claiming an unconfirmed success.
+
+### Internal validation
+
+**26 tests / 409 assertions passed.** The focused D007 suite uses guarded nonce
+PostgreSQL databases, plus the existing private SQLite board-term and civic-stage
+fixtures. It never writes to the local world or accesses the remote demo. Tests cover:
+
+- Department-only statistics, then thousands of organization boards inserted
+  without re-analysis. Actual scoped single-ID and multi-ID query plans probe
+  both composite index keys and return only the requested boards.
+- Exact old/new eligible board sets, no/multiple CGCs, deleted/unrelated/dissolved
+  rows, inactive organizations, stale/NULL pointers, already-filled seats,
+  continuous holder rotation across batches, repeat runs and real term writes.
+- Actual maintenance recovering the stale join plan and leaving all fixture
+  application rows unchanged; initial, unchanged and externally refreshed cases;
+  material later changes and persistent cooldown after a fresh worker/session.
+- Independent serialized-job duplicates, one owner, process kill and subsequent
+  recovery, real SQL timeout, competing table lock, lost-session fencing, target
+  restrictions, caller-transaction preservation and host budget derivation.
+
+```text
+docker exec -w /var/www/html -e RUN_SIM_INDEX_PG_TESTS=1 fc_app php vendor/bin/phpunit tests/Feature/CgcBoardLookupTest.php tests/Feature/SimulationStatisticsMaintenanceTest.php tests/Unit/SimBoardTermTest.php tests/Feature/Phase9PerformanceTest.php
+```
+
+### Deployment and honest comparison
+
+1. If Phase 9 is still active, capture a fresh baseline using direct completion
+   windows, unchanged worker concurrency and the existing bounded correctness
+   samples. Do not reuse the stale-statistics window as a code baseline.
+2. Use the established bounded halt/drain procedure. Pull the exact pushed
+   revision; retain local configuration changes. Apply the single additive
+   `2026_09_20_073000_create_sim_statistics_maintenance` migration. It creates only
+   the two small metadata tables, with no scan or index build on application data.
+3. Refresh **Horizon and scheduler**, preserving the established handling of old
+   running jobs. Resume the same run. No frontend build, PostgreSQL restart,
+   Redis recreation, worker-count change, statistics override or world reset.
+4. Verify that the scheduled maintenance job is consumed by the existing
+   long-running workers. Record its **actual outcome**, separately from the code
+   deployment. Already-fresh statistics or a completed Phase 9 should cause a
+   skip; do not deliberately stale production statistics to manufacture a gain.
+5. Compare settled windows after worker startup; exclude any maintenance interval.
+   Capture the new nested CGC timings, actual lookup plan and bounded board,
+   holder, term/clock and audit checks. No additional live throughput gain is
+   claimed by the local developer. If Phase 9 finished, retain local regression
+   evidence and explicitly report that live Phase 9 comparison is unavailable.
+
+Bounded operational evidence reads:
+
+```sql
+SELECT target, checked_at, reason, next_check_at, next_attempt_at,
+       last_success_at, last_attempt_id, change_baseline, evidence
+FROM sim_statistics_maintenance WHERE target = 'boards.boardable_type';
+
+SELECT target, run_id, phase, reason, status, started_at, finished_at, error, evidence
+FROM sim_statistics_attempts WHERE target = 'boards.boardable_type'
+ORDER BY started_at DESC LIMIT 5;
+```
+
+The independent Claude storage/monitoring/shutdown loop is outside this work.
 
 ## D005 response: serialize background population sweeps — 2026-09-20
 

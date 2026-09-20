@@ -11,6 +11,8 @@ use App\Services\Organizations\OrgBoardService;
 use App\Services\ClockService;
 use App\Services\RoleService;
 use App\Services\SettingsResolver;
+use App\Support\HostCapacity;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -58,34 +60,21 @@ class SimBoardService
      */
     public function seatCgcGovernors(string $jurisdictionId, ?\Closure $beat = null): int
     {
-        $boards = Board::query()
-            ->join('organizations as o', function ($j) {
-                $j->on('o.id', '=', 'boards.boardable_id')->where('boards.boardable_type', '=', Board::BOARDABLE_ORGANIZATIONS);
-            })
-            ->where('o.jurisdiction_id', $jurisdictionId)
-            ->where('o.type', Organization::TYPE_COMMON_GOOD_CORP)
-            ->whereNull('o.deleted_at')->whereNull('boards.deleted_at')
-            ->where('boards.status', '!=', Board::STATUS_DISSOLVED)
-            ->select('boards.*')
-            ->get();
-
-        if ($boards->isEmpty()) {
-            return 0;
-        }
-
         // The overseeing executive committee's people appoint the governors; on
         // a jurisdiction where none has stood up, the jurisdiction's residents
         // stand in so the public board is not left empty for the demo.
-        $holders = $this->holderPool($jurisdictionId);
-        if ($holders === []) {
-            return 0;
-        }
-
+        $holders = null;
         $seated = 0;
         $cursor = 0;
-        $years = $this->settings->resolveInt($jurisdictionId, 'civil_appointment_years', 10);
 
-        foreach ($boards as $board) {
+        foreach ($this->cgcBoards($jurisdictionId, $beat) as $board) {
+            if ($holders === null) {
+                $holders = $this->holderPool($jurisdictionId);
+                if ($holders === []) {
+                    return 0;
+                }
+                $years = $this->settings->resolveInt($jurisdictionId, 'civil_appointment_years', 10);
+            }
             $beat && $beat();
             $vacant = BoardSeat::query()
                 ->where('board_id', $board->id)
@@ -105,6 +94,42 @@ class SimBoardService
         }
 
         return $seated;
+    }
+
+    /**
+     * Resolve the scope BEFORE probing boards: a reorderable join allowed stale
+     * type statistics to scan every organization's board for each jurisdiction.
+     * No board_id pointer or is_active filter: the boardable relation is authority.
+     * The old join was unordered. Explicit organization/id order now makes the
+     * existing holder rotation stable across pages; no eligible board is capped.
+     *
+     * @return \Generator<int, Board>
+     */
+    private function cgcBoards(string $jurisdictionId, ?\Closure $beat): \Generator
+    {
+        $after = null;
+        $size = HostCapacity::sweepChunk();
+        do {
+            $beat && $beat();
+            $mark = hrtime(true);
+            try {
+                $ids = Organization::query()->where('jurisdiction_id', $jurisdictionId)
+                    ->where('type', Organization::TYPE_COMMON_GOOD_CORP)
+                    ->when($after !== null, fn ($query) => $query->where('id', '>', $after))
+                    ->orderBy('id')->limit($size)->pluck('id');
+                $boards = $ids->isEmpty() ? collect() : Board::query()
+                    ->where('boardable_type', Board::BOARDABLE_ORGANIZATIONS)
+                    ->whereIn('boardable_id', $ids)
+                    ->where('status', '!=', Board::STATUS_DISSOLVED)
+                    ->orderBy('boardable_id')->orderBy('id')->get();
+            } finally {
+                SimTimer::record('civics.cgc_board_lookup', (int) ((hrtime(true) - $mark) / 1000));
+            }
+            foreach ($boards as $board) {
+                yield $board;
+            }
+            $after = $ids->last();
+        } while ($ids->count() === $size);
     }
 
     /**

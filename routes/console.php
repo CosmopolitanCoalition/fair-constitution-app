@@ -70,6 +70,11 @@ Schedule::command('sim:pump')
     // stale one clears fast.
     ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
 
+// D007: cheap eligibility check on the existing long-running queue. Execution
+// ownership and cooldown are rechecked in PostgreSQL, including queued duplicates.
+Schedule::job(new \App\Jobs\MaintainSimulationStatisticsJob)
+    ->everyMinute()->withoutOverlapping()->onOneServer();
+
 // ── THE MULTITHREADED CHAIN (operator ruling 2026-08-29) ─────────────────
 // A completed official-source download hands off to the MULTITHREADED pull
 // engine via control/chain_pull.json — the legacy single-threaded seeder is
