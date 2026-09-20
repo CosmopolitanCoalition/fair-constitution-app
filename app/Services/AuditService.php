@@ -6,6 +6,7 @@ use App\Models\AuditChainReconciliation;
 use App\Models\AuditEntry;
 use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -160,6 +161,7 @@ class AuditService
         // Only linking each prepared payload to the current head is serialized.
         foreach ($acts as &$act) {
             $act['payload'] = self::canonicalJson($act['payload']);
+            $act['id'] = (string) Str::uuid7();
         }
         unset($act);
 
@@ -185,6 +187,7 @@ class AuditService
                 $hash = self::chainHash($prevHash, $canonical);
 
                 $rows[] = [
+                    'id'             => $act['id'],
                     'occurred_at'     => $now,
                     'actor_user_id'   => $act['actor'] ?? null,
                     'module'          => $act['module'],
@@ -267,8 +270,9 @@ class AuditService
         }
 
         $canonical = self::canonicalJson($payload);
+        $id = (string) Str::uuid7(); // Allocate before waiting for the global chain.
         $insert = function () use (
-            $module, $event, $canonical, $ref, $actorId, $jurisdictionId, $rejected, $blockedReason
+            $id, $module, $event, $canonical, $ref, $actorId, $jurisdictionId, $rejected, $blockedReason
         ): object {
             // Keep lock acquisition in its OWN statement. Under READ COMMITTED,
             // the following statement sees the head committed by the prior owner.
@@ -280,15 +284,15 @@ class AuditService
             // UTF-8 text, never PostgreSQL's differently formatted jsonb::text.
             $row = DB::selectOne(
                 "INSERT INTO audit_log
-                    (occurred_at, actor_user_id, module, event, ref, jurisdiction_id,
+                    (id, occurred_at, actor_user_id, module, event, ref, jurisdiction_id,
                      payload, prev_hash, hash, rejected, blocked_reason, created_at)
-                 SELECT now(), ?, ?, ?, ?, ?, input.canonical::jsonb, head.hash,
+                 SELECT ?::uuid, now(), ?, ?, ?, ?, ?, input.canonical::jsonb, head.hash,
                         encode(sha256(convert_to(head.hash || input.canonical, 'UTF8')), 'hex'),
                         ?, ?, now()
                    FROM (SELECT hash FROM audit_log ORDER BY seq DESC LIMIT 1) head
                    CROSS JOIN (VALUES (?::text)) AS input(canonical)
                  RETURNING *",
-                [$actorId, $module, $event, $ref, $jurisdictionId, $rejected, $blockedReason, $canonical]
+                [$id, $actorId, $module, $event, $ref, $jurisdictionId, $rejected, $blockedReason, $canonical]
             );
 
             if ($row === null) {

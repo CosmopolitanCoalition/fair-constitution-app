@@ -1,3 +1,5 @@
+Current release: [D016 combined performance response](STEP5_REPAIR_D016_HANDOFF.md).
+
 # D012 developer response — repair the existing world and prevent recurrence
 
 2026-09-20. Completed developer handoff for operator manual relay. Deploy the

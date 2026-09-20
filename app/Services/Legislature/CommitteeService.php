@@ -382,7 +382,7 @@ class CommitteeService
                     'updated_at'         => $now,
                 ];
 
-                $recordId = (string) Str::uuid();
+                $recordId = (string) Str::uuid7();
                 $title = sprintf('Committee created at founding: %s (%d seats)', $name, $seats);
                 $this->audit->append(
                     module: 'records',

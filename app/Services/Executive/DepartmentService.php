@@ -393,7 +393,7 @@ class DepartmentService
                 }
 
                 // 3. The department public record (records.published:dept act).
-                $recordId = (string) Str::uuid();
+                $recordId = (string) Str::uuid7();
                 $this->audit->append(
                     module: 'records',
                     event: 'published',

@@ -424,7 +424,7 @@ class ChamberVoteService
             $rows = [];
             foreach ($toCast as $i => $tc) {
                 $rows[] = [
-                    'id'               => (string) Str::uuid(),
+                    'id'               => (string) Str::uuid7(),
                     'vote_id'          => $fresh->id,
                     'member_id'        => $tc['member']->id,
                     'lane'             => $tc['lane'],
@@ -581,6 +581,49 @@ class ChamberVoteService
             return $cast;
         };
 
+        return DB::transactionLevel() > 0 ? $run() : DB::transaction($run);
+    }
+
+    /**
+     * Synthetic full-board participation, equivalent to successive castBoardSeat
+     * calls with the same ranking. The vote and current roster remain locked;
+     * existing immutable casts are retained, and the real RCV closer decides.
+     */
+    public function castRemainingBoardRankings(ChamberVote $vote, array $rankings, string $explanation, string $viaForm): int
+    {
+        $run = function () use ($vote, $rankings, $explanation, $viaForm): int {
+            $fresh = ChamberVote::whereKey($vote->id)->lockForUpdate()->firstOrFail();
+            if ($fresh->status !== ChamberVote::STATUS_OPEN || $fresh->body_type !== ChamberVote::BODY_BOARD
+                || $fresh->vote_method !== ChamberVote::METHOD_RCV || $rankings === []) {
+                throw new ConstitutionalViolation(__('An open ranked board vote is required.'), 'Art. III §6');
+            }
+            $seats = \App\Models\BoardSeat::where('board_id', $fresh->body_id)->seated()->orderBy('id')->lockForUpdate()->get();
+            if ($seats->count() !== (int) $fresh->serving_snapshot || $seats->contains(fn ($s) => $s->holder_user_id === null)) {
+                throw new ConstitutionalViolation(__('The current seated board must match the vote electorate.'), 'Art. III §6');
+            }
+            $casts = VoteCast::where('vote_id', $fresh->id)->get(['board_seat_id', 'is_tiebreak']);
+            $existing = $casts->pluck('board_seat_id')->all();
+            $missing = $seats->reject(fn ($s) => in_array($s->id, $existing, true))->values();
+            $records = [];
+            foreach ($missing as $seat) {
+                $records[] = ['kind' => 'vote', 'title' => sprintf('Board vote cast on %s — ranked ballot', $fresh->vote_type),
+                    'body' => $explanation, 'attrs' => ['actor_user_id' => (string) $seat->holder_user_id,
+                        'jurisdiction_id' => (string) $fresh->jurisdiction_id,
+                        'via_form' => str_starts_with($viaForm, 'F-') ? $viaForm : null,
+                        'via_workflow' => str_starts_with($viaForm, 'WF-') ? $viaForm : 'WF-ORG-05',
+                        'subject_type' => 'chamber_vote', 'subject_id' => (string) $fresh->id]];
+            }
+            $recordIds = $this->records->publishMany($records);
+            $rows = []; $now = now();
+            foreach ($missing as $i => $seat) {
+                $rows[] = ['id' => (string) Str::uuid7(), 'vote_id' => $fresh->id, 'member_id' => null, 'board_seat_id' => $seat->id,
+                    'lane' => ChamberVoteTally::LANE_ALL, 'value' => null, 'rankings' => json_encode(array_values(array_map('strval', $rankings)), JSON_THROW_ON_ERROR),
+                    'explanation' => $explanation, 'cast_via_form' => $viaForm, 'public_record_id' => $recordIds[$i], 'cast_at' => $now];
+            }
+            foreach (array_chunk($rows, 500) as $chunk) { DB::table('vote_casts')->insert($chunk); }
+            if ($casts->where('is_tiebreak', false)->count() + $missing->count() >= (int) $fresh->serving_snapshot) { $this->close($fresh); }
+            return $missing->count();
+        };
         return DB::transactionLevel() > 0 ? $run() : DB::transaction($run);
     }
 

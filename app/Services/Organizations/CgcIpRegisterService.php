@@ -94,7 +94,7 @@ class CgcIpRegisterService
             }
         }
 
-        return CgcIpRegisterEntry::create([
+        $attributes = [
             'organization_id'      => (string) $org->id,
             'asset'                => $asset,
             'kind'                 => $kind,
@@ -105,6 +105,14 @@ class CgcIpRegisterService
             'published_record_id'  => (string) $record->id,
             'audit_seq'            => (int) $entry->seq,
             'published_at'         => now(),
-        ]);
+        ];
+        if (\App\Services\Demo\RepairChairAudit::active()) {
+            $record = (new CgcIpRegisterEntry)->forceFill($attributes + [
+                'id' => (string) \Illuminate\Support\Str::uuid7(), 'created_at' => now(),
+            ]);
+            \App\Services\Demo\RepairChairAudit::attach($entry, 'cgc_ip_register', $record->getAttributes());
+            return $record;
+        }
+        return CgcIpRegisterEntry::create($attributes);
     }
 }

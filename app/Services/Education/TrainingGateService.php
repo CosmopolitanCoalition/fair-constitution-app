@@ -60,6 +60,7 @@ class TrainingGateService
      */
     public function hasCompleted(User $user, string $track): bool
     {
+        if (\App\Services\Demo\RepairChairAudit::hasTraining((string) $user->getKey(), $track)) { return true; }
         return AuditEntry::query()
             ->where('ref', 'F-EDU-001')
             ->where('event', 'education.training_completed')

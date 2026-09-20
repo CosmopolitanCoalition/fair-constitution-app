@@ -77,6 +77,7 @@ class AchievementService
      */
     public function hasEarned(User $user, string $awardKey): bool
     {
+        if (\App\Services\Demo\RepairChairAudit::hasAchievement((string) $user->id, $awardKey)) { return true; }
         return Achievement::query()
             ->where('user_id', (string) $user->id)
             ->where('award_key', $awardKey)
@@ -147,7 +148,7 @@ class AchievementService
             // a concurrent duplicate inserts nothing rather than aborting the
             // transaction. The append-only trigger forbids any upsert, so this
             // can only ever create.
-            $written = DB::table('achievements')->insertOrIgnore([
+            $attributes = [
                 'user_id'    => (string) $earner->id,
                 'award_key'  => $awardKey,
                 // The i18n KEY, never English words. This table is write-once
@@ -159,7 +160,13 @@ class AchievementService
                 'earned_at'  => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
-            ]);
+            ];
+            if (\App\Services\Demo\RepairChairAudit::active()) {
+                foreach (['earned_at', 'created_at', 'updated_at'] as $column) { $attributes[$column] = $attributes[$column]->toDateTimeString(); }
+                \App\Services\Demo\RepairChairAudit::attach($entry, 'achievements', $attributes);
+                return true;
+            }
+            $written = DB::table('achievements')->insertOrIgnore($attributes);
 
             return $written > 0;
         });

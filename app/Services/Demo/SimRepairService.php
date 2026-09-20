@@ -30,12 +30,8 @@ class SimRepairService
         $effects = [];
         $halted = function () use ($run, $beat): bool { $beat && $beat(); return ! $run->refresh()->isClaimable(); };
         // Chairs with valid seated boards do not wait on unrelated elections.
-        foreach ($before['actions'] as $action) {
-            if ($action['kind'] !== 'chair') { continue; }
-            if ($halted()) { throw new SimRepairPaused('Repair halted between recorded actions.'); }
-            $effects[] = $this->action($run, $jurisdiction, 'chair', $action['target'],
-                fn () => app(SimChairService::class)->complete($action['target']));
-        }
+        $effects = $this->chairs($run, $jurisdiction,
+            array_column(array_filter($before['actions'], fn ($a) => $a['kind'] === 'chair'), 'target'), $halted);
         if ($before['blockers'] === [] && ! ($before['verification']['inactive'] ?? null)) {
             $election = collect($before['actions'])->first(fn ($a) => in_array($a['kind'], ['election', 'election_recovery'], true));
             $electionApplied = true;
@@ -80,12 +76,11 @@ class SimRepairService
                 }
             }
             // Include newly created boards, and boards missed by old pointer-only generators.
+            $boards = [];
             foreach ($this->inspector->boards($jurisdiction, $beat) as $board) {
-                if ($board->chair_seat_id !== null) { continue; }
-                if ($halted()) { throw new SimRepairPaused('Repair halted between board actions.'); }
-                $effects[] = $this->action($run, $jurisdiction, 'chair', $board->id,
-                    fn () => app(SimChairService::class)->complete($board->id));
+                if ($board->chair_seat_id === null) { $boards[] = $board->id; }
             }
+            $effects = [...$effects, ...$this->chairs($run, $jurisdiction, $boards, $halted)];
         }
         $after = $this->inspector->inspect($run, $jurisdiction, $beat);
         $gaps = array_values(array_unique([...($after['verification']['gaps'] ?? []), ...$after['acceptance_gaps'], ...$after['blockers']]));
@@ -96,6 +91,35 @@ class SimRepairService
         return ['_verdict' => $gaps === [] ? 'done' : 'review', '_reason' => $gaps === [] ? null : implode('; ', array_slice($gaps, 0, 8)),
             'before' => $before, 'after' => $after, 'effects' => $effects, 'gaps' => $gaps,
             'stipend_replayed' => false, 'source_run_id' => $source];
+    }
+
+    /** One jurisdiction's boards share a final append/commit; every board keeps its own receipt. */
+    private function chairs(SimRun $run, string $jurisdiction, array $boards, \Closure $halted): array
+    {
+        $effects = [];
+        $remaining = min(480, \App\Support\HostCapacity::workerRecycleHeavyMb()) * 1048576 - memory_get_usage(true);
+        // At most 16 boards, reduced with the existing host-derived worker headroom.
+        $size = max(1, min(16, intdiv(max(0, $remaining), 8 * 1048576)));
+        foreach (array_chunk(array_values(array_unique($boards)), $size) as $group) {
+            foreach ($group as $board) { $this->plan($run, $jurisdiction, 'chair', $board); }
+            try {
+                $batch = DB::transaction(function () use ($run, $jurisdiction, $group, $halted): array {
+                    RepairChairAudit::begin();
+                    $batch = [];
+                    foreach ($group as $board) {
+                        if ($halted()) { throw new SimRepairPaused('Repair halted between board actions.'); }
+                        $batch[] = $this->action($run, $jurisdiction, 'chair', $board,
+                            fn () => app(SimChairService::class)->complete($board));
+                    }
+                    RepairChairAudit::flush();
+                    return $batch;
+                });
+                $effects = [...$effects, ...$batch];
+            } finally {
+                RepairChairAudit::end(); SimTimer::close('repair.audit_commit');
+            }
+        }
+        return $effects;
     }
 
     private function category(array $plan): string
@@ -175,8 +199,10 @@ class SimRepairService
         $this->plan($run, $jurisdiction, $kind, $target);
         $key = $this->key($run, $kind, $target);
         $began = hrtime(true);
+        $parentCollection = RepairChairAudit::active();
+        $ownsCollection = ! $parentCollection && in_array($kind, ['chair', 'election', 'election_recovery', 'training', 'governance', 'judiciary', 'civics'], true);
         try {
-            return DB::transaction(function () use ($key, $kind, $perform, $complete): array {
+            return DB::transaction(function () use ($key, $kind, $perform, $complete, $ownsCollection): array {
                 $query = DB::table('sim_repair_receipts')->where($key);
                 $receipt = (clone $query)->lockForUpdate()->first();
                 if (! in_array($receipt->status, ['planned','deferred'], true)) {
@@ -186,9 +212,9 @@ class SimRepairService
                     }
                     return ['kind' => $kind, 'status' => $receipt->status, 'result' => $saved, 'reused' => true];
                 }
-                // Dominant D015 path only: retain individual events and exact
-                // public-record links, but acquire the global lock at the end.
-                if ($kind === 'chair') { RepairChairAudit::begin(); }
+                // Stage evidence with domain savepoints. Only the owner flushes,
+                // after the work and postconditions, immediately before commit.
+                if ($ownsCollection) { RepairChairAudit::begin(); }
                 $result = $perform();
                 $status = ($result['status'] ?? null) === 'blocked' ? 'blocked'
                     : (SimRepairReceiptRecovery::isPrerequisiteNoop($kind, $result) ? 'deferred' : 'applied');
@@ -201,11 +227,11 @@ class SimRepairService
                 }
                 app(\App\Services\AuditService::class)->append('simworld', 'sim.repair_action', $key + ['status' => $status, 'result' => $result], 'WF-SYS-04');
                 $query->update(['status' => $status, 'result' => json_encode($result, JSON_THROW_ON_ERROR), 'updated_at' => now()]);
-                if ($kind === 'chair') { RepairChairAudit::flush(); }
+                if ($ownsCollection) { RepairChairAudit::flush(); }
                 return ['kind' => $kind, 'status' => $status, 'result' => $result];
             });
         } catch (\Throwable $error) {
-            if ($error instanceof SimRepairPaused) { throw $error; }
+            if ($error instanceof SimRepairPaused || $parentCollection) { throw $error; }
             $saved = DB::table('sim_repair_receipts')->where($key)->first();
             if ($saved && ! in_array($saved->status, ['planned','deferred'], true)) {
                 return ['kind' => $kind, 'status' => $saved->status, 'result' => json_decode($saved->result ?? '{}', true), 'reused' => true];
@@ -218,7 +244,7 @@ class SimRepairService
                 ->update(['status' => 'blocked', 'result' => json_encode($result), 'updated_at' => now()]);
             return ['kind' => $kind, 'status' => 'blocked', 'result' => $result];
         } finally {
-            if ($kind === 'chair') { RepairChairAudit::end(); SimTimer::close('repair.audit_commit'); }
+            if ($ownsCollection) { RepairChairAudit::end(); SimTimer::close('repair.audit_commit'); }
             SimTimer::record('repair.'.$kind, (int) ((hrtime(true) - $began) / 1000));
         }
     }

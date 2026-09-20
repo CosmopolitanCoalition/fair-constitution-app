@@ -18496,7 +18496,10 @@
         "app/Services/Demo/RepairChairAudit.php",
         "tests/Feature/RepairChairAuditTest.php",
         "docs/operations/step5-benchmarks/D015.md",
-        "docs/operations/STEP5_REPAIR_D015_HANDOFF.md"
+        "docs/operations/STEP5_REPAIR_D015_HANDOFF.md",
+        "docs/operations/STEP5_REPAIR_D016_HANDOFF.md",
+        "docs/operations/step5-benchmarks/D016.md",
+        "tests/Feature/PublicationIndexRetirementTest.php"
       ],
       "history": [
         {
@@ -18514,6 +18517,10 @@
         {
           "date": "2026-09-20",
           "note": "D015 measured 31,760 repairs/hour with 70-72 audit-lock waiters. Independent chair actions now stage individual events and public records in transaction-local PostgreSQL storage, then lock/flush/link immediately before durable commit. Actual second PHP process completes while first prepares ballot evidence. Savepoint/rollback, public-record audit links and repeat receipts pass. 55 tests / 963 assertions across combined gate. New lock/flush/commit timers support remote benchmark; no speedup claimed before measurement. Other action types retain synchronous audit behavior."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D016 measured 52,278 repairs/hour (1.55x), insufficient. Combined release adds forward-only UUIDv7 audit/publication IDs, late transactional audit sealing across all repair actions, exact achievement/IP seals and staged training reads, bounded grouped chairs and bulk ballots, paged large evidence, and guarded redundant publication index retirement. 70 tests / 4,372 assertions passed in disposable PostgreSQL and DB-free fixtures; two chairs use one append, three-seat SQL 64 to 50. No remote speedup claimed. Operator explicitly authorized SSH deployment after remote Codex authentication failed; same run/version, existing world and payment history retained."
         }
       ]
     },

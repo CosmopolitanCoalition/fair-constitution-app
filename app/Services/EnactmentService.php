@@ -395,7 +395,7 @@ class EnactmentService
                 jurisdictionId: $jurisdictionId,
             );
 
-            $recordId = (string) Str::uuid();
+            $recordId = (string) Str::uuid7();
             $this->audit->append(
                 module: 'records',
                 event: 'published',

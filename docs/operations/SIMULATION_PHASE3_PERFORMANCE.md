@@ -30,15 +30,14 @@ manually; do not send messages directly to the other task.
   proof of delivery; never resend or launch a second exchange just because
   context was compacted.
 
-Current exchange: **D015 received; full repair already running on 96f840aa**.
-The operator explicitly authorized supplemental elections for never-filled seats
-and Earth's deficient-count recovery. The dominant chair audit bottleneck and
-both recovery paths are addressed in [the completed D015 response](STEP5_REPAIR_D015_HANDOFF.md).
-Continue `01a0bed7-d6c6-7399-b288-44053ffe00e1`, repair version 1. Halt/drain,
-deploy, record the settled recovery choice and Resume. Do not repeat the already
-completed D014 receipt correction/refresh/Apply or create another run.
-The final developer response supplies the pushed revision and completed tests.
-No direct cross-task messages or remote actions.
+Current exchange: **D016 received; combined repair performance package completed**.
+See [the D016 release handoff](STEP5_REPAIR_D016_HANDOFF.md). Same full repair run
+`01a0bed7-d6c6-7399-b288-44053ffe00e1`, version 1, election recovery enabled.
+The operator subsequently authorized Develop and Commit to deploy directly over
+`ssh wos-demo` because their remote Codex login failed. Preserve the existing
+world and configuration, halt/drain before refreshing workers, and resume the
+same run. Do not repeat inventory/Apply or the already-applied PostgreSQL 4GB
+buffer change. No direct cross-task messages; leave the Claude loop alone.
 Older D010 performance results below are historical evidence, not repair results.
 
 ## D010 response: bounded atomic stipend batches — 2026-09-20

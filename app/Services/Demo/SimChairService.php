@@ -38,12 +38,8 @@ class SimChairService
                 return ['status' => 'blocked', 'reason' => 'chair ballot electorate changed', 'vote_id' => $vote->id];
             }
             $rankings = $seats->pluck('id')->map(fn ($id) => (string) $id)->all();
-            foreach ($seats as $seat) {
-                if ($vote->refresh()->status !== ChamberVote::STATUS_OPEN) { break; }
-                if (DB::table('vote_casts')->where('vote_id', $vote->id)->where('board_seat_id', $seat->id)->exists()) { continue; }
-                app(ChamberVoteService::class)->castBoardSeat($vote, $seat, null, $rankings,
-                    'Simulated Step 5 full-board chair ballot.', 'F-ORG-010');
-            }
+            app(ChamberVoteService::class)->castRemainingBoardRankings($vote, $rankings,
+                'Simulated Step 5 full-board chair ballot.', 'F-ORG-010');
             $board->refresh(); $vote->refresh();
             return ['status' => $board->chair_seat_id !== null && $vote->outcome === ChamberVote::OUTCOME_ADOPTED ? 'done' : 'blocked',
                 'vote_id' => (string) $vote->id, 'chair_seat_id' => $board->chair_seat_id,

@@ -81,7 +81,7 @@ class PublicRecordService
         }
 
         $insert = function () use ($kind, $title, $body, $attrs, $subjectType): PublicRecord {
-            $id = (string) Str::uuid();
+            $id = (string) Str::uuid7();
 
             // Seal first: the chain entry names the record id; the record
             // row carries the entry's seq. Same transaction — no record
@@ -93,11 +93,10 @@ class PublicRecordService
             // with a null audit_seq and registered for backfill; commitBatch
             // sets it to the one committed entry. The forbidden-subject and
             // same-transaction guarantees are unchanged.
-            $batching = $this->audit->isBatching();
-            $entry = $this->audit->append(
-                module: 'records',
-                event: 'published',
-                payload: [
+            $act = [
+                'module' => 'records',
+                'event' => 'published',
+                'payload' => [
                     'record_id'    => $id,
                     'kind'         => $kind,
                     'title'        => $title,
@@ -107,10 +106,10 @@ class PublicRecordService
                     'via_workflow' => $attrs['via_workflow'] ?? null,
                     'via_clock'    => $attrs['via_clock'] ?? null,
                 ],
-                ref: $attrs['via_form'] ?? $attrs['via_clock'] ?? $attrs['via_workflow'] ?? null,
-                actorId: $attrs['actor_user_id'] ?? null,
-                jurisdictionId: $attrs['jurisdiction_id'] ?? null,
-            );
+                'ref' => $attrs['via_form'] ?? $attrs['via_clock'] ?? $attrs['via_workflow'] ?? null,
+                'actorId' => $attrs['actor_user_id'] ?? null,
+                'jurisdictionId' => $attrs['jurisdiction_id'] ?? null,
+            ];
 
             $attributes = [
                 'id'                   => $id,
@@ -126,15 +125,19 @@ class PublicRecordService
                 'via_clock'            => $attrs['via_clock'] ?? null,
                 'subject_type'         => $subjectType,
                 'subject_id'           => $attrs['subject_id'] ?? null,
-                'audit_seq'            => $batching ? null : (int) $entry->seq,
+                'audit_seq'            => null,
                 'translations'         => $attrs['translations'] ?? [],
                 'supersedes_record_id' => $attrs['supersedes_record_id'] ?? null,
                 'published_at'         => now(),
             ];
 
             if (\App\Services\Demo\RepairChairAudit::active()) {
-                return \App\Services\Demo\RepairChairAudit::record($entry, $attributes);
+                $record = (new PublicRecord)->forceFill($attributes + ['created_at' => now()]);
+                \App\Services\Demo\RepairChairAudit::publications([[$act + ['rejected' => false, 'blockedReason' => null], $record->getAttributes()]]);
+                return $record;
             }
+            $entry = $this->audit->append(...$act);
+            $attributes['audit_seq'] = $this->audit->isBatching() ? null : (int) $entry->seq;
             $record = PublicRecord::create($attributes);
 
             return $record;
@@ -177,10 +180,10 @@ class PublicRecordService
         $insert = function () use ($records): array {
             $now = now();
             $ids = [];
-            $rows = [];
+            $rows = []; $pairs = [];
 
             foreach ($records as $r) {
-                $id = (string) Str::uuid();
+                $id = (string) Str::uuid7();
                 $ids[] = $id;
                 $attrs = $r['attrs'];
                 $subjectType = $attrs['subject_type'] ?? null;
@@ -188,11 +191,10 @@ class PublicRecordService
                 // Seal each record with its own chain act, exactly as publish()
                 // — buffered by the caller's batch (audit_seq null then), or
                 // sealed inline otherwise.
-                $batching = $this->audit->isBatching();
-                $entry = $this->audit->append(
-                    module: 'records',
-                    event: 'published',
-                    payload: [
+                $act = [
+                    'module' => 'records',
+                    'event' => 'published',
+                    'payload' => [
                         'record_id'    => $id,
                         'kind'         => $r['kind'],
                         'title'        => $r['title'],
@@ -202,12 +204,12 @@ class PublicRecordService
                         'via_workflow' => $attrs['via_workflow'] ?? null,
                         'via_clock'    => $attrs['via_clock'] ?? null,
                     ],
-                    ref: $attrs['via_form'] ?? $attrs['via_clock'] ?? $attrs['via_workflow'] ?? null,
-                    actorId: $attrs['actor_user_id'] ?? null,
-                    jurisdictionId: $attrs['jurisdiction_id'] ?? null,
-                );
+                    'ref' => $attrs['via_form'] ?? $attrs['via_clock'] ?? $attrs['via_workflow'] ?? null,
+                    'actorId' => $attrs['actor_user_id'] ?? null,
+                    'jurisdictionId' => $attrs['jurisdiction_id'] ?? null,
+                ];
 
-                $rows[] = [
+                $row = [
                     'id'                   => $id,
                     'kind'                 => $r['kind'],
                     'title'                => $r['title'],
@@ -221,14 +223,25 @@ class PublicRecordService
                     'via_clock'            => $attrs['via_clock'] ?? null,
                     'subject_type'         => $subjectType,
                     'subject_id'           => $attrs['subject_id'] ?? null,
-                    'audit_seq'            => $batching ? null : (int) $entry->seq,
+                    'audit_seq'            => null,
                     'translations'         => json_encode($attrs['translations'] ?? []),
                     'supersedes_record_id' => $attrs['supersedes_record_id'] ?? null,
                     'published_at'         => $now,
                     'created_at'           => $now,
                 ];
+                if (\App\Services\Demo\RepairChairAudit::active()) {
+                    // Raw insert attributes: normalize timestamps exactly as the model does.
+                    $row['published_at'] = $now->toDateTimeString();
+                    $row['created_at'] = $now->toDateTimeString();
+                    $pairs[] = [$act + ['rejected' => false, 'blockedReason' => null], $row];
+                } else {
+                    $entry = $this->audit->append(...$act);
+                    $row['audit_seq'] = $this->audit->isBatching() ? null : (int) $entry->seq;
+                    $rows[] = $row;
+                }
             }
 
+            if ($pairs !== []) { \App\Services\Demo\RepairChairAudit::publications($pairs); }
             foreach (array_chunk($rows, 500) as $chunk) {
                 DB::table('public_records')->insert($chunk);
             }
