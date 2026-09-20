@@ -1,5 +1,9 @@
 # D016 direct deployment and repair benchmark
 
+**Current outage:** [D019 full data volume](STEP5_REPAIR_D019_STORAGE_INCIDENT.md).
+PostgreSQL recovery is blocked by lack of disk space; Horizon and scheduler
+are temporarily stopped. Resume only after storage/database health returns.
+
 **Current population-ceiling correction:** see [D018](STEP5_REPAIR_D018_HANDOFF.md).
 The operator confirmed the existing zero-population rule; no policy decision is pending.
 
