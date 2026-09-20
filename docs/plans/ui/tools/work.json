@@ -18001,6 +18001,42 @@
         {
           "date": "2026-09-20",
           "note": "19 tests / 1,329 assertions passed: 10 isolated PostgreSQL tests and 9 existing database-free ledger checks. Actual batch credit uses four SQL statements instead of five. Checked 502-row chunking, canonical hashes/order, amounts/balances, mint/burn supply, outer rollback, treasury/wallet failures, two waiting concurrent writers, database immutability, once-only real training handler and timer boundaries. All DB writes in guarded disposable databases. D001 confirms 5604e477 deployed but no demonstrated Phase 6 code speedup; targeted ANALYZE recovered 308,365 jurisdictions/hour. New patch awaits remote benchmark via one operator-relayed handoff."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D002: demo deployed a77cf0b6, bounded ledger and 91-wallet correctness checks passed. Weighted throughput 442,212 before versus 443,832 after (+0.37%): no material improvement. Keep verified query reduction and instrumentation; 506 of 598 ms per scope remained in money-ledger lock waiting, with commit observed among lock holders."
+        }
+      ]
+    },
+    {
+      "id": "W-0469",
+      "title": "Commit each minted training-stipend group atomically",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "One monetary transaction per existing training treasury/currency group passes isolated rollback, concurrency, once-only and commit-boundary checks; deployment guidance is recorded.",
+      "detail": "TrainingStipendService wraps the existing mint and disbursement calls in one outer transaction per group. Distinct postings, issuance record, authority checks and amounts remain intact. Both postings and balances roll back on failure. The ledger lock remains held through one durable commit; its second call is reentrant. Ordinary service savepoints remain, adding two statements. New group and commit timers cover the owned commit; existing mint/credit timings now represent nested calls. No other payment path or durability setting changed. Refresh drained Horizon workers only, with no migration. Live throughput remains to be measured.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "D002 completed Phase 6 ledger benchmark, 2026-09-20",
+          "title": "Global ledger serialization through two group commits",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Education/TrainingStipendService.php",
+        "tests/Feature/TrainingLedgerPerformanceTest.php",
+        "tests/Support/training_ledger_worker.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "15 isolated PostgreSQL tests / 1,427 assertions passed. Verified one owned commit and two savepoints, full-commit timing, failure after mint before credit, wallet failure, outer-caller rollback, concurrent groups actually waiting on the lock, exact hashes/balances, retained separate issuance/stipend meanings, mint/burn, retakes/repeated batch commits, and prior ledger regressions. No live-world or remote writes. Atomicity applies to each monetary group, not earlier training filings; no new recovery mechanism. Completed developer handoff for manual operator relay."
         }
       ]
     }

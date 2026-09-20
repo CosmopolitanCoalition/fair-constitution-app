@@ -30,12 +30,99 @@ manually; do not send messages directly to the other task.
   proof of delivery; never resend or launch a second exchange just because
   context was compacted.
 
-Current exchange: **D001 received from the operator**. The implementation and
+Current exchange: **D002 received from the operator**. The implementation and
 internal tests below are complete. The developer's final response supplies the
 pushed commit for manual relay; then Deploy and Benchmark owns the next turn.
-No direct cross-task message has been sent. D001 confirms remote `5604e477`,
-including `0dfba8f6`; older deployment statements below are historical. Do not
+No direct cross-task message has been sent. D002 confirms remote `a77cf0b6`;
+older deployment statements below are historical. Do not
 infer deployment of this new patch until a completed demo handoff confirms it.
+
+## D002 response: one atomic training-stipend group — 2026-09-20
+
+### Completed demo evidence, supplied by the operator
+
+D002 confirms deployment of `a77cf0b61e7ad920a4b7aa3b84947a414320ffff` on the
+same Phase 6 run, with 73 workers. Weighted throughput was 442,212 scopes/hour
+before versus 443,832 after (+0.37%): **no material throughput improvement**.
+Both windows used the actor index for training-completion checks. The reported
+513-hash/512-link tails and 91 pre-captured wallet reconciliations passed; no
+review or sampled holder failures appeared. Retain the patch for its verified
+query reduction and measurement, without claiming a production speedup.
+
+The new timers attributed about 506 of 598 ms per scope to the two ledger lock
+acquisitions. Four of six sampled lock owners were executing COMMIT (three
+WALWrite, one WalSync); this confirms commit retains the lock, but the six
+samples are not a measured time share. PostgreSQL, Redis, scheduler, worker
+count and the four existing local configuration files were preserved.
+
+### Implemented and internally tested
+
+Only `TrainingStipendService::commitBatch` changes runtime behavior. Each existing
+treasury/currency group now wraps its ordinary mint and bulk wallet disbursement
+in one outer transaction. It still writes the distinct issuance and stipend
+entry groups, the issuance event, and the same amounts and wallet credits.
+Issuance authority checks and the once-only achievement gate are unchanged.
+An exception after mint or during wallet payment now rolls back **both** postings
+and the issuance record for that group, including its treasury/wallet changes.
+Atomicity is per monetary group; the earlier per-person training filings remain
+separate transactions, and this does not add a new payout-recovery mechanism.
+
+The ledger service is unchanged: it calls the advisory lock twice and reads a
+fresh head after each call. The second call is reentrant within the same outer
+transaction, so it does not release and rejoin the contended queue. The group
+performs one owned durable COMMIT rather than two. Other payment entry points,
+durability settings, worker counts and Redis are untouched.
+
+**Savepoint check and tradeoff:** the installed Laravel implementation creates
+two service savepoints inside the group. Tests observe transaction levels
+`[1, 2, 2]` and exactly one `TransactionCommitting` event (the framework emits
+this immediately before its sole PDO commit). We retain those savepoints and
+the services' exception semantics. They add two SQL statements; disbursement
+preparation also now runs while the first posting's lock remains held. These
+costs can offset some benefit from removing one durable commit. A live speedup
+is not established by these internal tests.
+
+Validation: **15 tests / 1,427 assertions passed** in guarded disposable local
+PostgreSQL databases. The focused suite includes two concurrent training groups
+waiting on a parent-held lock before the parent changes the head; noninterleaved
+mint/disbursement sequences and exact chain hashes/balances; failure after mint
+but before credit; wallet update failure; outer-caller rollback; mint/burn
+accounting; the real training handler's retakes and repeated batch commits; and
+the earlier chunking, ledger-writer concurrency and append-only regressions.
+Commit-boundary event checks prove the new timers remain open both before and
+after the actual owned commit. No live development-world or demo write tests.
+
+### Deployment and completed-comparison guidance
+
+1. Capture a fresh steady Phase 6 baseline if the phase is still running. Under
+   demo operator control, halt and drain at item boundaries, pull the developer's
+   exact pushed commit, refresh drained Horizon workers, and resume the same run.
+   **No migration, frontend build, scheduler refresh, PostgreSQL restart, Redis
+   recreation or sizing rederive is required.**
+2. Keep 73 workers and Redis's temporary 2 GiB runtime cap / 870 MiB data limit,
+   persistence and eviction unchanged. Compare multiple steady direct-completion
+   windows against the fresh baseline, alongside full-item and training timings.
+3. New timers (only while `stage.training_scope` is open):
+
+   | Timer | Meaning |
+   |---|---|
+   | `training.stipend_group` | Whole group transaction, including its owned durable commit |
+   | `training.stipend_commit` | Final owned commit/return interval after the group callback completes |
+
+   `stipend_mint` and `stipend_credit` now measure **nested service calls**; their
+   completion no longer includes an owned durable commit. Both remain nested in
+   `stipend_group`, as do the existing ledger/wallet timers. Do not sum overlapping
+   timings. There are still two lock timer samples per group, but the second
+   acquisition is reentrant: compare total wait per completed scope, not just
+   the per-invocation average. `ledger_locked_post` still excludes other work
+   while the outer transaction holds the lock. The new commit timer is absent
+   when a caller already owns a transaction; the normal Step 5 path owns its
+   group transaction. Failed attempts can also contribute timing samples.
+4. Retain bounded chain-tail and pre-captured wallet reconciliation checks,
+   holder/lease health and review counts. Do not restart a finished phase to
+   recreate a comparison. Report a completed comparison (or that limitation)
+   and one next bounded Step 5 recommendation in the next operator-relayed
+   handoff. Leave the independent Claude monitoring/storage/shutdown loop alone.
 
 ## D001 response: Phase 6 money-ledger contention — 2026-09-20
 

@@ -161,7 +161,8 @@ class TrainingStipendService
      * Pay the buffered minted stipends: one mint of the total and one
      * creditManyFromTreasury per (treasury, currency). Ends the batch. The
      * per-person amounts are unchanged — only the number of ledger posts drops,
-     * from two a holder to two a treasury.
+     * from two a holder to two a treasury. Mint and disbursement commit together:
+     * a failed credit cannot leave a committed mint without its wallet payment.
      */
     public function commitBatch(): void
     {
@@ -188,17 +189,36 @@ class TrainingStipendService
 
         foreach ($groups as $g) {
             $timed = SimTimer::isOpen('stage.training_scope');
-            if ($timed) { SimTimer::open('training.stipend_mint'); }
+            $ownsTransaction = DB::transactionLevel() === 0;
+            if ($timed) { SimTimer::open('training.stipend_group'); }
             try {
-                $this->issuance->mint($g['currency'], $g['treasury_id'], $g['total'], 'training stipend batch (F-EDU-001, once per person)');
+                // Keep both ordinary service calls and their savepoints. The
+                // money-ledger lock acquired by mint remains held through the
+                // credit and this ONE durable commit; its second acquisition is
+                // reentrant, so the group does not rejoin the global lock queue.
+                DB::transaction(function () use ($g, $timed, $ownsTransaction): void {
+                    if ($timed) { SimTimer::open('training.stipend_mint'); }
+                    try {
+                        $this->issuance->mint($g['currency'], $g['treasury_id'], $g['total'], 'training stipend batch (F-EDU-001, once per person)');
+                    } finally {
+                        if ($timed) { SimTimer::close('training.stipend_mint'); }
+                    }
+                    if ($timed) { SimTimer::open('training.stipend_credit'); }
+                    try {
+                        $this->accounts->creditManyFromTreasury($g['treasury_id'], $g['credits'], $g['currency_id'], 'stipend');
+                    } finally {
+                        if ($timed) { SimTimer::close('training.stipend_credit'); }
+                    }
+                    if ($timed && $ownsTransaction) { SimTimer::open('training.stipend_commit'); }
+                });
             } finally {
-                if ($timed) { SimTimer::close('training.stipend_mint'); }
-            }
-            if ($timed) { SimTimer::open('training.stipend_credit'); }
-            try {
-                $this->accounts->creditManyFromTreasury($g['treasury_id'], $g['credits'], $g['currency_id'], 'stipend');
-            } finally {
-                if ($timed) { SimTimer::close('training.stipend_credit'); }
+                if ($timed) {
+                    // Group includes the owned COMMIT, unlike the two nested
+                    // service timers. When called inside another transaction,
+                    // that caller owns commit; do not mislabel a savepoint.
+                    SimTimer::close('training.stipend_commit');
+                    SimTimer::close('training.stipend_group');
+                }
             }
         }
     }

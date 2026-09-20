@@ -22,8 +22,23 @@ $db->statement("SET statement_timeout = '12s'");
 echo json_encode(['ready' => true, 'pid' => $db->selectOne('SELECT pg_backend_pid() AS pid')->pid]).PHP_EOL;
 flush();
 if (trim(fgets(STDIN)) !== 'GO') { exit(2); }
-$accounts = app(App\Services\Economy\AccountService::class);
-for ($i = 0; $i < 12; $i++) {
-    $accounts->creditManyFromTreasury($input['treasury'], [['account_id' => $input['wallet'], 'amount' => '1']], $input['currency'], 'stipend');
+if (($input['mode'] ?? '') === 'training') {
+    $settings = Mockery::mock(App\Services\SettingsResolver::class);
+    $settings->shouldReceive('resolveInt')->once()->andReturn(10);
+    $settings->shouldReceive('resolve')->once()->andReturn('minted');
+    app()->instance(App\Services\SettingsResolver::class, $settings);
+    $learner = new App\Models\User;
+    $learner->id = $input['user'];
+    $stipend = app(App\Services\Education\TrainingStipendService::class);
+    $stipend->beginBatch();
+    $stipend->payOnce($learner);
+    $stipend->commitBatch();
+    $stipend->commitBatch();
+    Mockery::close();
+} else {
+    $accounts = app(App\Services\Economy\AccountService::class);
+    for ($i = 0; $i < 12; $i++) {
+        $accounts->creditManyFromTreasury($input['treasury'], [['account_id' => $input['wallet'], 'amount' => '1']], $input['currency'], 'stipend');
+    }
 }
 echo "DONE\n";

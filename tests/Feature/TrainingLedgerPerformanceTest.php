@@ -12,6 +12,9 @@ use App\Services\Economy\LedgerService;
 use App\Services\Education\TrainingStipendService;
 use App\Services\SettingsResolver;
 use App\Support\SimTimer;
+use Illuminate\Database\Events\TransactionBeginning;
+use Illuminate\Database\Events\TransactionCommitting;
+use Illuminate\Database\Events\TransactionCommitted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -281,6 +284,196 @@ class TrainingLedgerPerformanceTest extends TestCase
 
     public function test_real_training_handler_and_batch_pay_once_across_retakes(): void
     {
+        $learner = $this->trainingLearner();
+        $stipend = app(TrainingStipendService::class);
+        $handler = app(TrainingCompletion::class);
+        $payload = ['track_key' => 'fixture', 'module_key' => 'first', 'passed' => true, 'score_pct' => 100];
+        SimTimer::open('stage.training_scope');
+        for ($pass = 0; $pass < 2; $pass++) {
+            $stipend->beginBatch();
+            DB::transaction(fn () => $handler->handle($learner, $payload));
+            DB::transaction(fn () => $handler->handle($learner, $payload));
+            $stipend->commitBatch();
+            $stipend->commitBatch(); // An already-emptied buffer cannot pay again.
+        }
+        SimTimer::close('stage.training_scope');
+        $this->assertBalances('10000', '10');
+        $this->assertSame(1, DB::table('achievements')->count());
+        $this->assertSame(1, DB::table('issuance_events')->count());
+        $this->assertSame('10.000000', DB::table('issuance_events')->value('amount'));
+        $this->assertSame(3, DB::table('ledger_entries')->count());
+        $this->assertChain();
+        $samples = (new \ReflectionProperty(SimTimer::class, 'n'))->getValue();
+        $this->assertSame(2, $samples['training.ledger_lock_wait']);
+        $this->assertSame(2, $samples['training.ledger_locked_post']);
+        foreach (['training.stipend_mint', 'training.stipend_credit', 'training.wallet_balances', 'training.stipend_group', 'training.stipend_commit'] as $part) {
+            $this->assertSame(1, $samples[$part]);
+        }
+        $this->assertSame([], (new \ReflectionProperty(SimTimer::class, 'open'))->getValue());
+    }
+
+    public function test_one_owned_commit_covers_both_postings_and_is_inside_the_group_timer(): void
+    {
+        $stipend = $this->bufferTrainingStipend();
+        $levels = []; $commits = 0; $committed = 0;
+        $events = DB::connection()->getEventDispatcher();
+        $events->listen(TransactionBeginning::class, function ($event) use (&$levels) {
+            if ($event->connection->getName() === 'ledger_test') { $levels[] = $event->connection->transactionLevel(); }
+        });
+        $events->listen(TransactionCommitting::class, function ($event) use (&$commits) {
+            if ($event->connection->getName() !== 'ledger_test') { return; }
+            $commits++;
+            $this->assertSame(1, $event->connection->transactionLevel());
+            $this->assertTrue(SimTimer::isOpen('training.stipend_group'));
+            $this->assertTrue(SimTimer::isOpen('training.stipend_commit'));
+        });
+        $events->listen(TransactionCommitted::class, function ($event) use (&$committed) {
+            if ($event->connection->getName() === 'ledger_test' && $event->connection->transactionLevel() === 0) {
+                $committed++;
+                $this->assertTrue(SimTimer::isOpen('training.stipend_group'));
+                $this->assertTrue(SimTimer::isOpen('training.stipend_commit'));
+            }
+        });
+        SimTimer::open('stage.training_scope');
+        $stipend->commitBatch();
+        SimTimer::close('stage.training_scope');
+        $this->assertSame([1, 2, 2], $levels, 'One owned transaction and two ordinary service savepoints.');
+        $this->assertSame(1, $commits, 'Only the outer transaction calls PDO commit.');
+        $this->assertSame(1, $committed);
+        $this->assertBalances('10000', '10');
+        $rows = DB::table('ledger_entries')->orderBy('seq')->get();
+        $this->assertSame(['issuance', 'stipend', 'stipend'], $rows->pluck('kind')->all());
+        $this->assertNotSame($rows[0]->entry_group, $rows[1]->entry_group);
+        $this->assertSame($rows[1]->entry_group, $rows[2]->entry_group);
+        $this->assertSame($rows[0]->entry_group, DB::table('issuance_events')->value('entry_group'));
+        $this->assertChain();
+        $this->assertSame([], (new \ReflectionProperty(SimTimer::class, 'open'))->getValue());
+    }
+
+    public function test_failure_after_mint_before_disbursement_rolls_back_the_mint(): void
+    {
+        $learner = $this->trainingLearner();
+        $this->partialMock(AccountService::class, function ($mock) {
+            $mock->shouldReceive('creditManyFromTreasury')->once()->andReturnUsing(function () {
+                $this->assertSame(1, DB::transactionLevel());
+                $this->assertSame(1, DB::table('issuance_events')->count());
+                $this->assertSame(1, DB::table('ledger_entries')->count());
+                $this->assertBalances('10010', '0');
+                throw new \RuntimeException('fixture failure after mint');
+            });
+        });
+        $stipend = app(TrainingStipendService::class);
+        $stipend->beginBatch();
+        $stipend->payOnce($learner);
+        SimTimer::open('stage.training_scope');
+        try { $stipend->commitBatch(); $this->fail('Failure must propagate.'); }
+        catch (\RuntimeException $e) { $this->assertSame('fixture failure after mint', $e->getMessage()); }
+        SimTimer::close('stage.training_scope');
+        $this->assertSame(0, DB::table('issuance_events')->count());
+        $this->assertSame(0, DB::table('ledger_entries')->count());
+        $this->assertSame(0, DB::transactionLevel());
+        $this->assertBalances('10000', '0');
+        $this->assertSame([], (new \ReflectionProperty(SimTimer::class, 'open'))->getValue());
+        $this->assertArrayNotHasKey('training.stipend_commit', (new \ReflectionProperty(SimTimer::class, 'n'))->getValue());
+    }
+
+    public function test_training_wallet_failure_rolls_back_both_postings_and_issuance_event(): void
+    {
+        $stipend = $this->bufferTrainingStipend();
+        DB::statement('ALTER TABLE economic_accounts ADD CONSTRAINT fixture_wallet CHECK (balance = 0)');
+        try { $stipend->commitBatch(); $this->fail('Wallet failure must propagate.'); }
+        catch (\Illuminate\Database\QueryException $e) { $this->assertStringContainsString('fixture_wallet', $e->getMessage()); }
+        $this->assertSame(0, DB::table('issuance_events')->count());
+        $this->assertSame(0, DB::table('ledger_entries')->count());
+        $this->assertSame(0, DB::transactionLevel());
+        $this->assertBalances('10000', '0');
+    }
+
+    public function test_group_respects_an_existing_transaction_and_does_not_claim_to_commit_it(): void
+    {
+        $stipend = $this->bufferTrainingStipend();
+        DB::beginTransaction();
+        SimTimer::open('stage.training_scope');
+        $stipend->commitBatch();
+        SimTimer::close('stage.training_scope');
+        $this->assertSame(1, DB::transactionLevel());
+        $this->assertBalances('10000', '10');
+        $samples = (new \ReflectionProperty(SimTimer::class, 'n'))->getValue();
+        $this->assertSame(1, $samples['training.stipend_group']);
+        $this->assertArrayNotHasKey('training.stipend_commit', $samples);
+        DB::rollBack();
+        $this->assertSame(0, DB::table('issuance_events')->count());
+        $this->assertSame(0, DB::table('ledger_entries')->count());
+        $this->assertBalances('10000', '0');
+    }
+
+    public function test_concurrent_training_groups_cannot_interleave_mint_and_disbursement(): void
+    {
+        $stipend = $this->bufferTrainingStipend();
+        $people = [];
+        for ($i = 0; $i < 2; $i++) {
+            $id = (string) Str::uuid(); $wallet = (string) Str::uuid();
+            DB::table('economic_accounts')->insert(['id' => $wallet, 'currency_id' => $this->currency]);
+            DB::table('economic_account_bindings')->insert(['account_id' => $wallet, 'owner_id' => $id, 'owner_type' => 'users']);
+            DB::table('residency_confirmations')->insert(['user_id' => $id, 'jurisdiction_id' => $this->root, 'is_active' => true, 'confirmed_at' => now()]);
+            $people[] = ['id' => $id, 'wallet' => $wallet];
+        }
+        DB::beginTransaction();
+        DB::statement('SELECT pg_advisory_xact_lock(?)', [LedgerService::APPEND_LOCK_KEY]);
+        $pids = [];
+        foreach ($people as $person) {
+            $process = proc_open([PHP_BINARY, base_path('tests/Support/training_ledger_worker.php')], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+            $this->assertIsResource($process); $this->children[] = [$process, $pipes];
+            fwrite($pipes[0], json_encode(['connection' => DB::connection()->getConfig(), 'mode' => 'training', 'user' => $person['id']], JSON_THROW_ON_ERROR)."\n");
+            stream_set_timeout($pipes[1], 10);
+            $ready = json_decode(fgets($pipes[1]) ?: '{}', true);
+            $this->assertTrue($ready['ready'] ?? false); $pids[] = $ready['pid'];
+            fwrite($pipes[0], "GO\n");
+        }
+        $deadline = microtime(true) + 5;
+        do {
+            DB::selectOne('SELECT pg_stat_clear_snapshot()');
+            $waiting = DB::table('pg_stat_activity')->whereIn('pid', $pids)->where('wait_event', 'advisory')->count();
+            if ($waiting === 2) { break; }
+            usleep(10000);
+        } while (microtime(true) < $deadline);
+        $this->assertSame(2, $waiting);
+        $stipend->commitBatch(); // Change the head before allowing either child through.
+        DB::commit();
+        foreach ($this->children as $index => [$process, $pipes]) {
+            $this->assertSame("DONE\n", fgets($pipes[1]));
+            fclose($pipes[0]); fclose($pipes[1]);
+            $errors = stream_get_contents($pipes[2]); fclose($pipes[2]);
+            $this->assertSame(0, proc_close($process), $errors);
+            unset($this->children[$index]);
+        }
+        $this->assertSame(3, DB::table('issuance_events')->count());
+        $rows = DB::table('ledger_entries')->orderBy('seq')->get();
+        $this->assertCount(9, $rows);
+        foreach ($rows->chunk(3) as $group) {
+            $this->assertSame(['issuance', 'stipend', 'stipend'], $group->pluck('kind')->all());
+            $this->assertCount(2, $group->pluck('entry_group')->unique());
+        }
+        foreach ($people as $person) {
+            $this->assertSame('10.000000', DB::table('economic_accounts')->where('id', $person['wallet'])->value('balance'));
+        }
+        $this->assertBalances('10000', '10');
+        $this->assertSame('30.000000', app(IssuanceService::class)->supply($this->currency));
+        $this->assertChain();
+    }
+
+    private function bufferTrainingStipend(): TrainingStipendService
+    {
+        $learner = $this->trainingLearner();
+        $stipend = app(TrainingStipendService::class);
+        $stipend->beginBatch();
+        $stipend->payOnce($learner);
+
+        return $stipend;
+    }
+
+    private function trainingLearner(): User
+    {
         $schema = file_get_contents(base_path('database/schema/pgsql-schema.sql'));
         preg_match('/CREATE TABLE public.audit_log \([\s\S]*?\n\);/', $schema, $table);
         $this->assertNotEmpty($table);
@@ -306,30 +499,7 @@ class TrainingLedgerPerformanceTest extends TestCase
             $mock->shouldReceive('resolveInt')->once()->andReturn(10);
             $mock->shouldReceive('resolve')->once()->andReturn('minted');
         });
-        $stipend = app(TrainingStipendService::class);
-        $handler = app(TrainingCompletion::class);
-        $payload = ['track_key' => 'fixture', 'module_key' => 'first', 'passed' => true, 'score_pct' => 100];
-        SimTimer::open('stage.training_scope');
-        for ($pass = 0; $pass < 2; $pass++) {
-            $stipend->beginBatch();
-            DB::transaction(fn () => $handler->handle($learner, $payload));
-            DB::transaction(fn () => $handler->handle($learner, $payload));
-            $stipend->commitBatch();
-            $stipend->commitBatch(); // An already-emptied buffer cannot pay again.
-        }
-        SimTimer::close('stage.training_scope');
-        $this->assertBalances('10000', '10');
-        $this->assertSame(1, DB::table('achievements')->count());
-        $this->assertSame(1, DB::table('issuance_events')->count());
-        $this->assertSame('10.000000', DB::table('issuance_events')->value('amount'));
-        $this->assertSame(3, DB::table('ledger_entries')->count());
-        $this->assertChain();
-        $samples = (new \ReflectionProperty(SimTimer::class, 'n'))->getValue();
-        $this->assertSame(2, $samples['training.ledger_lock_wait']);
-        $this->assertSame(2, $samples['training.ledger_locked_post']);
-        foreach (['training.stipend_mint', 'training.stipend_credit', 'training.wallet_balances'] as $part) {
-            $this->assertSame(1, $samples[$part]);
-        }
-        $this->assertSame([], (new \ReflectionProperty(SimTimer::class, 'open'))->getValue());
+
+        return $learner;
     }
 }
