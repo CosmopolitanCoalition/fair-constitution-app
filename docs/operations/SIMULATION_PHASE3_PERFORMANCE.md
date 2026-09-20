@@ -30,11 +30,12 @@ manually; do not send messages directly to the other task.
   proof of delivery; never resend or launch a second exchange just because
   context was compacted.
 
-Current exchange: **D013 received; worker reporting width hotfix is in
-[the D013 handoff](STEP5_REPAIR_D013_HANDOFF.md)**. D012 was deployed but inspection
-failed before domain repair because `repair_plan_scope` exceeded the lease column.
-Migrate and resume existing pilot `01a0bec3-abfe-71d5-a809-55bf5d161eab`; do not create
-another run or restart the world. The original repair policy remains unchanged.
+Current exchange: **D014 received; dependency and no-op receipt corrections are in
+[the D014 handoff](STEP5_REPAIR_D014_HANDOFF.md)**. The hotfix and pilot succeeded:
+three scopes repaired, two protected election cases in review. The full inventory
+`01a0bed7-d6c6-7399-b288-44053ffe00e1` is completed and halted before application.
+Use the same run/version; correct only identified no-op receipts and refresh its
+classifications before Apply. Do not create another run or restart the world.
 The final developer response supplies the pushed revision and completed tests.
 No direct cross-task messages or remote actions.
 Older D010 performance results below are historical evidence, not repair results.

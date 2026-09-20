@@ -18,7 +18,10 @@ class SimRepairService
         $jurisdiction = (string) $item->jurisdiction_id;
         $before = $this->inspector->inspect($run, $jurisdiction, $beat);
         if ($planning) {
-            foreach ($before['actions'] as $action) { $this->plan($run, $jurisdiction, $action['kind'], $action['target']); }
+            foreach ($before['actions'] as $action) {
+                if ($before['blockers'] !== [] && $action['kind'] !== 'chair') { continue; }
+                $this->plan($run, $jurisdiction, $action['kind'], $action['target']);
+            }
             return ['_verdict' => 'done', 'category' => $this->category($before), 'plan' => $before, 'source_run_id' => $run->options['repair_source_run']];
         }
         if (! ($run->options['repair_apply_authorized'] ?? false)) { throw new \RuntimeException('Repair execution has not been authorized.'); }
@@ -35,27 +38,31 @@ class SimRepairService
         }
         if ($before['blockers'] === [] && ! ($before['verification']['inactive'] ?? null)) {
             $election = collect($before['actions'])->firstWhere('kind', 'election');
+            $electionApplied = true;
             if ($election) {
                 if ($halted()) { throw new SimRepairPaused('Repair halted before election recovery.'); }
-                $effects[] = $this->action($run, $jurisdiction, 'election', $election['target'], function () use ($election, $source, $version, $beat, $run): array {
+                $effect = $this->action($run, $jurisdiction, 'election', $election['target'], function () use ($election, $source, $version, $beat, $run): array {
                     $fields = app(SimCandidateField::class)->fill($election['target'], $source, $version, $beat, (bool) ($run->options['no_floor'] ?? false));
                     if ($fields['too_few'] !== []) { throw new \RuntimeException('Election cannot be repaired above its real-population ceiling.'); }
                     $count = CountingStage::run($election['target'], $source, $version, $beat);
                     $seat = SeatingStage::run($election['target'], $source, $version, $beat);
                     return ['fielding' => $fields, 'counting' => $count, 'seating' => $seat];
-                });
+                }, fn () => $this->inspector->inspect($run, $jurisdiction, $beat)['complete']['election'] ?? false);
+                $effects[] = $effect; $electionApplied = $effect['status'] === 'applied';
             }
             $current = $this->inspector->inspect($run, $jurisdiction, $beat);
             $institutionActions = array_values(array_filter($current['actions'], fn ($a) => in_array($a['kind'], ['governance','judiciary','civics'], true)));
-            if ($current['blockers'] === [] && $institutionActions !== []) {
+            if ($electionApplied && $current['blockers'] === [] && ($current['institution_ready'] ?? false) && $institutionActions !== []) {
                 if ($halted()) { throw new SimRepairPaused('Repair halted before training.'); }
                 $training = $this->action($run, $jurisdiction, 'training', $jurisdiction,
-                    fn () => TrainingStage::run($jurisdiction, $source, $version, $beat));
+                    fn () => TrainingStage::run($jurisdiction, $source, $version, $beat),
+                    fn ($result) => ($result['holders'] ?? 0) > 0 && ($result['failed'] ?? 0) === 0 && ($result['unarmed'] ?? 0) === 0
+                        && (int) ($result['trained'] ?? 0) + (int) ($result['already'] ?? 0) === (int) $result['holders']);
                 $effects[] = $training;
                 if (($training['result']['failed'] ?? 0) === 0 && ($training['result']['unarmed'] ?? 0) === 0 && $training['status'] === 'applied') {
                     foreach ($institutionActions as $action) {
                         if ($halted()) { throw new SimRepairPaused('Repair halted between institution actions.'); }
-                        $effects[] = $this->action($run, $jurisdiction, $action['kind'], $action['target'], function () use ($action, $jurisdiction, $source, $version, $beat): array {
+                        $effect = $this->action($run, $jurisdiction, $action['kind'], $action['target'], function () use ($action, $jurisdiction, $source, $version, $beat): array {
                             $resumed = $this->resumePendingActs($jurisdiction, $action['kind'], $beat);
                             $result = match ($action['kind']) {
                                 'governance' => GovernanceStage::run($jurisdiction, $source, $version, $beat),
@@ -63,7 +70,9 @@ class SimRepairService
                                 'civics' => CivicsStage::run($jurisdiction, $source, $version, $beat),
                             };
                             return $result + ['resumed_votes' => $resumed];
-                        });
+                        }, fn () => $this->inspector->inspect($run, $jurisdiction, $beat)['complete'][$action['kind']] ?? false);
+                        $effects[] = $effect;
+                        if ($effect['status'] !== 'applied') { break; }
                     }
                 }
             }
@@ -79,7 +88,7 @@ class SimRepairService
         $gaps = array_values(array_unique([...($after['verification']['gaps'] ?? []), ...$after['acceptance_gaps'], ...$after['blockers']]));
         foreach ($after['actions'] as $remaining) { $gaps[] = 'Unresolved '.$remaining['kind'].': '.$remaining['target']; }
         foreach ($effects as $effect) {
-            if ($effect['status'] === 'blocked') { $gaps[] = $effect['kind'].': '.($effect['result']['reason'] ?? 'requires review'); }
+            if ($effect['status'] !== 'applied') { $gaps[] = $effect['kind'].': '.($effect['result']['reason'] ?? 'prerequisite or postcondition incomplete'); }
         }
         return ['_verdict' => $gaps === [] ? 'done' : 'review', '_reason' => $gaps === [] ? null : implode('; ', array_slice($gaps, 0, 8)),
             'before' => $before, 'after' => $after, 'effects' => $effects, 'gaps' => $gaps,
@@ -158,18 +167,32 @@ class SimRepairService
     }
 
     /** Receipt and domain effects share one commit; no volatile audit buffer. */
-    private function action(SimRun $run, string $jurisdiction, string $kind, string $target, \Closure $perform): array
+    private function action(SimRun $run, string $jurisdiction, string $kind, string $target, \Closure $perform, ?\Closure $complete = null): array
     {
         $this->plan($run, $jurisdiction, $kind, $target);
         $key = $this->key($run, $kind, $target);
         $began = hrtime(true);
         try {
-            return DB::transaction(function () use ($key, $kind, $perform): array {
+            return DB::transaction(function () use ($key, $kind, $perform, $complete): array {
                 $query = DB::table('sim_repair_receipts')->where($key);
                 $receipt = (clone $query)->lockForUpdate()->first();
-                if ($receipt->status !== 'planned') { return ['kind' => $kind, 'status' => $receipt->status, 'result' => json_decode($receipt->result ?? '{}', true), 'reused' => true]; }
+                if (! in_array($receipt->status, ['planned','deferred'], true)) {
+                    $saved = json_decode($receipt->result ?? '{}', true);
+                    if ($receipt->status === 'applied' && $complete && ! $complete($saved)) {
+                        return ['kind' => $kind, 'status' => 'blocked', 'result' => ['reason' => 'Existing receipt does not satisfy the current prerequisite/postcondition; inspect it.', 'saved' => $saved], 'reused' => true];
+                    }
+                    return ['kind' => $kind, 'status' => $receipt->status, 'result' => $saved, 'reused' => true];
+                }
                 $result = $perform();
-                $status = ($result['status'] ?? null) === 'blocked' ? 'blocked' : 'applied';
+                $status = ($result['status'] ?? null) === 'blocked' ? 'blocked'
+                    : (SimRepairReceiptRecovery::isPrerequisiteNoop($kind, $result) ? 'deferred' : 'applied');
+                if ($status === 'applied' && $complete && ! $complete($result)) {
+                    $status = 'blocked'; $result['reason'] = 'Repair action did not meet its required postcondition.';
+                }
+                $previous = json_decode($receipt->result ?? '{}', true);
+                if ($receipt->status === 'deferred') {
+                    $result['_prior_receipts'] = [...($previous['_prior_receipts'] ?? []), ['status' => $receipt->status, 'result' => array_diff_key($previous, ['_prior_receipts' => true]), 'updated_at' => $receipt->updated_at]];
+                }
                 app(\App\Services\AuditService::class)->append('simworld', 'sim.repair_action', $key + ['status' => $status, 'result' => $result], 'WF-SYS-04');
                 $query->update(['status' => $status, 'result' => json_encode($result, JSON_THROW_ON_ERROR), 'updated_at' => now()]);
                 return ['kind' => $kind, 'status' => $status, 'result' => $result];
@@ -177,13 +200,14 @@ class SimRepairService
         } catch (\Throwable $error) {
             if ($error instanceof SimRepairPaused) { throw $error; }
             $saved = DB::table('sim_repair_receipts')->where($key)->first();
-            if ($saved && $saved->status !== 'planned') {
+            if ($saved && ! in_array($saved->status, ['planned','deferred'], true)) {
                 return ['kind' => $kind, 'status' => $saved->status, 'result' => json_decode($saved->result ?? '{}', true), 'reused' => true];
             }
             // Failed transaction left no domain effects. Durable refusal avoids
             // creating a new act on every duplicate delivery.
             $result = ['reason' => $error->getMessage(), 'exception' => class_basename($error)];
-            DB::table('sim_repair_receipts')->where($key)->where('status', 'planned')
+            if ($saved?->status === 'deferred') { $result['_prior_receipts'] = [['status' => $saved->status, 'result' => json_decode($saved->result ?? '{}', true), 'updated_at' => $saved->updated_at]]; }
+            DB::table('sim_repair_receipts')->where($key)->whereIn('status', ['planned','deferred'])
                 ->update(['status' => 'blocked', 'result' => json_encode($result), 'updated_at' => now()]);
             return ['kind' => $kind, 'status' => 'blocked', 'result' => $result];
         } finally { SimTimer::record('repair.'.$kind, (int) ((hrtime(true) - $began) / 1000)); }

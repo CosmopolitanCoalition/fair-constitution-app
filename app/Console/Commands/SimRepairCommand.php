@@ -8,12 +8,20 @@ use Illuminate\Console\Command;
 
 class SimRepairCommand extends Command
 {
-    protected $signature = 'sim:repair {source? : Completed original run UUID} {--scope=* : Exact pilot jurisdiction UUID, repeatable} {--repair-version=1} {--resume= : Repair run whose enumeration was interrupted} {--apply= : Apply a completed repair plan} {--status= : Read a repair manifest page as JSON} {--after= : Manifest continuation key}';
+    protected $signature = 'sim:repair {source? : Completed original run UUID} {--scope=* : Exact pilot jurisdiction UUID, repeatable} {--repair-version=1} {--resume= : Repair run whose enumeration was interrupted} {--apply= : Apply a completed repair plan} {--status= : Read a repair manifest page as JSON} {--after= : Manifest continuation key} {--refresh-plan= : Reclassify an older drained inspection without restarting it} {--recover-noops= : Correct proven no-op receipts for this halted repair run and exact --scope values}';
     protected $description = 'Plan or explicitly apply a bounded, resumable in-place Step 5 repair';
 
     public function handle(SimRepairControl $control): int
     {
         try {
+            if ($id = $this->option('refresh-plan')) {
+                $this->line(json_encode($control->refreshInventory(SimRun::findOrFail($id)), JSON_PRETTY_PRINT));
+                return self::SUCCESS;
+            }
+            if ($id = $this->option('recover-noops')) {
+                $this->line(json_encode(app(\App\Services\Demo\SimRepairReceiptRecovery::class)->recover(SimRun::findOrFail($id), $this->option('scope')), JSON_PRETTY_PRINT));
+                return self::SUCCESS;
+            }
             if ($id = $this->option('status')) {
                 $this->line(json_encode($control->report(SimRun::findOrFail($id), $this->option('after')), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
                 return self::SUCCESS;

@@ -11,12 +11,15 @@ use Illuminate\Support\Facades\DB;
 /** Scope-local acceptance and plan. No domain writes, no descendant/world scan. */
 class SimRepairInspector
 {
+    public const REVISION = 2;
+
     public function inspect(SimRun $run, string $jurisdiction, ?\Closure $beat = null): array
     {
         $source = (string) $run->options['repair_source_run'];
         $version = (int) ($run->options['version'] ?? 1);
         $before = VerifyStage::run($jurisdiction, $source, $version, $beat);
-        $out = ['verification' => $before, 'actions' => [], 'blockers' => [], 'coverage' => [], 'acceptance_gaps' => []];
+        $out = ['verification' => $before, 'actions' => [], 'blockers' => [], 'coverage' => [], 'acceptance_gaps' => [],
+            'inspector_revision' => self::REVISION, 'institution_ready' => false, 'complete' => []];
         if ($before['inactive'] ?? null) { return $out; }
         $aspects = $run->activeAspects();
         $leg = DB::table('legislatures')->where('jurisdiction_id', $jurisdiction)->whereNull('deleted_at')->first();
@@ -27,15 +30,22 @@ class SimRepairInspector
         $out['election_id'] = $electionId;
         $underfilled = false;
         if ($election) {
-            $races = DB::table('election_races')->where('election_id', $electionId)->orderBy('id')->get(['id','seats','seat_kind']);
+            $races = DB::table('election_races')->where('election_id', $electionId)->whereNull('deleted_at')->orderBy('id')->get(['id','seats','seat_kind']);
+            $tabulated = DB::table('tabulations')->whereIn('race_id', $races->pluck('id'))->where('status', 'complete')->pluck('race_id')->flip();
+            $out['race_states'] = ['uncounted_deficient' => 0, 'uncounted_sufficient' => 0, 'counted_deficient' => 0, 'counted_sufficient' => 0];
             $counts = DB::table('candidacies')->where('election_id', $electionId)
                 ->whereNotIn('status', ['rejected','withdrawn'])->groupBy('race_id')->selectRaw('race_id, count(*) AS n')->pluck('n', 'race_id');
             foreach ($races as $race) {
                 $count = (int) ($counts[$race->id] ?? 0);
+                $state = ($tabulated->has($race->id) ? 'counted_' : 'uncounted_').($count < (int) $race->seats ? 'deficient' : 'sufficient');
+                $out['race_states'][$state]++;
                 if ($count < (int) $race->seats + 1) {
-                    $out['coverage'][] = ['race_id' => $race->id, 'seats' => (int) $race->seats, 'candidates' => $count, 'seat_kind' => $race->seat_kind];
+                    $out['coverage'][] = ['race_id' => $race->id, 'seats' => (int) $race->seats, 'candidates' => $count, 'seat_kind' => $race->seat_kind, 'count_state' => $state];
                 }
                 $underfilled = $underfilled || $count < (int) $race->seats;
+            }
+            if ($out['race_states']['counted_deficient'] > 0) {
+                $out['blockers'][] = 'Completed counts have fewer candidates than seats: preserve recorded results; an authorized election recovery decision is required.';
             }
             if ($election->status !== 'certified') {
                 $out['actions'][] = ['kind' => 'election', 'target' => $electionId];
@@ -49,13 +59,16 @@ class SimRepairInspector
             $out['blockers'][] = 'Original election item has no recoverable election reference.';
         }
         $seated = $leg ? DB::table('legislature_members')->where('legislature_id', $leg->id)->whereNull('deleted_at')
-            ->whereNull('vacated_at')->whereIn('status', ['elected','seated'])->select('seat_type')->get() : collect();
+            ->whereNull('vacated_at')->whereNotNull('user_id')->whereIn('status', ['elected','seated'])->select('seat_type')->get() : collect();
         if ($leg && $seated->count() < (int) $leg->total_seats && $election?->status === 'certified') {
             $out['blockers'][] = 'Certified legislature still has unfilled seats; do not rewrite its term or manufacture members.';
         }
         if ($leg && $seated->where('seat_type', 'b')->count() < (int) $leg->type_b_seats) {
             $out['acceptance_gaps'][] = 'Type B representation below the apportioned total.';
         }
+        $out['institution_ready'] = $election?->status === 'certified' && $leg && $seated->isNotEmpty()
+            && $seated->count() >= (int) $leg->total_seats && $seated->where('seat_type', 'b')->count() >= (int) $leg->type_b_seats && $out['blockers'] === [];
+        $out['complete']['election'] = $out['institution_ready'];
         $needsGovernment = $election && $election->status !== 'certified';
         if ($leg && in_array('governance', $aspects, true)) {
             $committees = DB::table('committees')->where('legislature_id', $leg->id)->whereNull('deleted_at')->where('status', '!=', 'dissolved')->count();
@@ -72,9 +85,12 @@ class SimRepairInspector
             if ($governorGaps > 0) { $out['acceptance_gaps'][] = "{$governorGaps} department governors not seated."; $needsGovernment = true; }
             if (DB::table('executives')->where('jurisdiction_id', $jurisdiction)->whereNull('deleted_at')->where('status', 'forming')->exists()) { $needsGovernment = true; }
             if ($needsGovernment) { $out['actions'][] = ['kind' => 'governance', 'target' => $leg->id]; }
+            $out['complete']['governance'] = ! $needsGovernment;
             $courts = DB::table('judiciaries')->where('jurisdiction_id', $jurisdiction)->whereNull('deleted_at')->get(['id','status','min_judges']);
+            $courtGapStart = count($out['acceptance_gaps']);
+            $out['complete']['judiciary'] = $courts->isNotEmpty();
             foreach ($courts as $court) {
-                if (! in_array($court->status, ['appointed','elected'], true)) { $out['actions'][] = ['kind' => 'judiciary', 'target' => $court->id]; }
+                if (! in_array($court->status, ['appointed','elected'], true)) { $out['actions'][] = ['kind' => 'judiciary', 'target' => $court->id]; $out['complete']['judiciary'] = false; }
                 $badSeats = DB::table('judicial_seats as s')->where('s.judiciary_id', $court->id)->whereNull('s.deleted_at')
                     ->where(function ($q) { $q->where('s.status', '!=', 'seated')->orWhereNull('s.term_id'); })->exists();
                 if ($badSeats) { $out['acceptance_gaps'][] = 'Court has unseated judges or missing terms.'; }
@@ -93,9 +109,11 @@ class SimRepairInspector
                     }
                 }
             }
+            $out['complete']['judiciary'] = $out['complete']['judiciary'] && count($out['acceptance_gaps']) === $courtGapStart;
         }
         if (in_array('civic_life', $aspects, true)) {
-            if ($needsGovernment || ! DB::table('organizations')->where('jurisdiction_id', $jurisdiction)->whereNull('deleted_at')->where('type', 'common_good_corp')->exists()) {
+            $out['complete']['civics'] = ! $needsGovernment && DB::table('organizations')->where('jurisdiction_id', $jurisdiction)->whereNull('deleted_at')->where('type', 'common_good_corp')->exists();
+            if (! $out['complete']['civics']) {
                 $out['actions'][] = ['kind' => 'civics', 'target' => $jurisdiction];
             }
             foreach ($this->boards($jurisdiction, $beat) as $board) {

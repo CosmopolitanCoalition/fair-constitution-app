@@ -18489,7 +18489,10 @@
         "docs/operations/STEP5_REPAIR_HANDOFF.md",
         "database/migrations/2026_09_20_123000_widen_sim_worker_claim_type.php",
         "tests/Feature/SimRepairWorkerTest.php",
-        "docs/operations/STEP5_REPAIR_D013_HANDOFF.md"
+        "docs/operations/STEP5_REPAIR_D013_HANDOFF.md",
+        "app/Services/Demo/SimRepairReceiptRecovery.php",
+        "docs/operations/step5-benchmarks/D014.md",
+        "docs/operations/STEP5_REPAIR_D014_HANDOFF.md"
       ],
       "history": [
         {
@@ -18499,6 +18502,10 @@
         {
           "date": "2026-09-20",
           "note": "D013 exposed a missed installed-schema constraint before inspection: repair_plan_scope is 17 characters but the lease claim_type was varchar(16). Added an upgrade migration to varchar(24). The actual PostgreSQL worker regression reproduces 22001 on the old schema, halts, migrates, resumes the same pilot, reclaims the orphan, reports/heartbeats/inspects/settles and pauses at the explicit apply gate. Source items/candidates remain unchanged. Focused suite: 33 tests / 374 assertions passed, including existing repair and worker regressions. Deployment is schema-only on the already updated demo; same pilot UUID, no asset build/service restart or new run."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D014 confirms the width hotfix and real pilot: three scopes repaired, two election cases protected; full inventory completed and halted. Corrected a second gap: mixed deficient completed counts now block planning, election failure/unmet postconditions stop dependent work, proven no-ops are deferred. Scope-targeted receipt correction preserves original results/timestamps and appends audit; successful receipts remain unchanged. Bounded saved-cursor reclassification retains the existing full inventory and blocks stale Apply. 38 tests / 440 assertions passed, including mixed counts, independent real chair success, four no-op corrections/repeats, eligible continuation without duplicate votes/terms/payments, retained full-seat counts, inventory gate/reclassification and actual PostgreSQL worker regressions. No new election policy, source reset, migration or frontend build."
         }
       ]
     },
@@ -18533,6 +18540,10 @@
         {
           "date": "2026-09-20",
           "note": "Certified-underfilled fixture stays certified and in review; previous failed acts are unchanged. No supplemental-election policy change is included in W-0481."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D014 also identifies 69 complete deficient Earth counts beside 90 uncounted deficient races and 355 complete full-seat counts. The protected-count recovery disposition remains separate. D014 dependency correction keeps these scopes in review and prevents false successful downstream receipts."
         }
       ]
     }

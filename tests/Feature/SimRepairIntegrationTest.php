@@ -359,6 +359,161 @@ class SimRepairIntegrationTest extends TestCase
         self::assertSame(2, DB::table('residency_confirmations')->where('jurisdiction_id', $scope)->where('is_active', true)->count());
     }
 
+    private function mixedCountWorld(): array
+    {
+        $scope = $this->place(); $source = $this->source([$scope]);
+        $source->forceFill(['options' => ['scope_aspects' => ['civic_life'], 'no_floor' => true]])->save();
+        $leg = Legislature::create(['jurisdiction_id' => $scope, 'term_number' => 1, 'status' => 'forming', 'total_seats' => 6, 'type_a_seats' => 6, 'type_b_seats' => 0]);
+        $e = $this->bindElection($source, $scope, $leg, 0, 2, 'scheduled');
+        $empty = DB::table('election_races')->where('election_id', $e)->value('id');
+        $district = $this->id();
+        DB::table('legislature_districts')->insert(['id' => $district, 'legislature_id' => $leg->id, 'jurisdiction_id' => $scope,
+            'district_number' => 1, 'seats' => 2, 'target_population' => 1000, 'actual_population' => 1000]);
+        DB::table('election_races')->where('id', $empty)->update(['district_id' => $district]);
+        $deficient = $this->race($e, $scope, 1); $full = $this->race($e, $scope, 2);
+        foreach ([$deficient => 1, $full => 2] as $race => $n) {
+            for ($i = 0; $i < $n; $i++) {
+                $user = $this->person(); $this->resident($scope, $user);
+                DB::table('candidacies')->insert(['id' => $this->id(), 'election_id' => $e, 'race_id' => $race,
+                    'user_id' => $user, 'status' => 'validated', 'position_tags' => '[]', 'residency_attested_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+            }
+            DB::table('tabulations')->insert(['id' => $this->id(), 'race_id' => $race, 'engine_version' => 'fixture',
+                'seats' => 2, 'status' => 'complete', 'record_hash' => hash('sha256', $race), 'completed_at' => now()]);
+        }
+        $run = app(SimRepairControl::class)->start($source->id);
+        return [$scope, $source, $run, $e, $empty, $deficient, $full];
+    }
+
+    public function test_mixed_deficient_counts_block_planning_and_dependencies_but_valid_board_chairs_still_finish(): void
+    {
+        [$scope, $source, $run, $e, $empty, $deficient, $full] = $this->mixedCountWorld();
+        $org = \App\Models\Organization::create(['name' => 'Independent board', 'slug' => $this->id(), 'jurisdiction_id' => $scope, 'type' => 'business', 'status' => 'active']);
+        $board = \App\Models\Board::create(['boardable_type' => 'organizations', 'boardable_id' => $org->id, 'status' => 'active', 'owner_seats' => 3, 'worker_seats' => 0]);
+        for ($i = 1; $i <= 3; $i++) \App\Models\BoardSeat::create(['board_id' => $board->id, 'seat_class' => 'owner_elected', 'seat_no' => $i, 'holder_user_id' => $this->person(), 'status' => 'seated']);
+        $candidates = DB::table('candidacies')->where('election_id', $e)->orderBy('id')->get()->toArray();
+        $counts = DB::table('tabulations')->whereIn('race_id', [$empty,$deficient,$full])->orderBy('id')->get()->toArray();
+        $service = app(SimRepairService::class); $item = (object) ['jurisdiction_id' => $scope];
+        $plan = $service->run($run, $item, planning: true);
+        self::assertSame('blocked_recovery', $plan['category']);
+        self::assertSame(['uncounted_deficient' => 1, 'uncounted_sufficient' => 0, 'counted_deficient' => 1, 'counted_sufficient' => 1], $plan['plan']['race_states']);
+        self::assertSame(['chair'], DB::table('sim_repair_receipts')->where('source_run_id', $source->id)->pluck('kind')->all());
+        $options = $run->options; $options['repair_apply_authorized'] = true;
+        $run->forceFill(['options' => $options, 'phase' => 'repairing', 'status' => 'running'])->save();
+        $ledger = DB::table('ledger_entries')->count();
+        $out = $service->run($run, $item);
+        self::assertSame('review', $out['_verdict']); self::assertNotNull($board->refresh()->chair_seat_id);
+        self::assertSame('adopted', DB::table('chamber_votes')->where('body_id', $board->id)->value('outcome'));
+        self::assertSame(['chair'], DB::table('sim_repair_receipts')->where('source_run_id', $source->id)->pluck('kind')->all());
+        $service->run($run, $item);
+        self::assertEquals($candidates, DB::table('candidacies')->where('election_id', $e)->orderBy('id')->get()->toArray());
+        self::assertEquals($counts, DB::table('tabulations')->whereIn('race_id', [$empty,$deficient,$full])->orderBy('id')->get()->toArray());
+        self::assertSame($ledger, DB::table('ledger_entries')->count());
+        // Retained uncontested counts that fill their seats are not deficient.
+        DB::table('tabulations')->where('race_id', $deficient)->update(['status' => 'superseded']);
+        $plan = $service->run($run, $item, planning: true);
+        self::assertSame([], $plan['plan']['blockers']); self::assertSame('election', $plan['category']);
+    }
+
+    public function test_a_blocked_election_receipt_stops_dependent_actions_even_when_inspection_allows_fielding(): void
+    {
+        [$scope, $source, $run, $e, $empty, $deficient] = $this->mixedCountWorld();
+        DB::table('tabulations')->where('race_id', $deficient)->update(['status' => 'superseded']);
+        DB::table('sim_repair_receipts')->insert(['source_run_id' => $source->id, 'repair_version' => 1, 'kind' => 'election', 'target_id' => $e,
+            'jurisdiction_id' => $scope, 'status' => 'blocked', 'result' => json_encode(['reason' => 'Existing recovery refusal']), 'created_at' => now(), 'updated_at' => now()]);
+        $options = $run->options; $options['repair_apply_authorized'] = true;
+        $run->forceFill(['options' => $options, 'phase' => 'repairing', 'status' => 'running'])->save();
+        $out = app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope]);
+        self::assertSame('review', $out['_verdict']);
+        self::assertSame(['election'], DB::table('sim_repair_receipts')->where('source_run_id', $source->id)->pluck('kind')->all());
+    }
+
+    public function test_noop_receipt_recovery_retains_history_and_successes_and_can_continue_after_prerequisites_are_restored(): void
+    {
+        // Fixture represents the state supplied by a separately authorized election recovery.
+        // This test does not introduce or authorize a production recount policy.
+        [$scope, $leg] = $this->chamber(5, 0); $source = $this->source([$scope]);
+        $source->forceFill(['options' => ['scope_aspects' => ['civic_life'], 'no_floor' => true]])->save();
+        $this->bindElection($source, $scope, $leg, 5, 5);
+        DB::table('executives')->insert(['id' => $this->id(), 'jurisdiction_id' => $scope, 'type' => 'committee', 'term_number' => 1, 'status' => 'forming']);
+        $court = $this->id(); DB::table('judiciaries')->insert(['id' => $court, 'jurisdiction_id' => $scope, 'type' => 'appointed', 'status' => 'forming', 'min_judges' => 5, 'court_name' => 'Fixture court']);
+        $control = app(SimRepairControl::class); $run = $control->start($source->id); $control->enumerate($run);
+        DB::table('sim_items')->where('run_id', $run->id)->update(['status' => 'done']);
+        $run->forceFill(['status' => 'halted', 'halt_requested_at' => now()])->save();
+        $noop = [
+            'training' => ['holders' => 0, 'trained' => 0, 'already' => 0, 'unarmed' => 0, 'failed' => 0],
+            'governance' => (new \ReflectionMethod(GovernanceStage::class, 'bothSkip'))->invoke(null, 'chamber not seated'),
+            'judiciary' => (new \ReflectionMethod(JudiciaryStage::class, 'skip'))->invoke(null, 'chamber not seated'),
+            'civics' => (new \ReflectionMethod(\App\Services\Demo\Stages\CivicsStage::class, 'result'))->invoke(null),
+        ];
+        $targets = ['training' => $scope, 'governance' => $leg->id, 'judiciary' => $court, 'civics' => $scope];
+        foreach ($noop as $kind => $result) DB::table('sim_repair_receipts')->insert(['source_run_id' => $source->id, 'repair_version' => 1, 'kind' => $kind,
+            'target_id' => $targets[$kind], 'jurisdiction_id' => $scope, 'status' => 'applied', 'result' => json_encode($result), 'created_at' => now(), 'updated_at' => now()]);
+        $successful = ['source_run_id' => $source->id, 'repair_version' => 1, 'kind' => 'chair', 'target_id' => $this->id(), 'jurisdiction_id' => $scope,
+            'status' => 'applied', 'result' => json_encode(['status' => 'done']), 'created_at' => now(), 'updated_at' => now()];
+        DB::table('sim_repair_receipts')->insert($successful);
+        $recovery = app(\App\Services\Demo\SimRepairReceiptRecovery::class);
+        $ledger = DB::table('ledger_entries')->count();
+        self::assertCount(4, $recovery->recover($run, [$scope])['corrected']);
+        self::assertSame([], $recovery->recover($run, [$scope])['corrected']);
+        self::assertSame(4, DB::table('audit_log')->where('event', 'sim.repair_receipt_corrected')->count());
+        self::assertSame('applied', DB::table('sim_repair_receipts')->where('target_id', $successful['target_id'])->value('status'));
+        foreach ($noop as $kind => $previous) {
+            $saved = DB::table('sim_repair_receipts')->where('source_run_id', $source->id)->where('kind', $kind)->sole();
+            self::assertSame('deferred', $saved->status); self::assertEquals($previous, json_decode($saved->result, true)['_prior_receipts'][0]['result']);
+        }
+        self::assertSame($ledger, DB::table('ledger_entries')->count());
+        $options = $run->options; $options['repair_apply_authorized'] = true;
+        $run->forceFill(['options' => $options, 'phase' => 'repairing', 'status' => 'running', 'halt_requested_at' => null])->save();
+        $out = app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope]);
+        self::assertSame('done', $out['_verdict'], json_encode($out));
+        foreach ($noop as $kind => $previous) {
+            $saved = DB::table('sim_repair_receipts')->where('source_run_id', $source->id)->where('kind', $kind)->sole();
+            self::assertSame('applied', $saved->status); self::assertEquals($previous, json_decode($saved->result, true)['_prior_receipts'][0]['result']);
+        }
+        $votes = DB::table('chamber_votes')->count(); $terms = DB::table('terms')->count(); $ledger = DB::table('ledger_entries')->count();
+        self::assertSame('done', app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope])['_verdict']);
+        self::assertSame($votes, DB::table('chamber_votes')->count()); self::assertSame($terms, DB::table('terms')->count()); self::assertSame($ledger, DB::table('ledger_entries')->count());
+    }
+
+    public function test_action_postcondition_failure_is_not_success_and_zero_holder_training_is_deferred(): void
+    {
+        $scope = $this->place(); $source = $this->source([$scope]); $run = app(SimRepairControl::class)->start($source->id);
+        $method = new \ReflectionMethod(SimRepairService::class, 'action'); $service = app(SimRepairService::class);
+        $out = $method->invoke($service, $run, $scope, 'election', $this->id(), fn () => ['seating' => ['certified' => false]], fn () => false);
+        self::assertSame('blocked', $out['status']);
+        $out = $method->invoke($service, $run, $scope, 'training', $scope,
+            fn () => ['holders' => 0, 'trained' => 0, 'already' => 0, 'unarmed' => 0, 'failed' => 0], fn () => false);
+        self::assertSame('deferred', $out['status']);
+        self::assertFalse(\App\Services\Demo\SimRepairReceiptRecovery::isPrerequisiteNoop('training', ['holders' => 1, 'trained' => 1, 'already' => 0, 'unarmed' => 0, 'failed' => 0]));
+        $gov = (new \ReflectionMethod(GovernanceStage::class, 'bothSkip'))->invoke(null, 'chamber not seated');
+        $gov['resumed_votes'] = [$this->id()];
+        self::assertFalse(\App\Services\Demo\SimRepairReceiptRecovery::isPrerequisiteNoop('governance', $gov));
+    }
+
+    public function test_older_inventory_reclassification_preserves_run_items_and_gate_and_rebuilds_summary_once(): void
+    {
+        [$scope, $source, $run] = $this->mixedCountWorld();
+        $control = app(SimRepairControl::class); $control->enumerate($run);
+        $plan = app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope], planning: true);
+        $plan['category'] = 'election'; $plan['plan']['blockers'] = []; unset($plan['plan']['race_states']);
+        $oldId = DB::table('sim_items')->where('run_id', $run->id)->value('id');
+        DB::table('sim_items')->where('id', $oldId)->update(['status' => 'done', 'metrics' => json_encode($plan)]);
+        $run->refresh(); $options = $run->options; $options['repair_inspector_revision'] = 1; $options['repair_plan_complete'] = true;
+        $run->forceFill(['options' => $options, 'status' => 'halted', 'halt_requested_at' => now()])->save();
+        self::assertTrue($control->report($run)['classification_stale']);
+        try { $control->apply($run); self::fail('Old classifications must not apply'); } catch (\RuntimeException $e) { self::assertStringContainsString('refresh-plan', $e->getMessage()); }
+        $stats = $control->refreshInventory($run); self::assertSame(1, $stats['refreshed']);
+        self::assertSame(['already_current' => true], $control->refreshInventory($run));
+        $report = $control->report($run->refresh());
+        self::assertFalse($report['classification_stale']); self::assertTrue($report['plan_complete']); self::assertFalse($report['authorized']);
+        self::assertSame(1, $report['summary']['categories']['blocked_recovery']);
+        self::assertSame($oldId, DB::table('sim_items')->where('run_id', $run->id)->value('id'));
+        $saved = json_decode(DB::table('sim_items')->where('id', $oldId)->value('metrics'), true);
+        self::assertSame('election', $saved['_previous_inventory']['category']);
+        self::assertSame('blocked_recovery', $saved['category']);
+        self::assertSame('done', $source->refresh()->status);
+    }
+
     public function test_conflicting_receipts_serialize_on_postgresql_and_reuse_the_committed_result(): void
     {
         $scope = $this->place(); $source = $this->source([$scope]); $run = app(SimRepairControl::class)->start($source->id);

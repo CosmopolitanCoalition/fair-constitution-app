@@ -5,7 +5,11 @@ commit containing this document (the final developer response supplies its SHA).
 No remote operation or cross-task message was performed. The original run is
 `01a0ba29-3dbb-7181-8654-2d41ce1dea86`; it must not be restarted or reset.
 
-**D013 continuation:** D012 was deployed, but inspection exposed the worker
+**Current D014 continuation:** the pilot repaired three scopes. Continue the
+completed full inventory `01a0bed7-d6c6-7399-b288-44053ffe00e1` using
+[the dependency-fix handoff](STEP5_REPAIR_D014_HANDOFF.md). Do not create another run.
+
+**Historical D013 continuation:** D012 was deployed, but inspection exposed the worker
 claim-type width defect. Follow [the D013 hotfix handoff](STEP5_REPAIR_D013_HANDOFF.md)
 to migrate and resume existing pilot `01a0bec3-abfe-71d5-a809-55bf5d161eab`.
 Do not repeat the new-pilot creation instructions below for that deployment.
