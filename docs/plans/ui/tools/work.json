@@ -18504,7 +18504,8 @@
         "docs/operations/STEP5_REPAIR_D020_HANDOFF.md",
         "docs/operations/STEP5_REPAIR_D021_HANDOFF.md",
         "tests/Constitutional/ElectionVersionCompatibilityTest.php",
-        "app/Services/ConstitutionalVersionService.php"
+        "app/Services/ConstitutionalVersionService.php",
+        "docs/operations/STEP5_REPAIR_D022_HANDOFF.md"
       ],
       "history": [
         {
@@ -18566,6 +18567,10 @@
         {
           "date": "2026-09-20",
           "note": "D021 live: 23 court retries and one tiny-chamber delegation passed; 174 judges checked, 130 prior judges/terms and old failed vote/casts unchanged. Initial release changed full constitutional fingerprint, blocking older elections; halted same run. Follow-up admits only exact reviewed unchanged-STV release pair, preserves pinned versions, logs compatibility and targets rolled-back failures. Complete prior hardened surface reconstructed in regression; unknown versions remain rejected. 66 tests / 2242 assertions pass, including original-version sealed-count and supplemental recovery. Live continuation pending."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D022: final review exposed Earth committee vocabulary exhaustion (24 names for a target of 25). Normal generator now reaches the existing formula target through real acts; narrow source-bound continuation preserves completed election/training/payments and unrelated reviews. 38 tests / 647 assertions passed; remote acceptance pending."
         }
       ]
     },

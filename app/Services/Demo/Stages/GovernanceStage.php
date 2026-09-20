@@ -326,14 +326,8 @@ final class GovernanceStage
         $created = 0;
 
         $mVote = hrtime(true);
-        foreach (self::COMMITTEE_NAMES as $name) {
+        foreach (self::availableCommitteeNames($taken, $target - $existing) as $name) {
             $beat && $beat();
-            if ($existing + $created >= $target) {
-                break;
-            }
-            if (in_array($name, $taken, true)) {
-                continue;
-            }
 
             try {
                 $result = $engine->file('F-LEG-009', $proposerUser, [
@@ -360,6 +354,28 @@ final class GovernanceStage
         SimTimer::record('gov.committee', (int) ((hrtime(true) - $mVote) / 1000));
 
         return self::half($created, $target, $existing, null);
+    }
+
+    /** The preferred vocabulary is not a ceiling on the size formula. */
+    private static function availableCommitteeNames(array $taken, int $needed): \Generator
+    {
+        $used = array_fill_keys($taken, true);
+        foreach (self::COMMITTEE_NAMES as $name) {
+            if ($needed <= 0) { return; }
+            if (isset($used[$name])) { continue; }
+            $used[$name] = true;
+            $needed--;
+            yield $name;
+        }
+        // At most count($taken) collisions plus $needed new names; no query
+        // per candidate, unbounded database scan, or silently truncated roster.
+        for ($number = 1; $needed > 0; $number++) {
+            $name = 'General Affairs '.$number;
+            if (isset($used[$name])) { continue; }
+            $used[$name] = true;
+            $needed--;
+            yield $name;
+        }
     }
 
     /**

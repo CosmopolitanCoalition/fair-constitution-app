@@ -153,6 +153,98 @@ class SimRepairIntegrationTest extends TestCase
         self::assertSame($votes, DB::table('chamber_votes')->where('legislature_id', $leg->id)->count());
     }
 
+    public function test_committee_vocabulary_does_not_limit_large_chambers_and_repeats_do_not_create_acts(): void
+    {
+        [$scope, $leg] = $this->chamber(5, 0);
+        $leg->forceFill(['total_seats' => 3153])->save();
+        // The formula uses chamber capacity; the real acts use the actual
+        // serving roster. This fixture need not mint 3,153 voters for one vote.
+        $first = GovernanceStage::run($scope, null, 1);
+        self::assertSame(25, $first['committees']['created'], json_encode($first));
+        $committees = DB::table('committees')->where('legislature_id', $leg->id)->orderBy('id')->get();
+        self::assertSame(25, $committees->count());
+        self::assertSame(25, $committees->pluck('name')->unique()->count());
+        self::assertTrue($committees->contains('name', 'General Affairs 1'));
+        foreach ($committees as $committee) {
+            self::assertSame('adopted', DB::table('chamber_votes')->where('id', $committee->created_by_vote_id)->value('outcome'));
+        }
+        $votes = DB::table('chamber_votes')->count();
+        self::assertSame(0, GovernanceStage::run($scope, null, 1)['committees']['created']);
+        self::assertSame($votes, DB::table('chamber_votes')->count());
+        self::assertEquals($committees, DB::table('committees')->where('legislature_id', $leg->id)->orderBy('id')->get());
+
+        $names = new \ReflectionMethod(GovernanceStage::class, 'availableCommitteeNames');
+        self::assertSame(['General Affairs 3', 'General Affairs 4'], iterator_to_array($names->invoke(null,
+            [...GovernanceStage::COMMITTEE_NAMES, 'General Affairs 1', 'General Affairs 2'], 2)));
+        self::assertSame([], iterator_to_array($names->invoke(null, [], 0)));
+        self::assertSame(['Rules', 'Budget'], iterator_to_array($names->invoke(null, [], 2)));
+    }
+
+    public function test_exact_committee_review_can_continue_the_completed_run_without_replaying_successful_actions(): void
+    {
+        [$scope, $leg] = $this->chamber(5, 0);
+        $leg->forceFill(['total_seats' => 3153])->save();
+        foreach (GovernanceStage::COMMITTEE_NAMES as $name) {
+            DB::table('committees')->insert(['id' => $this->id(), 'legislature_id' => $leg->id, 'name' => $name, 'seats' => 5]);
+        }
+        $unrelated = $this->place(); $completed = $this->place(); $source = $this->source([$scope, $unrelated, $completed]);
+        $control = app(SimRepairControl::class); $run = $control->start($source->id);
+        $options = $run->options; $options['repair_apply_authorized'] = true; $options['repair_plan_complete'] = true;
+        $timings = ['repair_planning' => ['worklist' => ['complete' => true]],
+            'repairing' => ['worklist' => ['complete' => true, 'scanned' => 3], 'finished_at' => now()->toIso8601String()],
+            'done' => ['started_at' => now()->toIso8601String()]];
+        $run->forceFill(['status' => 'done', 'phase' => 'done', 'finished_at' => now(), 'options' => $options,
+            'phase_timings' => $timings, 'items_total' => 3, 'items_done' => 1, 'items_review' => 2, 'open_items' => 0])->save();
+        foreach ([$scope => 'review', $unrelated => 'review', $completed => 'done'] as $id => $status) {
+            DB::table('sim_items')->insert(['id' => $this->id(), 'run_id' => $run->id, 'kind' => 'repair_scope',
+                'jurisdiction_id' => $id, 'unit_key' => $id, 'status' => $status, 'position' => 0, 'metrics' => '{}']);
+        }
+        $key = ['source_run_id' => $source->id, 'repair_version' => 1, 'jurisdiction_id' => $scope];
+        $oldResult = ['committees' => ['created' => 0, 'existing' => 24, 'target' => 25, 'skipped' => null]];
+        DB::table('sim_repair_receipts')->insert($key + ['kind' => 'governance', 'target_id' => $leg->id,
+            'status' => 'blocked', 'result' => json_encode($oldResult)]);
+        foreach (['training', 'election_recovery'] as $kind) {
+            DB::table('sim_repair_receipts')->insert($key + ['kind' => $kind, 'target_id' => $scope, 'status' => 'applied', 'result' => '{"preserved":true}']);
+        }
+        $preserved = DB::table('sim_repair_receipts')->where($key)->where('status', 'applied')->orderBy('kind')->get();
+        $unaffected = DB::table('sim_items')->where('run_id', $run->id)->whereIn('unit_key', [$unrelated, $completed])->orderBy('id')->get();
+        $ledger = DB::table('ledger_entries')->orderBy('seq')->get();
+        $recovery = app(\App\Services\Demo\SimCommitteeRecovery::class);
+
+        self::assertSame([], $recovery->retry($run, [$unrelated])['retried']);
+        self::assertSame('done', $run->refresh()->status, 'An unrelated review cannot reopen the run.');
+        $other = SimRun::create(['status' => 'halted', 'phase' => 'cohorts']);
+        try { $recovery->retry($run, [$scope]); self::fail('Another active run must block reopening.'); }
+        catch (\RuntimeException $error) { self::assertStringContainsString('drained', $error->getMessage()); }
+        $other->forceFill(['status' => 'done', 'phase' => 'done'])->save();
+        DB::table('sim_items')->where('run_id', $run->id)->where('unit_key', $completed)->update(['status' => 'running']);
+        try { $recovery->retry($run, [$scope]); self::fail('A live claim must block reopening.'); }
+        catch (\RuntimeException $error) { self::assertStringContainsString('drained', $error->getMessage()); }
+        DB::table('sim_items')->where('run_id', $run->id)->where('unit_key', $completed)->update(['status' => 'done']);
+        self::assertSame(0, \Illuminate\Support\Facades\Artisan::call('sim:repair', ['--retry-committee-names' => $run->id, '--scope' => [$scope, $unrelated]]));
+        self::assertSame([$scope], json_decode(\Illuminate\Support\Facades\Artisan::output(), true)['retried']);
+        self::assertSame([], $recovery->retry($run, [$scope])['retried']);
+        $run->refresh();
+        self::assertSame('halted', $run->status); self::assertSame('repairing', $run->phase);
+        self::assertTrue($run->haltRequested()); self::assertNull($run->finished_at);
+        self::assertEquals($timings['repairing']['worklist'], $run->phase_timings['repairing']['worklist']);
+        self::assertEquals($options, $run->options);
+        self::assertSame(1, (int) $run->items_review); self::assertSame(1, (int) $run->open_items);
+        self::assertSame(0, $control->enumerate($run), 'No inventory or new worklist.');
+        self::assertSame('deferred', DB::table('sim_repair_receipts')->where($key)->where('kind', 'governance')->value('status'));
+        self::assertEquals($oldResult, json_decode(DB::table('sim_repair_receipts')->where($key)->where('kind', 'governance')->value('result'), true)['_prior_receipts'][0]['result']);
+        self::assertEquals($preserved, DB::table('sim_repair_receipts')->where($key)->where('status', 'applied')->orderBy('kind')->get());
+        self::assertEquals($unaffected, DB::table('sim_items')->where('run_id', $run->id)->whereIn('unit_key', [$unrelated, $completed])->orderBy('id')->get());
+        self::assertEquals($ledger, DB::table('ledger_entries')->orderBy('seq')->get());
+
+        $oldCommittees = DB::table('committees')->where('legislature_id', $leg->id)->orderBy('id')->get();
+        self::assertSame(1, GovernanceStage::run($scope, $source->id, 1)['committees']['created']);
+        self::assertEquals($oldCommittees, DB::table('committees')->whereIn('id', $oldCommittees->pluck('id'))->orderBy('id')->get());
+        self::assertSame(0, GovernanceStage::run($scope, $source->id, 1)['committees']['created']);
+        self::assertSame(1, DB::table('committees')->where('legislature_id', $leg->id)->whereNotNull('created_by_vote_id')->count());
+        self::assertEquals($ledger, DB::table('ledger_entries')->orderBy('seq')->get());
+    }
+
     public function test_tiny_chamber_ruling_uses_new_delegation_vote_and_preserves_the_historical_failed_act(): void
     {
         [$scope, $leg] = $this->chamber(5, 2); $source = $this->source([$scope]);
