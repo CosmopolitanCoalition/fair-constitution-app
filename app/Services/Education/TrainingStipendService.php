@@ -138,6 +138,7 @@ class TrainingStipendService
                 'currency_id' => (string) $currency->id,
                 'currency'    => $currency,
                 'wallet_id'   => (string) $walletId,
+                'earner_user_id' => (string) $learner->getKey(),
                 'amount'      => $paid,
             ];
 
@@ -184,7 +185,7 @@ class TrainingStipendService
                 'credits'     => [],
             ];
             $groups[$g]['total'] = bcadd($groups[$g]['total'], $row['amount'], 6);
-            $groups[$g]['credits'][] = ['account_id' => $row['wallet_id'], 'amount' => $row['amount']];
+            $groups[$g]['credits'][] = ['account_id' => $row['wallet_id'], 'amount' => $row['amount'], 'earner_user_id' => $row['earner_user_id']];
         }
 
         foreach ($groups as $g) {
@@ -199,6 +200,20 @@ class TrainingStipendService
                 DB::transaction(function () use ($g, $timed, $ownsTransaction): void {
                     if (\App\Services\Demo\RepairChairAudit::active()) {
                         \App\Services\Demo\RepairChairAudit::reserveTrainingPaymentLocks();
+                        // A collected achievement is provisional until its
+                        // sealed INSERT. Different modules can complete for
+                        // the same person concurrently. Under audit ownership,
+                        // every earlier award writer has committed: pay only
+                        // if this action still owns the once-only award.
+                        $earned = [];
+                        foreach (array_chunk(array_column($g['credits'], 'earner_user_id'), 500) as $people) {
+                            foreach (DB::table('achievements')->whereIn('user_id', $people)
+                                ->where('award_key', \App\Domain\Forms\Handlers\TrainingCompletion::AWARD_KEY)
+                                ->whereNull('deleted_at')->pluck('user_id') as $id) { $earned[$id] = true; }
+                        }
+                        $g['credits'] = array_values(array_filter($g['credits'], fn ($credit) => ! isset($earned[$credit['earner_user_id']])));
+                        if ($g['credits'] === []) { return; }
+                        $g['total'] = array_reduce($g['credits'], fn ($total, $credit) => bcadd($total, $credit['amount'], 6), '0');
                     }
                     if ($timed) { SimTimer::open('training.stipend_mint'); }
                     try {

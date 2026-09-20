@@ -69,6 +69,29 @@ once-only handler retakes, exact achievement seals, and the earlier repair suite
 Deploy PHP only: halt/drain, pull, refresh Horizon, resume the same run. No
 migration, scheduler refresh, frontend build or PostgreSQL/Redis restart required.
 
+The coordination release `801aa06194b8d1029db608d169f82f00c534e21b` was deployed
+at 15:13 UTC. A further disposable concurrency regression then reproduced an
+edge case in collected training awards: different modules for one person can
+both stage an award before either commits, so the later immutable duplicate
+INSERT is ignored after both actions have already paid. The developer halted
+repairs at 15:16:57 UTC; 227,658 done, zero reviews and no active claims after
+drain. This is a reproduced fixture defect, not evidence of a live duplicate.
+
+The correction retains each queued stipend's earner and, under the coordinated
+audit/money ownership, checks the existing once-only achievement in bounded
+500-person batches. An award committed by another action removes that provisional
+payment before minting; totals are recalculated from the remaining payments.
+The current action's staged award remains payable. No payment is deleted or
+rewritten, and the training completion still succeeds. The real concurrent
+different-module regression requires exactly one payment and achievement, two
+completed module records, valid seals, and intact audit/money chains.
+
+Correction validation: **95 tests / 6,069 assertions passed**. A bounded live
+sample of 24 recent training award recipients found exactly one recent repair
+stipend credit for each wallet, zero sampled duplicates. This does not establish
+that every earlier payment is duplicate-free. Evidence is in `D016-LOCKS` beside
+the deployment logs; no historical balances or postings were changed.
+
 ## Remote Codex login diagnosis
 
 SSH and the game are healthy. The remote Codex app-server log reports repeated

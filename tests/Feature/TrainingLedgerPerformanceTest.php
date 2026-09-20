@@ -628,6 +628,36 @@ class TrainingLedgerPerformanceTest extends TestCase
         $this->assertTrue(app(AuditService::class)->verifyChain());
     }
 
+    public function test_concurrent_distinct_modules_for_the_same_repair_learner_pay_only_once(): void
+    {
+        $this->bufferTrainingStipend(); TrainingStipendService::resetBatch();
+        $user = DB::table('residency_confirmations')->value('user_id');
+        DB::table('education_modules')->insert(['id'=>(string)Str::uuid(),'track_id'=>DB::table('education_tracks')->value('id'),'key'=>'second','status'=>'live']);
+        DB::beginTransaction(); DB::statement('SELECT pg_advisory_xact_lock(?)',[AuditService::APPEND_LOCK_KEY]);
+        $pids=[];
+        foreach (['first','second'] as $module) {
+            $process=proc_open([PHP_BINARY,base_path('tests/Support/training_ledger_worker.php')],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+            $this->assertIsResource($process); $this->children[]=[$process,$pipes];
+            fwrite($pipes[0],json_encode(['connection'=>DB::connection()->getConfig(),'mode'=>'repair_training_completion','user'=>$user,'module'=>$module])."\n");
+            stream_set_timeout($pipes[1],10); $ready=json_decode(fgets($pipes[1])?:'{}',true);
+            $this->assertTrue($ready['ready']??false); $pids[]=$ready['pid']; fwrite($pipes[0],"GO\n");
+        }
+        $deadline=microtime(true)+5;
+        do {
+            $waiting=DB::table('pg_locks')->whereIn('pid',$pids)->where('locktype','advisory')->where('granted',false)
+                ->where('classid',intdiv(AuditService::APPEND_LOCK_KEY,4294967296))->where('objid',AuditService::APPEND_LOCK_KEY%4294967296)->count();
+            if($waiting===2){break;} usleep(10000);
+        }while(microtime(true)<$deadline);
+        $this->assertSame(2,$waiting); DB::commit();
+        foreach($this->children as $index=>[$process,$pipes]){
+            $this->assertSame("DONE\n",fgets($pipes[1])); fclose($pipes[0]);fclose($pipes[1]);
+            $errors=stream_get_contents($pipes[2]);fclose($pipes[2]);$this->assertSame(0,proc_close($process),$errors);unset($this->children[$index]);
+        }
+        $this->assertBalances('10000','10'); $this->assertSame(1,DB::table('issuance_events')->count());
+        $this->assertSame(1,DB::table('achievements')->count());$this->assertSame(2,DB::table('education_progress')->count());
+        $this->assertChain(); $this->assertTrue(app(AuditService::class)->verifyChain());
+    }
+
     public function test_repair_payment_failure_rolls_back_training_achievement_money_and_both_reservations(): void
     {
         $learner = $this->trainingLearner(); $stipend = app(TrainingStipendService::class);

@@ -42,7 +42,7 @@ class TrainingCompletion implements FormHandler
     private const FORBIDDEN_KEYS = ['correct_keys', 'answer_key', 'answers'];
 
     /** The once-per-person decoration whose FRESH mint is the stipend's proof. */
-    private const AWARD_KEY = 'ACH-EDU-001';
+    public const AWARD_KEY = 'ACH-EDU-001';
 
     public function __construct(
         private readonly AchievementService $achievements,

@@ -18526,6 +18526,10 @@
         {
           "date": "2026-09-20",
           "note": "Operator authorized direct SSH deployment. eacd0a88 deployed; unchanged-settings repair throughput measured 80,159 to 324,376/hour (4.05x), zero review, sampled chairs/publication seals and audit/money links passed. Focused follow-up prevents minted training repairs retaining the money lock while waiting for audit; reservation savepoint yields safely to legacy writers. Combined 94 tests / 6,038 assertions passed, including concurrent repair groups, both lock orders, timeout recovery, rollback and once-only payment. Remote follow-up measurement pending."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Additional real concurrent-module test reproduced a provisional-achievement duplicate stipend race. Halted the same remote run at 227,658 DONE and zero review. Corrected the minted-training tail to recheck the once-only award under append ownership before paying; no historical records changed. Focused release suite 95 tests / 6,069 assertions passed. Bounded live sample: 24 wallets, exactly one recent training credit each; not a whole-world duplicate audit."
         }
       ]
     },

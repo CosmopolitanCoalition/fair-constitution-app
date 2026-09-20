@@ -22,7 +22,7 @@ $db->statement("SET statement_timeout = '12s'");
 echo json_encode(['ready' => true, 'pid' => $db->selectOne('SELECT pg_backend_pid() AS pid')->pid]).PHP_EOL;
 flush();
 if (trim(fgets(STDIN)) !== 'GO') { exit(2); }
-if (in_array($input['mode'] ?? '', ['training', 'repair_training'], true)) {
+if (in_array($input['mode'] ?? '', ['training', 'repair_training', 'repair_training_completion'], true)) {
     $settings = Mockery::mock(App\Services\SettingsResolver::class);
     $settings->shouldReceive('resolveInt')->once()->andReturn(10);
     $settings->shouldReceive('resolve')->once()->andReturn('minted');
@@ -30,14 +30,17 @@ if (in_array($input['mode'] ?? '', ['training', 'repair_training'], true)) {
     $learner = new App\Models\User;
     $learner->id = $input['user'];
     $stipend = app(App\Services\Education\TrainingStipendService::class);
-    $repair = $input['mode'] === 'repair_training';
+    $repair = str_starts_with($input['mode'], 'repair_training');
     if ($repair) {
         $db->beginTransaction();
         App\Services\Demo\RepairChairAudit::begin();
         app(App\Services\AuditService::class)->append('fixture', 'repair.training', ['user_id' => $input['user']]);
     }
     $stipend->beginBatch();
-    $stipend->payOnce($learner);
+    if ($input['mode'] === 'repair_training_completion') {
+        app(App\Domain\Forms\Handlers\TrainingCompletion::class)->handle($learner,
+            ['track_key' => 'fixture', 'module_key' => $input['module'], 'passed' => true, 'score_pct' => 100]);
+    } else { $stipend->payOnce($learner); }
     $stipend->commitBatch();
     $stipend->commitBatch();
     if ($repair) {
