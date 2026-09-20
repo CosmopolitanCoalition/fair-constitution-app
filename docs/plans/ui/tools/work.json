@@ -18486,12 +18486,19 @@
         "tests/Feature/SimRepairIntegrationTest.php",
         "tests/Unit/BoardChairWorkflowTest.php",
         "docs/operations/step5-benchmarks/D012.md",
-        "docs/operations/STEP5_REPAIR_HANDOFF.md"
+        "docs/operations/STEP5_REPAIR_HANDOFF.md",
+        "database/migrations/2026_09_20_123000_widen_sim_worker_claim_type.php",
+        "tests/Feature/SimRepairWorkerTest.php",
+        "docs/operations/STEP5_REPAIR_D013_HANDOFF.md"
       ],
       "history": [
         {
           "date": "2026-09-20",
           "note": "110 PHP tests / 1,049 assertions passed in guarded nonce PostgreSQL and private SQLite fixtures, plus 10 JavaScript tests and three Vue component compilations. Real empty-election counting/certification/seating, five-member delegation with 4/6 boundaries, Type B court/judge terms, chair ballots, overlapping/district candidates, population ceilings, receipt rollback/interruption/concurrency, repeat runs, pending-vote reuse and full/pilot readiness passed. No live-world mutations, remote operations or loaded-box asset build. Remote pilot and throughput measurement remain operational validation."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D013 exposed a missed installed-schema constraint before inspection: repair_plan_scope is 17 characters but the lease claim_type was varchar(16). Added an upgrade migration to varchar(24). The actual PostgreSQL worker regression reproduces 22001 on the old schema, halts, migrates, resumes the same pilot, reclaims the orphan, reports/heartbeats/inspects/settles and pauses at the explicit apply gate. Source items/candidates remain unchanged. Focused suite: 33 tests / 374 assertions passed, including existing repair and worker regressions. Deployment is schema-only on the already updated demo; same pilot UUID, no asset build/service restart or new run."
         }
       ]
     },

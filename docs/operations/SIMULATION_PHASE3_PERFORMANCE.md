@@ -30,12 +30,13 @@ manually; do not send messages directly to the other task.
   proof of delivery; never resend or launch a second exchange just because
   context was compacted.
 
-Current exchange: **D012 received; in-place repair and fresh-run defect fixes
-are in [the repair handoff](STEP5_REPAIR_HANDOFF.md)**. The original run completed
-verification with 914,453 review scopes; it must not be restarted. Read the repair
-handoff for migration, inspection/apply, representative pilot and remaining
-certified-election decisions. The final developer response supplies the pushed
-revision and completed tests. No direct cross-task messages or remote actions.
+Current exchange: **D013 received; worker reporting width hotfix is in
+[the D013 handoff](STEP5_REPAIR_D013_HANDOFF.md)**. D012 was deployed but inspection
+failed before domain repair because `repair_plan_scope` exceeded the lease column.
+Migrate and resume existing pilot `01a0bec3-abfe-71d5-a809-55bf5d161eab`; do not create
+another run or restart the world. The original repair policy remains unchanged.
+The final developer response supplies the pushed revision and completed tests.
+No direct cross-task messages or remote actions.
 Older D010 performance results below are historical evidence, not repair results.
 
 ## D010 response: bounded atomic stipend batches — 2026-09-20
