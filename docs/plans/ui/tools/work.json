@@ -18530,6 +18530,10 @@
         {
           "date": "2026-09-20",
           "note": "Additional real concurrent-module test reproduced a provisional-achievement duplicate stipend race. Halted the same remote run at 227,658 DONE and zero review. Corrected the minted-training tail to recheck the once-only award under append ownership before paying; no historical records changed. Focused release suite 95 tests / 6,069 assertions passed. Bounded live sample: 24 wallets, exactly one recent training credit each; not a whole-world duplicate audit."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "ff044c79 deployed via authorized SSH; same repair run resumed. At 15:32:55 UTC: 261,247/923,095 DONE, zero review, 73 healthy workers. Final windows 302,541 and 315,522/hour (308,986 weighted); no added throughput gain from coordination, retain tested payment correctness fence. Fresh sample: 48 chair elections/144 sealed ballots, both chain tails passed, 21 wallets each paid once. Read-only 10-minute heartbeat active; unattended write/deployment automation rejected by automatic review and awaits explicit operator approval."
         }
       ]
     },

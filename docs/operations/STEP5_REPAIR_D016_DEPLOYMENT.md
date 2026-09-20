@@ -1,5 +1,10 @@
 # D016 direct deployment and repair benchmark
 
+**Current checkpoint:** `ff044c79252075f0fa3db4528ea6492859069275` deployed and
+resumed at 15:26 UTC on September 20. At 15:32:55 UTC (17:32:55 Warsaw),
+261,247 / 923,095 repair scopes DONE, zero reviews, 73 healthy workers. Same
+run/version; original payment phase preserved. See final follow-up below.
+
 2026-09-20. The operator authorized this Windows developer to deploy and measure
 over `ssh wos-demo` after the remote Codex login failed. No separate task was
 messaged. The independent Claude storage/monitoring/shutdown loop is untouched.
@@ -91,6 +96,39 @@ sample of 24 recent training award recipients found exactly one recent repair
 stipend credit for each wallet, zero sampled duplicates. This does not establish
 that every earlier payment is duplicate-free. Evidence is in `D016-LOCKS` beside
 the deployment logs; no historical balances or postings were changed.
+
+## Final follow-up deployment and measurements
+
+`ff044c79` deployed while the same run was safely halted; only Horizon refreshed.
+No migrations, database restart, configuration changes or payment replay.
+The site returned HTTP 200 after resumption. New bounded checks passed for
+24 scopes, 48 chair elections and 144 correctly sealed ballot publications;
+513 hashes/512 links passed in each audit and money tail. A new 21-wallet sample
+contained exactly one recent training payment per wallet, no sampled duplicates.
+
+The current-setting baseline on `eacd0a88` was 328,087 repairs/hour over
+15:04:43–15:10:27 UTC. Final-release windows were 302,541/hour over
+15:29:13–15:31:05 and approximately 315,500/hour over 15:31:05–15:32:55.
+This demonstrates **no additional overall speedup** from lock coordination;
+training wait fell but audit waiting rose. Retain the correctness fence and
+do not attribute the first release's fourfold improvement to these follow-ups.
+Sequential scopes/background work differ, so this also is not an isolated
+replay proving a throughput regression. No tuning or further speculative
+lock rewrite was performed.
+
+Final evidence: `/home/cosmo/wos-step5-operations/evidence/D016-AWARD/`, including
+`benchmark.json`, fresh outcomes, seals, hashes, wallet samples, config hashes
+and unchanged-service checks. At the measured pace the remaining work is about
+two hours; larger repair cases can change that and world completion is not yet
+established.
+
+Read-only heartbeat `check-demo-repair-progress` checks this same run every
+10 minutes and reports meaningful changes. Automatic approval rejected a
+persistent automation empowered to develop/push/deploy; explicit operator
+approval was requested and remains pending. The accepted heartbeat must NOT
+perform those writes or run-control actions. Current active-turn deployments
+were separately authorized and completed. Do not confuse that distinction
+after compaction or silently expand the read-only heartbeat's authority.
 
 ## Remote Codex login diagnosis
 
