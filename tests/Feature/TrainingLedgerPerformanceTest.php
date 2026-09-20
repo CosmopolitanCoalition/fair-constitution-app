@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Domain\Forms\Handlers\TrainingCompletion;
 use App\Models\Economy\Currency;
+use App\Models\Economy\LedgerEntry;
 use App\Models\User;
 use App\Services\AuditService;
 use App\Services\Economy\AccountService;
@@ -17,6 +18,7 @@ use Illuminate\Database\Events\TransactionCommitting;
 use Illuminate\Database\Events\TransactionCommitted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
 /** Real ledger DDL and services; all writes are in a guarded nonce database. */
@@ -54,6 +56,14 @@ class TrainingLedgerPerformanceTest extends TestCase
         DB::statement("SET lock_timeout = '10s'");
         DB::statement("SET statement_timeout = '15s'");
         (require base_path('database/migrations/2026_07_25_000002_create_ledger_plane.php'))->up();
+        // Keep the live ledger's two later seek indexes as well as its five
+        // original indexes. Read the definitions rather than inventing a model.
+        $historyIndexes = require base_path('database/migrations/2026_09_13_050000_public_finance_history_indexes.php');
+        foreach ((new \ReflectionClass($historyIndexes))->getConstant('INDEXES') as $name => [$table, $columns]) {
+            if ($table === 'ledger_entries') {
+                DB::statement('CREATE INDEX '.$name.' ON '.$table.' ('.$columns.')');
+            }
+        }
         DB::statement('CREATE TABLE jurisdictions (id uuid PRIMARY KEY, parent_id uuid, deleted_at timestamptz)');
         DB::statement('CREATE TABLE economic_accounts (id uuid PRIMARY KEY, currency_id uuid, balance numeric(24,6) NOT NULL DEFAULT 0, updated_at timestamptz, deleted_at timestamptz)');
         DB::statement('CREATE TABLE issuance_events (id uuid PRIMARY KEY, currency_id uuid, direction text, amount numeric(24,6), reason text, act_id uuid, entry_group uuid, created_at timestamptz)');
@@ -76,6 +86,7 @@ class TrainingLedgerPerformanceTest extends TestCase
             if (is_resource($process)) { proc_close($process); }
         }
         TrainingStipendService::resetBatch();
+        Str::createUuidsNormally();
         $this->resetTimers();
         if ($this->fixture !== null) {
             while (DB::transactionLevel() > 0) { DB::rollBack(); }
@@ -120,6 +131,86 @@ class TrainingLedgerPerformanceTest extends TestCase
             $previous = $row->hash;
         }
         $this->assertTrue(app(LedgerService::class)->verifyChain());
+    }
+
+    public function test_new_row_ids_are_uuid7_among_existing_random_uuids_with_production_indexes(): void
+    {
+        Str::createUuidsUsing(fn () => Uuid::uuid4());
+        try { $this->credit(array_fill(0, 5000, '0.001')); }
+        finally { Str::createUuidsNormally(); }
+        $legacyHead = DB::table('ledger_entries')->orderByDesc('seq')->first();
+        $legacySample = DB::table('ledger_entries')->orderBy('seq')->limit(10)->get()->toJson();
+        $group = $this->credit(array_fill(0, 250, '0.002'));
+        $rows = DB::table('ledger_entries')->where('entry_group', $group)->orderBy('seq')->get();
+        $this->assertCount(500, $rows);
+        $this->assertSame(4, Uuid::fromString($group)->getFields()->getVersion());
+        $this->assertSame($legacyHead->hash, $rows[0]->prev_hash);
+        $ids = $rows->pluck('id')->all(); $ordered = $ids; sort($ordered, SORT_STRING);
+        $this->assertSame($ids, $ordered); // one generator, not global commit order
+        $this->assertCount(500, array_unique($ids));
+        $this->assertSame([7], array_values(array_unique(array_map(fn ($id) => Uuid::fromString($id)->getFields()->getVersion(), $ids))));
+        $this->assertSame($ids, DB::table('ledger_entries')->where('entry_group', $group)->orderBy('id')->pluck('id')->all());
+        $this->assertSame($legacySample, DB::table('ledger_entries')->orderBy('seq')->limit(10)->get()->toJson());
+        $this->assertSame(7, DB::table('pg_indexes')->where('schemaname', 'public')->where('tablename', 'ledger_entries')->count());
+        $this->assertBalances('9994.5', '5.5');
+        $this->assertTrue(app(LedgerService::class)->verifyChain());
+        foreach ([$legacyHead->id, $ids[0]] as $id) {
+            $this->assertSame($id, LedgerEntry::findOrFail($id)->toArray()['id']);
+            $this->assertTrue(validator(['id' => $id], ['id' => 'required|uuid'])->passes());
+            $this->assertSame($id, json_decode(json_encode(['id' => $id]), true)['id']);
+        }
+    }
+
+    public function test_row_id_generation_does_not_change_fixed_payload_hashes_or_links(): void
+    {
+        $group = Uuid::fromString('d0080000-0000-4000-8000-000000000001');
+        $captured = [];
+        foreach ([4, 7] as $version) {
+            $call = 0;
+            Str::createUuidsUsing(function () use (&$call, $group, $version) {
+                return $call++ === 0 ? $group : ($version === 4 ? Uuid::uuid4() : Uuid::uuid7());
+            });
+            DB::beginTransaction();
+            try {
+                $this->assertSame((string) $group, $this->credit(['1.234560', '0.000001']));
+                $rows = DB::table('ledger_entries')->orderBy('seq')->get();
+                $this->assertSame([$version], $rows->map(fn ($r) => Uuid::fromString($r->id)->getFields()->getVersion())->unique()->values()->all());
+                $this->assertChain();
+                $captured[] = $rows->map(function ($row) {
+                    $payload = (array) $row;
+                    unset($payload['id'], $payload['seq'], $payload['created_at']);
+                    return $payload;
+                })->all();
+            } finally {
+                DB::rollBack(); Str::createUuidsNormally();
+            }
+        }
+        $this->assertSame($captured[0], $captured[1]);
+        $this->assertSame(0, DB::table('ledger_entries')->count());
+        $this->assertBalances('10000', '0');
+    }
+
+    public function test_generator_handles_same_millisecond_and_a_clock_step_back_without_changing_chain_order(): void
+    {
+        // Use the installed generator's real no-explicit-time path after a
+        // future observation; no system clock change or custom production clock.
+        Str::uuid7();
+        $generator = new \ReflectionClass(\Ramsey\Uuid\Generator\UnixTimeGenerator::class);
+        $state = $generator->getStaticProperties();
+        try {
+            $future = new \DateTimeImmutable('+1 day');
+            $first = (string) Uuid::uuid7($future);
+            $same = (string) Uuid::uuid7($future);
+            $this->assertGreaterThan($first, $same);
+            $group = $this->credit(['1', '2']);
+            $ids = DB::table('ledger_entries')->where('entry_group', $group)->orderBy('seq')->pluck('id')->all();
+            $this->assertGreaterThan($same, $ids[0]);
+            $this->assertSame(substr($same, 0, 13), substr($ids[0], 0, 13));
+            $this->assertCount(4, array_unique($ids));
+            $this->assertChain();
+        } finally {
+            foreach ($state as $property => $value) { $generator->getProperty($property)->setValue(null, $value); }
+        }
     }
 
     public function test_training_credit_preserves_amounts_order_and_balances_with_one_less_query(): void
@@ -268,7 +359,11 @@ class TrainingLedgerPerformanceTest extends TestCase
             usleep(10000);
         } while (microtime(true) < $deadline);
         $this->assertSame(2, $waiting, 'Both writers must wait before the parent changes the head.');
-        $this->credit(['3']);
+        // The old UUID population remains the head while independently booted
+        // writers have already prepared UUIDv7 rows before acquiring the lock.
+        Str::createUuidsUsing(fn () => Uuid::uuid4());
+        try { $this->credit(['3']); }
+        finally { Str::createUuidsNormally(); }
         DB::commit();
         foreach ($this->children as $index => [$process, $pipes]) {
             $this->assertSame("DONE\n", fgets($pipes[1]));
@@ -278,6 +373,9 @@ class TrainingLedgerPerformanceTest extends TestCase
             unset($this->children[$index]);
         }
         $this->assertSame(50, DB::table('ledger_entries')->count());
+        $versions = DB::table('ledger_entries')->orderBy('seq')->pluck('id')
+            ->map(fn ($id) => Uuid::fromString($id)->getFields()->getVersion())->countBy()->all();
+        $this->assertSame([4 => 2, 7 => 48], $versions);
         $this->assertBalances('9973', '27');
         $this->assertChain();
     }

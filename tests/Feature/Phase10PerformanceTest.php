@@ -189,7 +189,7 @@ class Phase10PerformanceTest extends TestCase
                     ? $event->connection->transactionLevel() === 1
                     : $event->connection->transactionLevel() === 0;
                 if ($ownedCommit) {
-                    $commitChecks[] = [get_class($event), SimTimer::isOpen('stipend.payment')];
+                    $commitChecks[] = [get_class($event), SimTimer::isOpen('stipend.payment'), SimTimer::isOpen('stipend.commit')];
                 }
             });
         }
@@ -226,11 +226,14 @@ class Phase10PerformanceTest extends TestCase
         $this->assertSame('10000.000000', DB::table('treasury_accounts')->value('balance'));
         $this->assertSame('0.000000', DB::table('economic_accounts')->where('id', $this->id(2030))->value('balance'));
         $this->assertTrue(app(LedgerService::class)->verifyChain());
-        $this->assertSame([[TransactionCommitting::class, true], [TransactionCommitted::class, true]], $commitChecks);
+        $this->assertSame([[TransactionCommitting::class, true, true], [TransactionCommitted::class, true, true]], $commitChecks);
         $timings = (new \ReflectionProperty(SimTimer::class, 'n'))->getValue();
-        foreach (['currency', 'recipients', 'office_holders', 'settings', 'payment'] as $part) {
+        foreach (['currency', 'recipients', 'office_holders', 'settings', 'payment', 'wallet_balances', 'receipts', 'commit'] as $part) {
             $this->assertSame(1, $timings['stipend.'.$part]);
         }
+        $this->assertSame(2, $timings['stipend.ledger_lock_wait']);
+        $this->assertSame(2, $timings['stipend.ledger_locked_post']);
+        $this->assertArrayNotHasKey('training.ledger_lock_wait', $timings);
         $this->assertSame([], (new \ReflectionProperty(SimTimer::class, 'open'))->getValue());
     }
 
@@ -385,7 +388,10 @@ class Phase10PerformanceTest extends TestCase
         $wallet = $this->resident(1);
         $sim = $this->service();
         DB::beginTransaction();
+        SimTimer::open('stage.stipend_scope');
         $sim->runStipendFor($this->id(3));
+        SimTimer::close('stage.stipend_scope');
+        $this->assertArrayNotHasKey('stipend.commit', (new \ReflectionProperty(SimTimer::class, 'n'))->getValue());
         $this->assertSame(1, DB::transactionLevel());
         DB::rollBack();
         foreach (['ledger_entries', 'issuance_events', 'ubi_disbursements', 'ubi_receipts'] as $table) {
@@ -399,5 +405,48 @@ class Phase10PerformanceTest extends TestCase
         $this->assertSame(2, DB::table('ubi_disbursements')->count());
         $this->assertSame('100.000000', DB::table('economic_accounts')->where('id', $wallet)->value('balance'));
         $this->assertTrue(app(LedgerService::class)->verifyChain());
+    }
+
+    public function test_failure_after_mint_before_wallet_credit_rolls_back_the_owned_payment(): void
+    {
+        $wallet = $this->resident(1);
+        $accounts = $this->createMock(AccountService::class);
+        $accounts->method('creditManyFromTreasury')->willReturnCallback(function () {
+            $this->assertSame(1, DB::table('ledger_entries')->count());
+            $this->assertSame(1, DB::table('issuance_events')->count());
+            throw new \RuntimeException('Fixture failure after mint');
+        });
+        $this->app->instance(AccountService::class, $accounts);
+        $sim = $this->service();
+        SimTimer::open('stage.stipend_scope');
+        try { $sim->runStipendFor($this->id(3)); $this->fail('Expected injected failure'); }
+        catch (\RuntimeException $error) { $this->assertSame('Fixture failure after mint', $error->getMessage()); }
+        finally { SimTimer::close('stage.stipend_scope'); }
+        $this->assertPaymentRolledBack($wallet);
+    }
+
+    public function test_receipt_failure_rolls_back_mint_wallet_and_disbursement_and_closes_timers(): void
+    {
+        $wallet = $this->resident(1);
+        DB::statement('ALTER TABLE ubi_receipts ADD CONSTRAINT fixture_receipt CHECK (amount = 0)');
+        $sim = $this->service();
+        SimTimer::open('stage.stipend_scope');
+        try { $sim->runStipendFor($this->id(3)); $this->fail('Expected receipt rejection'); }
+        catch (\Illuminate\Database\QueryException $error) { $this->assertStringContainsString('fixture_receipt', $error->getMessage()); }
+        finally { SimTimer::close('stage.stipend_scope'); }
+        $this->assertPaymentRolledBack($wallet);
+        $this->assertSame(1, (new \ReflectionProperty(SimTimer::class, 'n'))->getValue()['stipend.receipts']);
+    }
+
+    private function assertPaymentRolledBack(string $wallet): void
+    {
+        foreach (['ledger_entries', 'issuance_events', 'ubi_disbursements', 'ubi_receipts'] as $table) {
+            $this->assertSame(0, DB::table($table)->count());
+        }
+        $this->assertSame('0.000000', DB::table('economic_accounts')->where('id', $wallet)->value('balance'));
+        $this->assertSame('10000.000000', DB::table('treasury_accounts')->value('balance'));
+        $this->assertSame(0, DB::transactionLevel());
+        $this->assertSame([], (new \ReflectionProperty(SimTimer::class, 'open'))->getValue());
+        $this->assertArrayNotHasKey('stipend.commit', (new \ReflectionProperty(SimTimer::class, 'n'))->getValue());
     }
 }

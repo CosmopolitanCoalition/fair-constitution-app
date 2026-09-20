@@ -243,12 +243,13 @@ class AccountService
 
             $entryGroup = $this->ledger->post($kind, $legs);
 
-            $timed = SimTimer::isOpen('stage.training_scope');
-            if ($timed) { SimTimer::open('training.wallet_balances'); }
+            $timerPrefix = SimTimer::isOpen('stage.training_scope') ? 'training'
+                : (SimTimer::isOpen('stage.stipend_scope') ? 'stipend' : null);
+            if ($timerPrefix !== null) { SimTimer::open($timerPrefix.'.wallet_balances'); }
             try {
                 $this->applyBalanceMany($sums);
             } finally {
-                if ($timed) { SimTimer::close('training.wallet_balances'); }
+                if ($timerPrefix !== null) { SimTimer::close($timerPrefix.'.wallet_balances'); }
             }
 
             return $entryGroup;

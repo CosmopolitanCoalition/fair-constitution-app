@@ -80,7 +80,8 @@ class LedgerService
         }
 
         $entryGroup = (string) Str::uuid();
-        $timed = SimTimer::isOpen('stage.training_scope');
+        $timerPrefix = SimTimer::isOpen('stage.training_scope') ? 'training'
+            : (SimTimer::isOpen('stage.stipend_scope') ? 'stipend' : null);
         // These bytes and identifiers do not depend on the chain head. Prepare
         // them before joining the global append queue, not while holding it.
         $rows = [];
@@ -99,24 +100,27 @@ class LedgerService
             ];
             $canonical[] = AuditService::canonicalJson($payload);
             $rows[] = array_replace($payload, [
-                'id' => (string) Str::uuid(),
+                // UUIDv7 keeps new primary-key writes near one another. This
+                // opaque row ID is outside the canonical payload; entry_group
+                // stays UUIDv4 and seq remains the authoritative chain order.
+                'id' => (string) Str::uuid7(),
                 'amount' => $leg['amount'],
             ]);
         }
         $deltas = $this->treasuryDeltas($legs);
 
-        $write = function () use ($rows, $canonical, $deltas, $entryGroup, $timed): string {
+        $write = function () use ($rows, $canonical, $deltas, $entryGroup, $timerPrefix): string {
             // Serialize every appender so no two anchor on the same head.
-            if ($timed) { SimTimer::open('training.ledger_lock_wait'); }
+            if ($timerPrefix !== null) { SimTimer::open($timerPrefix.'.ledger_lock_wait'); }
             try {
                 DB::statement('SELECT pg_advisory_xact_lock(?)', [self::APPEND_LOCK_KEY]);
             } finally {
-                if ($timed) { SimTimer::close('training.ledger_lock_wait'); }
+                if ($timerPrefix !== null) { SimTimer::close($timerPrefix.'.ledger_lock_wait'); }
             }
 
             // Keep the head read AFTER lock acquisition, in a separate statement:
             // a snapshot obtained before waiting could anchor to an old head.
-            if ($timed) { SimTimer::open('training.ledger_locked_post'); }
+            if ($timerPrefix !== null) { SimTimer::open($timerPrefix.'.ledger_locked_post'); }
             try {
                 $head = DB::selectOne('SELECT hash FROM ledger_entries ORDER BY seq DESC LIMIT 1');
                 $prevHash = $head->hash ?? AuditService::GENESIS_PREV_HASH;
@@ -155,7 +159,7 @@ class LedgerService
             } finally {
                 // The transaction-scoped lock can outlive post(): callers may
                 // still credit wallets or write issuance records before commit.
-                if ($timed) { SimTimer::close('training.ledger_locked_post'); }
+                if ($timerPrefix !== null) { SimTimer::close($timerPrefix.'.ledger_locked_post'); }
             }
 
             return $entryGroup;

@@ -4,6 +4,7 @@ namespace App\Services\Economy;
 
 use App\Models\Economy\Currency;
 use App\Services\SettingsResolver;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -126,8 +127,10 @@ class StipendService
             }
         }
 
-        return DB::transaction(function () use (
-            $jurisdictionId, $currency, $lines, $gross, $source, $ratio, $shortPaid, $treasuryAccountId
+        $timed = SimTimer::isOpen('stage.stipend_scope');
+        $ownsTransaction = DB::transactionLevel() === 0;
+        $write = function () use (
+            $jurisdictionId, $currency, $lines, $gross, $source, $ratio, $shortPaid, $treasuryAccountId, $timed, $ownsTransaction
         ) {
             // 3. Apply the ratio and compute what is actually paid.
             $net = '0';
@@ -189,17 +192,30 @@ class StipendService
                 'stipend',
             );
 
-            foreach (array_chunk($receipts, 500) as $chunk) {
-                DB::table('ubi_receipts')->insert($chunk);
+            if ($timed) { SimTimer::open('stipend.receipts'); }
+            try {
+                foreach (array_chunk($receipts, 500) as $chunk) {
+                    DB::table('ubi_receipts')->insert($chunk);
+                }
+            } finally {
+                if ($timed) { SimTimer::close('stipend.receipts'); }
             }
 
+            // Measure the owned durable commit, never label a nested savepoint
+            // release as a commit. The enclosing payment timer includes it.
+            if ($timed && $ownsTransaction) { SimTimer::open('stipend.commit'); }
             return [
                 'disbursement_id' => $disbursementId,
                 'recipients'      => count($lines),
                 'total'           => $net,
                 'short_paid'      => $shortPaid,
             ];
-        });
+        };
+        try {
+            return DB::transaction($write);
+        } finally {
+            if ($timed && $ownsTransaction) { SimTimer::close('stipend.commit'); }
+        }
     }
 
     /**

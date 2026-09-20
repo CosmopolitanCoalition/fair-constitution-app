@@ -19,6 +19,11 @@ class LedgerEntry extends Model
 
     protected $table = 'ledger_entries';
 
+    /** Both historical UUIDv4 and new UUIDv7 row identities remain opaque strings. */
+    protected $keyType = 'string';
+
+    public $incrementing = false;
+
     /** Append-only: created_at is written by LedgerService, never touched again. */
     public $timestamps = false;
 
