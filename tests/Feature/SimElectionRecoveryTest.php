@@ -167,6 +167,25 @@ class SimElectionRecoveryTest extends TestCase
         app(SimElectionRecovery::class)->recover($run, $e->id);
     }
 
+    public function test_surplus_type_a_members_cannot_hide_missing_type_b_seats_from_recovery(): void
+    {
+        [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(true);
+        // Reproduce the live shape: aggregate serving count meets the stored
+        // target, but one chamber remains short. Existing certified winners
+        // still belong to their original race and cannot cover the other kind.
+        $leg->forceFill(['total_seats' => 6, 'type_a_seats' => 1, 'type_b_seats' => 5])->save();
+        $this->enable($run);
+        $plan = app(SimRepairInspector::class)->inspect($run, $scope);
+        self::assertSame(6, $plan['verification']['seated']);
+        self::assertFalse($plan['institution_ready']);
+        self::assertContains(['kind' => 'election_recovery', 'target' => $e->id], $plan['actions']);
+        $original = DB::table('legislature_members')->where('legislature_id', $leg->id)->orderBy('id')->get();
+        $out = app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope]);
+        self::assertSame('done', $out['_verdict'], json_encode($out));
+        self::assertEquals($original, DB::table('legislature_members')->whereIn('id', $original->pluck('id'))->orderBy('id')->get());
+        self::assertSame(5, DB::table('legislature_members')->where('legislature_id', $leg->id)->where('seat_type', 'b')->count());
+    }
+
     public function test_already_applied_run_requeues_only_election_reviews_and_retains_the_old_blocked_receipt(): void
     {
         [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);
@@ -183,9 +202,15 @@ class SimElectionRecoveryTest extends TestCase
             'created_at' => now(), 'updated_at' => now()]);
         $oldReceipt = DB::table('sim_repair_receipts')->where('target_id', $e->id)->first();
         $oldDone = DB::table('sim_items')->where('id', $done)->first(); $oldPending = DB::table('sim_items')->where('id', $pending)->first();
+        $otherScope = $this->id(); $otherReview = $this->id();
+        DB::table('sim_items')->insert(['id' => $otherReview, 'run_id' => $run->id, 'kind' => 'repair_scope',
+            'unit_key' => $otherScope, 'jurisdiction_id' => $otherScope, 'status' => 'review', 'position' => 1,
+            'metrics' => '{"unrelated":true}', 'reason' => 'Keep unrelated review intact', 'created_at' => now(), 'updated_at' => now()]);
+        $oldOtherReview = DB::table('sim_items')->where('id', $otherReview)->first();
         $control = app(SimRepairControl::class);
-        self::assertSame(1, $control->enableElectionRecovery($run)['reviews_requeued']);
-        self::assertSame(0, $control->enableElectionRecovery($run)['reviews_requeued']);
+        self::assertSame(1, $control->enableElectionRecovery($run, [$scope])['reviews_requeued']);
+        self::assertSame(0, $control->enableElectionRecovery($run, [$scope])['reviews_requeued']);
+        self::assertEquals($oldOtherReview, DB::table('sim_items')->where('id', $otherReview)->first());
         self::assertEquals($oldDone, DB::table('sim_items')->where('id', $done)->first());
         self::assertEquals($oldPending, DB::table('sim_items')->where('id', $pending)->first());
         $run->refresh()->forceFill(['status' => 'running', 'halt_requested_at' => null])->save();

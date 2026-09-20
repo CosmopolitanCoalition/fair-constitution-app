@@ -22,7 +22,7 @@ class SimRepairCommand extends Command
     {
         try {
             if ($id = $this->option('enable-election-recovery')) {
-                $this->line(json_encode($control->enableElectionRecovery(SimRun::findOrFail($id)), JSON_PRETTY_PRINT));
+                $this->line(json_encode($control->enableElectionRecovery(SimRun::findOrFail($id), $this->option('scope')), JSON_PRETTY_PRINT));
                 return self::SUCCESS;
             }
             if ($id = $this->option('refresh-plan')) {

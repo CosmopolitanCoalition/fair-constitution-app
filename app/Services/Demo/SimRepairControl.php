@@ -59,7 +59,7 @@ class SimRepairControl
     }
 
     /** Record the operator's recovery choice without starting or replaying work. */
-    public function enableElectionRecovery(SimRun $run): array
+    public function enableElectionRecovery(SimRun $run, array $scopes = []): array
     {
         $this->guard();
         DB::transaction(function () use ($run): void {
@@ -89,6 +89,7 @@ class SimRepairControl
             // reviews, retaining their prior outcome and every successful item.
             do {
                 $rows = DB::table('sim_items')->where('run_id', $run->id)->where('kind', 'repair_scope')->where('status', 'review')
+                    ->when($scopes !== [], fn ($q) => $q->whereIn('jurisdiction_id', $scopes))
                     ->when($cursor, fn ($q) => $q->where('id', '>', $cursor))->orderBy('id')->limit(HostCapacity::sweepChunk())->get();
                 foreach ($rows as $row) {
                     $retried += DB::transaction(function () use ($run, $row): int {

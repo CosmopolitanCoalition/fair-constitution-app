@@ -61,11 +61,14 @@ class SimRepairInspector
         }
         $seated = $leg ? DB::table('legislature_members')->where('legislature_id', $leg->id)->whereNull('deleted_at')
             ->whereNull('vacated_at')->whereNotNull('user_id')->whereIn('status', ['elected','seated'])->select('seat_type')->get() : collect();
-        if ($leg && $seated->count() < (int) $leg->total_seats && $election?->status === 'certified') {
+        // District rounding can leave more Type A winners than its stored
+        // target. Those representatives cannot fill an empty Type B seat.
+        $typeBShort = $leg && $seated->where('seat_type', 'b')->count() < (int) $leg->type_b_seats;
+        if ($leg && ($seated->count() < (int) $leg->total_seats || $typeBShort) && $election?->status === 'certified') {
             if ($recovery) { $out['actions'][] = ['kind' => 'election_recovery', 'target' => $electionId]; }
             else { $out['blockers'][] = 'Certified legislature still has unfilled seats; do not rewrite its term or manufacture members.'; }
         }
-        if ($leg && $seated->where('seat_type', 'b')->count() < (int) $leg->type_b_seats) {
+        if ($typeBShort) {
             $out['acceptance_gaps'][] = 'Type B representation below the apportioned total.';
         }
         $out['institution_ready'] = $election?->status === 'certified' && $leg && $seated->isNotEmpty()

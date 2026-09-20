@@ -1,5 +1,10 @@
 # D016 direct deployment and repair benchmark
 
+**New review incident (17:00 UTC onward):** see
+[D017 vacancy detection and unresolved zero-electorate cases](STEP5_REPAIR_D017_HANDOFF.md).
+Later heartbeat checkpoints are in the remote `STATE.json`; earlier zero-review
+measurements below are historical results, not a claim about the current run.
+
 **Current checkpoint:** `ff044c79252075f0fa3db4528ea6492859069275` deployed and
 resumed at 15:26 UTC on September 20. At 15:32:55 UTC (17:32:55 Warsaw),
 261,247 / 923,095 repair scopes DONE, zero reviews, 73 healthy workers. Same
