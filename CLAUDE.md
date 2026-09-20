@@ -81,6 +81,13 @@ The application is BUILT. The plans served as what to build; they are done servi
 
 ## Technology Stack
 
+**Operator ruling 2026-09-20 (distinct representation ceiling):** if the population
+cannot supply distinct representatives, the chamber cannot size to that number.
+For the remaining Step 5 allocation conflicts, preserve existing officeholders;
+do not manufacture people, duplicate a person's seat, or resign members to free
+candidates. Correct only unfillable capacity and prioritize constrained populations
+when filling vacancies. Preserve certified race/count history and occupied terms.
+
 **Operator ruling 2026-09-20 (tiny chambers):** one- and two-member bodies require
 unanimity for a supermajority decision. The majority-plus-one lower bound applies
 unchanged from three serving members upward; zero-member bodies cannot adopt.

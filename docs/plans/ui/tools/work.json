@@ -18505,7 +18505,8 @@
         "docs/operations/STEP5_REPAIR_D021_HANDOFF.md",
         "tests/Constitutional/ElectionVersionCompatibilityTest.php",
         "app/Services/ConstitutionalVersionService.php",
-        "docs/operations/STEP5_REPAIR_D022_HANDOFF.md"
+        "docs/operations/STEP5_REPAIR_D022_HANDOFF.md",
+        "docs/operations/STEP5_REPAIR_D023_HANDOFF.md"
       ],
       "history": [
         {
@@ -18571,6 +18572,10 @@
         {
           "date": "2026-09-20",
           "note": "D022: final review exposed Earth committee vocabulary exhaustion (24 names for a target of 25). Normal generator now reaches the existing formula target through real acts; narrow source-bound continuation preserves completed election/training/payments and unrelated reviews. 38 tests / 647 assertions passed; remote acceptance pending."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D022 Earth accepted: original election, 3153 officeholders and 24 committees unchanged; 25th committee adopted, item DONE. D023 operator ruled chamber cannot size beyond distinct population capacity: preserved occupied seats; ordered constrained pools first; corrected only never-filled capacity. 53 tests / 757 assertions passed, including atomic rollback. Remote D8 resize must complete before D023 deployment."
         }
       ]
     },

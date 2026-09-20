@@ -442,4 +442,112 @@ class SimElectionRecoveryTest extends TestCase
         self::assertEquals($before, DB::table('legislature_members')->where('legislature_id', $leg->id)->orderBy('id')->get());
         self::assertSame(0, DB::table('vacancies')->where('legislature_id', $leg->id)->count());
     }
+
+    public function test_committed_single_resident_retires_only_the_empty_uncounted_panel_and_resumes_same_terminal_run(): void
+    {
+        [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);
+        [$child, $group, $panel, $race] = $this->addPopulationPanel($leg, $e, 1);
+        $used = DB::table('candidacies')->where('race_id', $b->id)->value('user_id');
+        DB::table('residency_confirmations')->insert(['id' => $this->id(), 'jurisdiction_id' => $child,
+            'user_id' => $used, 'is_active' => true, 'days_confirmed' => 1, 'confirmed_at' => now()]);
+        CohortStage::run($child, null, 1, 62);
+        $this->enable($run);
+        $run->forceFill(['status' => 'done', 'phase' => 'done', 'finished_at' => now(),
+            'phase_timings' => ['repairing' => ['worklist' => ['complete' => true]]], 'items_review' => 1, 'open_items' => 0])->save();
+        $reason = 'Distinct eligible candidate pool exhausted in '.$child.': 0 available, 1 missing; existing candidacies preserved.';
+        DB::table('sim_items')->insert(['id' => $this->id(), 'run_id' => $run->id, 'kind' => 'repair_scope',
+            'unit_key' => $scope, 'jurisdiction_id' => $scope, 'status' => 'review', 'reason' => $reason, 'position' => 0]);
+        DB::table('sim_repair_receipts')->insert(['source_run_id' => $source->id, 'repair_version' => 1, 'jurisdiction_id' => $scope,
+            'kind' => 'election_recovery', 'target_id' => $e->id, 'status' => 'blocked', 'result' => json_encode(['exception' => 'RuntimeException', 'reason' => $reason])]);
+        $old = DB::table('tabulations')->where('race_id', $b->id)->first();
+        $candidates = DB::table('candidacies')->where('election_id', $e->id)->orderBy('id')->get();
+        $people = DB::table('users')->count();
+        self::assertSame(0, \Illuminate\Support\Facades\Artisan::call('sim:repair', ['--retry-distinct-capacity' => $run->id, '--scope' => [$scope]]));
+        self::assertSame([$scope], json_decode(\Illuminate\Support\Facades\Artisan::output(), true)['retried']);
+        self::assertSame('halted', $run->refresh()->status); self::assertSame('repairing', $run->phase);
+        self::assertSame([], app(\App\Services\Demo\SimRepairReceiptRecovery::class)->retryPopulationCeiling($run, [$scope], distinctCapacity: true)['retried']);
+        $run->forceFill(['status' => 'running', 'halt_requested_at' => null])->save();
+        $out = app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope]);
+        self::assertSame('done', $out['_verdict'], json_encode($out));
+        self::assertSame(10, (int) $leg->refresh()->total_seats);
+        self::assertSame(0, (int) DB::table('legislature_type_b_panels')->where('id', $panel)->value('seats'));
+        self::assertTrue($race->refresh()->trashed());
+        self::assertEquals($old, DB::table('tabulations')->where('id', $old->id)->first());
+        self::assertSame($people, DB::table('users')->count());
+        foreach ($candidates as $c) { self::assertSame($c->race_id, DB::table('candidacies')->where('id', $c->id)->value('race_id')); }
+        self::assertSame(10, DB::table('legislature_members')->where('legislature_id', $leg->id)->count());
+    }
+
+    public function test_certified_capacity_retires_only_unfillable_slots_and_keeps_every_officeholder_term_and_count(): void
+    {
+        [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);
+        [$child, $group, $panel, $race] = $this->addPopulationPanel($leg, $e, 2);
+        foreach (DB::table('candidacies')->where('race_id', $b->id)->limit(2)->pluck('user_id') as $used) {
+            DB::table('residency_confirmations')->insert(['id' => $this->id(), 'jurisdiction_id' => $child,
+                'user_id' => $used, 'is_active' => true, 'days_confirmed' => 1, 'confirmed_at' => now()]);
+        }
+        CohortStage::run($child, null, 1, 62);
+        $candidate = DB::table('users')->whereNotIn('id', DB::table('candidacies')->where('election_id', $e->id)->select('user_id'))->value('id');
+        DB::table('candidacies')->insert(['id' => $this->id(), 'election_id' => $e->id, 'race_id' => $race->id,
+            'user_id' => $candidate, 'status' => 'validated', 'position_tags' => '[]', 'residency_attested_at' => now(), 'validated_at' => now()]);
+        CountingStage::run($e->id, $source->id, 1); self::assertTrue(SeatingStage::run($e->id, $source->id, 1)['certified']);
+        $this->enable($run);
+        $members = DB::table('legislature_members')->where('legislature_id', $leg->id)->orderBy('id')->get();
+        $terms = DB::table('terms')->where('legislature_id', $leg->id)->orderBy('id')->get();
+        $counts = DB::table('tabulations')->whereIn('race_id', [$a->id, $b->id, $race->id])->orderBy('id')->get();
+        $original = DB::table('election_races')->where('id', $race->id)->first();
+        $certification = DB::table('election_certifications')->where('election_id', $e->id)->get();
+        $beforePeople = DB::table('users')->count();
+        $beforeAudit = DB::table('audit_log')->count(); $interrupted = false;
+        try {
+            app(SimElectionRecovery::class)->recover($run, $e->id, function () use ($panel, &$interrupted) {
+                if ((int) DB::table('legislature_type_b_panels')->where('id', $panel)->value('seats') === 1) {
+                    $interrupted = true; throw new \RuntimeException('after capacity correction');
+                }
+            });
+            self::fail('Expected interruption after capacity correction.');
+        } catch (\RuntimeException $error) { self::assertSame('after capacity correction', $error->getMessage()); }
+        self::assertTrue($interrupted);
+        self::assertSame(2, (int) DB::table('legislature_type_b_panels')->where('id', $panel)->value('seats'));
+        self::assertSame(12, (int) $leg->refresh()->total_seats);
+        self::assertSame($beforeAudit, DB::table('audit_log')->count());
+        self::assertSame(0, DB::table('vacancies')->where('legislature_id', $leg->id)->count());
+        $out = app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope]);
+        self::assertSame('done', $out['_verdict'], json_encode($out));
+        self::assertSame(11, (int) $leg->refresh()->total_seats);
+        self::assertSame(1, (int) DB::table('legislature_type_b_panels')->where('id', $panel)->value('seats'));
+        self::assertEquals($original, DB::table('election_races')->where('id', $race->id)->first());
+        self::assertEquals($counts, DB::table('tabulations')->whereIn('id', $counts->pluck('id'))->orderBy('id')->get());
+        self::assertEquals($members, DB::table('legislature_members')->whereIn('id', $members->pluck('id'))->orderBy('id')->get());
+        self::assertEquals($terms, DB::table('terms')->whereIn('id', $terms->pluck('id'))->orderBy('id')->get());
+        self::assertEquals($certification, DB::table('election_certifications')->where('election_id', $e->id)->get());
+        self::assertSame(11, DB::table('legislature_members')->where('legislature_id', $leg->id)->distinct()->count('user_id'));
+        self::assertSame($beforePeople, DB::table('users')->count());
+        $audit = DB::table('audit_log')->count();
+        self::assertSame('done', app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope])['_verdict']);
+        self::assertSame($audit, DB::table('audit_log')->count());
+    }
+
+    public function test_supplements_reserve_the_last_small_pool_resident_before_filling_a_broad_contest(): void
+    {
+        [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);
+        [$child, $group, $panel, $race] = $this->addPopulationPanel($leg, $e, 2);
+        $needed = '00000000-0000-4000-8000-000000000001';
+        DB::table('users')->insert(['id' => $needed, 'name' => 'Scarce resident', 'email' => 'scarce@example.test', 'password' => 'unused', 'terms_accepted_at' => now()]);
+        foreach ([$scope, $child] as $place) DB::table('residency_confirmations')->insert(['id' => $this->id(),
+            'jurisdiction_id' => $place, 'user_id' => $needed, 'is_active' => true, 'days_confirmed' => 1, 'confirmed_at' => now()]);
+        CohortStage::run($child, null, 1, 62);
+        $candidate = DB::table('users')->where('id', '!=', $needed)->whereNotIn('id', DB::table('candidacies')->where('election_id', $e->id)->select('user_id'))->value('id');
+        DB::table('candidacies')->insert(['id' => $this->id(), 'election_id' => $e->id, 'race_id' => $race->id,
+            'user_id' => $candidate, 'status' => 'validated', 'position_tags' => '[]', 'residency_attested_at' => now(), 'validated_at' => now()]);
+        CountingStage::run($e->id, $source->id, 1); self::assertTrue(SeatingStage::run($e->id, $source->id, 1)['certified']);
+        $this->enable($run);
+        self::assertSame('done', app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope])['_verdict']);
+        $vacancy = DB::table('vacancies')->where('seat_id', $race->id)->where('seat_type', 'election_races')->first();
+        self::assertNotNull($vacancy); self::assertSame('filled', $vacancy->status);
+        $special = Election::where('vacancy_id', $vacancy->id)->firstOrFail();
+        self::assertSame($needed, DB::table('legislature_members')->where('election_id', $special->id)->value('user_id'));
+        self::assertSame(12, (int) $leg->refresh()->total_seats, 'Do not shrink a fillable chamber.');
+        self::assertSame(12, DB::table('legislature_members')->where('legislature_id', $leg->id)->distinct()->count('user_id'));
+    }
 }

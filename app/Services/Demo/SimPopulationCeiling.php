@@ -16,6 +16,7 @@ class SimPopulationCeiling
         if ($election->kind !== Election::KIND_GENERAL
             || ! in_array($election->status, [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN], true)) { return []; }
         $changes = [];
+        $candidates = DB::table('candidacies')->where('election_id', $election->id)->get(['race_id','user_id','status']);
         foreach ($election->races()->where('seat_kind', 'type_b')->whereNotNull('type_b_panel_id')->orderBy('id')->get() as $race) {
             $beat && $beat();
             $panel = DB::table('legislature_type_b_panels')->where('id', $race->type_b_panel_id)->whereNull('deleted_at')->first();
@@ -37,12 +38,84 @@ class SimPopulationCeiling
                 $beat && $beat();
             } while ($rows->count() === HostCapacity::sweepChunk());
             if (! $known || $members === 0) { continue; }
-            if ((int) $race->seats <= $people && (int) $panel->seats <= $people) { continue; }
+            $present = $candidates->where('race_id', $race->id)->whereNotIn('status', ['rejected','withdrawn'])->count();
+            $capacity = min($people, $this->distinctCapacity($race, $election, $people, $present, $candidates->pluck('user_id')->all()));
+            if ((int) $race->seats <= $capacity && (int) $panel->seats <= $capacity) { continue; }
             if ((int) $race->seats < (int) $panel->seats) { throw new \RuntimeException('Population ceiling: race and panel allocations disagree.'); }
             $changes[] = ['race_id' => $race->id, 'panel_id' => $panel->id, 'grouping_id' => $panel->grouping_id,
                 'population' => $people, 'race_seats' => (int) $race->seats, 'panel_seats' => (int) $panel->seats,
-                'seats' => min((int) $race->seats, (int) $panel->seats, $people)];
+                'distinct_capacity' => $capacity,
+                'seats' => min((int) $race->seats, (int) $panel->seats, $capacity)];
         }
+        return $changes;
+    }
+
+    /**
+     * Existing people cannot occupy two seats in one chamber. Count only the
+     * bounded set already committed, against real population (not demo sample).
+     * Retain existing assignments even if legacy provenance is imperfect.
+     */
+    public function distinctCapacity(object $race, Election $election, int $population, int $present, array $used): int
+    {
+        if ($population === 0) { return 0; }
+        $used = array_values(array_unique($used));
+        if ($population >= (int) $race->seats + count($used)) { return (int) $race->seats; }
+        $reserved = [];
+        foreach (app(SimCandidateField::class)->footprint($race, $election->jurisdiction_id) as $scope) {
+            foreach (array_chunk($used, HostCapacity::sweepChunk()) as $chunk) {
+                foreach (DB::table('residency_confirmations')->where('jurisdiction_id', $scope)->where('is_active', true)
+                    ->whereIn('user_id', $chunk)->pluck('user_id') as $id) { $reserved[$id] = true; }
+            }
+        }
+        return min((int) $race->seats, $present + max(0, $population - count($reserved)));
+    }
+
+    /** Retire only never-filled capacity; certified races/counts/officeholders remain historical facts. */
+    public function reconcileCertifiedCapacity(Election $election, \Illuminate\Support\Collection $members, string $source, ?\Closure $beat = null): array
+    {
+        if ($election->status !== Election::STATUS_CERTIFIED || $election->kind !== Election::KIND_GENERAL) { return []; }
+        if (DB::transactionLevel() < 1) { throw new \LogicException('Certified capacity must be part of the atomic election recovery.'); }
+        $changes = []; $leg = Legislature::whereKey($election->legislature_id)->lockForUpdate()->firstOrFail();
+        foreach ($election->races()->where('seat_kind', 'type_b')->whereNotNull('type_b_panel_id')->get() as $race) {
+            $beat && $beat();
+            $panel = DB::table('legislature_type_b_panels')->where('id', $race->type_b_panel_id)->whereNull('deleted_at')->lockForUpdate()->first();
+            if (! $panel || $panel->legislature_id !== $leg->id) { throw new \RuntimeException('Capacity correction: panel ownership changed.'); }
+            $present = $members->where('elected_in_race_id', $race->id)->count();
+            // Supplementary winners belong to new races but occupy the original
+            // panel's vacancies. Include them before considering any reduction.
+            $present += DB::table('vacancies')->where('seat_type', 'election_races')->where('seat_id', $race->id)->where('status', 'filled')->count();
+            if ($present >= (int) $panel->seats) { continue; }
+            $places = DB::table('legislature_type_b_panel_jurisdictions as m')->leftJoin('jurisdictions as j', 'j.id', '=', 'm.jurisdiction_id')
+                ->where('m.panel_id', $panel->id)->get(['j.population','j.deleted_at']);
+            if ($places->isEmpty() || $places->contains(fn ($p) => $p->population === null || $p->deleted_at !== null || (int) $p->population < 0)) { continue; }
+            $capacity = max($present, $this->distinctCapacity($race, $election, (int) $places->sum('population'), $present, $members->pluck('user_id')->all()));
+            if ($capacity >= (int) $panel->seats) { continue; }
+            $tab = DB::table('tabulations')->where('race_id', $race->id)->where('status', 'complete')->whereNotNull('record_hash')
+                ->whereIn('kind', ['initial','audit_rerun'])->orderByDesc('completed_at')->first();
+            if (! $tab || (int) DB::table('race_results')->where('tabulation_id', $tab->id)->max('seat_no') > $capacity) {
+                throw new \RuntimeException('Capacity correction cannot retire an occupied certified slot.');
+            }
+            $changes[] = ['race_id' => $race->id, 'panel_id' => $panel->id, 'grouping_id' => $panel->grouping_id,
+                'previous_seats' => (int) $panel->seats, 'seats' => $capacity, 'population' => (int) $places->sum('population'),
+                'preserved_occupied' => $present, 'preserved_count_hash' => $tab->record_hash];
+        }
+        if ($changes === []) { return []; }
+        $groups = array_unique(array_column($changes, 'grouping_id'));
+        $group = count($groups) === 1 ? DB::table('legislature_type_b_groupings')->where('id', $groups[0])->lockForUpdate()->first() : null;
+        if (! $group || $group->status !== 'active' || $group->deleted_at !== null || $group->legislature_id !== $leg->id
+            || (int) $group->seats_total !== (int) $leg->type_b_seats) { throw new \RuntimeException('Capacity correction requires the unchanged active grouping.'); }
+        $delta = 0;
+        foreach ($changes as $change) {
+            DB::table('legislature_type_b_panels')->where('id', $change['panel_id'])->update(['seats' => $change['seats'], 'updated_at' => now()]);
+            $delta += $change['previous_seats'] - $change['seats'];
+        }
+        $total = (int) $leg->total_seats - $delta; $typeB = (int) $leg->type_b_seats - $delta;
+        if ($typeB < 0 || $total < $members->count()) { throw new \RuntimeException('Capacity correction cannot remove occupied representation.'); }
+        DB::table('legislature_type_b_groupings')->where('id', $group->id)->update(['seats_total' => $typeB, 'updated_at' => now()]);
+        $leg->forceFill(['total_seats' => $total, 'type_b_seats' => $typeB, 'quorum_required' => QuorumLaw::required($total)])->save();
+        app(AuditService::class)->append('simworld', 'sim.unfilled_capacity_corrected', ['source_run_id' => $source,
+            'election_id' => $election->id, 'changes' => $changes, 'removed_never_filled_seats' => $delta,
+            'reason' => 'Operator ruling: chamber size cannot require more distinct representatives than the population permits.'], 'WF-SYS-04', jurisdictionId: $election->jurisdiction_id);
         return $changes;
     }
 

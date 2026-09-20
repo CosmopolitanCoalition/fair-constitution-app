@@ -170,14 +170,25 @@ class SimRepairReceiptRecovery
     }
 
     /** Retry only rolled-back election failures with a demonstrated panel cap defect. */
-    public function retryPopulationCeiling(SimRun $run, array $scopes, bool $tinyElectorates = false): array
+    public function retryPopulationCeiling(SimRun $run, array $scopes, bool $tinyElectorates = false, bool $distinctCapacity = false): array
     {
         if ($reason = app(SimRunControl::class)->refusalReason()) { throw new \RuntimeException($reason); }
         if ($scopes === [] || count($scopes) > 100) { throw new \RuntimeException('Name 1–100 exact population-ceiling retry scopes.'); }
-        return DB::transaction(function () use ($run, $scopes, $tinyElectorates): array {
+        return DB::transaction(function () use ($run, $scopes, $tinyElectorates, $distinctCapacity): array {
+            if ($distinctCapacity && DB::getDriverName() === 'pgsql') {
+                foreach ([194720126, \App\Console\Commands\SimPumpCommand::ADVISORY_LOCK_KEY] as $key) {
+                    if (! DB::selectOne('SELECT pg_try_advisory_xact_lock(?) AS acquired', [$key])->acquired) {
+                        throw new \RuntimeException('Repair control is busy; retry when idle.');
+                    }
+                }
+            }
             $run = SimRun::whereKey($run->id)->lockForUpdate()->firstOrFail();
-            if (! ($run->options['repair_source_run'] ?? null) || $run->status !== 'halted' || ! $run->haltRequested()
-                || $run->phase !== 'repairing' || ! ($run->options['repair_apply_authorized'] ?? false)
+            $terminal = $distinctCapacity && $run->status === 'done' && $run->phase === 'done'
+                && ($run->phase_timings['repairing']['worklist']['complete'] ?? false)
+                && ! SimRun::where('id', '!=', $run->id)->whereIn('status', ['queued','running','halted'])->exists()
+                && ! DB::table('sim_items')->where('run_id', $run->id)->where('status', 'pending')->exists();
+            $halted = $run->status === 'halted' && $run->haltRequested() && $run->phase === 'repairing';
+            if (! ($run->options['repair_source_run'] ?? null) || (! $halted && ! $terminal) || ! ($run->options['repair_apply_authorized'] ?? false)
                 || ! ($run->options['repair_election_recovery'] ?? false)
                 || DB::table('sim_worker_leases')->where('run_id', $run->id)->exists()
                 || DB::table('sim_items')->where('run_id', $run->id)->where('status', 'running')->exists()) {
@@ -192,7 +203,7 @@ class SimRepairReceiptRecovery
                     ->where('kind', 'election_scope')->where('unit_key', $scope)->value('metrics');
                 $electionId = (json_decode($source ?? '{}', true)['election_id'] ?? null);
                 $election = $electionId ? \App\Models\Election::find($electionId) : null;
-                if (! $election || $election->jurisdiction_id !== $scope || ! ($tinyElectorates
+                if (! $election || $election->jurisdiction_id !== $scope || ! ($tinyElectorates || $distinctCapacity
                     ? SimElectorate::hasTinyPanel($election)
                     : app(SimPopulationCeiling::class)->adjustments($election) !== [])) {
                     $retained[] = $scope; continue;
@@ -207,15 +218,23 @@ class SimRepairReceiptRecovery
                         || str_starts_with($reason, 'Distinct eligible candidate pool exhausted in '))) {
                     $retained[] = $scope; continue;
                 }
-                $replacement = ['reason' => $tinyElectorates ? 'D020: retry integer turnout and optional challenger correction.' : 'D018: retry after correcting the existing real-population ceiling.',
+                $replacement = ['reason' => $distinctCapacity ? 'D023: population-limited distinct representation and constrained-pool ordering; preserve occupied seats.' : ($tinyElectorates ? 'D020: retry integer turnout and optional challenger correction.' : 'D018: retry after correcting the existing real-population ceiling.'),
                     '_prior_receipts' => [['status' => $receipt->status, 'result' => $result, 'updated_at' => $receipt->updated_at]]];
-                app(AuditService::class)->append('simworld', $tinyElectorates ? 'sim.small_electorate_retry' : 'sim.population_ceiling_retry', $key + ['run_id' => $run->id,
+                app(AuditService::class)->append('simworld', $distinctCapacity ? 'sim.distinct_capacity_retry' : ($tinyElectorates ? 'sim.small_electorate_retry' : 'sim.population_ceiling_retry'), $key + ['run_id' => $run->id,
                     'item_id' => $item->id, 'previous' => $result], 'WF-SYS-04', jurisdictionId: $scope);
                 DB::table('sim_repair_receipts')->where($key)->update(['status' => 'deferred', 'result' => json_encode($replacement), 'updated_at' => now()]);
                 DB::table('sim_items')->where('id', $item->id)->update(['status' => 'pending', 'claim_token' => null,
                     'reason' => null, 'finished_at' => null, 'updated_at' => now(),
                     'metrics' => json_encode(['_previous_population_review' => json_decode($item->metrics ?? '{}', true)])]);
                 $retried[] = $scope;
+            }
+            if ($terminal && $retried !== []) {
+                app(AuditService::class)->append('simworld', 'sim.repair_review_continued', ['run_id' => $run->id,
+                    'scopes' => $retried, 'previous_finished_at' => $run->finished_at, 'previous_phase_timings' => $run->phase_timings], 'WF-SYS-04');
+                $timings = $run->phase_timings; unset($timings['repairing']['finished_at'], $timings['done']);
+                $run->forceFill(['status' => 'halted', 'phase' => 'repairing', 'halt_requested_at' => now(),
+                    'finished_at' => null, 'phase_timings' => $timings,
+                    'items_review' => max(0, $run->items_review - count($retried)), 'open_items' => count($retried)])->save();
             }
             return ['retried' => $retried, 'retained' => $retained];
         });

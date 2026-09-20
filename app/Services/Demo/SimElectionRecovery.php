@@ -67,14 +67,20 @@ class SimElectionRecovery
             throw new \RuntimeException('The original election is not the current chamber term; preserve subsequent officeholders.');
         }
         $typeBNo = (int) $members->where('seat_type', 'b')->max('seat_no');
+        $capacity = app(SimPopulationCeiling::class)->reconcileCertifiedCapacity($original, $members, (string) $run->options['repair_source_run'], $beat);
         $specials = [];
-        foreach ($original->races()->orderBy('id')->get() as $race) {
+        foreach (app(SimCandidateField::class)->orderedRaces($original) as $race) {
             $beat && $beat();
             $tab = DB::table('tabulations')->where('race_id', $race->id)->where('status', 'complete')
                 ->whereNotNull('record_hash')->orderByDesc('completed_at')->first();
             if (! $tab) { throw new \RuntimeException('Certified race lacks its sealed count; preserve it for review.'); }
             $occupied = DB::table('race_results')->where('tabulation_id', $tab->id)->whereNotNull('seat_no')->pluck('seat_no')->map(fn ($n) => (int) $n)->all();
-            for ($slot = 1; $slot <= (int) $race->seats; $slot++) {
+            // Current allocation may retire never-filled capacity. The sealed
+            // election keeps its historical advertised size and result intact.
+            $target = $race->type_b_panel_id
+                ? min((int) $race->seats, (int) DB::table('legislature_type_b_panels')->where('id', $race->type_b_panel_id)->value('seats'))
+                : (int) $race->seats;
+            for ($slot = 1; $slot <= $target; $slot++) {
                 if (in_array($slot, $occupied, true)) { continue; }
                 $beat && $beat();
                 $vacancy = Vacancy::where('seat_type', 'election_races')->where('seat_id', $race->id)->where('unfilled_seat_no', $slot)->first();
@@ -95,7 +101,7 @@ class SimElectionRecovery
                 $specials[] = ['election_id' => $special->id, 'vacancy_id' => $vacancy->id] + $this->finish($run, $special, $beat);
             }
         }
-        return ['specials' => $specials, 'original_election_id' => $original->id];
+        return ['specials' => $specials, 'capacity' => $capacity, 'original_election_id' => $original->id];
     }
 
     private function finish(SimRun $run, Election $election, ?\Closure $beat): array

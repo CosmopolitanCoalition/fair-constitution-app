@@ -19,11 +19,8 @@ class SimCandidateField
                 throw new \RuntimeException('Candidate repair requires an open nomination election; closed/certified results are preserved.');
             }
             app(SimPopulationCeiling::class)->reconcile($election, $runId, $beat);
-            $races = DB::table('election_races')->where('election_id', $electionId)->whereNull('deleted_at')->orderBy('id')->get();
-            foreach ($races as $race) { $race->pool = $this->footprint($race, (string) $election->jurisdiction_id); }
+            $races = $this->orderedRaces($election);
             $scopes = $races->groupBy(fn ($race) => implode(',', $race->pool));
-            $levels = DB::table('jurisdictions')->whereIn('id', $races->pluck('pool')->flatten()->unique())->pluck('adm_level', 'id');
-            $scopes = $scopes->sortBy(fn ($group, $id) => [-max(array_map(fn ($p) => (int) ($levels[$p] ?? 0), $group->first()->pool)), count($group->first()->pool), (string) $id]);
             $existing = DB::table('candidacies')->where('election_id', $electionId)->get(['user_id','race_id','status']);
             $used = array_fill_keys($existing->pluck('user_id')->all(), true);
             // A supplementary contest fills an empty seat, never awards an
@@ -126,7 +123,7 @@ class SimCandidateField
     }
 
     /** Same boundaries as RaceFootprint, including district and Type B panel unions. */
-    private function footprint(object $race, string $fallback): array
+    public function footprint(object $race, string $fallback): array
     {
         $ids = ! empty($race->district_id)
             ? DB::table('legislature_district_jurisdictions')->where('district_id', $race->district_id)->pluck('jurisdiction_id')->all()
@@ -137,5 +134,21 @@ class SimCandidateField
         // subdivision-only membership rows; keep exactly that existing meaning.
         $ids = array_map(fn ($id) => $id ?: ($race->jurisdiction_id ?: $fallback), $ids ?: [null]);
         $ids = array_values(array_unique($ids)); sort($ids, SORT_STRING); return $ids;
+    }
+
+    /** Reserve the most constrained real populations before broader contests. */
+    public function orderedRaces(Election $election): \Illuminate\Support\Collection
+    {
+        $races = DB::table('election_races')->where('election_id', $election->id)->whereNull('deleted_at')->orderBy('id')->get();
+        foreach ($races as $race) { $race->pool = $this->footprint($race, (string) $election->jurisdiction_id); }
+        $places = DB::table('jurisdictions')->whereIn('id', $races->pluck('pool')->flatten()->unique())->get(['id','adm_level','population'])->keyBy('id');
+        return $races->sortBy(function ($race) use ($places) {
+            $population = 0; $level = 0;
+            foreach ($race->pool as $id) {
+                $place = $places[$id] ?? null; $level = max($level, (int) ($place?->adm_level ?? 0));
+                $population = $place?->population === null ? PHP_INT_MAX : min(PHP_INT_MAX, $population + (int) $place->population);
+            }
+            return [-$level, $population, count($race->pool), implode(',', $race->pool), $race->id];
+        })->values();
     }
 }

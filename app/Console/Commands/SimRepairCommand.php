@@ -14,6 +14,8 @@ class SimRepairCommand extends Command
     protected function configure(): void
     {
         parent::configure();
+        $this->addOption('retry-distinct-capacity', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
+            'Retry exact tiny-population candidate conflicts on the same drained repair run, preserving occupied seats');
         $this->addOption('retry-committee-names', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
             'Retry exact committee-vocabulary failures on the same drained halted or completed repair run');
         $this->addOption('retry-compatible-elections', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
@@ -33,6 +35,10 @@ class SimRepairCommand extends Command
     public function handle(SimRepairControl $control): int
     {
         try {
+            if ($id = $this->option('retry-distinct-capacity')) {
+                $this->line(json_encode(app(\App\Services\Demo\SimRepairReceiptRecovery::class)->retryPopulationCeiling(SimRun::findOrFail($id), $this->option('scope'), distinctCapacity: true), JSON_PRETTY_PRINT));
+                return self::SUCCESS;
+            }
             if ($id = $this->option('retry-committee-names')) {
                 $this->line(json_encode(app(\App\Services\Demo\SimCommitteeRecovery::class)->retry(SimRun::findOrFail($id), $this->option('scope')), JSON_PRETTY_PRINT));
                 return self::SUCCESS;
