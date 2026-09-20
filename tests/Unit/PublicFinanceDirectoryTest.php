@@ -63,6 +63,12 @@ final class PublicFinanceDirectoryTest extends TestCase
         });
         $schema->create('laws', function (Blueprint $t) { $t->uuid('id')->primary(); $t->string('act_number'); $t->string('title'); });
         $schema->create('ubi_disbursements', function (Blueprint $t) { $t->uuid('currency_id'); $t->timestamp('ran_at'); });
+        // The current full treasury response also reads its next stipend clock.
+        $schema->create('clock_timers', function (Blueprint $t) {
+            $t->uuid('id')->primary(); $t->string('state'); $t->string('clock_id');
+            $t->string('subject_type'); $t->uuid('subject_id');
+            $t->timestamp('armed_at'); $t->timestamp('fires_at')->nullable(); $t->softDeletes();
+        });
         $migration = require database_path('migrations/2026_09_12_180000_currency_reports.php'); $migration->up();
         DB::table('jurisdictions')->insert([
             ['id' => $this->id(10), 'parent_id' => null, 'name' => 'Fixture world', 'slug' => 'fixture-world', 'adm_level' => 0],

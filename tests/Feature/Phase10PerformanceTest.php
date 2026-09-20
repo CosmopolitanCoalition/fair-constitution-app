@@ -22,6 +22,8 @@ use Tests\TestCase;
 /** Real stipend/ledger services in a guarded disposable PostgreSQL database. */
 class Phase10PerformanceTest extends TestCase
 {
+    use \Tests\Support\UsesProductionLedgerIndexes;
+
     private ?string $fixture = null;
     private string $original;
     private Currency $currency;
@@ -50,6 +52,7 @@ class Phase10PerformanceTest extends TestCase
         DB::statement("SET lock_timeout = '2s'");
         DB::statement("SET statement_timeout = '15s'");
         (require base_path('database/migrations/2026_07_25_000002_create_ledger_plane.php'))->up();
+        $this->installLedgerHistoryIndexes();
         foreach ([
             'CREATE TABLE jurisdictions (id uuid PRIMARY KEY, parent_id uuid, deleted_at timestamptz)',
             'CREATE TABLE users (id uuid PRIMARY KEY, email text)',

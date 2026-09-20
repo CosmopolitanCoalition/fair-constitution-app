@@ -30,15 +30,173 @@ manually; do not send messages directly to the other task.
   proof of delivery; never resend or launch a second exchange just because
   context was compacted.
 
-Current exchange: **D008 received; its new-ledger-ID locality recommendation and
-Phase 10 payment timers are the current developer handoff below**. D008 confirms
-`c2ca186f` deployed after natural Phase 9 completion. The final developer response
+Current exchange: **D009 received; its duplicate ledger account-index assessment
+and guarded retirement are the current developer handoff below**. D009 confirms
+`07fb6b0b` deployed and benchmarked in Phase 10. The final developer response
 supplies the pushed revision containing this section. Deploy and Benchmark owns
 deployment and the next completed comparison. No direct cross-task messages or
 remote actions. Do not infer a later deployment or current phase from elapsed time.
 D003/D004 nomination/payment candidates and D006's surviving population-scan
 rewrite remain separate. D003's old shutdown paragraph remains superseded by the
 established bounded halt/drain/refresh procedure.
+
+## D009 response: retire redundant account-index writes — 2026-09-20
+
+### Received result
+
+The complete [D009 report](step5-benchmarks/D009.md) is committed for manual relay.
+It measures `07fb6b0b` at **133,613 → 153,382 scopes/hour (+14.80%)**, with almost
+identical ledger rows per scope. Primary-key buffer reads per new row fell
+**99.80%**. Checks reconciled 412 wallets that actually changed, 30 disbursements,
+412 receipts, distinct mint/payment groups, and sampled chain hashes/links.
+Retain that patch. These are sequential live measurements with the limitations
+stated in D009, not a promised speedup on every host.
+
+D009 identifies two maintained account indexes sharing their leading keys. The
+narrow index still incurred 0.709 buffer reads per new row after the UUID change.
+This response removes that maintenance cost; **its throughput effect is not yet
+measured**. The earlier +14.80% belongs to D008, not this migration.
+
+### Reader audit and disposition
+
+The audit covered tracked application, command, model, route, script, schema and
+migration references to `ledger_entries`, `LedgerEntry` and both index names.
+
+| Reader or contract | Finding |
+|---|---|
+| `PublicFinanceDirectory::ledger()` | Account history specifies type, account and currency, then pages by `seq`. The retained `(account_type, account_id, currency_id, seq)` index supports the filter and order. Currency-wide history keeps its separate currency/sequence index. |
+| `LedgerService` head/chain verification | Uses sequence order; the sequence index is retained. Currency imbalance reporting has no account-index requirement. |
+| `TreasuryDemoCommand` row count and `LedgerEntry` model | No dependency on the narrower account index or its name. The primary key and all constraints remain. |
+| Administrative/reporting/import paths | No additional account-only ledger reader or index-name hint found in tracked runtime code. Private external SQL cannot be established by repository inspection. |
+| Migrations/dependencies | The original non-unique two-key index is created by the ledger-plane migration. The four-key replacement was added on September 13. The new migration checks actual catalogs and refuses constraint, replica-identity, clustering or dependency surprises. Historical migrations remain unchanged. |
+
+The 60,000-row PostgreSQL fixture includes 20,000 entries for a busy treasury,
+20 for a sparse economic account, many unrelated accounts and two currencies.
+Actual public-history results are identical. Account-only existence, ordered
+pages, totals and cross-currency histories also retain exact results. Relevant
+scoped plans remain indexed without disabling sequential scans or changing
+planner settings. Ordered account/currency pages need no sort.
+
+There is a real **read-space tradeoff**, not universal read-cost equivalence:
+
+| Fixture query | Buffer accesses before → after |
+|---|---:|
+| Busy treasury, account/currency history page | 9 → 9 |
+| Sparse account, account/currency history page | 6 → 6 |
+| Account-only page ordered by currency/sequence, either account | 7 → 7 |
+| Account existence, either account | 3 → 4 |
+| Entire treasury's account-only totals by currency | 759 → 1,036 |
+| Entire sparse account's totals | 7 → 7 |
+
+The hypothetical whole-account treasury aggregation reads about 36.5% more
+buffers because the wider index stores more keys. Its warm-fixture elapsed time
+was 10.51 → 10.27 ms, which does **not** establish cold-cache latency equivalence.
+No such aggregation exists in the audited application reader. Cross-currency
+sequence history without a currency constraint is not covered in order by
+either account index; its existing scan/sort costs remain. The sparse variant
+used four versus seven buffers. No material regression was found in the actual
+bounded public reader. Proceed for the application's measured write workload,
+but benchmark any external account-only reporting before retaining the change
+on a box that depends on it. Concurrent restoration is supplied for that case.
+
+### Migration and recovery
+
+`2026_09_20_090000_retire_duplicate_ledger_account_index.php` removes only
+`public.ledger_entries_account_type_account_id_index`, using
+`DROP INDEX CONCURRENTLY ... RESTRICT` outside a transaction. It keeps
+`ledger_public_account_seek_idx` and the other five ledger indexes.
+
+- Verifies the ordinary persistent table, exact key order, B-tree method,
+  default sort/operator/collation behavior, no predicate/expression/INCLUDE,
+  non-unique status and absence of protected uses/dependencies. A same-name
+  unexpected definition fails closed. The replacement must be valid, ready and
+  live even when retrying an already-completed retirement.
+- One database-scoped advisory owner coordinates this migration's up/down
+  operations, on one PDO session without transparent reconnect. It does not
+  take the money-ledger append lock. Active ledger index builds cause refusal.
+- Lock waits are capped at five seconds, honoring a stricter existing value.
+  A finite caller `statement_timeout` is honored; otherwise execution defaults
+  to 60 seconds for retirement and 15 minutes for restoration. These are
+  interruption budgets, not memory or concurrency sizing. A larger host/table
+  can supply a longer **finite** session budget for restoration. Original
+  session limits are restored on success/failure; ownership is released.
+- There is no automatic retry loop. After timeout, failure or process loss,
+  inspect the catalog and retry the same operation once its blocker is gone.
+  An interrupted concurrent drop/build may leave the expected index invalid;
+  retry accepts only that exact definition and rechecks all guards. The valid
+  wider index continues serving reads. Do not force a nonconcurrent drop.
+- `down()` concurrently recreates the original non-unique index, including
+  recovery from an interrupted build. It can restore it if the replacement
+  has subsequently disappeared. A healthy existing old index is a no-op.
+  Restoration scans the table and needs disk/CPU/I/O; it is not cost-free.
+
+PostgreSQL documents the concurrent DDL transaction/locking restrictions in
+[DROP INDEX](https://www.postgresql.org/docs/17/sql-dropindex.html) and
+[CREATE INDEX](https://www.postgresql.org/docs/17/sql-createindex.html). Leading
+key coverage is described in [Multicolumn Indexes](https://www.postgresql.org/docs/17/indexes-multicolumn.html).
+
+### Internal validation
+
+**44 tests / 2,365 assertions passed.** The final seven migration tests were
+also rerun after refining their populated sparse-account probes and recovery
+budget. PostgreSQL work used guarded nonce databases; the public-directory suite
+used private in-memory SQLite. No application test wrote to the local world.
+
+- Exact results/plans before and after retirement, six remaining indexes, and
+  unchanged definitions for every surviving index.
+- Missing/invalid replacement, wrong key order, partial/descending/INCLUDE/
+  custom-opclass/collation definitions, unexpected unique index and real SQL
+  function dependency all refuse retirement.
+- Concurrent ownership, open transaction refusal, lock and execution timeouts,
+  session-setting restoration, interrupted drop/build retries, idempotent
+  up/down and restoration without the replacement.
+- Existing real ledger/payment fixtures now apply the resulting **six-index**
+  production set. UUID compatibility, independent concurrent writers, exact
+  hashes/balances, append-only protections, payment/receipt totals and atomic
+  failure/outer rollback checks pass. Payment runtime code is unchanged.
+- Public page contracts/pagination pass. The fixture was brought up to date
+  with the already-existing stipend-clock read; no product clock change.
+
+```text
+docker exec -w /var/www/html -e RUN_SIM_INDEX_PG_TESTS=1 fc_app php vendor/bin/phpunit tests/Feature/LedgerAccountIndexRetirementTest.php tests/Feature/TrainingLedgerPerformanceTest.php tests/Feature/Phase10PerformanceTest.php tests/Unit/PublicFinanceDirectoryTest.php
+```
+
+### Completed developer handoff
+
+1. Capture fresh Phase 10 throughput, paid scopes/receipts, new ledger rows,
+   payment timers and relevant buffer-read deltas at unchanged concurrency.
+2. Pull the pushed revision and apply **only** the migration above using
+   `php artisan migrate --force --path=database/migrations/2026_09_20_090000_retire_duplicate_ledger_account_index.php`
+   in the app container. Use one deployment owner. The concurrent migration can
+   run while the simulation continues. No halt, Horizon/scheduler refresh,
+   frontend build, PostgreSQL restart, Redis or sizing change is required.
+3. Verify only the narrow index disappeared and the wider index remains valid,
+   ready and live. Exclude the DDL/wait interval from comparisons. Capture fresh
+   public-history plans plus representative account-only external readers, if
+   any, before/after. Do not claim an unseen reader cannot regress.
+4. Compare several settled windows, normalize read counters by inserted ledger
+   rows, and repeat bounded changed-wallet/receipt/hash/link checks. Timers
+   overlap; do not add lock waiting to its enclosing payment time.
+5. If rollback is needed and this isolated migration is the latest batch, use
+   `php artisan migrate:rollback --force --path=database/migrations/2026_09_20_090000_retire_duplicate_ledger_account_index.php`.
+   Check migration history first; do not roll back unrelated later changes.
+   A failed recreation can be retried. Budget space and a finite execution
+   window for its concurrent rebuild. If Phase 10 finishes, report that a live
+   phase comparison is unavailable instead of replaying paid scopes.
+
+The operator additionally asked whether transactions can be grouped across
+jurisdictions, analogous to earlier court batching. The current minted payment
+already groups its recipients and holds one outer transaction for mint plus
+disbursement; the second lock acquisition is reentrant. A single hash chain
+still needs ordered appends, but a bounded multi-scope append/commit may amortize
+costs. **No cross-scope batching is included here.** Use the next completed
+benchmark to assess the remaining posting, wallet and commit costs, plus
+per-scope authority, receipt and retry/rollback requirements, before recommending
+that change. Do not infer a large gain from removing a roughly 2 ms commit alone.
+
+Return one completed deployment/benchmark and next bounded recommendation for
+manual relay. Older D003/D004/D006 work and the independent Claude loop stay
+separate. No remote actions or direct cross-task messages were performed here.
 
 ## D008 response: new ledger ID locality and Phase 10 payment timings — 2026-09-20
 

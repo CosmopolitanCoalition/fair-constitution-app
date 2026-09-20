@@ -18371,6 +18371,46 @@
         {
           "date": "2026-09-20",
           "note": "32 tests / 1,868 assertions passed: 28 guarded PostgreSQL tests / 1,839 assertions plus four database-free ledger source/direction checks / 29 assertions. Fixtures use all seven production ledger indexes, 10,000 historical UUIDv4 rows, 500 new UUIDv7 rows, exact fixed-payload hashes, native UUID ordering/serialization/validation, clock rollback and independent concurrent writers. Amounts, wallet/receipt totals, append-only protections, failure after mint/credit/receipt writes, outer rollback and owned-commit timer boundaries pass. No local world writes or remote operations. Production speedup awaits fresh Phase 10 comparison; 73/13 lane-ratio projections do not model the serialized ledger section."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D009 confirms 07fb6b0b deployed: 133,613 to 153,382 scopes/hour (+14.80%); primary-key buffer reads per inserted ledger row fell 99.80%. Reconciliation passed for 412 actually changed wallets and their receipts, 30 disbursements and distinct issuance/payment groups, plus sampled historical IDs and chain hashes. Sequential live windows are not a randomized replay."
+        }
+      ]
+    },
+    {
+      "id": "W-0479",
+      "title": "Retire duplicate ledger account-index writes with guarded concurrent recovery",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Reader/index dependencies audited, guarded concurrent retirement and restoration pass, six-index ledger/payment regressions pass, and completed handoff is pushed.",
+      "detail": "D009 additive migration removes only the old non-unique (account_type, account_id) index after verifying the retained four-key history index. Exact-definition/dependency checks, single-session ownership, bounded execution and concurrent interruption recovery preserve the live payment path. Actual public-history results/plans remain unchanged. Hypothetical full treasury account-only totals use 36.5% more buffer accesses in the private fixture; no such reader was found in tracked application code. External reporting must be measured. No additional live throughput gain claimed. Cross-scope payment batching is an operator question for the next completed benchmark, not implemented here.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "D009, 2026-09-20",
+          "title": "Phase 10 duplicate account-index maintenance assessment",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "database/migrations/2026_09_20_090000_retire_duplicate_ledger_account_index.php",
+        "tests/Feature/LedgerAccountIndexRetirementTest.php",
+        "tests/Support/UsesProductionLedgerIndexes.php",
+        "tests/Feature/TrainingLedgerPerformanceTest.php",
+        "tests/Feature/Phase10PerformanceTest.php",
+        "tests/Unit/PublicFinanceDirectoryTest.php",
+        "docs/operations/step5-benchmarks/D009.md",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "44 tests / 2,365 assertions passed in guarded nonce PostgreSQL and private SQLite fixtures. Covered 60,000-row hot/sparse/mixed-currency read plans/results, actual public history, unexpected definitions/dependencies, missing/invalid replacement, competing owner, open transaction refusal, lock/execution timeout cleanup, interrupted drop/rebuild recovery and idempotent restoration. Existing exact ledger hash, concurrent writer, wallet/receipt, append-only and rollback tests now run against the resulting six-index production set. Fixture-only stipend clock table added for existing full-page contract. No local world or remote operations."
         }
       ]
     }

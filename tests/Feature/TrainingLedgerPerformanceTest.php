@@ -24,6 +24,8 @@ use Tests\TestCase;
 /** Real ledger DDL and services; all writes are in a guarded nonce database. */
 class TrainingLedgerPerformanceTest extends TestCase
 {
+    use \Tests\Support\UsesProductionLedgerIndexes;
+
     private ?string $fixture = null;
     private string $original;
     private array $children = [];
@@ -56,14 +58,7 @@ class TrainingLedgerPerformanceTest extends TestCase
         DB::statement("SET lock_timeout = '10s'");
         DB::statement("SET statement_timeout = '15s'");
         (require base_path('database/migrations/2026_07_25_000002_create_ledger_plane.php'))->up();
-        // Keep the live ledger's two later seek indexes as well as its five
-        // original indexes. Read the definitions rather than inventing a model.
-        $historyIndexes = require base_path('database/migrations/2026_09_13_050000_public_finance_history_indexes.php');
-        foreach ((new \ReflectionClass($historyIndexes))->getConstant('INDEXES') as $name => [$table, $columns]) {
-            if ($table === 'ledger_entries') {
-                DB::statement('CREATE INDEX '.$name.' ON '.$table.' ('.$columns.')');
-            }
-        }
+        $this->installLedgerHistoryIndexes();
         DB::statement('CREATE TABLE jurisdictions (id uuid PRIMARY KEY, parent_id uuid, deleted_at timestamptz)');
         DB::statement('CREATE TABLE economic_accounts (id uuid PRIMARY KEY, currency_id uuid, balance numeric(24,6) NOT NULL DEFAULT 0, updated_at timestamptz, deleted_at timestamptz)');
         DB::statement('CREATE TABLE issuance_events (id uuid PRIMARY KEY, currency_id uuid, direction text, amount numeric(24,6), reason text, act_id uuid, entry_group uuid, created_at timestamptz)');
@@ -151,7 +146,7 @@ class TrainingLedgerPerformanceTest extends TestCase
         $this->assertSame([7], array_values(array_unique(array_map(fn ($id) => Uuid::fromString($id)->getFields()->getVersion(), $ids))));
         $this->assertSame($ids, DB::table('ledger_entries')->where('entry_group', $group)->orderBy('id')->pluck('id')->all());
         $this->assertSame($legacySample, DB::table('ledger_entries')->orderBy('seq')->limit(10)->get()->toJson());
-        $this->assertSame(7, DB::table('pg_indexes')->where('schemaname', 'public')->where('tablename', 'ledger_entries')->count());
+        $this->assertSame(6, DB::table('pg_indexes')->where('schemaname', 'public')->where('tablename', 'ledger_entries')->count());
         $this->assertBalances('9994.5', '5.5');
         $this->assertTrue(app(LedgerService::class)->verifyChain());
         foreach ([$legacyHead->id, $ids[0]] as $id) {
