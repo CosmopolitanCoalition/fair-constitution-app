@@ -12,6 +12,7 @@ use App\Services\Demo\Stages\SeatingStage;
 use App\Services\Demo\Stages\TrainingStage;
 use App\Services\Demo\Stages\IdentityStage;
 use App\Services\AuditService;
+use App\Services\Demo\SimStipendBatch;
 use App\Support\SimClaims;
 use App\Support\SimTimer;
 use App\Support\SimWorldCounters;
@@ -30,7 +31,7 @@ use Illuminate\Support\Str;
 /**
  * A simulated-world PULL WORKER.
  *
- * Claims ONE unit at a time and executes it, in a loop, until the run stops
+ * Claims one ordinary unit or up to four stipend scopes and executes it until the run stops
  * handing out work or its budget expires. Process count IS concurrency — there
  * is no second width dial, exactly as `HostCapacity`'s docblock says of the
  * autoscale pool.
@@ -151,13 +152,21 @@ class SimWorkerJob implements ShouldQueue
 
                 // Housekeeping between items (run refresh, reporting, timer
                 // flush). Acquisition is timed SEPARATELY below.
+                $batchItems = [];
+                $batchPhase = $run->phase === 'stipends';
                 if ($prevEnd !== null) {
-                    SimTimer::record('lane.between_claims', (int) round((hrtime(true) - $prevEnd) / 1000));
+                    SimTimer::record($batchPhase ? 'stipend_batch.between_claims' : 'lane.between_claims', (int) round((hrtime(true) - $prevEnd) / 1000));
                 }
-
-                SimTimer::open('lane.claim_next');
-                $item = SimClaims::next($run, $token);
-                SimTimer::close('lane.claim_next');
+                $claimPart = $batchPhase ? 'stipend_batch.claim' : 'lane.claim_next';
+                SimTimer::open($claimPart);
+                try {
+                    if ($batchPhase) {
+                        $batchItems = SimClaims::stipendBatch($run, $token, SimStipendBatch::capacity());
+                        $item = $batchItems[0] ?? null;
+                    } else {
+                        $item = SimClaims::next($run, $token);
+                    }
+                } finally { SimTimer::close($claimPart); }
 
                 if ($item === null) {
                     $this->updateLease($token, [
@@ -179,10 +188,30 @@ class SimWorkerJob implements ShouldQueue
 
                 $this->updateLease($token, [
                     'claim_type' => $item->kind,
-                    'claim_label' => $this->label($item),
+                    'claim_label' => $batchPhase ? 'stipend batch · '.count($batchItems).' scopes' : $this->label($item),
                     'claim_started_at' => now(),
                     ...$this->activityFields('executing'),
                 ]);
+
+                if ($batchPhase) {
+                    // The batch owns both money and DONE; never run the generic
+                    // settlement/error path afterward or it could overwrite a
+                    // committed/fenced item following a lost acknowledgement.
+                    $result = app(SimStipendBatch::class)->run($run, $batchItems, $token,
+                        fn () => $this->touch($token), fn () => ! $this->stopping);
+                    $failures = $result['review'] > 0 ? $failures + 1 : 0;
+                    $claimsSinceFlush += $result['done'] + $result['review'];
+                    if ($claimsSinceFlush >= 25) {
+                        SimTimer::flush((string) $run->id);
+                        $claimsSinceFlush = 0;
+                    }
+                    SimTimer::record('lane.stipend_batch_total', (int) ((hrtime(true) - $itemStarted) / 1000));
+                    $prevEnd = hrtime(true);
+                    if (($result['released'] > 0 && $result['review'] === 0) || $failures >= self::MAX_CONSECUTIVE_FAILURES) {
+                        break; // halt, ownership loss or bounded retry; never spin on a failing batch
+                    }
+                    continue;
+                }
 
                 // Per-stage timing: `stage.<kind>` is the whole execute for that
                 // stage, so the page shows which stage owns the run's time.

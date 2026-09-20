@@ -81,7 +81,8 @@ class LedgerService
 
         $entryGroup = (string) Str::uuid();
         $timerPrefix = SimTimer::isOpen('stage.training_scope') ? 'training'
-            : (SimTimer::isOpen('stage.stipend_scope') ? 'stipend' : null);
+            : (SimTimer::isOpen('stage.stipend_batch') ? 'stipend_batch'
+                : (SimTimer::isOpen('stage.stipend_scope') ? 'stipend' : null));
         // These bytes and identifiers do not depend on the chain head. Prepare
         // them before joining the global append queue, not while holding it.
         $rows = [];

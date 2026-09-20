@@ -1046,6 +1046,7 @@
   "worker_activity.recent_heading": "Recent worker timings",
   "worker_activity.recent_note": "Average time per reported operation over the latest available window, up to 60 seconds. Counters arrive in batches. A quick execution can finish between dashboard polls.",
   "worker_activity.samples": "{count} samples over {seconds}s",
+  "worker_activity.batch_note": "Stipend timings are per batch of up to four jurisdictions, including partial batches. They are not timings per jurisdiction.",
   "worker_activity.measuring": "Collecting a recent sample…",
   "worker_activity.sampled": "Timings sampled at {time}",
   "worker_activity.all_run_details": "Cumulative averages and totals for the entire run",

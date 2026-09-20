@@ -26,7 +26,7 @@ class Phase10PerformanceTest extends TestCase
 
     private ?string $fixture = null;
     private string $original;
-    private Currency $currency;
+    protected Currency $currency;
 
     protected function setUp(): void
     {
@@ -105,7 +105,7 @@ class Phase10PerformanceTest extends TestCase
         parent::tearDown();
     }
 
-    private function id(int $value): string
+    protected function id(int $value): string
     {
         return sprintf('10000000-0000-4000-8000-%012d', $value);
     }
@@ -117,7 +117,7 @@ class Phase10PerformanceTest extends TestCase
         }
     }
 
-    private function service(): SimEconomyService
+    protected function service(): SimEconomyService
     {
         // Currency provisioning is unchanged and outside these per-scope tests.
         $sim = $this->getMockBuilder(SimEconomyService::class)
@@ -129,7 +129,7 @@ class Phase10PerformanceTest extends TestCase
         return $sim;
     }
 
-    private function resident(int $number, array $residency = [], array $account = [], string $owner = 'users', ?string $email = null): string
+    protected function resident(int $number, array $residency = [], array $account = [], string $owner = 'users', ?string $email = null): string
     {
         $user = $this->id(1000 + $number);
         $wallet = $this->id(2000 + $number);
@@ -143,13 +143,13 @@ class Phase10PerformanceTest extends TestCase
         return $wallet;
     }
 
-    private function member(int $number, string $status = 'seated', int $legislature = 30, bool $deleted = false): void
+    protected function member(int $number, string $status = 'seated', int $legislature = 30, bool $deleted = false): void
     {
         DB::table('legislature_members')->insert(['legislature_id' => $this->id($legislature),
             'user_id' => $this->id(1000 + $number), 'status' => $status, 'deleted_at' => $deleted ? now() : null]);
     }
 
-    private function settings(int $jurisdiction, array $settings): void
+    protected function settings(int $jurisdiction, array $settings): void
     {
         DB::table('constitutional_settings')->insert(['jurisdiction_id' => $this->id($jurisdiction)] + $settings);
     }

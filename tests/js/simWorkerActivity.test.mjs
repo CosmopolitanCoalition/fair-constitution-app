@@ -57,6 +57,27 @@ test('first samples and zero new work never render a zero-millisecond average', 
     assert.equal(cards[1].window_seconds, 60);
 });
 
+const batchRows = [
+    ...rows,
+    { part: 'stipend_batch.claim', recent_count: 2, recent_total_us: 4000, window_seconds: 60 },
+    { part: 'stage.stipend_batch', recent_count: 2, recent_total_us: 800000, window_seconds: 60 },
+    { part: 'stipend_batch.between_claims', recent_count: 2, recent_total_us: 6000, window_seconds: 60 },
+    { part: 'stipend_batch.payment', recent_count: 5, recent_total_us: 500000, window_seconds: 60 },
+];
+test('stipend batch samples do not mix with previous per-scope or nested timings', () => {
+    const cards = activity.recentTimingCards(batchRows);
+    assert.deepEqual(cards.map(card => card.avg_ms), [2, 400, 3]);
+    assert.deepEqual(cards.map(card => card.count), [2, 2, 2]);
+    assert.ok(cards.every(card => card.batched));
+});
+
+test('batch summary identifies units including partial batches', async () => {
+    const html = await render('Components/Progress/SimTimingSummary.vue', { timings: batchRows });
+    assert.match(html, /per batch of up to four jurisdictions/);
+    assert.match(html, /400 ms/);
+    assert.doesNotMatch(html, /273 ms/);
+});
+
 async function render(relative, props) {
     const context = vm.createContext({ URLSearchParams, console, Date, setInterval: () => 0, clearInterval: () => {} });
     const source = await readFile(new URL(relative, base), 'utf8');

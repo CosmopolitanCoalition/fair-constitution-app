@@ -15,6 +15,7 @@ const sampledAt = computed(() => props.timings.find(row => row.sampled_at)?.samp
     <section class="rounded-lg border border-gray-700/50 bg-gray-900/30 p-4 mb-4">
         <h2 class="text-sm font-semibold text-white">{{ t('c_setup.worker_activity.recent_heading') }}</h2>
         <p class="text-xs text-gray-400 mt-1">{{ t('c_setup.worker_activity.recent_note') }}</p>
+        <p v-if="cards.some(card => card.batched)" class="text-xs text-gray-400 mt-1">{{ t('c_setup.worker_activity.batch_note') }}</p>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
             <div v-for="card in cards" :key="card.key">
                 <div class="text-xs text-gray-400">{{ t(`c_setup.worker_activity.${card.key}`) }}</div>

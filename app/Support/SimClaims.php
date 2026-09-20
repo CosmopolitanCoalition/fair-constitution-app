@@ -90,6 +90,28 @@ final class SimClaims
         return null;
     }
 
+    /** Step 5 stipend micro-batch; a live SQL gate also rejects a stale run model. */
+    public static function stipendBatch(SimRun $run, string $token, int $limit): array
+    {
+        if (! $run->isClaimable() || $run->phase !== 'stipends') {
+            return [];
+        }
+        $limit = max(1, min(4, $limit));
+        $rows = DB::select("UPDATE sim_items s
+            SET status='running', claim_token=?, started_at=COALESCE(s.started_at,now()), updated_at=now()
+            WHERE s.id IN (
+                SELECT q.id FROM sim_items q
+                WHERE q.run_id=? AND q.kind='stipend_scope' AND q.status='pending'
+                  AND EXISTS (SELECT 1 FROM sim_runs r WHERE r.id=q.run_id AND r.status='running'
+                    AND r.phase='stipends' AND r.halt_requested_at IS NULL
+                    AND (r.paused_until IS NULL OR r.paused_until<=now()))
+                ORDER BY q.position, q.id LIMIT {$limit} FOR UPDATE OF q SKIP LOCKED
+            ) AND s.status='pending'
+            RETURNING s.id, s.kind, s.jurisdiction_id, s.legislature_id, s.race_id, s.adm_level, s.position", [$token, $run->id]);
+        usort($rows, static fn ($a, $b) => [$a->position, $a->id] <=> [$b->position, $b->id]);
+        return $rows;
+    }
+
     /** Live claimants currently holding a network-lane item. */
     private static function networkLaneHasRoom(SimRun $run): bool
     {

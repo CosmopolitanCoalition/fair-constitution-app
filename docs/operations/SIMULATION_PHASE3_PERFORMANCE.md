@@ -30,15 +30,158 @@ manually; do not send messages directly to the other task.
   proof of delivery; never resend or launch a second exchange just because
   context was compacted.
 
-Current exchange: **D009 received; its duplicate ledger account-index assessment
-and guarded retirement are the current developer handoff below**. D009 confirms
-`07fb6b0b` deployed and benchmarked in Phase 10. The final developer response
-supplies the pushed revision containing this section. Deploy and Benchmark owns
-deployment and the next completed comparison. No direct cross-task messages or
-remote actions. Do not infer a later deployment or current phase from elapsed time.
-D003/D004 nomination/payment candidates and D006's surviving population-scan
-rewrite remain separate. D003's old shutdown paragraph remains superseded by the
-established bounded halt/drain/refresh procedure.
+Current exchange: **D010 received; bounded, atomic Step 5 stipend batching is
+implemented and internally tested in the completed handoff below**. D010 confirms
+`1012a27e` deployed. The final developer response supplies the pushed revision
+containing this section. Deploy and Benchmark owns deployment and the next
+completed comparison. No direct cross-task messages or remote actions. Do not
+infer a later deployment or current phase from elapsed time. Older nomination,
+population-sweep and infrastructure candidates remain separate.
+
+## D010 response: bounded atomic stipend batches — 2026-09-20
+
+### Received evidence and baseline
+
+The complete [D010 report](step5-benchmarks/D010.md) is committed. The duplicate
+index retirement remains justified: six surviving indexes are healthy, sampled
+payments reconcile, and throughput reached **397,433 scopes/hour**. Compared with
+the final pre-migration minute, the observed improvement was **2.08–2.13×**. The
+full baseline overlapped autovacuum; attributing its entire 2.45× ratio to the
+migration would overstate the evidence.
+
+The operator subsequently relayed a newer, unchanged-code benchmark ending
+**09:43 UTC**: **504,728/hour over ten minutes**, **503,782/hour over five**, and
+**520,042/hour over one**; full-item time approximately **521 ms**, 73 healthy
+workers, zero review. At that endpoint 462,026/903,500 scopes were complete.
+This increase predates batching and must not be credited to this patch. Capture
+a fresh baseline immediately before deployment; neither earlier rate is a fixed
+counterfactual for a changing live run.
+
+### What changes
+
+`SimWorkerJob` now claims **one to four Phase 10 scopes** in queue order using
+`FOR UPDATE SKIP LOCKED`. The maximum falls with the worker's existing memory
+headroom (8 MiB reserve per prepared scope, capped at four); the existing
+25-wallet sample is unchanged, so a batch prepares at most 100 wallet entries.
+There is no worker-count change or new parallel ledger writer.
+
+`SimStipendBatch` prepares each jurisdiction's recipients, roles, settings and
+amounts before acquiring the global ledger append lock. One owned transaction
+then fences every item by run, token and running status, checks the worker lease,
+acquires the existing append lock once, pays each scope, and writes all DONE
+records and metrics before committing. LedgerService remains the sole ledger
+writer. Its per-post lock calls reenter the same transaction lock; distinct
+issuance/payment groups, receipts and canonical chain order remain intact.
+
+- Ordinary `StipendService::run()` and direct single-scope calls retain their
+  fresh-disbursement contract. Only the Step 5 worker uses atomic batches.
+- Issuance authority still runs through the real service. Each scope retains its
+  settings, role bumps, amount and funding source. Treasury-draw ratios are
+  calculated under append ownership against the balance left by earlier scopes;
+  zero-credit/short-paid results retain the original arithmetic.
+- Payment and DONE commit together. A worker killed before commit leaves neither;
+  a worker killed after commit leaves both. Reclaim, retry and lost-acknowledgement
+  cleanup cannot reset a committed DONE row or pay it again. This closes the
+  previous worker's payment-commit/DONE gap for newly processed items.
+- A scope-specific failure rolls back the complete batch, marks only that owned
+  failing scope for review, and releases the others for retry. Ownership loss,
+  lock/transaction timeout or shutdown releases still-owned work without turning
+  it into a review item. The worker exits after a transient batch failure instead
+  of immediately spinning on it. Unreachable-database recovery leaves claims for
+  the existing lease reclaimer.
+- Live halt/pause checks reject new claims and stop prepared work before payment.
+  An already executing batch finishes or rolls back as one bounded unit.
+- The payment transaction has a **15-second maximum** (honoring a stricter
+  existing timeout), plus statement and between-scope deadline checks. PostgreSQL
+  17's transaction timeout is set before BEGIN and restored afterward; connection
+  loss purges the broken session. No global PostgreSQL setting changes. See
+  [PostgreSQL transaction timeout](https://www.postgresql.org/docs/17/runtime-config-client.html#GUC-TRANSACTION-TIMEOUT).
+
+This does not combine jurisdictions into one anonymous payment, rewrite chain
+history, change eligibility, or merge separate ledger posting meanings. The
+existing queue retains one item and outcome per jurisdiction.
+
+### Internal validation and actual reduction
+
+**46 PHP tests / 2,162 assertions and 10 JavaScript tests passed.** The PHP total
+is 42 real batching/payment/training tests (2,133 assertions), plus four
+DB-free ledger writer/direction guards (29 assertions). PostgreSQL writes used
+guarded disposable nonce databases. No local world or remote state was changed.
+
+Coverage includes:
+
+- Four, partial and final batches; real worker execution, queue ordering, live
+  halt, empty eligible sample, memory cap, token takeover and concurrent batches
+  from independently booted PHP processes.
+- Minted and treasury-draw funding, distinct jurisdiction amounts/roles, depleted
+  balances, exact fixed-ID ledger hashes/receipts/balances versus the original
+  path, existing eligibility/authority and all training-ledger regressions.
+- Failure after mint, wallet credit and receipt insertion; transaction timeout;
+  failure immediately before commit and a lost commit acknowledgement; actual
+  SIGKILL before/after commit followed by the real pump reclaimer. No duplicate
+  payment after successful commit. Timer scopes close on failure.
+- Timing display excludes old per-item and nested timings from batch averages
+  and explicitly labels batches, including partial ones.
+
+The four-scope fixture measured **four payment commits → one**, with **eight
+nested savepoints → eight**. It does not add a per-scope stipend savepoint.
+SQL calls increased **61 → 65** including ownership and timeout checks; this is
+not a query-count reduction claim. The comparator includes ordinary payments
+and separate item updates, excludes claims/lease traffic, and uses warm settings
+on the same local fixture. Posting counts are unchanged. **No production batching
+speedup is measured or promised**; commit amortization, fewer contended ownership
+acquisitions and grouped DONE writes must justify their added checks on the box.
+
+```text
+docker exec -w /var/www/html -e RUN_SIM_INDEX_PG_TESTS=1 fc_app php vendor/bin/phpunit tests/Feature/StipendBatchTest.php tests/Feature/TrainingLedgerPerformanceTest.php
+docker exec -w /var/www/html fc_app php vendor/bin/phpunit tests/Constitutional/LedgerIntegrityTest.php --filter 'test_ledger_service_is_the_only_writer|test_the_write_scan_flags_every_write_shape|test_the_write_scan_passes_every_lawful_shape|test_direction_constants_are_pinned'
+docker exec -w /var/www/html fc_vite node --experimental-vm-modules --test tests/js/simWorkerActivity.test.mjs
+```
+
+### Completed deployment and measurement handoff
+
+1. If Phase 10 is still active, capture fresh direct completion counts and payment
+   workload at unchanged concurrency. Keep the newer ~505,000/hour observation
+   separate from this immediate baseline.
+2. Build the small timing-label frontend change in the established **isolated
+   asset build** environment. Do not build on the loaded Windows development box.
+   Request a bounded halt, drain leases/running items, pull the pushed revision,
+   refresh **Horizon** and deploy the assets, then resume the same run. No migration,
+   scheduler refresh, PostgreSQL restart, Redis recreation or sizing change.
+   Preserve local configuration. Do not mix old and new stipend workers.
+3. Existing DONE rows and all previous payments remain untouched. This patch does
+   not identify or repay any historic paid-but-unsettled item. Draining old workers
+   before refresh avoids introducing that old gap during deployment.
+4. Exclude startup/drain intervals. Compare several settled windows using direct
+   done scopes/hour, actual paid scopes/hour, wallets and ledger rows per scope,
+   batch sizes, review/released claims and lease health. Reconcile a pre-captured
+   bounded set of changed wallets, their receipts, disbursements, issuance groups
+   and ledger hashes/links. Never replay paid scopes to obtain a benchmark.
+5. New timer units below replace the old Phase 10 per-item counters; historical
+   counters remain. Durations overlap and must not be summed. No straight
+   comparison of an old per-scope mean against a new per-batch mean.
+6. If Phase 10 finishes first, retain regression evidence and report the absence
+   of a live batching comparison. Continue the already-established Phase 11
+   assessment; do not reset the world. Leave the independent Claude loop alone.
+   A code rollback likewise requires draining before refreshing workers; preserve
+   all DONE and payment records.
+
+| New counter/timer | Unit and interpretation |
+|---|---|
+| `lane.stipend_batch_total` | One worker batch iteration: refresh/reporting, claim, prepare, transaction through commit, timing flush when due. |
+| `stipend_batch.claim`, `.between_claims` | One claim attempt / housekeeping interval. An empty final claim is possible. |
+| `stage.stipend_batch` | One batch attempt, including preparation, transaction and recovery. |
+| `stipend_batch.prepare`, `.transaction`, `.append_wait`, `.settle`, `.commit` | One batch; transaction includes append waiting, payments, DONE settlement and durable commit. Commit is the owned outer commit, never a savepoint release. |
+| `stipend_batch.payment` | One scope execution inside the batch; excludes outer commit and preceding append wait. |
+| `stipend_batch.ledger_lock_wait`, `.ledger_locked_post` | One ledger posting; lock calls reenter existing batch ownership. Main queue wait is `.append_wait`. |
+| `stipend_batch.recipients`, `.office_holders`, `.settings`, `.wallet_balances`, `.receipts` | Existing nested operations, now with a distinct batch-path prefix. |
+| `stipend_batch.scopes` | Zero-duration count of successfully committed DONE scopes, including eligible-empty skips. |
+| `stipend_batch.paid_scopes`, `.wallets` | Zero-duration counts of scopes with positive wallet credits / credited wallet entries; excludes zero-credit draws. |
+
+For per-scope or per-wallet cost, divide timer delta totals by the corresponding
+committed-scope/wallet counts, not by unrelated nested invocation counts. Crash
+windows can lose in-memory counters even when DONE/payment committed; use direct
+completion counts for throughput and report batched counter-flush uncertainty.
 
 ## D009 response: retire redundant account-index writes — 2026-09-20
 

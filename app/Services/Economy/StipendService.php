@@ -86,6 +86,17 @@ class StipendService
         array $recipients,
         string $treasuryAccountId,
     ): array {
+        return ($this->prepare($jurisdictionId, $currency, $recipients, $treasuryAccountId, false))();
+    }
+
+    /** Step 5 only: prepare policy/amounts before its fenced outer transaction. */
+    public function prepareForBatch(string $jurisdictionId, Currency $currency, array $recipients, string $treasuryAccountId): \Closure
+    {
+        return $this->prepare($jurisdictionId, $currency, $recipients, $treasuryAccountId, true);
+    }
+
+    private function prepare(string $jurisdictionId, Currency $currency, array $recipients, string $treasuryAccountId, bool $joinTransaction): \Closure
+    {
         if (! $this->enabled($jurisdictionId)) {
             throw new RuntimeException('The civic stipend is disabled for this jurisdiction.');
         }
@@ -115,107 +126,117 @@ class StipendService
 
         // 2. Funding, and the short-pay ratio if the treasury cannot cover it.
         $source = $this->settings->resolve($jurisdictionId, 'stipend_funding_source') ?? 'minted';
-        $ratio  = '1';
-        $shortPaid = false;
-
-        if ($source === 'treasury_draw') {
-            $available = (string) (DB::table('treasury_accounts')->where('id', $treasuryAccountId)->value('balance') ?? '0');
-
-            if (bccomp($available, $gross, 6) === -1) {
-                $shortPaid = true;
-                $ratio = bccomp($gross, '0', 6) === 1 ? bcdiv($available, $gross, 6) : '0';
+        return function () use ($jurisdictionId, $currency, $lines, $gross, $source, $treasuryAccountId, $joinTransaction): array {
+            if ($joinTransaction && DB::transactionLevel() === 0) {
+                throw new \LogicException('A prepared batch payment requires its owning transaction.');
             }
-        }
+            // Balance-dependent funding stays in execution. The batch takes ledger
+            // ownership first, so each scope sees preceding scope debits/credits.
+            $ratio  = '1';
+            $shortPaid = false;
 
-        $timed = SimTimer::isOpen('stage.stipend_scope');
-        $ownsTransaction = DB::transactionLevel() === 0;
-        $write = function () use (
-            $jurisdictionId, $currency, $lines, $gross, $source, $ratio, $shortPaid, $treasuryAccountId, $timed, $ownsTransaction
-        ) {
-            // 3. Apply the ratio and compute what is actually paid.
-            $net = '0';
-            foreach ($lines as $i => $line) {
-                $paid = $shortPaid ? bcmul($line['amount'], $ratio, 6) : $line['amount'];
-                $lines[$i]['paid'] = $paid;
-                $net = bcadd($net, $paid, 6);
+            if ($source === 'treasury_draw') {
+                $available = (string) (DB::table('treasury_accounts')->where('id', $treasuryAccountId)->value('balance') ?? '0');
+
+                if (bccomp($available, $gross, 6) === -1) {
+                    $shortPaid = true;
+                    $ratio = bccomp($gross, '0', 6) === 1 ? bcdiv($available, $gross, 6) : '0';
+                }
             }
 
-            // 4. Fund the run.
-            if ($source === 'minted') {
-                $this->issuance->mint($currency, $treasuryAccountId, $net, 'civic stipend run');
-            }
-
-            $disbursementId = (string) Str::uuid();
-            DB::table('ubi_disbursements')->insert([
-                'id'              => $disbursementId,
-                'jurisdiction_id' => $jurisdictionId,
-                'currency_id'     => $currency->id,
-                'ran_at'          => now(),
-                'recipients'      => count($lines),
-                'total'           => $net,
-                'funding_source'  => $source,
-                'short_paid'      => $shortPaid,
-                'short_pay_ratio' => $shortPaid ? $ratio : null,
-                'created_at'      => now(),
-            ]);
-
-            // 5. Pay every recipient from the treasury and write the private
-            // lines — BATCHED (2026-09-07). One creditManyFromTreasury (a single
-            // ledger post + grouped balances) and one bulk receipt insert, in
-            // place of a ledger post + insert PER recipient. This is what stops
-            // the stipend from being an O(recipients) serial grind on the
-            // hash-chained ledger's global lock.
-            $now = now();
-            $credits = [];
-            $receipts = [];
-            foreach ($lines as $line) {
-                if (bccomp($line['paid'], '0', 6) !== 1) {
-                    continue;
+            $timerPrefix = SimTimer::isOpen('stage.stipend_batch') ? 'stipend_batch'
+                : (SimTimer::isOpen('stage.stipend_scope') ? 'stipend' : null);
+            $timed = $timerPrefix !== null;
+            $ownsTransaction = DB::transactionLevel() === 0;
+            $write = function () use (
+                $jurisdictionId, $currency, $lines, $gross, $source, $ratio, $shortPaid, $treasuryAccountId, $timed, $ownsTransaction, $timerPrefix, $joinTransaction
+            ) {
+                // 3. Apply the ratio and compute what is actually paid.
+                $net = '0';
+                foreach ($lines as $i => $line) {
+                    $paid = $shortPaid ? bcmul($line['amount'], $ratio, 6) : $line['amount'];
+                    $lines[$i]['paid'] = $paid;
+                    $net = bcadd($net, $paid, 6);
                 }
 
-                $credits[] = ['account_id' => $line['account_id'], 'amount' => $line['paid']];
-                $receipts[] = [
-                    'id'              => (string) Str::uuid(),
+                // 4. Fund the run.
+                if ($source === 'minted') {
+                    $this->issuance->mint($currency, $treasuryAccountId, $net, 'civic stipend run');
+                }
+
+                $disbursementId = (string) Str::uuid();
+                DB::table('ubi_disbursements')->insert([
+                    'id'              => $disbursementId,
+                    'jurisdiction_id' => $jurisdictionId,
+                    'currency_id'     => $currency->id,
+                    'ran_at'          => now(),
+                    'recipients'      => count($lines),
+                    'total'           => $net,
+                    'funding_source'  => $source,
+                    'short_paid'      => $shortPaid,
+                    'short_pay_ratio' => $shortPaid ? $ratio : null,
+                    'created_at'      => now(),
+                ]);
+
+                // 5. Pay every recipient from the treasury and write the private
+                // lines — BATCHED (2026-09-07). One creditManyFromTreasury (a single
+                // ledger post + grouped balances) and one bulk receipt insert, in
+                // place of a ledger post + insert PER recipient. This is what stops
+                // the stipend from being an O(recipients) serial grind on the
+                // hash-chained ledger's global lock.
+                $now = now();
+                $credits = [];
+                $receipts = [];
+                foreach ($lines as $line) {
+                    if (bccomp($line['paid'], '0', 6) !== 1) {
+                        continue;
+                    }
+
+                    $credits[] = ['account_id' => $line['account_id'], 'amount' => $line['paid']];
+                    $receipts[] = [
+                        'id'              => (string) Str::uuid(),
+                        'disbursement_id' => $disbursementId,
+                        'account_id'      => $line['account_id'],
+                        'base'            => $line['base'],
+                        'bump'            => $line['bump'],
+                        'amount'          => $line['paid'],
+                        'created_at'      => $now,
+                    ];
+                }
+
+                $this->accounts->creditManyFromTreasury(
+                    $treasuryAccountId,
+                    $credits,
+                    (string) $currency->id,
+                    'stipend',
+                );
+
+                if ($timed) { SimTimer::open($timerPrefix.'.receipts'); }
+                try {
+                    foreach (array_chunk($receipts, 500) as $chunk) {
+                        DB::table('ubi_receipts')->insert($chunk);
+                    }
+                } finally {
+                    if ($timed) { SimTimer::close($timerPrefix.'.receipts'); }
+                }
+
+                // Measure the owned durable commit, never label a nested savepoint
+                // release as a commit. The enclosing payment timer includes it.
+                if ($timed && $ownsTransaction) { SimTimer::open($timerPrefix.'.commit'); }
+                return [
                     'disbursement_id' => $disbursementId,
-                    'account_id'      => $line['account_id'],
-                    'base'            => $line['base'],
-                    'bump'            => $line['bump'],
-                    'amount'          => $line['paid'],
-                    'created_at'      => $now,
+                    'recipients'      => count($lines),
+                    'total'           => $net,
+                    'short_paid'      => $shortPaid,
+                    ...($joinTransaction ? ['paid_wallets' => count($credits)] : []),
                 ];
-            }
-
-            $this->accounts->creditManyFromTreasury(
-                $treasuryAccountId,
-                $credits,
-                (string) $currency->id,
-                'stipend',
-            );
-
-            if ($timed) { SimTimer::open('stipend.receipts'); }
+            };
             try {
-                foreach (array_chunk($receipts, 500) as $chunk) {
-                    DB::table('ubi_receipts')->insert($chunk);
-                }
+                return $joinTransaction ? $write() : DB::transaction($write);
             } finally {
-                if ($timed) { SimTimer::close('stipend.receipts'); }
+                if ($timed && $ownsTransaction) { SimTimer::close($timerPrefix.'.commit'); }
             }
-
-            // Measure the owned durable commit, never label a nested savepoint
-            // release as a commit. The enclosing payment timer includes it.
-            if ($timed && $ownsTransaction) { SimTimer::open('stipend.commit'); }
-            return [
-                'disbursement_id' => $disbursementId,
-                'recipients'      => count($lines),
-                'total'           => $net,
-                'short_paid'      => $shortPaid,
-            ];
         };
-        try {
-            return DB::transaction($write);
-        } finally {
-            if ($timed && $ownsTransaction) { SimTimer::close('stipend.commit'); }
-        }
     }
 
     /**

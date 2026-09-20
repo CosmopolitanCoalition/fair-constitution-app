@@ -9,13 +9,12 @@ use App\Support\SimTimer;
  * The STIPEND stage (W7 item 8) — the civic stipend for one jurisdiction's
  * residents, through the real StipendService (F-TRE-004).
  *
- * PER-JURISDICTION IS THE CHUNK (THE ETL RULE). The demo command runs the whole
- * root in one transaction; the sim runs one bounded jurisdiction at a time, so a
- * kill costs one scope, not the pass. Eligibility is the hardened gate — active
- * residency and nothing else (Art. I). Idempotent enough for the pull engine: a
- * re-handed item writes a fresh disbursement, which the demo tolerates (the
- * ledger is append-only and every credit is real); the run is the operator's
- * trigger, and sim:revert clears the layer for a clean re-run.
+ * The demo command runs the whole root in one transaction; Step 5 prepares
+ * per-jurisdiction work and commits at most four scopes together, so a
+ * kill costs a bounded scope group, not the pass. Eligibility is the hardened
+ * gate — active residency and nothing else (Art. I). SimWorkerJob now uses
+ * SimStipendBatch to commit money and fenced DONE records atomically. Direct
+ * calls to this legacy single-scope entry retain fresh-disbursement behavior.
  */
 final class StipendStage
 {

@@ -217,6 +217,13 @@ class SimEconomyService
      */
     public function runStipendFor(string $jurisdictionId, ?\Closure $beat = null): ?array
     {
+        $payment = $this->prepareStipendFor($jurisdictionId, $beat);
+        return $payment === null ? null : $this->stipendPart('payment', $payment);
+    }
+
+    /** Same sample/roles; a batch prepares these reads before append ownership. */
+    public function prepareStipendFor(string $jurisdictionId, ?\Closure $beat = null, bool $forBatch = false): ?\Closure
+    {
         $env = $this->stipendPart('currency', fn () => $this->ensureCurrency());
         $currencyId = (string) $env['currency']->id;
 
@@ -273,19 +280,21 @@ class SimEconomyService
 
         $this->stipendPart('settings', fn () => $this->stipend->warmSettingsForRun($jurisdictionId));
 
-        return $this->stipendPart('payment', fn () =>
-            $this->stipend->run($jurisdictionId, $env['currency'], $recipients, $env['treasury_id'])
-        );
+        return $forBatch
+            ? $this->stipend->prepareForBatch($jurisdictionId, $env['currency'], $recipients, $env['treasury_id'])
+            : fn () => $this->stipend->run($jurisdictionId, $env['currency'], $recipients, $env['treasury_id']);
     }
 
     /** Diagnostics only within the Step 5 stipend scope; payment includes commit. */
     private function stipendPart(string $part, callable $body): mixed
     {
-        if (! SimTimer::isOpen('stage.stipend_scope')) {
+        $prefix = SimTimer::isOpen('stage.stipend_batch') ? 'stipend_batch'
+            : (SimTimer::isOpen('stage.stipend_scope') ? 'stipend' : null);
+        if ($prefix === null) {
             return $body();
         }
 
-        $key = 'stipend.'.$part;
+        $key = $prefix.'.'.$part;
         SimTimer::open($key);
         try {
             return $body();

@@ -18411,6 +18411,47 @@
         {
           "date": "2026-09-20",
           "note": "44 tests / 2,365 assertions passed in guarded nonce PostgreSQL and private SQLite fixtures. Covered 60,000-row hot/sparse/mixed-currency read plans/results, actual public history, unexpected definitions/dependencies, missing/invalid replacement, competing owner, open transaction refusal, lock/execution timeout cleanup, interrupted drop/rebuild recovery and idempotent restoration. Existing exact ledger hash, concurrent writer, wallet/receipt, append-only and rollback tests now run against the resulting six-index production set. Fixture-only stipend clock table added for existing full-page contract. No local world or remote operations."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D010 confirms 1012a27e deployed with six surviving indexes intact and reconciled payments. Final pre minute 186,334/hour versus 386,899 first four post minutes and 397,433 combined: 2.08–2.13x, with background-maintenance limitations. Later unchanged-code benchmark ended 09:43 UTC at 504,728/hour over ten minutes. Neither gain belongs to the new batching patch."
+        }
+      ]
+    },
+    {
+      "id": "W-0480",
+      "title": "Batch Step 5 stipend payments with atomic queue completion and crash-safe reclaim",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Bounded batches preserve exact payments and chain hashes; concurrent, failure and process-death tests pass; completed handoff is pushed.",
+      "detail": "D010 response: one to four scopes, bounded by worker memory; prepare before global ledger ownership; commit payments and fenced DONE metrics in one transaction. Separate jurisdiction disbursements, roles, funding and ledger groups remain. Live halt, ownership loss and transaction timeout recover without repayment. Ordinary payment calls are unchanged. Four payment commits become one; SQL count is 61 to 65, nested savepoints remain eight. Live throughput benefit remains unmeasured.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "D010, 2026-09-20",
+          "title": "Bounded cross-scope payment batching and durability prerequisites",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Demo/SimStipendBatch.php",
+        "app/Services/Economy/StipendService.php",
+        "app/Support/SimClaims.php",
+        "app/Jobs/SimWorkerJob.php",
+        "tests/Feature/StipendBatchTest.php",
+        "tests/Support/stipend_batch_worker.php",
+        "tests/js/simWorkerActivity.test.mjs",
+        "docs/operations/step5-benchmarks/D010.md",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "46 PHP tests / 2,162 assertions and 10 JavaScript tests passed. Guarded disposable PostgreSQL fixtures cover exact canonical hashes/payments for mixed funding, unchanged eligibility, simultaneous batches, real worker, partial/final/empty batches, credit/receipt failures, timeout, lost commit acknowledgement, actual process death before/after commit with real reclaim, and training-ledger regressions. Dashboard labels batch units. No local world or remote operations. Deploy with isolated frontend asset build, bounded halt/drain and Horizon refresh; no migration, scheduler or PostgreSQL restart."
         }
       ]
     }
