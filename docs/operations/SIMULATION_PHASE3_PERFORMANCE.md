@@ -30,17 +30,107 @@ manually; do not send messages directly to the other task.
   proof of delivery; never resend or launch a second exchange just because
   context was compacted.
 
-Current exchange: **operator-authorized preparation of phases 7 through 11**.
-The operator requested one subagent per remaining phase and local implementation
-and testing while the demo finishes training. Five distinct phase agents cover
-that work, scheduled within the session's concurrency limit. The developer
-integrates their changes and returns one completed, tested, pushed handoff for
-manual relay. This is explicit authorization to prepare the remaining phases
-while the prior training patch is being deployed; it does not authorize direct
-cross-task messages or remote operations. D002 confirms remote `a77cf0b6`.
-The operator reports that the demo is deploying `1c254f92`; its completed
-benchmark has not yet been supplied. Older deployment statements below are
-historical. Do not infer deployment or performance of a new patch from its push.
+Current exchange: **D003, D004 and D005 received through the operator; D005 is
+the current priority**. D003/D004 are historical evidence. D005 confirms the
+demo is on `e8e0910c` in Phase 8. The developer completed the focused duplicate
+CLK-06 sweep fix and internal tests below; the final response supplies its
+pushed revision for manual relay. Deploy and Benchmark owns deployment and
+the next completed comparison. No direct cross-task messages or remote actions.
+Do not infer deployment of a new revision from its push. D003's old shutdown
+paragraph is superseded by the established bounded halt/drain/refresh procedure.
+
+## D005 response: serialize background population sweeps — 2026-09-20
+
+### Recorded handoffs
+
+The operator-provided reports are committed under `step5-benchmarks/` so the
+demo task can retrieve the complete evidence without a large clipboard relay.
+
+| Report | Recorded outcome and disposition |
+|---|---|
+| [D003](step5-benchmarks/D003.md) | `1c254f92` deployed; bounded ledger and 104-wallet checks passed. Scopes/hour fell 3.97% while newly trained holders/hour rose 17.65% as the workload changed. Neither establishes an attributable code regression or definitive speedup. Retain the atomic training patch. Its preparation-before-lock recommendation remains historical, unimplemented in this pass. |
+| [D004](step5-benchmarks/D004.md) | Phase 7 on `e8e0910c`: 485,446 jurisdictions/hour, 73 workers, zero review. Governor/term/clock and audit samples passed. There was no old-code Phase 7 window. The proposed per-nomination transaction remains historical, unimplemented in this pass. |
+| [D005](step5-benchmarks/D005.md) | Phase 8: 488,088 courts/hour over six minutes, then 464,246/hour over four minutes, 73 workers, zero review. Court and audit samples passed. Twenty-five application population sweeps plus 32 PostgreSQL parallel workers repeated the same scan. This pass addresses that confirmed interference first. |
+
+These source reports are historical observations, not proof of current remote
+state. The local developer did not connect to the demo to reproduce them.
+
+### Implemented and tested
+
+Only `EvaluateCriticalPopulationJob` changes runtime behavior:
+
+- Before scanning, try a PostgreSQL session advisory lock (`0x434c4b3036`,
+  CLK06). One invocation owns it per database. A competing queued invocation
+  returns immediately, without scanning, waiting for the lock or requeueing.
+  This also covers previously serialized jobs once new workers execute them.
+- The lock spans the existing sweep and its ordinary per-operation commits.
+  It has no cache TTL that can expire underneath a slow query. `finally`
+  releases it on the owning PDO; session termination releases it after a crash.
+  There is no permanent cache uniqueness key or new dispatch throttle.
+- A temporary reconnect fence makes session loss fail this invocation instead
+  of silently continuing without its lock. The connection is disposed after
+  the sweep, restoring ordinary connection behavior for subsequent jobs.
+  Direct invocation inside a caller-owned transaction is rejected before
+  acquiring the guard or changing that transaction.
+- New jobs use the existing `long-running` queue, its `redis-long` retry
+  configuration and a zero per-job timeout. The old `default` supervisor has a
+  60-second timeout, inappropriate for the observed multi-minute sweep. No
+  supervisor width or simulation-worker count changes.
+
+The scheduler still requests periodic evaluations. The existing query,
+candidate ordering, threshold resolution, liveness/deletion checks,
+activation-state checks and memberless-jurisdiction guard are unchanged.
+There is no global scan rewrite or new migration. One remaining scan can still
+be expensive because its LIMIT follows eligibility filtering and aggregation;
+measure that surviving workload after eliminating overlap before changing it.
+
+**10 tests / 108 assertions passed**, using guarded disposable PostgreSQL
+databases and the existing private SQLite autoboot fixtures. Independent child
+processes verify one owner, three constructor-less serialized duplicates with
+zero scans, lock survival across a commit, success/failure cleanup, actual
+process-death recovery, a subsequent legitimate run, reconnect rejection and
+recovery, and preservation of a caller's transaction. Candidate fixtures cover
+deleted jurisdictions, inactive residents, any undeleted membership (including
+vacated members), deleted members/legislatures, activation states and later
+threshold crossings. The real threshold and crossing service is exercised;
+the downstream boot entry point is spied rather than constructing a world.
+
+```text
+docker exec -w /var/www/html -e RUN_SIM_INDEX_PG_TESTS=1 fc_app php vendor/bin/phpunit tests/Feature/CriticalPopulationOverlapTest.php tests/Constitutional/CriticalPopulationAutobootTest.php
+```
+
+### Deployment: existing queued and running work
+
+1. Capture fresh completed Phase 8 windows if still running. Use the established
+   bounded simulation halt/drain and Horizon refresh procedure. Do not reuse
+   D003's superseded shutdown sequence. Pull the exact pushed developer commit.
+2. **Already-running old invocations do not gain this guard after a pull.**
+   Retire the old Horizon processes through that deployment procedure and
+   verify their matching CLK-06 scans have exited before evaluating the fix.
+   A disconnected backend may still be completing its old scan. Any required
+   cleanup belongs to the demo operator and must identify the specific old
+   application sessions, not indiscriminately cancel other jobs or queries.
+   Do not leave an old unguarded sweep running alongside a new guarded one.
+3. Queued old payloads need no queue purge: the current handler guards them at
+   execution. They retain their old queue/envelope settings until consumed.
+   Later scheduled jobs use the existing long-running lane. Its normal retry
+   interval is unchanged. New workers must consume both existing queues.
+   There is no permanent pause of the default queue and no clock disabling.
+4. No migration, asset build, scheduler configuration change, PostgreSQL
+   restart, Redis recreation or sizing re-derive is needed. Keep the 73
+   simulation workers, Redis settings and four local configuration edits.
+   Leave the independent Claude storage/resource/shutdown loop untouched.
+5. Resume the same run. Confirm at most one **client** executes CLK-06; that
+   client's PostgreSQL parallel workers are not duplicate application sweeps.
+   Confirm a later scheduled evaluation runs after the owner completes. Capture
+   several steady direct-completion windows, full-item and claim time, audit
+   waiting, oldest scan/snapshot age and review/lease health at unchanged
+   concurrency. Retain bounded court/audit correctness checks. Report a completed
+   comparison, or a phase-change limitation, through the operator once.
+
+Local tests prove exclusion and recovery, not a production speedup. D004's
+governor transaction recommendation and D005's secondary judicial nomination
+transaction observation are not bundled into this interference fix.
 
 ## Remaining-phase preparation: phases 7 through 11 — 2026-09-20
 

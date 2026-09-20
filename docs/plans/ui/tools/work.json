@@ -18031,12 +18031,17 @@
         "app/Services/Education/TrainingStipendService.php",
         "tests/Feature/TrainingLedgerPerformanceTest.php",
         "tests/Support/training_ledger_worker.php",
-        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md",
+        "docs/operations/step5-benchmarks/D003.md"
       ],
       "history": [
         {
           "date": "2026-09-20",
           "note": "15 isolated PostgreSQL tests / 1,427 assertions passed. Verified one owned commit and two savepoints, full-commit timing, failure after mint before credit, wallet failure, outer-caller rollback, concurrent groups actually waiting on the lock, exact hashes/balances, retained separate issuance/stipend meanings, mint/burn, retakes/repeated batch commits, and prior ledger regressions. No live-world or remote writes. Atomicity applies to each monetary group, not earlier training filings; no new recovery mechanism. Completed developer handoff for manual operator relay."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Demo deployed 1c254f92. Bounded ledger and 104-wallet checks passed. Weighted scopes/hour 389,647 to 374,181 (-3.97%) while newly trained holders/hour increased 17.65% as scope mix changed. No attributable regression or definitive code gain. Retain patch. Preparation-before-first-lock recommendation retained as historical evidence; not implemented in the D005 pass."
         }
       ]
     },
@@ -18063,7 +18068,8 @@
         "app/Services/Demo/Stages/GovernanceStage.php",
         "tests/Feature/Phase7PerformanceTest.php",
         "tests/Unit/SimDepartmentGovernorStageTest.php",
-        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md",
+        "docs/operations/step5-benchmarks/D004.md"
       ],
       "history": [
         {
@@ -18073,6 +18079,10 @@
         {
           "date": "2026-09-20",
           "note": "Integrated phase 7–11 suite and existing governor-consent/board-term regressions passed together: 40 tests / 881 assertions. Completed developer handoff for manual operator relay; live throughput awaits measurement."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Demo Phase 7 on e8e0910c completed six steady windows at 485,446 jurisdictions/hour, 73 workers and zero review. Governor/term/clock and audit samples passed. No old-code before-window. Proposed per-nomination transaction remains historical and is not part of D005."
         }
       ]
     },
@@ -18098,7 +18108,8 @@
       "evidence": [
         "app/Services/Demo/Stages/JudiciaryStage.php",
         "tests/Feature/Phase8PerformanceTest.php",
-        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md",
+        "docs/operations/step5-benchmarks/D005.md"
       ],
       "history": [
         {
@@ -18108,6 +18119,10 @@
         {
           "date": "2026-09-20",
           "note": "Integrated phase 7–11 suite and existing governor-consent/board-term regressions passed together: 40 tests / 881 assertions. Completed developer handoff for manual operator relay; live throughput awaits measurement."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Demo Phase 8 on e8e0910c measured 488,088 courts/hour over six minutes and 464,246 over the next four, 73 healthy workers, zero review. Bounded 100-judge/20-court and 129-hash checks passed. Resident pools averaged 2.07 ms; another roster index is not justified. Duplicate background CLK-06 sweeps are the current priority."
         }
       ]
     },
@@ -18216,6 +18231,40 @@
         {
           "date": "2026-09-20",
           "note": "Integrated phase 7–11 suite and existing governor-consent/board-term regressions passed together: 40 tests / 881 assertions. Completed developer handoff for manual operator relay; live throughput awaits measurement."
+        }
+      ]
+    },
+    {
+      "id": "W-0475",
+      "title": "Prevent duplicate CLK-06 population sweeps competing with Step 5",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Execution exclusion, queued duplicates, failure/crash recovery and unchanged crossing behavior pass internal tests; deployment treatment of old running workers is documented.",
+      "detail": "EvaluateCriticalPopulationJob takes a nonblocking PostgreSQL session lock before its existing scan. Contending invocations complete without scanning or requeueing. The guard lasts across commits and has no expiring cache TTL; cleanup releases it and connection death recovers it. A reconnect fence prevents continuing after guard-session loss. New jobs use the existing long-running queue and zero per-job timeout, avoiding the default 60-second worker timeout. Periodic scheduling, the candidate SQL, activation/memberless/liveness guards and thresholds remain unchanged. Refresh Horizon and retire verified old unguarded invocations before benchmarking. No migration, supervisor width change or production speedup claim.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "D005, 2026-09-20",
+          "title": "Phase 8 duplicate background population-sweep interference",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Jobs/Clocks/EvaluateCriticalPopulationJob.php",
+        "tests/Feature/CriticalPopulationOverlapTest.php",
+        "tests/Support/critical_population_worker.php",
+        "tests/Constitutional/CriticalPopulationAutobootTest.php",
+        "docs/operations/step5-benchmarks/D005.md",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "10 tests / 108 assertions passed using guarded nonce PostgreSQL and private SQLite fixtures. Independent child processes prove one owner, three serialized legacy duplicates with zero scans, survival across commits, process-death recovery and a later legitimate sweep. Failure/lost-session cleanup, caller-transaction preservation and exact deleted/governed/state/threshold crossing behavior pass. No live-world writes, remote access or service-control actions. D003 and D004 archived as historical evidence; no historical recommendations bundled into the D005 implementation."
         }
       ]
     }

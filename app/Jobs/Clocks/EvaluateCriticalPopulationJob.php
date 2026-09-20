@@ -67,10 +67,64 @@ class EvaluateCriticalPopulationJob implements ShouldQueue
 
     public int $tries = 1;
 
+    // The existing default supervisor allows 60 seconds; a legitimate sweep
+    // can take minutes. Use the existing long-running lane and retry interval.
+    public int $timeout = 0;
+
+    public function __construct()
+    {
+        $this->onQueue('long-running');
+    }
+
     /** Keyset page size over the residency table. */
     private const CHUNK = 5000;
 
+    /** One CLK-06 sweep per database, independent of the configured cache store. */
+    public const EXECUTION_LOCK = 0x434c4b3036; // CLK06
+
     public function handle(ActivationService $activation, SettingsResolver $settings): void
+    {
+        $database = DB::connection();
+        // This queued sweep owns its session, not a caller's transaction. Its
+        // activation services still commit each ordinary operation separately.
+        if ($database->transactionLevel() !== 0) {
+            throw new \LogicException('The critical-population sweep must run outside a transaction.');
+        }
+
+        $pdo = $database->getPdo();
+        $lock = $pdo->prepare('SELECT pg_try_advisory_lock(?)');
+        $lock->execute([self::EXECUTION_LOCK]);
+        if (! (bool) $lock->fetchColumn()) {
+            // Includes old queued payloads: acknowledge redundant work, rather
+            // than releasing it into a retry loop. The next clock tick remains.
+            return;
+        }
+
+        // A reconnect would lose the session lock. Fail this invocation instead
+        // of transparently resuming the sweep on an unguarded new session.
+        $database->setReconnector(static function () {
+            throw new \RuntimeException('Critical-population sweep lost its guarded database session; a future clock tick will retry.');
+        });
+
+        try {
+            $this->sweep($activation, $settings);
+        } finally {
+            try {
+                // Unlock only on the PDO that acquired it, never on a new one.
+                $unlock = $pdo->prepare('SELECT pg_advisory_unlock(?)');
+                $unlock->execute([self::EXECUTION_LOCK]);
+            } catch (\PDOException) {
+                // A failed/lost session is disposed below. Do not replace the
+                // sweep's original exception with an unlock failure.
+            } finally {
+                // Discard the temporary reconnect fence, including after an
+                // error. The worker's next job gets normal connection behavior.
+                DB::purge($database->getName());
+            }
+        }
+    }
+
+    private function sweep(ActivationService $activation, SettingsResolver $settings): void
     {
         $afterId = '00000000-0000-0000-0000-000000000000';
 
