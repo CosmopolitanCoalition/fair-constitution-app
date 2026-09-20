@@ -63,3 +63,45 @@ both bounded chain tails, readiness and HTTP health. Prior records are saved in
 Do not claim live completion until these checks pass. Do not finish setup or
 shut down the host; the operator will finish Simulate and prepare presentation
 materials. Remove the repair heartbeat after final acceptance.
+
+## Deployed and accepted — September 20, 21:28 UTC
+
+Deployed `f4b7236e` (includes repair `fbb69211`) on the resized D8. All four
+existing items completed; fresh `WorldReadiness` reports **923,095/923,095 DONE,
+zero reviews, complete=true**. All four fresh institutional inspections have no
+actions, blockers or gaps. No new run, inventory, Apply or payment phase replay.
+
+| Scope | Current chamber target | Distinct seated representatives |
+|---|---:|---:|
+| Not Under Any Cd Block | 16 | 16 |
+| Jelka | 30 | 30 |
+| Malinovo | 21 | 21 |
+| North & Middle Andaman | 84 | 86 |
+
+The last chamber retains existing Type A district-rounding surplus; Type B
+capacity and coverage pass. All 41 captured prior members, 51 terms and two
+certificates are byte-for-byte unchanged; all 30 captured count hashes remain
+unchanged. Both bounded chain tails pass 129 hashes/128 links each. These are
+bounded acceptance checks, not a replay of the whole world's transactions.
+
+Resize checks found two concrete problems: cached Horizon configuration still
+requested 73 lanes, causing repeated OOM exits, and rederive while PostgreSQL
+was stopped selected the geodata profile. Rebuilt the cache, then rederived
+with PostgreSQL online and applied the mapping profile. Final actual/cache
+lane count is **7**, Horizon cap **5,499 MiB**, PostgreSQL cap **3,325 MiB**,
+shared buffers **369 MiB**, queue Redis cap **767 MiB**, data limit **306 MiB**.
+Horizon stays running without restarts; public setup returns HTTP 200; `/data`
+has approximately 88 GiB free. The four original local config files and all
+non-sizing environment values were preserved. Linux installer contract tests
+pass, including retaining the existing profile while the database is offline.
+
+The full original stipend count exceeded the unchanged three-second diagnostic
+cap after resize, so it was not forced through. These four scopes have no
+original stipend work item; a separate three-item sample remains DONE with
+pre-repair finish times. The last previously verified full count is 903,500.
+
+Evidence: `evidence/D023/preservation-acceptance.json`, `final-acceptance.json`,
+`deployment.jsonl`, and `evidence/D023-RESIZE/commands.jsonl` under the remote
+operations directory. STATE.json records completion. The repair heartbeat was
+removed after acceptance. The operator may finish Simulate; the developer has
+not advanced setup or shut down the host.
