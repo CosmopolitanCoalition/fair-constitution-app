@@ -1,9 +1,13 @@
 # D016 direct deployment and repair benchmark
 
-**Latest deployed correction:** [D020 tiny-electorate recovery](STEP5_REPAIR_D020_HANDOFF.md),
-`1874b1ca`, deployed at 19:01 UTC. 76 additional targeted scopes pass completely;
-at 19:10 UTC, 908,766 DONE and 28 reviews. Remaining rule conflicts are explicit
-in D020 and remote STATE.json; earlier results below are historical.
+**Latest deployed correction:** [D021 court/delegation and compatibility](STEP5_REPAIR_D021_HANDOFF.md),
+`faaae724`, deployed at 20:00 UTC. All 24 court/governance targets passed; the
+2,319 temporary version-refusal items were safely requeued. At 20:03:28 UTC:
+920,989 DONE, 2,029 pending, 73 running, four older allocation reviews, 73 fresh
+workers. Court shortages required no policy exception: actual eligibility is the
+court's jurisdiction. The operator approved tiny-chamber unanimity. Existing
+records/payments remain preserved; world readiness is not yet claimed. See
+remote STATE.json for newer checkpoints; earlier results below are historical.
 
 **Storage recovered:** [D019 recovery](STEP5_REPAIR_D019_STORAGE_INCIDENT.md).
 The operator/Claude added 64 GiB; PostgreSQL recovered, bounded chain checks

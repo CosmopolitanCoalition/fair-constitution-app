@@ -98,3 +98,22 @@ guarded disposable PostgreSQL; no write tests ran on the live demo.
 Deploy the follow-up under the same exclusive lock while halted, refresh Horizon
 only, retry the exact compatible failures, resume the same repair. No migration,
 frontend build, scheduler/PG/Redis restart or concurrency change.
+
+## Follow-up deployed and checked
+
+`faaae724` deployed at **20:00:32 UTC**. Exactly **2,319** fingerprint-refusal
+items were requeued in batches of at most 100; four unrelated allocation reviews
+were retained. Same run/version, Horizon only; configuration hashes and all other
+service identities/start times/caps unchanged. The run resumed successfully.
+
+At **20:03:28 UTC**: **920,989 DONE**, 2,029 pending, 73 running, four review;
+73 fresh leases. Two sampled older elections now certify with their original
+version retained. All 149 old count payloads across four sampled elections are
+unchanged (the other two were still pending at inspection). Both bounded chain
+tails passed 129 hashes/128 links; original stipend completion stays 903,500.
+Public Step 5 returns HTTP 200. No throughput comparison is claimed.
+
+Remote evidence: `evidence/D021` and `evidence/D021-COMPAT` beneath
+`/home/cosmo/wos-step5-operations`. STATE.json contains the latest checkpoint.
+The existing authorized heartbeat continues; world readiness is not yet claimed.
+The remaining four original allocation failures are not repaired by compatibility.
