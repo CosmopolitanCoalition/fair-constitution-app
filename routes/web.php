@@ -1749,6 +1749,8 @@ Route::middleware('auth:operator')->group(function () {
 // pair). Halt/resume are instant flag writes the pump already honours; start
 // queues the real sim:start command so enumeration never blocks the request.
 Route::middleware('auth:operator')->group(function () {
+    Route::post('/api/simworld/repair', [\App\Http\Controllers\Demo\SimConsoleController::class, 'repair']);
+    Route::get('/api/simworld/repair/{run}', [\App\Http\Controllers\Demo\SimConsoleController::class, 'repairReport']);
     Route::post('/api/simworld/start', [\App\Http\Controllers\Demo\SimConsoleController::class, 'start'])
         ->name('api.simworld.start');
     Route::post('/api/simworld/halt', [\App\Http\Controllers\Demo\SimConsoleController::class, 'halt'])

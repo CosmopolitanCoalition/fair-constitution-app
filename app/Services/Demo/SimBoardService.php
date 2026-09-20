@@ -91,6 +91,7 @@ class SimBoardService
             if ($seated > 0) {
                 $board->forceFill(['status' => Board::STATUS_ACTIVE, 'composition_valid' => true])->save();
             }
+            app(SimChairService::class)->complete((string) $board->id);
         }
 
         return $seated;
@@ -147,7 +148,6 @@ class SimBoardService
             ->where('jurisdiction_id', $jurisdictionId)
             ->where('type', Organization::TYPE_BUSINESS)
             ->whereNull('deleted_at')
-            ->whereNull('board_id') // not already boarded (idempotent)
             ->orderBy('id')
             ->limit(self::BUSINESS_BOARD_SAMPLE)
             ->get();
@@ -166,7 +166,8 @@ class SimBoardService
 
             // Owner side: a small board (owner-elected seats for a private firm).
             $ownerSeats = 3;
-            $board = $this->boards->provision($org, $ownerSeats);
+            $board = Board::query()->where('boardable_type', Board::BOARDABLE_ORGANIZATIONS)
+                ->where('boardable_id', $org->id)->first() ?? $this->boards->provision($org, $ownerSeats);
 
             // Employment sample: employ residents (capped) so co-determination
             // reads a REAL headcount. A large jurisdiction crosses the threshold.
@@ -204,6 +205,7 @@ class SimBoardService
             );
 
             $board->forceFill(['status' => Board::STATUS_ACTIVE, 'composition_valid' => true])->save();
+            app(SimChairService::class)->complete((string) $board->id);
             $out['boards']++;
         }
 
@@ -235,6 +237,7 @@ class SimBoardService
             $board->forceFill(['status' => Board::STATUS_ACTIVE, 'composition_valid' => true])->save();
         }
 
+        app(SimChairService::class)->complete((string) $board->id);
         return $seated;
     }
 

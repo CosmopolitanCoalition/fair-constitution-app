@@ -27,6 +27,7 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue'
  */
 import StageBars from '@/Components/Progress/StageBars.vue'
 import SnapshotStamp from '@/Components/Progress/SnapshotStamp.vue'
+import SimRepairControls from '@/Components/Progress/SimRepairControls.vue'
 import SimTimingSummary from '@/Components/Progress/SimTimingSummary.vue'
 import { activityLabel, activitySeconds } from '@/lib/simWorkerActivity'
 import { csrfFetch } from '@/lib/csrf'
@@ -199,6 +200,7 @@ const statusTone = computed(() => {
                     <div v-if="lastPoll">{{ t('c_operator_pages.sim_console.updated', { time: localeFmt.time(lastPoll) }) }}</div>
                 </div>
             </header>
+        <SimRepairControls :run="run" :allowed="canControl && !controlRefusal" />
 
             <!-- A production instance can never run this engine. Say so plainly
                  rather than showing an empty page that looks broken. -->

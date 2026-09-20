@@ -31,6 +31,11 @@ class CgcBoardLookupTest extends TestCase
     {
         parent::setUp();
         $this->openBoardFixture();
+        // This fixture pins bounded board lookup/term behavior. Real chair
+        // voting is covered by BoardChairWorkflowTest and SimRepairIntegrationTest.
+        $chairs = $this->createMock(\App\Services\Demo\SimChairService::class);
+        $chairs->method('complete')->willReturn(['status' => 'done']);
+        $this->app->instance(\App\Services\Demo\SimChairService::class, $chairs);
         $this->oldChunk = getenv('CGA_SWEEP_CHUNK') === false ? null : getenv('CGA_SWEEP_CHUNK');
         putenv('CGA_SWEEP_CHUNK=2');
         $_ENV['CGA_SWEEP_CHUNK'] = '2';

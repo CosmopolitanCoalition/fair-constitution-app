@@ -57,6 +57,8 @@ class SimRun extends Model
 
     /** Which item kinds belong to each phase — the claim ladder's rung map. */
     public const PHASE_KINDS = [
+        'repair_planning' => ['repair_plan_scope'],
+        'repairing' => ['repair_scope'],
         // Empty slot (W7 item 3): enumeration happens in SimStartCommand, not a
         // stage — no kind is declared, so nothing throws "no stage wired" and
         // advancePhase treats it as drained and advances straight through.
@@ -165,6 +167,7 @@ class SimRun extends Model
      */
     public function activePhases(): array
     {
+        if ($this->options['repair_source_run'] ?? null) { return ['repair_planning', 'repairing', 'done']; }
         $chosen = $this->options['scope_aspects'] ?? null;
 
         if (! is_array($chosen) || $chosen === []) {
@@ -234,6 +237,9 @@ class SimRun extends Model
     /** The next phase after $this->phase that is in scope (skips inactive ones). */
     public function nextActivePhase(): ?string
     {
+        if ($this->options['repair_source_run'] ?? null) {
+            return match ($this->phase) { 'repair_planning' => 'repairing', 'repairing' => 'done', default => null };
+        }
         $active = $this->activePhases();
         $i = array_search($this->phase, self::PHASES, true);
 

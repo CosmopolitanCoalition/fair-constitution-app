@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-09-14",
+  "asOf": "2026-09-20",
   "head": "4fc4538d",
   "phases": [
     {
@@ -18452,6 +18452,80 @@
         {
           "date": "2026-09-20",
           "note": "46 PHP tests / 2,162 assertions and 10 JavaScript tests passed. Guarded disposable PostgreSQL fixtures cover exact canonical hashes/payments for mixed funding, unchanged eligibility, simultaneous batches, real worker, partial/final/empty batches, credit/receipt failures, timeout, lost commit acknowledgement, actual process death before/after commit with real reclaim, and training-ledger regressions. Dashboard labels batch units. No local world or remote operations. Deploy with isolated frontend asset build, bounded halt/drain and Horizon refresh; no migration, scheduler or PostgreSQL restart."
+        }
+      ]
+    },
+    {
+      "id": "W-0481",
+      "title": "Repair the existing Step 5 world in place and prevent candidate, delegation, court and chair defects on fresh runs",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Durable inspection/apply, action receipts, real civic workflows, fresh-run fixes and bounded acceptance pass internal tests; a completed deployment/pilot handoff is committed.",
+      "detail": "D012 response: separate resumable repair run inventories the original verification worklist and pauses before explicit apply. Action receipts commit atomically with domain effects and audit; independent heartbeats and fenced settlement support interruption. Election-wide distinct candidates respect race footprints and population ceilings; exactly five members can delegate; canonical Type B checks enable committees/courts; real board chair ballots finish after seating. Pilot success never certifies the world. Certified/deficient counted-election recovery remains explicitly blocked under W-0482. No Phase 10 payment replay or source-run reset.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "D012 and fresh-box prevention direction, 2026-09-20",
+          "title": "Repair the completed world before the conference; fix the causes for future runs",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Demo/SimRepairControl.php",
+        "app/Services/Demo/SimRepairInspector.php",
+        "app/Services/Demo/SimRepairService.php",
+        "app/Services/Demo/SimCandidateField.php",
+        "app/Services/Demo/SimChairService.php",
+        "app/Console/Commands/SimRepairCommand.php",
+        "database/migrations/2026_09_20_120000_create_sim_repair_receipts.php",
+        "resources/js/Components/Progress/SimRepairControls.vue",
+        "tests/Feature/SimRepairIntegrationTest.php",
+        "tests/Unit/BoardChairWorkflowTest.php",
+        "docs/operations/step5-benchmarks/D012.md",
+        "docs/operations/STEP5_REPAIR_HANDOFF.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "110 PHP tests / 1,049 assertions passed in guarded nonce PostgreSQL and private SQLite fixtures, plus 10 JavaScript tests and three Vue component compilations. Real empty-election counting/certification/seating, five-member delegation with 4/6 boundaries, Type B court/judge terms, chair ballots, overlapping/district candidates, population ceilings, receipt rollback/interruption/concurrency, repeat runs, pending-vote reuse and full/pilot readiness passed. No live-world mutations, remote operations or loaded-box asset build. Remote pilot and throughput measurement remain operational validation."
+        }
+      ]
+    },
+    {
+      "id": "W-0482",
+      "title": "Decide and implement recovery for never-filled seats in certified elections",
+      "phase": "P3",
+      "order": 69,
+      "kind": "fix",
+      "status": "blocked",
+      "blocker": "operator",
+      "depends_on": [
+        "W-0481"
+      ],
+      "done_when": "An authorized lifecycle handles never-filled seats without rewriting certified winners, completed tabulations, closed votes, audit history or term ends; real recovery and repeat-run tests pass.",
+      "detail": "D012 permits independent fixes when safe existing election recovery is unavailable. VacancyService requires an existing member and scheduleSpecial derives the replacement from that member, so neither currently represents a never-occupied seat. Proposed decision: supplemental elections only for never-filled seats, preserving original winners/certification and term end, with a proper vacancy representation. Until authorized and implemented, these scopes remain blocked/review; chair repairs can still proceed independently. Do not invent members, lower voting thresholds or force verification success.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "D012, 2026-09-20",
+          "title": "Preserve certified/partial election history and return a concrete decision when existing recovery is insufficient",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/VacancyService.php",
+        "app/Services/ElectionLifecycleService.php",
+        "app/Services/Demo/SimRepairInspector.php",
+        "docs/operations/STEP5_REPAIR_HANDOFF.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "Certified-underfilled fixture stays certified and in review; previous failed acts are unchanged. No supplemental-election policy change is included in W-0481."
         }
       ]
     }

@@ -79,7 +79,7 @@ final class JudiciaryStage
         // The supermajority creation act is a chamber act — an unseated Type B
         // half makes it unpassable (Art. V §3). Defer, never force.
         if ((int) $legislature->type_b_seats > 0
-            && $serving->filter(fn ($m) => (string) $m->seat_type === 'B')->isEmpty()) {
+            && $serving->filter(fn ($m) => $m->seatKind() === 'type_b')->isEmpty()) {
             return self::skip('bicameral chamber with an unseated Type B half — the creation act cannot pass');
         }
 

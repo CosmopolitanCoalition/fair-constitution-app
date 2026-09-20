@@ -89,6 +89,26 @@ class SimConsoleController extends Controller
         return response()->json($this->control->resume($this->actor()));
     }
 
+    public function repair(Request $request, \App\Services\Demo\SimRepairControl $repair): JsonResponse
+    {
+        $data = $request->validate(['source' => 'required_without:apply|uuid', 'apply' => 'nullable|uuid',
+            'scopes' => 'array|max:100', 'scopes.*' => 'uuid', 'version' => 'integer|min:1']);
+        try {
+            if (! empty($data['apply'])) {
+                $run = SimRun::findOrFail($data['apply']); $repair->apply($run);
+            } else {
+                $run = $repair->start($data['source'], $data['scopes'] ?? [], $data['version'] ?? 1);
+            }
+            return response()->json(['ok' => true, 'run_id' => $run->id]);
+        } catch (\RuntimeException $error) { return response()->json(['ok' => false, 'reason' => $error->getMessage()], 422); }
+    }
+
+    public function repairReport(Request $request, SimRun $run, \App\Services\Demo\SimRepairControl $repair): JsonResponse
+    {
+        $data = $request->validate(['after' => 'nullable|uuid']);
+        return response()->json($repair->report($run, $data['after'] ?? null));
+    }
+
     /** The operator username on the audit mark, or a stable label if none resolves. */
     private function actor(): string
     {

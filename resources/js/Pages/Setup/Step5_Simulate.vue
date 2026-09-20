@@ -8,6 +8,7 @@ import SetupStepper from '@/Components/SetupStepper.vue'
 import StageBars from '@/Components/Progress/StageBars.vue'
 import SnapshotStamp from '@/Components/Progress/SnapshotStamp.vue'
 import SimTimingSummary from '@/Components/Progress/SimTimingSummary.vue'
+import SimRepairControls from '@/Components/Progress/SimRepairControls.vue'
 import { workerActivity, workerBusy, activityLabel, activitySeconds } from '@/lib/simWorkerActivity'
 import { csrfFetch } from '@/lib/csrf'
 
@@ -338,6 +339,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
             </div>
         </section>
 
+        <SimRepairControls :run="run" :allowed="!refused && !locked" class="mb-6" />
         <!-- Run card: status, controls, overall stage bars, per-layer bars -->
         <section
             class="rounded-lg p-5 mb-6 border"

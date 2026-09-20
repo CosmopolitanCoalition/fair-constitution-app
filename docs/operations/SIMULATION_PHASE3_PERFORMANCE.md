@@ -30,13 +30,13 @@ manually; do not send messages directly to the other task.
   proof of delivery; never resend or launch a second exchange just because
   context was compacted.
 
-Current exchange: **D010 received; bounded, atomic Step 5 stipend batching is
-implemented and internally tested in the completed handoff below**. D010 confirms
-`1012a27e` deployed. The final developer response supplies the pushed revision
-containing this section. Deploy and Benchmark owns deployment and the next
-completed comparison. No direct cross-task messages or remote actions. Do not
-infer a later deployment or current phase from elapsed time. Older nomination,
-population-sweep and infrastructure candidates remain separate.
+Current exchange: **D012 received; in-place repair and fresh-run defect fixes
+are in [the repair handoff](STEP5_REPAIR_HANDOFF.md)**. The original run completed
+verification with 914,453 review scopes; it must not be restarted. Read the repair
+handoff for migration, inspection/apply, representative pilot and remaining
+certified-election decisions. The final developer response supplies the pushed
+revision and completed tests. No direct cross-task messages or remote actions.
+Older D010 performance results below are historical evidence, not repair results.
 
 ## D010 response: bounded atomic stipend batches — 2026-09-20
 

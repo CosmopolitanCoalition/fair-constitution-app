@@ -1310,7 +1310,7 @@ class CertificationService implements CertificationPipeline
         // dispatch (never dispatchSync) so a slow/down Matrix homeserver can NEVER block certification —
         // the job is best-effort per the EvaluateSocialStructureJob try/catch posture; the daily sweep
         // in routes/console.php is the backstop.
-        \App\Jobs\EvaluateSocialStructureJob::dispatch((string) $legislature->jurisdiction_id);
+        \App\Jobs\EvaluateSocialStructureJob::dispatch((string) $legislature->jurisdiction_id)->afterCommit();
     }
 
     private function resolveVacancy(?Vacancy $vacancy, array $winners): void

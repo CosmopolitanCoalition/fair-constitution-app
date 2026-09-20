@@ -301,7 +301,7 @@ final class GovernanceStage
         // THE BICAMERAL DEFERRAL. A committee act must satisfy the Art. V §3 kind
         // split, so an unseated Type B half makes it unpassable.
         if ((int) $legislature->type_b_seats > 0) {
-            $servingB = $serving->filter(fn ($m) => (string) $m->seat_type === 'B')->count();
+            $servingB = $serving->filter(fn ($m) => $m->seatKind() === 'type_b')->count();
 
             if ($servingB === 0) {
                 return self::half(0, null, null, 'bicameral chamber with an unseated Type B half — a committee act cannot pass');
@@ -388,7 +388,7 @@ final class GovernanceStage
         // department (Art. III §1). A committee executive wants 5+ members, so a
         // chamber too small cannot seat one — defer, do not force it.
         if ($executive->status === Executive::STATUS_FORMING) {
-            if ($serving->count() <= self::EXEC_COMMITTEE_SIZE) {
+            if ($serving->count() < self::EXEC_COMMITTEE_SIZE) {
                 return self::deptHalf(0, null, null, false,
                     'too few seated members to delegate an executive committee (wants 5+)');
             }

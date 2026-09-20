@@ -160,6 +160,8 @@ class SimSnapshot
 
     /** Human labels per item kind — the single owner (W7 item 10). */
     public const LABELS = [
+        'repair_plan_scope' => 'Planning world repairs',
+        'repair_scope' => 'Repairing and verifying the world',
         'profile_research' => 'Researching localities',
         'cohort_scope' => 'Deciding who lives where',
         'identity_batch' => 'Minting people',
@@ -208,7 +210,7 @@ class SimSnapshot
             static fn ($p) => ! in_array($p, ['enumerating', 'profiling', 'done'], true)
         ));
 
-        $phaseIndex = array_flip(SimRun::PHASES);
+        $phaseIndex = array_flip($run->activePhases());
         $curIdx     = $phaseIndex[$run->phase] ?? -1;
         $runDone    = $run->status === 'done';
 

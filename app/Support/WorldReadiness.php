@@ -59,7 +59,7 @@ class WorldReadiness
         // sqlite test fixture; FILTER does not). Index-only on the claim index.
         $row = DB::table('sim_items')
             ->where('run_id', $run->id)
-            ->where('kind', 'verify_scope')
+            ->where('kind', ($run->options['repair_source_run'] ?? null) ? 'repair_scope' : 'verify_scope')
             ->selectRaw(
                 'COUNT(*) AS total,
                  SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) AS done,
@@ -77,8 +77,12 @@ class WorldReadiness
         // A done run with no verify items has NOT been verified — the phase was
         // never run (a legacy run, or one closed before this phase existed).
         // That is "verification pending", never a clean pass.
-        $pending = $runDone && $total === 0;
-        $complete = $runDone && $total > 0 && $review === 0;
+        $expected = ($run->options['repair_source_run'] ?? null)
+            ? (int) ($run->options['repair_source_verify_total'] ?? 0)
+            : $total;
+        $pilot = ! empty($run->options['repair_scope_ids']);
+        $pending = $runDone && ($total === 0 || $total !== $expected || $pilot);
+        $complete = $runDone && ! $pending && $total > 0 && $done === $total;
 
         return [
             'run_id' => (string) $run->id,
@@ -87,6 +91,9 @@ class WorldReadiness
             'verify_total' => $total,
             'verify_done' => $done,
             'verify_review' => $review,
+            'verify_expected' => $expected,
+            'repair_source_run' => $run->options['repair_source_run'] ?? null,
+            'repair_pilot' => $pilot,
             'pending' => $pending,
             'complete' => $complete,
             'unresolved' => $review > 0 ? $this->unresolved($run) : [],
@@ -105,7 +112,7 @@ class WorldReadiness
         return DB::table('sim_items as s')
             ->leftJoin('jurisdictions as j', 'j.id', '=', 's.jurisdiction_id')
             ->where('s.run_id', $run->id)
-            ->where('s.kind', 'verify_scope')
+            ->where('s.kind', ($run->options['repair_source_run'] ?? null) ? 'repair_scope' : 'verify_scope')
             ->whereIn('s.status', ['review', 'failed'])
             ->orderBy('s.position')
             ->limit(self::UNRESOLVED_CAP)

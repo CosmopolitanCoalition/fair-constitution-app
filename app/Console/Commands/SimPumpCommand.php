@@ -182,6 +182,10 @@ class SimPumpCommand extends Command
         // pending). SimStartCommand now flips the run to 'running' as its LAST
         // step, once the worklist is fully minted; only then does the pump touch
         // it. A start that dies mid-enumeration leaves a queued run for --resume.
+        if ($run->status === 'queued' && ($run->options['repair_source_run'] ?? null) && ! $run->haltRequested()) {
+            app(\App\Services\Demo\SimRepairControl::class)->enumerate($run);
+            $run->refresh();
+        }
         if (! $run->isClaimable()) {
             return self::SUCCESS;
         }
@@ -403,6 +407,9 @@ class SimPumpCommand extends Command
      */
     private function mintWorklist(SimRun $run, string $phase): int
     {
+        if (($run->options['repair_source_run'] ?? null) && in_array($phase, ['repair_planning', 'repairing'], true)) {
+            return app(\App\Services\Demo\SimRepairControl::class)->enumerate($run);
+        }
         if (isset(self::CURSOR_SOURCES[$phase])) {
             return $this->mintCursorWorklist($run, $phase);
         }
@@ -573,6 +580,14 @@ class SimPumpCommand extends Command
 
         if ($open) {
             return;
+        }
+
+        if ($run->phase === 'repair_planning' && ! ($run->options['repair_apply_authorized'] ?? false)) {
+            if (! app(\App\Services\Demo\SimRepairControl::class)->summarize($run)) { return; }
+            $run->refresh();
+            $options = $run->options; $options['repair_plan_complete'] = true;
+            $run->forceFill(['options' => $options, 'status' => 'halted', 'halt_requested_at' => now()])->save();
+            return; // Inspection is complete; applying remains the operator's trigger.
         }
 
         // A worker's DONE status and delta commit together. Do not finish a

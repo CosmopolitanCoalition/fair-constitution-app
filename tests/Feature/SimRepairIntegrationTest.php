@@ -1,0 +1,382 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\{Election, Legislature, LegislatureMember, SimRun};
+use App\Services\Demo\{SimCandidateField, SimRepairControl, SimRepairInspector, SimRepairService, SimRunControl};
+use App\Services\Demo\Stages\{GovernanceStage, JudiciaryStage};
+use App\Support\WorldReadiness;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Tests\Concerns\DisposableRepairWorld;
+use Tests\TestCase;
+
+class SimRepairIntegrationTest extends TestCase
+{
+    use DisposableRepairWorld;
+
+    protected function setUp(): void
+    {
+        parent::setUp(); $this->openRepairWorld();
+        config(['cache.default' => 'array', 'queue.default' => 'sync']);
+        $guard = $this->createMock(SimRunControl::class);
+        $guard->method('refusalReason')->willReturn(null);
+        $guard->method('activeRun')->willReturnCallback(fn () => SimRun::whereIn('status', ['queued','running','halted'])->first());
+        $this->app->instance(SimRunControl::class, $guard);
+    }
+
+    protected function tearDown(): void { $this->closeRepairWorld(); parent::tearDown(); }
+
+    private function id(): string { return (string) Str::uuid(); }
+    private function place(int $level = 6): string
+    {
+        $id = $this->id(); DB::table('jurisdictions')->insert(['id' => $id, 'name' => 'Private repair test', 'slug' => $id,
+            'adm_level' => $level, 'population' => 1000, 'created_at' => now(), 'updated_at' => now()]); return $id;
+    }
+    private function person(): string
+    {
+        $id = $this->id(); DB::table('users')->insert(['id' => $id, 'name' => 'Fixture', 'email' => $id.'@example.test',
+            'password' => 'unused', 'terms_accepted_at' => now(), 'created_at' => now(), 'updated_at' => now()]); return $id;
+    }
+    private function election(string $scope): string
+    {
+        return Election::create(['jurisdiction_id' => $scope, 'kind' => 'general', 'status' => 'scheduled', 'cycle_number' => 1])->id;
+    }
+    private function race(string $election, string $scope, int $number): string
+    {
+        $id = $this->id(); DB::table('election_races')->insert(['id' => $id, 'election_id' => $election,
+            'jurisdiction_id' => $scope, 'seat_kind' => $number === 1 ? 'type_a' : 'type_b', 'seats' => 2, 'finalist_count' => 6,
+            'created_at' => now(), 'updated_at' => now()]); return $id;
+    }
+    private function resident(string $scope, string $user): void
+    {
+        DB::table('residency_confirmations')->insert(['id' => $this->id(), 'jurisdiction_id' => $scope,
+            'user_id' => $user, 'days_confirmed' => 1, 'is_active' => true, 'confirmed_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+    }
+    private function source(array $scopes): SimRun
+    {
+        $run = SimRun::create(['status' => 'done', 'phase' => 'done', 'options' => ['scope_aspects' => ['elections'], 'no_floor' => true], 'phase_timings' => []]);
+        foreach ($scopes as $scope) DB::table('sim_items')->insert(['id' => $this->id(), 'run_id' => $run->id, 'kind' => 'verify_scope',
+            'unit_key' => $scope, 'jurisdiction_id' => $scope, 'status' => 'review', 'position' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        return $run;
+    }
+
+    public function test_cross_scope_candidate_collisions_are_filled_without_duplicate_or_changed_assignments(): void
+    {
+        $parent = $this->place(0); $child = $this->place(6); $e = $this->election($parent);
+        $a = $this->race($e, $parent, 1); $b = $this->race($e, $child, 2);
+        for ($i = 0; $i < 6; $i++) {
+            $user = $this->person(); $this->resident($parent, $user); if ($i < 3) $this->resident($child, $user);
+        }
+        $service = app(SimCandidateField::class);
+        self::assertSame(6, $service->fill($e, null, 1, noFloor: true)['candidacies']);
+        self::assertSame(3, DB::table('candidacies')->where('race_id', $a)->count());
+        self::assertSame(3, DB::table('candidacies')->where('race_id', $b)->count());
+        $saved = DB::table('candidacies')->where('election_id', $e)->orderBy('id')->get()->toArray();
+        $service->fill($e, null, 1, noFloor: true);
+        self::assertEquals($saved, DB::table('candidacies')->where('election_id', $e)->orderBy('id')->get()->toArray());
+        self::assertSame(6, DB::table('candidacies')->where('election_id', $e)->distinct()->count('user_id'));
+    }
+
+    public function test_candidate_repair_preserves_partial_fields_and_refuses_certified_elections(): void
+    {
+        $scope = $this->place(); $e = $this->election($scope); $race = $this->race($e, $scope, 1);
+        for ($i = 0; $i < 3; $i++) $this->resident($scope, $this->person());
+        app(SimCandidateField::class)->fill($e, null, 1, noFloor: true);
+        $kept = DB::table('candidacies')->where('election_id', $e)->first();
+        DB::table('candidacies')->where('election_id', $e)->where('id', '!=', $kept->id)->delete();
+        app(SimCandidateField::class)->fill($e, null, 1, noFloor: true);
+        self::assertEquals($kept, DB::table('candidacies')->where('id', $kept->id)->first());
+        DB::table('elections')->where('id', $e)->update(['status' => 'certified']);
+        try { app(SimCandidateField::class)->fill($e, null, 1, noFloor: true); self::fail('Must preserve certification'); }
+        catch (\RuntimeException $error) { self::assertStringContainsString('preserved', $error->getMessage()); }
+        self::assertSame(3, DB::table('candidacies')->where('election_id', $e)->count());
+    }
+
+    public function test_manifest_restarts_are_deduplicated_and_a_pilot_is_never_whole_world_ready(): void
+    {
+        $scopes = [$this->place(), $this->place()]; $source = $this->source($scopes);
+        $control = app(SimRepairControl::class); $repair = $control->start($source->id, [$scopes[0]]);
+        self::assertSame(1, $control->enumerate($repair)); self::assertSame(0, $control->enumerate($repair));
+        self::assertSame(2, DB::table('sim_items')->where('run_id', $source->id)->where('status', 'review')->count());
+        try { $control->apply($repair); self::fail('Planning has not completed'); }
+        catch (\RuntimeException $error) { self::assertStringContainsString('inventory', $error->getMessage()); }
+        $repair->refresh(); $options = $repair->options; $options['repair_plan_complete'] = true;
+        $repair->forceFill(['options' => $options, 'status' => 'halted'])->save(); $control->apply($repair);
+        $repair->refresh()->forceFill(['phase' => 'repairing'])->save(); $control->enumerate($repair);
+        DB::table('sim_items')->where('run_id', $repair->id)->update(['status' => 'done']);
+        $repair->forceFill(['phase' => 'done', 'status' => 'done'])->save();
+        $report = app(WorldReadiness::class)->report($repair);
+        self::assertFalse($report['complete']); self::assertTrue($report['pending']); self::assertSame(2, $report['verify_expected']);
+        self::assertSame('done', $source->refresh()->status);
+    }
+
+    public function test_atomic_receipt_rolls_back_failed_work_and_duplicate_delivery_reuses_it(): void
+    {
+        $scope = $this->place(); $source = $this->source([$scope]); $run = app(SimRepairControl::class)->start($source->id);
+        $service = app(SimRepairService::class); $action = new \ReflectionMethod($service, 'action');
+        $original = DB::table('jurisdictions')->where('id', $scope)->value('name');
+        $result = $action->invoke($service, $run, $scope, 'test_rollback', $scope, function () use ($scope) {
+            DB::table('jurisdictions')->where('id', $scope)->update(['name' => 'must roll back']); throw new \RuntimeException('injected interruption');
+        });
+        self::assertSame('blocked', $result['status']); self::assertSame($original, DB::table('jurisdictions')->where('id', $scope)->value('name'));
+        $count = 0;
+        $perform = function () use (&$count) { $count++; return ['status' => 'done']; };
+        $action->invoke($service, $run, $scope, 'test_success', $scope, $perform);
+        $again = $action->invoke($service, $run, $scope, 'test_success', $scope, $perform);
+        self::assertSame(1, $count); self::assertTrue($again['reused']);
+    }
+
+    private function chamber(int $a, int $b): array
+    {
+        $scope = $this->place();
+        $leg = Legislature::create(['jurisdiction_id' => $scope, 'term_number' => 1, 'status' => 'active',
+            'total_seats' => $a + $b, 'type_a_seats' => $a, 'type_b_seats' => $b, 'quorum_required' => intdiv($a + $b, 2) + 1]);
+        foreach (['a' => $a, 'b' => $b] as $kind => $n) for ($i = 0; $i < $n; $i++) {
+            $user = $this->person(); $this->resident($scope, $user);
+            LegislatureMember::create(['legislature_id' => $leg->id, 'user_id' => $user, 'seat_type' => $kind, 'seat_no' => $i + 1, 'status' => 'elected', 'seated_on' => now()]);
+        }
+        app(\App\Services\Education\EducationCatalogService::class)->publish();
+        app(\App\Services\Education\SeatedMemberTrainingService::class)->armForJurisdiction($scope);
+        return [$scope, $leg];
+    }
+
+    public function test_exactly_five_delegates_through_the_real_vote_and_retry_preserves_it(): void
+    {
+        [$scope, $leg] = $this->chamber(5, 0);
+        $exec = $this->id(); DB::table('executives')->insert(['id' => $exec, 'jurisdiction_id' => $scope, 'type' => 'committee', 'term_number' => 1, 'status' => 'forming', 'created_at' => now(), 'updated_at' => now()]);
+        $first = GovernanceStage::run($scope, null, 1);
+        self::assertTrue($first['departments']['delegated'], json_encode($first));
+        self::assertSame('delegated', DB::table('executives')->where('id', $exec)->value('status'));
+        $votes = DB::table('chamber_votes')->where('legislature_id', $leg->id)->count();
+        GovernanceStage::run($scope, null, 1);
+        self::assertSame($votes, DB::table('chamber_votes')->where('legislature_id', $leg->id)->count());
+    }
+
+    public function test_lowercase_type_b_allows_real_committee_growth_and_court_creation(): void
+    {
+        [$scope, $leg] = $this->chamber(5, 5);
+        $result = GovernanceStage::run($scope, null, 1);
+        self::assertSame(2, $result['committees']['created'], json_encode($result));
+        self::assertSame(2, DB::table('committees')->where('legislature_id', $leg->id)->whereNotNull('created_by_vote_id')->count());
+        $court = $this->id(); DB::table('judiciaries')->insert(['id' => $court, 'jurisdiction_id' => $scope, 'type' => 'appointed', 'status' => 'forming', 'min_judges' => 5, 'court_name' => 'Fixture court', 'created_at' => now(), 'updated_at' => now()]);
+        $result = JudiciaryStage::run($scope, null, 1);
+        self::assertTrue($result['filed'], json_encode($result));
+        self::assertSame('appointed', DB::table('judiciaries')->where('id', $court)->value('status'), json_encode($result));
+        self::assertSame(5, DB::table('judicial_seats')->where('judiciary_id', $court)->where('status', 'seated')->whereNotNull('term_id')->count());
+    }
+
+    private function bindElection(SimRun $source, string $scope, Legislature $leg, int $candidates, int $seats, string $status = 'certified'): string
+    {
+        $e = $this->election($scope); $race = $this->race($e, $scope, 1);
+        DB::table('elections')->where('id', $e)->update(['legislature_id' => $leg->id, 'status' => $status]);
+        DB::table('election_races')->where('id', $race)->update(['seats' => $seats, 'seat_kind' => $seats > 9 ? 'type_b' : 'type_a']);
+        foreach (DB::table('legislature_members')->where('legislature_id', $leg->id)->limit($candidates)->pluck('user_id') as $user) {
+            DB::table('candidacies')->insert(['id' => $this->id(), 'election_id' => $e, 'race_id' => $race, 'user_id' => $user,
+                'status' => 'elected', 'position_tags' => '[]', 'residency_attested_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+        }
+        DB::table('sim_items')->insert(['id' => $this->id(), 'run_id' => $source->id, 'kind' => 'election_scope', 'unit_key' => $scope,
+            'jurisdiction_id' => $scope, 'status' => 'done', 'position' => 1, 'metrics' => json_encode(['election_id' => $e]), 'created_at' => now(), 'updated_at' => now()]);
+        return $e;
+    }
+
+    public function test_repair_executes_government_dependencies_and_rechecks_without_replaying_money(): void
+    {
+        [$scope, $leg] = $this->chamber(5, 0); $source = $this->source([$scope]);
+        $source->forceFill(['options' => ['scope_aspects' => ['governance'], 'no_floor' => true]])->save();
+        $this->bindElection($source, $scope, $leg, 5, 5);
+        $exec = $this->id(); DB::table('executives')->insert(['id' => $exec, 'jurisdiction_id' => $scope, 'type' => 'committee', 'term_number' => 1, 'status' => 'forming', 'created_at' => now(), 'updated_at' => now()]);
+        $run = app(SimRepairControl::class)->start($source->id);
+        $item = (object) ['jurisdiction_id' => $scope]; $service = app(SimRepairService::class);
+        $plan = $service->run($run, $item, planning: true);
+        self::assertSame('governance', $plan['category']);
+        self::assertSame('forming', DB::table('executives')->where('id', $exec)->value('status'));
+        $options = $run->options; $options['repair_apply_authorized'] = true;
+        $run->forceFill(['options' => $options, 'phase' => 'repairing', 'status' => 'running'])->save();
+        $ledger = DB::table('ledger_entries')->count();
+        $result = $service->run($run, $item);
+        self::assertSame('done', $result['_verdict'], json_encode($result));
+        self::assertFalse($result['stipend_replayed']);
+        self::assertSame($ledger, DB::table('ledger_entries')->count());
+        $votes = DB::table('chamber_votes')->count(); $terms = DB::table('terms')->count();
+        self::assertSame('done', $service->run($run, $item)['_verdict']);
+        self::assertSame($votes, DB::table('chamber_votes')->count()); self::assertSame($terms, DB::table('terms')->count());
+    }
+
+    public function test_certified_underfilled_election_stays_review_and_its_history_is_immutable(): void
+    {
+        [$scope, $leg] = $this->chamber(5, 2);
+        $leg->forceFill(['total_seats' => 10, 'type_b_seats' => 5])->save();
+        $source = $this->source([$scope]); $e = $this->bindElection($source, $scope, $leg, 7, 10);
+        $run = app(SimRepairControl::class)->start($source->id);
+        $options = $run->options; $options['repair_apply_authorized'] = true;
+        $run->forceFill(['options' => $options, 'phase' => 'repairing', 'status' => 'running'])->save();
+        $before = DB::table('elections')->where('id', $e)->first();
+        $result = app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope]);
+        self::assertSame('review', $result['_verdict']);
+        self::assertStringContainsString('Certified', $result['_reason']);
+        self::assertSame(7, DB::table('legislature_members')->where('legislature_id', $leg->id)->count());
+        self::assertEquals($before, DB::table('elections')->where('id', $e)->first());
+        self::assertSame(0, DB::table('sim_repair_receipts')->where('kind', 'election')->count());
+    }
+
+    public function test_four_is_refused_and_six_is_valid_for_executive_delegation(): void
+    {
+        foreach ([4, 6] as $number) {
+            [$scope] = $this->chamber($number, 0); $exec = $this->id();
+            DB::table('executives')->insert(['id' => $exec, 'jurisdiction_id' => $scope, 'type' => 'committee', 'term_number' => 1, 'status' => 'forming', 'created_at' => now(), 'updated_at' => now()]);
+            $result = GovernanceStage::run($scope, null, 1);
+            self::assertSame($number === 6, $result['departments']['delegated'], json_encode($result));
+            self::assertSame($number === 6 ? 'delegated' : 'forming', DB::table('executives')->where('id', $exec)->value('status'));
+        }
+    }
+
+    public function test_halt_preserves_planned_receipts_for_resume_and_keeps_work_untouched(): void
+    {
+        $scope = $this->place(); $source = $this->source([$scope]); $run = app(SimRepairControl::class)->start($source->id);
+        $options = $run->options; $options['repair_apply_authorized'] = true;
+        $run->forceFill(['options' => $options, 'phase' => 'repairing', 'status' => 'halted', 'halt_requested_at' => now()])->save();
+        $inspector = $this->createMock(SimRepairInspector::class);
+        $inspector->method('inspect')->willReturn(['verification' => [], 'actions' => [['kind' => 'chair', 'target' => $this->id()]], 'blockers' => [], 'coverage' => [], 'acceptance_gaps' => []]);
+        $this->expectException(\App\Services\Demo\SimRepairPaused::class);
+        (new SimRepairService($inspector))->run($run, (object) ['jurisdiction_id' => $scope]);
+    }
+
+    public function test_empty_election_repairs_through_real_counting_certification_and_seating_once(): void
+    {
+        $scope = $this->place();
+        $leg = Legislature::create(['jurisdiction_id' => $scope, 'term_number' => 1, 'status' => 'forming',
+            'total_seats' => 5, 'type_a_seats' => 5, 'type_b_seats' => 0, 'quorum_required' => 3]);
+        $board = \App\Models\ElectionBoard::create(['jurisdiction_id' => $scope, 'is_bootstrap' => true, 'status' => 'active']);
+        \App\Models\ElectionBoardMember::create(['election_board_id' => $board->id, 'user_id' => null, 'status' => 'seated']);
+        for ($i = 0; $i < 6; $i++) $this->resident($scope, $this->person());
+        \App\Services\Demo\Stages\CohortStage::run($scope, null, 1, 62);
+        $source = $this->source([$scope]); $e = $this->bindElection($source, $scope, $leg, 0, 5, 'scheduled');
+        DB::table('elections')->where('id', $e)->update(['election_board_id' => $board->id]);
+        $run = app(SimRepairControl::class)->start($source->id); $options = $run->options; $options['repair_apply_authorized'] = true;
+        $run->forceFill(['options' => $options, 'phase' => 'repairing', 'status' => 'running'])->save();
+        $service = app(SimRepairService::class); $item = (object) ['jurisdiction_id' => $scope];
+        $result = $service->run($run, $item);
+        self::assertSame('done', $result['_verdict'], json_encode($result));
+        self::assertSame('certified', DB::table('elections')->where('id', $e)->value('status'));
+        self::assertSame(5, DB::table('legislature_members')->where('election_id', $e)->count());
+        $terms = DB::table('terms')->count(); $counts = DB::table('tabulations')->count();
+        self::assertSame('done', $service->run($run, $item)['_verdict']);
+        self::assertSame($terms, DB::table('terms')->count()); self::assertSame($counts, DB::table('tabulations')->count());
+    }
+
+    public function test_fresh_board_seating_elects_a_chair_and_existing_board_repair_is_atomic(): void
+    {
+        $scope = $this->place(); $people = [$this->person(), $this->person(), $this->person()];
+        $org = \App\Models\Organization::create(['name' => 'Fixture board', 'slug' => $this->id(), 'jurisdiction_id' => $scope,
+            'type' => 'business', 'ownership_type' => 'private', 'status' => 'active']);
+        $boards = app(\App\Services\Demo\SimBoardService::class);
+        self::assertSame(3, $boards->seatOrganizationBoard($org, 3, $people, $scope));
+        $board = \App\Models\Board::findOrFail($org->refresh()->board_id);
+        self::assertNotNull($board->chair_seat_id);
+        self::assertSame('adopted', DB::table('chamber_votes')->where('body_id', $board->id)->value('outcome'));
+        $votes = DB::table('chamber_votes')->count();
+        self::assertSame(0, $boards->seatOrganizationBoard($org, 3, $people, $scope));
+        self::assertSame($votes, DB::table('chamber_votes')->count());
+    }
+
+    public function test_repair_resumes_an_existing_committee_vote_without_a_second_proposal(): void
+    {
+        [$scope, $leg] = $this->chamber(5, 0);
+        $member = $leg->members()->first();
+        $proposal = app(\App\Services\Legislature\CommitteeService::class)->proposeCreation($leg, $member, 'Existing committee', 'Fixture', 5);
+        $before = DB::table('chamber_vote_proposals')->count();
+        $service = app(SimRepairService::class);
+        $resumed = (new \ReflectionMethod($service, 'resumePendingActs'))->invoke($service, $scope, 'governance', null);
+        self::assertSame([$proposal['vote_id']], $resumed);
+        self::assertSame('adopted', DB::table('chamber_votes')->where('id', $proposal['vote_id'])->value('outcome'));
+        self::assertSame($before, DB::table('chamber_vote_proposals')->count());
+        self::assertSame([], (new \ReflectionMethod($service, 'resumePendingActs'))->invoke($service, $scope, 'governance', null));
+    }
+
+    public function test_interruption_inside_an_act_leaves_a_retryable_receipt_and_no_partial_effects(): void
+    {
+        $scope = $this->place(); $source = $this->source([$scope]); $run = app(SimRepairControl::class)->start($source->id);
+        $service = app(SimRepairService::class); $method = new \ReflectionMethod($service, 'action');
+        $name = DB::table('jurisdictions')->where('id', $scope)->value('name');
+        try {
+            $method->invoke($service, $run, $scope, 'interruption_test', $scope, function () use ($scope) {
+                DB::table('jurisdictions')->where('id', $scope)->update(['name' => 'partial']);
+                throw new \App\Services\Demo\SimRepairPaused('ownership lost');
+            }); self::fail('Expected interruption');
+        } catch (\App\Services\Demo\SimRepairPaused) {}
+        self::assertSame($name, DB::table('jurisdictions')->where('id', $scope)->value('name'));
+        self::assertSame('planned', DB::table('sim_repair_receipts')->where('kind', 'interruption_test')->value('status'));
+        self::assertSame('applied', $method->invoke($service, $run, $scope, 'interruption_test', $scope, fn () => ['status' => 'done'])['status']);
+    }
+
+    public function test_full_manifest_summary_and_completion_preserve_inactive_scopes(): void
+    {
+        $scope = $this->place(); DB::table('jurisdictions')->where('id', $scope)->update(['population' => 0]);
+        \App\Services\Demo\Stages\CohortStage::run($scope, null, 1, 62);
+        $source = $this->source([$scope]); $control = app(SimRepairControl::class); $run = $control->start($source->id); $control->enumerate($run);
+        $plan = app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope], planning: true);
+        self::assertSame('lawfully_inactive', $plan['category']); self::assertSame([], $plan['plan']['actions']);
+        DB::table('sim_items')->where('run_id', $run->id)->update(['status' => 'done', 'metrics' => json_encode($plan)]);
+        self::assertTrue($control->summarize($run)); self::assertTrue($control->summarize($run));
+        self::assertSame(1, $control->report($run->refresh())['summary']['categories']['lawfully_inactive']);
+        $options = $run->options; $options['repair_apply_authorized'] = true;
+        $run->forceFill(['options' => $options, 'status' => 'running', 'phase' => 'repairing'])->save(); $control->enumerate($run);
+        $result = app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope]);
+        self::assertSame('done', $result['_verdict']);
+        DB::table('sim_items')->where('run_id', $run->id)->update(['status' => 'done']);
+        $run->forceFill(['status' => 'done', 'phase' => 'done'])->save();
+        self::assertTrue(app(WorldReadiness::class)->report($run)['complete']);
+    }
+
+    public function test_district_candidates_stay_inside_the_existing_race_footprint(): void
+    {
+        $parent = $this->place(0); $child = $this->place(6);
+        $leg = Legislature::create(['jurisdiction_id' => $parent, 'term_number' => 1, 'status' => 'forming', 'total_seats' => 5, 'type_a_seats' => 5, 'type_b_seats' => 0, 'quorum_required' => 3]);
+        $district = $this->id();
+        DB::table('legislature_districts')->insert(['id' => $district, 'legislature_id' => $leg->id, 'jurisdiction_id' => $parent,
+            'district_number' => 1, 'seats' => 5, 'target_population' => 1000, 'actual_population' => 1000]);
+        DB::table('legislature_district_jurisdictions')->insert(['id' => $this->id(), 'district_id' => $district, 'jurisdiction_id' => $child]);
+        $e = $this->election($parent); $race = $this->race($e, $parent, 1);
+        DB::table('election_races')->where('id', $race)->update(['district_id' => $district]);
+        for ($i = 0; $i < 6; $i++) {
+            $user = $this->person(); $this->resident($parent, $user); if ($i < 3) $this->resident($child, $user);
+        }
+        app(SimCandidateField::class)->fill($e, null, 1, noFloor: true);
+        $raceModel = \App\Models\ElectionRace::findOrFail($race);
+        foreach (DB::table('candidacies')->where('election_id', $e)->pluck('user_id') as $user) {
+            self::assertTrue(\App\Domain\Forms\Support\RaceFootprint::userInFootprint($user, $raceModel));
+        }
+    }
+
+    public function test_candidate_floor_never_mints_above_real_population(): void
+    {
+        $scope = $this->place(); DB::table('jurisdictions')->where('id', $scope)->update(['population' => 2]);
+        \App\Services\Demo\Stages\CohortStage::run($scope, null, 1, 62);
+        $e = $this->election($scope); $this->race($e, $scope, 1);
+        $result = app(SimCandidateField::class)->fill($e, null, 1);
+        self::assertSame(0, $result['candidacies']); self::assertNotEmpty($result['too_few']);
+        self::assertSame(2, DB::table('residency_confirmations')->where('jurisdiction_id', $scope)->where('is_active', true)->count());
+    }
+
+    public function test_conflicting_receipts_serialize_on_postgresql_and_reuse_the_committed_result(): void
+    {
+        $scope = $this->place(); $source = $this->source([$scope]); $run = app(SimRepairControl::class)->start($source->id);
+        DB::commit(); // Fixture-only: a second connection must see the source and planned receipt.
+        $cfg = DB::connection()->getConfig();
+        $other = new \PDO('pgsql:host='.$cfg['host'].';port='.$cfg['port'].';dbname='.$cfg['database'], $cfg['username'], $cfg['password']);
+        $other->exec("SET lock_timeout='100ms'");
+        $service = app(SimRepairService::class); $method = new \ReflectionMethod($service, 'action');
+        $result = $method->invoke($service, $run, $scope, 'concurrency_test', $scope, function () use ($other, $source, $scope) {
+            try {
+                $query = $other->prepare("SELECT status FROM sim_repair_receipts WHERE source_run_id=? AND kind='concurrency_test' AND target_id=? FOR UPDATE");
+                $query->execute([$source->id, $scope]); self::fail('Concurrent target ownership must wait');
+            } catch (\PDOException $error) { self::assertSame('55P03', $error->getCode()); }
+            return ['status' => 'done', 'once' => true];
+        });
+        self::assertSame('applied', $result['status']);
+        self::assertTrue($method->invoke($service, $run, $scope, 'concurrency_test', $scope, fn () => throw new \LogicException('must not execute twice'))['reused']);
+        $run->forceFill(['status' => 'done', 'phase' => 'done'])->save();
+        unset($other); DB::beginTransaction();
+    }
+}

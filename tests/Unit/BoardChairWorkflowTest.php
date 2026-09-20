@@ -109,6 +109,47 @@ final class BoardChairWorkflowTest extends TestCase
         self::assertContains('board.chair.participation', array_column($this->audit, 1));
     }
 
+    public function test_step5_completes_the_real_ballot_once_and_reuses_the_chair(): void
+    {
+        $service = app(\App\Services\Demo\SimChairService::class);
+        $result = $service->complete($this->id(3));
+        self::assertSame('done', $result['status']);
+        self::assertSame('adopted', $result['outcome']);
+        self::assertSame(3, VoteCast::count());
+        self::assertSame(4, PublicRecord::count());
+        self::assertSame($result['chair_seat_id'], $service->complete($this->id(3))['chair_seat_id']);
+        self::assertSame(1, ChamberVote::count());
+        self::assertSame(3, VoteCast::count());
+    }
+
+    public function test_step5_resumes_open_chair_vote_preserving_existing_casts(): void
+    {
+        $vote = $this->open();
+        $this->cast($vote, 0, [11, 10, 12]);
+        $cast = VoteCast::first()->toArray();
+        $result = app(\App\Services\Demo\SimChairService::class)->complete($this->id(3));
+        self::assertSame('done', $result['status']);
+        self::assertSame($vote->id, $result['vote_id']);
+        self::assertSame($cast, VoteCast::findOrFail($cast['id'])->toArray());
+        self::assertSame(1, ChamberVote::count());
+    }
+
+    public function test_step5_chair_transaction_rolls_back_and_does_not_replace_failed_votes(): void
+    {
+        DB::beginTransaction();
+        app(\App\Services\Demo\SimChairService::class)->complete($this->id(3));
+        DB::rollBack();
+        self::assertSame(0, ChamberVote::count());
+        self::assertSame(0, PublicRecord::count());
+        self::assertNull(Board::findOrFail($this->id(3))->chair_seat_id);
+        $vote = $this->open();
+        foreach ([0, 1, 2] as $n) $this->cast($vote, $n, [10 + $n]);
+        $result = app(\App\Services\Demo\SimChairService::class)->complete($this->id(3));
+        self::assertSame('blocked', $result['status']);
+        self::assertSame('failed', $vote->refresh()->outcome);
+        self::assertSame(1, ChamberVote::count());
+    }
+
     public function test_failed_ballot_can_be_retried_without_rewriting_it(): void
     {
         $vote = $this->open();

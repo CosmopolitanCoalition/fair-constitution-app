@@ -232,6 +232,10 @@ class SimWorkerJob implements ShouldQueue
                     unset($metrics['_verdict'], $metrics['_reason']);
                     $this->settleWithCounters($run, $item, $verdict, $metrics, $reason, $token);
                     $failures = 0;
+                } catch (\App\Services\Demo\SimRepairPaused $e) {
+                    SimTimer::close($part);
+                    SimClaims::release($item->id, $token, $e->getMessage());
+                    $this->stopping = true;
                 } catch (\Throwable $e) {
                     SimTimer::close($part); // no-op if already closed
                     $failures++;
@@ -240,7 +244,8 @@ class SimWorkerJob implements ShouldQueue
                         $item->id,
                         SimItem::STATUS_REVIEW,
                         ['error' => class_basename($e)],
-                        Str::limit($e->getMessage(), 500)
+                        Str::limit($e->getMessage(), 500),
+                        in_array($item->kind, ['repair_plan_scope', 'repair_scope'], true) ? $token : null
                     );
 
                     Log::warning('sim worker item refused', [
@@ -291,6 +296,12 @@ class SimWorkerJob implements ShouldQueue
     /** Dispatch one claimed unit to its stage. */
     private function execute(SimRun $run, object $item, string $token): array
     {
+        if (in_array($item->kind, ['repair_plan_scope', 'repair_scope'], true)) {
+            // Repair actions own their atomic audit/receipt boundaries. Do not
+            // leave their audit evidence in an outer volatile worker buffer.
+            return app(\App\Services\Demo\SimRepairService::class)->run($run, $item,
+                fn () => $this->touchRepair($token), $item->kind === 'repair_plan_scope');
+        }
         $options = $run->options ?? [];
         $version = (int) ($options['version'] ?? 1);
 
@@ -477,6 +488,23 @@ class SimWorkerJob implements ShouldQueue
         $this->updateLease($token, [], heartbeatOnly: true);
     }
 
+    private function touchRepair(string $token): void
+    {
+        // Domain actions own transactions. Their lease must remain visible to
+        // the pump while those transactions run, rather than commit afterward.
+        $name = 'sim_repair_heartbeat';
+        if (! config('database.connections.'.$name)) {
+            config(['database.connections.'.$name => array_replace(DB::connection()->getConfig(), ['name' => $name, 'url' => null])]);
+        }
+        $connection = DB::connection($name);
+        $stamp = $connection->prepareBindings([now()])[0];
+        if ($this->lastHeartbeat === [$token, $stamp]) { return; }
+        if ($connection->table('sim_worker_leases')->where('id', $token)->update(['last_seen_at' => $stamp]) === 0) {
+            throw new \App\Services\Demo\SimRepairPaused('Repair worker no longer owns its lease.');
+        }
+        $this->lastHeartbeat = [$token, $stamp];
+    }
+
     private function updateLease(string $token, array $patch, bool $heartbeatOnly = false): void
     {
         $connection = DB::connection();
@@ -500,6 +528,12 @@ class SimWorkerJob implements ShouldQueue
 
     private function settleWithCounters(SimRun $run, object $item, string $verdict, array $metrics, ?string $reason, string $token): void
     {
+        if (in_array($item->kind, ['repair_plan_scope', 'repair_scope'], true)) {
+            DB::table('sim_items')->where('id', $item->id)->where('claim_token', $token)->where('status', 'running')
+                ->update(['status' => $verdict, 'claim_token' => null, 'metrics' => json_encode($metrics),
+                    'reason' => $reason, 'finished_at' => now(), 'updated_at' => now()]);
+            return;
+        }
         $persist = function () use ($run, $item, $verdict, $metrics, $reason, $token): void {
             $this->settle($item->id, $verdict, $metrics, $reason);
             if ($verdict === SimItem::STATUS_DONE) {
@@ -522,9 +556,9 @@ class SimWorkerJob implements ShouldQueue
         }
     }
 
-    private function settle(string $itemId, string $status, array $metrics = [], ?string $reason = null): void
+    private function settle(string $itemId, string $status, array $metrics = [], ?string $reason = null, ?string $token = null): void
     {
-        DB::table('sim_items')->where('id', $itemId)->update([
+        DB::table('sim_items')->where('id', $itemId)->when($token, fn ($q) => $q->where('claim_token', $token)->where('status', 'running'))->update([
             'status' => $status,
             'claim_token' => null,
             'metrics' => json_encode($metrics),

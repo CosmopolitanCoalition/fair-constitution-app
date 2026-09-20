@@ -2,14 +2,11 @@
 
 namespace App\Services\Demo\Stages;
 
-use App\Models\Candidacy;
 use App\Models\Election;
 use App\Models\Legislature;
-use App\Services\Demo\HashChainRandom;
 use App\Services\ElectionLifecycleService;
 use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 /**
  * The ELECTIONS stage: call a real election and field real candidates.
@@ -247,25 +244,6 @@ final class ElectionStage
     }
 
     /**
-     * The race scope's roster: its active residents in a deterministic order,
-     * capped at what the scope needs. Residency is the eligibility, so this is
-     * the same set the constitution accepts. Shared by the initial draw and the
-     * redraw after a floor top-up.
-     *
-     * @return list<string>
-     */
-    private static function rosterFor(string $scope, int $needed): array
-    {
-        return DB::table('residency_confirmations')
-            ->where('jurisdiction_id', $scope)
-            ->where('is_active', true)
-            ->orderBy('user_id')
-            ->limit($needed)
-            ->pluck('user_id')
-            ->all();
-    }
-
-    /**
      * Field seats+1 candidates per race, EACH FROM ITS OWN RACE'S JURISDICTION.
      *
      * Candidates must be RESIDENTS — `RaceFootprint` gates candidacy on an
@@ -283,13 +261,9 @@ final class ElectionStage
      * district / type_a race carries the chamber's jurisdiction (or none), and
      * falls back to the election's jurisdiction.
      *
-     * A user may hold only ONE candidacy per election (a DB unique constraint on
-     * election_id+user_id). Since the mint-at-leaf rework the identities stage
-     * writes confirmations for the FULL ancestor chain (depth 0 up to the root),
-     * so a person is a resident of every ancestor and may sit in more than one
-     * scope's roster within an election. The per-scope cursor prevents reuse
-     * inside a scope, and the insertOrIgnore below absorbs any cross-scope repeat
-     * (dropping the duplicate), so the constraint always holds.
+     * Assignment is election-wide and serialized on that election. Narrower
+     * scopes draw first; existing assignments are reserved on retry. A collision
+     * is refilled from eligible residents, never silently discarded.
      *
      * @return array{candidacies:int, too_few: array<string,array{residents:int,needed:int,population:int}>}
      *         too_few is non-empty when the whole election is short by law
@@ -304,154 +278,8 @@ final class ElectionStage
         ?\Closure $beat = null,
         bool $noFloor = false
     ): array {
-        // Group each race under the jurisdiction whose residents may contest it.
-        $byScope = [];
-        $tooFew = [];
-
-        foreach ($races as $race) {
-            $scope = ! empty($race->jurisdiction_id) ? (string) $race->jurisdiction_id : $jurisdictionId;
-            $byScope[$scope][] = $race;
-        }
-
-        $rng = new HashChainRandom(hash('sha256', $electionId).':v'.$version);
-        $now = now();
-        $rows = [];
-
-        foreach ($byScope as $scope => $scopeRaces) {
-            $needed = 0;
-            foreach ($scopeRaces as $race) {
-                $needed += (int) $race->seats + self::EXTRA_CANDIDATES;
-            }
-
-            if ($needed === 0) {
-                continue;
-            }
-
-            // The roster, in a deterministic order — residency is what makes
-            // them eligible, so this is the same set the constitution accepts.
-            $roster = self::rosterFor($scope, $needed);
-
-            // THE FLOOR (2026-09-08): a scope short of Σ(seats+1) candidates
-            // cannot be contested. The identities stage sizes each jurisdiction,
-            // but a composite parent's roster is the bind-up of its descendants'
-            // 0.1% samples and can fall below the parent's OWN chamber seats
-            // (rosterSize under-reports here — racePlan scopes these races to the
-            // children while createRaces scopes them to the parent). The exact
-            // need is known NOW that the races exist, so mint the shortfall for
-            // THIS scope and redraw. A guaranteed floor at the point of need,
-            // immune to that divergence; it only tops up this scope's own roster
-            // and never pools another jurisdiction's residents into this race.
-            // The floor top-up is toggleable (--no-floor) so a run can measure
-            // the pre-floor-fix behaviour: with it OFF, a short scope files the
-            // review below instead of minting the shortfall (the China profile).
-            if (! $noFloor && count($roster) < $needed) {
-                try {
-                    IdentityStage::run($scope, $runId, $version, $beat, 0.0, $needed);
-                    $roster = self::rosterFor($scope, $needed);
-                } catch (\Throwable) {
-                    // Fall through to the review below (e.g. no cohort for $scope
-                    // — a genuine anomaly the run should surface, not paper over).
-                }
-            }
-
-            if (count($roster) < $needed) {
-                // THE CEILING (operator ruling 2026-09-19): a scope with fewer
-                // REAL residents than its races need is short by law, not by a
-                // defect. It is recorded and fields nobody; the election closes
-                // below as "too few residents".
-                $population = IdentityStage::populationOf($scope, $version);
-
-                if (self::shortScopeVerdict($needed, $population) === IdentityStage::INACTIVE_TOO_FEW_RESIDENTS) {
-                    $tooFew[$scope] = [
-                        'residents' => count($roster),
-                        'needed' => $needed,
-                        'population' => (int) $population,
-                    ];
-
-                    continue;
-                }
-
-                throw new \RuntimeException(sprintf(
-                    'Roster too small to contest this election: %d residents in jurisdiction %s for %d '
-                    .'seats+1 slots even after the floor top-up. The identities stage must size to '
-                    .'Σ(seats + 1) for each race-bearing jurisdiction (per-child races draw from each child).',
-                    count($roster),
-                    $scope,
-                    $needed
-                ));
-            }
-
-            $cursor = 0;
-
-            foreach ($scopeRaces as $race) {
-                $slots = (int) $race->seats + self::EXTRA_CANDIDATES;
-
-                for ($i = 0; $i < $slots; $i++) {
-                    $rows[] = [
-                        'id' => (string) Str::uuid(),
-                        'election_id' => $electionId,
-                        'race_id' => $race->id,
-                        'user_id' => $roster[$cursor++],
-                        // VALIDATED so the count can see them: the board's
-                        // validation step (F-ELB-002) is a human judgment about a
-                        // real person's residency, and there is no human here to
-                        // exercise it. The residency it would check is the row
-                        // the identities stage already wrote.
-                        'status' => Candidacy::STATUS_VALIDATED,
-                        'position_tags' => json_encode([]),
-                        'residency_attested_at' => $now,
-                        'validated_at' => $now,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ];
-                }
-            }
-        }
-
-        // A short-by-law scope closes the WHOLE election: nobody is fielded, so
-        // no half-contested election reaches the count (seating refuses an
-        // election with an uncounted race). When only SOME scopes are short the
-        // place is not a tiny place, it is a parent with a tiny constituent:
-        // that is surfaced for review, never silently half-fielded. Measured on
-        // the planet dataset 2026-09-19: 8,676 elections are short by law, all
-        // of them whole; none is mixed.
-        if ($tooFew !== []) {
-            if (count($tooFew) < count($byScope)) {
-                $first = array_key_first($tooFew);
-
-                throw new \RuntimeException(sprintf(
-                    'Too few residents in %d of %d race scopes of this election (first: %s has %d residents for %d '
-                    .'seats+1 slots, real population %d). The other scopes can be contested, so the election is '
-                    .'not closed; a constituent this small needs a ruling.',
-                    count($tooFew),
-                    count($byScope),
-                    $first,
-                    $tooFew[$first]['residents'],
-                    $tooFew[$first]['needed'],
-                    $tooFew[$first]['population'],
-                ));
-            }
-
-            return ['candidacies' => 0, 'too_few' => $tooFew];
-        }
-
-        // Bounded chunks, each its own committed statement (THE ETL RULE).
-        // insertOrIgnore, not insert: a kill mid-loop leaves committed chunks
-        // behind, and the reclaimed item re-runs the whole stage. The roster
-        // draw and slot assignment are deterministic, so the re-run rebuilds the
-        // SAME (election_id, user_id) rows; the unique constraint drops the ones
-        // already committed and lands only the missing ones. Redo costs one
-        // chunk, never a constraint violation (THE ETL RULE: resumable).
-        foreach (array_chunk($rows, 500) as $chunk) {
-            $beat && $beat();
-            DB::table('candidacies')->insertOrIgnore($chunk);
-        }
-
-        // Touch the RNG so the seed is genuinely consumed — candidate ordering
-        // is deterministic per election and will carry platform variation once
-        // the research layer supplies it.
-        $rng->next();
-
-        return ['candidacies' => count($rows), 'too_few' => []];
+        return app(\App\Services\Demo\SimCandidateField::class)->fill(
+            $electionId, $runId, $version, $beat, $noFloor
+        );
     }
 }
