@@ -18,11 +18,17 @@ class SimRepairCommand extends Command
             'Record authorized supplementary elections and unfinished-count recovery on this halted repair run');
         $this->addOption('retry-population-ceiling', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
             'Retry proven population-ceiling election failures on this halted run, using exact --scope values');
+        $this->addOption('retry-small-electorates', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
+            'Retry proven tiny-panel election failures on this halted run, using exact --scope values');
     }
 
     public function handle(SimRepairControl $control): int
     {
         try {
+            if ($id = $this->option('retry-small-electorates')) {
+                $this->line(json_encode(app(\App\Services\Demo\SimRepairReceiptRecovery::class)->retryPopulationCeiling(SimRun::findOrFail($id), $this->option('scope'), true), JSON_PRETTY_PRINT));
+                return self::SUCCESS;
+            }
             if ($id = $this->option('retry-population-ceiling')) {
                 $this->line(json_encode(app(\App\Services\Demo\SimRepairReceiptRecovery::class)->retryPopulationCeiling(SimRun::findOrFail($id), $this->option('scope')), JSON_PRETTY_PRINT));
                 return self::SUCCESS;

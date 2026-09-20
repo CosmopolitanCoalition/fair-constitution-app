@@ -191,7 +191,7 @@ final class CountingStage
         }
 
         if ($race->district_id === null) {
-            return (int) $cohort->electorate;
+            return \App\Services\Demo\SimElectorate::fromCohort($cohort);
         }
 
         $districtPop = (int) DB::table('legislature_districts')
@@ -228,7 +228,8 @@ final class CountingStage
         return (int) DB::table('jurisdiction_cohorts as jc')
             ->whereIn('jc.jurisdiction_id', $memberIds)
             ->whereRaw('jc.version = (SELECT MAX(v.version) FROM jurisdiction_cohorts v WHERE v.jurisdiction_id = jc.jurisdiction_id)')
-            ->sum('jc.electorate');
+            ->get(['jc.population', 'jc.electorate', 'jc.turnout_pct'])
+            ->sum(fn ($cohort) => \App\Services\Demo\SimElectorate::fromCohort($cohort));
     }
 
     /** Deterministic per race and version — the world is a function of its seed. */

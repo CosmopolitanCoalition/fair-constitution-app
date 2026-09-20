@@ -112,6 +112,74 @@ class SimElectionRecoveryTest extends TestCase
         self::assertSame('done', app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope])['_verdict']);
     }
 
+    public function test_one_person_panel_recovers_legacy_zero_turnout_and_optional_challenger_without_invented_people(): void
+    {
+        [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);
+        [$child, $group, $panel, $race] = $this->addPopulationPanel($leg, $e, 1);
+        $user = DB::table('users')->whereNotIn('id', DB::table('candidacies')->where('election_id', $e->id)->select('user_id'))->value('id');
+        DB::table('residency_confirmations')->insert(['id' => $this->id(), 'jurisdiction_id' => $child, 'user_id' => $user,
+            'days_confirmed' => 1, 'is_active' => true, 'confirmed_at' => now()]);
+        CohortStage::run($child, null, 1, 62);
+        self::assertSame(1, (int) DB::table('jurisdiction_cohorts')->where('jurisdiction_id', $child)->value('electorate'), 'Fresh worlds round positive fractional turnout to a real whole person.');
+        DB::table('jurisdiction_cohorts')->where('jurisdiction_id', $child)->update(['electorate' => 0]); // legacy cohort
+        $full = DB::table('tabulations')->where('race_id', $b->id)->first();
+        $users = DB::table('users')->count(); $this->enable($run);
+        self::assertTrue(\App\Services\Demo\SimElectorate::hasTinyPanel($e));
+        $out = app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope]);
+        self::assertSame('done', $out['_verdict'], json_encode($out));
+        self::assertSame(1, (int) $race->refresh()->seats);
+        self::assertSame(1, DB::table('candidacies')->where('race_id', $race->id)->count());
+        self::assertSame($user, DB::table('candidacies')->where('race_id', $race->id)->value('user_id'));
+        self::assertSame(1, DB::table('legislature_members')->where('election_id', $e->id)->where('user_id', $user)->where('seat_type', 'b')->count());
+        self::assertSame(11, DB::table('legislature_members')->where('election_id', $e->id)->count());
+        self::assertSame($users, DB::table('users')->count());
+        self::assertSame(0, (int) DB::table('jurisdiction_cohorts')->where('jurisdiction_id', $child)->value('electorate'), 'Do not rewrite historical aggregates.');
+        self::assertEquals($full, DB::table('tabulations')->where('id', $full->id)->first());
+        $count = DB::table('tabulations')->where('race_id', $race->id)->first();
+        self::assertSame('complete', $count->status);
+        self::assertSame('done', app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope])['_verdict']);
+        self::assertEquals($count, DB::table('tabulations')->where('id', $count->id)->first());
+    }
+
+    public function test_integer_turnout_keeps_zero_population_explicit_zero_turnout_and_existing_positive_counts(): void
+    {
+        $class = \App\Services\Demo\SimElectorate::class;
+        self::assertSame(0, $class::size(0, 62));
+        self::assertSame(0, $class::size(1, 0));
+        self::assertSame(1, $class::size(1, 62));
+        self::assertSame(1, $class::size(2, 62));
+        self::assertSame(62, $class::size(100, 62));
+        self::assertSame(2, $class::size(2, 200));
+        self::assertSame(0, $class::fromCohort((object) ['population' => 100, 'turnout_pct' => 62, 'electorate' => 0]), 'Only round-to-zero legacy cohorts are corrected.');
+        self::assertSame(3, $class::fromCohort((object) ['population' => 100, 'turnout_pct' => 62, 'electorate' => 3]));
+        self::assertSame(0, $class::fromCohort((object) ['population' => 1, 'turnout_pct' => 0, 'electorate' => 0]));
+    }
+
+    public function test_tiny_electorate_retry_preserves_history_and_does_not_retry_unrelated_or_completed_items(): void
+    {
+        [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);
+        [$child] = $this->addPopulationPanel($leg, $e, 1);
+        CohortStage::run($child, null, 1, 62);
+        DB::table('jurisdiction_cohorts')->where('jurisdiction_id', $child)->update(['electorate' => 0]);
+        $this->enable($run);
+        $reason = 'Recovery count did not elect the full advertised field; no partial certification applied.';
+        $item = $this->id();
+        DB::table('sim_items')->insert(['id' => $item, 'run_id' => $run->id, 'kind' => 'repair_scope', 'unit_key' => $scope,
+            'jurisdiction_id' => $scope, 'status' => 'review', 'metrics' => '{"old":true}', 'reason' => $reason]);
+        $key = ['source_run_id' => $source->id, 'repair_version' => 1, 'jurisdiction_id' => $scope, 'kind' => 'election_recovery', 'target_id' => $e->id];
+        DB::table('sim_repair_receipts')->insert($key + ['status' => 'blocked', 'result' => json_encode(['reason' => $reason, 'exception' => 'RuntimeException'])]);
+        $service = app(\App\Services\Demo\SimRepairReceiptRecovery::class);
+        try { $service->retryPopulationCeiling($run, [$scope], true); self::fail('Must halt first'); }
+        catch (\RuntimeException $error) { self::assertStringContainsString('drained, halted', $error->getMessage()); }
+        $run->forceFill(['status' => 'halted', 'halt_requested_at' => now()])->save();
+        self::assertSame([], $service->retryPopulationCeiling($run, [$this->id()], true)['retried']);
+        self::assertSame([$scope], $service->retryPopulationCeiling($run, [$scope], true)['retried']);
+        self::assertSame([], $service->retryPopulationCeiling($run, [$scope], true)['retried']);
+        self::assertSame('deferred', DB::table('sim_repair_receipts')->where($key)->value('status'));
+        self::assertStringContainsString($reason, DB::table('sim_repair_receipts')->where($key)->value('result'));
+        self::assertSame('pending', DB::table('sim_items')->where('id', $item)->value('status'));
+    }
+
     public function test_small_panel_uses_population_and_frozen_finalist_multiplier_and_unknown_is_not_zero(): void
     {
         [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);

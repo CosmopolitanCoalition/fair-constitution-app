@@ -18500,7 +18500,8 @@
         "docs/operations/STEP5_REPAIR_D016_HANDOFF.md",
         "docs/operations/step5-benchmarks/D016.md",
         "tests/Feature/PublicationIndexRetirementTest.php",
-        "docs/operations/STEP5_REPAIR_D016_DEPLOYMENT.md"
+        "docs/operations/STEP5_REPAIR_D016_DEPLOYMENT.md",
+        "docs/operations/STEP5_REPAIR_D020_HANDOFF.md"
       ],
       "history": [
         {
@@ -18546,6 +18547,10 @@
         {
           "date": "2026-09-20",
           "note": "D018: operator confirmed existing population ceiling (zero population => zero government). Fixed fresh clumped-panel seat allocations and legacy open synthetic races without changing territory, certified results, historical candidacies, quorum rules or payments. Guarded scoped retry retains prior failed receipts. 54 targeted tests / 607 assertions passed. Runtime commit 4e0dc44a; deployed via authorized SSH at 17:59 UTC, Horizon only. 160/188 targeted retries DONE; 28 additional failures and 36 other reviews remain. At 18:01 UTC 830,897/923,095 repaired, 64 review, 73 healthy workers. Bounded acceptance: 20 scopes, 27 zero-seat panels, 78 historical candidacies retained; both chain tails passed 129 hashes/128 links and all 903,500 original stipend items remain DONE. Other tiny-electorate/court reviews are not claimed resolved; see docs/operations/STEP5_REPAIR_D018_HANDOFF.md."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D020: positive fractional synthetic turnout in one-person panels normalizes to one, preserving zero population/zero turnout and completed counts. Candidate fielding prioritizes required seats over optional challengers while retaining uniqueness and serving-member exclusion. Scoped halted retries preserve prior failures; 58 tests / 651 assertions pass in disposable PostgreSQL and mapper fixtures. Remote acceptance pending; unrelated court/governance reviews remain visible."
         }
       ]
     },

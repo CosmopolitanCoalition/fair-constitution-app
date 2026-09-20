@@ -355,8 +355,22 @@ class SimRepairIntegrationTest extends TestCase
         \App\Services\Demo\Stages\CohortStage::run($scope, null, 1, 62);
         $e = $this->election($scope); $this->race($e, $scope, 1);
         $result = app(SimCandidateField::class)->fill($e, null, 1);
-        self::assertSame(0, $result['candidacies']); self::assertNotEmpty($result['too_few']);
+        self::assertSame(2, $result['candidacies']); self::assertSame([], $result['too_few']);
         self::assertSame(2, DB::table('residency_confirmations')->where('jurisdiction_id', $scope)->where('is_active', true)->count());
+    }
+
+    public function test_candidate_shortage_allocates_required_seats_before_optional_challengers(): void
+    {
+        $scope = $this->place(); DB::table('jurisdictions')->where('id', $scope)->update(['population' => 4]);
+        \App\Services\Demo\Stages\CohortStage::run($scope, null, 1, 62);
+        $e = $this->election($scope); $a = $this->race($e, $scope, 1); $b = $this->race($e, $scope, 2);
+        for ($i = 0; $i < 4; $i++) { $this->resident($scope, $this->person()); }
+        $result = app(SimCandidateField::class)->fill($e, null, 1, noFloor: true);
+        self::assertSame(4, $result['candidacies']); self::assertSame([], $result['too_few']);
+        self::assertSame(2, DB::table('candidacies')->where('race_id', $a)->count());
+        self::assertSame(2, DB::table('candidacies')->where('race_id', $b)->count());
+        self::assertSame(4, DB::table('candidacies')->where('election_id', $e)->distinct()->count('user_id'));
+        self::assertSame(4, app(SimCandidateField::class)->fill($e, null, 1, noFloor: true)['candidacies']);
     }
 
     private function mixedCountWorld(): array

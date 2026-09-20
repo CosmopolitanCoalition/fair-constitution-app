@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\DB;
 class SimRepairReceiptRecovery
 {
     /** Retry only rolled-back election failures with a demonstrated panel cap defect. */
-    public function retryPopulationCeiling(SimRun $run, array $scopes): array
+    public function retryPopulationCeiling(SimRun $run, array $scopes, bool $tinyElectorates = false): array
     {
         if ($reason = app(SimRunControl::class)->refusalReason()) { throw new \RuntimeException($reason); }
         if ($scopes === [] || count($scopes) > 100) { throw new \RuntimeException('Name 1–100 exact population-ceiling retry scopes.'); }
-        return DB::transaction(function () use ($run, $scopes): array {
+        return DB::transaction(function () use ($run, $scopes, $tinyElectorates): array {
             $run = SimRun::whereKey($run->id)->lockForUpdate()->firstOrFail();
             if (! ($run->options['repair_source_run'] ?? null) || $run->status !== 'halted' || ! $run->haltRequested()
                 || $run->phase !== 'repairing' || ! ($run->options['repair_apply_authorized'] ?? false)
@@ -32,7 +32,9 @@ class SimRepairReceiptRecovery
                     ->where('kind', 'election_scope')->where('unit_key', $scope)->value('metrics');
                 $electionId = (json_decode($source ?? '{}', true)['election_id'] ?? null);
                 $election = $electionId ? \App\Models\Election::find($electionId) : null;
-                if (! $election || $election->jurisdiction_id !== $scope || app(SimPopulationCeiling::class)->adjustments($election) === []) {
+                if (! $election || $election->jurisdiction_id !== $scope || ! ($tinyElectorates
+                    ? SimElectorate::hasTinyPanel($election)
+                    : app(SimPopulationCeiling::class)->adjustments($election) !== [])) {
                     $retained[] = $scope; continue;
                 }
                 $key = ['source_run_id' => $run->options['repair_source_run'], 'repair_version' => (int) ($run->options['repair_version'] ?? 1),
@@ -45,9 +47,9 @@ class SimRepairReceiptRecovery
                         || str_starts_with($reason, 'Distinct eligible candidate pool exhausted in '))) {
                     $retained[] = $scope; continue;
                 }
-                $replacement = ['reason' => 'D018: retry after correcting the existing real-population ceiling.',
+                $replacement = ['reason' => $tinyElectorates ? 'D020: retry integer turnout and optional challenger correction.' : 'D018: retry after correcting the existing real-population ceiling.',
                     '_prior_receipts' => [['status' => $receipt->status, 'result' => $result, 'updated_at' => $receipt->updated_at]]];
-                app(AuditService::class)->append('simworld', 'sim.population_ceiling_retry', $key + ['run_id' => $run->id,
+                app(AuditService::class)->append('simworld', $tinyElectorates ? 'sim.small_electorate_retry' : 'sim.population_ceiling_retry', $key + ['run_id' => $run->id,
                     'item_id' => $item->id, 'previous' => $result], 'WF-SYS-04', jurisdictionId: $scope);
                 DB::table('sim_repair_receipts')->where($key)->update(['status' => 'deferred', 'result' => json_encode($replacement), 'updated_at' => now()]);
                 DB::table('sim_items')->where('id', $item->id)->update(['status' => 'pending', 'claim_token' => null,

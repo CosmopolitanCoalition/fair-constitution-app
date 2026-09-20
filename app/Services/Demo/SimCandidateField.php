@@ -37,7 +37,7 @@ class SimCandidateField
             foreach ($scopes as $scope => $group) {
                 $pool = $group->first()->pool;
                 $beat && $beat();
-                $needs = []; $ownSlots = 0;
+                $needs = []; $minimumNeeds = []; $ownSlots = 0;
                 foreach ($group as $race) {
                     $slots = (int) $race->seats + 1; $ownSlots += $slots;
                     $present = $existing->where('race_id', $race->id)->whereNotIn('status', [Candidacy::STATUS_REJECTED, Candidacy::STATUS_WITHDRAWN])->count();
@@ -51,6 +51,7 @@ class SimCandidateField
                         $missing = 0; // a full uncontested result is already settled
                     }
                     $needs[$race->id] = $missing;
+                    $minimumNeeds[$race->id] = min($missing, max(0, (int) $race->seats - $present));
                 }
                 $needed = array_sum($needs);
                 if ($needed === 0) { continue; }
@@ -69,11 +70,25 @@ class SimCandidateField
                 if (count($roster) < $needed) {
                     $populations = array_map(fn ($place) => IdentityStage::populationOf($place, $version), $pool);
                     $population = in_array(null, $populations, true) ? null : array_sum($populations);
-                    if ($existing->isEmpty() && $population !== null && $population < $ownSlots) {
-                        $tooFew[$scope] = ['residents' => count($roster), 'needed' => $ownSlots, 'population' => $population];
-                        continue;
+                    if ($population !== null && $population > 0 && count($roster) >= array_sum($minimumNeeds)) {
+                        // The extra challenger is a demo preference, not an
+                        // eligibility rule. Cover every real seat first, then
+                        // use available residents for optional challengers.
+                        // Never reuse a candidate or a serving officeholder.
+                        $spare = count($roster) - array_sum($minimumNeeds);
+                        foreach ($needs as $id => $wanted) {
+                            $extra = min($spare, $wanted - $minimumNeeds[$id]);
+                            $needs[$id] = $minimumNeeds[$id] + $extra; $spare -= $extra;
+                        }
+                        $needed = array_sum($needs);
                     }
-                    throw new \RuntimeException("Distinct eligible candidate pool exhausted in {$scope}: ".count($roster)." available, {$needed} missing; existing candidacies preserved.");
+                    if (count($roster) < $needed) {
+                        if ($existing->isEmpty() && $population !== null && $population < $ownSlots) {
+                            $tooFew[$scope] = ['residents' => count($roster), 'needed' => $ownSlots, 'population' => $population];
+                            continue;
+                        }
+                        throw new \RuntimeException("Distinct eligible candidate pool exhausted in {$scope}: ".count($roster)." available, {$needed} missing; existing candidacies preserved.");
+                    }
                 }
                 $cursor = 0; $now = now();
                 foreach ($needs as $raceId => $missing) {

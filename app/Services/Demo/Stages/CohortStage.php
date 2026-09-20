@@ -56,7 +56,7 @@ final class CohortStage
         // error: 34,763 of them exist on the planet because their borders sit
         // off the population raster. They get a cohort with a zero electorate
         // and are rendered honestly as unpopulated, never silently skipped.
-        $electorate = (int) floor($population * $turnoutPct / 100);
+        $electorate = \App\Services\Demo\SimElectorate::size($population, $turnoutPct);
 
         $mArch = hrtime(true);
         $archetypes = self::archetypes($seed, $j, $population, $beat);
