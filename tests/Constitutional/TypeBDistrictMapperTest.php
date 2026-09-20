@@ -26,6 +26,28 @@ use PHPUnit\Framework\TestCase;
  */
 class TypeBDistrictMapperTest extends TestCase
 {
+    public function test_clumped_panels_keep_every_territory_but_never_more_seats_than_people(): void
+    {
+        $pops = array_fill_keys(['a', 'b', 'c', 'd', 'e', 'f', 'g'], 100);
+        $normal = TypeBDistrictMapper::computePanels($pops, [], 8, 700, 2);
+        foreach ($normal['panels'][0] as $id) { $pops[$id] = 0; }
+        $mapped = TypeBDistrictMapper::computePanels($pops, [], 8, array_sum($pops), 2);
+        self::assertSame($normal['panels'], $mapped['panels'], 'Population cannot change grouping or territorial membership.');
+        foreach ($mapped['panels'] as $i => $members) {
+            self::assertSame(min(2, array_sum(array_intersect_key($pops, array_flip($members)))), $mapped['panel_seats'][$i]);
+        }
+        self::assertSame(array_sum($mapped['panel_seats']), $mapped['seats']);
+        self::assertLessThan($normal['seats'], $mapped['seats'], 'The fixture exercises an under-populated clump.');
+        self::assertSame(0, $mapped['panel_seats'][0]);
+        $pops[$normal['panels'][0][0]] = 1;
+        $tiny = TypeBDistrictMapper::computePanels($pops, [], 8, array_sum($pops), 2);
+        self::assertSame($normal['panels'], $tiny['panels']);
+        self::assertSame(1, $tiny['panel_seats'][0]);
+        $zero = TypeBDistrictMapper::computePanels(['a' => 0, 'b' => 0], [], 0, 0, 2);
+        self::assertSame([['a'], ['b']], $zero['panels']);
+        self::assertSame([0, 0], $zero['panel_seats']);
+    }
+
     /**
      * THE UNGROUPED MAP (operator order 2026-09-05, Type B as the last scope of
      * every composite map): a chamber whose ladder already fits gets a panel

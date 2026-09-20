@@ -18,6 +18,7 @@ class SimCandidateField
             if (! in_array($election->status, [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN], true)) {
                 throw new \RuntimeException('Candidate repair requires an open nomination election; closed/certified results are preserved.');
             }
+            app(SimPopulationCeiling::class)->reconcile($election, $runId, $beat);
             $races = DB::table('election_races')->where('election_id', $electionId)->whereNull('deleted_at')->orderBy('id')->get();
             foreach ($races as $race) { $race->pool = $this->footprint($race, (string) $election->jurisdiction_id); }
             $scopes = $races->groupBy(fn ($race) => implode(',', $race->pool));

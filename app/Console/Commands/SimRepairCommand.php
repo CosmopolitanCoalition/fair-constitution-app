@@ -16,11 +16,17 @@ class SimRepairCommand extends Command
         parent::configure();
         $this->addOption('enable-election-recovery', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
             'Record authorized supplementary elections and unfinished-count recovery on this halted repair run');
+        $this->addOption('retry-population-ceiling', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED,
+            'Retry proven population-ceiling election failures on this halted run, using exact --scope values');
     }
 
     public function handle(SimRepairControl $control): int
     {
         try {
+            if ($id = $this->option('retry-population-ceiling')) {
+                $this->line(json_encode(app(\App\Services\Demo\SimRepairReceiptRecovery::class)->retryPopulationCeiling(SimRun::findOrFail($id), $this->option('scope')), JSON_PRETTY_PRINT));
+                return self::SUCCESS;
+            }
             if ($id = $this->option('enable-election-recovery')) {
                 $this->line(json_encode($control->enableElectionRecovery(SimRun::findOrFail($id), $this->option('scope')), JSON_PRETTY_PRINT));
                 return self::SUCCESS;

@@ -56,7 +56,7 @@ final class SeatingStage
         }
 
         $mRaces = hrtime(true);
-        $races = DB::table('election_races')->where('election_id', $election->id)->count();
+        $races = DB::table('election_races')->where('election_id', $election->id)->whereNull('deleted_at')->count();
         SimTimer::record('seat.races', (int) ((hrtime(true) - $mRaces) / 1000));
 
         if ($races === 0) {
@@ -69,6 +69,7 @@ final class SeatingStage
         $mCheck = hrtime(true);
         $uncounted = DB::table('election_races as r')
             ->where('r.election_id', $election->id)
+            ->whereNull('r.deleted_at')
             ->whereNotExists(function ($q) {
                 $q->select(DB::raw(1))
                     ->from('tabulations as t')

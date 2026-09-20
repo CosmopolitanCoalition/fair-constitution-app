@@ -13,6 +13,12 @@ unnecessary. Follow the bounded drain/deploy/resume procedure below; do not wait
 for manual relay or message other tasks. Earlier role separation below is history.
 Current results: [D016 direct deployment](STEP5_REPAIR_D016_DEPLOYMENT.md).
 
+**Population clarification (September 20):** the operator confirmed zero
+population means zero government; the existing population ceiling also applies
+to Type B panels. Correct the allocation defect in fresh runs and the existing
+repair, preserving maps, certified results, terms and payments. This is not a
+request to invent residents or retain empty offices as a new policy.
+
 **Unattended continuation approved:** on September 20 the operator explicitly
 approved the existing ten-minute heartbeat to develop, test, push and deploy
 necessary Step 5 repair fixes using the same safe procedure. The automation

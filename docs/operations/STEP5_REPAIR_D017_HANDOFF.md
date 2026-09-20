@@ -19,9 +19,9 @@ operator's explicit unattended Step 5 authorization. Same repair run:
 At 17:00:34 UTC the heartbeat found 29 reviews. At 17:12:21, 735,347 repairs
 were done and 66 were in review; the site and all 73 workers remained healthy.
 Most sampled failures concern panels with assigned seats but zero resident
-population/electorate. An operator decision on recording these seats as unfilled
-is pending; this release does not alter their treatment, create residents, or
-relax readiness and voting requirements.
+population/electorate. Operator clarification subsequently confirmed the existing population ceiling:
+zero population means zero government. D018 corrects the allocation defect;
+no fictional residents, reserved empty offices, or relaxed voting rules are authorized.
 
 A separate certified legislature has 15 Type A and 13 Type B members against
 stored targets of 14 and 14. The aggregate reaches 28, so the inspector omitted
@@ -62,4 +62,5 @@ Evidence before deployment is under the remote
 `/home/cosmo/wos-step5-operations/evidence/D016-AWARD/`: the `heartbeat-1659`
 and `incident-1717` snapshots (use timestamps inside the files), review samples,
 and the exact panel/cohort/member/race probes. The original zero-population
-rules and existing quorum remain binding while the operator decision is pending.
+rules and existing quorum remain binding. The operator has confirmed that the
+existing population ceiling applies to these panels; no policy decision is pending.

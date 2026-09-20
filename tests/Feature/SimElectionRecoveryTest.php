@@ -64,6 +64,127 @@ class SimElectionRecoveryTest extends TestCase
         $run->forceFill(['options' => $options, 'phase' => 'repairing', 'status' => 'running'])->save();
     }
 
+    private function addPopulationPanel(Legislature $leg, Election $election, ?int $population = 0): array
+    {
+        $child = $this->id(); $group = $this->id(); $panel = $this->id();
+        DB::table('jurisdictions')->insert(['id' => $child, 'name' => 'Population ceiling fixture', 'slug' => $child,
+            'parent_id' => $leg->jurisdiction_id, 'population' => $population, 'adm_level' => 7, 'created_at' => now(), 'updated_at' => now()]);
+        // The ordinary fixture has an existing five-seat Type B race. Add a
+        // legacy two-seat empty panel without disturbing either sealed count.
+        DB::table('legislature_type_b_groupings')->insert(['id' => $group, 'legislature_id' => $leg->id, 'status' => 'active',
+            'rep_floor' => 2, 'group_size' => 1, 'panel_count' => 1, 'seats_total' => 7, 'type_a_bound' => 7, 'signature' => 'unchanged-membership']);
+        DB::table('legislature_type_b_panels')->insert(['id' => $panel, 'grouping_id' => $group, 'legislature_id' => $leg->id,
+            'panel_number' => 1, 'seats' => 2, 'member_count' => 1, 'bonus_seats' => 0]);
+        DB::table('legislature_type_b_panel_jurisdictions')->insert(['id' => $this->id(), 'grouping_id' => $group,
+            'panel_id' => $panel, 'jurisdiction_id' => $child]);
+        $race = ElectionRace::create(['election_id' => $election->id, 'jurisdiction_id' => $leg->jurisdiction_id,
+            'seat_kind' => 'type_b', 'type_b_panel_id' => $panel, 'seats' => 2, 'finalist_count' => 8]);
+        $leg->forceFill(['type_b_seats' => 7, 'total_seats' => 12])->save();
+        return [$child, $group, $panel, $race];
+    }
+
+    public function test_zero_population_panel_recovers_through_real_count_and_certification_without_invented_people(): void
+    {
+        [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);
+        [$child, $group, $panel, $empty] = $this->addPopulationPanel($leg, $e);
+        $legacyCandidate = $this->id();
+        $unused = DB::table('users')->whereNotIn('id', DB::table('candidacies')->where('election_id', $e->id)->select('user_id'))->value('id');
+        DB::table('candidacies')->insert(['id' => $legacyCandidate, 'election_id' => $e->id, 'race_id' => $empty->id,
+            'user_id' => $unused, 'status' => 'validated', 'position_tags' => '[]', 'residency_attested_at' => now(), 'validated_at' => now()]);
+        $full = DB::table('tabulations')->where('race_id', $b->id)->first();
+        $oldMembers = DB::table('legislature_type_b_panel_jurisdictions')->where('grouping_id', $group)->get();
+        $users = DB::table('users')->count(); $this->enable($run);
+        $out = app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope]);
+        self::assertSame('done', $out['_verdict'], json_encode($out));
+        self::assertSame(0, (int) DB::table('legislature_type_b_panels')->where('id', $panel)->value('seats'));
+        self::assertSame(5, (int) DB::table('legislature_type_b_groupings')->where('id', $group)->value('seats_total'));
+        self::assertSame('unchanged-membership', DB::table('legislature_type_b_groupings')->where('id', $group)->value('signature'));
+        self::assertEquals($oldMembers, DB::table('legislature_type_b_panel_jurisdictions')->where('grouping_id', $group)->get());
+        self::assertTrue(ElectionRace::withTrashed()->findOrFail($empty->id)->trashed());
+        self::assertSame(2, (int) ElectionRace::withTrashed()->findOrFail($empty->id)->seats, 'Keep the historical advertised seats.');
+        self::assertSame(10, (int) $leg->refresh()->total_seats);
+        self::assertSame(10, DB::table('legislature_members')->where('election_id', $e->id)->count());
+        self::assertSame(0, DB::table('residency_confirmations')->where('jurisdiction_id', $child)->count());
+        self::assertSame($users, DB::table('users')->count());
+        self::assertEquals($full, DB::table('tabulations')->where('id', $full->id)->first());
+        self::assertSame(0, DB::table('tabulations')->where('race_id', $empty->id)->count());
+        self::assertSame($empty->id, DB::table('candidacies')->where('id', $legacyCandidate)->value('race_id'));
+        self::assertSame('done', app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope])['_verdict']);
+    }
+
+    public function test_small_panel_uses_population_and_frozen_finalist_multiplier_and_unknown_is_not_zero(): void
+    {
+        [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);
+        [$child, $group, $panel, $race] = $this->addPopulationPanel($leg, $e, null);
+        $service = app(\App\Services\Demo\SimPopulationCeiling::class);
+        self::assertSame([], $service->reconcile($e, $source->id));
+        self::assertSame(2, (int) $race->refresh()->seats);
+        DB::table('jurisdictions')->where('id', $child)->update(['population' => 1]);
+        self::assertCount(1, $service->reconcile($e, $source->id));
+        self::assertSame(1, (int) $race->refresh()->seats);
+        self::assertSame(4, (int) $race->finalist_count, 'Use the frozen four-per-seat rule, not a hardcoded three.');
+        self::assertSame(11, (int) $leg->refresh()->total_seats);
+        self::assertSame([], $service->reconcile($e, $source->id));
+        self::assertSame(0, DB::table('residency_confirmations')->where('jurisdiction_id', $child)->count());
+    }
+
+    public function test_later_recovery_failure_rolls_back_population_correction_and_preserves_counts(): void
+    {
+        [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);
+        [$child, $group, $panel, $race] = $this->addPopulationPanel($leg, $e); $this->enable($run);
+        $audit = DB::table('audit_log')->count(); $counts = DB::table('tabulations')->orderBy('id')->get();
+        try {
+            app(SimElectionRecovery::class)->recover($run, $e->id, function () use ($race) {
+                if (ElectionRace::withTrashed()->find($race->id)->trashed()) { throw new \RuntimeException('fixture after ceiling'); }
+            }); self::fail('Expected interruption');
+        } catch (\RuntimeException $error) { self::assertSame('fixture after ceiling', $error->getMessage()); }
+        self::assertFalse($race->refresh()->trashed());
+        self::assertSame(12, (int) $leg->refresh()->total_seats);
+        self::assertSame(2, (int) DB::table('legislature_type_b_panels')->where('id', $panel)->value('seats'));
+        self::assertSame($audit, DB::table('audit_log')->count());
+        self::assertEquals($counts, DB::table('tabulations')->orderBy('id')->get());
+    }
+
+    public function test_population_retry_is_scoped_halted_idempotent_and_retains_failure_history(): void
+    {
+        [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);
+        $this->addPopulationPanel($leg, $e); $this->enable($run);
+        $item = $this->id(); $reason = 'Recovery count did not elect the full advertised field; no partial certification applied.';
+        DB::table('sim_items')->insert(['id' => $item, 'run_id' => $run->id, 'kind' => 'repair_scope', 'unit_key' => $scope,
+            'jurisdiction_id' => $scope, 'status' => 'review', 'metrics' => '{"old":true}', 'reason' => $reason]);
+        $key = ['source_run_id' => $source->id, 'repair_version' => 1, 'jurisdiction_id' => $scope, 'kind' => 'election_recovery', 'target_id' => $e->id];
+        DB::table('sim_repair_receipts')->insert($key + ['status' => 'blocked', 'result' => json_encode(['reason' => $reason, 'exception' => 'RuntimeException'])]);
+        $service = app(\App\Services\Demo\SimRepairReceiptRecovery::class);
+        try { $service->retryPopulationCeiling($run, [$scope]); self::fail('Running retry forbidden'); }
+        catch (\RuntimeException $error) { self::assertStringContainsString('drained, halted', $error->getMessage()); }
+        $run->forceFill(['status' => 'halted', 'halt_requested_at' => now()])->save();
+        self::assertSame([], $service->retryPopulationCeiling($run, [$this->id()])['retried']);
+        self::assertSame([$scope], $service->retryPopulationCeiling($run, [$scope])['retried']);
+        self::assertSame([], $service->retryPopulationCeiling($run, [$scope])['retried']);
+        self::assertSame('pending', DB::table('sim_items')->where('id', $item)->value('status'));
+        self::assertSame('deferred', DB::table('sim_repair_receipts')->where($key)->value('status'));
+        $run->forceFill(['status' => 'running', 'halt_requested_at' => null])->save();
+        self::assertSame('done', app(SimRepairService::class)->run($run, (object) ['jurisdiction_id' => $scope])['_verdict']);
+        $receipt = DB::table('sim_repair_receipts')->where($key)->first();
+        self::assertSame('applied', $receipt->status);
+        self::assertStringContainsString($reason, $receipt->result);
+    }
+
+    public function test_ceiling_correction_refuses_existing_counts_and_certified_terms(): void
+    {
+        [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(false);
+        [$child, $group, $panel, $race] = $this->addPopulationPanel($leg, $e);
+        DB::table('tabulations')->where('race_id', $a->id)->update(['race_id' => $race->id]);
+        $service = app(\App\Services\Demo\SimPopulationCeiling::class);
+        try { $service->reconcile($e, $source->id); self::fail('A count must be preserved'); }
+        catch (\RuntimeException $error) { self::assertStringContainsString('cannot rewrite an existing count', $error->getMessage()); }
+        self::assertFalse($race->refresh()->trashed());
+        self::assertSame(12, (int) $leg->refresh()->total_seats);
+        $e->forceFill(['status' => 'certified'])->save();
+        self::assertSame([], $service->reconcile($e, $source->id));
+        self::assertSame(2, (int) DB::table('legislature_type_b_panels')->where('id', $panel)->value('seats'));
+    }
+
     public function test_certified_missing_seats_get_real_special_elections_without_changing_prior_officeholders_or_terms(): void
     {
         [$scope, $leg, $e, $a, $b, $source, $run] = $this->world(true);

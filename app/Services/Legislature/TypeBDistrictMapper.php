@@ -15,6 +15,10 @@ use Illuminate\Support\Str;
  * its own seat count among its own constituents' residents (operator ruling
  * 2026-07-29 — one at-large race PER CLUMP, never one pooled race). This is a
  * balanced partition over the adjacency graph, never a cut through geometry.
+ * Population ceiling (operator clarification 2026-09-20): a panel's allocated
+ * rep_floor seats are capped at its residents, as in the ungrouped ladder.
+ * Zero population seats nobody; territory remains in the grouping. References
+ * below to rep_floor assume sufficient population and never override this cap.
  *
  * OPERATOR RULINGS B1–B7 (brief docs/plans/scaling/TYPE_B_DISTRICT_MAPPER_DESIGN.md):
  *  B1 — one at-large race PER PANEL (clump). Every panel seats rep_floor — there
@@ -176,6 +180,14 @@ class TypeBDistrictMapper
         $sizes = self::allocateSizes($n, $reps);
 
         $panels = self::growPanels($ids, $adjacency, $centroids, $sizes);
+
+        // Population does not choose the grouping, but it still caps its
+        // government. An empty panel remains on the map and elects nobody.
+        // Do not redistribute its unused seats to another panel (B1/B3).
+        foreach ($panels as $i => $members) {
+            $people = array_sum(array_map(static fn ($id) => max(0, (int) ($populations[$id] ?? 0)), $members));
+            $reps[$i] = min($reps[$i], $people);
+        }
 
         return self::result($panels, $repFloor, $reps, $bound, false);
     }
