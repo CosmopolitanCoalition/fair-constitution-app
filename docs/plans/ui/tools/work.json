@@ -18551,6 +18551,10 @@
         {
           "date": "2026-09-20",
           "note": "D020: positive fractional synthetic turnout in one-person panels normalizes to one, preserving zero population/zero turnout and completed counts. Candidate fielding prioritizes required seats over optional challengers while retaining uniqueness and serving-member exclusion. Scoped halted retries preserve prior failures; 58 tests / 651 assertions pass in disposable PostgreSQL and mapper fixtures. Remote acceptance pending; unrelated court/governance reviews remain visible."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "D020 deployed 1874b1ca at 19:01 UTC: 97 retries, 76 pass all acceptance, 17 election recoveries expose court shortages, four candidate shortages remain. Four tiny elections certified with one ballot/quota/winner each; both bounded chains 129 hashes/128 links pass; original 903500 stipends DONE. At 19:10 UTC 908766/923095 DONE, 28 review, 73 fresh workers. Remaining 23 courts conflict with population/equal-quota/minimum-bench requirements; one two-member Type B chamber needs three yes votes under current formula; operator clarification requested before protected-policy changes. Same run continues."
         }
       ]
     },
