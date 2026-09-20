@@ -30,12 +30,125 @@ manually; do not send messages directly to the other task.
   proof of delivery; never resend or launch a second exchange just because
   context was compacted.
 
-Current exchange: **D002 received from the operator**. The implementation and
-internal tests below are complete. The developer's final response supplies the
-pushed commit for manual relay; then Deploy and Benchmark owns the next turn.
-No direct cross-task message has been sent. D002 confirms remote `a77cf0b6`;
-older deployment statements below are historical. Do not
-infer deployment of this new patch until a completed demo handoff confirms it.
+Current exchange: **operator-authorized preparation of phases 7 through 11**.
+The operator requested one subagent per remaining phase and local implementation
+and testing while the demo finishes training. Five distinct phase agents cover
+that work, scheduled within the session's concurrency limit. The developer
+integrates their changes and returns one completed, tested, pushed handoff for
+manual relay. This is explicit authorization to prepare the remaining phases
+while the prior training patch is being deployed; it does not authorize direct
+cross-task messages or remote operations. D002 confirms remote `a77cf0b6`.
+The operator reports that the demo is deploying `1c254f92`; its completed
+benchmark has not yet been supplied. Older deployment statements below are
+historical. Do not infer deployment or performance of a new patch from its push.
+
+## Remaining-phase preparation: phases 7 through 11 — 2026-09-20
+
+These changes target repeated reads and unnecessary result transfer within
+Step 5. Existing institutional writes, authority checks, voting rules, sample
+sizes and monetary transaction boundaries remain intact. The later phases
+already use saved, bounded queue-generation cursors; this pass does not replace
+that work or alter worker counts. Local tests establish query reductions and
+behavioral equivalence, not production throughput.
+
+### Implemented changes
+
+| Phase | Change | Local evidence |
+|---|---|---|
+| 7 Growing chambers | Combine the initial board-vacancy and fresh principal lookup; avoid checking that same vacancy twice; reuse one committee inventory for counts and names. | Two fewer reads per governable department, one fewer committee inventory read during growth. Principal departure between departments, refusal, idempotence and the real consent/adoption/term-clock path pass. |
+| 8 Seating courts | Batch ordered resident-pool probes in host-derived chunks; use a court-scoped exclusion subquery; combine final seat counts. | A 120-pool fixture reduces 121 roster queries to one. PostgreSQL reads the exclusion once; indexed probes read at most three entries for two nominees. Exact nominee order, exclusions and deferrals pass. |
+| 9 Modelling civic life | Count organization types in one scoped aggregate; fetch only the ordered candidate IDs consumed by the endorsement sample. | Up to four censuses become one. Candidate retrieval is capped at four for the current sample. Empty, small and 1,000-candidate fields retain the same endorsement sequence; top-ups and reruns pass. |
+| 10 Paying the civic stipend | Select the existing 25-wallet sample first, restrict the holder lookup to those users, and prefetch the seven stipend settings on the service's actual resolver. | Enabled settings resolution falls from seven ancestor queries to one. Exact recipients/order, inherited overrides/defaults, role bumps, amounts, short-pay receipts and rollback pass with real payment services. Empty samples skip holder/settings/payment reads. |
+| 11 Verifying the world | Group member counts for the selected legislatures; return organization/board verdict counts as one scalar row, using board-primary-key probes. | Exact verdicts/gaps, NULL/deleted/shared-board behavior, aspect skips and inactive-scope rules pass. A 200-chamber/3,000-organization fixture uses eight reads instead of 208. The plan uses scoped organization and board indexes with 10,000 unrelated rows present. |
+
+Phase 8 uses the existing `residency_active_jurisdiction_user_idx` deployed
+earlier. No additional index is justified by these fixtures. Phase 9's sampled
+local plan already uses an election-leading candidacy index. Fixture query
+counts are workload-specific, not a forecast of whole-phase speedup.
+
+Phase 10 retains its existing recipient query and single outer payment
+transaction. A bounded local planner check already used a jurisdiction-leading
+resident index and indexed wallet bindings; no replacement index is included.
+Ordinary stipend callers retain lazy settings reads. The Step 5 prefetch can
+read unused settings for a disabled stipend, so the six-query saving applies
+to the tested enabled path, not every outcome. The unchanged cold currency
+provisioning path was stubbed in these fixtures; the real stipend, issuance,
+wallet and ledger paths were exercised.
+
+The Phase 11 fixture exposed an unsafe plan for an ordinary LEFT JOIN: the
+planner hashed the whole boards table. The shipped query uses a correlated
+scalar board-primary-key lookup within the scoped aggregate instead. Tests
+verify that access path without adding an index or relying on session planner
+settings. Member predicates and existing validation rules are preserved,
+including how deleted/vacated member rows are counted; this performance pass
+does not change verification policy.
+
+### Completed internal validation
+
+**40 tests / 881 assertions passed** in the combined phase 7–11 suite and the
+existing governor-consent and board-term regression classes. PostgreSQL tests
+create guarded nonce databases, verify both raw and Eloquent routing before
+fixture writes, and remove only those databases. Other fixtures use private
+SQLite memory databases. No tests wrote to the live development world or demo.
+
+```text
+docker exec -w /var/www/html -e RUN_SIM_INDEX_PG_TESTS=1 fc_app php vendor/bin/phpunit tests/Feature/Phase7PerformanceTest.php tests/Feature/Phase8PerformanceTest.php tests/Feature/Phase9PerformanceTest.php tests/Feature/Phase10PerformanceTest.php tests/Feature/Phase11PerformanceTest.php tests/Unit/SimDepartmentGovernorStageTest.php tests/Unit/SimBoardTermTest.php
+```
+
+These are focused regression and query-plan fixtures. They do not replay a
+planet-scale run or establish a live phase speedup. Phase 7 also exercises the
+real governor consent/adoption/term clock; Phase 8 mocks unchanged nomination
+writes while checking selection and deferral; Phase 9 mocks unchanged board
+orchestration and retains the existing real board-term tests. No full live
+test suite was used as a gate.
+
+### Measurement boundaries
+
+- Phase 7 adds `gov.governor_nominate` and `gov.governor_consent`, nested in
+  `gov.governors`.
+- Phase 8 adds `judiciary.resident_pools`, `judiciary.stage_nominations`,
+  `judiciary.slate_consent` and `judiciary.slate_seating`, nested in
+  `judiciary.seat`.
+- Phase 9 adds `civics.org_counts`; use it alongside existing board, bill,
+  endorsement and whole-item timings.
+- Phase 10 adds `stipend.currency`, `stipend.recipients`,
+  `stipend.office_holders`, `stipend.settings` and `stipend.payment`, only while
+  `stage.stipend_scope` is open. Payment includes its existing owned durable
+  commit. These parts are nested in `stipend.disburse`, which now records
+  failed attempts as well as successful ones. Separate failures when comparing
+  windows. The new parts do not measure ledger lock wait independently.
+- Phase 11 adds `verify.elections_read` and `verify.civics_read`, nested in
+  `verify.scan`.
+
+Keep these timers separate from whole-item throughput. Nested intervals cannot
+be summed. The unchanged write paths can still dominate a phase after reads
+improve; the new timers help identify that without weakening their guarantees.
+
+### Deployment and comparison
+
+This pass is worker PHP only. Under demo operator control, capture a steady
+baseline if the relevant phase is running, halt and drain, pull the completed
+developer revision, refresh drained Horizon workers, then resume the same run.
+No new migration, asset build, scheduler refresh, PostgreSQL restart, Redis
+recreation, sizing re-derive or simulation reset is required. Keep existing
+worker concurrency, persistence settings and local configuration files intact.
+
+Compare several settled windows of direct completed-item counts. Record the
+phase, selected aspects, item counts, worker count, run population settings,
+full-item time and the new stage parts. Run summaries and timing flushes are
+batched; exclude startup and drain windows. A phase beginning after deployment
+has no live before-window on this run: report its absolute measurements and
+bounded correctness checks, rather than calling the earlier projection a
+controlled baseline. Do not restart completed phases to recreate a benchmark.
+
+Use a bounded sample of completed scopes to check the affected outputs:
+governors/committee acts and terms (7), nominated/seated benches and deferrals
+(8), organization top-ups and endorsement associations (9), selected wallet
+credits/receipts and ledger links (10), and stored verdicts/gaps (11). Keep
+review counts and worker liveness alongside throughput. If the remaining cost
+is a shared write lock, provide its measured timing/owner evidence in the next
+completed handoff; read-query reductions alone do not establish that cost fell.
+The independent Claude storage and shutdown loop remains outside this work.
 
 ## D002 response: one atomic training-stipend group — 2026-09-20
 

@@ -56,6 +56,23 @@ class StipendService
     ) {}
 
     /**
+     * Step 5 prefetch on the resolver this service actually uses. Ordinary
+     * callers keep run()'s lazy reads; disabled runs may need only one column.
+     */
+    public function warmSettingsForRun(string $jurisdictionId): void
+    {
+        $this->settings->warm($jurisdictionId, [
+            'stipend_enabled',
+            'civic_stipend_floor',
+            'stipend_bump_cap',
+            'pay_node_operator',
+            'pay_social_moderator',
+            'pay_office_holder',
+            'stipend_funding_source',
+        ]);
+    }
+
+    /**
      * Run the stipend for a jurisdiction.
      *
      * @param  array<int, array{account_id:string, roles:array<int,string>}>  $recipients

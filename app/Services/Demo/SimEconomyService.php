@@ -9,6 +9,7 @@ use App\Services\Economy\AccountService;
 use App\Services\Economy\CurrencyService;
 use App\Services\Economy\IssuanceService;
 use App\Services\Economy\StipendService;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -216,27 +217,16 @@ class SimEconomyService
      */
     public function runStipendFor(string $jurisdictionId, ?\Closure $beat = null): ?array
     {
-        $env = $this->ensureCurrency();
+        $env = $this->stipendPart('currency', fn () => $this->ensureCurrency());
         $currencyId = (string) $env['currency']->id;
-
-        // The office-holder set for this jurisdiction — seated chamber members.
-        $officeHolders = DB::table('legislature_members as m')
-            ->join('legislatures as l', 'l.id', '=', 'm.legislature_id')
-            ->where('l.jurisdiction_id', $jurisdictionId)->whereNull('l.deleted_at')
-            ->whereIn('m.status', ['elected', 'seated'])->whereNull('m.deleted_at')
-            ->whereNotNull('m.user_id')
-            ->pluck('m.user_id')
-            ->map(fn ($id) => (string) $id)
-            ->flip();
 
         // Every sim resident of this jurisdiction with a wallet. Active
         // residency is the whole gate; the wallet is what the credit lands in.
         // Bounded to STIPEND_SAMPLE per place (see the const): the stipend is a
         // demo of the money plane, and a full per-resident disbursement is the
         // O(residents) serial-ledger hazard flagged for planet scale.
-        $recipients = [];
         $beat && $beat();
-        foreach (
+        $sample = $this->stipendPart('recipients', fn () =>
             DB::table('residency_confirmations as rc')
                 ->join('users as u', 'u.id', '=', 'rc.user_id')
                 ->join('economic_account_bindings as b', function ($j) {
@@ -252,19 +242,56 @@ class SimEconomyService
                 ->select('rc.user_id', 'a.id as account_id')
                 ->orderBy('a.id')
                 ->limit(self::STIPEND_SAMPLE)
-                ->get() as $r
-        ) {
+                ->get()
+        );
+
+        if ($sample->isEmpty()) {
+            return null;
+        }
+
+        // Only sampled users can receive a bump. Keep the same serving-member
+        // gate, without loading the rest of a potentially large legislature.
+        $officeHolders = $this->stipendPart('office_holders', fn () =>
+            DB::table('legislature_members as m')
+                ->join('legislatures as l', 'l.id', '=', 'm.legislature_id')
+                ->where('l.jurisdiction_id', $jurisdictionId)->whereNull('l.deleted_at')
+                ->whereIn('m.status', ['elected', 'seated'])->whereNull('m.deleted_at')
+                ->whereNotNull('m.user_id')
+                ->whereIn('m.user_id', $sample->pluck('user_id')->unique()->all())
+                ->pluck('m.user_id')
+                ->map(fn ($id) => (string) $id)
+                ->flip()
+        );
+
+        $recipients = [];
+        foreach ($sample as $r) {
             $recipients[] = [
                 'account_id' => (string) $r->account_id,
                 'roles' => $officeHolders->has((string) $r->user_id) ? ['office_holder'] : [],
             ];
         }
 
-        if ($recipients === []) {
-            return null;
+        $this->stipendPart('settings', fn () => $this->stipend->warmSettingsForRun($jurisdictionId));
+
+        return $this->stipendPart('payment', fn () =>
+            $this->stipend->run($jurisdictionId, $env['currency'], $recipients, $env['treasury_id'])
+        );
+    }
+
+    /** Diagnostics only within the Step 5 stipend scope; payment includes commit. */
+    private function stipendPart(string $part, callable $body): mixed
+    {
+        if (! SimTimer::isOpen('stage.stipend_scope')) {
+            return $body();
         }
 
-        return $this->stipend->run($jurisdictionId, $env['currency'], $recipients, $env['treasury_id']);
+        $key = 'stipend.'.$part;
+        SimTimer::open($key);
+        try {
+            return $body();
+        } finally {
+            SimTimer::close($key);
+        }
     }
 
     /** Find-or-open the jurisdiction's public treasury in a currency. */

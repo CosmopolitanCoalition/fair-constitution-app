@@ -18039,6 +18039,185 @@
           "note": "15 isolated PostgreSQL tests / 1,427 assertions passed. Verified one owned commit and two savepoints, full-commit timing, failure after mint before credit, wallet failure, outer-caller rollback, concurrent groups actually waiting on the lock, exact hashes/balances, retained separate issuance/stipend meanings, mint/burn, retakes/repeated batch commits, and prior ledger regressions. No live-world or remote writes. Atomicity applies to each monetary group, not earlier training filings; no new recovery mechanism. Completed developer handoff for manual operator relay."
         }
       ]
+    },
+    {
+      "id": "W-0470",
+      "title": "Reduce repeated Step 5 chamber-growth reads",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Scoped performance changes preserve existing behavior and pass focused internal tests; deployment and benchmark guidance is recorded.",
+      "detail": "Phase 7 combines the initial governor vacancy and fresh principal selection, removes its duplicate initial vacancy check, and reads committee counts/names once. Principal changes between departments remain visible. Real nomination, consent, adoption and term-clock services are unchanged. Adds nested nomination/consent timers. Refresh drained Horizon workers. Production throughput benefit remains unmeasured.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-20 one subagent per remaining Step 5 phase",
+          "title": "Implement and locally test phases 7 through 11 performance recommendations",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Demo/Stages/GovernanceStage.php",
+        "tests/Feature/Phase7PerformanceTest.php",
+        "tests/Unit/SimDepartmentGovernorStageTest.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "8 tests / 151 assertions passed in guarded nonce PostgreSQL and existing private SQLite fixtures. Verified two fewer queries per governable department, one fewer committee inventory read during growth, fresh principal changes, refused nominations, soft-deleted/wrong-class/filled exclusions, idempotence and the real governor consent/term-clock path. No live-world writes or remote operations."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Integrated phase 7–11 suite and existing governor-consent/board-term regressions passed together: 40 tests / 881 assertions. Completed developer handoff for manual operator relay; live throughput awaits measurement."
+        }
+      ]
+    },
+    {
+      "id": "W-0471",
+      "title": "Batch Step 5 court resident-pool reads without changing nominees",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Scoped performance changes preserve existing behavior and pass focused internal tests; deployment and benchmark guidance is recorded.",
+      "detail": "Phase 8 batches distinct ordered, seat-limited resident probes using host-derived chunks and a court-scoped NULL-free bench exclusion. All pools are read before nomination; assignment and deferral behavior remain intact. Final total/seated counts share one query. New timers separate roster reads, staging, consent and seating. Existing resident index is used; no new migration. Refresh drained Horizon workers. Production throughput benefit remains unmeasured.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-20 one subagent per remaining Step 5 phase",
+          "title": "Implement and locally test phases 7 through 11 performance recommendations",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Demo/Stages/JudiciaryStage.php",
+        "tests/Feature/Phase8PerformanceTest.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "5 isolated PostgreSQL tests / 215 assertions passed. Exact nominees/order, deleted/inactive/duplicate exclusions, cross-pool deferrals, failed nominations and summary counts verified. Fixture with 120 pools and 48,000 residency rows replaces 121 roster queries with one; EXPLAIN ANALYZE confirms indexed probes read at most three entries for two nominees and the taken-seat exclusion is read once. No live-world writes or remote operations."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Integrated phase 7–11 suite and existing governor-consent/board-term regressions passed together: 40 tests / 881 assertions. Completed developer handoff for manual operator relay; live throughput awaits measurement."
+        }
+      ]
+    },
+    {
+      "id": "W-0472",
+      "title": "Bound Step 5 civic-life inventories and endorsement samples",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Scoped performance changes preserve existing behavior and pass focused internal tests; deployment and benchmark guidance is recorded.",
+      "detail": "Phase 9 counts the four organization types in one scoped aggregate instead of up to four individual counts. Endorsement lookup fetches only as many ordered candidate IDs as the existing loop can consume, currently at most four, preserving round-robin behavior. Board/service writes, organization targets and sample sizes remain unchanged. Adds civic organization census timing. Refresh drained Horizon workers. Production throughput benefit remains unmeasured.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-20 one subagent per remaining Step 5 phase",
+          "title": "Implement and locally test phases 7 through 11 performance recommendations",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Demo/Stages/CivicsStage.php",
+        "tests/Feature/Phase9PerformanceTest.php",
+        "tests/Unit/SimBoardTermTest.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "11 tests / 115 assertions passed in isolated SQLite fixtures, including the existing board term/clock checks. Verified top-ups, inactive/nondeleted and over-target records, CGC reuse, idempotence, and identical endorsement output for 0/1/2/3/4/1,000 candidates. Bounded local planner check uses existing election-leading candidacy index; no speculative index added. No live-world writes or remote operations."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Integrated phase 7–11 suite and existing governor-consent/board-term regressions passed together: 40 tests / 881 assertions. Completed developer handoff for manual operator relay; live throughput awaits measurement."
+        }
+      ]
+    },
+    {
+      "id": "W-0473",
+      "title": "Bound Step 5 stipend holder reads and prefetch its policy settings",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Scoped performance changes preserve existing behavior and pass focused internal tests; deployment and benchmark guidance is recorded.",
+      "detail": "Phase 10 keeps the existing ordered 25-wallet selection, then restricts office-holder reads to that sample. Empty samples skip holder/settings/payment work. StipendService exposes a narrow prefetch method on its actual SettingsResolver; only the Step 5 caller invokes it. Seven enabled-path settings reads become one without changing inherited/default values. Currency, recipient, holder, settings and payment timers identify remaining cost; payment includes the existing owned commit. Ordinary stipend calls, amounts, eligibility, funding and transaction code are unchanged. Refresh drained Horizon workers. No new migration; production throughput benefit remains unmeasured.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-20 one subagent per remaining Step 5 phase",
+          "title": "Implement and locally test phases 7 through 11 performance recommendations",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Demo/SimEconomyService.php",
+        "app/Services/Demo/Stages/StipendStage.php",
+        "app/Services/Economy/StipendService.php",
+        "tests/Feature/Phase10PerformanceTest.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "8 isolated PostgreSQL tests / 286 assertions passed with real payment services. Verified exact ordered wallets, role/status/deletion filters, mixed-depth/zero/null/default settings, short-pay receipts, disabled rejection, ledger/balance reconciliation, wallet failure and outer rollback, repeat-disbursement semantics and timer coverage of one owned commit. Cold currency provisioning was stubbed. Disabled prefetch can read unused settings; no universal query reduction claim. No live-world writes or remote operations."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Integrated phase 7–11 suite and existing governor-consent/board-term regressions passed together: 40 tests / 881 assertions. Completed developer handoff for manual operator relay; live throughput awaits measurement."
+        }
+      ]
+    },
+    {
+      "id": "W-0474",
+      "title": "Aggregate scoped Step 5 verification without loading organization collections",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": "none",
+      "depends_on": [],
+      "done_when": "Scoped performance changes preserve existing behavior and pass focused internal tests; deployment and benchmark guidance is recorded.",
+      "detail": "Phase 11 groups elected/seated counts for the selected sized legislatures and computes organization/board verdict counts in one scalar result. Board lookups use a correlated primary-key subquery because a normal join selected a whole-board hash scan in the fixture. Existing member/deletion/status semantics, NULL board status, shared/deleted/missing boards, gap order, aspect skips and lawful inactivity remain unchanged. Adds election-read and civic-read timers; no validation policy change. Refresh drained Horizon workers. No new migration; production throughput benefit remains unmeasured.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-20 one subagent per remaining Step 5 phase",
+          "title": "Implement and locally test phases 7 through 11 performance recommendations",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "app/Services/Demo/Stages/VerifyStage.php",
+        "tests/Feature/Phase11PerformanceTest.php",
+        "docs/operations/SIMULATION_PHASE3_PERFORMANCE.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-20",
+          "note": "8 isolated PostgreSQL tests / 114 assertions passed. A 200-legislature/3,000-organization fixture uses 8 reads instead of 208 and returns one three-scalar civic row. EXPLAIN ANALYZE with 10,000 unrelated organizations/boards confirms jurisdiction-index and board-PK lookups. Exact verdict/gap and inactive/aspect behavior checks passed. No live-world writes or remote operations."
+        },
+        {
+          "date": "2026-09-20",
+          "note": "Integrated phase 7–11 suite and existing governor-consent/board-term regressions passed together: 40 tests / 881 assertions. Completed developer handoff for manual operator relay; live throughput awaits measurement."
+        }
+      ]
     }
   ]
 }

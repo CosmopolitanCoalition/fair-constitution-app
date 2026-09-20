@@ -129,6 +129,14 @@ final class CivicsStage
         SimTimer::record('civics.setup', (int) ((hrtime(true) - $mSetup) / 1000));
 
         $out = self::result();
+        // These paths top up disjoint organization types. Read their existing
+        // counts once for this jurisdiction instead of scanning it per type.
+        $orgCounts = [];
+        if (($legislature !== null && $seated->isNotEmpty()) || ($isLeaf && $pop > 0)) {
+            $mOrgCounts = hrtime(true);
+            $orgCounts = self::organizationCounts($jurisdictionId);
+            SimTimer::record('civics.org_counts', (int) ((hrtime(true) - $mOrgCounts) / 1000));
+        }
 
         // ── Parties: chamber-level, the 2–8 effective-parties band. ─────────
         if ($legislature !== null && $seated->isNotEmpty()) {
@@ -140,6 +148,7 @@ final class CivicsStage
             );
             $out['parties'] = self::mintOrgs(
                 $j, Organization::TYPE_POLITICAL_PARTY, $target, $target,
+                $orgCounts[Organization::TYPE_POLITICAL_PARTY] ?? 0,
                 fn (int $i) => self::PARTY_NAMES[$i % count(self::PARTY_NAMES)].' Party',
                 agentUserId: (string) $seated->first()->user_id,
                 beat: $beat,
@@ -170,7 +179,7 @@ final class CivicsStage
             // real CgcService so the CGC register, the public stake, the
             // co-determined governor board and the genesis IP dedication all land
             // the same way a live charter would — the register is not empty.
-            $out['cgcs'] = self::chartCgcs($j, $legislature, $seated, $beat);
+            $out['cgcs'] = self::chartCgcs($j, $legislature, $seated, $beat, $orgCounts[Organization::TYPE_COMMON_GOOD_CORP] ?? 0);
 
             // Seat the governor (public) side of the CGC boards — the overseeing
             // executive committee's people, or residents where none stood up.
@@ -189,6 +198,7 @@ final class CivicsStage
             $out['nonprofits'] = self::mintOrgs(
                 $j, Organization::TYPE_NONPROFIT, $trueNp,
                 $trueNp > 0 ? max(1, (int) ceil($trueNp / $sample)) : 0,
+                $orgCounts[Organization::TYPE_NONPROFIT] ?? 0,
                 fn (int $i) => $j->name.' '.self::NONPROFIT_SUFFIXES[$i % count(self::NONPROFIT_SUFFIXES)]
                     .($i >= count(self::NONPROFIT_SUFFIXES) ? ' '.(intdiv($i, count(self::NONPROFIT_SUFFIXES)) + 1) : ''),
                 beat: $beat,
@@ -198,6 +208,7 @@ final class CivicsStage
             $out['businesses'] = self::mintOrgs(
                 $j, Organization::TYPE_BUSINESS, $trueBiz,
                 $trueBiz > 0 ? max(1, (int) ceil($trueBiz / $sample)) : 0,
+                $orgCounts[Organization::TYPE_BUSINESS] ?? 0,
                 fn (int $i) => $j->name.' '.self::BUSINESS_SUFFIXES[$i % count(self::BUSINESS_SUFFIXES)]
                     .($i >= count(self::BUSINESS_SUFFIXES) ? ' '.(intdiv($i, count(self::BUSINESS_SUFFIXES)) + 1) : ''),
                 workers: true,
@@ -240,16 +251,23 @@ final class CivicsStage
         return $out;
     }
 
+    /** @return array<string, int> Non-deleted organizations, including inactive rows as before. */
+    private static function organizationCounts(string $jurisdictionId): array
+    {
+        return DB::table('organizations')
+            ->where('jurisdiction_id', $jurisdictionId)->whereNull('deleted_at')
+            ->whereIn('type', [Organization::TYPE_POLITICAL_PARTY, Organization::TYPE_NONPROFIT,
+                Organization::TYPE_BUSINESS, Organization::TYPE_COMMON_GOOD_CORP])
+            ->select('type')->selectRaw('COUNT(*) AS total')->groupBy('type')
+            ->pluck('total', 'type')->map(fn ($total) => (int) $total)->all();
+    }
+
     /** @return array{true:int, minted:int} */
     private static function mintOrgs(
-        object $j, string $type, int $trueCount, int $mintCount,
+        object $j, string $type, int $trueCount, int $mintCount, int $existing,
         \Closure $nameFor, ?string $agentUserId = null, bool $workers = false,
         ?\Closure $beat = null,
     ): array {
-        $existing = DB::table('organizations')
-            ->where('jurisdiction_id', $j->id)->where('type', $type)
-            ->whereNull('deleted_at')->count();
-
         $need = max(0, $mintCount - $existing);
         $now = now();
         $rows = [];
@@ -311,14 +329,8 @@ final class CivicsStage
      * later pass; the register shows the CGC, its charter and its public-domain
      * IP now. Idempotent: skipped once the jurisdiction already holds CGCs.
      */
-    private static function chartCgcs(object $j, Legislature $legislature, $seated, ?\Closure $beat): int
+    private static function chartCgcs(object $j, Legislature $legislature, $seated, ?\Closure $beat, int $existing): int
     {
-        $existing = (int) DB::table('organizations')
-            ->where('jurisdiction_id', $j->id)
-            ->where('type', Organization::TYPE_COMMON_GOOD_CORP)
-            ->whereNull('deleted_at')
-            ->count();
-
         if ($existing > 0) {
             return $existing; // idempotent
         }
@@ -442,6 +454,9 @@ final class CivicsStage
         $candidates = DB::table('candidacies')
             ->where('election_id', $election->id)
             ->orderBy('id')
+            // Only these first IDs can be consumed by the loop below. Keep a
+            // small field intact so the existing round-robin repeats exactly.
+            ->limit(count($endorsers) * self::ENDORSEMENTS_PER_ENDORSER)
             ->pluck('id')
             ->all();
 

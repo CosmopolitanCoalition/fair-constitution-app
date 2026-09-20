@@ -65,10 +65,22 @@ final class VerifyStage
         // ── Representatives: every legislature of this jurisdiction seated ──
         // (elections aspect — seating is what the elections lane produces).
         if (in_array('elections', $aspects, true)) {
+            $mElections = hrtime(true);
             $legislatures = DB::table('legislatures')
                 ->where('jurisdiction_id', $jurisdictionId)
                 ->whereNull('deleted_at')
                 ->get(['id', 'total_seats', 'status']);
+
+            // Count only this scan's sized chambers. Keep the original member
+            // predicate: elected/seated rows count even when deleted or vacated.
+            $sizedIds = $legislatures->filter(static fn ($leg) => (int) $leg->total_seats > 0)->pluck('id')->all();
+            $seatedByLegislature = $sizedIds === [] ? collect() : DB::table('legislature_members')
+                ->whereIn('legislature_id', $sizedIds)
+                ->whereIn('status', ['elected', 'seated'])
+                ->groupBy('legislature_id')
+                ->selectRaw('legislature_id, COUNT(*) AS seated')
+                ->pluck('seated', 'legislature_id');
+            SimTimer::record('verify.elections_read', (int) ((hrtime(true) - $mElections) / 1000));
 
             $metrics['legislatures'] = $legislatures->count();
             $seatsTotal = 0;
@@ -87,10 +99,7 @@ final class VerifyStage
                     continue;
                 }
 
-                $seated = (int) DB::table('legislature_members')
-                    ->where('legislature_id', $leg->id)
-                    ->whereIn('status', ['elected', 'seated'])
-                    ->count();
+                $seated = (int) ($seatedByLegislature[$leg->id] ?? 0);
 
                 $seatsTotal += $seats;
                 $seatedTotal += $seated;
@@ -148,38 +157,25 @@ final class VerifyStage
         // Reads this jurisdiction's own organizations and, by the org's own
         // board_id FK, those boards. No cross-jurisdiction join.
         if (in_array('civic_life', $aspects, true)) {
-            $orgs = DB::table('organizations')
-                ->where('jurisdiction_id', $jurisdictionId)
-                ->whereNull('deleted_at')
-                ->get(['id', 'ownership_type', 'board_id']);
+            $mCivics = hrtime(true);
+            // One result row regardless of organization count. A scalar lookup
+            // by board PK bounds each probe; a join can instead hash all boards.
+            // Shared/deleted boards still count per organization; absent boards
+            // do not. Include NULL status to match PHP's !== 'dissolved' check.
+            $civics = DB::table('organizations as org')
+                ->where('org.jurisdiction_id', $jurisdictionId)
+                ->whereNull('org.deleted_at')
+                ->selectRaw("COUNT(*) AS organizations,
+                    COALESCE(SUM(CASE WHEN org.ownership_type IS NULL OR org.ownership_type = '' THEN 1 ELSE 0 END), 0) AS missing_ownership,
+                    COALESCE(SUM((SELECT 1 FROM boards AS board WHERE board.id = org.board_id
+                        AND (board.status IS NULL OR board.status <> 'dissolved')
+                        AND board.owner_seats > 0 AND board.chair_seat_id IS NULL)), 0) AS missing_chair")
+                ->first();
+            SimTimer::record('verify.civics_read', (int) ((hrtime(true) - $mCivics) / 1000));
 
-            $metrics['organizations'] = $orgs->count();
-
-            $boardIds = $orgs->pluck('board_id')->filter()->values()->all();
-            $boards = $boardIds !== []
-                ? DB::table('boards')->whereIn('id', $boardIds)->get(['id', 'chair_seat_id', 'status', 'owner_seats'])->keyBy('id')
-                : collect();
-
-            $missingOwnership = 0;
-            $missingChair = 0;
-
-            foreach ($orgs as $org) {
-                if ($org->ownership_type === null || $org->ownership_type === '') {
-                    $missingOwnership++;
-                }
-
-                if ($org->board_id !== null) {
-                    $board = $boards->get($org->board_id);
-                    // A board that seats an owner side but has no chair is an
-                    // unfilled chair; a dissolved board is not a live gap.
-                    if ($board !== null
-                        && $board->status !== 'dissolved'
-                        && (int) $board->owner_seats > 0
-                        && $board->chair_seat_id === null) {
-                        $missingChair++;
-                    }
-                }
-            }
+            $metrics['organizations'] = (int) $civics->organizations;
+            $missingOwnership = (int) $civics->missing_ownership;
+            $missingChair = (int) $civics->missing_chair;
 
             $metrics['orgs_missing_ownership'] = $missingOwnership;
             $metrics['boards_missing_chair'] = $missingChair;

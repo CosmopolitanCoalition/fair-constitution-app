@@ -198,19 +198,24 @@ final class GovernanceStage
         foreach ($departments as $department) {
             $beat && $beat();
 
-            if (! self::hasVacantGovernorSeat((string) $department->board_id)) {
-                continue; // already seated (idempotent) or none minted
-            }
-
             // A seated principal of THIS department's overseeing executive holds
             // the pen (R-14/15/16). No principal yet means the executive is not
-            // delegated — defer, do not force.
+            // delegated — defer, do not force. Check the board vacancy in this
+            // same read instead of issuing a separate EXISTS before it. Select
+            // the principal afresh for EACH department: a previous consent or a
+            // concurrent departure must not leave us using a cached officeholder.
             $principal = ExecutiveMember::query()
                 ->where('executive_id', $department->executive_id)
                 ->where('role', ExecutiveMember::ROLE_PRINCIPAL)
                 ->where('status', ExecutiveMember::STATUS_SEATED)
                 ->whereNotNull('user_id')
                 ->whereNull('deleted_at')
+                ->whereExists(BoardSeat::query()
+                    ->selectRaw('1')
+                    ->where('board_id', $department->board_id)
+                    ->where('seat_class', BoardSeat::CLASS_GOVERNOR)
+                    ->where('status', BoardSeat::STATUS_VACANT)
+                    ->toBase())
                 ->orderBy('id')
                 ->first();
 
@@ -226,9 +231,17 @@ final class GovernanceStage
             // seat and stops this board (no spin). Every step defers to the
             // guard on any refusal — the stage never throws (the sim's
             // defer-to-the-guard doctrine keeps the item completing).
-            while (self::hasVacantGovernorSeat((string) $department->board_id)) {
+            // The first vacancy was established above; subsequent iterations
+            // recheck it after adoption. nominate() still reloads and validates
+            // the principal and selects the next vacant seat itself.
+            do {
                 try {
-                    $result = $governors->nominate($department, $principal, (string) $nomineeUserId);
+                    $mNominate = hrtime(true);
+                    try {
+                        $result = $governors->nominate($department, $principal, (string) $nomineeUserId);
+                    } finally {
+                        SimTimer::record('gov.governor_nominate', (int) ((hrtime(true) - $mNominate) / 1000));
+                    }
                     $out['nominated']++;
 
                     $vote = ChamberVote::query()->find($result['consent_vote_id'] ?? null);
@@ -241,7 +254,12 @@ final class GovernanceStage
                     // vote auto-closes at full participation and the adoption
                     // dispatch seats the governor (CLK-09 armed via
                     // CivilAppointmentService).
-                    $votes->castManyYes($vote, $serving);
+                    $mConsent = hrtime(true);
+                    try {
+                        $votes->castManyYes($vote, $serving);
+                    } finally {
+                        SimTimer::record('gov.governor_consent', (int) ((hrtime(true) - $mConsent) / 1000));
+                    }
                 } catch (\Throwable $e) {
                     break; // defers to the guard, never fights it
                 }
@@ -255,7 +273,7 @@ final class GovernanceStage
                 }
 
                 break; // consent did not adopt — stop this board
-            }
+            } while (self::hasVacantGovernorSeat((string) $department->board_id));
         }
 
         SimTimer::record('gov.governors', (int) ((hrtime(true) - $mGovern) / 1000));
@@ -291,7 +309,11 @@ final class GovernanceStage
         }
 
         $target = InstitutionScaleService::committeeTarget((int) $legislature->total_seats);
-        $existing = self::liveCount('committees', $legislature->id);
+        // Both the count and name exclusions use the same non-deleted scope.
+        // Read it once; every creation below still goes through the real act.
+        $taken = DB::table('committees')->where('legislature_id', $legislature->id)
+            ->whereNull('deleted_at')->pluck('name')->all();
+        $existing = count($taken);
 
         if ($existing >= $target) {
             // At or past the ceiling — never override a governed choice (§6).
@@ -301,9 +323,6 @@ final class GovernanceStage
         $engine = app(ConstitutionalEngine::class);
         $votes = app(ChamberVoteService::class);
         $seats = max(1, min(self::SEATS_PER_COMMITTEE, $serving->count()));
-        $taken = DB::table('committees')->where('legislature_id', $legislature->id)
-            ->whereNull('deleted_at')->pluck('name')->all();
-
         $created = 0;
 
         $mVote = hrtime(true);

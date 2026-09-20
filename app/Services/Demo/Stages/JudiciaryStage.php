@@ -12,6 +12,7 @@ use App\Models\LegislatureMember;
 use App\Models\User;
 use App\Services\ChamberVoteService;
 use App\Services\Judiciary\JudicialSeatService;
+use App\Support\HostCapacity;
 use App\Support\SimTimer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -171,13 +172,11 @@ final class JudiciaryStage
             ->orderBy('seat_number')
             ->get();
 
-        // NOMINEE PREFETCH (overhead cut 2026-09-08). Nominee selection reads
-        // the residency roster ONCE per distinct pool jurisdiction and the
-        // already-seated set ONCE for the whole bench, instead of per seat. The
-        // old residentOf() re-plucked the growing `taken` set and ran a fresh
-        // residency lookup on every seat — O(seats^2) reads on a large bench.
-        // Each pool query fetches only as many distinct residents as that pool
-        // has seats to fill, ordered by user_id for a deterministic assignment,
+        // NOMINEE PREFETCH. Each distinct jurisdiction gets one bounded index
+        // probe; several pools share a database round trip. The old residentOf()
+        // re-plucked the growing `taken` set and looked up residents per seat.
+        // Each probe fetches only as many distinct residents as that pool has
+        // seats to fill, ordered by user_id for a deterministic assignment,
         // and excludes residents already on this bench. Assignment is otherwise
         // identical: each seat gets a distinct active resident of its pool, or
         // defers when the pool is dry. Nothing about the F-LEG-021 nomination or
@@ -194,30 +193,11 @@ final class JudiciaryStage
             }
         }
 
-        // Residents already on this bench — excluded once, not re-read per seat.
-        $taken = JudicialSeat::query()
-            ->where('judiciary_id', $judiciary->id)
-            ->whereNotNull('user_id')
-            ->pluck('user_id')
-            ->map(fn ($id) => (string) $id)
-            ->all();
+        $mPools = hrtime(true);
+        $poolQueues = self::residentPools($needByPool, (string) $judiciary->id, $beat);
+        SimTimer::record('judiciary.resident_pools', (int) ((hrtime(true) - $mPools) / 1000));
 
-        // One roster read per pool jurisdiction: its distinct active residents,
-        // capped at the seats that pool must fill.
-        $poolQueues = [];
-        foreach ($needByPool as $pool => $need) {
-            $poolQueues[$pool] = DB::table('residency_confirmations')
-                ->where('jurisdiction_id', $pool)
-                ->where('is_active', true)
-                ->when($taken !== [], fn ($q) => $q->whereNotIn('user_id', $taken))
-                ->distinct()
-                ->orderBy('user_id')
-                ->limit($need)
-                ->pluck('user_id')
-                ->map(fn ($id) => (string) $id)
-                ->all();
-        }
-
+        $mNominate = hrtime(true);
         $assigned = [];
         $deferredSeats = 0;
         foreach ($vacant as $seat) {
@@ -269,6 +249,7 @@ final class JudiciaryStage
                 continue;   // this seat defers; the rest keep staging
             }
         }
+        SimTimer::record('judiciary.stage_nominations', (int) ((hrtime(true) - $mNominate) / 1000));
 
         // ONE consent vote for the whole slate (operator ruling 2026-09-08 — a
         // chamber may consent to a bench at once and vote it down to go per-seat
@@ -283,12 +264,16 @@ final class JudiciaryStage
             ->exists();
 
         if ($hasNominated) {
+            $mConsent = hrtime(true);
             $slateVote = $seatsSvc->openSlateConsent($judiciary);
             self::carryVote($votes, $serving, (string) $slateVote->id);
             $slateVote->refresh();
+            SimTimer::record('judiciary.slate_consent', (int) ((hrtime(true) - $mConsent) / 1000));
 
             if ((string) $slateVote->outcome === ChamberVote::OUTCOME_ADOPTED) {
+                $mAdopt = hrtime(true);
                 $seatsSvc->seatSlateOnAdoption($judiciary);
+                SimTimer::record('judiciary.slate_seating', (int) ((hrtime(true) - $mAdopt) / 1000));
             }
         }
         SimTimer::record('judiciary.seat', (int) ((hrtime(true) - $mSeat) / 1000));
@@ -297,6 +282,50 @@ final class JudiciaryStage
 
         return self::done($judiciary, $filed,
             $deferredSeats > 0 ? "{$deferredSeats} seat(s) deferred" : null);
+    }
+
+    /**
+     * The same ordered, distinct, seat-limited roster per constituent, returned
+     * in bounded source batches instead of a database round trip per pool.
+     * The bench exclusion is a NULL-free, uncorrelated subquery: PostgreSQL can
+     * hash it once per statement, without transporting a growing ID list or
+     * rescanning the bench for each resident. All rosters are read before any
+     * nomination, preserving the existing cross-pool assignment/deferral rules.
+     *
+     * @param array<string,int> $needByPool
+     * @return array<string,list<string>>
+     */
+    private static function residentPools(array $needByPool, string $judiciaryId, ?\Closure $beat): array
+    {
+        $queues = array_fill_keys(array_keys($needByPool), []);
+        foreach (array_chunk($needByPool, max(1, HostCapacity::sweepChunk()), true) as $pools) {
+            $beat && $beat();
+            $source = [];
+            foreach ($pools as $jurisdictionId => $needed) {
+                $source[] = ['jurisdiction_id' => $jurisdictionId, 'needed' => $needed];
+            }
+            $rows = DB::select('
+                SELECT pools.jurisdiction_id, resident.user_id
+                  FROM jsonb_to_recordset(?::jsonb) AS pools(jurisdiction_id uuid, needed integer)
+                 CROSS JOIN LATERAL (
+                     SELECT DISTINCT r.user_id
+                       FROM residency_confirmations r
+                      WHERE r.jurisdiction_id = pools.jurisdiction_id AND r.is_active = true
+                        AND r.user_id NOT IN (
+                            SELECT taken.user_id FROM judicial_seats taken
+                             WHERE taken.judiciary_id = ?::uuid AND taken.deleted_at IS NULL
+                               AND taken.user_id IS NOT NULL
+                        )
+                      ORDER BY r.user_id LIMIT pools.needed
+                 ) resident
+                 ORDER BY pools.jurisdiction_id, resident.user_id
+            ', [json_encode($source, JSON_THROW_ON_ERROR), $judiciaryId]);
+            foreach ($rows as $row) {
+                $queues[(string) $row->jurisdiction_id][] = (string) $row->user_id;
+            }
+        }
+
+        return $queues;
     }
 
     private static function carryVote(ChamberVoteService $votes, Collection $serving, ?string $voteId): bool
@@ -333,11 +362,14 @@ final class JudiciaryStage
     /** @return array{filed:bool, seats_total:?int, seats_seated:int, status:?string, skipped:?string} */
     private static function done(Judiciary $judiciary, bool $filed, ?string $skipped): array
     {
+        $counts = JudicialSeat::query()->where('judiciary_id', $judiciary->id)
+            ->selectRaw('COUNT(*) AS total, COUNT(CASE WHEN status = ? THEN 1 END) AS seated', [JudicialSeat::STATUS_SEATED])
+            ->first();
+
         return [
             'filed' => $filed,
-            'seats_total' => JudicialSeat::query()->where('judiciary_id', $judiciary->id)->count(),
-            'seats_seated' => JudicialSeat::query()->where('judiciary_id', $judiciary->id)
-                ->where('status', JudicialSeat::STATUS_SEATED)->count(),
+            'seats_total' => (int) $counts->total,
+            'seats_seated' => (int) $counts->seated,
             'status' => (string) $judiciary->status,
             'skipped' => $skipped,
         ];
