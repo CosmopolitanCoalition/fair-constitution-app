@@ -635,5 +635,9 @@
   "union_formation.signin_hint": "Sign in with a current legislative seat to record the referendum, open your chamber's consent vote, or finalize.",
   "union_formation.supermajority_met": "supermajority met",
   "union_formation.title": "Union formation",
-  "union_formation.working": "Working…"
+  "union_formation.working": "Working…",
+  "show.back_to_map": "Back to map",
+  "show.mobile_details": "Details",
+  "show.details_label": "Jurisdiction details",
+  "show.layers_label": "Map layers"
 }

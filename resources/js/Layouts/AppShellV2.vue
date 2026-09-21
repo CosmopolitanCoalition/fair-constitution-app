@@ -40,6 +40,7 @@ import { highestRole } from '@/lib/roles.js';
 import { observePseudoDom, syncPseudoDom } from '@/lib/pseudoDom.js';
 
 const props = defineProps({
+    compactFooter: { type: Boolean, default: false },
     /** Main width contract: 'default' (56rem) | 'wide' (96rem) | 'flush'. */
     variant: {
         type: String,
@@ -374,6 +375,7 @@ onBeforeUnmount(() => {
         <!-- BackgroundJobsWidget hidden (operator ruling 2026-09-02); see the script note. -->
 
         <AppFooter
+            :collapse-on-mobile="compactFooter"
             :citation="surface?.citation ?? null"
             :instance="footerInstance"
             :audit-seq="auditSeq"

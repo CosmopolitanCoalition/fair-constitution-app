@@ -17,6 +17,7 @@ import Icon from '@/Components/Ui/Icon.vue';
 import ReferenceText from '@/Components/Ui/ReferenceText.vue';
 
 const props = defineProps({
+    collapseOnMobile: { type: Boolean, default: false },
     /** The surface's constitutional citation line (mono). */
     citation: { type: String, default: null },
     /** { host, authoritativeFor } */
@@ -46,7 +47,19 @@ const reportHref = computed(() => {
 </script>
 
 <template>
-    <footer class="app-footer">
+    <footer class="app-footer" :class="{ 'app-footer--collapsible': collapseOnMobile }">
+        <details v-if="collapseOnMobile" class="footer-mobile-help">
+            <summary>{{ t('c_navigation.site_help', 'Help & site information') }}</summary>
+            <div class="footer-mobile-help-content">
+                <a href="/system/app">{{ t('c_app.settings', 'App & permissions') }}</a>
+                <a href="/system/accessibility">{{ t('c_gap_shell_operator.app_footer.accessibility', 'Accessibility') }}</a>
+                <a :href="reportHref">{{ t('c_gap_shell_operator.app_footer.report_issue', 'Report an issue') }}</a>
+                <span v-if="citation" class="footer-citation"><ReferenceText>{{ citation }}</ReferenceText></span>
+                <span class="footer-instance">{{ instanceLine }}</span>
+                <span v-if="auditSeq !== null">{{ t('footer.audit', { n: localeFmt.number(auditSeq) }) }}</span>
+            </div>
+        </details>
+        <div class="footer-standard">
         <span v-if="citation" class="footer-citation"><ReferenceText>{{ citation }}</ReferenceText></span>
         <span class="header-spacer"></span>
         <slot />
@@ -59,5 +72,19 @@ const reportHref = computed(() => {
             {{ t('footer.audit', { n: localeFmt.number(auditSeq) }) }}
             <Icon name="check" size="sm" :label="t('c_gap_shell_operator.app_footer.verified', 'verified')" />
         </span>
+        </div>
     </footer>
 </template>
+
+<style scoped>
+.footer-standard { display: contents; }
+.footer-mobile-help { display: none; }
+@media (max-width: 64rem) {
+    .app-footer--collapsible { position: relative; padding-block: 0; }
+    .app-footer--collapsible > .footer-standard { display: none; }
+    .footer-mobile-help { display: block; inline-size: 100%; }
+    .footer-mobile-help summary { min-block-size: 44px; align-content: center; cursor: pointer; }
+    .footer-mobile-help-content { position: absolute; inset-inline: 0; inset-block-end: 100%; z-index: 1100; display: grid; gap: .75rem; padding: 1rem; max-block-size: 60dvh; overflow-y: auto; background: var(--gov-surface); border: 1px solid var(--gov-border); box-shadow: 0 -4px 16px #0004; }
+    .footer-mobile-help-content a { min-block-size: 44px; }
+}
+</style>

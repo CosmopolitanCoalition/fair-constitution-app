@@ -18731,6 +18731,36 @@
           "note": "3a925064 deployed 12:04 UTC. Public mobile Chromium confirmed guest touch/keyboard focus, Tab navigation and correct intercepted GitHub prefill with zero page errors. No live reports/issues created, no services restarted; configuration preserved and disposable database removed."
         }
       ]
+    },
+    {
+      "id": "W-0486",
+      "title": "Mobile jurisdiction map and accessible details toggle",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": null,
+      "depends_on": [],
+      "done_when": "Phone visitors have a usable full-width map, can open jurisdiction details, and navigate child and parent maps without clipped controls.",
+      "detail": "Map-first layout through 64rem, Details toggle, 44px controls, measured resize and mobile world fit, compact help disclosure only on this surface. Desktop sidebar retained.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-21 mobile map screenshot",
+          "title": "Jurisdiction map explorer is not mobile friendly",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "docs/operations/JURISDICTION_MOBILE_HANDOFF.md",
+        "tests/browser/jurisdictionMobile.mjs"
+      ],
+      "history": [
+        {
+          "date": "2026-09-21",
+          "note": "Development and internal testing complete: Chromium touch and Firefox journeys passed at 320–1440px, portrait/landscape, Details/Escape focus, zoom, child/parent map navigation, footer links, desktop and RTL. Public deployment verification follows."
+        }
+      ]
     }
   ]
 }

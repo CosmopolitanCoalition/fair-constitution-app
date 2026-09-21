@@ -26,10 +26,19 @@
          per the operator, and all of it duplicating the sidebar, which already
          carries the name, breadcrumb, population and member count. The district
          mapper has no scaffold either. -->
-    <div class="flex flex-1 min-h-0 overflow-hidden">
+    <div class="jurisdiction-explorer" :class="{ 'jurisdiction-explorer--details': mobileDetails }" @keydown.esc="closeDetails">
+            <div class="jurisdiction-mobile-toolbar">
+                <h1>{{ jurisdiction.name }}</h1>
+                <button ref="detailsToggle" type="button" class="btn btn--secondary"
+                        :aria-expanded="mobileDetails" aria-controls="jurisdiction-details"
+                        @click="mobileDetails = !mobileDetails">
+                    {{ mobileDetails ? t('c_jurisdictions.show.back_to_map', 'Back to map') : t('c_jurisdictions.show.mobile_details', 'Details') }}
+                </button>
+            </div>
 
             <!-- Left panel: metadata -->
-            <aside class="w-80 shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col overflow-y-auto">
+            <aside id="jurisdiction-details" class="jurisdiction-details bg-gray-900 border-r border-gray-800 flex flex-col overflow-y-auto"
+                   :aria-label="t('c_jurisdictions.show.details_label', 'Jurisdiction details')">
 
                 <!-- Breadcrumb. Every entry — including the first (planet
                      root) — links to that jurisdiction's own map page via
@@ -74,7 +83,7 @@
                              safe palette (the same set the District Mapper
                              uses): #E69F00 orange = Population,
                              #56B4E9 sky-blue = Members. -->
-                        <div class="flex items-baseline gap-4 mt-3">
+                        <div class="flex flex-wrap items-baseline gap-4 mt-3">
                             <div>
                                 <span class="text-lg font-semibold tabular-nums" style="color: #E69F00">{{ formatPop(jurisdiction.population) }}</span>
                                 <span class="text-xs text-gray-300 ml-1">{{ t('c_jurisdictions.show.stat_population', 'population') }}</span>
@@ -417,11 +426,12 @@
             </aside>
 
             <!-- Right panel: map -->
-            <div class="flex-1 relative">
+            <div class="jurisdiction-map-panel relative">
                 <div v-if="loading" class="absolute inset-0 z-[1000] flex items-center justify-center bg-gray-950/70">
                     <div class="text-white text-lg font-medium">{{ t('c_jurisdictions.show.loading_map', 'Loading map…') }}</div>
                 </div>
-                <div id="jurisdiction-map" class="w-full h-full"></div>
+                <div id="jurisdiction-map" class="w-full h-full" role="region"
+                     :aria-label="t('c_jurisdictions.show.head_title', 'Jurisdiction map')"></div>
 
                 <!-- Loading-raster banner — visible while WorldPop tiles
                      fetch on a cold-cache zoom/pan. Wired to the
@@ -441,10 +451,12 @@
                      pattern (Legislature/Show.vue) so the two viewers feel
                      consistent: top-right column, identical button styling,
                      localStorage-persisted state that survives drill-down. -->
-                <div class="absolute top-3 right-3 z-[1001] flex flex-col gap-1">
+                <div class="jurisdiction-map-controls absolute top-3 right-3 z-[1001] flex flex-col gap-1"
+                     role="group" :aria-label="t('c_jurisdictions.show.layers_label', 'Map layers')">
                     <button
                         type="button"
                         @click="showNames = !showNames"
+                        :aria-pressed="showNames"
                         :title="t('c_jurisdictions.show.toggle_names', 'Toggle jurisdiction name labels')"
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showNames
@@ -454,6 +466,7 @@
                     <button
                         type="button"
                         @click="showPop = !showPop"
+                        :aria-pressed="showPop"
                         :title="t('c_jurisdictions.show.toggle_pop', 'Toggle population number under each name')"
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showPop
@@ -464,6 +477,7 @@
                     <button
                         type="button"
                         @click="showMembers = !showMembers"
+                        :aria-pressed="showMembers"
                         :title="t('c_jurisdictions.show.toggle_members', 'Toggle direct-child count (“members”) under each name')"
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showMembers
@@ -474,6 +488,7 @@
                     <button
                         type="button"
                         @click="showRaster = !showRaster"
+                        :aria-pressed="showRaster"
                         :title="t('c_jurisdictions.show.toggle_raster', 'Toggle WorldPop population density raster overlay')"
                         class="px-2 py-1 rounded text-xs border transition-colors select-none"
                         :class="showRaster
@@ -540,7 +555,7 @@
 
 <script setup>import { useLocaleFormat } from '@/composables/useLocaleFormat';
 const localeFmt = useLocaleFormat();
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
@@ -549,16 +564,12 @@ import { csrfFetch } from '@/lib/csrf'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-// mockups-v3-wiring Phase 3e reshape: the jurisdiction viewer joins the v3
-// player chrome on the WIDE variant (it was deliberately skipped by the
-// Phase-2 restyle wave). The two-pane viewer (sidebar + Leaflet map) is
-// unchanged — it just sits inside a height-bound wrapper under a scrolling
-// wide main instead of the flush full-viewport column. The full
-// jurisdiction-browser fusion is Phase 5, NOT this pass.
+// Desktop keeps the sidebar beside the map. Narrow screens switch between
+// the map and its details, keeping the same Leaflet instance and navigation.
 defineOptions({
     // 'flush', not 'wide': this is a full-bleed tool surface, not a scrolling
     // document. See the note at the top of <template> for what 'wide' cost.
-    layout: (h, page) => h(AppShellV2, { variant: 'flush' }, () => page),
+    layout: (h, page) => h(AppShellV2, { variant: 'flush', compactFooter: true, class: 'app-shell--jurisdiction-map' }, () => page),
 })
 
 const { t } = useI18n()
@@ -595,6 +606,16 @@ const props = defineProps({
 const loading        = ref(true)
 const hoveredFeature = ref(null)
 const hoveredChild   = ref(null)
+const mobileDetails  = ref(false)
+const detailsToggle  = ref(null)
+const compactViewport = window.matchMedia('(max-width: 64rem)')
+const onViewportChange = () => { if (!compactViewport.matches) mobileDetails.value = false }
+async function closeDetails() {
+    if (!mobileDetails.value) return
+    mobileDetails.value = false
+    await nextTick()
+    detailsToggle.value?.focus()
+}
 
 // P.6 — review-badges + accept-maps state
 const acceptingMaps = ref(false)
@@ -925,10 +946,29 @@ const leafOutlineStyle = { fillColor: '#4a7c59', fillOpacity: 0.15, color: '#2d4
 // Map ref hoisted to module scope so the raster-overlay watcher can mutate
 // layers after onMounted. Initialised inside onMounted; layers added after.
 let mapInstance = null
+let mapResizeObserver = null
+let initialMapBounds = null
+function fitInitialMap(bounds) {
+    initialMapBounds = bounds
+    const el = mapInstance?.getContainer()
+    if (el?.clientWidth && el?.clientHeight) {
+        mapInstance.fitBounds(bounds, { padding: [40, 40] })
+        initialMapBounds = null
+    }
+}
+function minimumMapZoom(el) {
+    // A portrait phone must be able to fit the world horizontally. The former
+    // height-only floor forced it several zoom levels in before anyone panned.
+    return compactViewport.matches
+        ? Math.max(0, Math.floor(Math.log2(Math.min(el.clientWidth, el.clientHeight) / 256)))
+        : Math.max(0, Math.ceil(Math.log2(el.clientHeight / 256)))
+}
 const mapRequests = new AbortController()
 const fetchMap = (url, options = {}) => fetch(url, { ...options, signal: mapRequests.signal })
 onBeforeUnmount(() => {
     mapRequests.abort()
+    compactViewport.removeEventListener('change', onViewportChange)
+    mapResizeObserver?.disconnect()
     mapInstance?.remove()
     mapInstance = null
 })
@@ -985,6 +1025,7 @@ function applyRasterOverlay() {
 watch(showRaster, () => applyRasterOverlay())
 
 onMounted(async () => {
+    compactViewport.addEventListener('change', onViewportChange)
     // Sub-scope repair-queue chip (planet scope mounts the full queue instead).
     if (setupToolsVisible.value && !props.map_acceptance.is_planet_scope) {
         fetchRelatedOpenFlags()
@@ -998,8 +1039,7 @@ onMounted(async () => {
     //   World pixel height at zoom z = 256 × 2^z
     //   Solve 256 × 2^z = container height → z = log2(h / 256)
     const mapEl    = document.getElementById('jurisdiction-map')
-    const mapH     = (mapEl?.clientHeight) || 700
-    const dynamicMinZoom = Math.max(0, Math.ceil(Math.log2(mapH / 256)))
+    const dynamicMinZoom = minimumMapZoom(mapEl)
 
     const map = L.map('jurisdiction-map', {
         zoomControl:    true,
@@ -1020,6 +1060,13 @@ onMounted(async () => {
         maxBoundsViscosity: 1.0,
     })
     mapInstance = map
+    mapResizeObserver = new ResizeObserver(() => {
+        if (!mapInstance || !mapEl.clientWidth || !mapEl.clientHeight) return
+        map.setMinZoom(minimumMapZoom(mapEl))
+        map.invalidateSize({ animate: false, debounceMoveend: true })
+        if (initialMapBounds) fitInitialMap(initialMapBounds)
+    })
+    mapResizeObserver.observe(mapEl)
 
     // Attribution: TileLayer / Protomaps each contribute their own strings
     // automatically via Leaflet's attribution control. The GeoJSON polygon
@@ -1474,7 +1521,7 @@ onMounted(async () => {
                 ? L.geoJSON(selfGeojson).getBounds()
                 : null
             const fitTarget = selfBounds || childLayer.getBounds()
-            map.fitBounds(fitTarget, { padding: [40, 40] })
+            fitInitialMap(fitTarget)
 
         } else {
             // Leaf: show context + self outline + self label
@@ -1493,7 +1540,7 @@ onMounted(async () => {
             })
 
             if (selfGeojson.features.length > 0) {
-                map.fitBounds(selfLayer.getBounds(), { padding: [40, 40] })
+                fitInitialMap(selfLayer.getBounds())
             }
         }
 
@@ -1510,8 +1557,27 @@ onMounted(async () => {
 </script>
 
 <style>
+.app-shell--jurisdiction-map { block-size: 100dvh; }
+.jurisdiction-explorer { display: flex; flex: 1; min-block-size: 0; min-inline-size: 0; overflow: hidden; }
+.jurisdiction-details { inline-size: 20rem; flex-shrink: 0; min-block-size: 0; overscroll-behavior: contain; }
+.jurisdiction-map-panel { flex: 1; min-inline-size: 0; min-block-size: 0; overflow: hidden; }
+.jurisdiction-mobile-toolbar { display: none; }
+@media (max-width: 64rem) {
+    .jurisdiction-explorer { flex-direction: column; }
+    .jurisdiction-mobile-toolbar { display: flex; flex-shrink: 0; align-items: center; gap: .75rem; padding: .35rem .75rem; border-block-end: 1px solid var(--gov-border); }
+    .jurisdiction-mobile-toolbar h1 { flex: 1; min-inline-size: 0; margin: 0; font-size: 1rem; line-height: 1.3; overflow-wrap: anywhere; }
+    .jurisdiction-mobile-toolbar button { min-block-size: 44px; flex-shrink: 0; }
+    .jurisdiction-details { display: none; inline-size: 100%; border-inline-end: 0; flex: 1; }
+    .jurisdiction-details h1 { display: none; }
+    .jurisdiction-explorer--details .jurisdiction-details { display: flex; }
+    .jurisdiction-explorer--details .jurisdiction-map-panel { display: none; }
+    .jurisdiction-map-controls { flex-direction: row; flex-wrap: wrap; justify-content: flex-end; max-inline-size: calc(100% - 4.5rem); inset-block-start: .5rem; inset-inline-end: .5rem; }
+    .jurisdiction-map-controls button { min-block-size: 44px; min-inline-size: 44px; }
+    #jurisdiction-map .leaflet-control-zoom a { inline-size: 44px; block-size: 44px; line-height: 44px; }
+    #jurisdiction-map .leaflet-control-attribution { max-inline-size: calc(100% - 1rem); }
+}
 /* ── Ocean background ── */
-#jurisdiction-map .leaflet-container {
+#jurisdiction-map.leaflet-container {
     background: #a8c8e8 !important;
 }
 
