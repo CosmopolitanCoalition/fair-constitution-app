@@ -1,0 +1,10 @@
+{
+  "guest_edit": "You can write your report below. To send it privately to this instance, sign in using the button below; your draft will come back with you.",
+  "github_notice": "Software reports can be opened on GitHub for the developers. You will review and submit the issue there using a GitHub account. GitHub issues may be public: include software details only, not private messages, passwords or personal information.",
+  "open_github": "Open issue on GitHub",
+  "sign_in_private": "Sign in to file privately",
+  "file_private": "File privately with this instance",
+  "long_report": "Copy these details before opening GitHub",
+  "long_report_hint": "This report is too long for a prefilled link. Select and copy all of these details, then paste them into the GitHub issue description. Your full report is kept here.",
+  "storage_unavailable": "Your browser could not keep this draft for sign-in. Copy your report before using the Log in link at the top of the page."
+}

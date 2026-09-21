@@ -18695,6 +18695,38 @@
           "note": "e676ff8d deployed 10:36 UTC. Production assets, migrations and PHP encryption runtime verified. Public Chromium has zero installability/page errors; complete purple Coalition logo appears in app icons/favicon. Nginx alone refreshed; configuration and completed world preserved. Physical-phone push display remains a device acceptance check."
         }
       ]
+    },
+    {
+      "id": "W-0485",
+      "title": "Editable guest reports and GitHub issue handoff",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": null,
+      "depends_on": [],
+      "done_when": "Guest report inputs accept touch/keyboard input; drafts survive sign-in; software reports can open a prefilled GitHub issue without forwarding private reports.",
+      "detail": "Remove guest-disabled fields; tab-local expiring draft through existing continuation route. GitHub composer for bugs/accessibility/translation/ideas; local authenticated reporting retained. No automated publishing or server credential.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-21 phone keyboard and GitHub reports",
+          "title": "Report form keyboard focus and GitHub issues",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "docs/operations/SUPPORT_REPORT_HANDOFF.md",
+        "tests/Feature/SupportReportIntakeTest.php",
+        "tests/browser/supportReport.mjs",
+        "tests/browser/supportReport.test.mjs"
+      ],
+      "history": [
+        {
+          "date": "2026-09-21",
+          "note": "Development and internal testing complete: three PHP tests / 70 assertions, four JS tests, Chromium mobile touch/Tab and Firefox journeys including sign-in draft restoration, private filing and intercepted GitHub navigation. No real GitHub issue published."
+        }
+      ]
     }
   ]
 }

@@ -47,7 +47,11 @@ class SupportReportController extends Controller
 
     public function create(Request $request): Response
     {
+        $repository = config('services.github.issue_repository');
+
         return Inertia::render('Support/Report', [
+            'githubRepository' => is_string($repository) && preg_match('/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/D', $repository)
+                ? $repository : null,
             'categories' => collect(SupportReport::CATEGORIES)
                 ->map(fn (string $id) => [
                     'id' => $id,

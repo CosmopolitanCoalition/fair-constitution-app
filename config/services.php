@@ -22,6 +22,11 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    // Public issue-composer link only; no GitHub credential or automatic publishing.
+    'github' => [
+        'issue_repository' => env('GITHUB_ISSUE_REPOSITORY', 'CosmopolitanCoalition/fair-constitution-app'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
