@@ -89,7 +89,7 @@ function fileTestimony(thread, post) {
                     <p class="cc-small gloss" style="margin-block-start: var(--space-1)">{{ t('c_civic.halls.opened_by', { name: thread.author_display }) }}</p>
                     <div class="stack" style="gap: var(--space-2); margin-block-start: var(--space-2)">
                         <div v-for="post in thread.posts" :key="post.id">
-                            <p>{{ post.body }}</p>
+                            <p style="white-space: pre-wrap; overflow-wrap: anywhere">{{ post.body }}</p>
                             <p class="citation">
                                 {{ post.author_display }} · {{ post.at }}
                                 <Btn v-if="post.mine" variant="secondary" size="sm" :disabled="filing === post.id"

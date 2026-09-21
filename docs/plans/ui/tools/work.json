@@ -18765,6 +18765,35 @@
           "note": "886320c6 deployed 17:21 UTC. Production build and exact public assets verified. Public guest touch journey passed: full-width map, Details/return, footer links, Antarctica polygon and Earth parent retain map routes, desktop sidebar, zero page errors. No restart, migration, configuration or world-data change."
         }
       ]
+    },
+    {
+      "id": "W-0487",
+      "title": "Preserve forum post line breaks and blank paragraphs",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": null,
+      "depends_on": [],
+      "done_when": "Public Square and Halls display stored line breaks and blank paragraphs while safely wrapping long text on phones.",
+      "detail": "Use pre-wrapped plain text in both post readers. Existing records already retain interior newlines; no post rewrite or backend change.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-21 forum line-break report",
+          "title": "Forum posting strips out line breaks",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "docs/operations/FORUM_LINEBREAKS_HANDOFF.md"
+      ],
+      "history": [
+        {
+          "date": "2026-09-21",
+          "note": "Browser verification uses intercepted fixtures and submissions only; LF/CRLF, blank paragraphs, escaped HTML and phone-width long links. Deployment verification recorded in the handoff."
+        }
+      ]
     }
   ]
 }
