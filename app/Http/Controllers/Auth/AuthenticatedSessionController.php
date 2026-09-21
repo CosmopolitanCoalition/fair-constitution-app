@@ -96,6 +96,10 @@ class AuthenticatedSessionController extends Controller
         // (DemoMode ruling C, the compensating purge). Inert elsewhere.
         app(\App\Services\Demo\DemoSessionService::class)->endCurrent('logout');
 
+        // Notifications on other signed-in devices continue. This session's device stops on logout.
+        \Illuminate\Support\Facades\DB::table('web_push_subscriptions')
+            ->where('user_id', $request->user()?->id)
+            ->where('session_hash', hash('sha256', $request->session()->getId()))->delete();
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

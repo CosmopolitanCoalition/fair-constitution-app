@@ -41,6 +41,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get('/system/app', [\App\Http\Controllers\System\AppPermissionsController::class, 'show'])->name('app.settings');
+Route::middleware(['auth', 'throttle:30,1,push-settings'])->prefix('app-notifications')->group(function () {
+    Route::post('/subscriptions', [\App\Http\Controllers\System\AppPermissionsController::class, 'subscribe']);
+    Route::put('/subscriptions/{id}', [\App\Http\Controllers\System\AppPermissionsController::class, 'preferences'])->whereUuid('id');
+    Route::delete('/subscriptions/{id}', [\App\Http\Controllers\System\AppPermissionsController::class, 'remove'])->whereUuid('id');
+    Route::post('/subscriptions/{id}/test', [\App\Http\Controllers\System\AppPermissionsController::class, 'test'])->whereUuid('id')->middleware('throttle:3,1,push-test');
+});
+
 // ── Game-as-OIDC-provider (K3-C.2) — the AUTHORIZE endpoint is the one OIDC route that needs the citizen's
 // session: behind `auth`, an unauthenticated player is sent to the game login (intended preserved) and
 // bounces back here once logged in — the player's ONE login. Discovery/JWKS/token/userinfo are stateless

@@ -1,4 +1,5 @@
 import './bootstrap';
+import { registerAppWorker } from './lib/installedApp.js';
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -21,6 +22,7 @@ function initialLocaleFromPage() {
 }
 
 const bootLocale = initialLocaleFromPage();
+registerAppWorker();
 await Promise.all([loadLocale('en'), bootLocale && bootLocale !== 'en' ? loadLocale(bootLocale) : null]);
 
 createInertiaApp({

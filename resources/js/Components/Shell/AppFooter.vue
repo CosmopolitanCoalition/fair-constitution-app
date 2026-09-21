@@ -50,6 +50,7 @@ const reportHref = computed(() => {
         <span v-if="citation" class="footer-citation"><ReferenceText>{{ citation }}</ReferenceText></span>
         <span class="header-spacer"></span>
         <slot />
+        <a href="/system/app">{{ t('c_app.settings', 'App & permissions') }}</a>
         <!-- Accessibility statement — the page landed in Wave 2 (/system/accessibility). -->
         <a href="/system/accessibility">{{ t('c_gap_shell_operator.app_footer.accessibility', 'Accessibility') }}</a>
         <a :href="reportHref"><Icon name="flag" size="sm" /> {{ t('c_gap_shell_operator.app_footer.report_issue', 'Report an issue') }}</a>

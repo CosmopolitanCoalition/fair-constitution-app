@@ -24,6 +24,7 @@ Artisan::command('inspire', function () {
 // own LeaderProbe::isPrimary() write-leader gate. On a single node it is a
 // no-op (one node always wins the lock).
 Schedule::job(new EvaluateClocksJob)->everyMinute()->withoutOverlapping()->onOneServer();
+Schedule::command('app:notifications')->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
 
 // ── Autoscale pump (pull engine, 2026-07-19) ─────────────────────────────
 // THE run's only liveness root. The old self-rescheduling orchestrator tick

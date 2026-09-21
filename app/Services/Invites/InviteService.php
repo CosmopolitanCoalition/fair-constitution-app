@@ -132,6 +132,11 @@ class InviteService
                 'kind'   => $locked->kind,
             ], null, (string) $user->getKey());
 
+            if ($locked->inviter_user_id) {
+                app(\App\Services\Notifications\AppNotificationService::class)->invitationAccepted(
+                    (string) $locked->inviter_user_id, (string) $locked->id, (string) $user->id);
+            }
+
             return true;
         });
     }

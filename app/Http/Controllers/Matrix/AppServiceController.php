@@ -22,7 +22,9 @@ class AppServiceController extends Controller
         $key = 'matrix:as:txn:'.$txnId;
 
         if (! Cache::has($key)) {
-            // Event handling (testimony filing, etc.) arrives in K3-H+. Dedupe-and-ack for now.
+            foreach ((array) $request->input('events', []) as $event) {
+                if (is_array($event)) app(\App\Services\Notifications\AppNotificationService::class)->matrixEvent($event);
+            }
             Cache::put($key, true, now()->addDay());
         }
 

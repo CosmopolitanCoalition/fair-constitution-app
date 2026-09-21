@@ -18659,6 +18659,38 @@
           "note": "7a3e3dd0 deployed 07:26 UTC. Production build and exact public asset hashes verified; home/login/wallet return 200. Authenticated recovery route live, Horizon refreshed, other services and configuration preserved. Disposable browser database removed."
         }
       ]
+    },
+    {
+      "id": "W-0484",
+      "title": "Installable app, residency location permissions and opt-in notifications",
+      "phase": "done",
+      "order": null,
+      "kind": "feature",
+      "status": "done",
+      "blocker": null,
+      "depends_on": [],
+      "done_when": "Installation, permission-based residency lookup and private invitation/message/public-clock notifications work with per-device controls and pass isolated internal checks.",
+      "detail": "Manifest/icons/service worker; no private offline cache or deferred writes. App & permissions page, foreground location controls, encrypted Web Push subscriptions and durable bounded delivery with existing scheduler. No constitutional or simulation changes.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-21 installable app priorities",
+          "title": "Installation, residency location, invitations/messages/upcoming ticks, permission settings",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "docs/operations/INSTALLABLE_APP.md",
+        "tests/Feature/AppNotificationsTest.php",
+        "tests/browser/installedApp.mjs",
+        "tests/browser/appWorker.test.mjs"
+      ],
+      "history": [
+        {
+          "date": "2026-09-21",
+          "note": "Development and internal testing complete: 20 PHP tests / 164 assertions; five JS tests; Chromium installability, real location permissions, settings/outbox journey and offline isolation. Physical phone OS notification display remains a human acceptance check. Deployment verification follows."
+        }
+      ]
     }
   ]
 }

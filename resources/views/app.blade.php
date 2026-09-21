@@ -28,6 +28,13 @@
              (axe meta-viewport). The viewer must be able to zoom the page. --}}
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="csrf-token" content="{{ csrf_token() }}" />
+        <meta name="theme-color" content="#101827" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="icon" href="/favicon.ico?v=coalition-1" sizes="32x32" />
+        <link rel="icon" href="/app-icons/icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/app-icons/icon-180.png" sizes="180x180" />
         {{-- Visible even while the frontend modules are still downloading. --}}
         <style>
             #initial-page-loading { position: fixed; inset: 0 0 auto; z-index: 10000; padding: .6rem .8rem; text-align: end; color: #fff; background: #101827; font: 14px system-ui, sans-serif; border-top: 3px solid #f6c453; }

@@ -41,6 +41,7 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
 import { addProtomapsBasemap } from '@/lib/protomapsBasemap.js';
+import { currentLocation } from '@/lib/locationPermission';
 
 defineOptions({ layout: AppShellV2 });
 const { t } = useI18n();
@@ -135,7 +136,7 @@ function useMyLocation() {
         return;
     }
     geolocating.value = true;
-    navigator.geolocation.getCurrentPosition(
+    currentLocation(
         (pos) => {
             geolocating.value = false;
             const { latitude: lat, longitude: lng } = pos.coords;
@@ -143,11 +144,10 @@ function useMyLocation() {
             if (pickerMap) pickerMap.setView([lat, lng], 11);
             locatePoint(lat, lng);
         },
-        () => {
+        (error) => {
             geolocating.value = false;
-            locateError.value = t('c_civic.residency.geo_failed_map', 'Could not read your location. Click your home on the map instead.');
+            locateError.value = error.appDisabled ? t('c_app.location_stopped') : error.code === 1 ? t('c_app.location_denied') : t('c_app.location_unavailable');
         },
-        { enableHighAccuracy: false, timeout: 10000 },
     );
 }
 
@@ -224,19 +224,18 @@ function pingHere() {
         return;
     }
     locating.value = true;
-    navigator.geolocation.getCurrentPosition(
+    currentLocation(
         (pos) => {
             locating.value = false;
             pingForm.latitude = pos.coords.latitude;
             pingForm.longitude = pos.coords.longitude;
             submitPing();
         },
-        () => {
+        (error) => {
             locating.value = false;
-            geoError.value = t('c_civic.residency.geo_failed_coords', 'Could not read your location. Enter your coordinates below.');
+            geoError.value = error.appDisabled ? t('c_app.location_stopped') : error.code === 1 ? t('c_app.location_denied') : t('c_app.location_unavailable');
             showManualCoords.value = true;
         },
-        { enableHighAccuracy: false, timeout: 10000 },
     );
 }
 
