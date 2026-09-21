@@ -177,4 +177,3 @@ function stopLocation() { setLocationEnabled(false); locationAllowed.value = fal
 .app-setting-card h2{margin-block:0 .75rem}.app-setting-card p{margin-block:.75rem}.app-setting-actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-block:1rem}
 .app-preferences{border:0;padding:.5rem 0;display:grid;gap:.8rem}.app-preferences label{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}.app-preferences select{max-width:100%}details{margin-block:1rem}li{margin-block:.75rem}
 </style>
-

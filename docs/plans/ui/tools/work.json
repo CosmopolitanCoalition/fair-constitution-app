@@ -18689,6 +18689,10 @@
         {
           "date": "2026-09-21",
           "note": "Development and internal testing complete: 20 PHP tests / 164 assertions; five JS tests; Chromium installability, real location permissions, settings/outbox journey and offline isolation. Physical phone OS notification display remains a human acceptance check. Deployment verification follows."
+        },
+        {
+          "date": "2026-09-21",
+          "note": "e676ff8d deployed 10:36 UTC. Production assets, migrations and PHP encryption runtime verified. Public Chromium has zero installability/page errors; complete purple Coalition logo appears in app icons/favicon. Nginx alone refreshed; configuration and completed world preserved. Physical-phone push display remains a device acceptance check."
         }
       ]
     }

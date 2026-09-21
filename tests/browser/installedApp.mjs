@@ -96,5 +96,3 @@ try {
     console.log('PASS offline fallback without personal-page caching or queued mutations');
     await context.close();
 } finally { await browser.close(); }
-
-

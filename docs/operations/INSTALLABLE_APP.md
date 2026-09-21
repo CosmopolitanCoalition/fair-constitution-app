@@ -104,3 +104,34 @@ Preserve all four local configuration files and `.env`.
 Verify public `/system/app`, manifest MIME, icon sizes, worker headers and exact
 asset hashes; verify migrations, scheduled command, live provider configuration
 and service health. Do not send notifications to live users without their opt-in.
+
+## Demo deployment completed
+
+`e676ff8dfc9942717c71acc95b3dee9c3d4834d1` deployed on September 21 at
+10:36 UTC. The production build, locked dependencies and both migrations passed.
+The public settings page, manifest, favicon, icons and worker return HTTP 200;
+asset hashes match the release. A fresh Chromium profile against the public demo
+reported zero installability errors and zero page errors, with actual 192/512
+pixel icon dimensions. The phone-width settings page was visually checked. The
+live PHP runtime creates valid Web Push encryption keys and uses the correct
+public HTTPS origin; this check did not rotate persistent keys or send a push.
+
+The concurrent room-membership index initially timed out waiting for an unrelated
+population scan's old snapshot. The table was empty. Under the deployment lock,
+a transaction acquired a non-waiting SHARE lock, rechecked that no membership
+existed, replaced the invalid index and built the identical index normally, with
+one-second lock and five-second statement budgets. The ordinary migration then
+recorded the valid index. No population read was cancelled. Future populated
+installations retain the concurrent migration path.
+
+Only nginx was recreated because its single-file bind mount retained the old
+configuration inode. Horizon, scheduler, application, PostgreSQL and both Redis
+containers retained their start times. All four local configuration files and
+`.env` retained their hashes; completed world data was preserved. The scheduler
+lists the new minute command; its first dispatch accepted zero notifications
+and completed without error. The disposable browser fixture was removed.
+
+Evidence on the demo: `/home/cosmo/wos-step5-operations/evidence/INSTALLABLE-APP-20260921/`.
+`STATE.json` records `installableAppDeployment`. Physical phone installation and
+notification display remain device acceptance checks: sign in at `/system/app`,
+enable notifications and use **Send me a test notification**.
