@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-09-20",
+  "asOf": "2026-09-21",
   "head": "4fc4538d",
   "phases": [
     {
@@ -18621,6 +18621,38 @@
         {
           "date": "2026-09-20",
           "note": "Authorized and implemented; real PostgreSQL special/general counting and certification, mixed counts, retained original officeholders/terms, interrupted rollback and repeat delivery verified. D015 already-applied run supported: enable recorded choice while halted, requeue only eligible election reviews, retain DONE and pending work; Resume same run/version. Combined final focused suite 55 tests / 963 assertions. Remote outcomes remain for deployment verification."
+        }
+      ]
+    },
+    {
+      "id": "W-0483",
+      "title": "Repair first-tester residency CSRF and missing wallet onboarding",
+      "phase": "done",
+      "order": null,
+      "kind": "fix",
+      "status": "done",
+      "blocker": null,
+      "depends_on": [],
+      "done_when": "Ordinary users can select home with Firefox protection enabled, confirm residency, open their wallet, register possessions and list items; regression checks pass.",
+      "detail": "Fresh-cookie CSRF for residency fetches; transactional empty-wallet provisioning on confirmation; idempotent recovery for existing residents; honest instant-residency copy. No money minted or eligibility weakened.",
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-09-21 first-tester screenshots",
+          "title": "Fix and test residency and wallet, then deploy",
+          "wave": ""
+        }
+      ],
+      "evidence": [
+        "docs/operations/ONBOARDING_TESTER_FIXES.md",
+        "tests/Feature/ResidentWalletOnboardingTest.php",
+        "tests/browser/residentOnboarding.mjs",
+        "tests/browser/residencyCsrf.test.mjs"
+      ],
+      "history": [
+        {
+          "date": "2026-09-21",
+          "note": "Development and internal testing complete: 23 PHP tests / 167 assertions; three JS checks; two Firefox ETP journeys; actual concurrent wallet opens. Remote deployment follows."
         }
       ]
     }

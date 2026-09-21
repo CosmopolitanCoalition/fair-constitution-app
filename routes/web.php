@@ -975,6 +975,8 @@ Route::middleware('auth')->group(function () {
     // stories about the same money.
     Route::post('/economy/transfer', [\App\Http\Controllers\Economy\EconomyActionController::class, 'transfer'])
         ->name('economy.transfer');
+    Route::post('/economy/wallet/open', [\App\Http\Controllers\Economy\EconomyActionController::class, 'openWallet'])
+        ->name('economy.wallet.open');
     Route::post('/economy/assets', [\App\Http\Controllers\Economy\EconomyActionController::class, 'registerAsset'])
         ->name('economy.assets.register');
     Route::post('/economy/market', [\App\Http\Controllers\Economy\EconomyActionController::class, 'listOffer'])

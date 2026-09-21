@@ -60,6 +60,11 @@ class AccountService
         }
 
         return DB::transaction(function () use ($ownerType, $ownerId, $currencyId, $kind) {
+            // Residency confirmation, wallet recovery and stipend delivery can
+            // arrive together. Serialize a person's first account creation.
+            if ($ownerType === 'users') {
+                DB::table('users')->where('id', $ownerId)->lockForUpdate()->firstOrFail();
+            }
             $existing = $this->accountIdFor($ownerType, $ownerId, $currencyId);
 
             if ($existing !== null) {

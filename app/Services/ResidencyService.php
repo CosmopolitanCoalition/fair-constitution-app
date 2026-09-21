@@ -338,6 +338,10 @@ class ResidencyService implements ResidencyHandlerDelegate
 
         $this->roles->flushUser((string) $claim->user_id);
 
+        // Opening the promised wallet belongs to the confirmation transaction;
+        // it creates an empty account, never a stipend or other payment.
+        app(\App\Services\Economy\ResidentWalletService::class)->ensure((string) $claim->user_id);
+
         return [
             'association_jurisdiction_ids' => array_map(fn ($level) => $level->id, $levels),
             'association_count'            => count($levels),

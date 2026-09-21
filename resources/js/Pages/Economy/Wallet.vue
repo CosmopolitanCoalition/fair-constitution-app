@@ -42,6 +42,7 @@ const props = defineProps({
     currency: { type: Object, default: null },
     /** null when they have no wallet yet — a normal state, not an error. */
     account: { type: Object, default: null },
+    can_open_wallet: { type: Boolean, default: false },
     transactions: { type: Array, default: () => [] },
     transaction_pages: { type: Object, default: () => ({ previous: null, next: null }) },
     receipts: { type: Array, default: () => [] },
@@ -52,6 +53,7 @@ const props = defineProps({
 });
 
 const page = usePage();
+const openWallet = useForm({});
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 const assetSearch = ref(props.asset_directory.query ?? '');
@@ -156,17 +158,27 @@ const assetRows = () =>
             {{ t('c_economy.wallet.intro', 'What you hold, and where it came from. This page is yours alone — balances are private in the same way a ballot is, and no one else can look yours up.') }}
         </template>
 
+        <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
+        <Banner v-if="constitutionError || openWallet.errors.wallet" tone="emergency">{{ constitutionError || openWallet.errors.wallet }}</Banner>
+
         <Banner v-if="!currency" tone="info" :title="t('c_economy.wallet.no_currency_title', 'No currency yet')">
             {{ t('c_economy.wallet.no_currency_body', 'This world\'s root legislature hasn\'t defined one, so there is nothing to hold.') }}
         </Banner>
 
         <Banner v-else-if="!account" tone="info" :title="t('c_economy.wallet.no_wallet_title', 'You don\'t have a wallet yet')">
-            {{ t('c_economy.wallet.no_wallet_body', 'A wallet opens once your residency is confirmed. If you\'ve just declared where you live, it arrives when the confirmation does.') }}
+            <template v-if="can_open_wallet">
+                <p>{{ t('c_economy.wallet.open_copy', 'Your residency is confirmed. Open your wallet to register things you own and offer them for sale.') }}</p>
+                <Btn :disabled="openWallet.processing" @click="openWallet.post('/economy/wallet/open', { preserveScroll: true })">
+                    {{ openWallet.processing ? t('c_economy.wallet.opening', 'Opening…') : t('c_economy.wallet.open', 'Open my wallet') }}
+                </Btn>
+            </template>
+            <template v-else>
+                <p>{{ t('c_economy.wallet.confirm_copy', 'Confirm where you live to receive your wallet. No starting balance is needed to register an item.') }}</p>
+                <Link href="/civic/residency">{{ t('c_economy.wallet.confirm_link', 'Confirm my residency') }}</Link>
+            </template>
         </Banner>
 
         <template v-else>
-            <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
-            <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
             <Card as="section" :title="t('c_economy.wallet.balance_title', 'Balance')">
                 <div class="econ-stats">

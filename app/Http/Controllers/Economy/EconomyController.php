@@ -120,6 +120,8 @@ class EconomyController extends Controller
                 'balance' => (string) $account->balance,
                 'status'  => (string) $account->status,
             ],
+            'can_open_wallet' => $account === null && $currency !== null && $request->user() !== null
+                && app(\App\Services\Economy\ResidentWalletService::class)->eligible((string) $request->user()->id, $currency),
             'transactions' => fn () => $transactionPage()['transactions'],
             'transaction_pages' => fn () => $transactionPage()['pagination'],
             'receipts'     => fn () => $receiptPage()['receipts'],
@@ -1077,11 +1079,7 @@ class EconomyController extends Controller
 
     private function currency(): ?Currency
     {
-        $rootId = $this->rootId();
-
-        return $rootId === null
-            ? null
-            : Currency::query()->where('jurisdiction_id', $rootId)->whereNull('deleted_at')->first();
+        return app(\App\Services\Economy\ResidentWalletService::class)->currency();
     }
 
     /** @return array<string, mixed>|null */

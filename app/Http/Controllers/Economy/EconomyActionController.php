@@ -37,6 +37,18 @@ class EconomyActionController extends Controller
 {
     public function __construct(private ConstitutionalEngine $engine) {}
 
+    /** Recover an empty wallet for an already-confirmed resident. */
+    public function openWallet(Request $request, \App\Services\Economy\ResidentWalletService $wallets): RedirectResponse
+    {
+        if ($wallets->ensure((string) $request->user()->id) === null) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'wallet' => __('Confirm your residency before opening a wallet. A currency must also be available.'),
+            ]);
+        }
+
+        return to_route('economy.wallet')->with('status', __('Your wallet is ready. You can register things you own and offer them for sale.'));
+    }
+
     /** F-IND-023 — move money to another account. */
     public function transfer(Request $request): RedirectResponse
     {

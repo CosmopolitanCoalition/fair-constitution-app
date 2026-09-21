@@ -86,7 +86,7 @@ class ResidencyController extends Controller
             'threshold'    => $threshold,
             // Code fallback shown before any claim exists (per-jurisdiction
             // constitutional_settings resolve once a boundary is declared).
-            'defaultThreshold' => ResidencyService::DEFAULT_THRESHOLD_DAYS,
+            'defaultThreshold' => config('cga.residency_instant', false) ? 0 : ResidencyService::DEFAULT_THRESHOLD_DAYS,
             'panel'        => $panel,
             'associations' => $this->roles->associationsFor($user),
         ]);

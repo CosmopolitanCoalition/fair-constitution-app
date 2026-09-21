@@ -26,6 +26,7 @@ const localeFmt = useLocaleFormat();
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import { csrfFetch } from '@/lib/csrf.js';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
@@ -75,7 +76,6 @@ function openDeclare() {
     nextTick(() => declareCardEl.value?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }));
 }
 
-const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
 /* ─────────────────────────────────── F-IND-003 — declare / redeclare */
 
@@ -98,16 +98,15 @@ async function locatePoint(lat, lng) {
     locatingPoint.value = true;
     locateError.value = null;
     try {
-        const res = await fetch('/civic/residency/locate', {
+        const res = await csrfFetch('/civic/residency/locate', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
-                'X-CSRF-TOKEN': csrfToken(),
             },
             body: JSON.stringify({ lat, lng }),
-        });
+        }, t);
         const data = await res.json().catch(() => null);
         if (seq !== locateSeq) return; // a newer click superseded this one
         if (res.ok && data?.found) {
@@ -120,8 +119,8 @@ async function locatePoint(lat, lng) {
             locateError.value =
                 data?.message ?? t('c_civic.residency.locate_not_found', { status: res.status });
         }
-    } catch {
-        if (seq === locateSeq) locateError.value = t('c_civic.residency.server_unreachable', 'Could not reach the server. Check your connection and try again.');
+    } catch (error) {
+        if (seq === locateSeq) locateError.value = error.message || t('c_civic.residency.server_unreachable', 'Could not reach the server. Check your connection and try again.');
     } finally {
         if (seq === locateSeq) locatingPoint.value = false;
     }
@@ -265,16 +264,15 @@ async function simulate(days = 30) {
     simulating.value = true;
     simulateResult.value = null;
     try {
-        const res = await fetch('/dev/pings/simulate', {
+        const res = await csrfFetch('/dev/pings/simulate', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
-                'X-CSRF-TOKEN': csrfToken(),
             },
             body: JSON.stringify({ days }),
-        });
+        }, t);
         const data = await res.json().catch(() => null);
         simulateResult.value = res.ok
             ? t('c_civic.residency.sim_ok', { days: data?.simulated_days ?? days, qualifying: data?.qualifying_days ?? '?' })
@@ -317,16 +315,15 @@ async function devGrant() {
     granting.value = true;
     grantResult.value = null;
     try {
-        const res = await fetch('/dev/residency/grant', {
+        const res = await csrfFetch('/dev/residency/grant', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
-                'X-CSRF-TOKEN': csrfToken(),
             },
             body: JSON.stringify(devGrantTarget.value.payload),
-        });
+        }, t);
         const data = await res.json().catch(() => null);
         if (res.ok && data?.granted) {
             grantResult.value = data.already
