@@ -19,3 +19,15 @@ configuration and existing hashed assets. No migration, service restart,
 configuration clear, simulation action or post rewrite is required. Check both
 public page bundles with fixture content intercepted only in the browser; do not
 publish verification posts to the live forum.
+
+## Deployed
+
+`1074eb20fc2e88cae1ac968de4f3c2b1a706891d` deployed at 17:32 UTC on
+September 21. Chromium and Firefox passed the local checks above. The isolated
+production build and exact public asset hashes passed; both deployed page
+bundles also passed the multiline rendering checks in Chromium using
+browser-only fixture data. No live posts were created or changed.
+
+Services retained their start times and configuration retained its checksums.
+Evidence is under `/home/cosmo/wos-step5-operations/evidence/FORUM-LINEBREAKS-20260921/`;
+the remote checkpoint records `forumLinebreakDeployment`.

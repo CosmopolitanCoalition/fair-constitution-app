@@ -18792,6 +18792,10 @@
         {
           "date": "2026-09-21",
           "note": "Browser verification uses intercepted fixtures and submissions only; LF/CRLF, blank paragraphs, escaped HTML and phone-width long links. Deployment verification recorded in the handoff."
+        },
+        {
+          "date": "2026-09-21",
+          "note": "1074eb20 deployed 17:32 UTC. Chromium and Firefox local checks passed, including exact multiline submissions. Both deployed page bundles passed browser-only fixture rendering checks. No live posts, migrations, restarts or configuration changes."
         }
       ]
     }
