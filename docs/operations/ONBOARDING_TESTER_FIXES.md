@@ -54,3 +54,26 @@ After deployment verify the public page, exact built asset hashes, authenticated
 wallet route and background-worker health. Users with a page already open should
 reload once to receive the new JavaScript, then retry with Firefox protection on.
 No live-user identity or production data is used for write testing.
+
+## Completed deployment
+
+Release `7a3e3dd09f54cad77a0885be69b38531b5298641` deployed at
+2026-09-21 07:26:36 UTC (09:26 Warsaw). The production build passed in the
+isolated 2-CPU/4-GiB network-disabled container. Public home, login and wallet
+returned 200; app, residency and wallet JavaScript matched their exact built
+hashes. The authenticated wallet-opening route is present. Horizon refreshed;
+PostgreSQL, both Redis services, app and scheduler retained their start times.
+All four local configuration files and `.env` retained their checksums.
+
+Existing root-owned asset files required privileged publication; immutable
+hashes and locales were published before the manifest. Graceful Horizon
+termination waited on one CLK-06 population sweep. Only its current SELECT,
+identified by the sweep's exclusive advisory lock, was cancelled so its finally
+block could release ownership and the worker could exit. Its ordinary future
+clock evaluation remains scheduled; no completed application outcomes were
+replayed. No simulation control or payment phase was invoked.
+
+Remote result and command evidence:
+`/home/cosmo/wos-step5-operations/evidence/ONBOARDING-20260921/`.
+The same result is recorded in the remote `STATE.json`. The disposable local
+browser container and its nonce database were removed after passing validation.

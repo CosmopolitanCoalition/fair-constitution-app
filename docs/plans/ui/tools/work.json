@@ -18653,6 +18653,10 @@
         {
           "date": "2026-09-21",
           "note": "Development and internal testing complete: 23 PHP tests / 167 assertions; three JS checks; two Firefox ETP journeys; actual concurrent wallet opens. Remote deployment follows."
+        },
+        {
+          "date": "2026-09-21",
+          "note": "7a3e3dd0 deployed 07:26 UTC. Production build and exact public asset hashes verified; home/login/wallet return 200. Authenticated recovery route live, Horizon refreshed, other services and configuration preserved. Disposable browser database removed."
         }
       ]
     }
