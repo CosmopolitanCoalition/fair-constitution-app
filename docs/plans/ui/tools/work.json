@@ -18759,6 +18759,10 @@
         {
           "date": "2026-09-21",
           "note": "Development and internal testing complete: Chromium touch and Firefox journeys passed at 320–1440px, portrait/landscape, Details/Escape focus, zoom, child/parent map navigation, footer links, desktop and RTL. Public deployment verification follows."
+        },
+        {
+          "date": "2026-09-21",
+          "note": "886320c6 deployed 17:21 UTC. Production build and exact public assets verified. Public guest touch journey passed: full-width map, Details/return, footer links, Antarctica polygon and Earth parent retain map routes, desktop sidebar, zero page errors. No restart, migration, configuration or world-data change."
         }
       ]
     }

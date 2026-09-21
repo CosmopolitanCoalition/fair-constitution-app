@@ -100,6 +100,8 @@ for(const engine of ['chromium','firefox']){
   await expect(page.getByRole('button',{name:'Details',exact:true})).toBeVisible();
   await page.setViewportSize({width:1440,height:900});
   await expect(page.locator('#jurisdiction-details')).toBeVisible();await expect(page.locator('.jurisdiction-mobile-toolbar')).toBeHidden();
+  await expect(page.getByText('Loading map…',{exact:true})).toHaveCount(0,{timeout:60000});
+  await expect(map.locator('.leaflet-overlay-pane path').first()).toBeVisible();
   assert.ok((await map.boundingBox()).width>=1100);
   await expect(page.locator('.footer-standard').getByRole('link',{name:'Report an issue',exact:true})).toBeVisible();
   await page.screenshot({path:`storage/framework/testing/jurisdiction-desktop-${engine}.png`});

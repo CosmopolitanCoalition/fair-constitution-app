@@ -36,3 +36,17 @@ Check the public map as a guest at phone and desktop widths, including opening
 Details, following a polygon, returning to its parent map and accessing the help
 links. Browser viewport tests do not establish physical-device browser chrome
 or screen-reader behavior.
+
+## Deployment completed
+
+`886320c6a6e8505f1e34e1fa94c1e51f020fb5ae` deployed at 17:21 UTC on
+September 21. The isolated production build and exact public asset hashes
+passed. A fresh Chromium touch session on the public demo verified the full-width
+map, Details/Back to map, overview and legislative links, help/report links,
+country polygon navigation to Antarctica and return to Earth's map, and the
+desktop sidebar. No page errors occurred and no live data was written.
+
+All checked services retained their start times; `.env` and the four existing
+local configuration files retained their hashes. Evidence is recorded under
+`/home/cosmo/wos-step5-operations/evidence/JURISDICTION-MOBILE-20260921/` and the
+remote checkpoint's `jurisdictionMobileDeployment` entry.
