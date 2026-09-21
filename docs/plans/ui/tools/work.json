@@ -18725,6 +18725,10 @@
         {
           "date": "2026-09-21",
           "note": "Development and internal testing complete: three PHP tests / 70 assertions, four JS tests, Chromium mobile touch/Tab and Firefox journeys including sign-in draft restoration, private filing and intercepted GitHub navigation. No real GitHub issue published."
+        },
+        {
+          "date": "2026-09-21",
+          "note": "3a925064 deployed 12:04 UTC. Public mobile Chromium confirmed guest touch/keyboard focus, Tab navigation and correct intercepted GitHub prefill with zero page errors. No live reports/issues created, no services restarted; configuration preserved and disposable database removed."
         }
       ]
     }

@@ -55,3 +55,19 @@ Preserve `.env` and the four existing local configuration files. Check the publi
 guest form can be focused and typed into; intercept the GitHub navigation during
 acceptance rather than publishing a test issue. Keep private live data out of
 browser fixtures.
+
+## Deployment completed
+
+`3a925064fb0602a46a494fe1db3fa2b43c547ca4` deployed at 12:04 UTC on
+September 21. The isolated production build and exact live asset hashes passed.
+A fresh phone-width Chromium session on the public demo confirmed guest touch
+focus, Tab navigation and typing, correct GitHub prefill, no GitHub action for
+abuse reports and zero page errors. GitHub navigation was intercepted; no live
+report or GitHub issue was created. The disposable database was removed.
+
+All checked services retained their start times. `.env` and the four existing
+local configuration files retained their hashes. No migrations, dependency
+changes, service restarts or world-data changes were performed.
+
+Evidence: `/home/cosmo/wos-step5-operations/evidence/SUPPORT-REPORT-20260921/`.
+The remote checkpoint records `supportReportDeployment`.
