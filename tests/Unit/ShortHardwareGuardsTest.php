@@ -247,4 +247,14 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertStringContainsString('$this->roles->rolesFor($actor)', $engine);
         $this->assertStringNotContainsString('roles.display', $engine);
     }
+
+    public function test_the_build_progress_join_has_index_only_partial_indexes(): void
+    {
+        $mig = file_get_contents(database_path('migrations/2026_11_01_170000_index_build_progress_counts.php'));
+
+        $this->assertStringContainsString('public $withinTransaction = false;', $mig);
+        $this->assertStringContainsString("ON legislature_district_maps (legislature_id) WHERE status = 'active' AND deleted_at IS NULL", $mig);
+        $this->assertStringContainsString('ON legislatures (id) WHERE deleted_at IS NULL AND type_a_seats > 9', $mig);
+        $this->assertStringContainsString('VACUUM (ANALYZE) legislatures', $mig);
+    }
 }
