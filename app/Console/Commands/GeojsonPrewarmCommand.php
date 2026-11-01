@@ -41,7 +41,7 @@ use Illuminate\Support\Facades\DB;
 class GeojsonPrewarmCommand extends Command
 {
     protected $signature = 'geojson:prewarm
-        {--zooms=3,4,5,6 : Comma-separated Leaflet zoom levels to warm}
+        {--zooms=6 : Comma-separated Leaflet zoom levels to warm}
         {--legislature=* : Legislature id(s) to warm; default = the root legislatures (Earth on a planet box)}
         {--queue         : Dispatch as a Horizon-queued PrewarmGeojsonCachesJob and return; do not warm inline}
         {--unless-busy   : Do nothing while any engine run is active (serving-profile boot; operator ruling 2026-09-17)}

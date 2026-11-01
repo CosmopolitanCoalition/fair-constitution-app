@@ -1250,7 +1250,10 @@ class JurisdictionController extends Controller
     {
         $zoom = (int) $request->query('zoom', 6);
         $tolerance = $this->toleranceForZoom($zoom);
-        $cacheKey = "geojson.children.{$jurisdiction->id}.z{$zoom}";
+        // Every zoom up to 7 simplifies at the same 0.01 degree cap (toleranceForZoom), so the
+        // result is identical. One entry serves them all instead of one per zoom level.
+        $keyZoom = $zoom <= 7 ? 7 : $zoom;
+        $cacheKey = "geojson.children.{$jurisdiction->id}.z{$keyZoom}";
 
         // Persist-until-invalidated: boundary geometry only changes on a fresh
         // ETL / restore (flushed there), never on a district redraw. Prewarmed
@@ -1315,7 +1318,10 @@ class JurisdictionController extends Controller
 
         $zoom = (int) $request->query('zoom', 6);
         $tolerance = $this->toleranceForZoom($zoom);
-        $cacheKey = "geojson.siblings.{$jurisdiction->id}.z{$zoom}";
+        // Every zoom up to 7 simplifies at the same 0.01 degree cap (toleranceForZoom), so the
+        // result is identical. One entry serves them all instead of one per zoom level.
+        $keyZoom = $zoom <= 7 ? 7 : $zoom;
+        $cacheKey = "geojson.siblings.{$jurisdiction->id}.z{$keyZoom}";
 
         // Persist-until-invalidated (see childrenGeoJson note).
         $data = \App\Services\GeojsonDurableCache::remember($cacheKey, function () use ($jurisdiction, $tolerance) {
@@ -1389,7 +1395,7 @@ class JurisdictionController extends Controller
         $tolerance = $this->toleranceForZoom($zoom);
         $cacheKey = $precise
             ? "geojson.self.{$jurisdiction->id}.precise"
-            : "geojson.self.{$jurisdiction->id}.z{$zoom}";
+            : "geojson.self.{$jurisdiction->id}.z" . ($zoom <= 7 ? 7 : $zoom); // zoom <= 7 share one tolerance
 
         // Persist-until-invalidated (see childrenGeoJson note).
         $data = \App\Services\GeojsonDurableCache::remember($cacheKey, function () use ($jurisdiction, $tolerance, $precise) {

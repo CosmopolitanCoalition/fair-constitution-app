@@ -16,6 +16,7 @@ use Tests\TestCase;
  *     including payloads queued before the freeze
  *   · the boot prewarm needs 4 GiB of Horizon memory
  *   · the login email lookup tries the exact lowercase address first
+ *   · every zoom up to 7 shares one map cache entry, and the prewarm defaults to one zoom
  */
 class ShortHardwareGuardsTest extends TestCase
 {
@@ -53,5 +54,15 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertNotFalse($exact);
         $this->assertNotFalse($fallback);
         $this->assertLessThan($fallback, $exact);
+    }
+
+    public function test_zooms_up_to_seven_share_one_cache_entry_and_the_prewarm_warms_one_zoom(): void
+    {
+        $jur = file_get_contents(app_path('Http/Controllers/JurisdictionController.php'));
+        $leg = file_get_contents(app_path('Http/Controllers/LegislatureController.php'));
+
+        $this->assertSame(3, substr_count($jur, '$zoom <= 7 ? 7 : $zoom'));
+        $this->assertSame(1, substr_count($leg, '$zoom <= 7 ? 7 : $zoom'));
+        $this->assertSame([6], \App\Jobs\PrewarmGeojsonCachesJob::parseZooms(null));
     }
 }

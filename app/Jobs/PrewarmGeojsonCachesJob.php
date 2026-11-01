@@ -33,7 +33,7 @@ class PrewarmGeojsonCachesJob implements ShouldQueue
     public int $timeout = 0;
 
     public function __construct(
-        /** Comma-separated zoom levels, forwarded to the plan. Null = 3,4,5,6. */
+        /** Comma-separated zoom levels, forwarded to the plan. Null = 6 (every zoom up to 7 shares one cache entry). */
         public readonly ?string $zooms = null,
         /** Legislature ids to plan for; null = the root legislatures (the mapper's first screen). */
         public readonly ?array $legislatureIds = null,
@@ -74,6 +74,6 @@ class PrewarmGeojsonCachesJob implements ShouldQueue
             static fn ($z) => $z >= 0 && $z <= 18
         ));
 
-        return $list === [] ? [3, 4, 5, 6] : $list;
+        return $list === [] ? [6] : $list;
     }
 }

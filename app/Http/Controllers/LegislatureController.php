@@ -2205,7 +2205,10 @@ class LegislatureController extends Controller
         $tolerance = $this->toleranceForZoom($zoom);
         $tol       = number_format($tolerance, 8, '.', '');
         $mapKey    = $revMapId ?? 'null';
-        $cacheKey  = "geojson.revealed.{$legislature_id}.{$scopeId}.{$mapKey}.z{$zoom}";
+        // Every zoom up to 7 simplifies at the same 0.01 degree cap (toleranceForZoom), so the
+        // result is identical. One entry serves them all instead of one per zoom level.
+        $keyZoom   = $zoom <= 7 ? 7 : $zoom;
+        $cacheKey  = "geojson.revealed.{$legislature_id}.{$scopeId}.{$mapKey}.z{$keyZoom}";
         $cacheTag  = "revealed.{$legislature_id}.{$mapKey}.{$scopeId}";
 
         // Broad tag allows recomputeDistrict() to flush all revealed caches for this
