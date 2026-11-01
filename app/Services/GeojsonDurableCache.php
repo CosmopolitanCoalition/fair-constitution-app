@@ -56,6 +56,28 @@ class GeojsonDurableCache
         self::write($key, $data, $legislatureId, $scopeTag);
     }
 
+    /**
+     * Read a district result from either tier WITHOUT computing it. Null when neither tier has it.
+     * A durable hit re-primes the cache store, so the next read is one Redis call.
+     *
+     * @param  array<int,string>  $tags
+     * @return array<string,mixed>|null
+     */
+    public static function peekTagged(string $key, array $tags): ?array
+    {
+        $hot = Cache::tags($tags)->get($key);
+        if (is_array($hot)) {
+            return $hot;
+        }
+
+        $stored = self::read($key);
+        if ($stored !== null) {
+            Cache::tags($tags)->forever($key, $stored);
+        }
+
+        return $stored;
+    }
+
     /** Clear one legislature's district results in both tiers (draw, edit, redraw). */
     public static function flushLegislature(string $legislatureId): void
     {

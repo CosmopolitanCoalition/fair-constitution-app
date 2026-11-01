@@ -6,6 +6,7 @@ use App\Jobs\Clocks\EvaluateCriticalPopulationJob;
 use App\Jobs\Clocks\EvaluatePetitionThresholdJob;
 use App\Jobs\Clocks\EvaluateResidencyThresholdsJob;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -22,6 +23,8 @@ use Tests\TestCase;
  *   · a page that shows a resident count reads the cached figure, a decision counts exactly
  *   · the redundant-index drop runs outside a transaction and never names a unique key
  *   · the bill form reads its judiciary choices from a plain jurisdiction IN-list, not an OR over a subselect
+ *   · a cold color map answers at once and builds in the background; mutations still color inline
+ *   · pages read the maintained resident counter; the nightly recount and the boot warm exist
  */
 class ShortHardwareGuardsTest extends TestCase
 {
@@ -123,5 +126,49 @@ class ShortHardwareGuardsTest extends TestCase
 
         $this->assertStringContainsString("->whereIn('jd.jurisdiction_id', \$chainIds === [] ? [\$jid] : \$chainIds)", $src);
         $this->assertStringNotContainsString("orWhereIn('jd.jurisdiction_id'", $src);
+    }
+
+    public function test_a_cold_color_map_builds_in_the_background_and_mutations_color_inline(): void
+    {
+        $src = file_get_contents(app_path('Http/Controllers/LegislatureController.php'));
+
+        $this->assertStringContainsString('BuildLegislatureColorsJob::dispatch($legislatureId, $mapId)', $src);
+        $this->assertStringContainsString('bool $blocking = false', $src);
+        // the three mutation reads and the scope map stay exact and inline
+        $this->assertSame(4, preg_match_all('/legislatureColorMap\([^)]*, true\)/', $src));
+        // the cached revealed payload carries no coloring; colors are overlaid per request
+        $this->assertStringContainsString("\$payload['features'][\$i]['properties']['color_index']", $src);
+
+        $job = new \App\Jobs\Legislature\BuildLegislatureColorsJob('L1', null);
+        $this->assertSame('L1:null', $job->uniqueId());
+        $this->assertInstanceOf(\Illuminate\Contracts\Queue\ShouldBeUnique::class, $job);
+    }
+
+    public function test_pages_read_the_maintained_resident_counter(): void
+    {
+        Schema::dropIfExists('jurisdiction_resident_counts');
+        Schema::create('jurisdiction_resident_counts', function ($t) {
+            $t->string('jurisdiction_id')->primary();
+            $t->unsignedBigInteger('active_residents')->default(0);
+            $t->timestamp('counted_at')->nullable();
+        });
+        DB::table('jurisdiction_resident_counts')->insert(['jurisdiction_id' => 'J1', 'active_residents' => 4242]);
+
+        $this->assertSame(4242, \App\Support\CivicPopulation::forDisplay('J1'));
+
+        $console = file_get_contents(base_path('routes/console.php'));
+        $this->assertStringContainsString('RecountResidentsJob', $console);
+        $this->assertGreaterThanOrEqual(250, \App\Console\Commands\ResidentsRecountCommand::defaultChunk());
+        $this->assertLessThanOrEqual(4000, \App\Console\Commands\ResidentsRecountCommand::defaultChunk());
+    }
+
+    public function test_the_boot_warm_is_bounded_and_wired_into_the_horizon_entrypoint(): void
+    {
+        $this->assertGreaterThanOrEqual(256, \App\Console\Commands\DbWarmHotCommand::defaultBudgetMb());
+        $this->assertLessThanOrEqual(2048, \App\Console\Commands\DbWarmHotCommand::defaultBudgetMb());
+
+        $script = file_get_contents(base_path('docker/php/entrypoint.sh'));
+        $this->assertStringContainsString('php artisan db:warm-hot --unless-busy', $script);
+        $this->assertStringContainsString('CGA_WARM_INDEXES', $script);
     }
 }

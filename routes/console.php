@@ -202,6 +202,10 @@ Schedule::call(fn () => app(\App\Services\Economy\CurrencyReportService::class)-
 // (DemoMode ruling C). The command is inert off a scale_demo box.
 Schedule::command('demo:void-expired')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 
+// Per-place active resident counts that pages show instead of counting 100 M rows per view.
+// Bounded, committed slices (residents:recount); off-peak, after the nightly snapshots.
+Schedule::job(new \App\Jobs\RecountResidentsJob)->dailyAt('01:30')->withoutOverlapping(360)->onOneServer();
+
 // AC-1: nightly backfill/repair of EARNER_STATE achievements from the fact
 // tables. Idempotent, keyset-chunked and resumable, so a nightly pass never
 // double-awards and only writes newly-eligible holders. Write-site calls at

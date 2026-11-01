@@ -33,6 +33,19 @@ final class CivicPopulation
      */
     public static function forDisplay(string $jurisdictionId): int
     {
+        // The maintained counter (residents:recount) answers with one primary-key read.
+        // Before its first run, or for a place it has not seen, the cached exact count answers.
+        try {
+            $counted = DB::table('jurisdiction_resident_counts')
+                ->where('jurisdiction_id', $jurisdictionId)
+                ->value('active_residents');
+            if ($counted !== null) {
+                return (int) $counted;
+            }
+        } catch (\Throwable) {
+            // The table is not there yet (migration pending): fall through to the count.
+        }
+
         return (int) \Illuminate\Support\Facades\Cache::flexible(
             'civic_population.'.$jurisdictionId,
             [600, 86400],

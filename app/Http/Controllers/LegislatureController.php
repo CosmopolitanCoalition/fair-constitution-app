@@ -1731,7 +1731,7 @@ class LegislatureController extends Controller
             // Snapshot the current coloring BEFORE recomputeDistrict() below flushes
             // the color cache. A warm cache omits the just-inserted district (we patch
             // it in incrementally); a cold cache recomputes the full map including it.
-            $colorMapBefore = $this->legislatureColorMap($legislature_id, $mapId);
+            $colorMapBefore = $this->legislatureColorMap($legislature_id, $mapId, true);
 
             // Recompute geometry + seats for districts that lost members
             foreach ($existingDistrictIds as $affectedId) {
@@ -1976,7 +1976,7 @@ class LegislatureController extends Controller
             // cache, so we can patch incrementally (warm) or reuse the cold
             // recompute, then re-prime — instead of a legislature-wide recolor.
             $resolvedMapId  = $this->getMapId($legislature_id, $district->map_id);
-            $colorMapBefore = $this->legislatureColorMap($legislature_id, $resolvedMapId);
+            $colorMapBefore = $this->legislatureColorMap($legislature_id, $resolvedMapId, true);
 
             // Recompute this district + affected source districts
             $this->recomputeDistrict($district_id, $legislature_id, $leg);
@@ -2148,7 +2148,7 @@ class LegislatureController extends Controller
         // (deleteDistrict doesn't call recomputeDistrict, so the color cache wasn't
         // flushed; this stays a cache read + patch. A cold cache recomputes once
         // over the surviving set.)
-        $colorIndices = $this->legislatureColorMap($legislature_id, $distMapId);
+        $colorIndices = $this->legislatureColorMap($legislature_id, $distMapId, true);
         unset($colorIndices[$district_id]);
         $this->primeColorCache($legislature_id, $distMapId, $colorIndices);
         $districtNumbers = [];
@@ -2542,7 +2542,9 @@ class LegislatureController extends Controller
         // are NOT in this response's set — but they ARE visually adjacent to
         // the Phase-4 sub-districts of their giant neighbors. Sharing the
         // coloring eliminates the cross-set collisions.
-        $colorMap = $this->legislatureColorMap($legislature_id, $revMapId);
+        // Colors are overlaid per request after the cache read (see below): the cached
+        // payload carries no coloring, so a cold color map never blocks it.
+        $colorMap = [];
 
         $features = [];
         foreach ($rows as $row) {
@@ -2730,6 +2732,16 @@ class LegislatureController extends Controller
 
         return ['type' => 'FeatureCollection', 'features' => array_merge($features, $outlineFeatures)];
         }); // end Cache::remember
+
+        // Overlay the coloring. A cold color map answers at once with placeholder colors and
+        // builds in the background (BuildLegislatureColorsJob); the next load shows the real ones.
+        $colorMap = $this->legislatureColorMap($legislature_id, $revMapId);
+        foreach ($payload['features'] as $i => $feature) {
+            $did = $feature['properties']['district_id'] ?? null;
+            if ($did !== null) {
+                $payload['features'][$i]['properties']['color_index'] = $colorMap[$did] ?? 0;
+            }
+        }
 
         // no-store prevents browser HTTP caching — staleness is handled by the Redis
         // version counter, but the browser must always hit the server to check the key.
@@ -5684,7 +5696,7 @@ class LegislatureController extends Controller
         // consistency anyway (Belgium and an adjacent German Phase-4
         // sub-district must not collide even though they're at different
         // ADM levels), so we always color the whole legislature/map together.
-        return $this->legislatureColorMap($legislatureId, $mapId);
+        return $this->legislatureColorMap($legislatureId, $mapId, true);
     }
 
     /**
@@ -5697,24 +5709,59 @@ class LegislatureController extends Controller
      *
      * @return array<string,int>  district_id => color_index
      */
-    private function legislatureColorMap(string $legislatureId, ?string $mapId): array
+    private function legislatureColorMap(string $legislatureId, ?string $mapId, bool $blocking = false): array
     {
         $cacheKey = "colors.{$legislatureId}." . ($mapId ?? 'null');
-        return \App\Services\GeojsonDurableCache::rememberTagged(
-            $cacheKey,
-            ["revealed.{$legislatureId}"],
-            $legislatureId,
-            null,
-            function () use ($legislatureId, $mapId) {
-                $ids = DB::table('legislature_districts')
-                    ->where('legislature_id', $legislatureId)
-                    ->whereNull('deleted_at')
-                    ->when($mapId, fn($q) => $q->where('map_id', $mapId))
-                    ->pluck('id')
-                    ->all();
-                return $this->colorIndicesForDistricts($ids);
-            }
-        );
+        $tags = ["revealed.{$legislatureId}"];
+
+        if ($blocking) {
+            // A mutation (a draw, an edit) patches this map and stores it back. It needs the
+            // exact coloring, so it computes inline as it always did.
+            return \App\Services\GeojsonDurableCache::rememberTagged(
+                $cacheKey,
+                $tags,
+                $legislatureId,
+                null,
+                fn () => $this->computeColorMap($legislatureId, $mapId)
+            );
+        }
+
+        $hit = \App\Services\GeojsonDurableCache::peekTagged($cacheKey, $tags);
+        if ($hit !== null) {
+            return $hit;
+        }
+
+        // Cold. The adjacency query reads large geometries from disk and can take many
+        // minutes on a slow host. Build it in the background and answer now with a
+        // placeholder (district number modulo 7). The next load shows the real coloring.
+        \App\Jobs\Legislature\BuildLegislatureColorsJob::dispatch($legislatureId, $mapId);
+
+        return DB::table('legislature_districts')
+            ->where('legislature_id', $legislatureId)
+            ->whereNull('deleted_at')
+            ->when($mapId, fn ($q) => $q->where('map_id', $mapId))
+            ->pluck('district_number', 'id')
+            ->map(fn ($n) => ((int) $n) % 7)
+            ->all();
+    }
+
+    /** The exact coloring of every district in a (legislature, map). Heavy: one adjacency query. */
+    private function computeColorMap(string $legislatureId, ?string $mapId): array
+    {
+        $ids = DB::table('legislature_districts')
+            ->where('legislature_id', $legislatureId)
+            ->whereNull('deleted_at')
+            ->when($mapId, fn ($q) => $q->where('map_id', $mapId))
+            ->pluck('id')
+            ->all();
+
+        return $this->colorIndicesForDistricts($ids);
+    }
+
+    /** Build and store the exact coloring (called by BuildLegislatureColorsJob). */
+    public function buildColorMapNow(string $legislatureId, ?string $mapId): void
+    {
+        $this->legislatureColorMap($legislatureId, $mapId, true);
     }
 
     /**

@@ -187,6 +187,27 @@ case "$*" in
     ;;
 esac
 
+# ── 3b. Hot-index warm (horizon container only) ───────────────────────────
+# After a boot the first page per table pays random disk seeks, one by one. On a spinning
+# disk that is about 100 a second. db:warm-hot reads the hot indexes sequentially into the
+# file cache, up to a quarter of host RAM (2 GB at most), smallest first, and skips while an
+# engine run is active. It is cheap on a host with RAM to spare and bounded on a small one.
+# CGA_WARM_INDEXES=0 disables it.
+case "$*" in
+  *horizon*)
+    if [ "${CGA_WARM_INDEXES:-1}" != "0" ]; then
+      (
+        for i in $(seq 1 90); do
+            curl -fsS -o /dev/null --max-time 30 http://nginx/ 2>/dev/null && break
+            sleep 1
+        done
+        cd /var/www/html
+        php artisan db:warm-hot --unless-busy >/dev/null 2>&1 || true
+      ) &
+    fi
+    ;;
+esac
+
 # ── Storage / cache writability on native-Linux bind mounts ───────────────
 # The `.:/var/www/html` bind mount preserves the HOST uid (e.g. 1000) on a
 # native-Linux host, so php-fpm's worker user (www-data, uid 33) can't write
