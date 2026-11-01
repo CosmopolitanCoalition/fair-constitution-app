@@ -98,8 +98,21 @@ class BuildProgressController extends Controller
         return response()->json($this->snapshot());
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * The world-wide counts behind the bars, cached. The page polls every two seconds and each
+     * snapshot runs a dozen counts over tables of a million rows (one of them took 28 minutes on
+     * a spinning disk). A figure fresh for 30 seconds and served stale for 10 minutes while one
+     * refresh runs after the response keeps the bars moving without a scan per poll.
+     *
+     * @return array<string,mixed>
+     */
     private function snapshot(): array
+    {
+        return Cache::flexible('build.progress.snapshot', [30, 600], fn () => $this->computeSnapshot());
+    }
+
+    /** @return array<string,mixed> */
+    private function computeSnapshot(): array
     {
         $svc     = app(InstitutionProvisionService::class);
         $binding = $svc->binding();

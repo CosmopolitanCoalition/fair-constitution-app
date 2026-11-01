@@ -212,4 +212,12 @@ class ShortHardwareGuardsTest extends TestCase
         $nginx = file_get_contents(base_path('docker/nginx/default.conf'));
         $this->assertStringContainsString('gzip_comp_level   6;', $nginx);
     }
+
+    public function test_the_build_progress_snapshot_is_cached(): void
+    {
+        $src = file_get_contents(app_path('Http/Controllers/BuildProgressController.php'));
+
+        $this->assertStringContainsString("Cache::flexible('build.progress.snapshot', [30, 600]", $src);
+        $this->assertStringContainsString('private function computeSnapshot(): array', $src);
+    }
 }
