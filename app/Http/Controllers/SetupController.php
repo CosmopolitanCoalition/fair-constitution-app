@@ -504,8 +504,15 @@ class SetupController extends Controller
      * SchemaUpdateBanner. Cheap (~5 ms): one Schema::hasTable + one query
      * against the migrations table.
      */
-    public function bootstrapStatusEndpoint(): JsonResponse
+    public function bootstrapStatusEndpoint(Request $request): JsonResponse
     {
+        // Once a founder exists the schema state is the operator's alone. A guest or an
+        // ordinary resident gets a neutral answer (no pending count, no migration names).
+        // Before a founder exists the bootstrap page must still read the real state.
+        if (Schema::hasTable('users') && User::query()->exists() && ! (bool) $request->user()?->is_operator) {
+            return response()->json(['schema_state' => 'current', 'pending_count' => 0]);
+        }
+
         return response()->json($this->bootstrapStatus());
     }
 

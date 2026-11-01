@@ -17,6 +17,7 @@ use Tests\TestCase;
  *   · the boot prewarm needs 4 GiB of Horizon memory
  *   · the login email lookup tries the exact lowercase address first
  *   · every zoom up to 7 shares one map cache entry, and the prewarm defaults to one zoom
+ *   · the schema-update banner and the schema status answer belong to the operator
  */
 class ShortHardwareGuardsTest extends TestCase
 {
@@ -64,5 +65,18 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertSame(3, substr_count($jur, '$zoom <= 7 ? 7 : $zoom'));
         $this->assertSame(1, substr_count($leg, '$zoom <= 7 ? 7 : $zoom'));
         $this->assertSame([6], \App\Jobs\PrewarmGeojsonCachesJob::parseZooms(null));
+    }
+
+    public function test_the_schema_update_banner_and_status_belong_to_the_operator(): void
+    {
+        $banner = file_get_contents(base_path('resources/js/Components/SchemaUpdateBanner.vue'));
+        $this->assertStringContainsString('page.props.auth?.user?.is_operator', $banner);
+        $this->assertStringContainsString('!isOperator.value', $banner);
+
+        $setup = file_get_contents(app_path('Http/Controllers/SetupController.php'));
+        $this->assertMatchesRegularExpression(
+            '/function bootstrapStatusEndpoint\(Request \$request\).*?is_operator.*?'pending_count' => 0/s',
+            $setup
+        );
     }
 }

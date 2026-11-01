@@ -11,7 +11,7 @@
  * so we don't duplicate the banner there.
  */
 import { computed, onMounted, ref } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -19,7 +19,16 @@ const { t } = useI18n()
 const status  = ref(null)
 const loading = ref(true)
 
+// Schema updates are the operator's business. A guest or an ordinary resident never
+// sees the banner and the page never asks the server for the schema state.
+const page       = usePage()
+const isOperator = computed(() => Boolean(page.props.auth?.user?.is_operator))
+
 onMounted(async () => {
+    if (!isOperator.value) {
+        loading.value = false
+        return
+    }
     try {
         const res = await fetch('/api/setup/bootstrap/status', {
             headers:     { 'Accept': 'application/json' },
@@ -37,7 +46,7 @@ onMounted(async () => {
 
 const visible = computed(() => {
     const s = status.value
-    if (!s) return false
+    if (!isOperator.value || !s) return false
     return s.schema_state === 'pending' && s.pending_count > 0
 })
 
