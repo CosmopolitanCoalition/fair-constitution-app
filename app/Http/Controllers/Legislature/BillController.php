@@ -459,22 +459,27 @@ class BillController extends Controller
                 ->map(fn ($row) => ['id' => (string) $row->id, 'name' => $row->name])
         )->values()->all();
 
+        // The jurisdiction and its ancestors: an encompassing court may hear. The chain is
+        // at most a dozen rows, read first by primary key. Folding it into the judiciaries
+        // query as an OR over a subselect made the planner scan the whole judiciaries table
+        // (minutes on a slow disk); a plain IN-list uses the jurisdiction index.
+        $chainIds = array_map(
+            static fn ($row) => (string) $row->id,
+            DB::select(
+                'WITH RECURSIVE chain AS (
+                    SELECT id, parent_id FROM jurisdictions WHERE id = ?
+                    UNION ALL
+                    SELECT p.id, p.parent_id FROM chain c
+                    JOIN jurisdictions p ON p.id = c.parent_id
+                ) SELECT id FROM chain',
+                [$jid]
+            )
+        );
+
         $scopeOptions = DB::table('judiciaries as jd')
             ->join('jurisdictions as j', 'j.id', '=', 'jd.jurisdiction_id')
             ->whereNull('jd.deleted_at')
-            ->where(function ($q) use ($jid) {
-                $q->where('jd.jurisdiction_id', $jid)
-                    ->orWhereIn('jd.jurisdiction_id', function ($sub) use ($jid) {
-                        // ancestors — an encompassing court may hear
-                        $sub->selectRaw('j2.id')
-                            ->fromRaw("(WITH RECURSIVE chain AS (
-                                SELECT id, parent_id FROM jurisdictions WHERE id = ?
-                                UNION ALL
-                                SELECT p.id, p.parent_id FROM chain c
-                                JOIN jurisdictions p ON p.id = c.parent_id
-                            ) SELECT id FROM chain) AS j2", [$jid]);
-                    });
-            })
+            ->whereIn('jd.jurisdiction_id', $chainIds === [] ? [$jid] : $chainIds)
             ->orderBy('j.adm_level', 'desc')
             ->limit(20)
             ->get(['jd.id', 'jd.status', 'j.name'])

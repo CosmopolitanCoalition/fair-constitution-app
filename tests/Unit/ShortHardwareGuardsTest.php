@@ -21,6 +21,7 @@ use Tests\TestCase;
  *   · the prewarm plans the root scope alone unless the giants are asked for
  *   · a page that shows a resident count reads the cached figure, a decision counts exactly
  *   · the redundant-index drop runs outside a transaction and never names a unique key
+ *   · the bill form reads its judiciary choices from a plain jurisdiction IN-list, not an OR over a subselect
  */
 class ShortHardwareGuardsTest extends TestCase
 {
@@ -114,5 +115,13 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertStringNotContainsString('_unique', $src);
         $this->assertStringNotContainsString('_pkey', $src);
         $this->assertSame(15, preg_match_all("/^\s+'[a-z0-9_]+',/m", $src));
+    }
+
+    public function test_the_bill_form_judiciary_choices_use_a_plain_in_list(): void
+    {
+        $src = file_get_contents(app_path('Http/Controllers/Legislature/BillController.php'));
+
+        $this->assertStringContainsString("->whereIn('jd.jurisdiction_id', \$chainIds === [] ? [\$jid] : \$chainIds)", $src);
+        $this->assertStringNotContainsString("orWhereIn('jd.jurisdiction_id'", $src);
     }
 }
