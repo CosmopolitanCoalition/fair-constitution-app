@@ -220,4 +220,12 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertStringContainsString("Cache::flexible('build.progress.snapshot', [30, 600]", $src);
         $this->assertStringContainsString('private function computeSnapshot(): array', $src);
     }
+
+    public function test_the_legislature_hub_list_is_cached(): void
+    {
+        $src = file_get_contents(app_path('Http/Controllers/LegislatureController.php'));
+
+        $this->assertStringContainsString("Cache::flexible('legislatures.hub.rows', [300, 86400]", $src);
+        $this->assertStringContainsString('private function computeHubRows()', $src);
+    }
 }

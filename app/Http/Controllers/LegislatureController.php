@@ -220,6 +220,16 @@ class LegislatureController extends Controller
      */
     private function hubRows(): \Illuminate\Support\Collection
     {
+        // The list of the largest chambers changes only when a chamber is created or resized, yet
+        // building it sorts a whole adm level of legislatures with their activation rows (30 seconds
+        // and more on a spinning disk). Fresh for 5 minutes, then served stale for a day while one
+        // refresh runs after the response.
+        return \Illuminate\Support\Facades\Cache::flexible('legislatures.hub.rows', [300, 86400], fn () => $this->computeHubRows());
+    }
+
+    /** @return \Illuminate\Support\Collection<int, object> */
+    private function computeHubRows(): \Illuminate\Support\Collection
+    {
         $rows = collect();
 
         for ($level = 0; $level <= self::HUB_MAX_ADM_LEVEL && $rows->count() < self::HUB_ROWS; $level++) {
