@@ -43,6 +43,7 @@ class GeojsonPrewarmCommand extends Command
     protected $signature = 'geojson:prewarm
         {--zooms=6 : Comma-separated Leaflet zoom levels to warm}
         {--legislature=* : Legislature id(s) to warm; default = the root legislatures (Earth on a planet box)}
+        {--giants        : Also warm every drillable giant scope (default: the root scope only)}
         {--queue         : Dispatch as a Horizon-queued PrewarmGeojsonCachesJob and return; do not warm inline}
         {--unless-busy   : Do nothing while any engine run is active (serving-profile boot; operator ruling 2026-09-17)}
         {--status        : Print the prewarm ledger: done, failed and LOST units}';
@@ -67,7 +68,7 @@ class GeojsonPrewarmCommand extends Command
         $legIds = array_values(array_filter((array) $this->option('legislature'))) ?: null;
 
         if ($this->option('queue')) {
-            PrewarmGeojsonCachesJob::dispatch((string) $this->option('zooms'), $legIds);
+            PrewarmGeojsonCachesJob::dispatch((string) $this->option('zooms'), $legIds, (bool) $this->option('giants'));
             $this->info('Dispatched PrewarmGeojsonCachesJob to Horizon (queue=prewarm): it plans one unit per scope and zoom.');
             return self::SUCCESS;
         }
@@ -80,7 +81,7 @@ class GeojsonPrewarmCommand extends Command
         }
 
         // Inline: the same bounded units, one after the other.
-        $units = $planner->plan($zooms, $legIds);
+        $units = $planner->plan($zooms, $legIds, (bool) $this->option('giants'));
         $planner->recordPlan($units);
         $this->info(sprintf('%d units (scope x zoom).', count($units)));
 

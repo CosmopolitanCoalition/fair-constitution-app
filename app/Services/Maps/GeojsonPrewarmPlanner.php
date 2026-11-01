@@ -51,13 +51,16 @@ class GeojsonPrewarmPlanner
     public const LOST_AFTER_SECONDS = 900;
 
     /**
-     * Every unit to warm: legislature x (root + drillable giants) x zoom, the
-     * root scope first, then the giants in the order the registry returns them.
+     * Every unit to warm: legislature x root scope x zoom. With $includeGiants the
+     * drillable giants follow the root, in the order the registry returns them. The
+     * default is the root alone: it is the mapper's first screen, and a giant is built
+     * on first view and kept (the durable map cache). Finding the giants walks the
+     * population tree, which a short host should not do at boot.
      *
      * @param  list<int>  $zooms
      * @return list<array{leg: string, scope: string, zoom: int}>
      */
-    public function plan(array $zooms, ?array $legislatureIds = null): array
+    public function plan(array $zooms, ?array $legislatureIds = null, bool $includeGiants = false): array
     {
         $query = DB::table('legislatures as l')
             ->join('jurisdictions as r', 'r.id', '=', 'l.jurisdiction_id')
@@ -73,6 +76,9 @@ class GeojsonPrewarmPlanner
 
         foreach ($legislatures as $leg) {
             $rootId = (string) $leg->jurisdiction_id;
+            $giantRows = [];
+
+            if ($includeGiants) {
             $rootPop = \App\Services\Districting\LeafGiantResolver::shareBase($rootId);
             $seats = (int) $leg->type_a_seats;
             $thr = ConstitutionalDefaults::giantThreshold($rootId);
@@ -103,6 +109,7 @@ class GeojsonPrewarmPlanner
                     'seats2' => $seats, 'rootpop2' => $rootPop, 'thr2' => $thr,
                 ]
             );
+            }
 
             $scopeIds = array_values(array_unique(array_merge(
                 [$rootId],

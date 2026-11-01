@@ -18,6 +18,7 @@ use Tests\TestCase;
  *   · the login email lookup tries the exact lowercase address first
  *   · every zoom up to 7 shares one map cache entry, and the prewarm defaults to one zoom
  *   · the schema-update banner and the schema status answer belong to the operator
+ *   · the prewarm plans the root scope alone unless the giants are asked for
  */
 class ShortHardwareGuardsTest extends TestCase
 {
@@ -78,5 +79,15 @@ class ShortHardwareGuardsTest extends TestCase
             '/function bootstrapStatusEndpoint\(Request \$request\).*?is_operator.*?pending_count.{1,5}=> 0/s',
             $setup
         );
+    }
+
+    public function test_the_prewarm_plans_the_root_scope_alone_unless_giants_are_asked_for(): void
+    {
+        $planner = file_get_contents(app_path('Services/Maps/GeojsonPrewarmPlanner.php'));
+        $this->assertStringContainsString('bool $includeGiants = false', $planner);
+        $this->assertStringContainsString('if ($includeGiants) {', $planner);
+
+        $job = new \App\Jobs\PrewarmGeojsonCachesJob;
+        $this->assertFalse($job->includeGiants);
     }
 }

@@ -37,6 +37,8 @@ class PrewarmGeojsonCachesJob implements ShouldQueue
         public readonly ?string $zooms = null,
         /** Legislature ids to plan for; null = the root legislatures (the mapper's first screen). */
         public readonly ?array $legislatureIds = null,
+        /** Also warm every drillable giant scope. Default: the root scope only. */
+        public readonly bool $includeGiants = false,
     ) {
         // Low-priority prewarm lane — see PrewarmRasterTilesJob: boot-time
         // warms must never occupy the single interactive long-running slot.
@@ -56,7 +58,7 @@ class PrewarmGeojsonCachesJob implements ShouldQueue
         }
 
         $zooms = self::parseZooms($this->zooms);
-        $units = $planner->plan($zooms, $this->legislatureIds);
+        $units = $planner->plan($zooms, $this->legislatureIds, $this->includeGiants);
         $planner->recordPlan($units);
 
         foreach ($units as $u) {
