@@ -188,7 +188,7 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertStringContainsString('$this->childrenLines((string) $jurisdiction->parent_id, $zoom)', $jur);
         $this->assertStringNotContainsString('geojson.siblings.', $jur);
         // the layer is served as stored text: the geometry is never decoded
-        $this->assertStringContainsString('',"geometry":'.$row->geojson', $jur);
+        $this->assertStringContainsString(',"geometry":\'.$row->geojson', $jur);
         $from = strpos($jur, 'private function childrenLines');
         $layer = substr($jur, $from, strpos($jur, 'private function featureCollection') - $from);
         $this->assertStringNotContainsString('json_decode', $layer);
