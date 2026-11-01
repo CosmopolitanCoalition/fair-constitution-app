@@ -189,6 +189,7 @@ class MapDataImportService
         // gaps. A restore bringing *different* WorldPop data should be followed
         // by a manual tile-cache clear — rare, so not automated here.
         Cache::flush();
+        \App\Services\GeojsonDurableCache::flush();
         try {
             PrewarmRasterTilesJob::dispatch();   // z0-12 land-only (defaults)
             PrewarmGeojsonCachesJob::dispatch();
@@ -360,6 +361,7 @@ class MapDataImportService
             );
 
             Cache::flush();
+            \App\Services\GeojsonDurableCache::flush();
             try {
                 PrewarmRasterTilesJob::dispatch();
                 PrewarmGeojsonCachesJob::dispatch();

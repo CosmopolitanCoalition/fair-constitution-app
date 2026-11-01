@@ -527,6 +527,7 @@ class MirrorService
         // mirroring the tarball path's post-import behaviour.
         try {
             Cache::flush();
+            \App\Services\GeojsonDurableCache::flush();
             \App\Jobs\PrewarmRasterTilesJob::dispatch();
             \App\Jobs\PrewarmGeojsonCachesJob::dispatch();
         } catch (\Throwable $e) {

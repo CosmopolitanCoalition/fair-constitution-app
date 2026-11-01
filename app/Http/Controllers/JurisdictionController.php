@@ -1255,7 +1255,7 @@ class JurisdictionController extends Controller
         // Persist-until-invalidated: boundary geometry only changes on a fresh
         // ETL / restore (flushed there), never on a district redraw. Prewarmed
         // entries must not silently expire on a 24h TTL, so cache forever.
-        $data = Cache::rememberForever($cacheKey, function () use ($jurisdiction, $tolerance) {
+        $data = \App\Services\GeojsonDurableCache::remember($cacheKey, function () use ($jurisdiction, $tolerance) {
             $rows = DB::select('
                 SELECT
                     j.id,
@@ -1264,17 +1264,11 @@ class JurisdictionController extends Controller
                     j.adm_level,
                     j.population,
                     j.iso_code,
-                    COALESCE(cc.child_count, 0) AS child_count,
+                    (SELECT COUNT(*) FROM jurisdictions c WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS child_count,
                     ST_AsGeoJSON(ST_Simplify(j.geom, :tolerance)) AS geojson,
                     ST_Y(COALESCE(j.centroid, ST_PointOnSurface(j.geom))) AS centroid_lat,
                     ST_X(COALESCE(j.centroid, ST_PointOnSurface(j.geom))) AS centroid_lng
                 FROM jurisdictions j
-                LEFT JOIN (
-                    SELECT parent_id, COUNT(*) AS child_count
-                    FROM jurisdictions
-                    WHERE deleted_at IS NULL
-                    GROUP BY parent_id
-                ) cc ON cc.parent_id = j.id
                 WHERE j.parent_id = :parent_id
                   AND j.deleted_at IS NULL
                   AND j.geom IS NOT NULL
@@ -1324,7 +1318,7 @@ class JurisdictionController extends Controller
         $cacheKey = "geojson.siblings.{$jurisdiction->id}.z{$zoom}";
 
         // Persist-until-invalidated (see childrenGeoJson note).
-        $data = Cache::rememberForever($cacheKey, function () use ($jurisdiction, $tolerance) {
+        $data = \App\Services\GeojsonDurableCache::remember($cacheKey, function () use ($jurisdiction, $tolerance) {
             $rows = DB::select('
                 SELECT
                     j.id,
@@ -1398,7 +1392,7 @@ class JurisdictionController extends Controller
             : "geojson.self.{$jurisdiction->id}.z{$zoom}";
 
         // Persist-until-invalidated (see childrenGeoJson note).
-        $data = Cache::rememberForever($cacheKey, function () use ($jurisdiction, $tolerance, $precise) {
+        $data = \App\Services\GeojsonDurableCache::remember($cacheKey, function () use ($jurisdiction, $tolerance, $precise) {
             $sql = $precise
                 ? 'SELECT
                        ST_AsGeoJSON(geom) AS geojson,

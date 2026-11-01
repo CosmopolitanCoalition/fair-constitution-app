@@ -116,6 +116,7 @@ class GeodataRepairCountryNamesCommand extends Command
         // map click until cleared (operator-caught, 2026-08-06). The store
         // is regenerable by design; first load after this recomputes.
         \Illuminate\Support\Facades\Cache::flush();
+        \App\Services\GeojsonDurableCache::flush();
         $this->info('Cache flushed — map GeoJSON re-caches with the new slugs on next load.');
 
         $this->info(sprintf('Renamed %d country row(s) to canonical metadata names.', count($rows)));
