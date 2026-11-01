@@ -69,8 +69,13 @@ class PrewarmGeojsonCachesJob implements ShouldQueue
     /** @return list<int> */
     public static function parseZooms(?string $zooms): array
     {
+        // A blank or missing list yields the default; an empty piece is not zoom 0.
+        $pieces = array_filter(
+            array_map('trim', explode(',', (string) ($zooms ?? ''))),
+            static fn ($z) => $z !== '' && ctype_digit($z)
+        );
         $list = array_values(array_filter(
-            array_map(static fn ($z) => (int) trim($z), explode(',', (string) ($zooms ?? ''))),
+            array_map('intval', $pieces),
             static fn ($z) => $z >= 0 && $z <= 18
         ));
 
