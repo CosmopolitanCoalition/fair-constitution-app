@@ -87,7 +87,7 @@ class PetitionController extends Controller
                 // belong to; live threshold preview per option (CIVIC
                 // population, the same basis the snapshot will use).
                 'scaleOptions' => array_map(function (array $association) {
-                    $population = CivicPopulation::of($association['id']);
+                    $population = CivicPopulation::forDisplay($association['id']);
                     $pct        = (float) ($this->settings->resolve($association['id'], 'initiative_petition_threshold_pct') ?? 5.00);
 
                     return [

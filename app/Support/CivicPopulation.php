@@ -23,6 +23,23 @@ final class CivicPopulation
 {
     private function __construct() {}
 
+    /**
+     * The same count for a PAGE that only shows it (a threshold preview, a progress bar).
+     * An exact count over a large place reads millions of rows (108 million residency
+     * rows on the demo, minutes on a spinning disk), so a page reads a cached figure:
+     * fresh for 10 minutes, then served stale for a day while one refresh runs after the
+     * response. A decision (a vote threshold, a petition snapshot, an activation) calls
+     * of() and always counts exactly.
+     */
+    public static function forDisplay(string $jurisdictionId): int
+    {
+        return (int) \Illuminate\Support\Facades\Cache::flexible(
+            'civic_population.'.$jurisdictionId,
+            [600, 86400],
+            fn () => self::of($jurisdictionId),
+        );
+    }
+
     public static function of(string $jurisdictionId): int
     {
         return (int) DB::table('residency_confirmations')

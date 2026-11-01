@@ -19,6 +19,7 @@ use Tests\TestCase;
  *   · every zoom up to 7 shares one map cache entry, and the prewarm defaults to one zoom
  *   · the schema-update banner and the schema status answer belong to the operator
  *   · the prewarm plans the root scope alone unless the giants are asked for
+ *   · a page that shows a resident count reads the cached figure, a decision counts exactly
  */
 class ShortHardwareGuardsTest extends TestCase
 {
@@ -89,5 +90,17 @@ class ShortHardwareGuardsTest extends TestCase
 
         $job = new \App\Jobs\PrewarmGeojsonCachesJob;
         $this->assertFalse($job->includeGiants);
+    }
+
+    public function test_pages_read_the_cached_resident_count_and_decisions_count_exactly(): void
+    {
+        $pet = file_get_contents(app_path('Http/Controllers/Civic/PetitionController.php'));
+        $life = file_get_contents(app_path('Http/Controllers/Jurisdictions/LifecycleController.php'));
+        $this->assertStringContainsString("CivicPopulation::forDisplay(\$association['id'])", $pet);
+        $this->assertStringContainsString('CivicPopulation::forDisplay((string) $focus->id)', $life);
+
+        $svc = file_get_contents(app_path('Services/PetitionService.php'));
+        $this->assertStringContainsString('CivicPopulation::of(', $svc);
+        $this->assertStringNotContainsString('forDisplay', $svc);
     }
 }

@@ -60,7 +60,7 @@ class LifecycleController extends Controller
         $threshold = null;
         if ($focus !== null) {
             $required = $activation->thresholdFor((string) $focus->id, $focus->population !== null ? (int) $focus->population : null, $settings);
-            $verified = CivicPopulation::of((string) $focus->id);
+            $verified = CivicPopulation::forDisplay((string) $focus->id);
             $threshold = [
                 'required' => $required,
                 'verified' => $verified,
