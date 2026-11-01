@@ -119,7 +119,7 @@ class ClocksController extends Controller
         // The grouped scan reads every armed timer (31 million rows on the demo, a minute and
         // more on a spinning disk). The page shows it, so it reads a cached figure: fresh for
         // a minute, then served stale for 15 minutes while one refresh runs after the response.
-        return \Illuminate\Support\Facades\Cache::flexible('clocks.armed_by_clock', [60, 900], fn () => $this->computeArmedByClock());
+        return \App\Support\DurableSnapshot::remember('clocks.armed', 120, fn () => $this->computeArmedByClock());
     }
 
     /** @return array<string, array{count: int, next_fires_at: string|null}> */

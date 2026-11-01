@@ -133,9 +133,9 @@ class LegislatureController extends Controller
         // level 2 on a planet), each level a query bounded by the
         // jurisdictions.adm_level index, until HUB_ROWS are collected; the
         // election picks are bounded by those ids; the total is cached.
-        $totalLegislatures = (int) Cache::remember(
+        $totalLegislatures = (int) \App\Support\DurableSnapshot::remember(
             'legislatures.index.total',
-            now()->addMinutes(15),
+            900,
             fn () => DB::table('legislatures')->whereNull('deleted_at')->count(),
         );
 
@@ -224,7 +224,7 @@ class LegislatureController extends Controller
         // building it sorts a whole adm level of legislatures with their activation rows (30 seconds
         // and more on a spinning disk). Fresh for 5 minutes, then served stale for a day while one
         // refresh runs after the response.
-        return \Illuminate\Support\Facades\Cache::flexible('legislatures.hub.rows', [300, 86400], fn () => $this->computeHubRows());
+        return \App\Support\DurableSnapshot::remember('legislatures.hub.rows', 600, fn () => $this->computeHubRows());
     }
 
     /** @return \Illuminate\Support\Collection<int, object> */

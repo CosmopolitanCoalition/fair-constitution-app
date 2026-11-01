@@ -108,7 +108,7 @@ class BuildProgressController extends Controller
      */
     private function snapshot(): array
     {
-        return Cache::flexible('build.progress.snapshot', [30, 600], fn () => $this->computeSnapshot());
+        return \App\Support\DurableSnapshot::remember('build.progress', 120, fn () => $this->computeSnapshot());
     }
 
     /** @return array<string,mixed> */

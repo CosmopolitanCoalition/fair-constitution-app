@@ -178,7 +178,7 @@ class ShortHardwareGuardsTest extends TestCase
     {
         $src = file_get_contents(app_path('Http/Controllers/System/ClocksController.php'));
 
-        $this->assertStringContainsString("Cache::flexible('clocks.armed_by_clock', [60, 900]", $src);
+        $this->assertStringContainsString("DurableSnapshot::remember('clocks.armed', 120", $src);
         $this->assertStringContainsString('private function computeArmedByClock', $src);
     }
 
@@ -217,7 +217,7 @@ class ShortHardwareGuardsTest extends TestCase
     {
         $src = file_get_contents(app_path('Http/Controllers/BuildProgressController.php'));
 
-        $this->assertStringContainsString("Cache::flexible('build.progress.snapshot', [30, 600]", $src);
+        $this->assertStringContainsString("DurableSnapshot::remember('build.progress', 120", $src);
         $this->assertStringContainsString('private function computeSnapshot(): array', $src);
     }
 
@@ -225,7 +225,7 @@ class ShortHardwareGuardsTest extends TestCase
     {
         $src = file_get_contents(app_path('Http/Controllers/LegislatureController.php'));
 
-        $this->assertStringContainsString("Cache::flexible('legislatures.hub.rows', [300, 86400]", $src);
+        $this->assertStringContainsString("DurableSnapshot::remember('legislatures.hub.rows', 600", $src);
         $this->assertStringContainsString('private function computeHubRows()', $src);
     }
 }

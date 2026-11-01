@@ -182,9 +182,9 @@ class PublicRecordsController extends Controller
     {
         $total = (int) (PublicRecord::query()->max('seq') ?? 0);
 
-        $byKind = \Illuminate\Support\Facades\Cache::remember(
+        $byKind = \App\Support\DurableSnapshot::remember(
             'public_records.stats.by_kind',
-            now()->addMinutes(15),
+            1800,
             fn () => [
                 'acts'       => PublicRecord::query()->where('kind', 'act')->count(),
                 'votes'      => PublicRecord::query()->where('kind', 'vote')->count(),
