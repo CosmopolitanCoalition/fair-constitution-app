@@ -158,7 +158,8 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertSame(4242, \App\Support\CivicPopulation::forDisplay('J1'));
 
         $console = file_get_contents(base_path('routes/console.php'));
-        $this->assertStringContainsString('RecountResidentsJob', $console);
+        // No nightly schedule (operator 2026-11-01): the recount runs by hand when wanted.
+        $this->assertStringNotContainsString('residents:recount', $console);
         $this->assertGreaterThanOrEqual(250, \App\Console\Commands\ResidentsRecountCommand::defaultChunk());
         $this->assertLessThanOrEqual(4000, \App\Console\Commands\ResidentsRecountCommand::defaultChunk());
     }
