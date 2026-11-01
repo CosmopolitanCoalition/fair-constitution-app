@@ -171,4 +171,12 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertStringContainsString('php artisan db:warm-hot --unless-busy', $script);
         $this->assertStringContainsString('CGA_WARM_INDEXES', $script);
     }
+
+    public function test_the_clocks_page_reads_its_armed_timer_aggregate_from_the_cache(): void
+    {
+        $src = file_get_contents(app_path('Http/Controllers/System/ClocksController.php'));
+
+        $this->assertStringContainsString("Cache::flexible('clocks.armed_by_clock', [60, 900]", $src);
+        $this->assertStringContainsString('private function computeArmedByClock', $src);
+    }
 }
