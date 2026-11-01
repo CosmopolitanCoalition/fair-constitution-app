@@ -69,7 +69,8 @@ class ShortHardwareGuardsTest extends TestCase
         $jur = file_get_contents(app_path('Http/Controllers/JurisdictionController.php'));
         $leg = file_get_contents(app_path('Http/Controllers/LegislatureController.php'));
 
-        $this->assertSame(3, substr_count($jur, '$zoom <= 7 ? 7 : $zoom'));
+        // the children payload (which siblings now share) and the self layer
+        $this->assertSame(2, substr_count($jur, '$zoom <= 7 ? 7 : $zoom'));
         $this->assertSame(1, substr_count($leg, '$zoom <= 7 ? 7 : $zoom'));
         $this->assertSame([6], \App\Jobs\PrewarmGeojsonCachesJob::parseZooms(null));
     }
