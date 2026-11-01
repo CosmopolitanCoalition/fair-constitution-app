@@ -75,7 +75,7 @@ class ShortHardwareGuardsTest extends TestCase
 
         $setup = file_get_contents(app_path('Http/Controllers/SetupController.php'));
         $this->assertMatchesRegularExpression(
-            '/function bootstrapStatusEndpoint\(Request \$request\).*?is_operator.*?'pending_count' => 0/s',
+            '/function bootstrapStatusEndpoint\(Request \$request\).*?is_operator.*?pending_count.{1,5}=> 0/s',
             $setup
         );
     }
