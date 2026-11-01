@@ -81,8 +81,16 @@ class HandleInertiaRequests extends Middleware
                        environment check on the strength of this flag. */
                     'is_operator' => (bool) $user->is_operator,
                 ] : null,
+                // DISPLAY ONLY (navigation). Deriving the roles runs about thirty exists() checks over
+                // the seat, candidacy, board and court tables on every page load, each a cold disk
+                // read on a slow host. The shell reads a copy kept for a minute. The constitutional
+                // engine and every controller gate still call RoleService directly, uncached.
                 'roles' => fn () => $user
-                    ? app(ResolvesRoles::class)->rolesFor($user)
+                    ? \Illuminate\Support\Facades\Cache::remember(
+                        'roles.display.'.$user->getKey(),
+                        60,
+                        fn () => app(ResolvesRoles::class)->rolesFor($user)
+                    )
                     : ['R-00'],
                 'impersonating' => fn () => $this->impersonationProps($request),
             ],

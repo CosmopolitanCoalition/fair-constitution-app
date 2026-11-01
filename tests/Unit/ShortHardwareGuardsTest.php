@@ -237,4 +237,14 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertStringContainsString('most_common_freqs', $src);
         $this->assertStringContainsString("DurableSnapshot::remember(\n            'public_records.stats.by_kind'", $src);
     }
+
+    public function test_the_shell_reads_a_cached_role_list_while_the_engine_derives_it_fresh(): void
+    {
+        $mw = file_get_contents(app_path('Http/Middleware/HandleInertiaRequests.php'));
+        $this->assertStringContainsString("'roles.display.'.\$user->getKey(),\n                        60,", $mw);
+
+        $engine = file_get_contents(app_path('Domain/Engine/ConstitutionalEngine.php'));
+        $this->assertStringContainsString('$this->roles->rolesFor($actor)', $engine);
+        $this->assertStringNotContainsString('roles.display', $engine);
+    }
 }
