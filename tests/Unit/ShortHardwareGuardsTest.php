@@ -134,8 +134,8 @@ class ShortHardwareGuardsTest extends TestCase
 
         $this->assertStringContainsString('BuildLegislatureColorsJob::dispatch($legislatureId, $mapId)', $src);
         $this->assertStringContainsString('bool $blocking = false', $src);
-        // the three mutation reads and the scope map stay exact and inline
-        $this->assertSame(4, preg_match_all('/legislatureColorMap\([^)]*, true\)/', $src));
+        // the three mutation reads, the scope map and the background build stay exact and inline
+        $this->assertSame(5, preg_match_all('/legislatureColorMap\([^)]*, true\)/', $src));
         // the cached revealed payload carries no coloring; colors are overlaid per request
         $this->assertStringContainsString("\$payload['features'][\$i]['properties']['color_index']", $src);
 
