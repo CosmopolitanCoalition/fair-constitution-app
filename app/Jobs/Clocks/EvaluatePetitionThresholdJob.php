@@ -33,6 +33,11 @@ class EvaluatePetitionThresholdJob implements ShouldQueue
 
     public function handle(PetitionService $petitions): void
     {
+        // CGA_CLOCKS_FROZEN: a payload queued before the freeze acknowledges and exits.
+        if (config('cga.clocks_frozen')) {
+            return;
+        }
+
         Petition::query()
             ->where('status', Petition::STATUS_GATHERING)
             ->orderBy('created_at')

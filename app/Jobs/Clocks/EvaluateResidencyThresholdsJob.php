@@ -52,6 +52,11 @@ class EvaluateResidencyThresholdsJob implements ShouldQueue
 
     public function handle(ResidencyService $residency, AuditService $audit): void
     {
+        // CGA_CLOCKS_FROZEN: a payload queued before the freeze acknowledges and exits.
+        if (config('cga.clocks_frozen')) {
+            return;
+        }
+
         $limit   = HostCapacity::sweepChunk();
         $afterId = null;
         $seen    = 0;

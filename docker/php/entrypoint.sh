@@ -145,7 +145,10 @@ case "$*" in
     run_prewarm=1
     if [ "${CGA_PREWARM:-}" = "0" ]; then
       run_prewarm=0
-    elif [ "${CGA_PREWARM:-}" != "1" ] && [ "$mem_mb" -gt 0 ] && [ "$gib" -lt 2 ]; then
+    elif [ "${CGA_PREWARM:-}" != "1" ] && [ "$mem_mb" -gt 0 ] && [ "$gib" -lt 4 ]; then
+      # Under 4 GiB of Horizon memory (a short host: Pi, repurposed PC) the boot warm
+      # reads the raster store for tens of thousands of tiles and saturates the disk.
+      # Tiles and map results are generated on first view and then kept.
       run_prewarm=0
     fi
     max_zoom="${CGA_PREWARM_MAX_ZOOM:-}"

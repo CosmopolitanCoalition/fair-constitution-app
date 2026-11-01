@@ -48,9 +48,12 @@ class AuthenticatedSessionController extends Controller
         // casing, so the login resolves the STORED spelling case-insensitively
         // and authenticates against that. No user found → fall through to the
         // normal failed attempt (identical timing/behaviour, no enumeration).
-        $stored = \App\Models\User::query()
-            ->whereRaw('lower(email) = ?', [mb_strtolower(trim($credentials['email']))])
-            ->value('email');
+        // The exact lowercase lookup rides the unique email index (every new row is
+        // lowercase). The lower(email) fallback rides users_lower_email_idx and only
+        // finds legacy mixed-case rows. Neither scans the users table.
+        $lowered = mb_strtolower(trim($credentials['email']));
+        $stored = \App\Models\User::query()->where('email', $lowered)->value('email')
+            ?? \App\Models\User::query()->whereRaw('lower(email) = ?', [$lowered])->value('email');
         if ($stored !== null) {
             $credentials['email'] = $stored;
         }

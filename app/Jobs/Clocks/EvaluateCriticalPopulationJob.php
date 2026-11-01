@@ -84,6 +84,11 @@ class EvaluateCriticalPopulationJob implements ShouldQueue
 
     public function handle(ActivationService $activation, SettingsResolver $settings): void
     {
+        // CGA_CLOCKS_FROZEN: a payload queued before the freeze acknowledges and exits.
+        if (config('cga.clocks_frozen')) {
+            return;
+        }
+
         $database = DB::connection();
         // This queued sweep owns its session, not a caller's transaction. Its
         // activation services still commit each ordinary operation separately.
