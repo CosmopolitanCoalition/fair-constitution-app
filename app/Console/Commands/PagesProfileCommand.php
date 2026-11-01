@@ -30,6 +30,7 @@ class PagesProfileCommand extends Command
         {--list : Print the inventory and request nothing}
         {--only= : Only routes whose URI starts with this}
         {--api : Include /api routes}
+        {--dump : Print every query of each requested page (use with --only)}
         {--user= : Operator email (default: the first operator)}
         {--slug=usa-3-mecklenburg-2 : Jurisdiction slug used for {jurisdiction} routes}';
 
@@ -95,6 +96,7 @@ class PagesProfileCommand extends Command
             }
             $ms = (int) ((microtime(true) - $started) * 1000);
 
+            $inOrder = $queries;
             usort($queries, fn ($a, $b) => $b['ms'] <=> $a['ms']);
             $row = [
                 'url'      => $r['url'],
@@ -108,6 +110,11 @@ class PagesProfileCommand extends Command
             $results[] = $row;
             file_put_contents($log, json_encode($row)."\n", FILE_APPEND);
             $this->line(sprintf('%5dms %3d q %5dms db  %d  %s', $ms, $row['queries'], $row['db_ms'], $status, $r['url']));
+            if ($this->option('dump')) {
+                foreach ($inOrder as $q) {
+                    $this->line(sprintf('      %4dms  %s', (int) $q['ms'], mb_substr(preg_replace('/\s+/', ' ', $q['sql']), 0, 200)));
+                }
+            }
         }
 
         usort($results, fn ($a, $b) => $b['ms'] <=> $a['ms']);
