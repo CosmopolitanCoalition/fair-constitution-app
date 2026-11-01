@@ -194,7 +194,10 @@ reference rows (cosmic_addresses, the instance_settings singleton, the
 audit_log genesis entry) ride inside the dump.
 
 **New schema changes** = new migration files in `database/migrations/`,
-REAL-dated (≥ 2026-07-05), additive-only, applied on top of the dump. Never
+REAL-dated (≥ 2026-07-05), applied on top of the dump. The additive-only rule ended
+on 2026-11-01 (operator order): efficiency on slower, older hardware outranks it, so a
+migration may drop redundant indexes, drop dead tables and columns, and reshape tables.
+A drop names what replaces it, or why nothing needs to. Never
 date a migration before an object it references: the retired dev-era files
 used fake-future dates (2026_08…2026_12) as phase namespaces, and a real-dated
 file landing mid-sequence broke virgin installs. Re-flattening (dump + prune)

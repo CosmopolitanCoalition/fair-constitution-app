@@ -20,6 +20,7 @@ use Tests\TestCase;
  *   · the schema-update banner and the schema status answer belong to the operator
  *   · the prewarm plans the root scope alone unless the giants are asked for
  *   · a page that shows a resident count reads the cached figure, a decision counts exactly
+ *   · the redundant-index drop runs outside a transaction and never names a unique key
  */
 class ShortHardwareGuardsTest extends TestCase
 {
@@ -102,5 +103,16 @@ class ShortHardwareGuardsTest extends TestCase
         $svc = file_get_contents(app_path('Services/PetitionService.php'));
         $this->assertStringContainsString('CivicPopulation::of(', $svc);
         $this->assertStringNotContainsString('forDisplay', $svc);
+    }
+
+    public function test_the_redundant_index_drop_runs_concurrently_and_names_no_unique_key(): void
+    {
+        $src = file_get_contents(database_path('migrations/2026_11_01_130000_drop_redundant_indexes.php'));
+
+        $this->assertStringContainsString('public $withinTransaction = false;', $src);
+        $this->assertStringContainsString('DROP INDEX CONCURRENTLY IF EXISTS', $src);
+        $this->assertStringNotContainsString('_unique', $src);
+        $this->assertStringNotContainsString('_pkey', $src);
+        $this->assertSame(15, preg_match_all("/^\s+'[a-z0-9_]+',/m", $src));
     }
 }
