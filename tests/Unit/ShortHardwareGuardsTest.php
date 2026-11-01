@@ -200,4 +200,15 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertStringContainsString('public $withinTransaction = false;', $mig);
         $this->assertSame(2, substr_count($mig, 'CREATE INDEX CONCURRENTLY IF NOT EXISTS'));
     }
+
+    public function test_the_children_layer_simplifies_to_the_view_and_nginx_compresses_harder(): void
+    {
+        $jur = file_get_contents(app_path('Http/Controllers/JurisdictionController.php'));
+        $this->assertStringContainsString('private function overviewTolerance(string $parentId): float', $jur);
+        $this->assertStringContainsString('max(0.001, min(0.05, $diagonal / 4000))', $jur);
+        $this->assertStringContainsString('geojson.childlines2.', $jur);
+
+        $nginx = file_get_contents(base_path('docker/nginx/default.conf'));
+        $this->assertStringContainsString('gzip_comp_level   6;', $nginx);
+    }
 }

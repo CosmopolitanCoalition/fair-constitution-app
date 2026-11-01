@@ -1262,14 +1262,19 @@ class JurisdictionController extends Controller
      */
     private function childrenLines(string $parentId, int $zoom): string
     {
-        $tolerance = $this->toleranceForZoom($zoom);
         // Every zoom up to 7 simplifies at the same 0.01 degree cap (toleranceForZoom), so the
         // result is identical. One entry serves them all instead of one per zoom level.
         $keyZoom = $zoom <= 7 ? 7 : $zoom;
-        $cacheKey = "geojson.childlines.{$parentId}.z{$keyZoom}";
+        $cacheKey = "geojson.childlines2.{$parentId}.z{$keyZoom}";
 
-        return \App\Services\GeojsonDurableCache::rememberText($cacheKey, function () use ($parentId, $tolerance): string {
-            $rows = DB::select('
+        return \App\Services\GeojsonDurableCache::rememberText($cacheKey, function () use ($parentId, $zoom): string {
+            // Simplify to a fraction of a pixel at the view the parent fills, not to a fixed
+            // 1 km: a world layer needs far less detail than a county layer, and every byte
+            // crosses the host's uplink. A close zoom keeps the zoom-based tolerance.
+            $tolerance = $zoom > 7 ? $this->toleranceForZoom($zoom) : $this->overviewTolerance($parentId);
+            $digits = $tolerance >= 0.01 ? 3 : ($tolerance >= 0.001 ? 4 : 5);
+
+            $rows = DB::select(sprintf('
                 SELECT
                     j.id,
                     j.name,
@@ -1278,7 +1283,7 @@ class JurisdictionController extends Controller
                     j.population,
                     j.iso_code,
                     (SELECT COUNT(*) FROM jurisdictions c WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS child_count,
-                    ST_AsGeoJSON(ST_Simplify(j.geom, :tolerance), 5) AS geojson, -- 5 decimals = 1 m, far finer than the 0.00005 degree simplification floor
+                    ST_AsGeoJSON(ST_Simplify(j.geom, :tolerance), %d) AS geojson,
                     ST_Y(COALESCE(j.centroid, ST_PointOnSurface(j.geom))) AS centroid_lat,
                     ST_X(COALESCE(j.centroid, ST_PointOnSurface(j.geom))) AS centroid_lng
                 FROM jurisdictions j
@@ -1286,7 +1291,7 @@ class JurisdictionController extends Controller
                   AND j.deleted_at IS NULL
                   AND j.geom IS NOT NULL
                 ORDER BY j.name
-            ', [
+            ', $digits), [
                 'tolerance' => $tolerance,
                 'parent_id' => $parentId,
             ]);
@@ -1313,6 +1318,30 @@ class JurisdictionController extends Controller
 
             return implode("\n", $lines);
         });
+    }
+
+    /**
+     * Simplification tolerance (degrees) for a parent's children layer: a quarter of a pixel
+     * at the view the parent fills (its children's centroid spread over 4000 pixels), kept
+     * between 0.001 degrees (110 m) and 0.05 degrees (5.5 km). The centroid index makes the
+     * extent one cheap read.
+     */
+    private function overviewTolerance(string $parentId): float
+    {
+        $box = DB::selectOne(
+            'SELECT ST_XMin(b) AS x0, ST_YMin(b) AS y0, ST_XMax(b) AS x1, ST_YMax(b) AS y1
+               FROM (SELECT ST_Extent(centroid) AS b FROM jurisdictions
+                      WHERE parent_id = ? AND deleted_at IS NULL) t',
+            [$parentId]
+        );
+
+        if ($box === null || $box->x0 === null) {
+            return 0.01;
+        }
+
+        $diagonal = hypot((float) $box->x1 - (float) $box->x0, (float) $box->y1 - (float) $box->y0);
+
+        return max(0.001, min(0.05, $diagonal / 4000));
     }
 
     /**
