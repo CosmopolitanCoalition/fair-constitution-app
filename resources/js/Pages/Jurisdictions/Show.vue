@@ -1456,15 +1456,33 @@ onMounted(async () => {
     const hasSiblings     = props.ancestors.length > 0
     const ancestorsToLoad = props.ancestors.filter(a => a.adm_level > 0)
 
+    // A place's siblings are its parent's children, less the place itself. Reading the parent's
+    // children layer means every step into a sibling asks for the SAME URL, which the browser
+    // already holds from the step before (the layer is cacheable for an hour). The old siblings
+    // URL differed for every place, so each step downloaded the same 400 KB world layer again
+    // over a slow uplink. The chain is root-first, so a place's parent is the entry before it.
+    const chain = props.ancestors
+    const siblingsOf = (placeId, parentId) =>
+        parentId == null
+            ? fetchMap(`/api/jurisdictions/${placeId}/siblings.geojson`).then(r => r.json())
+            : fetchMap(`/api/jurisdictions/${parentId}/children.geojson`)
+                .then(r => r.json())
+                .then(fc => ({
+                    ...fc,
+                    features: fc.features.filter(f => String(f.properties.id) !== String(placeId)),
+                }))
+    const parentIdOfAncestor = a => {
+        const i = chain.findIndex(x => x.id === a.id)
+        return i > 0 ? chain[i - 1].id : null
+    }
+
     try {
         const [selfGeojson, siblingGeojson, ...ancestorGeojsons] = await Promise.all([
             fetchMap(`/api/jurisdictions/${jurisdictionId}/self.geojson`).then(r => r.json()),
             hasSiblings
-                ? fetchMap(`/api/jurisdictions/${jurisdictionId}/siblings.geojson`).then(r => r.json())
+                ? siblingsOf(jurisdictionId, chain[chain.length - 1].id)
                 : Promise.resolve(null),
-            ...ancestorsToLoad.map(a =>
-                fetchMap(`/api/jurisdictions/${a.id}/siblings.geojson`).then(r => r.json())
-            ),
+            ...ancestorsToLoad.map(a => siblingsOf(a.id, parentIdOfAncestor(a))),
         ])
 
         if (mapRequests.signal.aborted) return
