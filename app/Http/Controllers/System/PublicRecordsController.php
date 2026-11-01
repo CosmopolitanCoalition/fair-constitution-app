@@ -185,14 +185,57 @@ class PublicRecordsController extends Controller
         $byKind = \App\Support\DurableSnapshot::remember(
             'public_records.stats.by_kind',
             1800,
-            fn () => [
-                'acts'       => PublicRecord::query()->where('kind', 'act')->count(),
-                'votes'      => PublicRecord::query()->where('kind', 'vote')->count(),
-                'statements' => PublicRecord::query()->where('kind', 'statement')->count(),
-            ],
+            function () {
+                // An exact count by kind walks an index over every record (184 million on the
+                // demo: 15 minutes on a spinning disk). The page shows a figure, so it reads the
+                // table's own statistics, kept by autovacuum: the share of each kind times the
+                // row estimate. A kind the statistics do not list falls back to the exact count.
+                $approx = self::approximateKindCounts();
+
+                return [
+                    'acts'       => $approx['act'] ?? PublicRecord::query()->where('kind', 'act')->count(),
+                    'votes'      => $approx['vote'] ?? PublicRecord::query()->where('kind', 'vote')->count(),
+                    'statements' => $approx['statement'] ?? PublicRecord::query()->where('kind', 'statement')->count(),
+                ];
+            },
         );
 
         return ['total' => $total] + $byKind;
+    }
+
+    /**
+     * Row counts per `kind` from the planner statistics: most_common_freqs times reltuples.
+     *
+     * @return array<string,int> kind => estimated rows (empty when no statistics exist yet)
+     */
+    private static function approximateKindCounts(): array
+    {
+        try {
+            $row = DB::selectOne(
+                "SELECT s.most_common_vals::text AS vals, s.most_common_freqs::text AS freqs, c.reltuples::bigint AS n
+                   FROM pg_stats s
+                   JOIN pg_class c ON c.relname = s.tablename AND c.relnamespace = 'public'::regnamespace
+                  WHERE s.schemaname = 'public' AND s.tablename = 'public_records' AND s.attname = 'kind'"
+            );
+        } catch (\Throwable) {
+            return [];
+        }
+
+        if ($row === null || $row->vals === null || $row->freqs === null || (int) $row->n <= 0) {
+            return [];
+        }
+
+        $kinds = array_map(static fn ($v) => trim($v, "\" "), explode(',', trim((string) $row->vals, '{}')));
+        $freqs = array_map('floatval', explode(',', trim((string) $row->freqs, '{}')));
+
+        $out = [];
+        foreach ($kinds as $i => $kind) {
+            if (isset($freqs[$i])) {
+                $out[$kind] = (int) round($freqs[$i] * (int) $row->n);
+            }
+        }
+
+        return $out;
     }
 
     /** F-LEG-006 — Public Record Statement (the SessionConsole handler, reused). */

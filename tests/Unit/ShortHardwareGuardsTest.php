@@ -228,4 +228,13 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertStringContainsString("DurableSnapshot::remember('legislatures.hub.rows', 600", $src);
         $this->assertStringContainsString('private function computeHubRows()', $src);
     }
+
+    public function test_public_record_counts_by_kind_come_from_planner_statistics(): void
+    {
+        $src = file_get_contents(app_path('Http/Controllers/System/PublicRecordsController.php'));
+
+        $this->assertStringContainsString('private static function approximateKindCounts(): array', $src);
+        $this->assertStringContainsString('most_common_freqs', $src);
+        $this->assertStringContainsString("DurableSnapshot::remember(\n            'public_records.stats.by_kind'", $src);
+    }
 }
