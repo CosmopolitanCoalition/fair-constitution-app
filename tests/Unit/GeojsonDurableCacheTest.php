@@ -18,6 +18,8 @@ use Tests\TestCase;
  *     and the builder does not run
  *   · flush() clears the stored copy, so the builder runs again
  *   · a missing table never blocks a request
+ *   · district results survive a reboot and clear by legislature or by scope,
+ *     exactly as the Redis tags do
  */
 class GeojsonDurableCacheTest extends TestCase
 {
@@ -28,6 +30,8 @@ class GeojsonDurableCacheTest extends TestCase
         Schema::create('geojson_cache', function ($t) {
             $t->string('cache_key', 200)->primary();
             $t->text('payload');
+            $t->string('legislature_id', 64)->nullable();
+            $t->string('scope_tag', 200)->nullable();
             $t->timestamp('created_at')->nullable();
         });
         Cache::flush();
@@ -96,5 +100,45 @@ class GeojsonDurableCacheTest extends TestCase
 
         $this->assertSame($this->payload(), $data);
         GeojsonDurableCache::flush(); // must not throw
+    }
+
+    public function test_district_results_survive_a_reboot(): void
+    {
+        $tags = ['revealed.L1.null.S1', 'revealed.L1'];
+        GeojsonDurableCache::rememberTagged('geojson.revealed.L1.S1.null.z6', $tags, 'L1', 'revealed.L1.null.S1', fn () => $this->payload());
+
+        Cache::flush();
+
+        $runs = 0;
+        $data = GeojsonDurableCache::rememberTagged('geojson.revealed.L1.S1.null.z6', $tags, 'L1', 'revealed.L1.null.S1', function () use (&$runs) {
+            $runs++;
+
+            return [];
+        });
+
+        $this->assertSame(0, $runs);
+        $this->assertSame($this->payload(), $data);
+    }
+
+    public function test_flush_legislature_clears_only_that_legislature(): void
+    {
+        GeojsonDurableCache::rememberTagged('a', ['revealed.L1'], 'L1', 'revealed.L1.null.S1', fn () => $this->payload());
+        GeojsonDurableCache::rememberTagged('b', ['revealed.L2'], 'L2', 'revealed.L2.null.S1', fn () => $this->payload());
+
+        GeojsonDurableCache::flushLegislature('L1');
+
+        $this->assertSame(['b'], DB::table('geojson_cache')->pluck('cache_key')->all());
+    }
+
+    public function test_flush_scope_clears_only_that_scope(): void
+    {
+        GeojsonDurableCache::rememberTagged('a', ['revealed.L1.null.S1'], 'L1', 'revealed.L1.null.S1', fn () => $this->payload());
+        GeojsonDurableCache::rememberTagged('b', ['revealed.L1.null.S2'], 'L1', 'revealed.L1.null.S2', fn () => $this->payload());
+        GeojsonDurableCache::putTagged('colors.L1.null', ['revealed.L1'], 'L1', null, ['d1' => 2]);
+
+        GeojsonDurableCache::flushScope('L1', 'null', 'S1');
+
+        $keys = DB::table('geojson_cache')->orderBy('cache_key')->pluck('cache_key')->all();
+        $this->assertSame(['b', 'colors.L1.null'], $keys);
     }
 }

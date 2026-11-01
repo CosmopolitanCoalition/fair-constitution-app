@@ -119,7 +119,7 @@ class BackfillDistrictSpatialStatsCommand extends Command
         // recomputeDistrict skips the flush on the stats-only path; flush once
         // per legislature so the mapper repaints with the new numbers.
         foreach ($legs->keys() as $lid) {
-            Cache::tags(["revealed.{$lid}"])->flush();
+            \App\Services\GeojsonDurableCache::flushLegislature((string) $lid);
         }
 
         $this->info("Done. Updated {$updated}, failed {$failed}.");

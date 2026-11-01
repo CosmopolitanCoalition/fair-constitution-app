@@ -134,7 +134,7 @@ class SubdivisionDrawController extends Controller
 
         // Repaint: drop the revealed-layer cache for this legislature so the new
         // sub-district appears on the next map fetch.
-        Cache::tags(["revealed.{$legislature_id}"])->flush();
+        \App\Services\GeojsonDurableCache::flushLegislature((string) $legislature_id);
 
         return response()->json(['ok' => true, 'district' => $result->recorded]);
     }
@@ -245,7 +245,7 @@ class SubdivisionDrawController extends Controller
             return response()->json(['error' => $e->getMessage(), 'citation' => $e->citation], 422);
         }
 
-        Cache::tags(["revealed.{$legislature_id}"])->flush();
+        \App\Services\GeojsonDurableCache::flushLegislature((string) $legislature_id);
 
         return response()->json(['ok' => true, 'districts' => $districts]);
     }
@@ -398,7 +398,7 @@ class SubdivisionDrawController extends Controller
             return response()->json(['error' => $e->getMessage()], 422);
         }
 
-        Cache::tags(["revealed.{$legislature_id}"])->flush();
+        \App\Services\GeojsonDurableCache::flushLegislature((string) $legislature_id);
 
         return response()->json([
             'ok'                 => true,

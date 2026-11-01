@@ -2216,7 +2216,7 @@ class LegislatureController extends Controller
         // Earth/giant payloads stay hot until a district edit flushes their tag
         // (flushRevealedCache) or a giants-reconfig / ETL flush fires. The heavy
         // cold build (~90s at Earth scope) is then paid once, by the prewarm job.
-        $payload = Cache::tags([$cacheTag, "revealed.{$legislature_id}"])->rememberForever($cacheKey, function () use (
+        $payload = \App\Services\GeojsonDurableCache::rememberTagged($cacheKey, [$cacheTag, "revealed.{$legislature_id}"], (string) $legislature_id, $cacheTag, function () use (
             $legislature_id, $scopeId, $revMapId, $revMapFilt, $revMapFil2, $revMapFil3, $revMapFil4, $revMapFil5, $revMapBind,
             $revRootPop, $revTotalSeats, $giantThreshold, $tol
         ) {
@@ -5697,8 +5697,12 @@ class LegislatureController extends Controller
     private function legislatureColorMap(string $legislatureId, ?string $mapId): array
     {
         $cacheKey = "colors.{$legislatureId}." . ($mapId ?? 'null');
-        return Cache::tags(["revealed.{$legislatureId}"])
-            ->remember($cacheKey, 86400, function () use ($legislatureId, $mapId) {
+        return \App\Services\GeojsonDurableCache::rememberTagged(
+            $cacheKey,
+            ["revealed.{$legislatureId}"],
+            $legislatureId,
+            null,
+            function () use ($legislatureId, $mapId) {
                 $ids = DB::table('legislature_districts')
                     ->where('legislature_id', $legislatureId)
                     ->whereNull('deleted_at')
@@ -5706,7 +5710,8 @@ class LegislatureController extends Controller
                     ->pluck('id')
                     ->all();
                 return $this->colorIndicesForDistricts($ids);
-            });
+            }
+        );
     }
 
     /**
@@ -5803,7 +5808,7 @@ class LegislatureController extends Controller
     private function primeColorCache(string $legislatureId, ?string $mapId, array $colors): void
     {
         $cacheKey = "colors.{$legislatureId}." . ($mapId ?? 'null');
-        Cache::tags(["revealed.{$legislatureId}"])->put($cacheKey, $colors, 86400);
+        \App\Services\GeojsonDurableCache::putTagged($cacheKey, ["revealed.{$legislatureId}"], $legislatureId, null, $colors);
     }
 
     private function makeShortCode(string $name, ?string $isoCode, int $admLevel): string
@@ -5865,7 +5870,7 @@ class LegislatureController extends Controller
             SELECT id FROM anc
         ", [$districtScopeId]);
         foreach ($ancestorRows as $row) {
-            Cache::tags(["revealed.{$legislature_id}.{$mapKey}.{$row->id}"])->flush();
+            \App\Services\GeojsonDurableCache::flushScope((string) $legislature_id, (string) $mapKey, (string) $row->id);
         }
     }
 

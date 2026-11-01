@@ -2482,7 +2482,7 @@ class DistrictingService
             // caught the missing commit; every later scope on the connection
             // was nesting a savepoint under it).
             DB::commit();
-            Cache::tags(["revealed.{$legislature_id}"])->flush();
+            \App\Services\GeojsonDurableCache::flushLegislature((string) $legislature_id);
             $this->publishMassProgress($legislature_id, [
                 'phase' => 'inserted', 'phase_label' => 'Zero is zero: uninhabited scope, no district written',
             ]);
@@ -2577,7 +2577,7 @@ class DistrictingService
         }
 
         // The one flush recomputeDistrict skipped per district above.
-        Cache::tags(["revealed.{$legislature_id}"])->flush();
+        \App\Services\GeojsonDurableCache::flushLegislature((string) $legislature_id);
 
         // Final unthrottled beat so the scope's completed timing record lands
         // before the worker releases the claim — a throttled beat here could
@@ -3386,7 +3386,7 @@ class DistrictingService
         // one flush leaves. runAutoCompositeForScope flushes once after Step 12
         // instead. The manual create/update path passes false and is untouched.
         if (! $skipSeatsUpdate) {
-            Cache::tags(["revealed.{$legislatureId}"])->flush();
+            \App\Services\GeojsonDurableCache::flushLegislature((string) $legislatureId);
         }
     }
 
@@ -6690,7 +6690,7 @@ class DistrictingService
             'jurisdiction_id' => $c->id,
         ], array_values($nonGiantRows)));
         $this->recomputeDistrict($districtId, $legislature_id, $leg, true);
-        Cache::tags(["revealed.{$legislature_id}"])->flush();
+        \App\Services\GeojsonDurableCache::flushLegislature((string) $legislature_id);
 
         $this->publishMassProgress($legislature_id, [
             'phase'       => 'inserted',
