@@ -23,7 +23,12 @@ Artisan::command('inspire', function () {
 // the lock simply elects a tick-leader. Belt-and-suspenders with the job's
 // own LeaderProbe::isPrimary() write-leader gate. On a single node it is a
 // no-op (one node always wins the lock).
-Schedule::job(new EvaluateClocksJob)->everyMinute()->withoutOverlapping()->onOneServer();
+// CGA_CLOCKS_FROZEN=true freezes the game world's time: the sweep is not
+// dispatched, so no timer fires and no threshold clock is evaluated until the
+// flag is cleared (due timers then fire in the next sweeps). Explicit demo
+// commands that run the sweep themselves are unaffected.
+Schedule::job(new EvaluateClocksJob)->everyMinute()->withoutOverlapping()->onOneServer()
+    ->skip(fn () => (bool) config('cga.clocks_frozen'));
 Schedule::command('app:notifications')->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
 
 // ── Autoscale pump (pull engine, 2026-07-19) ─────────────────────────────

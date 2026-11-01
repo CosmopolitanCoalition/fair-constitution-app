@@ -261,6 +261,15 @@ return [
     'app_release' => env('CGA_APP_RELEASE'),
 
     /*
+    | Freeze the game world's clocks (operator order 2026-11-01). When true the
+    | every-minute EvaluateClocksJob is not scheduled: no deadline timer fires
+    | and no threshold clock (CLK-05, CLK-06, CLK-17) is evaluated. Set on a box
+    | that cannot afford the sweep's reads (a demo on slow disk). Clearing it
+    | resumes the sweep; timers that fell due fire then.
+    */
+    'clocks_frozen' => (bool) env('CGA_CLOCKS_FROZEN', false),
+
+    /*
     | Federation self-URL (Phase F). The externally-reachable base URL this
     | instance advertises to peers at handshake so they can call back (sync
     | pushes, heartbeats, authority flips). In the two-instance demo:
