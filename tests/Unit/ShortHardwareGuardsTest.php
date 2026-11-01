@@ -179,4 +179,19 @@ class ShortHardwareGuardsTest extends TestCase
         $this->assertStringContainsString("Cache::flexible('clocks.armed_by_clock', [60, 900]", $src);
         $this->assertStringContainsString('private function computeArmedByClock', $src);
     }
+
+    public function test_siblings_read_the_parents_children_payload_and_pickers_are_cached(): void
+    {
+        $jur = file_get_contents(app_path('Http/Controllers/JurisdictionController.php'));
+        $this->assertStringContainsString('private function childrenPayload(string $parentId, int $zoom)', $jur);
+        $this->assertStringContainsString('$this->childrenPayload((string) $jurisdiction->parent_id, $zoom)', $jur);
+        $this->assertStringNotContainsString('geojson.siblings.', $jur);
+
+        $this->assertStringContainsString("rememberForever('places.picker.atlas.200'", file_get_contents(app_path('Http/Controllers/System/AtlasController.php')));
+        $this->assertStringContainsString("rememberForever('places.picker.reach.200'", file_get_contents(app_path('Http/Controllers/ReachController.php')));
+
+        $mig = file_get_contents(database_path('migrations/2026_11_01_150000_index_place_picker_and_ubi_latest.php'));
+        $this->assertStringContainsString('public $withinTransaction = false;', $mig);
+        $this->assertSame(2, substr_count($mig, 'CREATE INDEX CONCURRENTLY IF NOT EXISTS'));
+    }
 }

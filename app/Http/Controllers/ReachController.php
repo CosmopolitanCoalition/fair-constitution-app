@@ -32,7 +32,9 @@ class ReachController extends Controller
     {
         $jurisdictionId = $request->query('jurisdiction');
 
-        $jurisdictions = DB::table('jurisdictions')
+        // The same list for every visitor and unchanged until a map import (which flushes the
+        // cache), so it is read once and kept.
+        $jurisdictions = \Illuminate\Support\Facades\Cache::rememberForever('places.picker.reach.200', fn () => DB::table('jurisdictions')
             ->whereNull('deleted_at')
             ->orderBy('adm_level')
             ->orderBy('name')
@@ -44,7 +46,7 @@ class ReachController extends Controller
                 'adm_level' => (int) $j->adm_level,
             ])
             ->values()
-            ->all();
+            ->all());
 
         $jurisdictionId ??= $jurisdictions[0]['id'] ?? null;
 

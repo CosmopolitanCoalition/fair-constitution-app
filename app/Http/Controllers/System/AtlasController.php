@@ -284,7 +284,9 @@ class AtlasController extends Controller
      */
     private function placePicker(): array
     {
-        return DB::table('jurisdictions')
+        // The same list for every visitor and unchanged until a map import (which flushes the
+        // cache), so it is read once and kept.
+        return \Illuminate\Support\Facades\Cache::rememberForever('places.picker.atlas.200', fn () => DB::table('jurisdictions')
             ->whereNull('deleted_at')
             ->orderBy('adm_level')
             ->orderBy('name')
@@ -292,7 +294,7 @@ class AtlasController extends Controller
             ->get(['id', 'name'])
             ->map(fn ($j) => ['id' => (string) $j->id, 'name' => (string) $j->name])
             ->values()
-            ->all();
+            ->all());
     }
 
     /**

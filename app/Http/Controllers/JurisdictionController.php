@@ -1249,16 +1249,29 @@ class JurisdictionController extends Controller
     public function childrenGeoJson(Request $request, Jurisdiction $jurisdiction): JsonResponse
     {
         $zoom = (int) $request->query('zoom', 6);
+
+        return response()
+            ->json($this->childrenPayload((string) $jurisdiction->id, $zoom))
+            ->header('Cache-Control', 'public, max-age=3600');
+    }
+
+    /**
+     * The FeatureCollection of one parent's direct children, kept in both cache tiers.
+     * Boundary geometry changes only on a map import or restore (those flush the cache), so
+     * the result persists until then. Shared by children.geojson and, less the place itself,
+     * by siblings.geojson.
+     *
+     * @return array<string,mixed>
+     */
+    private function childrenPayload(string $parentId, int $zoom): array
+    {
         $tolerance = $this->toleranceForZoom($zoom);
         // Every zoom up to 7 simplifies at the same 0.01 degree cap (toleranceForZoom), so the
         // result is identical. One entry serves them all instead of one per zoom level.
         $keyZoom = $zoom <= 7 ? 7 : $zoom;
-        $cacheKey = "geojson.children.{$jurisdiction->id}.z{$keyZoom}";
+        $cacheKey = "geojson.children.{$parentId}.z{$keyZoom}";
 
-        // Persist-until-invalidated: boundary geometry only changes on a fresh
-        // ETL / restore (flushed there), never on a district redraw. Prewarmed
-        // entries must not silently expire on a 24h TTL, so cache forever.
-        $data = \App\Services\GeojsonDurableCache::remember($cacheKey, function () use ($jurisdiction, $tolerance) {
+        return \App\Services\GeojsonDurableCache::remember($cacheKey, function () use ($parentId, $tolerance) {
             $rows = DB::select('
                 SELECT
                     j.id,
@@ -1278,7 +1291,7 @@ class JurisdictionController extends Controller
                 ORDER BY j.name
             ', [
                 'tolerance' => $tolerance,
-                'parent_id' => $jurisdiction->id,
+                'parent_id' => $parentId,
             ]);
 
             $features = array_map(function ($row) {
@@ -1302,8 +1315,6 @@ class JurisdictionController extends Controller
 
             return ['type' => 'FeatureCollection', 'features' => $features];
         });
-
-        return response()->json($data)->header('Cache-Control', 'public, max-age=3600');
     }
 
     /**
@@ -1317,59 +1328,21 @@ class JurisdictionController extends Controller
         }
 
         $zoom = (int) $request->query('zoom', 6);
-        $tolerance = $this->toleranceForZoom($zoom);
-        // Every zoom up to 7 simplifies at the same 0.01 degree cap (toleranceForZoom), so the
-        // result is identical. One entry serves them all instead of one per zoom level.
-        $keyZoom = $zoom <= 7 ? 7 : $zoom;
-        $cacheKey = "geojson.siblings.{$jurisdiction->id}.z{$keyZoom}";
 
-        // Persist-until-invalidated (see childrenGeoJson note).
-        $data = \App\Services\GeojsonDurableCache::remember($cacheKey, function () use ($jurisdiction, $tolerance) {
-            $rows = DB::select('
-                SELECT
-                    j.id,
-                    j.name,
-                    j.slug,
-                    j.adm_level,
-                    j.population,
-                    j.iso_code,
-                    (SELECT COUNT(*) FROM jurisdictions c WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS child_count,
-                    ST_AsGeoJSON(ST_Simplify(j.geom, :tolerance)) AS geojson,
-                    ST_Y(COALESCE(j.centroid, ST_PointOnSurface(j.geom))) AS centroid_lat,
-                    ST_X(COALESCE(j.centroid, ST_PointOnSurface(j.geom))) AS centroid_lng
-                FROM jurisdictions j
-                WHERE j.parent_id = :parent_id
-                  AND j.id != :self_id
-                  AND j.deleted_at IS NULL
-                  AND j.geom IS NOT NULL
-                ORDER BY j.name
-            ', [
-                'tolerance' => $tolerance,
-                'parent_id' => $jurisdiction->parent_id,
-                'self_id' => $jurisdiction->id,
-            ]);
+        // The siblings of a place are its parent's children, less the place itself. Every
+        // sibling of one country is the same set of countries, so one cached payload per PARENT
+        // serves every step into any of them (before, each country held its own 3 MB copy and
+        // each first visit ran the 25-second query again). The self feature is dropped here.
+        $parent = $this->childrenPayload((string) $jurisdiction->parent_id, $zoom);
+        $selfId = (string) $jurisdiction->id;
 
-            $features = array_map(function ($row) {
-                return [
-                    'type' => 'Feature',
-                    'id' => $row->id,
-                    'geometry' => json_decode($row->geojson),
-                    'properties' => [
-                        'id' => $row->id,
-                        'name' => $row->name,
-                        'slug' => $row->slug,
-                        'adm_level' => $row->adm_level,
-                        'population' => (int) $row->population,
-                        'iso_code' => $row->iso_code,
-                        'child_count' => (int) $row->child_count,
-                        'centroid_lat' => (float) $row->centroid_lat,
-                        'centroid_lng' => (float) $row->centroid_lng,
-                    ],
-                ];
-            }, $rows);
-
-            return ['type' => 'FeatureCollection', 'features' => $features];
-        });
+        $data = [
+            'type'     => 'FeatureCollection',
+            'features' => array_values(array_filter(
+                $parent['features'] ?? [],
+                static fn ($feature) => (string) ($feature['id'] ?? '') !== $selfId
+            )),
+        ];
 
         return response()->json($data)->header('Cache-Control', 'public, max-age=3600');
     }
