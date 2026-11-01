@@ -67,16 +67,19 @@ class PagesProfileCommand extends Command
         file_put_contents($log, '');
         $results = [];
 
+        // One listener for the whole run. A listener added per route would stack, and every
+        // earlier one would keep appending to the current route's list.
+        $queries = [];
+        DB::listen(function ($q) use (&$queries) {
+            $queries[] = ['ms' => $q->time, 'sql' => $q->sql];
+        });
+
         foreach ($routes as $r) {
             if (isset($r['skip'])) {
                 continue;
             }
 
             $queries = [];
-            DB::flushQueryLog();
-            DB::listen(function ($q) use (&$queries) {
-                $queries[] = ['ms' => $q->time, 'sql' => $q->sql];
-            });
 
             $started = microtime(true);
             $status = 0;
