@@ -504,6 +504,21 @@ QUESTIONS = [
   "detail":"RULED FORK-FIRST: join-or-start, THEN account. Mockup swapped; SetupController already fork-first."},
  {"id":"oversight-public","q":"Oversight console — public or gated?","status":"resolved","lane":"3",
   "detail":"RULED PUBLIC ('public if it's government'; no closed-session provision). Console read public; write controls authenticated. @4057b3c."},
+  {"id":"dns-name-shape","q":"How should a node's DNS name map onto the jurisdiction tree under worldofstatecraft.org?","status":"open","lane":"net",
+   "detail":"A wildcard certificate covers ONE label. The demo moved from dots to hyphens for that reason. A deeper tree (place.parent.country.worldofstatecraft.org) needs a certificate per zone, which is free only when each operator runs its own delegated zone and uses ACME DNS-01. Boundary changes and renames mean a name that encodes the path breaks when the path changes, so the stable key should be the jurisdiction id or slug, never the position.",
+   "options":[{"k":"A","t":"Delegate subzones: the root zone holds NS records for each country or community zone, and each community node runs its own zone and mints its own certificates. Names may be deep. Stable slug labels. [desk rec]"},
+    {"k":"B","t":"Flat: one label under the root, hyphen-joined slug (the current demo form). The path lives only in the signed directory. No delegation, but one wildcard certificate and one operator for the whole tree."},
+    {"k":"C","t":"Both: a flat canonical name per node plus a CNAME path alias under the delegated zone, so renames move the alias and never the node."}]},
+  {"id":"dns-foreign-domain-keys","q":"How does a domain holder let chosen nodes host their domain?","status":"open","lane":"net",
+   "detail":"Sharing a domain's private key spreads the risk to every node that holds it. The holder can instead delegate only the certificate challenge by a CNAME on _acme-challenge to a zone the chosen nodes control. Removing the CNAME revokes the right to mint. The existing sealed-box code (Ed25519 to X25519) can still wrap a key bundle to named node keys for a domain that cannot delegate.",
+   "options":[{"k":"A","t":"ACME challenge delegation by CNAME. No private key leaves the holder. Revoke by deleting one record. [desk rec]"},
+    {"k":"B","t":"Sealed key bundle wrapped to the public keys of the designated nodes only (community node, or a unit inside it)."},
+    {"k":"C","t":"Both: A is the default, B is the template for a holder who cannot delegate."}]},
+  {"id":"dns-home-node-reach","q":"How does a family node behind a home router reach the mesh?","status":"open","lane":"net",
+   "detail":"Many home lines sit behind carrier NAT with no inbound port and a changing address, and port 25 is often blocked. The demo reaches the world through a Cloudflare tunnel. Inbound email, Matrix federation and LiveKit media all need a reachable address.",
+   "options":[{"k":"A","t":"Cloudflare Tunnel per node, as the demo does now. Simple, one outside vendor in the path."},
+    {"k":"B","t":"A community node acts as the relay for its families (an overlay such as WireGuard), and the community zone holds the public address. No outside vendor. Needs one reachable community node. [desk rec]"},
+    {"k":"C","t":"Public address and dynamic DNS only. Works for nodes with a public line and fails for the rest."}]},
 ]
 # Operator answers (2026-07-29) — flip the 9 open to RESOLVED with the ruling folded in.
 _ANS = {
