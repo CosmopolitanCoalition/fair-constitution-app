@@ -1246,32 +1246,29 @@ class JurisdictionController extends Controller
      * Uses ST_Simplify with level-appropriate tolerance for performance.
      * Geometries are returned in WGS84 (SRID 4326).
      */
-    public function childrenGeoJson(Request $request, Jurisdiction $jurisdiction): JsonResponse
+    public function childrenGeoJson(Request $request, Jurisdiction $jurisdiction): \Illuminate\Http\Response
     {
         $zoom = (int) $request->query('zoom', 6);
 
-        return response()
-            ->json($this->childrenPayload((string) $jurisdiction->id, $zoom))
-            ->header('Cache-Control', 'public, max-age=3600');
+        return $this->featureCollection($this->childrenLines((string) $jurisdiction->id, $zoom));
     }
 
     /**
-     * The FeatureCollection of one parent's direct children, kept in both cache tiers.
-     * Boundary geometry changes only on a map import or restore (those flush the cache), so
-     * the result persists until then. Shared by children.geojson and, less the place itself,
-     * by siblings.geojson.
-     *
-     * @return array<string,mixed>
+     * One parent's direct children as TEXT: a line per child, "<id>\t<feature JSON>". The
+     * geometry is Postgres's own ST_AsGeoJSON text, never decoded, so building and serving a
+     * 7 MB layer costs memory about equal to its size (decoding it into PHP objects needed
+     * hundreds of MB and the app container was OOM-killed on the demo). Kept in both cache
+     * tiers: boundary geometry changes only on a map import or restore, which flush it.
      */
-    private function childrenPayload(string $parentId, int $zoom): array
+    private function childrenLines(string $parentId, int $zoom): string
     {
         $tolerance = $this->toleranceForZoom($zoom);
         // Every zoom up to 7 simplifies at the same 0.01 degree cap (toleranceForZoom), so the
         // result is identical. One entry serves them all instead of one per zoom level.
         $keyZoom = $zoom <= 7 ? 7 : $zoom;
-        $cacheKey = "geojson.children.{$parentId}.z{$keyZoom}";
+        $cacheKey = "geojson.childlines.{$parentId}.z{$keyZoom}";
 
-        return \App\Services\GeojsonDurableCache::remember($cacheKey, function () use ($parentId, $tolerance) {
+        return \App\Services\GeojsonDurableCache::rememberText($cacheKey, function () use ($parentId, $tolerance): string {
             $rows = DB::select('
                 SELECT
                     j.id,
@@ -1281,7 +1278,7 @@ class JurisdictionController extends Controller
                     j.population,
                     j.iso_code,
                     (SELECT COUNT(*) FROM jurisdictions c WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS child_count,
-                    ST_AsGeoJSON(ST_Simplify(j.geom, :tolerance)) AS geojson,
+                    ST_AsGeoJSON(ST_Simplify(j.geom, :tolerance), 5) AS geojson, -- 5 decimals = 1 m, far finer than the 0.00005 degree simplification floor
                     ST_Y(COALESCE(j.centroid, ST_PointOnSurface(j.geom))) AS centroid_lat,
                     ST_X(COALESCE(j.centroid, ST_PointOnSurface(j.geom))) AS centroid_lng
                 FROM jurisdictions j
@@ -1294,34 +1291,59 @@ class JurisdictionController extends Controller
                 'parent_id' => $parentId,
             ]);
 
-            $features = array_map(function ($row) {
-                return [
-                    'type' => 'Feature',
-                    'id' => $row->id,
-                    'geometry' => json_decode($row->geojson),
-                    'properties' => [
-                        'id' => $row->id,
-                        'name' => $row->name,
-                        'slug' => $row->slug,
-                        'adm_level' => $row->adm_level,
-                        'population' => (int) $row->population,
-                        'iso_code' => $row->iso_code,
-                        'child_count' => (int) $row->child_count,
-                        'centroid_lat' => (float) $row->centroid_lat,
-                        'centroid_lng' => (float) $row->centroid_lng,
-                    ],
-                ];
-            }, $rows);
+            $lines = [];
+            foreach ($rows as $row) {
+                if (! $row->geojson) {
+                    continue;
+                }
+                $properties = json_encode([
+                    'id'           => $row->id,
+                    'name'         => $row->name,
+                    'slug'         => $row->slug,
+                    'adm_level'    => $row->adm_level,
+                    'population'   => (int) $row->population,
+                    'iso_code'     => $row->iso_code,
+                    'child_count'  => (int) $row->child_count,
+                    'centroid_lat' => (float) $row->centroid_lat,
+                    'centroid_lng' => (float) $row->centroid_lng,
+                ]);
+                $lines[] = $row->id."\t".'{"type":"Feature","id":'.json_encode($row->id)
+                    .',"geometry":'.$row->geojson.',"properties":'.$properties.'}';
+            }
 
-            return ['type' => 'FeatureCollection', 'features' => $features];
+            return implode("\n", $lines);
         });
+    }
+
+    /**
+     * A FeatureCollection response built from cached lines. Strings only: no decode, no
+     * re-encode. $skipId drops one feature (a place's own outline among its siblings).
+     */
+    private function featureCollection(string $lines, ?string $skipId = null): \Illuminate\Http\Response
+    {
+        $features = [];
+        if ($lines !== '') {
+            foreach (explode("\n", $lines) as $line) {
+                $tab = strpos($line, "\t");
+                if ($skipId !== null && substr($line, 0, $tab) === $skipId) {
+                    continue;
+                }
+                $features[] = substr($line, $tab + 1);
+            }
+        }
+
+        return response(
+            '{"type":"FeatureCollection","features":['.implode(',', $features).']}',
+            200,
+            ['Content-Type' => 'application/json', 'Cache-Control' => 'public, max-age=3600']
+        );
     }
 
     /**
      * GeoJSON FeatureCollection of a jurisdiction's siblings (parent's other children).
      * Used to render geographic context behind the current jurisdiction's children.
      */
-    public function siblingsGeoJson(Request $request, Jurisdiction $jurisdiction): JsonResponse
+    public function siblingsGeoJson(Request $request, Jurisdiction $jurisdiction): \Illuminate\Http\Response|JsonResponse
     {
         if (! $jurisdiction->parent_id) {
             return response()->json(['type' => 'FeatureCollection', 'features' => []]);
@@ -1330,21 +1352,12 @@ class JurisdictionController extends Controller
         $zoom = (int) $request->query('zoom', 6);
 
         // The siblings of a place are its parent's children, less the place itself. Every
-        // sibling of one country is the same set of countries, so one cached payload per PARENT
-        // serves every step into any of them (before, each country held its own 3 MB copy and
-        // each first visit ran the 25-second query again). The self feature is dropped here.
-        $parent = $this->childrenPayload((string) $jurisdiction->parent_id, $zoom);
-        $selfId = (string) $jurisdiction->id;
-
-        $data = [
-            'type'     => 'FeatureCollection',
-            'features' => array_values(array_filter(
-                $parent['features'] ?? [],
-                static fn ($feature) => (string) ($feature['id'] ?? '') !== $selfId
-            )),
-        ];
-
-        return response()->json($data)->header('Cache-Control', 'public, max-age=3600');
+        // sibling of one country is the same set of countries, so one cached layer per PARENT
+        // serves every step into any of them; the place's own line is skipped here.
+        return $this->featureCollection(
+            $this->childrenLines((string) $jurisdiction->parent_id, $zoom),
+            (string) $jurisdiction->id
+        );
     }
 
     /**

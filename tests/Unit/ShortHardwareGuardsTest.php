@@ -184,9 +184,14 @@ class ShortHardwareGuardsTest extends TestCase
     public function test_siblings_read_the_parents_children_payload_and_pickers_are_cached(): void
     {
         $jur = file_get_contents(app_path('Http/Controllers/JurisdictionController.php'));
-        $this->assertStringContainsString('private function childrenPayload(string $parentId, int $zoom)', $jur);
-        $this->assertStringContainsString('$this->childrenPayload((string) $jurisdiction->parent_id, $zoom)', $jur);
+        $this->assertStringContainsString('private function childrenLines(string $parentId, int $zoom): string', $jur);
+        $this->assertStringContainsString('$this->childrenLines((string) $jurisdiction->parent_id, $zoom)', $jur);
         $this->assertStringNotContainsString('geojson.siblings.', $jur);
+        // the layer is served as stored text: the geometry is never decoded
+        $this->assertStringContainsString("'\"geometry\":'.$row->geojson", $jur);
+        $from = strpos($jur, 'private function childrenLines');
+        $layer = substr($jur, $from, strpos($jur, 'private function featureCollection') - $from);
+        $this->assertStringNotContainsString('json_decode', $layer);
 
         $this->assertStringContainsString("rememberForever('places.picker.atlas.200'", file_get_contents(app_path('Http/Controllers/System/AtlasController.php')));
         $this->assertStringContainsString("rememberForever('places.picker.reach.200'", file_get_contents(app_path('Http/Controllers/ReachController.php')));

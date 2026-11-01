@@ -30,6 +30,26 @@ class GeojsonDurableCache
     }
 
     /**
+     * A result kept as TEXT (the map layers: one JSON fragment per feature). Hits return the
+     * stored string untouched, so a request never decodes a multi-megabyte payload into PHP
+     * objects. Both tiers hold the same string.
+     */
+    public static function rememberText(string $key, Closure $build): string
+    {
+        return Cache::rememberForever($key, function () use ($key, $build): string {
+            $stored = self::readText($key);
+            if ($stored !== null) {
+                return $stored;
+            }
+
+            $text = $build();
+            self::writeText($key, $text);
+
+            return $text;
+        });
+    }
+
+    /**
      * District results. $tags are the Redis tags. $legislatureId and $scopeTag are the
      * durable tier's flush keys, the same two the Redis tags express.
      *
@@ -122,6 +142,30 @@ class GeojsonDurableCache
             DB::table('geojson_cache')->where($column, $value)->delete();
         } catch (Throwable) {
             // Table or column not present yet: nothing durable to clear.
+        }
+    }
+
+    private static function readText(string $key): ?string
+    {
+        try {
+            $payload = DB::table('geojson_cache')->where('cache_key', $key)->value('payload');
+        } catch (Throwable) {
+            return null;
+        }
+
+        return is_string($payload) ? $payload : null;
+    }
+
+    private static function writeText(string $key, string $text): void
+    {
+        try {
+            DB::table('geojson_cache')->upsert(
+                [['cache_key' => $key, 'payload' => $text, 'legislature_id' => null, 'scope_tag' => null, 'created_at' => now()]],
+                ['cache_key'],
+                ['payload', 'legislature_id', 'scope_tag', 'created_at'],
+            );
+        } catch (Throwable) {
+            // A failed write only costs a recompute after the next reboot.
         }
     }
 
