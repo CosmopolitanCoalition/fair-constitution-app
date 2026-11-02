@@ -95,6 +95,20 @@ Route::middleware('auth')->group(function () {
         ->name('api.me.video-prefs.update');
 });
 
+// Personal workspace connections — API keys for outside automation, the per-user secret vault and
+// the mail-send approval queue. Session auth only; nothing here is reachable with an API key.
+Route::middleware('auth')->prefix('connections')->group(function () {
+    $c = \App\Http\Controllers\Personal\ConnectionsController::class;
+    Route::get('/', [$c, 'show'])->name('connections');
+    Route::post('/keys', [$c, 'issueKey'])->middleware('throttle:20,1')->name('connections.keys.issue');
+    Route::delete('/keys/{id}', [$c, 'revokeKey'])->name('connections.keys.revoke');
+    Route::post('/secrets', [$c, 'storeSecret'])->middleware('throttle:30,1')->name('connections.secrets.store');
+    Route::post('/secrets/{id}/reveal', [$c, 'revealSecret'])->middleware('throttle:6,1')->name('connections.secrets.reveal');
+    Route::delete('/secrets/{id}', [$c, 'deleteSecret'])->name('connections.secrets.delete');
+    Route::post('/drafts/{id}/approve', [$c, 'approveDraft'])->name('connections.drafts.approve');
+    Route::post('/drafts/{id}/reject', [$c, 'rejectDraft'])->name('connections.drafts.reject');
+});
+
 // Coverage instruments (design contracts: mockups/v3/shared/coverage.html,
 // coverage-ops.html). "For the build team" QA — public read (surface names +
 // route paths only, no user data). They cross-check the JS nav registry against

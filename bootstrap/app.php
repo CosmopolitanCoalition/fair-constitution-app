@@ -41,6 +41,12 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('throttle:120,1')
                 ->group(__DIR__.'/../routes/oidc.php');
 
+            // Personal workspace API (calendar, tasks, CRM, mail) for outside automation such as n8n.
+            // Stateless: no session, no CSRF. Every route sits behind a scoped per-user API key.
+            Route::prefix('api/v1')
+                ->middleware('throttle:240,1')
+                ->group(__DIR__.'/../routes/personal.php');
+
             // ETL inline pump kick (2026-09-08) — the geodata pull worker POSTs
             // here the instant its phase drains so geodata:pump advances NOW,
             // not on the next scheduled minute (the Step 3/4/5 "last actor
@@ -94,6 +100,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'federation.signed' => \App\Http\Middleware\VerifyPeerSignature::class,
             // Phase K-3 — hs_token auth for the appservice AS-API (Synapse → Laravel). NOT user auth.
             'matrix.appservice' => \App\Http\Middleware\VerifyMatrixAppService::class,
+            // Personal workspace — per-user bearer API key with a scope (api.key:calendar:read).
+            'api.key' => \App\Http\Middleware\AuthenticateApiKey::class,
         ]);
 
         // WI-4: the dev-tools 404 gate must run BEFORE 'auth' (whose
