@@ -34,6 +34,7 @@ const LEASE_STALE_MS = 30 * 1000;
 const WAITS_S = [2, 4, 8, 15, 30]; // then 30 s until the give-up point
 const GIVE_UP_MS = 5 * 60 * 1000;
 const FATAL = ['action_signature_invalid', 'room_not_accessible', 'peer_refused'];
+const REJOIN_LINK_TIMEOUT_MS = 10000; // a rejoin gives up on a stuck media link sooner than the 15 s default
 
 // The tab's identity survives a reload (sessionStorage), so a reloaded page recognises its own lease and
 // rejoins its call instead of treating it as another tab's.
@@ -54,6 +55,8 @@ const session = ref(null);
 /** idle | active | retrying | lost */
 const phase = ref('idle');
 const recovering = ref(false);
+/** A screen share that was on before the call dropped. A browser needs a click to start one, so the person is asked. */
+const shareLost = ref(false);
 
 let retryTimer = null;
 let retryCount = 0;
@@ -62,6 +65,8 @@ let beatTimer = null;
 let serverBeatAt = 0;
 let bound = false;
 let lastConnectedAt = 0;
+let media = { mic: false, cam: false, screen: false }; // what was on at the last heartbeat
+let rejoining = false;
 let flaps = 0;
 
 const hasStorage = () => typeof localStorage !== 'undefined';
@@ -85,12 +90,17 @@ function requesterFor(descriptor) {
 }
 
 function joinArgs(d) {
-    return { jurisdictionId: d.jurisdictionId, room: d.room, pseudonym: d.pseudonym, subjectUserId: d.subjectUserId, tokenRequester: requesterFor(d) };
+    return {
+        jurisdictionId: d.jurisdictionId, room: d.room, pseudonym: d.pseudonym, subjectUserId: d.subjectUserId, tokenRequester: requesterFor(d),
+        connectOptions: rejoining ? { peerConnectionTimeout: REJOIN_LINK_TIMEOUT_MS } : undefined,
+    };
 }
 
 function persist() {
     if (!session.value || !hasStorage()) return;
-    const record = { descriptor: { ...session.value, mic: voice.micEnabled.value }, beat: Date.now() };
+    // Remember what is on, so a rejoin can bring the microphone and camera back (a screen share needs a click).
+    if (voice.connectionState.value === 'connected') media = { mic: voice.micEnabled.value, cam: voice.cameraEnabled.value, screen: voice.screenShareEnabled.value };
+    const record = { descriptor: { ...session.value, mic: media.mic, cam: media.cam, screen: media.screen }, beat: Date.now() };
     writeJson(STORE, record);
     if (iHoldLease()) takeLease();
     if (Date.now() - serverBeatAt > SERVER_BEAT_MS) { serverBeatAt = Date.now(); putCall(record); }
@@ -139,7 +149,7 @@ function scheduleRetry(immediate = false) {
 /** Let go without ending the call for the tab that now owns it. */
 function yieldCall() {
     clearRetry(); stopBeat();
-    session.value = null; phase.value = 'idle'; recovering.value = false;
+    session.value = null; phase.value = 'idle'; recovering.value = false; shareLost.value = false; rejoining = false;
     void voice.leave();
 }
 
@@ -147,13 +157,23 @@ function onVoiceState(state) {
     if (!session.value || phase.value === 'idle') return;
     if (state === 'connected') {
         lastConnectedAt = Date.now();
+        // Read what was on BEFORE the heartbeat below overwrites it with the fresh connection's empty state.
+        const wasRejoin = rejoining || recovering.value;
+        const restore = { ...media };
         clearRetry(); phase.value = 'active'; recovering.value = false;
         startBeat();
-        const wantMic = session.value.mic;
-        if (wantMic && !voice.micEnabled.value) void voice.toggleMic(); // quietly; a refused permission just leaves it muted
+        // After a rejoin: bring the microphone and camera back quietly (a refused permission leaves them off).
+        if (wasRejoin) {
+            if (restore.mic && !voice.micEnabled.value) void voice.toggleMic();
+            if (restore.cam && !voice.cameraEnabled.value) void voice.toggleCamera();
+            if (restore.screen) shareLost.value = true; // a screen share needs a click, so the person is asked
+            media = { mic: restore.mic, cam: restore.cam, screen: false };
+        }
+        rejoining = false;
         return;
     }
     if (state === 'error' || state === 'degraded') {
+        rejoining = true;
         const code = String(voice.error.value || '').split(':')[0].trim();
         if (FATAL.includes(code)) { phase.value = 'lost'; stopBeat(); return; }
         // Dropped again within seconds of connecting, several times over: the same identity joined from
@@ -183,6 +203,17 @@ function bindOnce() {
     });
 }
 
+/** Resolves once a page that is still loading has finished and the browser is idle (or after a short cap). */
+function afterLoad() {
+    if (typeof document === 'undefined' || document.readyState === undefined || document.readyState === 'complete'
+        || typeof window.requestIdleCallback !== 'function') return Promise.resolve();
+    return new Promise((resolve) => {
+        const idle = () => window.requestIdleCallback(() => resolve(), { timeout: 4000 });
+        window.addEventListener('load', idle, { once: true });
+        setTimeout(resolve, 8000); // never wait longer than this for a page that will not finish
+    });
+}
+
 /** Start (or switch to) a call. One call at a time: joining a different room leaves the old one. */
 async function startCall(descriptor) {
     bindOnce();
@@ -201,7 +232,8 @@ async function startCall(descriptor) {
 /** The person pressed Leave. */
 async function endCall() {
     clearRetry(); stopBeat();
-    session.value = null; phase.value = 'idle'; recovering.value = false;
+    session.value = null; phase.value = 'idle'; recovering.value = false; shareLost.value = false; rejoining = false;
+    media = { mic: false, cam: false, screen: false };
     forget();
     if (hasStorage()) { try { localStorage.removeItem(LEASE); } catch { /* ignore */ } }
     await voice.leave();
@@ -224,15 +256,18 @@ async function recover() {
     if (session.value || !leaseFree()) return;
     takeLease();
     session.value = { ...record.descriptor };
+    media = { mic: !!record.descriptor.mic, cam: !!record.descriptor.cam, screen: !!record.descriptor.screen };
     phase.value = 'active';
     recovering.value = true;
+    rejoining = true;
+    await afterLoad(); // do not compete with the page's own load for the first seconds
     await attempt();
 }
 
 const peopleCount = computed(() => voice.participants.value.length);
 
 export function useCall() {
-    return { session, phase, recovering, voice, peopleCount, startCall, endCall, recover, isFor: (room) => session.value?.room === room };
+    return { session, phase, recovering, shareLost, voice, peopleCount, startCall, endCall, recover, clearShareLost: () => { shareLost.value = false; }, isFor: (room) => session.value?.room === room };
 }
 
 export default useCall;

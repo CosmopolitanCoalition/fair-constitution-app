@@ -9,7 +9,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { ChevronDown, ChevronUp, MessageSquare, Mic, MicOff, PhoneOff, Video, VideoOff, Volume2, X } from 'lucide-vue-next';
+import { ChevronDown, ChevronUp, MessageSquare, Mic, MicOff, PhoneOff, ScreenShare, ScreenShareOff, Video, VideoOff, Volume2, X } from 'lucide-vue-next';
 import ParticipantTile from '@/Components/Civic/Room/ParticipantTile.vue';
 import { personLabel } from '@/Components/Civic/Room/roomPresentation.js';
 import { useCall } from '@/lib/callSession.js';
@@ -43,6 +43,7 @@ const presenters = computed(() => v.participants.value.filter((p) => p.screenTra
 const cameras = computed(() => v.participants.value.filter((p) => p.videoTrack));
 const hasVideo = computed(() => presenters.value.length > 0 || cameras.value.length > 0);
 const rejoin = () => session.value && call.startCall({ ...session.value });
+const shareAgain = async () => { call.clearShareLost(); await v.toggleScreenShare(); };
 
 // Minimized: a pill. Remembered on this device.
 const MIN_KEY = 'cga.call.minimized';
@@ -108,6 +109,11 @@ onMounted(() => { void store.start(); });
                     <template v-else-if="status === 'connecting'">{{ t('c_dock.connecting', 'Connecting…') }}</template>
                     <template v-else>{{ t('c_dock.people', { count: people }) }}</template>
                 </p>
+                <p v-if="call.shareLost.value" class="dock-win__share-lost" role="status">
+                    {{ t('c_dock.share_lost', 'Screen sharing stopped when the call reconnected.') }}
+                    <button type="button" class="btn btn--primary btn--sm" @click="shareAgain">{{ t('c_dock.share_again', 'Share again') }}</button>
+                    <button type="button" class="btn btn--ghost btn--sm" @click="call.clearShareLost()">{{ t('c_dock.dismiss', 'Dismiss') }}</button>
+                </p>
                 <div v-if="hasVideo" class="dock-win__video">
                     <button type="button" class="btn btn--ghost btn--sm" :aria-expanded="showVideo" @click="showVideo = !showVideo">
                         {{ showVideo ? t('c_dock.video_hide', 'Hide video') : t('c_dock.video_show', 'Show video') }}
@@ -136,6 +142,10 @@ onMounted(() => { void store.start(); });
                             <component :is="v.cameraEnabled.value ? Video : VideoOff" :size="14" aria-hidden="true" />
                         </button>
                     </template>
+                    <button v-if="status === 'connected'" type="button" class="btn btn--secondary btn--sm" :aria-pressed="v.screenShareEnabled.value" :disabled="v.mediaPending.value.screen"
+                        :aria-label="v.screenShareEnabled.value ? t('c_dock.stop_share', 'Stop sharing screen') : t('c_dock.share_screen', 'Share screen')" @click="call.clearShareLost(); v.toggleScreenShare()">
+                        <component :is="v.screenShareEnabled.value ? ScreenShareOff : ScreenShare" :size="14" aria-hidden="true" />
+                    </button>
                     <Link :href="session.href || '/'" class="btn btn--ghost btn--sm">{{ t('c_dock.return', 'Return to room') }}</Link>
                     <button type="button" class="btn btn--danger btn--sm" :aria-label="t('c_dock.leave', 'Leave call')" @click="call.endCall()">
                         <PhoneOff :size="14" aria-hidden="true" />
@@ -226,6 +236,7 @@ onMounted(() => { void store.start(); });
 .dock-win__dot--reconnecting, .dock-win__dot--connecting { background: #f59e0b; }
 .dock-win__dot--lost { background: #ef4444; }
 .dock-win__call { padding: 0.5rem 0.6rem; border-block-end: 1px solid var(--gov-border, #334155); overflow-y: auto; flex: none; max-block-size: 55%; }
+.dock-win__share-lost { margin: 0 0 0.5rem; font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
 .dock-win__status { margin: 0 0 0.4rem; font-size: 0.85rem; opacity: 0.85; }
 .dock-win__video { margin-block-end: 0.5rem; }
 .dock-win__tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; margin-block-start: 0.35rem; }

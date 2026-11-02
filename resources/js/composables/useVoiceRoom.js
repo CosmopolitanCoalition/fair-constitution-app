@@ -264,7 +264,7 @@ export function useVoiceRoom() {
      * authenticated player's own (see deviceIdentity.requestVoiceToken). Resolves
      * once connected (or sets `degraded` and resolves if no SFU is reachable).
      */
-    async function join({ jurisdictionId, room: roomName, pseudonym, subjectUserId, tokenRequester = null }) {
+    async function join({ jurisdictionId, room: roomName, pseudonym, subjectUserId, tokenRequester = null, connectOptions = undefined }) {
         // Re-entry latch: the room.value guard alone is insufficient because room.value isn't set
         // until AFTER the async token fetch — a double-click would open two SFU connections and leak
         // one. `joining` is set synchronously before the first await.
@@ -304,7 +304,7 @@ export function useVoiceRoom() {
             room.value = r;
             wire(r);
 
-            await r.connect(grant.sfu_url, grant.token);
+            await r.connect(grant.sfu_url, grant.token, connectOptions);
             if (cancelled() || !isCurrent(r)) { await closeRoom(r); return; }
             // Joining never asks for capture permission. Publishing is an
             // explicit microphone/camera/screen control after a successful join.

@@ -34,5 +34,10 @@
   "video_hide": "Hide video",
   "video_show": "Show video",
   "minimize": "Minimize call panel",
-  "expand": "Expand call panel"
+  "expand": "Expand call panel",
+  "share_screen": "Share screen",
+  "stop_share": "Stop sharing screen",
+  "dismiss": "Dismiss",
+  "share_lost": "Screen sharing stopped when the call reconnected.",
+  "share_again": "Share again"
 }

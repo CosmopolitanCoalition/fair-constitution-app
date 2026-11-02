@@ -41,7 +41,7 @@ class MessengerController extends Controller
             'call.descriptor.href' => 'nullable|string|max:500', 'call.descriptor.tokenUrl' => 'nullable|string|max:500',
             'call.descriptor.variant' => 'nullable|string|max:20',
             'call.descriptor.chatKey' => ['nullable', 'string', 'regex:'.self::KEY],
-            'call.descriptor.mic' => 'nullable|boolean',
+            'call.descriptor.mic' => 'nullable|boolean', 'call.descriptor.cam' => 'nullable|boolean', 'call.descriptor.screen' => 'nullable|boolean',
         ]);
         $uid = (string) $request->user()->getKey();
         DB::transaction(function () use ($uid, $d) {

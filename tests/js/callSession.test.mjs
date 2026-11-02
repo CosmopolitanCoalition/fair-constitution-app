@@ -36,6 +36,7 @@ async function fixture(t, { storage = {}, serverCall = null, session = null } = 
     // A controllable stand-in for useVoiceRoom().
     const voiceState = {
         connectionState: Vue.ref('disconnected'), error: Vue.ref(null), degraded: Vue.ref(false), micEnabled: Vue.ref(false),
+        cameraEnabled: Vue.ref(false), screenShareEnabled: Vue.ref(false),
         participants: Vue.ref([]), joins: [], leaves: 0, mic: 0,
     };
     const voice = {
@@ -49,6 +50,7 @@ async function fixture(t, { storage = {}, serverCall = null, session = null } = 
         },
         leave: async () => { voiceState.leaves++; voiceState.connectionState.value = 'disconnected'; },
         toggleMic: async () => { voiceState.mic++; voice.micEnabled.value = true; },
+        toggleCamera: async () => { voiceState.cam = (voiceState.cam || 0) + 1; voice.cameraEnabled.value = true; },
     };
 
     const context = vm.createContext({
@@ -176,6 +178,16 @@ test('a reloaded tab recognises its own lease and rejoins; a different tab does 
     const other = await fixture(t, { storage, session: { getItem: () => null, setItem: () => {} } });
     await other.api.recover();
     assert.equal(other.voiceState.joins.length, 0, 'a different tab waits for the lease to go stale');
+});
+
+test('a rejoin restores the camera and asks the person to share the screen again', async (t) => {
+    const f = await fixture(t, { storage: { 'cga.call.session': JSON.stringify({ descriptor: { ...room, mic: false, cam: true, screen: true }, beat: 1_000_000 - 30_000 }) } });
+    await f.api.recover();
+    await f.tick();
+    assert.equal(f.voiceState.cam, 1, 'the camera comes back by itself');
+    assert.equal(f.api.shareLost.value, true, 'a screen share cannot start without a click, so the person is told');
+    f.api.clearShareLost();
+    assert.equal(f.api.shareLost.value, false);
 });
 
 test('another tab that holds the call blocks a second recovery', async (t) => {
