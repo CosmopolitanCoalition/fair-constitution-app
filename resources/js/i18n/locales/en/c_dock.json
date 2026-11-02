@@ -30,5 +30,7 @@
   "empty_thread": "No messages yet.",
   "message": "Message",
   "placeholder": "Write a message…",
-  "send": "Send"
+  "send": "Send",
+  "video_hide": "Hide video",
+  "video_show": "Show video"
 }
