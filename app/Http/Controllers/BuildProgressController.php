@@ -108,7 +108,12 @@ class BuildProgressController extends Controller
      */
     private function snapshot(): array
     {
-        return \App\Support\DurableSnapshot::rememberQueued('build.progress', 120, self::class, 'computeSnapshot', [
+        // Fresh for 2 minutes while a provision run is moving the bars, 6 hours otherwise. A full
+        // recount reads about 10 large indexes (minutes on a spinning disk and it evicts the page
+        // cache), so an idle world is not recounted every time someone opens the page.
+        $fresh = \App\Support\RunsInFlight::any() === 'provision' ? 120 : 21600;
+
+        return \App\Support\DurableSnapshot::rememberQueued('build.progress', $fresh, self::class, 'computeSnapshot', [
             'stages' => [],
             'world'  => [
                 'seated'            => 0,
