@@ -115,5 +115,12 @@
   "vacancy-countback": "Filling an empty seat",
   "video-manager": "Manage videos",
   "wallet": "My wallet",
-  "site_help": "Help & site information"
+  "site_help": "Help & site information",
+  "workspace": "My workspace",
+  "workspace-calendar": "Calendar",
+  "workspace-tasks": "Tasks",
+  "workspace-contacts": "Contacts",
+  "workspace-inbox": "Inbox",
+  "workspace-connections": "Connections",
+  "section_workspace": "My workspace"
 }

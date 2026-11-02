@@ -129,6 +129,19 @@ class PersonalWorkspaceApiTest extends TestCase
         $this->postJson("/api/v1/mail/drafts/$id/sent", [], $h)->assertOk()->assertJsonPath('data.status', 'sent');
     }
 
+    public function test_the_screens_use_the_same_api_under_the_signed_in_session_only(): void
+    {
+        $a = $this->user('a@example.test');
+        $b = $this->user('b@example.test');
+
+        $this->getJson('/workspace/api/tasks')->assertStatus(401);
+        $this->actingAs($a)->postJson('/workspace/api/tasks', ['title' => 'From the screen'])->assertCreated();
+        $this->actingAs($a)->getJson('/workspace/api/tasks')->assertOk()->assertJsonCount(1, 'data');
+        $this->actingAs($b)->getJson('/workspace/api/tasks')->assertOk()->assertJsonCount(0, 'data');
+        // A bad key is refused even when a session exists: a bearer header is always checked as a key.
+        $this->actingAs($a)->getJson('/workspace/api/tasks', ['Authorization' => 'Bearer cga_'.str_repeat('y', 40)])->assertStatus(401);
+    }
+
     public function test_a_secret_shows_only_to_its_owner_after_the_password_is_retyped(): void
     {
         $u = $this->user();

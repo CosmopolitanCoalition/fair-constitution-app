@@ -109,6 +109,17 @@ Route::middleware('auth')->prefix('connections')->group(function () {
     Route::post('/drafts/{id}/reject', [$c, 'rejectDraft'])->name('connections.drafts.reject');
 });
 
+// My workspace screens (calendar, tasks, contacts, inbox). The pages call the same API as outside
+// automation, here under the signed-in session (AuthenticateApiKey accepts a session).
+Route::middleware('auth')->prefix('workspace')->group(function () {
+    $w = \App\Http\Controllers\Personal\WorkspaceController::class;
+    Route::get('/calendar', [$w, 'calendar'])->name('workspace.calendar');
+    Route::get('/tasks', [$w, 'tasks'])->name('workspace.tasks');
+    Route::get('/contacts', [$w, 'contacts'])->name('workspace.contacts');
+    Route::get('/inbox', [$w, 'inbox'])->name('workspace.inbox');
+    Route::prefix('api')->middleware('throttle:240,1')->group(base_path('routes/personal.php'));
+});
+
 // Coverage instruments (design contracts: mockups/v3/shared/coverage.html,
 // coverage-ops.html). "For the build team" QA — public read (surface names +
 // route paths only, no user data). They cross-check the JS nav registry against

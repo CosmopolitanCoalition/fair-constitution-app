@@ -24,6 +24,7 @@
 export const PLAYER_NAV = [
     { id: 'live-rooms', label: 'Live rooms', icon: 'users', href: '/rooms' },
     { id: 'home', label: 'Today', icon: 'home', href: '/civic', contract: 'civic/today.html', phase: 3 },
+    { id: 'workspace', label: 'My workspace', icon: 'clock', href: '/workspace/calendar' },
     { id: 'jurisdiction-browser', label: 'Places', icon: 'map', href: '/jurisdictions', contract: 'jurisdictions/jurisdiction-browser.html', phase: 5 },
     { id: 'public-square', label: 'Community', icon: 'users', href: '/civic/square', contract: 'social/social-home.html', phase: 3 },
     { id: 'market', label: 'Work & trade', icon: 'briefcase', href: '/economy', contract: 'economy/economy-home.html' },
@@ -36,6 +37,13 @@ export const PLAYER_NAV = [
    player tier ("All screens — the full map"). Section keys/titles mirror
    mockups/v3 shell-v2.js sidebarNavInner(). */
 export const SITEMAP = [
+    { key: 'workspace', title: 'My workspace', items: [
+        { id: 'workspace-calendar', label: 'Calendar', icon: 'clock', href: '/workspace/calendar' },
+        { id: 'workspace-tasks', label: 'Tasks', icon: 'list-checks', href: '/workspace/tasks' },
+        { id: 'workspace-contacts', label: 'Contacts', icon: 'users', href: '/workspace/contacts' },
+        { id: 'workspace-inbox', label: 'Inbox', icon: 'message-square', href: '/workspace/inbox' },
+        { id: 'workspace-connections', label: 'Connections', icon: 'lock', href: '/connections' },
+    ] },
     { key: 'rooms', title: 'Rooms & the square', items: [
         { id: 'public-square', label: 'The public square', icon: 'users', href: '/civic/square', contract: 'social/social-home.html' },
         { id: 'halls', label: 'The halls (testimony)', icon: 'landmark', href: '/civic/halls', contract: 'shared/live-room.html?variant=townhall', phase: 6 },

@@ -11,6 +11,11 @@ class AuthenticateApiKey
 {
     public function handle(Request $request, Closure $next, string $scope)
     {
+        // A signed-in browser session (the workspace screens) acts as its own user with every scope.
+        // Any bearer header is still checked as a key, so a key can never borrow a session.
+        if (! $request->bearerToken() && $request->hasSession() && $request->user()) {
+            return $next($request);
+        }
         $key = ApiKeys::find((string) $request->bearerToken());
         abort_unless($key, 401, 'Missing or invalid API key.');
         abort_unless(in_array($scope, json_decode($key->scopes, true) ?: [], true), 403, 'This key lacks the '.$scope.' scope.');
