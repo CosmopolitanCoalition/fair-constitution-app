@@ -1,8 +1,9 @@
 <script setup>
 /**
  * A single seat in the chamber: one participant's live media. Renders the camera
- * track when published, else a pseudonymous avatar; always attaches the audio
- * track (remote only — never the local mic, to avoid an echo). A speaking ring is
+ * track when published, else a pseudonymous avatar. It does NOT play audio: the
+ * floating call panel (Components/Shell/CallDock.vue) plays every remote voice, so
+ * sound continues when this page is left. A speaking ring is
  * driven by LiveKit's active-speaker state. The identity is the @u-<handle>
  * pseudonym, never a legal name.
  *
@@ -33,17 +34,7 @@ const props = defineProps({
 const videoEl = ref(null);
 const { t } = useI18n();
 const text = (key, fallback) => t('c_rooms.' + key, fallback);
-const audioEl = ref(null);
 let boundVideo = null;
-let boundAudio = null;
-
-// Route this element's audio to the chosen speaker (Chrome/Edge; setSinkId is unsupported elsewhere).
-function applySink() {
-    const el = audioEl.value;
-    if (el && typeof el.setSinkId === 'function' && props.audioOutput) {
-        el.setSinkId(props.audioOutput).catch(() => {});
-    }
-}
 
 const label = computed(() => personLabel(props));
 const initials = computed(() => personInitials(props));
@@ -59,12 +50,8 @@ function bind(track, el, prev) {
 }
 
 watch(() => [props.videoTrack, videoEl.value], () => { boundVideo = bind(props.videoTrack, videoEl, boundVideo); });
-watch(() => [props.audioTrack, audioEl.value], () => { boundAudio = bind(props.audioTrack, audioEl, boundAudio); applySink(); });
-watch(() => props.audioOutput, applySink);
-
 onBeforeUnmount(() => {
     if (boundVideo && videoEl.value) boundVideo.detach(videoEl.value);
-    if (boundAudio && audioEl.value) boundAudio.detach(audioEl.value);
 });
 </script>
 
@@ -80,10 +67,6 @@ onBeforeUnmount(() => {
         <div v-show="!videoTrack" class="flex h-full w-full items-center justify-center">
             <Avatar :initials="initials" :title="label" />
         </div>
-
-        <!-- remote audio only; the local mic / own screen audio is never played back. On a camera tile this
-             is the participant's mic; on a presenter tile it's the screen's tab/system audio (if any). -->
-        <audio v-if="!isLocal" ref="audioEl" autoplay aria-hidden="true"></audio>
 
         <div class="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5 text-xs text-white">
             <ScreenShare v-if="presenting" :size="14" class="shrink-0 opacity-90" :aria-label="text('screen_share', 'Screen share')" />

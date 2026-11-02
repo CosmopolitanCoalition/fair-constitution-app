@@ -48,13 +48,6 @@ function send() {
     compose.post(props.messagesHref, { preserveScroll: true, onSuccess: () => compose.reset('body') });
 }
 const senderName = sender => personLabel({ identity: sender, display_name: props.displayNames[sender] });
-const tokenRequester = computed(() => props.voice.tokenUrl ? async () => {
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    const response = await fetch(props.voice.tokenUrl, { method: 'POST', credentials: 'same-origin',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token ?? '' }, body: '{}' });
-    if (!response.ok) throw new Error('room_not_accessible');
-    return response.json();
-} : null);
 useLiveRoom({ keys: ['roster', 'rosterTruncated', 'displayNames', 'floorHolder', 'activeWitness', 'floorControls', 'voice', 'messages', 'timelineAvailable'],
     isLive: () => 'open', busy: () => compose.processing || floorForm.processing, cadenceMs: 5000 });
 </script>
@@ -74,7 +67,7 @@ useLiveRoom({ keys: ['roster', 'rosterTruncated', 'displayNames', 'floorHolder',
         <p v-if="!private && !voice.roomId" class="room-note" role="status">{{ text('room_unavailable_retry', 'The call room is not available yet. Its seats and official workspace remain available.') }} <a :href="roomHref">{{ text('retry_room', 'Retry room') }}</a></p>
         <LiveRoom v-if="mayJoin" :key="voice.roomId" :jurisdiction-id="voice.jurisdictionId || ''"
             :room="voice.roomId" :pseudonym="voice.myMxid" :subject-user-id="voice.myUserId"
-            :token-requester="tokenRequester" :variant="variant" :roster="seating" :roster-url="rosterUrl"
+            :call-mode="voice.tokenUrl ? 'url' : 'commons'" :token-url="voice.tokenUrl || null" :title="title" :variant="variant" :roster="seating" :roster-url="rosterUrl"
             :floor-holder="floorHolder" :active-witness="activeWitness" :display-names="displayNames" />
         <CivicFloor v-else :variant="variant" :roster="seating" :floor-holder="floorHolder" :active-witness="activeWitness" />
         <p v-if="rosterTruncated" class="room-note">{{ t('c_rooms.roster_preview', { count: rosterLimit }, 'This view shows up to {count} assigned seats. Open the official workspace for the full membership. Other callers appear as they join.') }}</p>

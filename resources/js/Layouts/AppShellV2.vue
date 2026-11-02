@@ -21,6 +21,7 @@ import { computed, onBeforeUnmount, onMounted, provide, useId, watch } from 'vue
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppFooter from '@/Components/Shell/AppFooter.vue';
+import DockHost from '@/Components/Shell/DockHost.vue';
 import DemoSessionBanner from '@/Components/ShellV2/DemoSessionBanner.vue';
 import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
 import JurisdictionSwitcher from '@/Components/Shell/JurisdictionSwitcher.vue';
@@ -380,6 +381,8 @@ onBeforeUnmount(() => {
             :instance="footerInstance"
             :audit-seq="auditSeq"
         />
+
+        <DockHost />
 
         <CmdBar
             :roles="roles"

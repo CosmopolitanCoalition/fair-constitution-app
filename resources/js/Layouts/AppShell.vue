@@ -34,6 +34,7 @@ import { useI18n } from 'vue-i18n';
 import AppHeader from '@/Components/Shell/AppHeader.vue';
 import AppSidebar from '@/Components/Shell/AppSidebar.vue';
 import AppFooter from '@/Components/Shell/AppFooter.vue';
+import DockHost from '@/Components/Shell/DockHost.vue';
 import DevBar from '@/Components/Shell/DevBar.vue';
 import DevPersonaSwitcher from '@/Components/Shell/DevPersonaSwitcher.vue';
 import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
@@ -402,6 +403,8 @@ onBeforeUnmount(() => {
             :instance="footerInstance"
             :audit-seq="auditSeq"
         />
+
+        <DockHost />
 
         <CmdBar learn-only />
 

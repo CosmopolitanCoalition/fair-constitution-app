@@ -1,7 +1,7 @@
 <script setup>
 /**
  * The live civic room's AV shell (Phase 5 "Deferred 2"): wires the device-signed
- * voice-token request (Deferred 1) through useVoiceRoom into the chamber stage +
+ * voice-token request (Deferred 1) through the shared call session (lib/callSession.js) into the chamber stage +
  * in-room controls. Drop it into the commons / halls page; the live text floor +
  * the testimony bridge stay where they are (the timeline panel).
  *
@@ -10,9 +10,10 @@
  * text-only (never an error).
  */
 import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
-import { useVoiceRoom } from '@/composables/useVoiceRoom.js';
+import { useCall } from '@/lib/callSession.js';
 import { useRoomParticipants } from '@/composables/useRoomParticipants.js';
 import ChamberStage from './ChamberStage.vue';
 import VoiceControls from './VoiceControls.vue';
@@ -22,8 +23,13 @@ const props = defineProps({
     room: { type: String, required: true }, // the call room (the commons/halls room id, or a private room id)
     pseudonym: { type: String, required: true }, // the player's OWN @u-<handle>
     subjectUserId: { type: String, required: true }, // the player's OWN user id
-    // Optional: a member-gated token requester for a PRIVATE room. Null → the commons device-signed default.
+    // How the call asks for its token: 'commons' (device-signed default), 'private' (member-gated) or 'url'
+    // (a page-supplied endpoint). A descriptor, not a function, so the call can be rejoined after a reload.
+    callMode: { type: String, default: null },
+    tokenUrl: { type: String, default: null },
+    // Kept for older callers: a requester function means a private-room call.
     tokenRequester: { type: Function, default: null },
+    title: { type: String, default: '' }, // shown in the floating call panel
     variant: { type: String, default: 'commons' },
     roster: { type: Array, default: () => [] },
     rosterUrl: { type: String, default: null },
@@ -32,11 +38,31 @@ const props = defineProps({
     displayNames: { type: Object, default: () => ({}) },
 });
 
-const {
-    connectionState, degraded, error, micEnabled, cameraEnabled, screenShareEnabled, mediaPending, audioBlocked,
-    participants, devices, selectedDevices,
-    join, leave, toggleMic, toggleCamera, toggleScreenShare, selectDevice, startAudio,
-} = useVoiceRoom();
+// The call itself lives in the app shell (lib/callSession.js), so it survives leaving this page. This
+// component shows it while it is this room's call, and offers to join otherwise.
+const call = useCall();
+const page = usePage();
+const mine = computed(() => call.isFor(props.room));
+const v = call.voice;
+const rawState = computed(() => (mine.value ? v.connectionState.value : 'disconnected'));
+// A lost connection that is being retried reads as "reconnecting", not as an error.
+const connectionState = computed(() => (mine.value && ['error', 'degraded'].includes(rawState.value) && call.phase.value === 'retrying' ? 'reconnecting' : rawState.value));
+const degraded = computed(() => mine.value && v.degraded.value && call.phase.value !== 'retrying');
+const error = computed(() => (mine.value && call.phase.value !== 'retrying' ? v.error.value : null));
+const micEnabled = computed(() => mine.value && v.micEnabled.value);
+const cameraEnabled = computed(() => mine.value && v.cameraEnabled.value);
+const screenShareEnabled = computed(() => mine.value && v.screenShareEnabled.value);
+const mediaPending = computed(() => (mine.value ? v.mediaPending.value : { mic: false, camera: false, screen: false }));
+const audioBlocked = computed(() => mine.value && v.audioBlocked.value);
+const participants = computed(() => (mine.value ? v.participants.value : []));
+const devices = computed(() => v.devices.value);
+const selectedDevices = computed(() => v.selectedDevices.value);
+const toggleMic = () => mine.value && v.toggleMic();
+const toggleCamera = () => mine.value && v.toggleCamera();
+const toggleScreenShare = () => mine.value && v.toggleScreenShare();
+const selectDevice = (kind, id) => mine.value && v.selectDevice(kind, id);
+const startAudio = () => mine.value && v.startAudio();
+const leave = () => (mine.value ? call.endCall() : undefined);
 const { roster: currentRoster } = useRoomParticipants({
     url: () => props.rosterUrl, room: () => props.room,
     participants: () => participants.value, preview: () => props.roster,
@@ -82,17 +108,12 @@ const errorMessage = computed(() => {
 });
 
 async function onJoin() {
-    try {
-        await join({
-            jurisdictionId: props.jurisdictionId,
-            room: props.room,
-            pseudonym: props.pseudonym,
-            subjectUserId: props.subjectUserId,
-            tokenRequester: props.tokenRequester,
-        });
-    } catch {
-        /* error state is set on the composable; the banner shows it */
-    }
+    const mode = props.callMode ?? (props.tokenRequester ? 'private' : 'commons');
+    await call.startCall({
+        mode, tokenUrl: props.tokenUrl, room: props.room, jurisdictionId: props.jurisdictionId,
+        pseudonym: props.pseudonym, subjectUserId: props.subjectUserId, variant: props.variant,
+        title: props.title || (typeof document !== 'undefined' ? document.title : ''), href: page.url || '/',
+    });
 }
 </script>
 

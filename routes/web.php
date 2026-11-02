@@ -109,6 +109,18 @@ Route::middleware('auth')->prefix('connections')->group(function () {
     Route::post('/drafts/{id}/reject', [$c, 'rejectDraft'])->name('connections.drafts.reject');
 });
 
+// The floating messenger and call dock — JSON for the shell, signed-in session only.
+Route::middleware('auth')->prefix('messenger')->group(function () {
+    $m = \App\Http\Controllers\Messenger\MessengerController::class;
+    $key = '(private|commons):[0-9a-fA-F-]{36}';
+    Route::get('/state', [$m, 'state'])->middleware('throttle:120,1');
+    Route::put('/state', [$m, 'saveState'])->middleware('throttle:120,1');
+    Route::get('/conversations', [$m, 'conversations'])->middleware('throttle:120,1');
+    Route::get('/public-options', [$m, 'publicOptions'])->middleware('throttle:30,1');
+    Route::get('/conversations/{key}/messages', [$m, 'messages'])->where('key', $key)->middleware('throttle:240,1');
+    Route::post('/conversations/{key}/messages', [$m, 'send'])->where('key', $key)->middleware('throttle:30,1');
+});
+
 // My workspace screens (calendar, tasks, contacts, inbox). The pages call the same API as outside
 // automation, here under the signed-in session (AuthenticateApiKey accepts a session).
 Route::middleware('auth')->prefix('workspace')->group(function () {

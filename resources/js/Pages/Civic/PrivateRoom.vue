@@ -23,7 +23,6 @@ import Card from '@/Components/Ui/Card.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Field from '@/Components/Ui/Field.vue';
 import Icon from '@/Components/Ui/Icon.vue';
-import { requestPrivateVoiceToken } from '@/lib/deviceIdentity.js';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -50,8 +49,6 @@ const memberLine = computed(() =>
     props.members.length <= 1 ? t('c_civic.private_room.just_you', 'Just you') : t('c_civic.private_room.people', { count: props.members.length }),
 );
 
-// The private-room token requester — member-gated + local SFU, so no device attestation (commons-only).
-const tokenRequester = ({ room }) => requestPrivateVoiceToken({ room });
 
 const compose = useForm({ body: '' });
 function submit() {
@@ -141,7 +138,8 @@ useLiveRoom({
                 :room="roomId"
                 :pseudonym="myMxid"
                 :subject-user-id="myUserId"
-                :token-requester="tokenRequester"
+                call-mode="private"
+                :title="room.title"
             />
 
             <div v-if="roomId" ref="threadEl" class="msg-thread" :aria-label="t('c_civic.private_room.conversation', 'Conversation')" aria-live="polite">
