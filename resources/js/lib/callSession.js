@@ -35,7 +35,17 @@ const WAITS_S = [2, 4, 8, 15, 30]; // then 30 s until the give-up point
 const GIVE_UP_MS = 5 * 60 * 1000;
 const FATAL = ['action_signature_invalid', 'room_not_accessible', 'peer_refused'];
 
-const tabId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : String(Math.random());
+// The tab's identity survives a reload (sessionStorage), so a reloaded page recognises its own lease and
+// rejoins its call instead of treating it as another tab's.
+const tabId = (() => {
+    const fresh = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : String(Math.random()));
+    try {
+        if (typeof sessionStorage === 'undefined') return fresh();
+        let id = sessionStorage.getItem('cga.call.tab');
+        if (!id) { id = fresh(); sessionStorage.setItem('cga.call.tab', id); }
+        return id;
+    } catch { return fresh(); }
+})();
 const scope = effectScope(true); // detached: no page disposes this connection
 const voice = scope.run(() => useVoiceRoom());
 
@@ -176,7 +186,9 @@ function bindOnce() {
 /** Start (or switch to) a call. One call at a time: joining a different room leaves the old one. */
 async function startCall(descriptor) {
     bindOnce();
-    if (session.value && session.value.room !== descriptor.room) await endCall();
+    // The old room is torn down in the background: its disconnect can stall on a dead connection, and the new
+    // join must not wait for it. endCall clears the session and frees the join latch before it awaits.
+    if (session.value && session.value.room !== descriptor.room) void endCall();
     clearRetry();
     takeLease();
     session.value = { ...descriptor };

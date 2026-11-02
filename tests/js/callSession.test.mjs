@@ -19,7 +19,7 @@ function moduleOf(context, values) {
     }, { context });
 }
 
-async function fixture(t, { storage = {}, serverCall = null } = {}) {
+async function fixture(t, { storage = {}, serverCall = null, session = null } = {}) {
     const timers = [];
     let now = 1_000_000;
     const store = new Map(Object.entries(storage));
@@ -52,7 +52,7 @@ async function fixture(t, { storage = {}, serverCall = null } = {}) {
     };
 
     const context = vm.createContext({
-        console, localStorage, window: win, document: doc, crypto: { randomUUID: () => 'tab-' + Math.random() },
+        console, localStorage, sessionStorage: session, window: win, document: doc, crypto: { randomUUID: () => 'tab-' + Math.random() },
         Date: class extends Date { static now() { return now; } },
         setTimeout: (fn, ms) => { const id = timers.length + 1; timers.push({ id, fn, ms, live: true }); return id; },
         clearTimeout: (id) => { const x = timers.find((y) => y.id === id); if (x) x.live = false; },
@@ -159,6 +159,23 @@ test('a recent call is rejoined after a reload, an old one is not', async (t) =>
     const g = await fixture(t, { storage: { 'cga.call.session': JSON.stringify(old) } });
     await g.api.recover();
     assert.equal(g.voiceState.joins.length, 0);
+});
+
+test('a reloaded tab recognises its own lease and rejoins; a different tab does not', async (t) => {
+    const mine = new Map([['cga.call.tab', 'tab-1']]);
+    const sessionStorage = { getItem: (k) => (mine.has(k) ? mine.get(k) : null), setItem: (k, v) => { mine.set(k, String(v)); } };
+    const storage = {
+        'cga.call.session': JSON.stringify({ descriptor: room, beat: 1_000_000 - 2000 }),
+        'cga.call.lease': JSON.stringify({ tab: 'tab-1', ts: 1_000_000 - 2000 }),
+    };
+    const same = await fixture(t, { storage, session: sessionStorage });
+    await same.api.recover();
+    await same.tick();
+    assert.equal(same.voiceState.joins.length, 1, 'the reloaded tab holds the lease it left, so it rejoins at once');
+
+    const other = await fixture(t, { storage, session: { getItem: () => null, setItem: () => {} } });
+    await other.api.recover();
+    assert.equal(other.voiceState.joins.length, 0, 'a different tab waits for the lease to go stale');
 });
 
 test('another tab that holds the call blocks a second recovery', async (t) => {

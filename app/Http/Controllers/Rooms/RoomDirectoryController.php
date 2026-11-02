@@ -9,8 +9,10 @@ use App\Models\Committee;
 use App\Models\CommitteeMeeting;
 use App\Models\CourtCase;
 use App\Models\Department;
+use App\Models\Jurisdiction;
 use App\Models\Legislature;
 use App\Models\Organization;
+use App\Services\RoleService;
 use App\Support\JurisdictionContext;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\Request;
@@ -33,6 +35,11 @@ class RoomDirectoryController extends Controller
         $cursor = $this->cursor($input['cursor'] ?? null);
         $section = $input['section'] ?? 'chambers';
         $place = JurisdictionContext::requested($request);
+        // No place chosen: show the viewer's own place, so "Live rooms" from the menu is never an empty page.
+        if ($place === null && $request->user() !== null) {
+            $home = app(RoleService::class)->associationsFor($request->user())[0]['id'] ?? null;
+            $place = $home !== null ? Jurisdiction::query()->find($home, ['id', 'name', 'slug', 'parent_id', 'adm_level']) : null;
+        }
         $rows = [];
         $pagination = ['previous' => null, 'next' => null];
         $commons = [];
