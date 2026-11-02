@@ -8,7 +8,7 @@
 import { computed, ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { Mic, MicOff, PhoneOff, Video, VideoOff, Volume2 } from 'lucide-vue-next';
+import { ChevronDown, ChevronUp, Mic, MicOff, PhoneOff, Video, VideoOff, Volume2 } from 'lucide-vue-next';
 import RemoteAudio from '@/Components/Shell/RemoteAudio.vue';
 import ParticipantTile from '@/Components/Civic/Room/ParticipantTile.vue';
 import { personLabel } from '@/Components/Civic/Room/roomPresentation.js';
@@ -37,6 +37,14 @@ const remoteAudio = computed(() => v.participants.value.filter((p) => !p.isLocal
 ]).filter((a) => a.track));
 const people = computed(() => v.participants.value.length);
 const showVideo = ref(true);
+// Minimized: a small pill (state, microphone, expand, leave). The choice is remembered on this device.
+const MIN_KEY = 'cga.call.minimized';
+const minimized = ref(false);
+try { minimized.value = localStorage.getItem(MIN_KEY) === '1'; } catch { /* storage can be blocked */ }
+function setMinimized(next) {
+    minimized.value = next;
+    try { localStorage.setItem(MIN_KEY, next ? '1' : '0'); } catch { /* ignore */ }
+}
 const presenters = computed(() => v.participants.value.filter((p) => p.screenTrack));
 const cameras = computed(() => v.participants.value.filter((p) => p.videoTrack));
 const hasVideo = computed(() => presenters.value.length > 0 || cameras.value.length > 0);
@@ -52,7 +60,23 @@ const rejoin = () => session.value && call.startCall({ ...session.value });
             <div class="call-dock__head">
                 <span class="call-dock__dot" :class="'call-dock__dot--' + status" aria-hidden="true"></span>
                 <Link :href="session.href || '/'" class="call-dock__title">{{ session.title || t('c_dock.call_default', 'Live call') }}</Link>
+                <template v-if="minimized">
+                    <button v-if="status === 'connected'" type="button" class="btn btn--secondary btn--sm" :aria-pressed="v.micEnabled.value" :disabled="v.mediaPending.value.mic"
+                        :aria-label="v.micEnabled.value ? t('c_dock.mute', 'Mute microphone') : t('c_dock.unmute', 'Turn microphone on')" @click="v.toggleMic()">
+                        <component :is="v.micEnabled.value ? Mic : MicOff" :size="14" aria-hidden="true" />
+                    </button>
+                    <button v-else-if="status === 'lost'" type="button" class="btn btn--primary btn--sm" @click="rejoin">{{ t('c_dock.rejoin', 'Rejoin') }}</button>
+                    <span v-else class="call-dock__mini-status" role="status">{{ t('c_dock.reconnecting', 'Reconnecting…') }}</span>
+                    <button type="button" class="btn btn--danger btn--sm" :aria-label="t('c_dock.leave', 'Leave call')" @click="call.endCall()">
+                        <PhoneOff :size="14" aria-hidden="true" />
+                    </button>
+                </template>
+                <button type="button" class="btn btn--ghost btn--sm call-dock__toggle" :aria-expanded="!minimized"
+                    :aria-label="minimized ? t('c_dock.expand', 'Expand call panel') : t('c_dock.minimize', 'Minimize call panel')" @click="setMinimized(!minimized)">
+                    <component :is="minimized ? ChevronUp : ChevronDown" :size="16" aria-hidden="true" />
+                </button>
             </div>
+            <template v-if="!minimized">
             <p class="call-dock__status" role="status">
                 <template v-if="status === 'lost'">{{ t('c_dock.lost', 'The call lost its connection.') }}</template>
                 <template v-else-if="status === 'reconnecting'">{{ t('c_dock.reconnecting', 'Reconnecting…') }}</template>
@@ -92,6 +116,7 @@ const rejoin = () => session.value && call.startCall({ ...session.value });
                     <PhoneOff :size="14" aria-hidden="true" />
                 </button>
             </div>
+            </template>
         </section>
     </div>
 </template>
@@ -100,6 +125,8 @@ const rejoin = () => session.value && call.startCall({ ...session.value });
 .call-dock { background: var(--gov-surface, #101827); color: var(--gov-fg, #f3f4f6); border: 1px solid var(--gov-border, #334155); border-radius: 0.75rem;
     padding: 0.6rem 0.75rem; box-shadow: 0 6px 24px rgb(0 0 0 / 0.35); max-inline-size: 22rem; inline-size: 100%; }
 .call-dock--wide { max-inline-size: 28rem; }
+.call-dock__toggle { margin-inline-start: auto; }
+.call-dock__mini-status { font-size: 0.8rem; opacity: 0.85; white-space: nowrap; }
 .call-dock__video { margin-block-end: 0.5rem; }
 .call-dock__tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; margin-block-start: 0.35rem; }
 .call-dock__tiles :deep(.call-dock__tile--screen) { grid-column: 1 / -1; }

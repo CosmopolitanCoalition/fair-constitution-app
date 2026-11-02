@@ -195,6 +195,8 @@ test('structure: the call lives in a detached scope, the dock plays the audio, t
     assert.match(dock, /v-for="a in remoteAudio"/);
     assert.match(dock, /presenting/, 'a shared screen shows in the panel');
     assert.match(dock, /v-for="p in cameras"/, 'cameras show in the panel');
+    assert.match(dock, /cga\.call\.minimized/, 'the panel can be minimized and remembers it');
+    assert.match(dock, /<template v-if="!minimized">/, 'minimizing drops the video tiles');
     assert.match(dock, /v-if="!onRoomPage && hasVideo"/, 'video is not decoded twice while the room page shows it');
     for (const shell of ['Layouts/AppShellV2.vue', 'Layouts/AppShell.vue']) assert.match(await read(shell), /<DockHost \/>/);
 });

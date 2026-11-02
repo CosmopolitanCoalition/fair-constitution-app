@@ -32,5 +32,7 @@
   "placeholder": "Write a message…",
   "send": "Send",
   "video_hide": "Hide video",
-  "video_show": "Show video"
+  "video_show": "Show video",
+  "minimize": "Minimize call panel",
+  "expand": "Expand call panel"
 }
