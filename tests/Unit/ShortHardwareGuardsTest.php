@@ -217,7 +217,7 @@ class ShortHardwareGuardsTest extends TestCase
     {
         $src = file_get_contents(app_path('Http/Controllers/BuildProgressController.php'));
 
-        $this->assertStringContainsString('DurableSnapshot::rememberQueued('build.progress', $fresh', $src);
+        $this->assertStringContainsString("DurableSnapshot::rememberQueued('build.progress', \$fresh", $src);
         $this->assertStringContainsString('private function computeSnapshot(): array', $src);
     }
 
