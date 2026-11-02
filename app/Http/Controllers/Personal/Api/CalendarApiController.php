@@ -161,6 +161,12 @@ class CalendarApiController extends Controller
     private function row(array $d): array
     {
         $row = array_intersect_key($d, array_flip(['title', 'starts_at', 'ends_at', 'all_day', 'location', 'notes', 'status']));
+        // One stored shape (UTC, no zone suffix) so every database compares times the same way.
+        foreach (['starts_at', 'ends_at'] as $k) {
+            if (isset($row[$k])) {
+                $row[$k] = CarbonImmutable::parse($row[$k])->utc()->format('Y-m-d H:i:s');
+            }
+        }
         if (array_key_exists('attendees', $d)) {
             $row['attendees'] = json_encode($d['attendees']);
         }

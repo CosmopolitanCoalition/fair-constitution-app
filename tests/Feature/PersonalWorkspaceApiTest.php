@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Middleware\RedirectIfSetupIncomplete;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use App\Support\ApiKeys;
 use App\Support\SecretVault;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +35,7 @@ class PersonalWorkspaceApiTest extends TestCase
             $t->softDeletesTz();
         });
         (require base_path('database/migrations/2026_11_02_120000_create_personal_workspace_tables.php'))->up();
-        $this->withoutMiddleware(RedirectIfSetupIncomplete::class);
+        $this->withoutMiddleware([RedirectIfSetupIncomplete::class, ValidateCsrfToken::class]);
     }
 
     private function user(string $email = 'a@example.test'): User
