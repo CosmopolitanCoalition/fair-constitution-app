@@ -108,7 +108,19 @@ class BuildProgressController extends Controller
      */
     private function snapshot(): array
     {
-        return \App\Support\DurableSnapshot::remember('build.progress', 120, fn () => $this->computeSnapshot());
+        return \App\Support\DurableSnapshot::rememberQueued('build.progress', 120, self::class, 'computeSnapshot', [
+            'stages' => [],
+            'world'  => [
+                'seated'            => 0,
+                'awaiting_election' => 0,
+                'binding'           => '',
+                'binding_label'     => 'Counting the world. The first count takes a few minutes. Reload to see it.',
+                'legislatures'      => 0,
+                'target'            => 0,
+                'skipped'           => 0,
+                'complete'          => false,
+            ],
+        ]);
     }
 
     /** @return array<string,mixed> */

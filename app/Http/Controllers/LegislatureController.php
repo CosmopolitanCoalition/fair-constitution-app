@@ -224,7 +224,7 @@ class LegislatureController extends Controller
         // building it sorts a whole adm level of legislatures with their activation rows (30 seconds
         // and more on a spinning disk). Fresh for 5 minutes, then served stale for a day while one
         // refresh runs after the response.
-        return \App\Support\DurableSnapshot::remember('legislatures.hub.rows', 600, fn () => $this->computeHubRows());
+        return \App\Support\DurableSnapshot::rememberQueued('legislatures.hub.rows', 600, self::class, 'computeHubRows', collect());
     }
 
     /** @return \Illuminate\Support\Collection<int, object> */

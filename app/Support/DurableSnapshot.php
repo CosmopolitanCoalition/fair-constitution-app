@@ -44,6 +44,52 @@ final class DurableSnapshot
         return self::refresh($key, $build);
     }
 
+    /**
+     * Like remember(), but a visitor never waits for the build. A stored figure is returned as
+     * is, and a stale one is refreshed by a queued job. When nothing is stored yet the visitor
+     * gets $placeholder at once and a queued job builds the figure for the next view.
+     *
+     * @param  class-string  $builderClass  the class that owns the builder method (resolved from the container)
+     */
+    public static function rememberQueued(string $key, int $freshSeconds, string $builderClass, string $builderMethod, mixed $placeholder): mixed
+    {
+        $row = self::read($key);
+
+        if ($row !== null) {
+            $age = now()->diffInSeconds($row['created_at'], true);
+            if ($age > $freshSeconds) {
+                self::queueRefresh($key, $builderClass, $builderMethod);
+            }
+
+            return $row['value'];
+        }
+
+        self::queueRefresh($key, $builderClass, $builderMethod);
+
+        return $placeholder;
+    }
+
+    /** Store a value built elsewhere (the queued refresh job). */
+    public static function store(string $key, mixed $value): void
+    {
+        self::write($key, $value);
+    }
+
+    /** Whether a figure is stored for this key. */
+    public static function has(string $key): bool
+    {
+        return self::read($key) !== null;
+    }
+
+    private static function queueRefresh(string $key, string $builderClass, string $builderMethod): void
+    {
+        try {
+            \App\Jobs\RefreshDurableSnapshotJob::dispatch($key, $builderClass, $builderMethod);
+        } catch (Throwable) {
+            // No queue reachable: the next view tries again.
+        }
+    }
+
     /** Drop a snapshot, so the next view computes it again. */
     public static function forget(string $key): void
     {
