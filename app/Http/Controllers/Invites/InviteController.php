@@ -9,6 +9,7 @@ use App\Services\Invites\InviteService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -30,14 +31,26 @@ use Throwable;
  */
 class InviteController extends Controller
 {
+    private const MISS_LIMIT = 20;
+    private const MISS_WINDOW = 600;
+
     public function __construct(private readonly InviteService $invites) {}
 
     /** GET /i/{token} — PUBLIC. */
     public function land(Request $request, string $token): RedirectResponse|Response
     {
-        $invite = $this->invites->resolve($token);
+        // The code is the whole credential, so guessing is slowed by a lockout per address: after
+        // MISS_LIMIT wrong or dead codes in MISS_WINDOW seconds, every code reads as invalid until it
+        // passes. The answer never says why, so a lockout and a wrong code look the same.
+        $missKey = 'invite-miss:'.$request->ip();
+        $locked = RateLimiter::tooManyAttempts($missKey, self::MISS_LIMIT);
+        $invite = $locked ? null : $this->invites->resolve($token);
 
         if ($invite === null) {
+            if (! $locked) {
+                RateLimiter::hit($missKey, self::MISS_WINDOW);
+            }
+
             // Invalid / expired / revoked — still let them in the front door (never a dead end).
             return Inertia::render('Invite/Landing', ['invite' => null]);
         }
@@ -115,6 +128,7 @@ class InviteController extends Controller
             'space'           => ['sometimes', Rule::in(['square', 'halls'])],
             'path'            => ['sometimes', 'nullable', 'string', 'max:512'],
             'label'           => ['sometimes', 'nullable', 'string', 'max:160'],
+            'slug'            => ['sometimes', 'nullable', 'string', 'min:3', 'max:40'],
             'max_uses'        => ['sometimes', 'nullable', 'integer', 'min:1', 'max:10000'],
             'ttl_days'        => ['sometimes', 'nullable', 'integer', 'min:1', 'max:365'],
         ]);
@@ -127,7 +141,8 @@ class InviteController extends Controller
 
         return response()->json([
             'url'        => url('/i/'.$plaintext),
-            'handle'     => $invite->handle,
+            'code'       => $invite->handle,
+            'custom'     => (bool) $invite->is_custom,
             'kind'       => $invite->kind,
             'label'      => $invite->label,
             'expires_at' => $invite->expires_at?->toIso8601String(),

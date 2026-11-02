@@ -499,9 +499,10 @@ Route::post('/learn/{track}/{module}/check', [\App\Http\Controllers\Education\Le
 // ── Invites — the share-to-signup growth loop ───────────────────────────────────────────
 // PUBLIC landing: a friend opens the link with no account. If signed in they redeem +
 // continue; if a guest they preview it and sign up (the destination is carried across signup).
-// The token is `handle.secret` (alnum + one dot); throttled against enumeration.
+// The token is a short code (8 URL-safe characters or a custom name). Throttled, and a miss lockout per
+// address sits in the controller. A dot is still matched so an old long link reaches the front door.
 Route::get('/i/{token}', [InviteController::class, 'land'])
-    ->where('token', '[A-Za-z0-9.]+')
+    ->where('token', '[A-Za-z0-9._-]+')
     ->middleware('throttle:30,1')
     ->name('invite.land');
 // AUTH: mint a shareable link for a destination the inviter can already reach.

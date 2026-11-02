@@ -15,9 +15,9 @@ use Tests\TestCase;
 /**
  * CONSTITUTIONAL PIN — person-to-person invites are a GROWTH pointer, never a privilege. An invite
  * lands a friend somewhere already open (Art. I commons / Art. II §2 public proceedings) and, on
- * redemption, records ONLY attribution — it grants no residency, role, or governance power. The token
- * posture mirrors the federation join-key: Argon2id at rest, constant-time resolve, atomic single-use,
- * revocation, and a SERVER-BUILT same-origin destination (no open redirect).
+ * redemption, records ONLY attribution — it grants no residency, role, or governance power. A link is a
+ * short code (8 URL-safe characters, or a custom name): atomic single-use, revocation, expiry, a miss
+ * lockout per address, and a SERVER-BUILT same-origin destination (no open redirect).
  *
  * If an edit breaks these, the edit is the violation — fix the edit, not the test.
  */
@@ -37,14 +37,16 @@ class InviteFlowTest extends TestCase
                 'kind' => Invite::KIND_CALL, 'jurisdiction_id' => $jur, 'space' => 'square',
             ]);
 
-            // handle.secret form; only the hash is stored, never the plaintext.
-            $this->assertStringContainsString('.', $plaintext);
-            $this->assertNotSame($plaintext, $invite->token_hash);
+            // A short URL-safe code: 8 characters, the stored handle itself.
+            $this->assertMatchesRegularExpression('/^[A-Za-z0-9][A-Za-z0-9_-]{7}$/', $plaintext);
+            $this->assertSame($plaintext, $invite->handle);
+            $this->assertFalse((bool) $invite->is_custom);
             $this->assertStringStartsWith('/civic/commons/square', $invite->path());
 
             // Resolve is content-correct; a wrong secret / garbage fails closed.
             $this->assertNotNull(app(InviteService::class)->resolve($plaintext));
-            $this->assertNull(app(InviteService::class)->resolve('nope.nope'));
+            $this->assertNull(app(InviteService::class)->resolve('nope.nope'), 'a long old-style token is not a code');
+            $this->assertNull(app(InviteService::class)->resolve('zzzzzzzz'), 'an unknown code fails closed');
             $this->assertNull(app(InviteService::class)->resolve($invite->handle.'.wrongsecret'));
 
             // A brand-new friend redeems it.
@@ -133,6 +135,79 @@ class InviteFlowTest extends TestCase
 
             $friend->refresh();
             $this->assertSame((string) $inviter->id, (string) $friend->invited_by_user_id);
+        });
+    }
+
+
+    public function test_codes_are_short_distinct_and_never_enter_the_audit_chain(): void
+    {
+        $this->onLivePg(function () {
+            $inviter = $this->aUser('Inviter');
+            $svc = app(InviteService::class);
+            $codes = [];
+            for ($i = 0; $i < 25; $i++) {
+                [$code] = $svc->mint($inviter, ['kind' => Invite::KIND_PROCEEDING, 'path' => '/bills/'.Str::uuid()]);
+                $this->assertMatchesRegularExpression('/^[A-Za-z0-9][A-Za-z0-9_-]{7}$/', $code);
+                $codes[] = $code;
+            }
+            $this->assertCount(25, array_unique($codes));
+
+            $payloads = DB::table('audit_log')->where('module', 'invite')->orderByDesc('seq')->limit(60)->pluck('payload')->implode(' ');
+            foreach ($codes as $code) {
+                $this->assertStringNotContainsString($code, (string) $payloads, 'the code is the credential, so it is not logged');
+            }
+        });
+    }
+
+    public function test_a_custom_name_is_validated_unique_and_needs_a_limit(): void
+    {
+        $this->onLivePg(function () {
+            $inviter = $this->aUser('Inviter');
+            $svc = app(InviteService::class);
+            $spec = ['kind' => Invite::KIND_PROCEEDING, 'path' => '/system/public-records'];
+
+            [$code, $invite] = $svc->mint($inviter, $spec + ['slug' => 'Team-Night']);
+            $this->assertSame('team-night', $code, 'a name is stored in lowercase');
+            $this->assertTrue((bool) $invite->is_custom);
+            $this->assertNotNull($svc->resolve('team-night'));
+            $this->assertNotNull($svc->resolve('TEAM-NIGHT'), 'a custom name matches in any case');
+
+            foreach (['team-night' => 'taken', 'ab' => 'short', '-bad' => 'edge', 'bad-' => 'edge', 'a--b' => 'double', 'has space' => 'space', 'admin' => 'reserved'] as $bad => $why) {
+                try {
+                    $svc->mint($inviter, $spec + ['slug' => $bad]);
+                    $this->fail("a {$why} name was accepted: [{$bad}]");
+                } catch (InvalidArgumentException) {
+                    $this->assertTrue(true);
+                }
+            }
+
+            try {
+                $svc->mint($inviter, $spec + ['slug' => 'no-limits', 'ttl_days' => null]);
+                $this->fail('a custom name with no expiry and no use limit was accepted');
+            } catch (InvalidArgumentException) {
+                $this->assertTrue(true);
+            }
+            [, $limited] = $svc->mint($inviter, $spec + ['slug' => 'with-a-limit', 'ttl_days' => null, 'max_uses' => 5]);
+            $this->assertNull($limited->expires_at);
+        });
+    }
+
+    public function test_old_style_links_reach_the_front_door_and_repeated_misses_lock_an_address(): void
+    {
+        $this->onLivePg(function () {
+            $inviter = $this->aUser('Inviter');
+            [$code] = app(InviteService::class)->mint($inviter, ['kind' => Invite::KIND_PROCEEDING, 'path' => '/system/public-records']);
+            \Illuminate\Support\Facades\RateLimiter::clear('invite-miss:127.0.0.1');
+
+            $this->get('/i/oldhandle12.'.str_repeat('a', 64))->assertOk(); // old long link: front door, not a 404
+            for ($i = 0; $i < 20; $i++) {
+                $this->get('/i/zz'.$i.'wrong')->assertOk();
+            }
+            // Locked: even the right code reads as invalid until the window passes.
+            $this->get('/i/'.$code)->assertOk()
+                ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page->component('Invite/Landing')->where('invite', null));
+            \Illuminate\Support\Facades\RateLimiter::clear('invite-miss:127.0.0.1');
+            $this->get('/i/'.$code)->assertOk();
         });
     }
 

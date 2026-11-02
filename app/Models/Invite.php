@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * A person-to-person invite (the growth primitive). The inviter's minted secret a
- * friend presents (via /i/{token}) to land on a destination and continue after signup.
- * Only the Argon2id `token_hash` is stored (hidden); the plaintext `handle.secret` is
- * shown to the inviter once and never persisted. See InviteService for mint/resolve/
- * consume, and `cluster_join_keys` for the (separate) node-adoption analogue.
+ * A person-to-person invite (the growth primitive). `handle` is the short code a friend
+ * opens (via /i/{code}) to land on a destination and continue after signup: 8 random
+ * URL-safe characters, or a custom name when `is_custom`. The code is the whole credential,
+ * so it is never written to the audit chain. See InviteService for mint/resolve/consume,
+ * and `cluster_join_keys` for the (separate) node-adoption analogue.
  */
 class Invite extends Model
 {
@@ -26,7 +26,7 @@ class Invite extends Model
     protected $fillable = [
         'id',
         'handle',
-        'token_hash',
+        'is_custom',
         'inviter_user_id',
         'kind',
         'destination',
@@ -41,13 +41,9 @@ class Invite extends Model
         'destination' => 'array',
         'max_uses'    => 'integer',
         'uses'        => 'integer',
+        'is_custom'   => 'boolean',
         'expires_at'  => 'datetime',
         'revoked_at'  => 'datetime',
-    ];
-
-    /** The Argon2id hash must never serialize into a prop, export, or log line. */
-    protected $hidden = [
-        'token_hash',
     ];
 
     public function inviter(): BelongsTo

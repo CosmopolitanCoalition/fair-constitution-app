@@ -38,6 +38,7 @@ class InviteMintCommand extends Command
                             {--room= : private room UUID (space kind)}
                             {--path= : same-origin proceeding path, e.g. legislatures/{id} (proceeding)}
                             {--label= : optional display label}
+                            {--slug= : optional custom link name, e.g. team-night (needs an expiry or a use limit)}
                             {--max-uses= : optional cap on redemptions (default: unlimited while live)}
                             {--ttl-days= : optional lifetime in days (default 14)}';
 
@@ -63,6 +64,7 @@ class InviteMintCommand extends Command
             'space_id'        => $this->option('room'),
             'path'            => $this->option('path'),
             'label'           => $this->option('label'),
+            'slug'            => $this->option('slug'),
             'max_uses'        => $this->option('max-uses') !== null ? (int) $this->option('max-uses') : null,
             'ttl_days'        => $this->option('ttl-days') !== null ? (int) $this->option('ttl-days') : null,
         ], static fn ($v) => $v !== null && $v !== '');
@@ -76,10 +78,10 @@ class InviteMintCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info('  Invite minted — the link is shown once (the secret is never stored):');
+        $this->info('  Invite minted:');
         $this->line('  '.url('/i/'.$plaintext));
         $this->newLine();
-        $this->line("  handle:  {$invite->handle}");
+        $this->line("  code:    {$invite->handle}".($invite->is_custom ? ' (custom)' : ''));
         $this->line("  kind:    {$invite->kind}");
         $this->line('  label:   '.($invite->label ?? '—'));
         $this->line("  inviter: {$user->email}");

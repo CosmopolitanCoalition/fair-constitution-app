@@ -10,20 +10,30 @@ use App\Services\AuditService;
 use App\Services\Social\PrivateRoomService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
- * Person-to-person invites — the growth primitive. Mints a shareable `handle.secret`
- * for a destination the inviter can already reach, resolves it constant-time, and
- * redeems it atomically (recording attribution). Crypto posture mirrors
- * MirrorJoinKeyService; the destination is always a SERVER-BUILT same-origin app path
- * (the open-redirect / SSRF guard), and redeeming an invite confers NO power — only a
- * landing spot the destination already grants under Art. I / Art. II §2.
+ * Person-to-person invites — the growth primitive. Mints a short link code (8 URL-safe
+ * characters, or a custom name) for a destination the inviter can already reach, resolves
+ * it, and redeems it atomically (recording attribution). The destination is always a
+ * SERVER-BUILT same-origin app path (the open-redirect / SSRF guard), and redeeming an
+ * invite confers NO power — only a landing spot the destination already grants under
+ * Art. I / Art. II §2.
+ *
+ * The code IS the credential, so it is never written to the audit chain (the invite id is),
+ * and it is protected by the landing route's throttle and miss lockout, an expiry, an optional
+ * use limit and revocation. A custom name is guessable by design, so it must carry an expiry
+ * or a use limit.
  */
 class InviteService
 {
     public const DEFAULT_TTL_DAYS = 14;
+
+    /** 6 random bytes encode to exactly 8 URL-safe Base64 characters (48 bits). */
+    public const CODE_BYTES = 6;
+    public const CODE_PATTERN = '/^[A-Za-z0-9_-]{3,40}$/';
+    public const SLUG_PATTERN = '/^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/';
+    private const RESERVED_SLUGS = ['new', 'admin', 'api', 'login', 'logout', 'register', 'invite', 'invites', 'null', 'undefined', 'index', 'home', 'help', 'support'];
 
     /** Public, read-only proceeding route prefixes an invite may point at (Art. II §2). */
     private const PROCEEDING_PREFIXES = [
@@ -34,20 +44,17 @@ class InviteService
     public function __construct(private readonly AuditService $audit) {}
 
     /**
-     * Mint a shareable invite for a destination the inviter can already reach. Returns the
-     * plaintext `handle.secret` (shown ONCE) and the row. The same-origin destination path is
-     * built SERVER-SIDE from a whitelisted kind — the caller never supplies a raw URL.
+     * Mint a shareable invite for a destination the inviter can already reach. Returns the link code
+     * (8 random URL-safe characters, or the custom `slug` the inviter chose) and the row. The same-origin
+     * destination path is built SERVER-SIDE from a whitelisted kind — the caller never supplies a raw URL.
      *
-     * @param  array{kind:string,jurisdiction_id?:string,space?:string,path?:string,label?:string,max_uses?:int|null,ttl_days?:int|null}  $spec
+     * @param  array{kind:string,jurisdiction_id?:string,space?:string,path?:string,label?:string,slug?:string|null,max_uses?:int|null,ttl_days?:int|null}  $spec
      * @return array{0:string,1:Invite}
      */
     public function mint(User $inviter, array $spec): array
     {
         $kind = (string) ($spec['kind'] ?? '');
         [$path, $label] = $this->resolveDestination($inviter, $kind, $spec);
-
-        $handle = Str::lower(Str::random(12));
-        $secret = bin2hex(random_bytes(32));
 
         $ttlDays = array_key_exists('ttl_days', $spec) ? $spec['ttl_days'] : self::DEFAULT_TTL_DAYS;
         $expiresAt = $ttlDays === null ? null : Carbon::now()->addDays((int) $ttlDays);
@@ -57,9 +64,15 @@ class InviteService
             $maxUses = max(1, (int) $maxUses);
         }
 
-        $invite = Invite::create([
-            'handle'          => $handle,
-            'token_hash'      => password_hash($secret, PASSWORD_ARGON2ID),
+        $slug = isset($spec['slug']) && trim((string) $spec['slug']) !== '' ? strtolower(trim((string) $spec['slug'])) : null;
+        if ($slug !== null) {
+            $this->assertUsableSlug($slug);
+            if ($expiresAt === null && $maxUses === null) {
+                throw new InvalidArgumentException('A custom link name needs an expiry or a use limit.');
+            }
+        }
+
+        $payload = [
             'inviter_user_id' => $inviter->getKey(),
             'kind'            => $kind,
             'destination'     => array_filter([
@@ -72,33 +85,72 @@ class InviteService
             'max_uses'        => $maxUses,
             'uses'            => 0,
             'expires_at'      => $expiresAt,
-        ]);
+            'is_custom'       => $slug !== null,
+        ];
 
-        // Public handle + kind only — the secret is NEVER logged.
+        $invite = $slug !== null ? $this->insertWithCode($payload, $slug, false) : $this->insertGenerated($payload);
+
+        // The invite id only. The code is the credential and never enters the audit chain.
         $this->audit->append('invite', 'invite.minted', [
-            'handle' => $handle,
-            'kind'   => $kind,
+            'invite_id' => (string) $invite->getKey(),
+            'kind'      => $kind,
+            'custom'    => $slug !== null,
         ], null, (string) $inviter->getKey());
 
-        return [$handle.'.'.$secret, $invite];
+        return [$invite->handle, $invite];
     }
 
-    /** Resolve a presented plaintext to a LIVE invite (constant-time secret check), or null. */
-    public function resolve(string $plaintext): ?Invite
+    private function assertUsableSlug(string $slug): void
     {
-        [$handle, $secret] = array_pad(explode('.', $plaintext, 2), 2, '');
+        if (! preg_match(self::SLUG_PATTERN, $slug) || str_contains($slug, '--')) {
+            throw new InvalidArgumentException('A link name uses 3 to 40 lowercase letters, numbers and single hyphens, and cannot start or end with a hyphen.');
+        }
+        if (in_array($slug, self::RESERVED_SLUGS, true)) {
+            throw new InvalidArgumentException('That link name is reserved.');
+        }
+    }
 
-        if ($handle === '' || $secret === '') {
+    /** A fresh random code, retried on the rare collision. */
+    private function insertGenerated(array $payload): Invite
+    {
+        for ($attempt = 0; $attempt < 8; $attempt++) {
+            $code = rtrim(strtr(base64_encode(random_bytes(self::CODE_BYTES)), '+/', '-_'), '=');
+            if ($code[0] === '-' || $code[0] === '_') {
+                continue; // a link should not start with punctuation
+            }
+            try {
+                return $this->insertWithCode($payload, $code, true);
+            } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+                continue;
+            }
+        }
+
+        throw new \RuntimeException('Could not allocate an invite code.');
+    }
+
+    private function insertWithCode(array $payload, string $code, bool $generated): Invite
+    {
+        try {
+            return Invite::create($payload + ['handle' => $code]);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            if ($generated) {
+                throw $e;
+            }
+            throw new InvalidArgumentException('That link name is taken.');
+        }
+    }
+
+    /** Resolve a presented code to a LIVE invite, or null. A custom name matches in lowercase. */
+    public function resolve(string $code): ?Invite
+    {
+        if (! preg_match(self::CODE_PATTERN, $code)) {
             return null;
         }
 
-        $invite = Invite::query()->where('handle', $handle)->first();
+        $invite = Invite::query()->where('handle', $code)->first()
+            ?? Invite::query()->where('handle', strtolower($code))->where('is_custom', true)->first();
 
-        if ($invite === null || ! $invite->isLive() || ! password_verify($secret, (string) $invite->token_hash)) {
-            return null;
-        }
-
-        return $invite;
+        return ($invite === null || ! $invite->isLive()) ? null : $invite;
     }
 
     /**
@@ -128,8 +180,8 @@ class InviteService
             }
 
             $this->audit->append('invite', 'invite.redeemed', [
-                'handle' => $locked->handle,
-                'kind'   => $locked->kind,
+                'invite_id' => (string) $locked->getKey(),
+                'kind'      => $locked->kind,
             ], null, (string) $user->getKey());
 
             if ($locked->inviter_user_id) {
@@ -153,7 +205,7 @@ class InviteService
         $invite->revoked_at = now();
         $invite->save();
 
-        $this->audit->append('invite', 'invite.revoked', ['handle' => $handle]);
+        $this->audit->append('invite', 'invite.revoked', ['invite_id' => (string) $invite->getKey()]);
 
         return true;
     }
