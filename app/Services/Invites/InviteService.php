@@ -131,7 +131,8 @@ class InviteService
     private function insertWithCode(array $payload, string $code, bool $generated): Invite
     {
         try {
-            return Invite::create($payload + ['handle' => $code]);
+            // A savepoint: a taken code must not abort a transaction the caller already holds open.
+            return DB::transaction(fn () => Invite::create($payload + ['handle' => $code]));
         } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
             if ($generated) {
                 throw $e;
