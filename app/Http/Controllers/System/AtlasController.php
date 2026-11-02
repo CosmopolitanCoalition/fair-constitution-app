@@ -286,7 +286,7 @@ class AtlasController extends Controller
     {
         // The same list for every visitor and unchanged until a map import (which flushes the
         // cache), so it is read once and kept.
-        return \Illuminate\Support\Facades\Cache::rememberForever('places.picker.atlas.200', fn () => DB::table('jurisdictions')
+        return \App\Support\DurableSnapshot::remember('places.picker.atlas.200', 604800, fn () => DB::table('jurisdictions')
             ->whereNull('deleted_at')
             ->orderBy('adm_level')
             ->orderBy('name')

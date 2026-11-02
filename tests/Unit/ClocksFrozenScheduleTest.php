@@ -88,4 +88,14 @@ class ClocksFrozenScheduleTest extends TestCase
             $this->assertFalse($event->filtersPass($this->app), $name.' should skip when pumps are off');
         }
     }
+
+    public function test_the_warm_up_is_scheduled_and_runs_only_after_a_postgres_restart(): void
+    {
+        $this->events(['db:warm-hot --if-restarted']);
+
+        $src = file_get_contents(app_path('Console/Commands/DbWarmHotCommand.php'));
+        $this->assertStringContainsString('pg_postmaster_start_time()', $src);
+        $this->assertStringContainsString('lastWarmedStart() === $postmasterStart', $src);
+        $this->assertStringContainsString("'users_operator_idx'", $src);
+    }
 }

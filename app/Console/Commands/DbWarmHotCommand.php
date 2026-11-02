@@ -21,10 +21,16 @@ use Throwable;
  *   php artisan db:warm-hot                    # derived budget
  *   php artisan db:warm-hot --budget-mb=1024
  *   php artisan db:warm-hot --unless-busy      # do nothing while an engine run is active
+ *   php artisan db:warm-hot --if-restarted     # only when PostgreSQL started since the last warm
+ *
+ * --if-restarted is what the scheduler runs each minute. A PostgreSQL restart on its own (a host
+ * reboot, a container restart) starts no app container, so no boot hook would warm anything. The
+ * command reads pg_postmaster_start_time(), compares it with the value stored at the last warm,
+ * and does the work only when they differ. A steady-state tick is one query and one row read.
  */
 class DbWarmHotCommand extends Command
 {
-    protected $signature = 'db:warm-hot {--budget-mb= : Most index megabytes to load (default: a quarter of host RAM, at most 2048)} {--unless-busy : Do nothing while any engine run is active}';
+    protected $signature = 'db:warm-hot {--budget-mb= : Most index megabytes to load (default: a quarter of host RAM, at most 2048)} {--unless-busy : Do nothing while any engine run is active} {--if-restarted : Only when PostgreSQL started since the last warm}';
 
     protected $description = 'Load the hot indexes into the file cache with sequential reads.';
 
@@ -36,13 +42,21 @@ class DbWarmHotCommand extends Command
     ];
 
     /** User lookup keys: the id join and the login lookups. */
-    private const USER_INDEXES = ['users_pkey', 'users_email_unique', 'users_lower_email_idx'];
+    private const USER_INDEXES = ['users_pkey', 'users_email_unique', 'users_lower_email_idx', 'users_operator_idx', 'geojson_cache_pkey'];
+
+    /** Row in geojson_cache that remembers which PostgreSQL start the last warm covered. */
+    private const MARK_KEY = 'warm.postmaster_start';
 
     public function handle(): int
     {
         if (DB::connection()->getDriverName() !== 'pgsql') {
             $this->info('Not a PostgreSQL connection: nothing to warm.');
 
+            return self::SUCCESS;
+        }
+
+        $postmasterStart = (string) (DB::selectOne('SELECT pg_postmaster_start_time()::text AS t')->t ?? '');
+        if ($this->option('if-restarted') && $postmasterStart !== '' && $this->lastWarmedStart() === $postmasterStart) {
             return self::SUCCESS;
         }
 
@@ -88,9 +102,37 @@ class DbWarmHotCommand extends Command
             $this->line(sprintf('%s (%d MB) — %d MB of %d MB, %ds', $index->name, $index->bytes / 1048576, $loaded / 1048576, $budget / 1048576, (int) (microtime(true) - $started)));
         }
 
+        // The stored page figures are one row each; one pass over the table keeps their pages hot.
+        DB::select("SELECT count(*) FROM geojson_cache WHERE cache_key LIKE 'snap.%'");
+
+        $this->markWarmed($postmasterStart);
         $this->info(sprintf('Warmed %d indexes, %d MB, in %ds.', $count, $loaded / 1048576, (int) (microtime(true) - $started)));
 
         return self::SUCCESS;
+    }
+
+    private function lastWarmedStart(): ?string
+    {
+        try {
+            $row = DB::table('geojson_cache')->where('cache_key', self::MARK_KEY)->first(['payload']);
+        } catch (Throwable) {
+            return null;
+        }
+
+        return $row === null ? null : (string) $row->payload;
+    }
+
+    private function markWarmed(string $postmasterStart): void
+    {
+        try {
+            DB::table('geojson_cache')->upsert(
+                [['cache_key' => self::MARK_KEY, 'payload' => $postmasterStart, 'legislature_id' => null, 'scope_tag' => null, 'created_at' => now()]],
+                ['cache_key'],
+                ['payload', 'created_at'],
+            );
+        } catch (Throwable) {
+            // A missing mark only means the next tick warms again.
+        }
     }
 
     /** A quarter of host RAM, at most 2 GB, at least 256 MB. */

@@ -205,6 +205,10 @@ Schedule::job(new \App\Jobs\SnapshotLegitimacyJob)->dailyAt('00:40')->withoutOve
 // authoritative_server_id filter inside WorldStatsService for CI-6.
 Schedule::job(new \App\Jobs\SnapshotWorldStatsJob)->dailyAt('00:50')->withoutOverlapping()->onOneServer()->skip($worldFrozen);
 
+// After a PostgreSQL restart, load the hot indexes into the file cache once (operator order
+// 2026-11-01: restarts are frequent in development). One query per tick when nothing restarted.
+Schedule::command('db:warm-hot --if-restarted --unless-busy')->everyMinute()->withoutOverlapping(30)->runInBackground()->onOneServer();
+
 // Keep Horizon's dashboard metrics fresh.
 Schedule::command('horizon:snapshot')->everyFiveMinutes()->onOneServer();
 

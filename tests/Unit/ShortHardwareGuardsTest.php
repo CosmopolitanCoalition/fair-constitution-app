@@ -194,8 +194,8 @@ class ShortHardwareGuardsTest extends TestCase
         $layer = substr($jur, $from, strpos($jur, 'private function featureCollection') - $from);
         $this->assertStringNotContainsString('json_decode', $layer);
 
-        $this->assertStringContainsString("rememberForever('places.picker.atlas.200'", file_get_contents(app_path('Http/Controllers/System/AtlasController.php')));
-        $this->assertStringContainsString("rememberForever('places.picker.reach.200'", file_get_contents(app_path('Http/Controllers/ReachController.php')));
+        $this->assertStringContainsString("DurableSnapshot::remember('places.picker.atlas.200'", file_get_contents(app_path('Http/Controllers/System/AtlasController.php')));
+        $this->assertStringContainsString("DurableSnapshot::remember('places.picker.reach.200'", file_get_contents(app_path('Http/Controllers/ReachController.php')));
 
         $mig = file_get_contents(database_path('migrations/2026_11_01_150000_index_place_picker_and_ubi_latest.php'));
         $this->assertStringContainsString('public $withinTransaction = false;', $mig);
