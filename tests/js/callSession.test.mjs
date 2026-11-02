@@ -207,13 +207,30 @@ test('structure: the call lives in a detached scope, the dock plays the audio, t
     assert.match(room, /useCall\(\)/);
     const tile = await read('Components/Civic/Room/ParticipantTile.vue');
     assert.doesNotMatch(tile, /<audio/, 'the tile never plays audio, so leaving the page cannot cut it');
-    const dock = await read('Components/Shell/CallDock.vue');
-    assert.match(dock, /RemoteAudio/);
-    assert.match(dock, /v-for="a in remoteAudio"/);
-    assert.match(dock, /presenting/, 'a shared screen shows in the panel');
-    assert.match(dock, /v-for="p in cameras"/, 'cameras show in the panel');
-    assert.match(dock, /cga\.call\.minimized/, 'the panel can be minimized and remembers it');
-    assert.match(dock, /<template v-if="!minimized">/, 'minimizing drops the video tiles');
-    assert.match(dock, /v-if="!onRoomPage && hasVideo"/, 'video is not decoded twice while the room page shows it');
+    const audio = await read('Components/Shell/CallAudio.vue');
+    assert.match(audio, /RemoteAudio/);
+    assert.match(audio, /v-for="a in remoteAudio"/, 'the audio host plays every remote voice whatever the window shows');
+    // ONE floating window holds the call and its chat; no second box.
+    const win = await read('Components/Shell/DockWindow.vue');
+    assert.match(win, /presenting/, 'a shared screen shows in the window');
+    assert.match(win, /v-for="p in cameras"/, 'cameras show in the window');
+    assert.match(win, /cga\.call\.minimized/, 'the window can be minimized and remembers it');
+    assert.match(win, /callOn = computed\(\(\) => !!session\.value && !onRoomPage\.value\)/, 'the call section hides on the room page, which shows it');
+    assert.match(win, /dock-win__thread/, 'the chat is in the same window as the call');
+    assert.match(win, /dock-win__call/, 'the call is in the same window as the chat');
+    for (const gone of ['Components/Shell/CallDock.vue', 'Components/Shell/MessengerDock.vue']) {
+        await assert.rejects(read(gone), 'the two separate boxes are gone');
+    }
+    const host = await read('Components/Shell/DockHost.vue');
+    assert.match(host, /<Teleport to="body">/, 'rendered into the body so no page stacking context (a map) can cover it');
+    assert.match(host, /z-index: 5000/);
+    // The room pages lay the call and the chat out together.
+    const layout = await read('Components/Civic/Room/CallChatLayout.vue');
+    assert.match(layout, /call-chat--live/);
+    for (const page of ['Pages/Civic/PrivateRoom.vue', 'Pages/Civic/MatrixCommons.vue']) {
+        const src = await read(page);
+        assert.match(src, /<CallChatLayout/, page);
+        assert.match(src, /chat-key=/, page + ' tells the call which chat belongs to it');
+    }
     for (const shell of ['Layouts/AppShellV2.vue', 'Layouts/AppShell.vue']) assert.match(await read(shell), /<DockHost \/>/);
 });

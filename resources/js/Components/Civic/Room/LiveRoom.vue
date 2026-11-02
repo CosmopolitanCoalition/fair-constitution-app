@@ -14,6 +14,7 @@ import { usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 import { useCall } from '@/lib/callSession.js';
+import { focusConversation } from '@/lib/messengerStore.js';
 import { useRoomParticipants } from '@/composables/useRoomParticipants.js';
 import ChamberStage from './ChamberStage.vue';
 import VoiceControls from './VoiceControls.vue';
@@ -30,6 +31,8 @@ const props = defineProps({
     // Kept for older callers: a requester function means a private-room call.
     tokenRequester: { type: Function, default: null },
     title: { type: String, default: '' }, // shown in the floating call panel
+    // The messenger key of this room's text chat (private:<id> or commons:<id>), so the floating window can show it with the call.
+    chatKey: { type: String, default: null },
     variant: { type: String, default: 'commons' },
     roster: { type: Array, default: () => [] },
     rosterUrl: { type: String, default: null },
@@ -112,8 +115,9 @@ async function onJoin() {
     await call.startCall({
         mode, tokenUrl: props.tokenUrl, room: props.room, jurisdictionId: props.jurisdictionId,
         pseudonym: props.pseudonym, subjectUserId: props.subjectUserId, variant: props.variant,
-        title: props.title || (typeof document !== 'undefined' ? document.title : ''), href: page.url || '/',
+        title: props.title || (typeof document !== 'undefined' ? document.title : ''), href: page.url || '/', chatKey: props.chatKey,
     });
+    if (props.chatKey) focusConversation(props.chatKey);
 }
 </script>
 

@@ -15,6 +15,7 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 
 import LiveRoom from '@/Components/Civic/Room/LiveRoom.vue';
+import CallChatLayout from '@/Components/Civic/Room/CallChatLayout.vue';
 import InviteButton from '@/Components/Invite/InviteButton.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -162,6 +163,8 @@ useLiveRoom({
             </div>
         </Card>
 
+        <CallChatLayout :room="roomId">
+        <template #call>
         <LiveRoom
             v-if="roomId && myMxid && myUserId"
             :jurisdiction-id="jurisdictionId"
@@ -169,8 +172,12 @@ useLiveRoom({
             :pseudonym="myMxid"
             :subject-user-id="myUserId"
             :display-names="displayNames"
+            :title="selectedPlace?.name || ''"
+            :chat-key="isHalls ? null : 'commons:' + jurisdictionId"
             class="mb-4"
         />
+        </template>
+        <template #chat>
 
         <Card v-if="roomId" class="mb-4">
             <div class="flex items-center justify-between mb-3">
@@ -215,6 +222,8 @@ useLiveRoom({
                 <Btn type="submit" :disabled="compose.processing || !compose.body.trim()">{{ text('post') }}</Btn>
             </form>
         </Card>
+        </template>
+        </CallChatLayout>
     </PageScaffold>
 </template>
 

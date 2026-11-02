@@ -104,6 +104,16 @@ export function openConversation(key) {
     schedule();
 }
 
+/** Make a conversation the active one without opening the window (a call's own chat). */
+export function focusConversation(key) {
+    if (!key) return;
+    open.value = [key, ...open.value.filter((k) => k !== key)].slice(0, 8);
+    active.value = key;
+    queueSave();
+    void refreshThread(key);
+    schedule();
+}
+
 export function showList() {
     active.value = null;
     queueSave();

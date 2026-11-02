@@ -18,6 +18,7 @@ import { useI18n } from 'vue-i18n';
 import { useLiveRoom } from '@/composables/useLiveRoom';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import LiveRoom from '@/Components/Civic/Room/LiveRoom.vue';
+import CallChatLayout from '@/Components/Civic/Room/CallChatLayout.vue';
 import InviteButton from '@/Components/Invite/InviteButton.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -131,6 +132,8 @@ useLiveRoom({
                 </div>
             </div>
 
+            <CallChatLayout :room="roomId">
+            <template #call>
             <!-- REAL voice/video — the same member-gated live-room client every room carries. -->
             <LiveRoom
                 v-if="roomId && myMxid && myUserId"
@@ -140,7 +143,10 @@ useLiveRoom({
                 :subject-user-id="myUserId"
                 call-mode="private"
                 :title="room.title"
+                :chat-key="'private:' + room.id"
             />
+            </template>
+            <template #chat>
 
             <div v-if="roomId" ref="threadEl" class="msg-thread" :aria-label="t('c_civic.private_room.conversation', 'Conversation')" aria-live="polite">
                 <p v-if="messages.length === 0" class="gloss" style="text-align: center; padding: var(--space-4)">
@@ -184,6 +190,8 @@ useLiveRoom({
                     </div>
                 </form>
             </div>
+            </template>
+            </CallChatLayout>
         </section>
 
         <Card v-if="members.length" as="section" inset>
