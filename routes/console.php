@@ -6,6 +6,14 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
+// Skip filters for a box that serves pages and cannot afford game-world work (operator order
+// 2026-11-01). $worldFrozen: the world's time is stopped, so a daily sweep over its elections,
+// employers or jurisdictions finds nothing new and only holds the disk. $enginesOff: the
+// run engines (autoscale, provision, sim, geodata) have no run to advance on a serving box.
+// Both default to running; CGA_CLOCKS_FROZEN and CGA_ENGINE_PUMPS=false turn them off.
+$worldFrozen = fn () => (bool) config('cga.clocks_frozen');
+$enginesOff = fn () => ! config('cga.engine_pumps');
+
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
@@ -28,7 +36,7 @@ Artisan::command('inspire', function () {
 // flag is cleared (due timers then fire in the next sweeps). Explicit demo
 // commands that run the sweep themselves are unaffected.
 Schedule::job(new EvaluateClocksJob)->everyMinute()->withoutOverlapping()->onOneServer()
-    ->skip(fn () => (bool) config('cga.clocks_frozen'));
+    ->skip($worldFrozen);
 Schedule::command('app:notifications')->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
 
 // ── Autoscale pump (pull engine, 2026-07-19) ─────────────────────────────
@@ -47,7 +55,8 @@ Schedule::command('app:notifications')->everyMinute()->withoutOverlapping(2)->ru
 // each duty is idempotent so a double tick is a no-op, and a stale lock clears
 // in 2 minutes instead of 10.
 Schedule::command('autoscale:pump')
-    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
+    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer()
+    ->skip($enginesOff);
 
 // ── Step 4 pump (Wave 6): the institution run's liveness root ─────────────
 // The same posture applied to institutions: halt/resume, chunked ledger
@@ -57,7 +66,8 @@ Schedule::command('autoscale:pump')
 // too — a mid-run OOM kill would otherwise wedge phase advance for 10 minutes;
 // each duty is idempotent and seconds-long, so a stale lock clears in 2.
 Schedule::command('provision:pump')
-    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
+    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer()
+    ->skip($enginesOff);
 
 // ── Simulated-world pump (Phase O populate engine, 2026-07-25) ───────────
 // The same pattern, third instance (autoscale → geodata plan → simworld).
@@ -74,12 +84,13 @@ Schedule::command('sim:pump')
     // between phases. The pump finishes in seconds and a double tick is a no-op
     // (phase advance is idempotent), so a short 2-minute lock is ample and a
     // stale one clears fast.
-    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
+    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer()
+    ->skip($enginesOff);
 
 // D007: cheap eligibility check on the existing long-running queue. Execution
 // ownership and cooldown are rechecked in PostgreSQL, including queued duplicates.
 Schedule::job(new \App\Jobs\MaintainSimulationStatisticsJob)
-    ->everyMinute()->withoutOverlapping()->onOneServer();
+    ->everyMinute()->withoutOverlapping()->onOneServer()->skip($enginesOff);
 
 // ── THE MULTITHREADED CHAIN (operator ruling 2026-08-29) ─────────────────
 // A completed official-source download hands off to the MULTITHREADED pull
@@ -93,7 +104,8 @@ Schedule::job(new \App\Jobs\MaintainSimulationStatisticsJob)
 // seconds-long and idempotent, so a 2-minute lock is ample and a stale one
 // clears fast.
 Schedule::command('geodata:chain-download')
-    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
+    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer()
+    ->skip($enginesOff);
 
 // ── Geodata pull-engine pump (GEODATA_PULL_ENGINE_PLAN.md, 2026-07-20) ────
 // The same pattern, applied to the ETL: a geodata run's DB-side liveness
@@ -111,7 +123,8 @@ Schedule::command('geodata:chain-download')
 // is a no-op on a double tick), so a 2-minute lock is ample and a stale one
 // clears fast.
 Schedule::command('geodata:pump')
-    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
+    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer()
+    ->skip($enginesOff);
 
 // ── Step 3 dashboard snapshot (2026-09-03, the post-reboot disk storm) ────
 // Keeps the heavy district-progress aggregates warm off the poll path so a
@@ -121,7 +134,8 @@ Schedule::command('geodata:pump')
 // page adds nothing to the run. runInBackground so the scan never delays the
 // clock job; withoutOverlapping so a slow scan can't stack.
 Schedule::command('autoscale:progress-snapshot')
-    ->everyMinute()->withoutOverlapping(5)->runInBackground()->onOneServer();
+    ->everyMinute()->withoutOverlapping(5)->runInBackground()->onOneServer()
+    ->skip($enginesOff);
 
 // ── Setup progress rollups (G3, 2026-09-13) ─────────────────────────────
 // The Step 4 / Step 2 wizard polls read whole-world figures (the provision
@@ -137,21 +151,21 @@ Schedule::call(fn () => app(\App\Services\Setup\SetupProgressRollup::class)->ref
 // Public approval standings aggregate ONCE A DAY per race (Earth-scale
 // rule — never per request, never per approval; identities never leave
 // the approvals table). One chain entry per race per rollup.
-Schedule::job(new ApprovalStandingsRollupJob)->dailyAt('00:10')->withoutOverlapping()->onOneServer();
+Schedule::job(new ApprovalStandingsRollupJob)->dailyAt('00:10')->withoutOverlapping()->onOneServer()->skip($worldFrozen);
 // W4 ⑥ — daily ranked-standings rollup (out-of-band decrypt; the ballot page reads its cache).
-Schedule::job(new \App\Jobs\Elections\RankedStandingsRollupJob)->dailyAt('00:15')->withoutOverlapping()->onOneServer();
+Schedule::job(new \App\Jobs\Elections\RankedStandingsRollupJob)->dailyAt('00:15')->withoutOverlapping()->onOneServer()->skip($worldFrozen);
 
 // ── Phase D (D-5): nightly department-report cadence sweep ──────────────
 // Reporting cadence is CHARTER data, not a constitutional clock — plain
 // due_on + sweep (due → overdue); justified deferral from clock_timers.
-Schedule::job(new \App\Jobs\Executive\DepartmentReportSweepJob)->dailyAt('00:20')->withoutOverlapping()->onOneServer();
+Schedule::job(new \App\Jobs\Executive\DepartmentReportSweepJob)->dailyAt('00:20')->withoutOverlapping()->onOneServer()->skip($worldFrozen);
 
 // ── Phase D (D-O4): nightly co-determination sweep (Art. III §6) ────────
 // The CLK-05/06 pattern: the event-driven RecomputeWorkerHeadcountJob is
 // the cheap path; this sweep re-evaluates every employer with an armed
 // CLK-13/14 watcher (covers threshold LOWERING by act) and runs the 48h
 // org-board election auto-certify backstop.
-Schedule::job(new \App\Jobs\Organizations\EvaluateCoDeterminationJob)->dailyAt('00:25')->withoutOverlapping()->onOneServer();
+Schedule::job(new \App\Jobs\Organizations\EvaluateCoDeterminationJob)->dailyAt('00:25')->withoutOverlapping()->onOneServer()->skip($worldFrozen);
 
 // ── Phase G (G-ID): prune lapsed standing attestations ──────────────────
 // They already fail closed on expiry; this keeps the table bounded (minted per
@@ -166,7 +180,7 @@ Schedule::job(new \App\Jobs\Identity\ExpireStandingAttestationsJob)->hourly()->w
 // CertificationService is the event-driven fast path; this is the backstop
 // sweep (null ctor arg = ALL STATUS_ACTIVE jurisdictions). A down homeserver
 // never fails the sweep — the job is best-effort per jurisdiction.
-Schedule::job(new \App\Jobs\EvaluateSocialStructureJob)->dailyAt('00:30')->withoutOverlapping()->onOneServer();
+Schedule::job(new \App\Jobs\EvaluateSocialStructureJob)->dailyAt('00:30')->withoutOverlapping()->onOneServer()->skip($worldFrozen);
 
 // ── Phase I: the nightly REACH snapshot ─────────────────────────────────
 // reach = verified residents ÷ population estimate, per place per day. An
@@ -179,7 +193,7 @@ Schedule::job(new \App\Jobs\EvaluateSocialStructureJob)->dailyAt('00:30')->witho
 // per-jurisdiction filter inside the service — a mirror runs its own scheduler
 // and wins its own probe, so the scheduler gate alone would let it write for
 // places it does not own. Authority is not leadership.
-Schedule::job(new \App\Jobs\SnapshotLegitimacyJob)->dailyAt('00:40')->withoutOverlapping()->onOneServer();
+Schedule::job(new \App\Jobs\SnapshotLegitimacyJob)->dailyAt('00:40')->withoutOverlapping()->onOneServer()->skip($worldFrozen);
 
 // ── The nightly world rollup that feeds the Atlas (lane 4, W4①) ─────────
 // 00:50 keeps the nightly stagger clear (00:10 approval standings, 00:20
@@ -189,7 +203,7 @@ Schedule::job(new \App\Jobs\SnapshotLegitimacyJob)->dailyAt('00:40')->withoutOve
 // publish yesterday's figure. Both gates apply here for the same reason spelled
 // out above — onOneServer() + LeaderProbe for HA, and the per-jurisdiction
 // authoritative_server_id filter inside WorldStatsService for CI-6.
-Schedule::job(new \App\Jobs\SnapshotWorldStatsJob)->dailyAt('00:50')->withoutOverlapping()->onOneServer();
+Schedule::job(new \App\Jobs\SnapshotWorldStatsJob)->dailyAt('00:50')->withoutOverlapping()->onOneServer()->skip($worldFrozen);
 
 // Keep Horizon's dashboard metrics fresh.
 Schedule::command('horizon:snapshot')->everyFiveMinutes()->onOneServer();
@@ -207,4 +221,4 @@ Schedule::command('demo:void-expired')->everyFiveMinutes()->withoutOverlapping()
 // double-awards and only writes newly-eligible holders. Write-site calls at
 // the seat services give immediate awards; this is the backfill door for
 // seats minted by other paths and for holders swept before wiring landed.
-Schedule::command('achievements:sweep')->dailyAt('01:10')->withoutOverlapping()->onOneServer();
+Schedule::command('achievements:sweep')->dailyAt('01:10')->withoutOverlapping()->onOneServer()->skip($worldFrozen);

@@ -270,6 +270,15 @@ return [
     'clocks_frozen' => (bool) env('CGA_CLOCKS_FROZEN', false),
 
     /*
+    | Run-engine pumps (operator order 2026-11-01). The every-minute pumps that
+    | advance the autoscale, provision, sim and geodata runs. Each one no-ops in a
+    | query when no run is live, but on a box with one slow disk that query still
+    | costs a read per minute per pump. Set CGA_ENGINE_PUMPS=false on a box that only
+    | serves pages. Start a run by setting it back to true. Default true.
+    */
+    'engine_pumps' => (bool) env('CGA_ENGINE_PUMPS', true),
+
+    /*
     | Federation self-URL (Phase F). The externally-reachable base URL this
     | instance advertises to peers at handshake so they can call back (sync
     | pushes, heartbeats, authority flips). In the two-instance demo:
