@@ -19681,6 +19681,163 @@
           "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
         }
       ]
+    },
+    {
+      "id": "W-0516",
+      "title": "Assistant permission check: toolkits follow the user's current roles",
+      "phase": "N4",
+      "order": 98,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Every assistant call resolves the user's current roles and scopes. A tool or data set the user does not hold is absent for the assistant. A test ends a role term and shows the toolkit gone on the next call.",
+      "depends_on": [
+        "W-0504"
+      ],
+      "detail": "The assistant has no standing grant. It reuses the same permission system as the user's own screens.",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 personal assistant ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator ruling on the personal assistant (page 15 of the node mesh diagram). Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0517",
+      "title": "Personal assistant memory store",
+      "phase": "N4",
+      "order": 99,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The assistant writes and recalls notes in a store owned by the user. The user can read, edit and delete each note. Notes stay after a role ends and never reopen lost access. The store follows the user across nodes.",
+      "depends_on": [
+        "W-0516"
+      ],
+      "detail": "Separate from shared datastores. Depends on the operator ruling on confidential notes (question below).",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 personal assistant ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator ruling on the personal assistant (page 15 of the node mesh diagram). Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0518",
+      "title": "Assistant keyset: self-hosted, personal cloud and community-issued keys",
+      "phase": "N4",
+      "order": 100,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The user picks a brain source per assistant: own model, own cloud key in the vault, or a community-issued key with a quota. The user can switch at any time. A key lends compute only.",
+      "depends_on": [
+        "W-0509"
+      ],
+      "detail": "Community quotas show counts only, never content. Fair-use rule needs the operator's ruling.",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 personal assistant ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator ruling on the personal assistant (page 15 of the node mesh diagram). Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0519",
+      "title": "Assistant from the first login: operator key in onboarding",
+      "phase": "N4",
+      "order": 101,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "After account creation the operator's key offers the assistant at once, including in the from-scratch flow. The assistant guides setup. The user can move to their own or a community key later.",
+      "depends_on": [
+        "W-0518",
+        "W-0490"
+      ],
+      "detail": "Extends onboarding step 7 (page 13).",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 personal assistant ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator ruling on the personal assistant (page 15 of the node mesh diagram). Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0520",
+      "title": "Assistant surfaces and documentation, module by module",
+      "phase": "N4",
+      "order": 102,
+      "kind": "content",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The app chat with browser speech to text and voice capture, the TV, the speaker and satellites, and phone channels each have a documented setup. Documentation ships with each module as it is built.",
+      "depends_on": [
+        "W-0509",
+        "W-0510"
+      ],
+      "detail": "Surface levels S1 to S3 keep their permission limits. Multimodal input follows the user's permission and the chosen brain.",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 personal assistant ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator ruling on the personal assistant (page 15 of the node mesh diagram). Roadmap draft for operator review and refinement."
+        }
+      ]
     }
   ]
 }
