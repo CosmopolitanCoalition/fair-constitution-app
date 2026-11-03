@@ -1,5 +1,185 @@
-<mxfile host="Electron" modified="2026-11-03T15:57:29.090Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.1.0 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" version="24.1.0" etag="XPmpfpPK5axJXsozxVl9" type="device" pages="9">
-  <diagram name="1 Clients and the open mesh" id="mesh-1">
+<mxfile host="Electron" modified="2026-11-03T15:57:29.090Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.1.0 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" version="24.1.0" etag="XPmpfpPK5axJXsozxVl9" type="device" pages="12">
+  <diagram name="1 Node types" id="node-paradigm-0">
+    <mxGraphModel dx="1434" dy="884" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c1001" value="The four node types. Every node operator chooses which types this box hosts. The outer circles show what each type is used for." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=14;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="40" y="20" width="360" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c1002" value="Community Node&lt;br&gt;You use it to keep your communities organized." style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="515" y="170" width="170" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="c1003" value="Individual Node&lt;br&gt;You use it to keep yourself organized." style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="515" y="390" width="170" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="c1004" value="Household Node&lt;br&gt;You use it to keep your close relationships organized." style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="330" y="470" width="190" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="c1005" value="Organization Node&lt;br&gt;You use it to keep your cohorts organized." style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="680" y="470" width="190" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="c1006" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" parent="1" source="c1002" target="c1003" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1007" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" parent="1" source="c1002" target="c1004" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1008" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" parent="1" source="c1002" target="c1005" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1009" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" parent="1" source="c1003" target="c1004" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1010" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" parent="1" source="c1003" target="c1005" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1011" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" parent="1" source="c1004" target="c1005" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1012" value="Small and Large Communities" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="548" y="20" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1013" value="Variety of Civic Institutions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="410" y="75" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1014" value="Multi-Community Networks" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="686" y="75" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1015" value="Scaling Self-Governance Tools" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="345" y="200" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1016" value="Markets of Goods and Skills" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="751" y="200" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1017" value="Individuals Living Alone or with Others" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="330" y="330" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1018" value="Couples and Polycules" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="190" y="395" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1019" value="Single and Multi Family Households" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="150" y="515" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1020" value="Parents living Together or Apart" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="200" y="640" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1021" value="Friends and Social Networks" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="345" y="690" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1022" value="Businesses and Places of Work" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="770" y="330" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1023" value="Private Membership Organizations" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="905" y="395" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1024" value="Charities, Nonprofits, NGOs" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="950" y="515" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1025" value="Governing Institutions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="900" y="640" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1026" value="Educational Institutions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="750" y="690" width="104" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="c1027" value="Node Operators&lt;br&gt;Choose which Node Types to Host" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=center;verticalAlign=middle;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="520" y="600" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-1" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1015" target="c1002">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="410" y="250" as="sourcePoint" />
+            <mxPoint x="470" y="340" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-2" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1017" target="c1004">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="459" y="262" as="sourcePoint" />
+            <mxPoint x="525" y="264" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-3" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1004" target="c1018">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="469" y="272" as="sourcePoint" />
+            <mxPoint x="535" y="274" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-4" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1004" target="c1019">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="479" y="282" as="sourcePoint" />
+            <mxPoint x="545" y="284" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-5" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1004" target="c1020">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="489" y="292" as="sourcePoint" />
+            <mxPoint x="555" y="294" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-6" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1012" target="c1002">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="499" y="302" as="sourcePoint" />
+            <mxPoint x="565" y="304" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-7" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1014" target="c1002">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="509" y="312" as="sourcePoint" />
+            <mxPoint x="575" y="314" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-9" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1002" target="c1016">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="529" y="332" as="sourcePoint" />
+            <mxPoint x="595" y="334" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-10" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1005" target="c1023">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="539" y="342" as="sourcePoint" />
+            <mxPoint x="780" y="450" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-11" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1024" target="c1005">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="549" y="352" as="sourcePoint" />
+            <mxPoint x="615" y="354" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-12" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1025" target="c1005">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="559" y="362" as="sourcePoint" />
+            <mxPoint x="625" y="364" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-13" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1026" target="c1005">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="569" y="372" as="sourcePoint" />
+            <mxPoint x="635" y="374" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-14" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1021" target="c1004">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="579" y="382" as="sourcePoint" />
+            <mxPoint x="645" y="384" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-16" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1013" target="c1002">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="459" y="262" as="sourcePoint" />
+            <mxPoint x="525" y="264" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hOh0QRa0ffOKOnyMbmoE-17" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="c1005" target="c1022">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="469" y="272" as="sourcePoint" />
+            <mxPoint x="535" y="274" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+              <object label="Next: clients and the open mesh" link="data:page/id,mesh-1" id="c-nav-next"><mxCell style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="1120" y="40" width="300" height="40" as="geometry"/></mxCell></object>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="2 Clients and the open mesh" id="mesh-1">
     <mxGraphModel dx="1434" dy="884" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1300" math="0" shadow="0">
       <root>
         <mxCell id="0" />
@@ -239,18 +419,18 @@
         <mxCell id="c1073" value="Places are a choice. The tree can follow real places or a custom layout. Setup step 0, Multiverse ▸ cosmic address, already lets an operator place a community in virtual space or on the real-world map." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="880" y="1110" width="860" height="60" as="geometry" />
         </mxCell>
-        <object label="Address forms, aliases and hosted inboxes: click for page 3" link="data:page/id,mesh-3" id="c1074">
+        <object label="Address forms, aliases and hosted inboxes: click for page 5" link="data:page/id,mesh-3" id="c1074">
           <mxCell style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;fontSize=11;align=center;verticalAlign=middle;fontStyle=1;strokeWidth=2;" vertex="1" parent="1">
             <mxGeometry x="1790" y="740" width="330" height="60" as="geometry" />
           </mxCell>
         </object>
               <object label="Households and organizations as their own community, on the shortest path: click for page 7" link="data:page/id,mesh-7" id="c-link7"><mxCell style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="1790" y="820" width="330" height="70" as="geometry"/></mxCell></object>
-              <object label="Naming and internet protocols, external profiles: click for page 8" link="data:page/id,mesh-8" id="c-link8"><mxCell style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="1790" y="910" width="330" height="60" as="geometry"/></mxCell></object>
-              <object label="Off-network profile links, shared or published: click for page 9" link="data:page/id,mesh-9" id="c-link9"><mxCell style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="1790" y="990" width="330" height="60" as="geometry"/></mxCell></object>
+              <object label="Naming and internet protocols, external profiles: click for page 6" link="data:page/id,mesh-8" id="c-link8"><mxCell style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="1790" y="910" width="330" height="60" as="geometry"/></mxCell></object>
+              <object label="Off-network profile links, shared or published: click for page 11" link="data:page/id,mesh-9" id="c-link9"><mxCell style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="1790" y="990" width="330" height="60" as="geometry"/></mxCell></object>
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram name="2 Inside a box" id="mesh-2">
+  <diagram name="3 Inside a box" id="mesh-2">
     <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="2200" pageHeight="1300" math="0" shadow="0">
       <root>
         <mxCell id="0" />
@@ -284,7 +464,7 @@
         <mxCell id="c1009" value="COMMUNITY NODE   optional add-on&lt;br&gt;Either the simulation (World of Statecraft, with demo data and maps) or a real community that hosts its own members.&lt;br&gt;Both can connect to another node and sync." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;verticalAlign=middle;" parent="1" vertex="1">
           <mxGeometry x="60" y="492" width="560" height="105" as="geometry" />
         </mxCell>
-        <mxCell id="c1010" value="Scope per type:&lt;br&gt;- who may hold an account here&lt;br&gt;- which places or groups the data covers&lt;br&gt;- what is shared outward and with whom&lt;br&gt;Resources per type: storage and compute offered to the mesh (page 6)." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=left;verticalAlign=middle;" parent="1" vertex="1">
+        <mxCell id="c1010" value="Scope per type:&lt;br&gt;- who may hold an account here&lt;br&gt;- which places or groups the data covers&lt;br&gt;- what is shared outward and with whom&lt;br&gt;Resources per type: storage and compute offered to the mesh (page 10)." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=left;verticalAlign=middle;" parent="1" vertex="1">
           <mxGeometry x="60" y="607" width="560" height="110" as="geometry" />
         </mxCell>
         <mxCell id="c1011" value="Shared by every kit on the box" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=11;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" parent="1" vertex="1">
@@ -335,7 +515,81 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram name="3 Address forms" id="mesh-3">
+  <diagram name="4 Ways in" id="node-paradigm-3">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c1001" value="Ways in: any screen can drive the same node. Voice and screens use the same permissions as the web app." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=14;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="40" y="20" width="1300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c1002" value="Phone&lt;br&gt;installed web app (PWA)&lt;br&gt;native app where possible" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="80" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c1003" value="Desktop and laptop&lt;br&gt;browser or installed web app" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="170" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c1004" value="TV&lt;br&gt;browser or app on the TV" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="260" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c1005" value="Smart speaker&lt;br&gt;voice only" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="350" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c1006" value="Another room&lt;br&gt;any screen showing a node page" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="440" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c1007" value="Voice satellite (Jarvis)&lt;br&gt;wake word, speech to text, command contract:&lt;br&gt;spoken request becomes an intent, the intent asks the node, the node answers with words and a screen to show" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="540" width="300" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="c1008" value="Surface layer&lt;br&gt;sign-in session or per-user API key&lt;br&gt;the same permission rules on every surface" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="460" y="250" width="280" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="c1009" value="Your node&lt;br&gt;Individual · Household · Organization · Community&lt;br&gt;whatever this box hosts for you" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="860" y="230" width="320" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="c1010" value="Pipelines and assistants (n8n, Jarvis)&lt;br&gt;act with a scoped key you issue&lt;br&gt;nothing is sent without your approval" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="460" y="480" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="c1011" value="Screen routing&lt;br&gt;&quot;show the calendar on the bedroom screen&quot;&lt;br&gt;picks the screen, then opens the page there" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="860" y="480" width="320" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="c1012" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1002" target="c1008" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1013" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1003" target="c1008" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1014" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1004" target="c1008" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1015" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1005" target="c1008" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1016" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1006" target="c1008" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1017" value="spoken command" style="endArrow=classic;html=1;rounded=0;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1007" target="c1008" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1018" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" parent="1" source="c1008" target="c1009" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1019" value="API key, scoped" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" parent="1" source="c1010" target="c1009" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1020" value="what to show, and where" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1009" target="c1011" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1021" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;" parent="1" source="c1011" target="c1002" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1022" value="Built today: installed web app (manifest and service worker), sign-in session, per-user API keys. Prototyped on the second machine: the voice satellite, n8n pipelines, screen routing. Not built: native apps, TV and smart-speaker surfaces." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" parent="1" vertex="1">
+          <mxGeometry x="40" y="680" width="1300" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="5 Address forms" id="mesh-3">
     <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="2200" pageHeight="1300" math="0" shadow="0">
       <root>
         <mxCell id="0" />
@@ -513,7 +767,167 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram name="4 Who sees what" id="mesh-4">
+  <diagram name="6 Naming and internet protocols" id="mesh-8">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1300" math="0" shadow="0">
+      <root><mxCell id="0"/><mxCell id="1" parent="0"/>
+        <mxCell id="c1001" value="One name, every protocol. A box serves its own names with the plain internet standards, so any other server or phone can reach it, on or off the mesh. PROPOSED design." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=14;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="1900" height="30" as="geometry"/></mxCell>
+        <object label="Zoom out: the open mesh" link="data:page/id,mesh-1" id="c1002"><mxCell style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;fontSize=11;align=center;verticalAlign=middle;fontStyle=1;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="40" y="60" width="260" height="34" as="geometry"/></mxCell></object>
+        <mxCell id="c1003" value="Joseph" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="110" width="150" height="48" as="geometry"/></mxCell>
+        <mxCell id="c1004" value="person" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="40" y="162" width="150" height="30" as="geometry"/></mxCell>
+        <mxCell id="c1005" value="@" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="190" y="110" width="40" height="48" as="geometry"/></mxCell>
+        <mxCell id="c1006" value="JDSileo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="230" y="110" width="150" height="48" as="geometry"/></mxCell>
+        <mxCell id="c1007" value="box" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="230" y="162" width="150" height="30" as="geometry"/></mxCell>
+        <mxCell id="c1008" value="mecklenburg" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="384" y="110" width="150" height="48" as="geometry"/></mxCell>
+        <mxCell id="c1009" value="county" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="384" y="162" width="150" height="30" as="geometry"/></mxCell>
+        <mxCell id="c1010" value="nc" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="538" y="110" width="80" height="48" as="geometry"/></mxCell>
+        <mxCell id="c1011" value="state" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="538" y="162" width="80" height="30" as="geometry"/></mxCell>
+        <mxCell id="c1012" value="usa" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="622" y="110" width="90" height="48" as="geometry"/></mxCell>
+        <mxCell id="c1013" value="country" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="622" y="162" width="90" height="30" as="geometry"/></mxCell>
+        <mxCell id="c1014" value="earth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="716" y="110" width="90" height="48" as="geometry"/></mxCell>
+        <mxCell id="c1015" value="planet" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="716" y="162" width="90" height="30" as="geometry"/></mxCell>
+        <mxCell id="c1016" value="worldofstatecraft.org" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="810" y="110" width="260" height="48" as="geometry"/></mxCell>
+        <mxCell id="c1017" value="mesh root, or any TLD aliased to it" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="810" y="162" width="260" height="30" as="geometry"/></mxCell>
+        <mxCell id="c1018" value="The text before the @ is a person. The text after it is a zone in DNS. The zone is the community tree, so the place order and the DNS order are the same." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=11;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="1080" y="110" width="900" height="44" as="geometry"/></mxCell>
+        <mxCell id="c1019" value="WHAT THE NAME DOES ON EACH PROTOCOL" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="215" width="1000" height="22" as="geometry"/></mxCell>
+        <mxCell id="c1020" value="Protocol" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="242" width="130" height="32" as="geometry"/></mxCell>
+        <mxCell id="c1021" value="Use" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="170" y="242" width="300" height="32" as="geometry"/></mxCell>
+        <mxCell id="c1022" value="How it finds the box (DNS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="470" y="242" width="330" height="32" as="geometry"/></mxCell>
+        <mxCell id="c1023" value="Built here today" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="800" y="242" width="300" height="32" as="geometry"/></mxCell>
+        <mxCell id="c1024" value="DNS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="274" width="130" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1025" value="names the zones and boxes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="274" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1026" value="each community box serves its own zone. A and AAAA records point to the box. Delegation goes from parent to child." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="274" width="330" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1027" value="No. Only the Caddy public overlay exists." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="274" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1028" value="HTTPS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="330" width="130" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1029" value="web profile and the app" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="330" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1030" value="Joseph.JDSileo.mecklenburg... A certificate per zone by ACME. A wildcard covers one label only." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="330" width="330" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1031" value="Yes for one host (Caddy). Not per zone." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="330" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1032" value="SMTP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="386" width="130" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1033" value="mail in and out" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="386" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1034" value="MX record for JDSileo.mecklenburg... plus SPF, DKIM and DMARC records." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="386" width="330" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1035" value="No. Mail server choice is held." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="386" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1036" value="IMAP or JMAP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="442" width="130" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1037" value="mail apps read the inbox" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="442" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1038" value="SRV record _imaps._tcp. The native inbox stays the source." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="442" width="330" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1039" value="No. Native inbox screens only." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="442" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1040" value="SIP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="498" width="130" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1041" value="calls to and from outside" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="498" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1042" value="SRV and NAPTR records. sip:Joseph@JDSileo... A carrier number routes into the box PBX." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="498" width="330" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1043" value="No. Deferred in the roadmap." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="498" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1044" value="Matrix" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="554" width="130" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1045" value="chat between boxes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="554" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1046" value="SRV or .well-known on the name. Boxes federate by consent." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="554" width="330" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1047" value="Matrix and .well-known: yes. Per zone: no." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="554" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1048" value="WebRTC and TURN" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="610" width="130" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1049" value="calls and screens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="610" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1050" value="LiveKit on the box. TURN on its own subdomain for boxes behind routers." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="610" width="330" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1051" value="LiveKit: yes." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="610" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1052" value="RTMP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="666" width="130" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1053" value="live streams in and out" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="666" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1054" value="live.JDSileo... takes a stream key. Publish to or take from other platforms." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="666" width="330" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1055" value="No. LiveKit offers an ingress service. Not set up." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="666" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1056" value="CalDAV and CardDAV" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="722" width="130" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1057" value="outside calendar and contact apps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="722" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1058" value="SRV records and .well-known/caldav. Reads the native calendar and CRM." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="722" width="330" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1059" value="No. Native screens and API only." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="722" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1060" value="WebFinger" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="778" width="130" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1061" value="who is this name" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="778" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1062" value="GET /.well-known/webfinger?resource=acct:Joseph@JDSileo... returns the links the person chose to publish." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="778" width="330" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1063" value="No." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="778" width="300" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1064" value="PRACTICAL LIMITS OF A HOME BOX&lt;br&gt;Many home internet plans block inbound port 25 and mail from a home address is often rejected. A box behind carrier NAT cannot be reached from outside. Home addresses change. Each is solved by a relay or smarthost run by a community box, which moves mail and traffic but holds no readable copy. This is the open decision dns-home-node-reach." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="40" y="850" width="1060" height="110" as="geometry"/></mxCell>
+        <mxCell id="c1065" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=2;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="1150" y="215" width="910" height="750" as="geometry"/></mxCell>
+        <mxCell id="c1066" value="EXTERNAL PROFILES AND PUBLIC LINES" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1170" y="223" width="860" height="22" as="geometry"/></mxCell>
+        <mxCell id="c1067" value="PERSONAL profile&lt;br&gt;Joseph@JDSileo..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="270" width="230" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1068" value="ORGANIZATION or HOUSEHOLD profile&lt;br&gt;acme@mecklenburg..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="346" width="230" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1069" value="COMMUNITY profile&lt;br&gt;mecklenburg.nc.usa.earth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="422" width="230" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1070" value="PROFILE CARD&lt;br&gt;HTTPS page and WebFinger answer. Only the fields the owner publishes. Each field has an audience (page 8)." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1480" y="330" width="230" height="90" as="geometry"/></mxCell>
+        <mxCell id="c1071" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1067" target="c1070"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1072" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1068" target="c1070"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1073" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1069" target="c1070"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1074" value="Other mail servers" style="shape=mxgraph.networks.cloud;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1770" y="270" width="280" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1075" value="SMTP" style="endArrow=classic;html=1;rounded=0;strokeColor=#4a7fb5;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1070" target="c1074"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1076" value="Public phone network (carrier line)" style="shape=mxgraph.networks.cloud;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1770" y="346" width="280" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1077" value="SIP trunk" style="endArrow=classic;html=1;rounded=0;strokeColor=#4a7fb5;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1070" target="c1076"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1078" value="Social networks and the fediverse" style="shape=mxgraph.networks.cloud;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1770" y="422" width="280" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1079" value="WebFinger, ActivityPub, API" style="endArrow=classic;html=1;rounded=0;strokeColor=#4a7fb5;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1070" target="c1078"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1080" value="Other Matrix servers" style="shape=mxgraph.networks.cloud;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1770" y="498" width="280" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1081" value="Matrix federation" style="endArrow=classic;html=1;rounded=0;strokeColor=#4a7fb5;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1070" target="c1080"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1082" value="Streaming platforms" style="shape=mxgraph.networks.cloud;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1770" y="574" width="280" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1083" value="RTMP" style="endArrow=classic;html=1;rounded=0;strokeColor=#4a7fb5;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1070" target="c1082"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1084" value="The keys and tokens for each outside service sit in the owner's vault (built). A household, an organization and a community each have their own vault under the same model." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="520" width="560" height="70" as="geometry"/></mxCell>
+        <mxCell id="c1085" value="CONTACT EXCHANGE BY SHARED NETWORKS" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1170" y="625" width="860" height="22" as="geometry"/></mxCell>
+        <mxCell id="c1086" value="1  Each side lists the kinds of outside network it is willing to disclose, with no handles yet." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="655" width="870" height="50" as="geometry"/></mxCell>
+        <mxCell id="c1087" value="2  The two nodes show the kinds both sides have: for example a public phone line, a fediverse account, a Matrix server." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="713" width="870" height="50" as="geometry"/></mxCell>
+        <mxCell id="c1088" value="3  Each person approves which handle to hand over for each shared kind." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="771" width="870" height="50" as="geometry"/></mxCell>
+        <mxCell id="c1089" value="4  The contact is saved in the CRM with the shared handles. Removing a link removes the handle on both sides." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="829" width="870" height="50" as="geometry"/></mxCell>
+        <mxCell id="c1090" value="Default: nothing is disclosed. Public lines, such as sales@acme... or a main phone number, are published on purpose and route to the box that answers them." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="1170" y="893" width="870" height="40" as="geometry"/></mxCell>
+        <mxCell id="c1091" value="Built today: HTTPS through Caddy for one host, Matrix well-known, federation discovery, per-user vault and scoped keys. Not built: any per-zone DNS, SMTP, SIP, RTMP, WebFinger, profile cards, contact exchange." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="40" y="975" width="2000" height="30" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="7 Peer circles and the short path" id="mesh-7">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1300" math="0" shadow="0">
+      <root><mxCell id="0"/><mxCell id="1" parent="0"/>
+        <mxCell id="c1001" value="Households and organizations can form their own community directly, with no physical community box in the middle. Data takes the shortest path and stays on the boxes of the people involved. PROPOSED design." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=14;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="1800" height="30" as="geometry"/></mxCell>
+        <object label="Zoom out: the open mesh" link="data:page/id,mesh-1" id="c1002"><mxCell style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;fontSize=11;align=center;verticalAlign=middle;fontStyle=1;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="40" y="60" width="260" height="34" as="geometry"/></mxCell></object>
+        <mxCell id="c1003" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=2;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="40" y="110" width="900" height="380" as="geometry"/></mxCell>
+        <mxCell id="c1004" value="1  SAME PLACE: two households in one county link directly" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="60" y="118" width="800" height="22" as="geometry"/></mxCell>
+        <mxCell id="c1005" value="&lt;b&gt;mecklenburg&lt;/b&gt;.nc.usa.earth&lt;br&gt;community box: helps them find each other. It does not carry their data." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=center;verticalAlign=middle;dashed=1;" vertex="1" parent="1"><mxGeometry x="330" y="150" width="320" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1006" value="&lt;b&gt;JDSileo&lt;/b&gt;.mecklenburg.nc.usa.earth&lt;br&gt;HOUSEHOLD box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="80" y="250" width="300" height="90" as="geometry"/></mxCell>
+        <mxCell id="c1007" value="" style="shape=mxgraph.networks.server;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;verticalLabelPosition=bottom;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="336" y="256" width="34" height="34" as="geometry"/></mxCell>
+        <mxCell id="c1008" value="&lt;b&gt;Rivera&lt;/b&gt;.mecklenburg.nc.usa.earth&lt;br&gt;HOUSEHOLD box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="580" y="250" width="300" height="90" as="geometry"/></mxCell>
+        <mxCell id="c1009" value="" style="shape=mxgraph.networks.server;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;verticalLabelPosition=bottom;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="836" y="256" width="34" height="34" as="geometry"/></mxCell>
+        <mxCell id="c1010" value="address lookup only" style="endArrow=classic;html=1;rounded=0;strokeColor=#999999;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1006" target="c1005"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1011" value="address lookup only" style="endArrow=classic;html=1;rounded=0;strokeColor=#999999;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1008" target="c1005"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1012" value="DIRECT LINK: one hop" style="endArrow=classic;html=1;rounded=0;strokeColor=#1D8A47;strokeWidth=3;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1006" target="c1008"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1013" value="" style="shape=mxgraph.networks.mobile;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=center;verticalAlign=top;verticalLabelPosition=bottom;labelPosition=center;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="196.0" y="375" width="36" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1014" value="&lt;b&gt;Joseph&lt;/b&gt; · phone&lt;br&gt;Joseph@​JDSileo.​mecklenburg.​nc.​usa.​earth" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="150" y="437" width="128" height="70" as="geometry"/></mxCell>
+        <mxCell id="c1015" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#d6b656;strokeWidth=1;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1013" target="c1006"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1016" value="" style="shape=mxgraph.networks.tablet;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=center;verticalAlign=top;verticalLabelPosition=bottom;labelPosition=center;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="690.0" y="375" width="48" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1017" value="&lt;b&gt;Ana&lt;/b&gt; · tablet&lt;br&gt;Ana@​Rivera.​mecklenburg.​nc.​usa.​earth" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="650" y="437" width="128" height="70" as="geometry"/></mxCell>
+        <mxCell id="c1018" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#d6b656;strokeWidth=1;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1016" target="c1008"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1019" value="On the same network the data never leaves the building." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="330" y="440" width="320" height="36" as="geometry"/></mxCell>
+        <mxCell id="c1020" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=2;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="40" y="520" width="900" height="450" as="geometry"/></mxCell>
+        <mxCell id="c1021" value="2  FAR APART: the same peer circle across places and boxes" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="60" y="528" width="800" height="22" as="geometry"/></mxCell>
+        <mxCell id="c1022" value="community tree (earth, usa, pl)&lt;br&gt;finds addresses, relays ciphertext when needed, holds replicas members offer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=center;verticalAlign=middle;dashed=1;" vertex="1" parent="1"><mxGeometry x="270" y="560" width="400" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1023" value="&lt;b&gt;JDSileo&lt;/b&gt;.mecklenburg.nc.usa.earth&lt;br&gt;HOUSEHOLD box, North Carolina" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="80" y="660" width="300" height="90" as="geometry"/></mxCell>
+        <mxCell id="c1024" value="" style="shape=mxgraph.networks.server;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;verticalLabelPosition=bottom;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="336" y="666" width="34" height="34" as="geometry"/></mxCell>
+        <mxCell id="c1025" value="&lt;b&gt;Nowak&lt;/b&gt;.odygowice.pl.earth&lt;br&gt;HOUSEHOLD box, Poland" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="580" y="660" width="300" height="90" as="geometry"/></mxCell>
+        <mxCell id="c1026" value="" style="shape=mxgraph.networks.server;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;verticalLabelPosition=bottom;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="836" y="666" width="34" height="34" as="geometry"/></mxCell>
+        <mxCell id="c1027" value="&lt;b&gt;acme&lt;/b&gt;.mecklenburg.nc.usa.earth&lt;br&gt;ORGANIZATION box, North Carolina" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="330" y="840" width="300" height="90" as="geometry"/></mxCell>
+        <mxCell id="c1028" value="" style="shape=mxgraph.networks.server;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;verticalLabelPosition=bottom;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="586" y="846" width="34" height="34" as="geometry"/></mxCell>
+        <mxCell id="c1029" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#999999;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1023" target="c1022"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1030" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#999999;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1025" target="c1022"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1031" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#999999;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1027" target="c1022"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1032" value="lookup only" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#999999;" vertex="1" parent="1"><mxGeometry x="440" y="622" width="100" height="18" as="geometry"/></mxCell>
+        <mxCell id="c1033" value="direct link over the internet" style="endArrow=classic;html=1;rounded=0;strokeColor=#1D8A47;strokeWidth=3;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1023" target="c1025"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1034" value="direct" style="endArrow=classic;html=1;rounded=0;strokeColor=#1D8A47;strokeWidth=3;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1023" target="c1027"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1035" value="direct" style="endArrow=classic;html=1;rounded=0;strokeColor=#1D8A47;strokeWidth=3;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1025" target="c1027"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c1036" value="The circle is its own community. The three boxes stay in their physical communities for civic tools and public data." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="60" y="940" width="860" height="20" as="geometry"/></mxCell>
+        <mxCell id="c1037" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=2;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="980" y="110" width="880" height="300" as="geometry"/></mxCell>
+        <mxCell id="c1038" value="THE SHORTEST PATH, IN ORDER (the client tries the first that works)" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="118" width="840" height="22" as="geometry"/></mxCell>
+        <mxCell id="c1039" value="1  Same network (home, office, campus): the data never leaves the building." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1000" y="150" width="840" height="54" as="geometry"/></mxCell>
+        <mxCell id="c1040" value="2  Direct over the internet: box to box, encrypted, no third party in between." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1000" y="212" width="840" height="54" as="geometry"/></mxCell>
+        <mxCell id="c1041" value="3  Through a community relay: used when both boxes sit behind routers. The relay moves ciphertext it cannot read. Open decision: dns-home-node-reach." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1000" y="274" width="840" height="54" as="geometry"/></mxCell>
+        <mxCell id="c1042" value="4  Through the community tree: last resort, and the way to find an address." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1000" y="336" width="840" height="54" as="geometry"/></mxCell>
+        <mxCell id="c1043" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=2;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="980" y="430" width="880" height="270" as="geometry"/></mxCell>
+        <mxCell id="c1044" value="WHAT A PEER LINK CARRIES" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="438" width="840" height="22" as="geometry"/></mxCell>
+        <mxCell id="c1045" value="Users" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="470" width="190" height="40" as="geometry"/></mxCell>
+        <mxCell id="c1046" value="each box shares the roster entries it chooses: names and roles, never passwords. A person keeps one identity and their own box." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1190" y="470" width="650" height="40" as="geometry"/></mxCell>
+        <mxCell id="c1047" value="Chat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="514" width="190" height="40" as="geometry"/></mxCell>
+        <mxCell id="c1048" value="Matrix between the boxes. Rooms live on the boxes of their members." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1190" y="514" width="650" height="40" as="geometry"/></mxCell>
+        <mxCell id="c1049" value="Calls" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="558" width="190" height="40" as="geometry"/></mxCell>
+        <mxCell id="c1050" value="one member box runs the call server. The other members connect to it." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1190" y="558" width="650" height="40" as="geometry"/></mxCell>
+        <mxCell id="c1051" value="Calendar, tasks, files" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="602" width="190" height="40" as="geometry"/></mxCell>
+        <mxCell id="c1052" value="shared spaces copied only to the member boxes, encrypted on the wire." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1190" y="602" width="650" height="40" as="geometry"/></mxCell>
+        <mxCell id="c1053" value="Mail and phone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="646" width="190" height="40" as="geometry"/></mxCell>
+        <mxCell id="c1054" value="the same address text still works: User@Org.LocalityChain." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1190" y="646" width="650" height="40" as="geometry"/></mxCell>
+        <mxCell id="c1055" value="A LINK IS A PAIR OF SIGNED GRANTS in the consent ledger (page 9). Either side ends it. The link names what is shared, with whom, and until when." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="980" y="720" width="880" height="56" as="geometry"/></mxCell>
+        <mxCell id="c1056" value="WHY IT MATTERS&lt;br&gt;Privacy: no platform sits between members. Data lives on the boxes of the people in the circle, and nowhere else unless an owner chooses a copy.&lt;br&gt;No subscription: no per-seat fee and no platform account. Costs that remain are the hardware, power, an internet connection, an optional domain name, and carrier fees for outside phone numbers.&lt;br&gt;Resilience: the circle keeps working if a community box or a company goes away." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="980" y="790" width="880" height="150" as="geometry"/></mxCell>
+        <mxCell id="c1057" value="Built today: node keys and signed peer requests, a certificate broker, a Headscale tailnet test, Matrix and LiveKit for talk. Not built: circles, roster sync, path choice, the relay." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="980" y="950" width="880" height="36" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="8 Who sees what" id="mesh-4">
     <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="2200" pageHeight="1300" math="0" shadow="0">
       <root>
         <mxCell id="0" />
@@ -755,7 +1169,7 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram name="5 Self-selecting replication" id="mesh-5">
+  <diagram name="9 Self-selecting replication" id="mesh-5">
     <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="2200" pageHeight="1300" math="0" shadow="0">
       <root>
         <mxCell id="0" />
@@ -820,7 +1234,7 @@
         <mxCell id="c1020" value="ciphertext" style="endArrow=classic;html=1;rounded=0;strokeColor=#4a7fb5;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;" parent="1" target="c1019" source="c1006" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="c1021" value="CONSENT LEDGER&lt;br&gt;Every offer and every grant is a signed record: who, what, how much, until when. Either side can end it. The ledger is what the relationship chart (page 4) and the settings screen (page 6) read from." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=left;verticalAlign=middle;" parent="1" vertex="1">
+        <mxCell id="c1021" value="CONSENT LEDGER&lt;br&gt;Every offer and every grant is a signed record: who, what, how much, until when. Either side can end it. The ledger is what the relationship chart (page 8) and the settings screen (page 10) read from." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=left;verticalAlign=middle;" parent="1" vertex="1">
           <mxGeometry x="1000" y="440" width="340" height="130" as="geometry" />
         </mxCell>
         <mxCell id="c1022" value="WHAT EACH PARTY CAN SEE&lt;br&gt;Owner: everything.&lt;br&gt;Host: ciphertext, its size, and the owner&#39;s node id.&lt;br&gt;Community: only what was shared into it, and counts for quotas." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;" parent="1" vertex="1">
@@ -832,13 +1246,13 @@
         <mxCell id="c1024" value="WHAT A PERSON VOLUNTEERS&lt;br&gt;- storage and compute, with a ceiling and hours&lt;br&gt;- to whom: household, organization, community, or named nodes&lt;br&gt;- the person can lower or withdraw it at any time" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;verticalAlign=middle;" parent="1" vertex="1">
           <mxGeometry x="1020" y="590" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="c1025" value="Built today: node keys and signed requests, a certificate broker, a Headscale tailnet test, Patroni data-tier failover. Not built: the ledger, offers, copies, repair, quotas, any of pages 4 to 6." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" parent="1" vertex="1">
+        <mxCell id="c1025" value="Built today: node keys and signed requests, a certificate broker, a Headscale tailnet test, Patroni data-tier failover. Not built: the ledger, offers, copies, repair, quotas, any of pages 8 to 10." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" parent="1" vertex="1">
           <mxGeometry x="40" y="740" width="1300" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram name="6 Settings screen (mockup)" id="mesh-6">
+  <diagram name="10 Settings screen (mockup)" id="mesh-6">
     <mxGraphModel dx="1434" dy="884" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1300" math="0" shadow="0">
       <root>
         <mxCell id="0" />
@@ -1098,167 +1512,7 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram name="7 Peer circles and the short path" id="mesh-7">
-    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1300" math="0" shadow="0">
-      <root><mxCell id="0"/><mxCell id="1" parent="0"/>
-        <mxCell id="c1001" value="Households and organizations can form their own community directly, with no physical community box in the middle. Data takes the shortest path and stays on the boxes of the people involved. PROPOSED design." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=14;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="1800" height="30" as="geometry"/></mxCell>
-        <object label="Zoom out: the open mesh" link="data:page/id,mesh-1" id="c1002"><mxCell style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;fontSize=11;align=center;verticalAlign=middle;fontStyle=1;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="40" y="60" width="260" height="34" as="geometry"/></mxCell></object>
-        <mxCell id="c1003" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=2;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="40" y="110" width="900" height="380" as="geometry"/></mxCell>
-        <mxCell id="c1004" value="1  SAME PLACE: two households in one county link directly" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="60" y="118" width="800" height="22" as="geometry"/></mxCell>
-        <mxCell id="c1005" value="&lt;b&gt;mecklenburg&lt;/b&gt;.nc.usa.earth&lt;br&gt;community box: helps them find each other. It does not carry their data." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=center;verticalAlign=middle;dashed=1;" vertex="1" parent="1"><mxGeometry x="330" y="150" width="320" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1006" value="&lt;b&gt;JDSileo&lt;/b&gt;.mecklenburg.nc.usa.earth&lt;br&gt;HOUSEHOLD box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="80" y="250" width="300" height="90" as="geometry"/></mxCell>
-        <mxCell id="c1007" value="" style="shape=mxgraph.networks.server;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;verticalLabelPosition=bottom;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="336" y="256" width="34" height="34" as="geometry"/></mxCell>
-        <mxCell id="c1008" value="&lt;b&gt;Rivera&lt;/b&gt;.mecklenburg.nc.usa.earth&lt;br&gt;HOUSEHOLD box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="580" y="250" width="300" height="90" as="geometry"/></mxCell>
-        <mxCell id="c1009" value="" style="shape=mxgraph.networks.server;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;verticalLabelPosition=bottom;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="836" y="256" width="34" height="34" as="geometry"/></mxCell>
-        <mxCell id="c1010" value="address lookup only" style="endArrow=classic;html=1;rounded=0;strokeColor=#999999;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1006" target="c1005"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1011" value="address lookup only" style="endArrow=classic;html=1;rounded=0;strokeColor=#999999;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1008" target="c1005"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1012" value="DIRECT LINK: one hop" style="endArrow=classic;html=1;rounded=0;strokeColor=#1D8A47;strokeWidth=3;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1006" target="c1008"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1013" value="" style="shape=mxgraph.networks.mobile;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=center;verticalAlign=top;verticalLabelPosition=bottom;labelPosition=center;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="196.0" y="375" width="36" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1014" value="&lt;b&gt;Joseph&lt;/b&gt; · phone&lt;br&gt;Joseph@​JDSileo.​mecklenburg.​nc.​usa.​earth" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="150" y="437" width="128" height="70" as="geometry"/></mxCell>
-        <mxCell id="c1015" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#d6b656;strokeWidth=1;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1013" target="c1006"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1016" value="" style="shape=mxgraph.networks.tablet;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=center;verticalAlign=top;verticalLabelPosition=bottom;labelPosition=center;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="690.0" y="375" width="48" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1017" value="&lt;b&gt;Ana&lt;/b&gt; · tablet&lt;br&gt;Ana@​Rivera.​mecklenburg.​nc.​usa.​earth" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="650" y="437" width="128" height="70" as="geometry"/></mxCell>
-        <mxCell id="c1018" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#d6b656;strokeWidth=1;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1016" target="c1008"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1019" value="On the same network the data never leaves the building." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="330" y="440" width="320" height="36" as="geometry"/></mxCell>
-        <mxCell id="c1020" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=2;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="40" y="520" width="900" height="450" as="geometry"/></mxCell>
-        <mxCell id="c1021" value="2  FAR APART: the same peer circle across places and boxes" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="60" y="528" width="800" height="22" as="geometry"/></mxCell>
-        <mxCell id="c1022" value="community tree (earth, usa, pl)&lt;br&gt;finds addresses, relays ciphertext when needed, holds replicas members offer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=center;verticalAlign=middle;dashed=1;" vertex="1" parent="1"><mxGeometry x="270" y="560" width="400" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1023" value="&lt;b&gt;JDSileo&lt;/b&gt;.mecklenburg.nc.usa.earth&lt;br&gt;HOUSEHOLD box, North Carolina" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="80" y="660" width="300" height="90" as="geometry"/></mxCell>
-        <mxCell id="c1024" value="" style="shape=mxgraph.networks.server;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;verticalLabelPosition=bottom;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="336" y="666" width="34" height="34" as="geometry"/></mxCell>
-        <mxCell id="c1025" value="&lt;b&gt;Nowak&lt;/b&gt;.odygowice.pl.earth&lt;br&gt;HOUSEHOLD box, Poland" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="580" y="660" width="300" height="90" as="geometry"/></mxCell>
-        <mxCell id="c1026" value="" style="shape=mxgraph.networks.server;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;verticalLabelPosition=bottom;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="836" y="666" width="34" height="34" as="geometry"/></mxCell>
-        <mxCell id="c1027" value="&lt;b&gt;acme&lt;/b&gt;.mecklenburg.nc.usa.earth&lt;br&gt;ORGANIZATION box, North Carolina" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="330" y="840" width="300" height="90" as="geometry"/></mxCell>
-        <mxCell id="c1028" value="" style="shape=mxgraph.networks.server;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;verticalLabelPosition=bottom;fillColor=#505050;strokeColor=#222222;" vertex="1" parent="1"><mxGeometry x="586" y="846" width="34" height="34" as="geometry"/></mxCell>
-        <mxCell id="c1029" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#999999;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1023" target="c1022"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1030" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#999999;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1025" target="c1022"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1031" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#999999;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;dashPattern=1 3;" edge="1" parent="1" source="c1027" target="c1022"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1032" value="lookup only" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#999999;" vertex="1" parent="1"><mxGeometry x="440" y="622" width="100" height="18" as="geometry"/></mxCell>
-        <mxCell id="c1033" value="direct link over the internet" style="endArrow=classic;html=1;rounded=0;strokeColor=#1D8A47;strokeWidth=3;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1023" target="c1025"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1034" value="direct" style="endArrow=classic;html=1;rounded=0;strokeColor=#1D8A47;strokeWidth=3;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1023" target="c1027"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1035" value="direct" style="endArrow=classic;html=1;rounded=0;strokeColor=#1D8A47;strokeWidth=3;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1025" target="c1027"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1036" value="The circle is its own community. The three boxes stay in their physical communities for civic tools and public data." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="60" y="940" width="860" height="20" as="geometry"/></mxCell>
-        <mxCell id="c1037" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=2;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="980" y="110" width="880" height="300" as="geometry"/></mxCell>
-        <mxCell id="c1038" value="THE SHORTEST PATH, IN ORDER (the client tries the first that works)" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="118" width="840" height="22" as="geometry"/></mxCell>
-        <mxCell id="c1039" value="1  Same network (home, office, campus): the data never leaves the building." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1000" y="150" width="840" height="54" as="geometry"/></mxCell>
-        <mxCell id="c1040" value="2  Direct over the internet: box to box, encrypted, no third party in between." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1000" y="212" width="840" height="54" as="geometry"/></mxCell>
-        <mxCell id="c1041" value="3  Through a community relay: used when both boxes sit behind routers. The relay moves ciphertext it cannot read. Open decision: dns-home-node-reach." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1000" y="274" width="840" height="54" as="geometry"/></mxCell>
-        <mxCell id="c1042" value="4  Through the community tree: last resort, and the way to find an address." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1000" y="336" width="840" height="54" as="geometry"/></mxCell>
-        <mxCell id="c1043" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=2;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="980" y="430" width="880" height="270" as="geometry"/></mxCell>
-        <mxCell id="c1044" value="WHAT A PEER LINK CARRIES" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="438" width="840" height="22" as="geometry"/></mxCell>
-        <mxCell id="c1045" value="Users" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="470" width="190" height="40" as="geometry"/></mxCell>
-        <mxCell id="c1046" value="each box shares the roster entries it chooses: names and roles, never passwords. A person keeps one identity and their own box." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1190" y="470" width="650" height="40" as="geometry"/></mxCell>
-        <mxCell id="c1047" value="Chat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="514" width="190" height="40" as="geometry"/></mxCell>
-        <mxCell id="c1048" value="Matrix between the boxes. Rooms live on the boxes of their members." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1190" y="514" width="650" height="40" as="geometry"/></mxCell>
-        <mxCell id="c1049" value="Calls" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="558" width="190" height="40" as="geometry"/></mxCell>
-        <mxCell id="c1050" value="one member box runs the call server. The other members connect to it." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1190" y="558" width="650" height="40" as="geometry"/></mxCell>
-        <mxCell id="c1051" value="Calendar, tasks, files" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="602" width="190" height="40" as="geometry"/></mxCell>
-        <mxCell id="c1052" value="shared spaces copied only to the member boxes, encrypted on the wire." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1190" y="602" width="650" height="40" as="geometry"/></mxCell>
-        <mxCell id="c1053" value="Mail and phone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1000" y="646" width="190" height="40" as="geometry"/></mxCell>
-        <mxCell id="c1054" value="the same address text still works: User@Org.LocalityChain." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1190" y="646" width="650" height="40" as="geometry"/></mxCell>
-        <mxCell id="c1055" value="A LINK IS A PAIR OF SIGNED GRANTS in the consent ledger (page 5). Either side ends it. The link names what is shared, with whom, and until when." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="980" y="720" width="880" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1056" value="WHY IT MATTERS&lt;br&gt;Privacy: no platform sits between members. Data lives on the boxes of the people in the circle, and nowhere else unless an owner chooses a copy.&lt;br&gt;No subscription: no per-seat fee and no platform account. Costs that remain are the hardware, power, an internet connection, an optional domain name, and carrier fees for outside phone numbers.&lt;br&gt;Resilience: the circle keeps working if a community box or a company goes away." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="980" y="790" width="880" height="150" as="geometry"/></mxCell>
-        <mxCell id="c1057" value="Built today: node keys and signed peer requests, a certificate broker, a Headscale tailnet test, Matrix and LiveKit for talk. Not built: circles, roster sync, path choice, the relay." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="980" y="950" width="880" height="36" as="geometry"/></mxCell>
-      </root>
-    </mxGraphModel>
-  </diagram>
-  <diagram name="8 Naming and internet protocols" id="mesh-8">
-    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1300" math="0" shadow="0">
-      <root><mxCell id="0"/><mxCell id="1" parent="0"/>
-        <mxCell id="c1001" value="One name, every protocol. A box serves its own names with the plain internet standards, so any other server or phone can reach it, on or off the mesh. PROPOSED design." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=14;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="1900" height="30" as="geometry"/></mxCell>
-        <object label="Zoom out: the open mesh" link="data:page/id,mesh-1" id="c1002"><mxCell style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;fontSize=11;align=center;verticalAlign=middle;fontStyle=1;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="40" y="60" width="260" height="34" as="geometry"/></mxCell></object>
-        <mxCell id="c1003" value="Joseph" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="110" width="150" height="48" as="geometry"/></mxCell>
-        <mxCell id="c1004" value="person" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="40" y="162" width="150" height="30" as="geometry"/></mxCell>
-        <mxCell id="c1005" value="@" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="190" y="110" width="40" height="48" as="geometry"/></mxCell>
-        <mxCell id="c1006" value="JDSileo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="230" y="110" width="150" height="48" as="geometry"/></mxCell>
-        <mxCell id="c1007" value="box" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="230" y="162" width="150" height="30" as="geometry"/></mxCell>
-        <mxCell id="c1008" value="mecklenburg" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="384" y="110" width="150" height="48" as="geometry"/></mxCell>
-        <mxCell id="c1009" value="county" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="384" y="162" width="150" height="30" as="geometry"/></mxCell>
-        <mxCell id="c1010" value="nc" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="538" y="110" width="80" height="48" as="geometry"/></mxCell>
-        <mxCell id="c1011" value="state" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="538" y="162" width="80" height="30" as="geometry"/></mxCell>
-        <mxCell id="c1012" value="usa" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="622" y="110" width="90" height="48" as="geometry"/></mxCell>
-        <mxCell id="c1013" value="country" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="622" y="162" width="90" height="30" as="geometry"/></mxCell>
-        <mxCell id="c1014" value="earth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="716" y="110" width="90" height="48" as="geometry"/></mxCell>
-        <mxCell id="c1015" value="planet" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="716" y="162" width="90" height="30" as="geometry"/></mxCell>
-        <mxCell id="c1016" value="worldofstatecraft.org" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="810" y="110" width="260" height="48" as="geometry"/></mxCell>
-        <mxCell id="c1017" value="mesh root, or any TLD aliased to it" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=9;align=center;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="810" y="162" width="260" height="30" as="geometry"/></mxCell>
-        <mxCell id="c1018" value="The text before the @ is a person. The text after it is a zone in DNS. The zone is the community tree, so the place order and the DNS order are the same." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=11;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="1080" y="110" width="900" height="44" as="geometry"/></mxCell>
-        <mxCell id="c1019" value="WHAT THE NAME DOES ON EACH PROTOCOL" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="215" width="1000" height="22" as="geometry"/></mxCell>
-        <mxCell id="c1020" value="Protocol" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="242" width="130" height="32" as="geometry"/></mxCell>
-        <mxCell id="c1021" value="Use" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="170" y="242" width="300" height="32" as="geometry"/></mxCell>
-        <mxCell id="c1022" value="How it finds the box (DNS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="470" y="242" width="330" height="32" as="geometry"/></mxCell>
-        <mxCell id="c1023" value="Built here today" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="800" y="242" width="300" height="32" as="geometry"/></mxCell>
-        <mxCell id="c1024" value="DNS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="274" width="130" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1025" value="names the zones and boxes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="274" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1026" value="each community box serves its own zone. A and AAAA records point to the box. Delegation goes from parent to child." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="274" width="330" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1027" value="No. Only the Caddy public overlay exists." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="274" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1028" value="HTTPS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="330" width="130" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1029" value="web profile and the app" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="330" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1030" value="Joseph.JDSileo.mecklenburg... A certificate per zone by ACME. A wildcard covers one label only." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="330" width="330" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1031" value="Yes for one host (Caddy). Not per zone." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="330" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1032" value="SMTP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="386" width="130" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1033" value="mail in and out" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="386" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1034" value="MX record for JDSileo.mecklenburg... plus SPF, DKIM and DMARC records." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="386" width="330" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1035" value="No. Mail server choice is held." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="386" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1036" value="IMAP or JMAP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="442" width="130" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1037" value="mail apps read the inbox" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="442" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1038" value="SRV record _imaps._tcp. The native inbox stays the source." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="442" width="330" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1039" value="No. Native inbox screens only." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="442" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1040" value="SIP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="498" width="130" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1041" value="calls to and from outside" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="498" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1042" value="SRV and NAPTR records. sip:Joseph@JDSileo... A carrier number routes into the box PBX." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="498" width="330" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1043" value="No. Deferred in the roadmap." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="498" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1044" value="Matrix" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="554" width="130" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1045" value="chat between boxes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="554" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1046" value="SRV or .well-known on the name. Boxes federate by consent." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="554" width="330" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1047" value="Matrix and .well-known: yes. Per zone: no." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="554" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1048" value="WebRTC and TURN" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="610" width="130" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1049" value="calls and screens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="610" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1050" value="LiveKit on the box. TURN on its own subdomain for boxes behind routers." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="610" width="330" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1051" value="LiveKit: yes." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="610" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1052" value="RTMP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="666" width="130" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1053" value="live streams in and out" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="666" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1054" value="live.JDSileo... takes a stream key. Publish to or take from other platforms." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="666" width="330" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1055" value="No. LiveKit offers an ingress service. Not set up." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="666" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1056" value="CalDAV and CardDAV" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="722" width="130" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1057" value="outside calendar and contact apps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="722" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1058" value="SRV records and .well-known/caldav. Reads the native calendar and CRM." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="722" width="330" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1059" value="No. Native screens and API only." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="722" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1060" value="WebFinger" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="778" width="130" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1061" value="who is this name" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="170" y="778" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1062" value="GET /.well-known/webfinger?resource=acct:Joseph@JDSileo... returns the links the person chose to publish." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="470" y="778" width="330" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1063" value="No." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="800" y="778" width="300" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1064" value="PRACTICAL LIMITS OF A HOME BOX&lt;br&gt;Many home internet plans block inbound port 25 and mail from a home address is often rejected. A box behind carrier NAT cannot be reached from outside. Home addresses change. Each is solved by a relay or smarthost run by a community box, which moves mail and traffic but holds no readable copy. This is the open decision dns-home-node-reach." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="40" y="850" width="1060" height="110" as="geometry"/></mxCell>
-        <mxCell id="c1065" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=2;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="1150" y="215" width="910" height="750" as="geometry"/></mxCell>
-        <mxCell id="c1066" value="EXTERNAL PROFILES AND PUBLIC LINES" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1170" y="223" width="860" height="22" as="geometry"/></mxCell>
-        <mxCell id="c1067" value="PERSONAL profile&lt;br&gt;Joseph@JDSileo..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="270" width="230" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1068" value="ORGANIZATION or HOUSEHOLD profile&lt;br&gt;acme@mecklenburg..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="346" width="230" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1069" value="COMMUNITY profile&lt;br&gt;mecklenburg.nc.usa.earth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="422" width="230" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1070" value="PROFILE CARD&lt;br&gt;HTTPS page and WebFinger answer. Only the fields the owner publishes. Each field has an audience (page 4)." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1480" y="330" width="230" height="90" as="geometry"/></mxCell>
-        <mxCell id="c1071" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1067" target="c1070"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1072" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1068" target="c1070"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1073" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1069" target="c1070"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1074" value="Other mail servers" style="shape=mxgraph.networks.cloud;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1770" y="270" width="280" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1075" value="SMTP" style="endArrow=classic;html=1;rounded=0;strokeColor=#4a7fb5;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1070" target="c1074"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1076" value="Public phone network (carrier line)" style="shape=mxgraph.networks.cloud;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1770" y="346" width="280" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1077" value="SIP trunk" style="endArrow=classic;html=1;rounded=0;strokeColor=#4a7fb5;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1070" target="c1076"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1078" value="Social networks and the fediverse" style="shape=mxgraph.networks.cloud;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1770" y="422" width="280" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1079" value="WebFinger, ActivityPub, API" style="endArrow=classic;html=1;rounded=0;strokeColor=#4a7fb5;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1070" target="c1078"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1080" value="Other Matrix servers" style="shape=mxgraph.networks.cloud;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1770" y="498" width="280" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1081" value="Matrix federation" style="endArrow=classic;html=1;rounded=0;strokeColor=#4a7fb5;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1070" target="c1080"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1082" value="Streaming platforms" style="shape=mxgraph.networks.cloud;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1770" y="574" width="280" height="56" as="geometry"/></mxCell>
-        <mxCell id="c1083" value="RTMP" style="endArrow=classic;html=1;rounded=0;strokeColor=#4a7fb5;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" edge="1" parent="1" source="c1070" target="c1082"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1084" value="The keys and tokens for each outside service sit in the owner's vault (built). A household, an organization and a community each have their own vault under the same model." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="520" width="560" height="70" as="geometry"/></mxCell>
-        <mxCell id="c1085" value="CONTACT EXCHANGE BY SHARED NETWORKS" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1170" y="625" width="860" height="22" as="geometry"/></mxCell>
-        <mxCell id="c1086" value="1  Each side lists the kinds of outside network it is willing to disclose, with no handles yet." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="655" width="870" height="50" as="geometry"/></mxCell>
-        <mxCell id="c1087" value="2  The two nodes show the kinds both sides have: for example a public phone line, a fediverse account, a Matrix server." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="713" width="870" height="50" as="geometry"/></mxCell>
-        <mxCell id="c1088" value="3  Each person approves which handle to hand over for each shared kind." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="771" width="870" height="50" as="geometry"/></mxCell>
-        <mxCell id="c1089" value="4  The contact is saved in the CRM with the shared handles. Removing a link removes the handle on both sides." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1170" y="829" width="870" height="50" as="geometry"/></mxCell>
-        <mxCell id="c1090" value="Default: nothing is disclosed. Public lines, such as sales@acme... or a main phone number, are published on purpose and route to the box that answers them." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="1170" y="893" width="870" height="40" as="geometry"/></mxCell>
-        <mxCell id="c1091" value="Built today: HTTPS through Caddy for one host, Matrix well-known, federation discovery, per-user vault and scoped keys. Not built: any per-zone DNS, SMTP, SIP, RTMP, WebFinger, profile cards, contact exchange." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="40" y="975" width="2000" height="30" as="geometry"/></mxCell>
-      </root>
-    </mxGraphModel>
-  </diagram>
-  <diagram name="9 Off-network profile links" id="mesh-9">
+  <diagram name="11 Off-network profile links" id="mesh-9">
     <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1300" math="0" shadow="0">
       <root><mxCell id="0"/><mxCell id="1" parent="0"/>
         <mxCell id="c1001" value="Profiles can carry links to anything outside the mesh. A link is shared with one contact or published to an audience. The owner chooses each one. The node stores the link, not the password. PROPOSED design." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=14;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="2000" height="30" as="geometry"/></mxCell>
@@ -1284,7 +1538,7 @@
         <mxCell id="c1021" value="Profile" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1150" y="212" width="200" height="36" as="geometry"/></mxCell>
         <mxCell id="c1022" value="personal, household or organization, or community" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1350" y="212" width="710" height="36" as="geometry"/></mxCell>
         <mxCell id="c1023" value="Audience" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1150" y="248" width="200" height="36" as="geometry"/></mxCell>
-        <mxCell id="c1024" value="public, community, organization, household, one contact, or only me (page 4)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1350" y="248" width="710" height="36" as="geometry"/></mxCell>
+        <mxCell id="c1024" value="public, community, organization, household, one contact, or only me (page 8)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1350" y="248" width="710" height="36" as="geometry"/></mxCell>
         <mxCell id="c1025" value="Proof" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1150" y="284" width="200" height="36" as="geometry"/></mxCell>
         <mxCell id="c1026" value="claimed, or proven by one of the checks below" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1350" y="284" width="710" height="36" as="geometry"/></mxCell>
         <mxCell id="c1027" value="Dates" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1150" y="320" width="200" height="36" as="geometry"/></mxCell>
@@ -1297,7 +1551,7 @@
         <mxCell id="c1034" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="c1030" target="c1031"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="c1035" value="signed grant" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="c1031" target="c1032"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="c1036" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="c1032" target="c1033"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="c1037" value="Before step 1 the two nodes compare only the kinds of network each side will disclose (page 8). Handles move after both approve." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="1150" y="486" width="910" height="34" as="geometry"/></mxCell>
+        <mxCell id="c1037" value="Before step 1 the two nodes compare only the kinds of network each side will disclose (page 6). Handles move after both approve." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="1150" y="486" width="910" height="34" as="geometry"/></mxCell>
         <mxCell id="c1038" value="B  PUBLISH TO A PROFILE" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1150" y="536" width="910" height="22" as="geometry"/></mxCell>
         <mxCell id="c1039" value="Link record&lt;br&gt;with its audience" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1150" y="566" width="200" height="74" as="geometry"/></mxCell>
         <mxCell id="c1040" value="Profile card&lt;br&gt;checks who is asking: public, community, organization, household, contact" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1387" y="566" width="200" height="74" as="geometry"/></mxCell>
@@ -1313,6 +1567,119 @@
         <mxCell id="c1050" value="RULES&lt;br&gt;A link is text and a pointer. It gives no access to the outside account.&lt;br&gt;Links tied to a phone number (WhatsApp, Signal, Telegram, SMS) default to one contact or only me, never public.&lt;br&gt;Removing a link stops this node from serving it. It cannot take back what a reader already saw.&lt;br&gt;An organization or community can publish public lines, such as a main phone or a help desk, as its own links." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1150" y="850" width="910" height="120" as="geometry"/></mxCell>
         <mxCell id="c1051" value="IMPORT&lt;br&gt;The owner can pull links from an export file or an approved account, and reviews each one before it is saved. Nothing is published on import." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="40" y="830" width="1060" height="66" as="geometry"/></mxCell>
         <mxCell id="c1052" value="Built today: the owner's vault, scoped keys, the CRM contact card. Not built: link records, audiences per link, proofs, profile cards, WebFinger, contact exchange." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" vertex="1" parent="1"><mxGeometry x="40" y="915" width="1060" height="30" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="12 Earlier draft: sample names (superseded)" id="node-paradigm-2">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c1001" value="SUPERSEDED earlier draft. These names predate the address ruling of 2026-11-03. See pages 2 and 5 for the current convention. Scaling up: many instances, one data-sharing and permission system. A name in the DNS tree maps to a place on the jurisdiction map. Name SHAPES below are SAMPLES: decisions dns-name-shape, dns-foreign-domain-keys and dns-home-node-reach are open in the rubric." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=13;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="40" y="20" width="1500" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c1002" value="SAMPLE DNS tree (option A, delegated subzones, the desk recommendation). Each community node runs its own zone." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=11;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="40" y="80" width="800" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c1003" value="worldofstatecraft.org&lt;br&gt;root  ·  Earth community node" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=center;verticalAlign=middle;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="360" y="110" width="260" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c1004" value="us.worldofstatecraft.org&lt;br&gt;United States community node" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="120" y="210" width="260" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c1005" value="pl.worldofstatecraft.org&lt;br&gt;Poland community node" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="560" y="210" width="260" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c1006" value="ny.us.worldofstatecraft.org&lt;br&gt;New York community node" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="120" y="310" width="260" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c1007" value="nyc.ny.us.worldofstatecraft.org&lt;br&gt;New York City community node" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="120" y="410" width="260" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c1008" value="odygowice.pl.worldofstatecraft.org&lt;br&gt;Gmina Odygowice community node" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="560" y="310" width="260" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c1009" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1003" target="c1004" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1010" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1003" target="c1005" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1011" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1004" target="c1006" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1012" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1006" target="c1007" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1013" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#333333;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;" parent="1" source="c1005" target="c1008" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1014" value="A domain holder can offer its own domain to chosen nodes:&lt;br&gt;ourtown.example   (CNAME on _acme-challenge hands over only the certificate right; delete it to revoke)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=left;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="560" y="410" width="340" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c1015" value="Stable key = the jurisdiction slug, never its position. A rename or boundary change moves an alias, not the node." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" parent="1" vertex="1">
+          <mxGeometry x="40" y="480" width="860" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c1016" value="SAMPLE node addresses by type, inside the community zone nyc.ny.us.worldofstatecraft.org" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=11;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="40" y="520" width="860" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c1017" value="Community node&lt;br&gt;nyc.ny.us.worldofstatecraft.org" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=left;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="550" width="270" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c1018" value="Organization node&lt;br&gt;acme-coop.org.nyc.ny.us.worldofstatecraft.org" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="320" y="550" width="290" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c1019" value="Household node&lt;br&gt;smiths.hh.nyc.ny.us.worldofstatecraft.org" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="620" y="550" width="280" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c1020" value="Individual node, on a community name&lt;br&gt;joseph@nyc.ny.us.worldofstatecraft.org  (email compatible)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=left;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="612" width="430" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c1021" value="Individual node, on your own domain&lt;br&gt;jd@jdsileo.com  (the same person, another address)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=left;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="480" y="612" width="420" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c1022" value="The type is a role, not a machine. One box can answer for several of these names at once." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=10;align=left;verticalAlign=top;fontColor=#333333;" parent="1" vertex="1">
+          <mxGeometry x="40" y="672" width="860" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c1023" value="Instances (boxes) and what each hosts" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#333333;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="960" y="80" width="640" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c1024" value="Box A  ·  home server&lt;br&gt;Individual (Joseph) + Household (smiths)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="960" y="110" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c1025" value="Box B  ·  community server, NYC&lt;br&gt;Community (nyc) + 3 Organizations + 400 Individuals" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1290" y="110" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c1026" value="Relay&lt;br&gt;a community node relays families behind home routers (open decision, option B)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1125" y="225" width="330" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c1027" value="Box C  ·  Raspberry Pi, Poland&lt;br&gt;Individual (one person)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="960" y="330" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c1028" value="Box D  ·  organization VPS&lt;br&gt;Organization (acme-coop)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1290" y="330" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c1029" value="family data a member consents to share" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" parent="1" source="c1024" target="c1025" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1030" value="member roster, shared records" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;" parent="1" source="c1025" target="c1028" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1031" value="chosen backup copy" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;dashed=1;" parent="1" source="c1024" target="c1027" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1032" value="read-only copy of place data" style="endArrow=classic;html=1;rounded=0;strokeColor=#d79b00;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;dashed=1;" parent="1" source="c1027" target="c1026" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1033" value="via the community relay" style="endArrow=classic;html=1;rounded=0;strokeColor=#d79b00;strokeWidth=1.5;fontSize=10;labelBackgroundColor=#ffffff;startArrow=classic;dashed=1;" parent="1" source="c1026" target="c1025" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1034" value="Rules of the mesh&lt;br&gt;- A person chooses which boxes hold their data.&lt;br&gt;- Shared assets and joint organizations may live on several boxes.&lt;br&gt;- Nothing syncs without consent, and every request is signed by the sending node.&lt;br&gt;- A box that is not physically in a place may hold that place read-only.&lt;br&gt;- Hosting a domain carries the community&#39;s agreement to that DNS entry." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="960" y="430" width="630" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="c1035" value="Ways in, on every box:&lt;br&gt;phone, desktop, laptop, TV (installed web app or native app) · smart speaker · voice satellite (Jarvis) · tools by API key" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=left;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="960" y="600" width="630" height="70" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>

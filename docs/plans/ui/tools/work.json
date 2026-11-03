@@ -18834,7 +18834,7 @@
       "blocker": "none",
       "done_when": "The repository and its history hold no live key, secret or token. Tracked config files carry placeholders only, and each box supplies real values from untracked files. A scan runs before every commit and fails on a match.",
       "depends_on": [],
-      "detail": "Rule (operator 2026-11-03): only code goes to GitHub. Keys move between nodes only through the app permission layer and the consent ledger (page 4 and 5 of the mesh diagram). Defiant today edits four tracked files in place (docker/livekit/livekit.yaml, docker/matrix/appservice/registration.yaml, docker/matrix/conf.d/20-mas.yaml, docker/matrix/mas/config.yaml). Move those to templates rendered from env, add the scan as a hook and a CI step, and check history for past leaks.",
+      "detail": "Rule (operator 2026-11-03): only code goes to GitHub. Keys move between nodes only through the app permission layer and the consent ledger (page 8 and 9 of the mesh diagram). Defiant today edits four tracked files in place (docker/livekit/livekit.yaml, docker/matrix/appservice/registration.yaml, docker/matrix/conf.d/20-mas.yaml, docker/matrix/mas/config.yaml). Move those to templates rendered from env, add the scan as a hook and a CI step, and check history for past leaks.",
       "evidence": [
         "docs/architecture/NODE_PARADIGM.md"
       ],
@@ -19044,7 +19044,7 @@
       "kind": "build",
       "status": "open",
       "blocker": "none",
-      "done_when": "Tables hold the person name, optional sub-profile, box slug, locality chain, generated unique id and chosen alias. A resolver turns any address form on page 3 of the mesh diagram into a person, a box and a datastore. Pins cover every form and the web-profile dot form.",
+      "done_when": "Tables hold the person name, optional sub-profile, box slug, locality chain, generated unique id and chosen alias. A resolver turns any address form on page 5 of the mesh diagram into a person, a box and a datastore. Pins cover every form and the web-profile dot form.",
       "depends_on": [
         "W-0491"
       ],
@@ -19296,7 +19296,7 @@
       "depends_on": [
         "W-0495"
       ],
-      "detail": "Reuses node keys and signed requests, which exist today. Defined on page 5 of the mesh diagram.",
+      "detail": "Reuses node keys and signed requests, which exist today. Defined on page 9 of the mesh diagram.",
       "evidence": [
         "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
       ],
@@ -19323,7 +19323,7 @@
       "kind": "build",
       "status": "open",
       "blocker": "none",
-      "done_when": "Each data class can be set per audience: me, household, organization, community, chosen peers, public. The default outside me is none. Every read path checks it. Pins cover each class on page 4 of the mesh diagram.",
+      "done_when": "Each data class can be set per audience: me, household, organization, community, chosen peers, public. The default outside me is none. Every read path checks it. Pins cover each class on page 8 of the mesh diagram.",
       "depends_on": [
         "W-0503"
       ],

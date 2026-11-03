@@ -1,6 +1,6 @@
 # The node paradigm
 
-Status: design record, written 2026-11-02 from the operator's direction. Rulings of the same day are in section 9. The mesh, address, sharing and replication designs are in `NODE_MESH_AND_DATA_SHARING.drawio` (nine linked pages). The code is the authority on what is built (see CLAUDE.md). Every "Built" statement below was checked against the repository on this date. The diagram is `NODE_PARADIGM.drawio` in this folder (four pages).
+Status: design record, written 2026-11-02 from the operator's direction. Rulings of the same day are in section 9. The mesh, address, sharing and replication designs are in `NODE_MESH_AND_DATA_SHARING.drawio` (twelve linked pages, merged from the former NODE_PARADIGM.drawio on 2026-11-03). The code is the authority on what is built (see CLAUDE.md). Every "Built" statement below was checked against the repository on this date. Pages 1 (node types) and 4 (ways in) came from the former `NODE_PARADIGM.drawio`. Page 12 keeps its earlier sample names for the record.
 
 ## 1. The idea
 
@@ -44,7 +44,7 @@ These rules apply to every type.
 
 ## 5. Addressing
 
-Ruled 2026-11-03. Every node uses the DNS address system. The community tree is the DNS tree. A person is the text before the `@`. The chain of places is the text after it, read from the right. The mesh root is `worldofstatecraft.org`. Any other TLD can be aliased to the same mesh. Diagram: page 3 of `NODE_MESH_AND_DATA_SHARING.drawio`.
+Ruled 2026-11-03. Every node uses the DNS address system. The community tree is the DNS tree. A person is the text before the `@`. The chain of places is the text after it, read from the right. The mesh root is `worldofstatecraft.org`. Any other TLD can be aliased to the same mesh. Diagram: page 5 of `NODE_MESH_AND_DATA_SHARING.drawio`.
 
 Forms in use now:
 
@@ -92,7 +92,7 @@ Needed, in order:
 
 1. A node profile in the operator area. It shows and changes which node types this host runs. Individual is always on. Community is a switch (simulation, or a real community).
 2. A scope per type: who may hold an account here, which places or groups the data covers, and what is shared outward. The vocabulary is open (rubric `node-scope-vocabulary`).
-3. Resources per type: storage and compute this host offers the mesh, and how a community node sets its allotments and replication target (designs: `NODE_MESH_AND_DATA_SHARING.drawio`, pages 4 and 5).
+3. Resources per type: storage and compute this host offers the mesh, and how a community node sets its allotments and replication target (designs: `NODE_MESH_AND_DATA_SHARING.drawio`, pages 9 and 10).
 4. A measured list of the containers each node set needs (section 10).
 5. An interfaces area: install the web app, issue API keys, pair a voice satellite.
 6. An address area, after the DNS decisions are ruled.
@@ -143,11 +143,17 @@ A box can run one set or all of them. The running demo box runs every set. Measu
 
 Proposed, not built. See `NODE_MESH_AND_DATA_SHARING.drawio`.
 
-- Page 4, who sees what: rings from Me to the public, and a table of data classes against audiences. Everything outside Me starts at None. A person raises it per item and per audience.
-- Page 5, self-selecting replication: the owner chooses what is copied, how many copies, and which hosts. Hosts volunteer capacity. A host stores ciphertext it cannot read. A signed consent ledger records every offer and grant. A community node sets a replication target for community records, a quota per member, and roles for nodes with more storage or compute.
-- Page 6, settings screen mockup: what this node offers, what is held elsewhere, what it holds for others, community allotments, and the relationships in plain words, generated from the ledger.
+- Page 1, node types: the four types as circles with the uses each serves.
+- Page 2, clients and the open mesh: the community tree as the DNS tree, boxes with their screens and addresses.
+- Page 3, inside a box: node kits and shared layers on one box, with the containers by kit.
+- Page 4, ways in: every screen drives the same node through one surface layer.
+- Page 5, address forms.
+- Page 6, naming and internet protocols: one name serves DNS, HTTPS, SMTP, IMAP, SIP, Matrix, TURN, RTMP, CalDAV and WebFinger on the box. Profiles (personal, organization, community) link to outside services and public lines through a profile card, and contacts exchange handles by shared network kinds with per-field consent. Home boxes need a relay or smarthost for port 25 and NAT.
 - Page 7, peer circles and the short path: households and organizations link directly and form their own community, independent of any physical community box. Data takes the shortest path (same network, direct, relay, tree) and stays on the member boxes. A link is a pair of signed grants in the consent ledger.
-- Page 8, naming and internet protocols: one name serves DNS, HTTPS, SMTP, IMAP, SIP, Matrix, TURN, RTMP, CalDAV and WebFinger on the box. Profiles (personal, organization, community) link to outside services and public lines through a profile card, and contacts exchange handles by shared network kinds with per-field consent. Home boxes need a relay or smarthost for port 25 and NAT.
-- Page 9, off-network profile links: a catalogue of what can be linked (messaging apps, social networks, professional, media, meetings, phone and mail, web, payments, organizations, identity proofs), the link record, sharing between two people, publishing to a profile by audience, three ways to prove a link, and the rules (a link is a pointer, phone-number links default to private, removal cannot recall what was seen).
+- Page 8, who sees what: rings from Me to the public, and a table of data classes against audiences. Everything outside Me starts at None. A person raises it per item and per audience.
+- Page 9, self-selecting replication: the owner chooses what is copied, how many copies, and which hosts. Hosts volunteer capacity. A host stores ciphertext it cannot read. A signed consent ledger records every offer and grant. A community node sets a replication target for community records, a quota per member, and roles for nodes with more storage or compute.
+- Page 10, settings screen mockup: what this node offers, what is held elsewhere, what it holds for others, community allotments, and the relationships in plain words, generated from the ledger.
+- Page 11, off-network profile links: a catalogue of what can be linked (messaging apps, social networks, professional, media, meetings, phone and mail, web, payments, organizations, identity proofs), the link record, sharing between two people, publishing to a profile by audience, three ways to prove a link, and the rules (a link is a pointer, phone-number links default to private, removal cannot recall what was seen).
+- Page 12, earlier draft: the first sample names, superseded by pages 2 and 5.
 
 Built today and reusable: node identity and signed requests between nodes, a certificate broker for peers, a Headscale tailnet test, Patroni data-tier failover.
