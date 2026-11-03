@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-09-21",
+  "asOf": "2026-11-03",
   "head": "4fc4538d",
   "phases": [
     {
@@ -26,6 +26,31 @@
       "id": "P5",
       "name": "Backlog",
       "goal": "Post-conference hardening, dead-code cleanup, and deferred features."
+    },
+    {
+      "id": "N1",
+      "name": "Node basics on the running box",
+      "goal": "Secrets stay out of git. The box knows which node kits it runs. Every person is in a household of one. Addresses exist in the data model."
+    },
+    {
+      "id": "N2",
+      "name": "Addresses and the DNS tree",
+      "goal": "The community tree is the DNS tree. A client finds its nearest box from the address chain. Mail and SIP use the same text."
+    },
+    {
+      "id": "N3",
+      "name": "Sharing, replication and resources",
+      "goal": "Data moves between boxes only by consent. People and communities volunteer storage and compute, and see it in one screen and one chart."
+    },
+    {
+      "id": "N4",
+      "name": "Individual kit and Jarvis",
+      "goal": "Features built in the Jarvis prototype arrive here. Statecraft surfaces go back to the Jarvis screens."
+    },
+    {
+      "id": "N5",
+      "name": "Backup and operations",
+      "goal": "The running box backs up to a second box. Containers per node set are measured. Credentials are rotated."
     },
     {
       "id": "done",
@@ -18796,6 +18821,864 @@
         {
           "date": "2026-09-21",
           "note": "1074eb20 deployed 17:32 UTC. Chromium and Firefox local checks passed, including exact multiline submissions. Both deployed page bundles passed browser-only fixture rendering checks. No live posts, migrations, restarts or configuration changes."
+        }
+      ]
+    },
+    {
+      "id": "W-0488",
+      "title": "Keep credentials out of git: audit, template and scan",
+      "phase": "N1",
+      "order": 70,
+      "kind": "ops",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The repository and its history hold no live key, secret or token. Tracked config files carry placeholders only, and each box supplies real values from untracked files. A scan runs before every commit and fails on a match.",
+      "depends_on": [],
+      "detail": "Rule (operator 2026-11-03): only code goes to GitHub. Keys move between nodes only through the app permission layer and the consent ledger (page 4 and 5 of the mesh diagram). Defiant today edits four tracked files in place (docker/livekit/livekit.yaml, docker/matrix/appservice/registration.yaml, docker/matrix/conf.d/20-mas.yaml, docker/matrix/mas/config.yaml). Move those to templates rendered from env, add the scan as a hook and a CI step, and check history for past leaks.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0489",
+      "title": "Rotate the credentials that appeared in session logs",
+      "phase": "N5",
+      "order": 71,
+      "kind": "ops",
+      "status": "blocked",
+      "blocker": "operator",
+      "done_when": "Matrix, LiveKit, OIDC and any other key seen in logs or config output is replaced on every box, and the old values stop working.",
+      "depends_on": [
+        "W-0488"
+      ],
+      "detail": "Operator does this later and enters the values himself. The desk lists every credential and the file that holds it, prepares the steps, and does not handle the new values.",
+      "evidence": [],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0490",
+      "title": "Node profile in the operator area",
+      "phase": "N1",
+      "order": 72,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "An operator screen shows which node kits this box runs (Individual always on, Household, Organization, Community as simulation or real) and the scope of each. The choice is stored on instance_settings and read by the app. A pin covers the operator gate.",
+      "depends_on": [],
+      "detail": "Proposed columns hosted_node_types and node_scopes on instance_settings (JSON). No fresh-node wizard. Scope vocabulary follows the 2026-11-02 ruling: free-form rules inside four contexts on the civic roles.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0491",
+      "title": "Household of one for every person",
+      "phase": "N1",
+      "order": 73,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Every user, new and existing, belongs to a household organization of one. A migration backfills existing users in bounded chunks. Joining a second person turns it into a shared household without moving data.",
+      "depends_on": [
+        "W-0490"
+      ],
+      "detail": "A household is an organization type. Presets for permission delegation and succession triggers come later in the household kit item. Backfill must follow the ETL paradigm (chunked, resumable, visible) because the users table holds about 18.9 million simulated rows.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0492",
+      "title": "Relationship roles and onboarding by invite",
+      "phase": "N1",
+      "order": 74,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The operator invites a person and names the relationship (friend, partner, parent, coworker, user-defined). The role is stored on the membership and is usable in permission rules. R-xx civic roles stay unchanged for organizations.",
+      "depends_on": [
+        "W-0491"
+      ],
+      "detail": "Extends the short invite links built 2026-11-02. Labels are user-defined, like CRM labels. Individual roles sit beside the R-xx roles.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0493",
+      "title": "Household kit: presets, succession triggers, shared spaces",
+      "phase": "N1",
+      "order": 75,
+      "kind": "feature",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "A household can choose a delegation preset, name succession triggers, and share a calendar, tasks and files. A family that runs as a business can switch on the organization toolkit.",
+      "depends_on": [
+        "W-0491",
+        "W-0492"
+      ],
+      "detail": "Built on the organizations module (Phase 4). Shared files and shared CRM are not built there yet.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0494",
+      "title": "Community add-on switch: simulation or real community",
+      "phase": "N1",
+      "order": 76,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The operator can run the community kit as the simulation (current demo data and maps) or as a real community that hosts its own members. The switch shows in the node profile. No map re-import.",
+      "depends_on": [
+        "W-0490"
+      ],
+      "detail": "World of Statecraft becomes the simulation community node, an optional add-on. A real community uses the same engine and starts empty.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0495",
+      "title": "Address data model and internal resolver",
+      "phase": "N2",
+      "order": 77,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Tables hold the person name, optional sub-profile, box slug, locality chain, generated unique id and chosen alias. A resolver turns any address form on page 3 of the mesh diagram into a person, a box and a datastore. Pins cover every form and the web-profile dot form.",
+      "depends_on": [
+        "W-0491"
+      ],
+      "detail": "Forms: User@Organization(s).LocalityChain(s), User@LocalityChain(s), User@OwnDomain, Organization(s)@LocalityChain(s), User+Unique+Alias@earth. The + chain of hosted inboxes comes later. No DNS is needed for this step.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md",
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0496",
+      "title": "Rule the three DNS questions",
+      "phase": "N2",
+      "order": 78,
+      "kind": "verify",
+      "status": "blocked",
+      "blocker": "operator",
+      "done_when": "The operator answers dns-name-shape, dns-foreign-domain-keys and dns-home-node-reach in the rubric, and the answers are folded into the rulings.",
+      "depends_on": [],
+      "detail": "Open in the Questions tab. Desk recommendations are A, A and B. The mail server choice waits on these answers.",
+      "evidence": [
+        "docs/plans/ui/tools/gen_app_rubric.py"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0497",
+      "title": "DNS zones for the community tree",
+      "phase": "N2",
+      "order": 79,
+      "kind": "build",
+      "status": "blocked",
+      "blocker": "W-0496",
+      "done_when": "A community box serves its own zone. A child box is delegated from its parent. A name resolves from the root down to a household box. The demo tree resolves on the demo box.",
+      "depends_on": [
+        "W-0496"
+      ],
+      "detail": "Shape depends on the dns-name-shape answer. A wildcard certificate covers one label, so the design keeps one zone per community.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0498",
+      "title": "Own-domain aliases for households, organizations and communities",
+      "phase": "N2",
+      "order": 80,
+      "kind": "build",
+      "status": "blocked",
+      "blocker": "W-0496",
+      "done_when": "A holder adds its own domain. Chosen boxes host it with certificates obtained by challenge delegation. Removing one record revokes it. Alias rights are managed with the key permissions.",
+      "depends_on": [
+        "W-0496"
+      ],
+      "detail": "Depends on the dns-foreign-domain-keys answer. The desk recommendation is ACME challenge delegation by CNAME, so no private key leaves the holder.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0499",
+      "title": "Home box reach: relay for boxes behind a router",
+      "phase": "N2",
+      "order": 81,
+      "kind": "build",
+      "status": "blocked",
+      "blocker": "W-0496",
+      "done_when": "A household box behind a home router joins the mesh through a community relay. The relay sees only ciphertext it cannot read.",
+      "depends_on": [
+        "W-0496"
+      ],
+      "detail": "Depends on the dns-home-node-reach answer. Reuses the certificate broker and the Headscale tailnet test.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0500",
+      "title": "Client finds its nearest box",
+      "phase": "N2",
+      "order": 82,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "A client reads the address chain from the right and connects to the nearest box that offers the datastore, with failover to the next. The client shows which box it uses and lets the person pick another.",
+      "depends_on": [
+        "W-0495"
+      ],
+      "detail": "Works first over the internal resolver, then over DNS. Controls where data flows, which the operator named as a goal.",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0501",
+      "title": "Mail server on the node domain",
+      "phase": "N2",
+      "order": 83,
+      "kind": "build",
+      "status": "blocked",
+      "blocker": "W-0496",
+      "done_when": "An established mail server (Postfix class) runs on the node domain, delivers to the native inbox, and sends with the approval rules already built. Same address text works on and off the mesh.",
+      "depends_on": [
+        "W-0495",
+        "W-0496"
+      ],
+      "detail": "Choice held until the DNS questions are ruled. Candidates: Postfix with Dovecot, or Stalwart. Do not write mail transport from scratch.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0502",
+      "title": "Self-hosted SIP and phone numbers",
+      "phase": "N2",
+      "order": 84,
+      "kind": "feature",
+      "status": "deferred",
+      "blocker": "none",
+      "done_when": "A box runs a SIP endpoint and a small internal PBX. A purchased number from a carrier routes into it. A person calls and receives on the same address text.",
+      "depends_on": [
+        "W-0495"
+      ],
+      "detail": "Matrix and LiveKit already cover talk between members. This item adds outside phone numbers. Carrier choice and costs are open.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0503",
+      "title": "Consent ledger and signed grants between boxes",
+      "phase": "N3",
+      "order": 85,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Every offer and grant is a signed record: who, what, how much, until when. Either side can end it. The ledger is the single source for the sharing screen and the relationship chart.",
+      "depends_on": [
+        "W-0495"
+      ],
+      "detail": "Reuses node keys and signed requests, which exist today. Defined on page 5 of the mesh diagram.",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0504",
+      "title": "Per-item audience permissions (the who-sees-what rings)",
+      "phase": "N3",
+      "order": 86,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Each data class can be set per audience: me, household, organization, community, chosen peers, public. The default outside me is none. Every read path checks it. Pins cover each class on page 4 of the mesh diagram.",
+      "depends_on": [
+        "W-0503"
+      ],
+      "detail": "Classes: private notes and tasks, calendar details, free and busy, contacts, mail, files, room messages, profile.",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0505",
+      "title": "Self-selecting replication: encrypted copies, proofs, repair, revoke",
+      "phase": "N3",
+      "order": 87,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "An owner chooses what is copied and to which hosts. The data is encrypted with a key only the owner holds and split into chunks. Hosts prove they still hold it. A failing host is flagged and the copy is repaired elsewhere. Revoking a host deletes its copy and rotates the key for new data.",
+      "depends_on": [
+        "W-0503"
+      ],
+      "detail": "Page 5 of the mesh diagram. Personal data may live on several boxes, so one family can span nodes.",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0506",
+      "title": "Volunteered resources and community allotments",
+      "phase": "N3",
+      "order": 88,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "A person or box offers storage, compute and bandwidth with ceilings, hours and allowed audiences. A community sets a replication target, a quota per member, a minimum a member host must offer, and roles for larger nodes (backup host, relay, compute helper).",
+      "depends_on": [
+        "W-0503",
+        "W-0505"
+      ],
+      "detail": "Needed before communities can ask members to host community records.",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0507",
+      "title": "Node resources and sharing screen, and the relationship chart",
+      "phase": "N3",
+      "order": 89,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "One screen shows what this node offers, what is held elsewhere, what it holds for others, community allotments and the relationships in plain words. Every sentence is generated from the ledger. Clicking a line shows the grant and ends it.",
+      "depends_on": [
+        "W-0503",
+        "W-0506"
+      ],
+      "detail": "Page 6 of the mesh diagram is the mockup. The same data feeds a chart a non-technical person can read.",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0508",
+      "title": "Recursive hosted inboxes up the tree",
+      "phase": "N3",
+      "order": 90,
+      "kind": "feature",
+      "status": "deferred",
+      "blocker": "none",
+      "done_when": "A county, state, country, planet or the root can offer to hold an inbox for people below it, using the + chain. A person accepts or declines each offer.",
+      "depends_on": [
+        "W-0495",
+        "W-0503"
+      ],
+      "detail": "Later by the operator ruling of 2026-11-03: the simple forms come first.",
+      "evidence": [
+        "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0509",
+      "title": "Port the remaining Jarvis features: assistant chat and connectors",
+      "phase": "N4",
+      "order": 91,
+      "kind": "feature",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The assistant chat and the connectors to outside services work in Statecraft through the per-user vault and scoped keys. Each outside service is shown in /connections with its scopes.",
+      "depends_on": [],
+      "detail": "Calendar, tasks, CRM, inbox, messenger and calls, vault and keys are done. Pipeline view and builder are held until Jarvis has it working.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0510",
+      "title": "Interfaces area: install the web app, issue keys, pair a voice satellite",
+      "phase": "N4",
+      "order": 92,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "An operator and user screen walks through installing the web app, issuing scoped keys, and pairing a Jarvis voice satellite, with the paired devices listed and revocable.",
+      "depends_on": [
+        "W-0490"
+      ],
+      "detail": "Part of the node profile work. Statecraft screens are simplified as features arrive, for TV and voice use.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0511",
+      "title": "Backup, tier 1: small and frequent",
+      "phase": "N5",
+      "order": 93,
+      "kind": "ops",
+      "status": "open",
+      "blocker": "operator_go",
+      "done_when": "Hourly dumps of the Matrix databases and the real-person Statecraft tables, nightly files, reach the second box. A restore into a scratch database matches row counts.",
+      "depends_on": [
+        "W-0512"
+      ],
+      "detail": "Needs the operator word for a read-only backup_reader role and the backup:manifest command. Plan: docs/operations/BACKUP_DEFIANT_TO_VOYAGER.md. The Jarvis session builds the schedule.",
+      "evidence": [
+        "docs/operations/BACKUP_DEFIANT_TO_VOYAGER.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0512",
+      "title": "Rule that separates real users from simulated users",
+      "phase": "N5",
+      "order": 94,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "A stored marker or rule selects real people in the users table, and backup:manifest lists them. Pins cover both groups.",
+      "depends_on": [],
+      "detail": "The users table holds about 18.9 million simulated rows beside real ones. Tier 1 backup needs this. Must be chunked per the ETL paradigm.",
+      "evidence": [],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0513",
+      "title": "Backup, tier 2: the whole database",
+      "phase": "N5",
+      "order": 95,
+      "kind": "ops",
+      "status": "open",
+      "blocker": "operator",
+      "done_when": "The operator picks one of four options after a trial on the small matrix database. The chosen option runs on a schedule with a monthly full restore test and a stale-backup alert.",
+      "depends_on": [
+        "W-0511"
+      ],
+      "detail": "Options: pgBackRest, native incremental, streaming standby, weekly logical dump. Defiant is 84 percent full, so nothing stages there.",
+      "evidence": [
+        "docs/operations/BACKUP_DEFIANT_TO_VOYAGER.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0514",
+      "title": "Measure the containers each node set needs",
+      "phase": "N5",
+      "order": 96,
+      "kind": "verify",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "For the Individual, Household, Organization and Community sets, the services that must run are measured on the running box (memory and disk). The table in NODE_PARADIGM.md section 10 is replaced by the measured one.",
+      "depends_on": [],
+      "detail": "Measure before cutting any service. An Individual-only box likely drops etl and the large horizon.",
+      "evidence": [
+        "docs/architecture/NODE_PARADIGM.md"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        }
+      ]
+    },
+    {
+      "id": "W-0515",
+      "title": "Translations for the new screens",
+      "phase": "N5",
+      "order": 97,
+      "kind": "content",
+      "status": "deferred",
+      "blocker": "none",
+      "done_when": "The workspace, messenger, node profile, sharing and resources screens are in every enabled language and pass the raw-string scan.",
+      "depends_on": [
+        "W-0490",
+        "W-0507",
+        "W-0510"
+      ],
+      "detail": "Deferred by the operator until the interfaces are finished.",
+      "evidence": [],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-02/03 node rulings and addressing ruling",
+          "title": "Node paradigm roadmap",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
         }
       ]
     }
