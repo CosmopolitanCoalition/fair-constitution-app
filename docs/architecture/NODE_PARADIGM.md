@@ -1,6 +1,6 @@
 # The node paradigm
 
-Status: design record, written 2026-11-02 from the operator's direction. Rulings of the same day are in section 9. The mesh, address, sharing and replication designs are in `NODE_MESH_AND_DATA_SHARING.drawio` (six linked pages). The code is the authority on what is built (see CLAUDE.md). Every "Built" statement below was checked against the repository on this date. The diagram is `NODE_PARADIGM.drawio` in this folder (four pages).
+Status: design record, written 2026-11-02 from the operator's direction. Rulings of the same day are in section 9. The mesh, address, sharing and replication designs are in `NODE_MESH_AND_DATA_SHARING.drawio` (seven linked pages). The code is the authority on what is built (see CLAUDE.md). Every "Built" statement below was checked against the repository on this date. The diagram is `NODE_PARADIGM.drawio` in this folder (four pages).
 
 ## 1. The idea
 
@@ -146,5 +146,6 @@ Proposed, not built. See `NODE_MESH_AND_DATA_SHARING.drawio`.
 - Page 4, who sees what: rings from Me to the public, and a table of data classes against audiences. Everything outside Me starts at None. A person raises it per item and per audience.
 - Page 5, self-selecting replication: the owner chooses what is copied, how many copies, and which hosts. Hosts volunteer capacity. A host stores ciphertext it cannot read. A signed consent ledger records every offer and grant. A community node sets a replication target for community records, a quota per member, and roles for nodes with more storage or compute.
 - Page 6, settings screen mockup: what this node offers, what is held elsewhere, what it holds for others, community allotments, and the relationships in plain words, generated from the ledger.
+- Page 7, peer circles and the short path: households and organizations link directly and form their own community, independent of any physical community box. Data takes the shortest path (same network, direct, relay, tree) and stays on the member boxes. A link is a pair of signed grants in the consent ledger.
 
 Built today and reusable: node identity and signed requests between nodes, a certificate broker for peers, a Headscale tailnet test, Patroni data-tier failover.
