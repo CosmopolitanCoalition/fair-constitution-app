@@ -66,7 +66,7 @@ function onKey(e) { if (e.key === 'Escape') close(); }
 </template>
 
 <style scoped>
-.assistant-drawer { position: fixed; inset-block: 0; inset-inline-end: 0; inline-size: min(26rem, 100vw); z-index: 60; display: flex; flex-direction: column; gap: .6rem;
+.assistant-drawer { position: fixed; inset-block-start: 4rem; inset-block-end: 5rem; inset-inline-end: 0; inline-size: min(26rem, 100vw); z-index: 60; display: flex; flex-direction: column; gap: .6rem;
     padding: var(--space-4); background: var(--gov-surface); color: var(--gov-fg); border-inline-start: 1px solid var(--gov-border); box-shadow: var(--shadow-lg, 0 0 24px rgb(0 0 0 / .2)); }
 .assistant-drawer header { display: flex; align-items: center; justify-content: space-between; }
 .assistant-drawer h2 { margin: 0; font-size: var(--text-lg); }
