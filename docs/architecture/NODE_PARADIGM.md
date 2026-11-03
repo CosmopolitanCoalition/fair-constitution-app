@@ -1,6 +1,6 @@
 # The node paradigm
 
-Status: design record, written 2026-11-02 from the operator's direction. Rulings of the same day are in section 9. The mesh, address, sharing and replication designs are in `NODE_MESH_AND_DATA_SHARING.drawio` (eight linked pages). The code is the authority on what is built (see CLAUDE.md). Every "Built" statement below was checked against the repository on this date. The diagram is `NODE_PARADIGM.drawio` in this folder (four pages).
+Status: design record, written 2026-11-02 from the operator's direction. Rulings of the same day are in section 9. The mesh, address, sharing and replication designs are in `NODE_MESH_AND_DATA_SHARING.drawio` (nine linked pages). The code is the authority on what is built (see CLAUDE.md). Every "Built" statement below was checked against the repository on this date. The diagram is `NODE_PARADIGM.drawio` in this folder (four pages).
 
 ## 1. The idea
 
@@ -148,5 +148,6 @@ Proposed, not built. See `NODE_MESH_AND_DATA_SHARING.drawio`.
 - Page 6, settings screen mockup: what this node offers, what is held elsewhere, what it holds for others, community allotments, and the relationships in plain words, generated from the ledger.
 - Page 7, peer circles and the short path: households and organizations link directly and form their own community, independent of any physical community box. Data takes the shortest path (same network, direct, relay, tree) and stays on the member boxes. A link is a pair of signed grants in the consent ledger.
 - Page 8, naming and internet protocols: one name serves DNS, HTTPS, SMTP, IMAP, SIP, Matrix, TURN, RTMP, CalDAV and WebFinger on the box. Profiles (personal, organization, community) link to outside services and public lines through a profile card, and contacts exchange handles by shared network kinds with per-field consent. Home boxes need a relay or smarthost for port 25 and NAT.
+- Page 9, off-network profile links: a catalogue of what can be linked (messaging apps, social networks, professional, media, meetings, phone and mail, web, payments, organizations, identity proofs), the link record, sharing between two people, publishing to a profile by audience, three ways to prove a link, and the rules (a link is a pointer, phone-number links default to private, removal cannot recall what was seen).
 
 Built today and reusable: node identity and signed requests between nodes, a certificate broker for peers, a Headscale tailnet test, Patroni data-tier failover.
