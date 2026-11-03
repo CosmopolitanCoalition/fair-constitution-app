@@ -9,7 +9,7 @@ import { useNodeChoices } from '@/lib/nodeChoices.js';
 
 const props = defineProps({ bundles: Array, external: Array, host: Object });
 const { t } = useI18n();
-const picked = useNodeChoices('bundles', { on: Object.fromEntries(props.bundles.map(b => [b.id, b.status === 'running'])), ext: {} });
+const picked = useNodeChoices('bundles', { on: Object.fromEntries(props.bundles.map(b => [b.id, false])), ext: {} });
 const tone = s => ({ running: 'success', built: 'success', partial: 'warning', planned: 'neutral' })[s] || 'neutral';
 const ram = computed(() => props.bundles.filter(b => picked.value.on[b.id]).reduce((n, b) => n + b.ram_mb, 0));
 const disk = computed(() => props.bundles.filter(b => picked.value.on[b.id]).reduce((n, b) => n + b.disk_gb, 0));
@@ -27,12 +27,12 @@ const diskOver = computed(() => props.host.disk_free_gb !== null && disk.value >
             <h2 id="b-cost">{{ t('c_node.bundles.cost', 'What your picks need') }}</h2>
             <p>
                 {{ t('c_node.bundles.mem', 'Memory') }}: {{ ram }} MB
-                <template v-if="host.memory_mb !== null">{{ t('c_node.bundles.of', 'of') }} {{ host.memory_mb }} MB {{ t('c_node.bundles.limit', 'available to this container') }}</template>.
+                <template v-if="host.memory_mb !== null">{{ t('c_node.bundles.of', 'of') }} {{ host.memory_mb }} MB {{ t('c_node.bundles.limit', 'on this box') }}</template>.
                 {{ t('c_node.bundles.disk', 'Disk') }}: {{ disk }} GB
                 <template v-if="host.disk_free_gb !== null">{{ t('c_node.bundles.of', 'of') }} {{ host.disk_free_gb }} GB {{ t('c_node.bundles.free', 'free') }}</template>.
             </p>
             <p v-if="ramOver || diskOver"><StatusBadge tone="danger">{{ t('c_node.bundles.warn', 'These picks are larger than this box reports. Remove one or accept the risk.') }}</StatusBadge></p>
-            <p class="muted">{{ t('c_node.bundles.measure', 'Sizes are estimates until the container measurement work is done.') }}</p>
+            <p class="muted">{{ t('c_node.bundles.measure', 'Sizes are estimates until the container measurement work is done. A bundle marked running is running somewhere in the fleet, not necessarily on this box. Tick the ones you want on this box.') }}</p>
         </section>
 
         <article v-for="b in bundles" :key="b.id" class="app-setting-card" :aria-labelledby="'b-' + b.id">

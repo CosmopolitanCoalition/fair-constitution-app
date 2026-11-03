@@ -152,16 +152,14 @@ class NodeController extends Controller
         return $q->count();
     }
 
-    /** Memory and disk of the host, read from the container limits when they exist. */
+    /** Memory and free disk of the host. */
     private function hostSize(): array
     {
+        // The box is the host, not this container: read the host total from meminfo.
         $mem = null;
-        foreach (['/sys/fs/cgroup/memory.max', '/sys/fs/cgroup/memory/memory.limit_in_bytes'] as $f) {
-            $v = is_readable($f) ? trim((string) @file_get_contents($f)) : '';
-            if ($v !== '' && ctype_digit($v) && (float) $v < 1e13) {
-                $mem = (int) round((float) $v / 1048576);
-                break;
-            }
+        $info = is_readable('/proc/meminfo') ? (string) @file_get_contents('/proc/meminfo') : '';
+        if (preg_match('/^MemTotal:\s+(\d+)\s+kB/m', $info, $m)) {
+            $mem = (int) round(((int) $m[1]) / 1024);
         }
         $free = @disk_free_space(base_path());
 
