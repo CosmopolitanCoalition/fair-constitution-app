@@ -519,6 +519,16 @@ QUESTIONS = [
    "options":[{"k":"A","t":"Cloudflare Tunnel per node, as the demo does now. Simple, one outside vendor in the path."},
     {"k":"B","t":"A community node acts as the relay for its families (an overlay such as WireGuard), and the community zone holds the public address. No outside vendor. Needs one reachable community node. [desk rec]"},
     {"k":"C","t":"Public address and dynamic DNS only. Works for nodes with a public line and fails for the rest."}]},
+  {"id":"node-types-default","q":"Which node types does a fresh box host by default?","status":"open","lane":"setup",
+   "detail":"Setup today builds only a Community node (steps 0 to 6). A node profile step is needed so an operator chooses what the box hosts. The default decides what a first-time operator sees: a full community build, or a light personal box. Existing installs that already finished setup would keep Community on. See docs/architecture/NODE_PARADIGM.md section 7.",
+   "options":[{"k":"A","t":"Individual only. Household, Organization and Community are opt-in choices in the new step. The community build runs only when chosen. [desk rec]"},
+    {"k":"B","t":"Individual and Community on, as the product behaves today. The operator switches Household and Organization on, and may switch Community off."},
+    {"k":"C","t":"No default. The operator must choose at least one type before Setup continues."}]},
+  {"id":"node-scope-vocabulary","q":"How does the operator describe who may hold an account on a box and what it shares?","status":"open","lane":"setup",
+   "detail":"Each hosted type needs a scope: who may have an account here, which places or groups the data covers, and what is shared outward. The vocabulary becomes the setup screen and the stored value on instance_settings, so it should stay small enough to read at a glance.",
+   "options":[{"k":"A","t":"Three fixed levels per type: Private (only me), Invited (named people), Open to residents of chosen places. Sharing outward is a separate list of peers and domains. [desk rec]"},
+    {"k":"B","t":"Free-form rules per type, written by the operator. Most flexible, hardest to read and to check."},
+    {"k":"C","t":"Reuse the existing role vocabulary (R-xx) as the account scope. Consistent with the engine, but it ties household and individual boxes to civic roles."}]},
 ]
 # Operator answers (2026-07-29) — flip the 9 open to RESOLVED with the ruling folded in.
 _ANS = {
