@@ -1,6 +1,6 @@
 # The node paradigm
 
-Status: design record, written 2026-11-02 from the operator's direction. Rulings of the same day are in section 9. The mesh, address, sharing and replication designs are in `NODE_MESH_AND_DATA_SHARING.drawio` (twelve linked pages, merged from the former NODE_PARADIGM.drawio on 2026-11-03). The code is the authority on what is built (see CLAUDE.md). Every "Built" statement below was checked against the repository on this date. Pages 1 (node types) and 4 (ways in) came from the former `NODE_PARADIGM.drawio`. Page 12 is the former "Mesh and addresses" page, kept as a second view of how nodes connect.
+Status: design record, written 2026-11-02 from the operator's direction. Rulings of the same day are in section 9. The mesh, address, sharing and replication designs are in `NODE_MESH_AND_DATA_SHARING.drawio` (fourteen linked pages, merged from the former NODE_PARADIGM.drawio on 2026-11-03). The code is the authority on what is built (see CLAUDE.md). Every "Built" statement below was checked against the repository on this date. Pages 1 (node types) and 4 (ways in) came from the former `NODE_PARADIGM.drawio`. Page 12 is the former "Mesh and addresses" page, kept as a second view of how nodes connect.
 
 ## 1. The idea
 
@@ -155,5 +155,7 @@ Proposed, not built. See `NODE_MESH_AND_DATA_SHARING.drawio`.
 - Page 10, settings screen mockup: what this node offers, what is held elsewhere, what it holds for others, community allotments, and the relationships in plain words, generated from the ledger.
 - Page 11, off-network profile links: a catalogue of what can be linked (messaging apps, social networks, professional, media, meetings, phone and mail, web, payments, organizations, identity proofs), the link record, sharing between two people, publishing to a profile by audience, three ways to prove a link, and the rules (a link is a pointer, phone-number links default to private, removal cannot recall what was seen).
 - Page 12, nodes one person may belong to: a high-level view of how nodes connect, with sample names in a delegated-subzone tree and the boxes that host them.
+- Page 13, onboarding flow: nine steps for a node operator (who the box is for, where it lives, how it is reached, who is on it, what it offers, which tools to bundle, which AI assistants help, review, install and check). Box size picks the defaults.
+- Page 14, bundled tools and AI assistants: native tools, self-hosted bundles (home and devices, monitoring, automation, media, AI brains, voice, office, files, notifications), pipelines that join devices and people through one permission layer, and proposed AI-assisted roles with a human sponsor.
 
 Built today and reusable: node identity and signed requests between nodes, a certificate broker for peers, a Headscale tailnet test, Patroni data-tier failover.
