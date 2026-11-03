@@ -19721,11 +19721,11 @@
       "kind": "build",
       "status": "open",
       "blocker": "none",
-      "done_when": "The assistant writes and recalls notes in a store owned by the user. The user can read, edit and delete each note. Notes stay after a role ends and never reopen lost access. The store follows the user across nodes.",
+      "done_when": "The assistant writes and recalls notes in a store owned by the user. The user can read, edit and delete each note. Per datastore, the assistant's read, quote and write permissions come from the user's civic role and the owner's post-relationship policy. Notes never reopen lost access. The store follows the user across nodes.",
       "depends_on": [
         "W-0516"
       ],
-      "detail": "Separate from shared datastores. Depends on the operator ruling on confidential notes (question below).",
+      "detail": "Separate from shared datastores. Read, quote and write rights to each datastore follow the user's civic role and the data-handling policy of the datastore's owner, including the policy that applies after a relationship ends. Owners set the policy: community representatives and community nodes for community data, households when they establish shared ownership. Ruled 2026-11-03.",
       "evidence": [
         "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
       ],
@@ -19741,6 +19741,10 @@
         {
           "date": "2026-11-03",
           "note": "Added from the operator ruling on the personal assistant (page 15 of the node mesh diagram). Roadmap draft for operator review and refinement."
+        },
+        {
+          "date": "2026-11-03",
+          "note": "Operator ruled the two assistant questions (permissions by civic role and post-relationship policy; subkey relationships with per-subkey quota). Row updated."
         }
       ]
     },
@@ -19752,11 +19756,11 @@
       "kind": "build",
       "status": "open",
       "blocker": "none",
-      "done_when": "The user picks a brain source per assistant: own model, own cloud key in the vault, or a community-issued key with a quota. The user can switch at any time. A key lends compute only.",
+      "done_when": "The user picks a brain source per assistant: own model, own cloud key in the vault, or a subkey issued by a household, organization or community. A subkey relays to models through its issuer's internal keys, with a quota per subkey relationship. Node operators share their key layer securely. The user can switch at any time. A key lends compute only.",
       "depends_on": [
         "W-0509"
       ],
-      "detail": "Community quotas show counts only, never content. Fair-use rule needs the operator's ruling.",
+      "detail": "Ruled 2026-11-03: a household, organization or community has an interface to share compute. Keys propagate as subkeys that relay requests to models through the holder's internal keys. Node operators who keep keys share their layer securely between them. The quota belongs to each subkey relationship.",
       "evidence": [
         "docs/architecture/NODE_MESH_AND_DATA_SHARING.drawio"
       ],
@@ -19772,6 +19776,10 @@
         {
           "date": "2026-11-03",
           "note": "Added from the operator ruling on the personal assistant (page 15 of the node mesh diagram). Roadmap draft for operator review and refinement."
+        },
+        {
+          "date": "2026-11-03",
+          "note": "Operator ruled the two assistant questions (permissions by civic role and post-relationship policy; subkey relationships with per-subkey quota). Row updated."
         }
       ]
     },
