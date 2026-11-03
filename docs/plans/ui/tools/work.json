@@ -19846,6 +19846,518 @@
           "note": "Added from the operator ruling on the personal assistant (page 15 of the node mesh diagram). Roadmap draft for operator review and refinement."
         }
       ]
+    },
+    {
+      "id": "W-0521",
+      "title": "Store node choices on the server",
+      "phase": "N3",
+      "order": 103,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Kits, reach, datastore audiences, replication, assistant rights, bundle picks, resource offers and surface picks save per owner in the database and reload on any device. The browser copy is removed and the preview banner is gone from every node page.",
+      "depends_on": [
+        "W-0490",
+        "W-0504"
+      ],
+      "detail": "Pages /node/* keep choices in localStorage under cga.node.*. New tables per owner scope (individual, household, organization, community) with audit entries. One write endpoint per page.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0522",
+      "title": "Enforce datastore policy in the permission check",
+      "phase": "N3",
+      "order": 104,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Each read, quote and write by the assistant resolves the datastore policy: the user's civic role, the owner's audience, and the post-relationship rule set by community representatives, household owners or officers. A test ends a relationship and shows each of the three rules (end at once, keep read, sealed) taking effect.",
+      "depends_on": [
+        "W-0516",
+        "W-0521"
+      ],
+      "detail": "Operator ruling 2026-11-03: policy is a permission set by the data owner. The Data page edits it. The check lives with the same system that gates the user's own screens.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0523",
+      "title": "Assistant chat service behind the drawer",
+      "phase": "N4",
+      "order": 105,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The drawer sends a turn with its page context to a server endpoint. The brain router picks the tier, builds a context pack from permitted stores, calls the chosen brain, stores per-turn usage, and returns the reply. The stub reply is gone.",
+      "depends_on": [
+        "W-0509",
+        "W-0516",
+        "W-0518"
+      ],
+      "detail": "Drawer today saves turns in the browser and replies that the service is not connected. Port the chat service from the standalone app (brains, usage and context per turn).",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0524",
+      "title": "Drawer context, approvals and speech",
+      "phase": "N4",
+      "order": 106,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The drawer receives the item the person is looking at (task, event, contact, bill). A-class actions show an approval card inside the drawer and wait for the owner. Speech to text works in the supported browsers and falls back to typing elsewhere. Text to speech reads replies on request.",
+      "depends_on": [
+        "W-0523"
+      ],
+      "detail": "Page path and title are sent today. Selected-item context needs a small hook each page can call.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0525",
+      "title": "Tool catalog service and per-owner switches",
+      "phase": "N4",
+      "order": 107,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The tool list on the Assistant tools page comes from a registry the n8n tool-catalog workflow also reads. Per-owner on and off switches save. Dry-run works from the page. A drafted tool appears inactive and publishes only after the owner approves.",
+      "depends_on": [
+        "W-0509",
+        "W-0521"
+      ],
+      "detail": "Catalog today is static data in app/Support/NodeCatalog.php, ported from the Jarvis tool design (safety class R, W, A and lowest surface level).",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0526",
+      "title": "Install, remove and check bundles",
+      "phase": "N4",
+      "order": 108,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Picking a bundle on the Tools to add page starts its containers from a compose profile, runs a health check, and shows the result. Removing a bundle stops it and keeps native data. Memory and disk numbers come from measurement, not estimates.",
+      "depends_on": [
+        "W-0514",
+        "W-0521"
+      ],
+      "detail": "Sizes on the page are estimates. The measurement item supplies real values. Respect the ETL host-derived sizing law: no hard-coded caps.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0527",
+      "title": "Outside connections wizard",
+      "phase": "N4",
+      "order": 109,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Each outside service on the Tools to add page opens a short wizard. The wizard prepares the steps. The operator enters credentials into the vault. A check confirms the connection. No wizard handles a credential value.",
+      "depends_on": [
+        "W-0510",
+        "W-0521"
+      ],
+      "detail": "Services listed: Google, Microsoft, Twilio, Alexa, Telegram, WhatsApp Business, Cloudflare, cloud model providers.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0528",
+      "title": "Peer links from the Sharing page",
+      "phase": "N3",
+      "order": 110,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "A proposed link on the Sharing page becomes a signed grant request to the other box. The other side approves or refuses. Either side can end the link. The list shows live state and the path in use.",
+      "depends_on": [
+        "W-0503",
+        "W-0521"
+      ],
+      "detail": "Proposed links are saved in the browser only. Needs the consent ledger.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0529",
+      "title": "Resource offers and the relationship chart",
+      "phase": "N3",
+      "order": 111,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Offers of storage, compute, bandwidth and hours save per owner, are enforced by the replication and subkey code, and appear in an explainable chart that shows which box holds each copy and why.",
+      "depends_on": [
+        "W-0506",
+        "W-0507",
+        "W-0521"
+      ],
+      "detail": "The chart on the Sharing page is a table of store owners today.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0530",
+      "title": "Subkey issue and quota",
+      "phase": "N4",
+      "order": 112,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "A household, organization or community issues a subkey. A request through the subkey relays to a model using the issuer's internal key. The quota per subkey relationship is enforced and shows counts only. Node operators who keep keys share the exit layer securely.",
+      "depends_on": [
+        "W-0518",
+        "W-0521"
+      ],
+      "detail": "Operator ruling 2026-11-03. The Assistant page lists subkeys in the browser only.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0531",
+      "title": "Assistant memory store",
+      "phase": "N4",
+      "order": 113,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The Assistant memory store has a screen to read, edit and delete notes. Notes belong to the user, travel across nodes, and follow the owner policy for sealed notes.",
+      "depends_on": [
+        "W-0517",
+        "W-0522"
+      ],
+      "detail": "Store itself is W-0517. This row adds the screen and the sealed-note handling.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0532",
+      "title": "Pair voice satellites, the TV and phone channels",
+      "phase": "N4",
+      "order": 114,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The Assistant surfaces page pairs a satellite or screen with a device identity. Each surface proves its level (S1, S2, S3). Display routing sends a page to one screen at a time. Alexa, phone and message channels reach the same tools through the intake webhook.",
+      "depends_on": [
+        "W-0510",
+        "W-0520",
+        "W-0525"
+      ],
+      "detail": "Paired devices are a browser-only list today.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0533",
+      "title": "Household kit switches the kits for real",
+      "phase": "N1",
+      "order": 115,
+      "kind": "build",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "The kit switches on This node change what the box runs and what the menu shows. Individual stays locked on. A household of one exists for every person.",
+      "depends_on": [
+        "W-0491",
+        "W-0493",
+        "W-0494",
+        "W-0521"
+      ],
+      "detail": "Kit switches are a browser preview today.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0534",
+      "title": "Tests for the node surfaces",
+      "phase": "N5",
+      "order": 116,
+      "kind": "test",
+      "status": "open",
+      "blocker": "none",
+      "done_when": "Feature tests load each /node page for a signed-in user and for a guest, and check props. A JS pin covers the drawer composable (open, send, thread cap, speech absent). A browser check opens the drawer from the menu on three pages.",
+      "depends_on": [
+        "W-0521"
+      ],
+      "detail": "None of the new pages has a test yet. They were checked by compiling the components and loading the route list on the box.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
+    },
+    {
+      "id": "W-0535",
+      "title": "Translations for the node surfaces",
+      "phase": "N5",
+      "order": 117,
+      "kind": "content",
+      "status": "deferred",
+      "blocker": "none",
+      "done_when": "The c_node namespace exists in English and every enabled language and passes the raw-string scan.",
+      "depends_on": [
+        "W-0515"
+      ],
+      "detail": "Pages call t() with English defaults so they run before any catalog exists. Deferred by the operator until interfaces are finished.",
+      "evidence": [
+        "app/Http/Controllers/Node/NodeController.php",
+        "resources/js/Pages/Node",
+        "resources/js/Components/Node/AssistantDrawer.vue"
+      ],
+      "sources": [
+        {
+          "list": "operator",
+          "ref": "2026-11-03 node surfaces build order",
+          "title": "Node surfaces wiring",
+          "wave": ""
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-03",
+          "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        }
+      ]
     }
   ]
 }
