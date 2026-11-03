@@ -1,6 +1,6 @@
 # The node paradigm
 
-Status: design record, written 2026-11-02 from the operator's direction. Rulings of the same day are in section 9. The mesh, sharing and replication designs are in `NODE_MESH_AND_DATA_SHARING.drawio` (five linked pages). The code is the authority on what is built (see CLAUDE.md). Every "Built" statement below was checked against the repository on this date. The diagram is `NODE_PARADIGM.drawio` in this folder (four pages).
+Status: design record, written 2026-11-02 from the operator's direction. Rulings of the same day are in section 9. The mesh, address, sharing and replication designs are in `NODE_MESH_AND_DATA_SHARING.drawio` (six linked pages). The code is the authority on what is built (see CLAUDE.md). Every "Built" statement below was checked against the repository on this date. The diagram is `NODE_PARADIGM.drawio` in this folder (four pages).
 
 ## 1. The idea
 
@@ -44,9 +44,27 @@ These rules apply to every type.
 
 ## 5. Addressing
 
-The root `worldofstatecraft.org` follows the jurisdiction map. A community node is mapped to the real places it occupies. Individuals are addressed in an email-compatible form. Any other domain holder may offer its domain to chosen nodes.
+Ruled 2026-11-03. Every node uses the DNS address system. The community tree is the DNS tree. A person is the text before the `@`. The chain of places is the text after it, read from the right. The mesh root is `worldofstatecraft.org`. Any other TLD can be aliased to the same mesh. Diagram: page 3 of `NODE_MESH_AND_DATA_SHARING.drawio`.
 
-The diagram shows sample names. The name shape is not decided. Three decisions wait in the rubric (`docs/plans/ui/tools/gen_app_rubric.py`):
+Forms in use now:
+
+| Form | Meaning | Sample |
+|---|---|---|
+| `User@Organization(s).LocalityChain(s)` | a person on a household or organization box | `Joseph@JDSileo.mecklenburg.nc.usa.earth` |
+| `User@LocalityChain(s)` | a person held by a community box | `Maria@mecklenburg.nc.usa.earth` |
+| `User@OwnDomain` | a domain the holder owns, aliased into the mesh | `Joseph@jdsileo.com` |
+| `Organization(s)@LocalityChain(s)` | a group address | `acme@mecklenburg.nc.usa.earth` |
+| `User+Unique+Alias@earth` | a generated id plus a chosen alias, unique in the mesh | `Joseph+Unique+Alias@earth` |
+
+Short forms drop the mesh root. The web profile uses a dot in place of the `@`. The same text works for mail and SIP. A person may belong to several households and organizations, and holds one name on each. A client reads the chain from the right and connects to the nearest box that offers the datastore. This lets the client choose where its data goes.
+
+Later, not now: recursive hosted inboxes. A county, state, country, planet or the root may offer to be an inbox for people below it, written with a `+` chain (`Joseph+JDSileo+mecklenburg@nc.usa.earth`).
+
+Places are a choice. The tree follows real places or a custom layout. Setup step 0 (cosmic address, Multiverse) already places a community in virtual space or on the real-world map.
+
+Boxes do not need a type of their own. Individual, household and community kits can all run on one box. Every box joins a household, an organization or a community. Personal, household, organization and community credential stores follow one model: an owner, a scope, and consent to share.
+
+The three open DNS decisions are in the rubric (`docs/plans/ui/tools/gen_app_rubric.py`):
 
 | Id | Question | Desk recommendation |
 |---|---|---|
@@ -54,13 +72,13 @@ The diagram shows sample names. The name shape is not decided. Three decisions w
 | dns-foreign-domain-keys | How a domain holder lets chosen nodes host its domain | A: ACME challenge delegation by CNAME. No private key leaves the holder. Revoke by deleting one record. |
 | dns-home-node-reach | How a home node behind a router reaches the mesh | B: a community node relays for its families. |
 
-Constraint that drives the first one: a wildcard certificate covers one label. The demo uses hyphens for that reason (`demo-...`), not dots.
+A wildcard certificate covers one label. The demo uses hyphens for that reason (`demo-...`), not dots.
 
 Nothing in DNS is built.
 
 ## 6. Ways in
 
-Any screen can drive a node. Phones, desktops, laptops and TVs use the installed web app or a native app where one exists. A smart speaker is voice only. The voice satellite on the second machine (named Jupiter by the operator) turns a spoken request into a command for the node and can pick which screen shows the answer.
+Any screen can drive a node. Phones, desktops, laptops and TVs use the installed web app or a native app where one exists. A smart speaker is voice only. The Jarvis voice satellite turns a spoken request into a command for the node and can pick which screen shows the answer.
 
 Built today: the installed web app (manifest and service worker in `public/`), the sign-in session, per-user API keys. Prototyped on the second machine: the voice satellite, n8n pipelines, screen routing. Not built: native apps, TV and smart-speaker surfaces.
 
@@ -90,10 +108,10 @@ In the rubric: the three DNS questions in section 5. Held until those are ruled:
 ## 9. Rulings of 2026-11-02
 
 - The Individual node is the default. Every person is in a household, and a household of one is the starting case.
-- The tools built on the second machine (Voyager) are the Individual node's features. They are brought into this application and added to the default user profile.
+- The tools built in the Jarvis prototype are the Individual node's features. They are brought into this application and added to the default user profile.
 - World of Statecraft becomes the simulation Community node, an optional add-on. A real community node is the other choice. Either can connect to another node and sync.
 - This instance stays a running development instance of the game. Its demo data and maps stay as they are. The map setup and re-import steps are retired. A public deployment starts from scratch with a household node and no demo data.
-- Defiant keeps a backup copy on Voyager. Voyager hosts the Individual node only.
+- The running demo box keeps a backup copy on a second box that hosts the Individual node only.
 - The constitutional engine is not a concern for this work.
 - Email: use an established mail server and place it on the node's domain tree. Do not write mail transport from scratch. Calendar, CRM, tasks and projects are native tables.
 - Pipeline view and builder: held until the second machine has it working.
@@ -104,7 +122,7 @@ In the rubric: the three DNS questions in section 5. Held until those are ruled:
 - A community node maps up to a top-level domain or subdomain that offers a community mesh. The operator adopts that mesh, self-signs, or simulates. The operator then runs the build-from-scratch engine or a prebuilt option (like this instance), and connects with their own network equipment, a cloud tunnel, or stays LAN-only behind their own VPN.
 - Joining a community is the owner's consent. It unlocks the person's civic tools there: founding or joining organizations, and the marketplace. Elections run on the existing engine.
 - Mail server: held until the three DNS questions are ruled.
-- Next build: the backup outline for Voyager, `docs/operations/BACKUP_DEFIANT_TO_VOYAGER.md`.
+- Next build: the backup outline, `docs/operations/BACKUP_DEFIANT_TO_VOYAGER.md`.
 - Direction of work: features move from the second machine into this application. Surfaces move from this application to the second machine's TV-controllable interface. The last interface is the next demo.
 
 ## 10. Containers by node set
@@ -119,14 +137,14 @@ The compose files define these services. Which ones each node set truly needs is
 | Dev only | vite (profile `dev`) | `docker-compose.yml` |
 | Mesh options | caddy (public overlay), headscale (tailnet), patroni with etcd and haproxy (data-tier failover) | `docker-compose.public.yml`, `.headscale.yml`, `.ha.yml` |
 
-Voyager runs the Individual set. Defiant runs every set. Measure on Defiant before cutting a service.
+A box can run one set or all of them. The running demo box runs every set. Measure on it before cutting a service.
 
 ## 11. Data privacy and replication (designs)
 
 Proposed, not built. See `NODE_MESH_AND_DATA_SHARING.drawio`.
 
-- Page 3, who sees what: rings from Me to the public, and a table of data classes against audiences. Everything outside Me starts at None. A person raises it per item and per audience.
-- Page 4, self-selecting replication: the owner chooses what is copied, how many copies, and which hosts. Hosts volunteer capacity. A host stores ciphertext it cannot read. A signed consent ledger records every offer and grant. A community node sets a replication target for community records, a quota per member, and roles for nodes with more storage or compute.
-- Page 5, settings screen mockup: what this node offers, what is held elsewhere, what it holds for others, community allotments, and the relationships in plain words, generated from the ledger.
+- Page 4, who sees what: rings from Me to the public, and a table of data classes against audiences. Everything outside Me starts at None. A person raises it per item and per audience.
+- Page 5, self-selecting replication: the owner chooses what is copied, how many copies, and which hosts. Hosts volunteer capacity. A host stores ciphertext it cannot read. A signed consent ledger records every offer and grant. A community node sets a replication target for community records, a quota per member, and roles for nodes with more storage or compute.
+- Page 6, settings screen mockup: what this node offers, what is held elsewhere, what it holds for others, community allotments, and the relationships in plain words, generated from the ledger.
 
 Built today and reusable: node identity and signed requests between nodes, a certificate broker for peers, a Headscale tailnet test, Patroni data-tier failover.
