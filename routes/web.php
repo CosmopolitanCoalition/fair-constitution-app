@@ -132,6 +132,19 @@ Route::middleware('auth')->prefix('workspace')->group(function () {
     Route::prefix('api')->middleware('throttle:240,1')->group(base_path('routes/personal.php'));
 });
 
+// My node: what this box hosts, the datastores and who may use them, sharing with peers, tools
+// to add, and the assistant with its tools and surfaces. Read pages for any signed-in user.
+Route::middleware('auth')->prefix('node')->group(function () {
+    $n = \App\Http\Controllers\Node\NodeController::class;
+    Route::get('/', [$n, 'home'])->name('node.home');
+    Route::get('/data', [$n, 'data'])->name('node.data');
+    Route::get('/sharing', [$n, 'sharing'])->name('node.sharing');
+    Route::get('/bundles', [$n, 'bundles'])->name('node.bundles');
+    Route::get('/assistant', [$n, 'assistant'])->name('node.assistant');
+    Route::get('/assistant/tools', [$n, 'tools'])->name('node.assistant.tools');
+    Route::get('/assistant/surfaces', [$n, 'surfaces'])->name('node.assistant.surfaces');
+});
+
 // Coverage instruments (design contracts: mockups/v3/shared/coverage.html,
 // coverage-ops.html). "For the build team" QA — public read (surface names +
 // route paths only, no user data). They cross-check the JS nav registry against

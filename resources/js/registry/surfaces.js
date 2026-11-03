@@ -25,6 +25,7 @@ export const PLAYER_NAV = [
     { id: 'live-rooms', label: 'Live rooms', icon: 'users', href: '/rooms' },
     { id: 'home', label: 'Today', icon: 'home', href: '/civic', contract: 'civic/today.html', phase: 3 },
     { id: 'workspace', label: 'My workspace', icon: 'clock', href: '/workspace/calendar' },
+    { id: 'my-node', label: 'My node', icon: 'sliders', href: '/node' },
     { id: 'jurisdiction-browser', label: 'Places', icon: 'map', href: '/jurisdictions', contract: 'jurisdictions/jurisdiction-browser.html', phase: 5 },
     { id: 'public-square', label: 'Community', icon: 'users', href: '/civic/square', contract: 'social/social-home.html', phase: 3 },
     { id: 'market', label: 'Work & trade', icon: 'briefcase', href: '/economy', contract: 'economy/economy-home.html' },
@@ -43,6 +44,15 @@ export const SITEMAP = [
         { id: 'workspace-contacts', label: 'Contacts', icon: 'users', href: '/workspace/contacts' },
         { id: 'workspace-inbox', label: 'Inbox', icon: 'message-square', href: '/workspace/inbox' },
         { id: 'workspace-connections', label: 'Connections', icon: 'lock', href: '/connections' },
+    ] },
+    { key: 'mynode', title: 'My node', items: [
+        { id: 'node-home', label: 'This node', icon: 'sliders', href: '/node' },
+        { id: 'node-data', label: 'Datastores and permissions', icon: 'lock', href: '/node/data' },
+        { id: 'node-sharing', label: 'Sharing and peers', icon: 'users', href: '/node/sharing' },
+        { id: 'node-bundles', label: 'Tools to add', icon: 'plus', href: '/node/bundles' },
+        { id: 'node-assistant', label: 'Assistant', icon: 'message-square', href: '/node/assistant' },
+        { id: 'node-assistant-tools', label: 'Assistant tools', icon: 'list-checks', href: '/node/assistant/tools' },
+        { id: 'node-assistant-surfaces', label: 'Assistant surfaces', icon: 'globe', href: '/node/assistant/surfaces' },
     ] },
     { key: 'rooms', title: 'Rooms & the square', items: [
         { id: 'public-square', label: 'The public square', icon: 'users', href: '/civic/square', contract: 'social/social-home.html' },

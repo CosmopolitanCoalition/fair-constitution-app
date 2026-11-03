@@ -34,6 +34,7 @@ import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import CmdBar from '@/Components/ShellV2/CmdBar.vue';
+import AssistantDrawer from '@/Components/Node/AssistantDrawer.vue';
 import TourBar from '@/Components/ShellV2/TourBar.vue';
 import { PLAYER_NAV, SITEMAP } from '@/registry/surfaces.js';
 import { LOCALES, persistLocale, setLocale } from '@/i18n/index.js';
@@ -383,6 +384,9 @@ onBeforeUnmount(() => {
         />
 
         <DockHost />
+
+        <!-- The assistant drawer: on every page, opened from the menu. -->
+        <AssistantDrawer />
 
         <CmdBar
             :roles="roles"

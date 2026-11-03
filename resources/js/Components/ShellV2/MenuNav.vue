@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import Icon from '@/Components/Ui/Icon.vue';
 import { PLAYER_NAV, SITEMAP } from '@/registry/surfaces.js';
 import { useTour } from '@/composables/useTour.js';
+import { useAssistant } from '@/composables/useAssistant.js';
 
 const props = defineProps({
     roles: { type: Array, default: () => [] },
@@ -16,6 +17,7 @@ const page = usePage();
 const instance = computed(() => page.props.shellInstance ?? page.props.instance ?? {});
 const { t } = useI18n();
 const { active: tourActive, toggle: toggleTour } = useTour();
+const { isOpen: assistantOpen, toggle: toggleAssistant } = useAssistant();
 const sections = computed(() => SITEMAP.filter(s => !['node', 'build-team'].includes(s.key)).map(s => ({
     ...s,
     // Primary destinations and shortcuts already have a home above. Unbuilt
@@ -59,6 +61,9 @@ function allowed(item) {
             </template>
         </div>
         <div class="sidebar-section">
+            <button type="button" class="sidebar-link sidebar-link--btn" :aria-pressed="assistantOpen" aria-controls="assistant-input" @click="toggleAssistant">
+                <Icon name="message-square" size="sm" />{{ t('c_navigation.assistant', 'Assistant') }}
+            </button>
             <Link v-for="item in shortcuts.filter(allowed)" :key="item.id" class="sidebar-link" :href="target(item)">
                 <Icon :name="item.icon" size="sm" />{{ label(item) }}
             </Link>
