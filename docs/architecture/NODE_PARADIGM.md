@@ -40,6 +40,7 @@ These rules apply to every type.
 4. A box that is not physically in a place may hold that place's data read-only.
 5. A tool that acts for a person uses a key that person issued, with only the scopes they chose. Nothing is sent as the person without their approval.
 6. Hosting a domain carries the community's agreement to that DNS entry. Every user on an agreeing domain is traceable, and nodes know which domains each other host.
+7. A person opens data to individuals, to user-defined groups by membership, or to the community data of the places they occupy. Joining a community is the person's own act of consent. It is what unlocks the community's civic tools for them.
 
 ## 5. Addressing
 
@@ -84,7 +85,7 @@ Storage: one JSON column on `instance_settings` for the hosted types and their s
 
 ## 8. Open decisions
 
-In the rubric: `node-scope-vocabulary`, and the three DNS questions in section 5. Ruled: `node-types-default` (section 9).
+In the rubric: the three DNS questions in section 5. Held until those are ruled: the mail server choice (Postfix with Dovecot, or Stalwart). Ruled: `node-types-default` and `node-scope-vocabulary` (section 9).
 
 ## 9. Rulings of 2026-11-02
 
@@ -97,6 +98,13 @@ In the rubric: `node-scope-vocabulary`, and the three DNS questions in section 5
 - Email: use an established mail server and place it on the node's domain tree. Do not write mail transport from scratch. Calendar, CRM, tasks and projects are native tables.
 - Pipeline view and builder: held until the second machine has it working.
 - Dashboards do not replace the second machine's. That machine's individual node gains web apps that the Statecraft interfaces control. The Statecraft interfaces are the ones the assistant drives. The Statecraft screens are simplified as features arrive, for TV and voice use.
+- Scope and roles: free-form rules inside four contexts (individual, household, organization, community), built on the civic roles. The system roles (R-xx) are reused for organizational roles. Individual and relationship roles are added on top, with user-defined labels such as a CRM label (friend, family, coworker).
+- Onboarding a person: the node operator onboards each person by the relationship the operator defines, for example by an invite sent over an external channel.
+- A household is an organization type. An organization is an organization, so the civic roles extend to households. A household manages permission delegation by presets it chooses, and names triggers for succession (a custom ruleset, or a larger organization toolkit for a family that runs as a business).
+- A community node maps up to a top-level domain or subdomain that offers a community mesh. The operator adopts that mesh, self-signs, or simulates. The operator then runs the build-from-scratch engine or a prebuilt option (like this instance), and connects with their own network equipment, a cloud tunnel, or stays LAN-only behind their own VPN.
+- Joining a community is the owner's consent. It unlocks the person's civic tools there: founding or joining organizations, and the marketplace. Elections run on the existing engine.
+- Mail server: held until the three DNS questions are ruled.
+- Next build: the backup outline for Voyager, `docs/operations/BACKUP_DEFIANT_TO_VOYAGER.md`.
 - Direction of work: features move from the second machine into this application. Surfaces move from this application to the second machine's TV-controllable interface. The last interface is the next demo.
 
 ## 10. Containers by node set
