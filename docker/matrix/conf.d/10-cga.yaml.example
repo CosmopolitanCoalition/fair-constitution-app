@@ -10,7 +10,7 @@ database:
   name: psycopg2
   args:
     user: fc_user
-    password: fc_password
+    password: {{DB_PASSWORD}}
     database: matrix
     host: postgres
     port: 5432

@@ -112,3 +112,4 @@ docker/matrix/mas/config.generated.yaml
 /docker/matrix/conf.d/20-mas.yaml
 /docker/matrix/mas/config.yaml
 /docker/matrix/mas/config.generated.yaml
+/docker/matrix/conf.d/10-cga.yaml

@@ -42,9 +42,9 @@ services:
       NODE_HOST: patroni1
       ETCD_HOSTS: http://etcd:2379
       PG_SUPERUSER: ${DB_USERNAME:-fc_user}
-      PG_PASSWORD: ${DB_PASSWORD:-fc_password}
+      PG_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
       PG_REPL_USER: replicator
-      PG_REPL_PASSWORD: ${REPL_PASSWORD:-replicator_password}
+      PG_REPL_PASSWORD: ${REPL_PASSWORD:?set REPL_PASSWORD in .env}
       PG_DB: ${DB_DATABASE:-fair_constitution}
     volumes:
       - ha_pg1:/var/lib/postgresql/data
@@ -61,9 +61,9 @@ services:
       NODE_HOST: patroni2
       ETCD_HOSTS: http://etcd:2379
       PG_SUPERUSER: ${DB_USERNAME:-fc_user}
-      PG_PASSWORD: ${DB_PASSWORD:-fc_password}
+      PG_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
       PG_REPL_USER: replicator
-      PG_REPL_PASSWORD: ${REPL_PASSWORD:-replicator_password}
+      PG_REPL_PASSWORD: ${REPL_PASSWORD:?set REPL_PASSWORD in .env}
       PG_DB: ${DB_DATABASE:-fair_constitution}
     volumes:
       - ha_pg2:/var/lib/postgresql/data

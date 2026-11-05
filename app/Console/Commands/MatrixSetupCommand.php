@@ -101,7 +101,7 @@ class MatrixSetupCommand extends Command
     {
         $rsa = $this->indentPem($b['mas_rsa_pem']);
         $ec = $this->indentPem($b['mas_ec_pem']);
-        $db = (string) env('MATRIX_MAS_DB_URI', 'postgresql://fc_user:fc_password@postgres:5432/matrix_auth');
+        $db = (string) env('MATRIX_MAS_DB_URI', 'postgresql://'.env('DB_USERNAME', 'fc_user').':'.rawurlencode((string) env('DB_PASSWORD')).'@postgres:5432/matrix_auth');
 
         // A real deployment has ONE public HTTPS issuer reachable both by the browser and by MAS, so
         // discovery_mode: oidc (vs the dev stack's split-horizon `disabled` in config.yaml).

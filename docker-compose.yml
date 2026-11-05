@@ -179,7 +179,7 @@ services:
     environment:
       POSTGRES_DB: fair_constitution
       POSTGRES_USER: fc_user
-      POSTGRES_PASSWORD: fc_password
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     # Dev rig tuning — generous memory for bulk geospatial loads, SSD cost hints.
     #
@@ -647,7 +647,7 @@ services:
       DB_PORT: 5432
       DB_NAME: fair_constitution
       DB_USER: fc_user
-      DB_PASSWORD: fc_password
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
       DATA_ROOT: /archive                  # ETL scripts read geoBoundaries/WorldPop from here
       PROTOMAPS_OUT: /protomaps            # the served basemap folder, writable (download_datasets.py)
       # Pull-engine operator dials (empty = derive from the container budget).

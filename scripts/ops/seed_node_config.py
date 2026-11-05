@@ -17,6 +17,7 @@ import sys
 TARGETS = [
     "docker/livekit/livekit.yaml",
     "docker/matrix/appservice/registration.yaml",
+    "docker/matrix/conf.d/10-cga.yaml",
     "docker/matrix/conf.d/20-mas.yaml",
     "docker/matrix/mas/config.yaml",
 ]
@@ -79,7 +80,11 @@ def main():
         else:
             values[token] = gen()
             new_env[name] = values[token]
-    values["DB_PASSWORD"] = env.get("DB_PASSWORD", "") or "fc_password"
+    if env.get("DB_PASSWORD"):
+        values["DB_PASSWORD"] = env["DB_PASSWORD"]
+    else:
+        values["DB_PASSWORD"] = secrets.token_hex(24)
+        new_env["DB_PASSWORD"] = values["DB_PASSWORD"]
 
     for rel in todo:
         src = os.path.join(a.root, rel + ".example")

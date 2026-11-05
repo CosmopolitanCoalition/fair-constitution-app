@@ -21,7 +21,7 @@ DB_CONFIG = {
     "port":     int(os.environ.get("DB_PORT", 5432)),
     "dbname":   os.environ.get("DB_NAME",     "fair_constitution"),
     "user":     os.environ.get("DB_USER",     "fc_user"),
-    "password": os.environ.get("DB_PASSWORD", "fc_password"),
+    "password": os.environ["DB_PASSWORD"],
     # Force UTF-8 on the wire (defensive). The default already resolves to UTF8
     # in our containers, but pinning it removes any dependence on the container
     # locale so non-Latin names always round-trip cleanly into the UTF-8 columns.
