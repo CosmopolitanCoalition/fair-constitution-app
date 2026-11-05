@@ -1691,6 +1691,9 @@ Route::middleware('auth:operator')->group(function () {
         ->name('operator.operations.tuning.reset');
     // The instance class act (operator ruling 2026-09-17): production <-> scale_demo,
     // recorded on the audit log. Operator-only in the handler.
+    // W-0490 - which node kits this box runs, and the scope of each (audited).
+    Route::post('/operator/node', [\App\Http\Controllers\Operator\NodeProfileController::class, 'save'])
+        ->name('operator.node.save');
     Route::post('/operator/operations/instance-class', [\App\Http\Controllers\Operator\OperatorConsoleController::class, 'setInstanceClass'])
         ->name('operator.operations.instance-class');
 
@@ -1766,6 +1769,8 @@ Route::middleware('auth')->group(function () {
         ->name('operator.home');
     Route::get('/operator/console', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'console'])
         ->name('operator.console');
+    Route::get('/operator/node', [\App\Http\Controllers\Operator\NodeProfileController::class, 'show'])
+        ->name('operator.node');
     Route::get('/operator/roles', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'roles'])
         ->name('operator.roles');
     Route::get('/operator/mesh', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'mesh'])

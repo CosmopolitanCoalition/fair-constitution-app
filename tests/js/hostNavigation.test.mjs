@@ -4,7 +4,7 @@ import { HOST_PAGES, HOST_SECTIONS, hostSubpages } from '../../resources/js/Comp
 assert.deepEqual(HOST_SECTIONS.map((section) => section.key), ['overview', 'roles', 'network', 'settings']);
 assert.equal(HOST_PAGES.overview.href, '/operator');
 assert.deepEqual(hostSubpages('federation').map((page) => page.key), ['mesh', 'federation']);
-assert.deepEqual(hostSubpages('dns').map((page) => page.key), ['operations', 'dns', 'identity', 'versioning', 'moderation']);
+assert.deepEqual(hostSubpages('dns').map((page) => page.key), ['operations', 'dns', 'identity', 'node', 'versioning', 'moderation']);
 assert.deepEqual(hostSubpages('overview'), []);
 const reachable = new Set();
 for (const section of HOST_SECTIONS) {

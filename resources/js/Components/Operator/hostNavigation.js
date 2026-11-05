@@ -6,6 +6,7 @@ export const HOST_PAGES = {
     operations: { href: '/operator/operations', group: 'settings', label: 'Resources and services' },
     dns: { href: '/operator/dns', group: 'settings', label: 'DNS and certificates' },
     identity: { href: '/operator/identity', group: 'settings', label: 'Identity and devices' },
+    node: { href: '/operator/node', group: 'settings', label: 'Node profile' },
     versioning: { href: '/operator/versioning', group: 'settings', label: 'Versions and upgrades' },
     moderation: { href: '/operator/moderation', group: 'settings', label: 'Moderation' },
 };

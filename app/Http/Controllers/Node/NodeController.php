@@ -105,17 +105,33 @@ class NodeController extends Controller
         ];
     }
 
-    /** The four kits. Individual is always on. Community is on where setup finished. */
+    /** The four kits. Individual is always on. The rest follow the node profile the operator saved (W-0490). */
     private function kits(): array
     {
         $done = (bool) (Schema::hasTable('instance_settings') ? DB::table('instance_settings')->whereNull('deleted_at')->value('setup_completed_at') : false);
 
+        $hosted = $this->hostedKits($done);
+
         return [
             ['id' => 'individual', 'label' => 'Individual', 'on' => true, 'locked' => true, 'note' => 'Always on. Every person starts in a household of one.'],
-            ['id' => 'household', 'label' => 'Household', 'on' => false, 'locked' => false, 'note' => 'An organization type with presets and succession triggers.'],
-            ['id' => 'organization', 'label' => 'Organization', 'on' => true, 'locked' => false, 'note' => 'Members, boards, departments, ledgers.'],
-            ['id' => 'community', 'label' => 'Community', 'on' => $done, 'locked' => false, 'note' => 'The simulation or a real community, with the civic engine.'],
+            ['id' => 'household', 'label' => 'Household', 'on' => in_array('household', $hosted, true), 'locked' => false, 'note' => 'An organization type with presets and succession triggers.'],
+            ['id' => 'organization', 'label' => 'Organization', 'on' => in_array('organization', $hosted, true), 'locked' => false, 'note' => 'Members, boards, departments, ledgers.'],
+            ['id' => 'community', 'label' => 'Community', 'on' => in_array('community', $hosted, true), 'locked' => false, 'note' => 'The simulation or a real community, with the civic engine.'],
         ];
+    }
+
+    /** @return list<string> */
+    private function hostedKits(bool $setupDone): array
+    {
+        if (Schema::hasTable('instance_settings') && Schema::hasColumn('instance_settings', 'hosted_node_types')) {
+            $raw = DB::table('instance_settings')->whereNull('deleted_at')->value('hosted_node_types');
+            $list = is_string($raw) ? json_decode($raw, true) : null;
+            if (is_array($list)) {
+                return $list;
+            }
+        }
+
+        return $setupDone ? ['individual', 'organization', 'community'] : ['individual', 'organization'];
     }
 
     private function peers(): array

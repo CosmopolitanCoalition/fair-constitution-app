@@ -74,6 +74,8 @@ class InstanceSettings extends Model
         'version_pinned_at',
         // Operator Operations console (Phase 2) — instant-tier knob overrides (overlaid onto config at boot).
         'infra_overrides',
+        'hosted_node_types',              // W-0490 — node kits this box runs
+        'node_scopes',                    // W-0490 — free-form scope per kit
     ];
 
     protected $casts = [
@@ -94,6 +96,8 @@ class InstanceSettings extends Model
         'attestation_authority_enabled' => 'boolean',
         'version_pinned_at' => 'datetime',
         'infra_overrides' => 'array',
+        'hosted_node_types' => 'array',
+        'node_scopes' => 'array',
         'demo_time_skew_tolerated' => 'boolean',
     ];
 
