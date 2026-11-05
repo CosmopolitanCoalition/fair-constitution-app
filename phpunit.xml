@@ -22,6 +22,12 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <!-- Test fixtures only. Real values come from each box's untracked .env (W-0488). -->
+        <env name="MATRIX_AS_TOKEN" value="cga_dev_fixture_as"/>
+        <env name="MATRIX_HS_TOKEN" value="cga_dev_fixture_hs"/>
+        <env name="OIDC_MAS_CLIENT_SECRET" value="cga_dev_fixture_oidc"/>
+        <env name="LIVEKIT_API_KEY" value="cga_dev_fixture_key"/>
+        <env name="LIVEKIT_API_SECRET" value="cga_dev_fixture_secret"/>
         <!-- A deployed box carries `config:cache` / `route:cache` output in bootstrap/cache.
              Laravel loads a cached config BEFORE this block's env values are consulted, so
              every test's default connection silently became the LIVE PostgreSQL world

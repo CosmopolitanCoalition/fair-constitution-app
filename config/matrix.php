@@ -50,8 +50,8 @@ return [
     'appservice' => [
         'id'               => 'cga',
         'sender_localpart' => 'cga-appservice',
-        'as_token'         => env('MATRIX_AS_TOKEN', 'cga_dev_as_token_3f9a1c7e5b2d4860a1f6c8e02b7d9043'),
-        'hs_token'         => env('MATRIX_HS_TOKEN', 'cga_dev_hs_token_8d2e4b6a0c1f3957e84a2d6b09c5f718'),
+        'as_token'         => env('MATRIX_AS_TOKEN'),
+        'hs_token'         => env('MATRIX_HS_TOKEN'),
     ],
 
     // MAS (Matrix Authentication Service) — the OIDC provider Synapse delegates auth to (K3-C).
@@ -77,7 +77,7 @@ return [
         // redirect_uri is MAS's upstream callback — finalized in K3-C.3 once the MAS provider ULID exists.
         'client' => [
             'id'            => env('OIDC_MAS_CLIENT_ID', 'mas-upstream'),
-            'secret'        => env('OIDC_MAS_CLIENT_SECRET', 'cga_dev_oidc_mas_secret_9b3f1a7c5e2d4806b1f9c8e04a7d2630'),
+            'secret'        => env('OIDC_MAS_CLIENT_SECRET'),
             // MAS's upstream callback = <MAS public_base>/upstream/callback/<provider-id> (verified empirically
             // against MAS v1.19 — NOT the /upstream/oauth2/callback path some docs show). The dev default
             // matches the provider id in docker/matrix/mas/config.yaml; matrix:setup regenerates both sides in
@@ -104,8 +104,8 @@ return [
         // Docker-internal `url`. A capable peer returns THIS with a cross-node voice token (the mixed
         // environment); a light node's traveling player dials it directly so media bypasses its home node.
         'public_url' => env('LIVEKIT_PUBLIC_URL', 'ws://localhost:7880'),
-        'api_key'    => env('LIVEKIT_API_KEY', 'cga_dev_livekit_key'),
-        'api_secret' => env('LIVEKIT_API_SECRET', 'cga_dev_livekit_secret_5c1d8e3a9f47026b'),
+        'api_key'    => env('LIVEKIT_API_KEY'),
+        'api_secret' => env('LIVEKIT_API_SECRET'),
     ],
 
     // M-S — the proactive, content-neutral media-scan admission floor (K3-I.4). The ONLY input is a
