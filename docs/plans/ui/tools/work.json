@@ -19880,7 +19880,7 @@
       "phase": "N3",
       "order": 103,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "done_when": "Kits, reach, datastore audiences, replication, assistant rights, bundle picks, resource offers and surface picks save per owner in the database and reload on any device. The browser copy is removed and the preview banner is gone from every node page.",
       "depends_on": [
@@ -19905,6 +19905,10 @@
         {
           "date": "2026-11-03",
           "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        },
+        {
+          "date": "2026-11-04",
+          "note": "Built (fd76a397): node_choices table, per-person service and endpoints, composable syncs with a browser fallback. 4 tests pass on Defiant."
         }
       ]
     },
@@ -19939,6 +19943,10 @@
         {
           "date": "2026-11-03",
           "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        },
+        {
+          "date": "2026-11-04",
+          "note": "First part built (67c60ed3): AssistantAccess decides every tool run at run time from the owner store rights, tool switches and store ownership; shared-owner stores are refused until owner policies exist. 5 unit tests. Open: owner policies for household, organization and community stores, role-term toolkits, relationship-end rules."
         }
       ]
     },
@@ -19974,6 +19982,10 @@
         {
           "date": "2026-11-03",
           "note": "Added when the node surfaces and assistant drawer shipped as pages (commit c99866a3). The pages hold choices in the browser. This row wires them to the server."
+        },
+        {
+          "date": "2026-11-04",
+          "note": "First part built (67c60ed3): POST /node/assistant/chat, phrase router with no model, OpenAI-format model loop when ASSISTANT_ENDPOINT and ASSISTANT_MODEL are set, tools agenda, inbox summary, tasks, contacts, briefing. Verified on Defiant by service call. Open: approvals for class A tools, streaming, per-person brain choice, drawer check in a signed-in browser."
         }
       ]
     },
