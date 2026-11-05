@@ -16,6 +16,6 @@ rtc:
   #     3-way LAN+cellular+remote call 2026-06-29.
   use_external_ip: false
 keys:
-  cga_dev_livekit_key: cga_dev_livekit_secret_5c1d8e3a9f47026b
+  {{LIVEKIT_KEY}}: {{LIVEKIT_SECRET}}
 logging:
   level: info

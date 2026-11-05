@@ -43,3 +43,14 @@ reach it):
 - Media moderation: the M-S hash-scan admission floor ships with an **empty** hash list (privacy rail);
   the operator sideloads the access-controlled list under their own legal credentials. Matching is fully
   offline.
+
+## Credentials stay out of git (W-0488)
+
+The four config files that hold secrets are untracked and ignored: `docker/livekit/livekit.yaml`,
+`docker/matrix/appservice/registration.yaml`, `docker/matrix/conf.d/20-mas.yaml` and
+`docker/matrix/mas/config.yaml`. Each has a tracked `.example` template with `{{PLACEHOLDER}}` tokens.
+
+- Fresh box: `python3 scripts/ops/seed_node_config.py` renders any missing file. It reads shared values from `.env`, generates the rest, and appends them to `.env`. It never overwrites an existing file.
+- Scan: `python3 scripts/ops/secret_scan.py --staged | --tree | --history`. The pre-commit hook (`sh scripts/ops/install_hooks.sh` once per clone) and the `secret-scan` CI job run it. Output lists file, line and rule. It never prints a value.
+- Known development defaults are listed with a reason in `scripts/ops/secret_scan_baseline.txt`.
+- Moving an existing box (one that already edits these four files in place): copy the four files to a safe folder, run `git checkout -- <the four files>`, run `git pull --ff-only` (git removes them), then copy the saved files back. The containers keep their current values.

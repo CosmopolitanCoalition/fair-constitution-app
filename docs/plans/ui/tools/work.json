@@ -18830,13 +18830,18 @@
       "phase": "N1",
       "order": 70,
       "kind": "ops",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "done_when": "The repository and its history hold no live key, secret or token. Tracked config files carry placeholders only, and each box supplies real values from untracked files. A scan runs before every commit and fails on a match.",
       "depends_on": [],
       "detail": "Rule (operator 2026-11-03): only code goes to GitHub. Keys move between nodes only through the app permission layer and the consent ledger (page 8 and 9 of the mesh diagram). Defiant today edits four tracked files in place (docker/livekit/livekit.yaml, docker/matrix/appservice/registration.yaml, docker/matrix/conf.d/20-mas.yaml, docker/matrix/mas/config.yaml). Move those to templates rendered from env, add the scan as a hook and a CI step, and check history for past leaks.",
       "evidence": [
-        "docs/architecture/NODE_PARADIGM.md"
+        "docs/architecture/NODE_PARADIGM.md",
+        "scripts/ops/secret_scan.py",
+        "scripts/ops/seed_node_config.py",
+        ".githooks/pre-commit",
+        ".github/workflows/secret-scan.yml",
+        "docs/operator/matrix.md"
       ],
       "sources": [
         {
@@ -18850,6 +18855,10 @@
         {
           "date": "2026-11-03",
           "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        },
+        {
+          "date": "2026-11-04",
+          "note": "Built. Scan has staged, tree and history modes; pre-commit hook and CI step added; the four tracked config files became .example templates and are now untracked and ignored; seed_node_config.py renders them. Tree is clean. History scan found only the committed dev values in those four files plus the .env.example APP_KEY. No live token, cloud key or personal key found. Replacing the dev values on every box is W-0489 (operator). Live box move needs the copy-aside steps in docs/operator/matrix.md."
         }
       ]
     },

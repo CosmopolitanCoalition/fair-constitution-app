@@ -1,0 +1,3 @@
+#!/bin/sh
+# Blocks a commit that adds a credential (W-0488). Install with: sh scripts/ops/install_hooks.sh
+exec python3 "$(git rev-parse --show-toplevel)/scripts/ops/secret_scan.py" --staged

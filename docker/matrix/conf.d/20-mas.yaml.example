@@ -10,7 +10,7 @@
 matrix_authentication_service:
   enabled: true
   endpoint: http://mas:8080/
-  secret: jrMzG1lUJWsj8PsQRzBwU2WScSbinZ4p
+  secret: {{MAS_SYNAPSE_SECRET}}
 
 # MAS owns login + registration now; make Synapse's local password auth explicitly inert.
 password_config:

@@ -10,8 +10,8 @@
 # regenerates fresh tokens + rewrites this file for any real deployment.
 id: cga
 url: http://nginx
-as_token: cga_dev_as_token_3f9a1c7e5b2d4860a1f6c8e02b7d9043
-hs_token: cga_dev_hs_token_8d2e4b6a0c1f3957e84a2d6b09c5f718
+as_token: {{AS_TOKEN}}
+hs_token: {{HS_TOKEN}}
 sender_localpart: cga-appservice
 # Receive ephemeral EDUs (typing/receipts) — harmless, useful for the live client later.
 de.sorunome.msc2409.push_ephemeral: true

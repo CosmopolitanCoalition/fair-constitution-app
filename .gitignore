@@ -103,3 +103,12 @@ docker/matrix/mas/config.generated.yaml
 # Accessibility signed-in sweep: throwaway storageState (contains a session cookie).
 # Written by tests/browser/signin.mjs; never committed.
 /storage/logs/a11y/
+
+# ─── Node credentials (W-0488, operator rule 2026-11-03: only code goes to GitHub) ───
+# The real files are rendered from the tracked *.example templates by
+# scripts/ops/seed_node_config.py. Never commit them.
+/docker/livekit/livekit.yaml
+/docker/matrix/appservice/registration.yaml
+/docker/matrix/conf.d/20-mas.yaml
+/docker/matrix/mas/config.yaml
+/docker/matrix/mas/config.generated.yaml
