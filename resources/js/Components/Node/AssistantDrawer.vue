@@ -45,7 +45,7 @@ function onKey(e) { if (e.key === 'Escape') close(); }
             <p v-if="!thread.length" class="muted">{{ t('c_node.drawer.empty', 'Ask in your own words, or pick a start below.') }}</p>
             <div v-for="m in thread" :key="m.id" class="drawer-msg" :class="'drawer-msg--' + m.role">
                 <span class="muted">{{ m.role === 'user' ? t('c_node.drawer.you', 'You') : t('c_node.drawer.assistant', 'Assistant') }}</span>
-                <p>{{ m.text }}</p>
+                <p>{{ m.pending ? t('c_node.drawer.working', 'Working on it...') : m.text }}</p>
             </div>
         </div>
         <div class="drawer-suggest">

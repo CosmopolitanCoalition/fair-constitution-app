@@ -1,7 +1,7 @@
 /* The assistant drawer state, shared by the nav button, the drawer and the node pages.
    The drawer is on every page. It carries the page the person is on, so the assistant
-   can offer help that fits. Messages are held in this browser until the assistant
-   service is wired (rubric work items W-0516 to W-0520). */
+   can offer help that fits. Each message goes to the node (POST /node/assistant/chat). The
+   thread is also kept in this browser. */
 import { computed, ref, watch } from 'vue';
 
 const STORE = 'cga.assistant.thread';
@@ -56,15 +56,25 @@ export function useAssistant() {
         return hit ? hit[1] : ['What can you do on this page?', 'What may you read for me?'];
     }
 
-    /* The service is not wired. The reply says so and the turn is kept, so nothing is lost. */
-    function send(text, context) {
+    /* One turn: show the person's words, then the node's reply (W-0523). A failed call
+       says so in the thread and nothing else is lost. */
+    async function send(text, context) {
         const body = (text || '').trim();
         if (!body) return;
+        const history = thread.value.filter(m => !m.pending).slice(-12).map(m => ({ role: m.role, text: m.text }));
         thread.value.push({ id: Date.now().toString(36) + thread.value.length, role: 'user', text: body, at: new Date().toISOString(), context });
-        thread.value.push({
-            id: Date.now().toString(36) + 'a' + thread.value.length, role: 'assistant', at: new Date().toISOString(), pending: true,
-            text: 'The assistant service is not connected on this node yet. Your message and the page you were on are saved here. Choose a compute source on the Assistant page to connect it.',
-        });
+        thread.value.push({ id: Date.now().toString(36) + 'a' + thread.value.length, role: 'assistant', at: new Date().toISOString(), pending: true, text: '' });
+        const slot = thread.value[thread.value.length - 1];
+        try {
+            const { data } = await window.axios.post('/node/assistant/chat', { message: body, history });
+            slot.text = data.text;
+            slot.mode = data.mode;
+            slot.tool = data.tool;
+            slot.denied = data.denied;
+        } catch {
+            slot.text = 'The node did not answer. Check your connection and try again.';
+        }
+        slot.pending = false;
     }
 
     function clear() { thread.value = []; }
