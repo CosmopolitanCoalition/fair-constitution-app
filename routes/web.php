@@ -143,6 +143,9 @@ Route::middleware('auth')->prefix('node')->group(function () {
     Route::get('/assistant', [$n, 'assistant'])->name('node.assistant');
     Route::get('/assistant/tools', [$n, 'tools'])->name('node.assistant.tools');
     Route::get('/assistant/surfaces', [$n, 'surfaces'])->name('node.assistant.surfaces');
+    // W-0521 - the choices on these screens are saved on the node, per person.
+    Route::get('/choices', [\App\Http\Controllers\Node\NodeChoicesController::class, 'index'])->name('node.choices');
+    Route::put('/choices/{key}', [\App\Http\Controllers\Node\NodeChoicesController::class, 'update'])->name('node.choices.save');
 });
 
 // Coverage instruments (design contracts: mockups/v3/shared/coverage.html,

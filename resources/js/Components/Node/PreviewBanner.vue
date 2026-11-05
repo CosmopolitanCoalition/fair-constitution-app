@@ -5,7 +5,7 @@ const { t } = useI18n();
 
 <template>
     <p class="app-setting-card" role="note">
-        <strong>{{ t('c_node.preview.title', 'Preview.') }}</strong>
-        {{ t('c_node.preview.body', 'Choices on this page are held in this browser. Saving them on the node comes with the wiring work listed in the rubric.') }}
+        <strong>{{ t('c_node.preview.title', 'Saved on the node.') }}</strong>
+        {{ t('c_node.preview.body', 'Choices on this page are saved on this node for your account. Some of them only take effect once the matching wiring item in the rubric lands.') }}
     </p>
 </template>
