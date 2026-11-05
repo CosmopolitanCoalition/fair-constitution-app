@@ -20,6 +20,7 @@ import os
 import re
 import secrets
 import shutil
+import subprocess
 import sys
 import time
 
@@ -43,15 +44,47 @@ def env_set(text, name, value):
     return text.rstrip("\n") + f"\n{name}={value}\n"
 
 
+def roll_mas_keys(root, dry):
+    p = os.path.join(root, FILES["mas"])
+    text = open(p, encoding="utf-8").read()
+    if not re.search(r"^  encryption: \S+$", text, re.M) or "\n  keys:\n" not in text:
+        print("refused: MAS config has no encryption or keys block", file=sys.stderr)
+        return 1
+    if dry:
+        print("would roll the MAS encryption key and signing keys")
+        return 0
+    rsa = subprocess.run(["openssl", "genrsa", "2048"], capture_output=True, text=True, check=True).stdout.strip().splitlines()
+    ec = subprocess.run(["openssl", "ecparam", "-name", "prime256v1", "-genkey", "-noout"], capture_output=True, text=True, check=True).stdout.strip().splitlines()
+    block = []
+    for pem in (rsa, ec):
+        block.append("  - key: |")
+        block.extend("      " + line for line in pem)
+    backup = os.path.join(os.path.dirname(root.rstrip("/")), "secrets-backup-" + time.strftime("%Y%m%d-%H%M%S"))
+    os.makedirs(backup, mode=0o700)
+    shutil.copy2(p, os.path.join(backup, "mas-config.yaml"))
+    text = re.sub(r"^  encryption: \S+$", lambda _: "  encryption: " + secrets.token_hex(32), text, count=1, flags=re.M)
+    text = re.sub(r"(\n  keys:\n)(?:(?:  - |      ).*\n)+", lambda m: m.group(1) + "\n".join(block) + "\n", text, count=1)
+    with open(p, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(text)
+    print("rolled MAS encryption key and signing keys")
+    print(f"backup of the old config: {backup} (delete it once everything is verified)")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--db-only", action="store_true",
                     help="roll only the database password (role fc_user, .env, Synapse DB conf, MAS database URI)")
+    ap.add_argument("--mas-keys", action="store_true",
+                    help="roll only the MAS encryption key and signing keys (users sign in again)")
     ap.add_argument("--pg-container", default="fc_postgres")
     a = ap.parse_args()
     root = a.root
+
+    if a.mas_keys:
+        return roll_mas_keys(root, a.dry_run)
 
     paths = {k: os.path.join(root, v) for k, v in FILES.items()}
     env_path = os.path.join(root, ".env")
