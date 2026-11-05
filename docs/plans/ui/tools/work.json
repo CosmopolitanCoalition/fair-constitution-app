@@ -18894,6 +18894,10 @@
         {
           "date": "2026-11-04",
           "note": "Operator ordered the roll. Code first: config/matrix.php reads env only, .env.example holds empty variables, tracked files hold no values (d7664d9a). Then rolled on Defiant: appservice as/hs tokens, LiveKit key and secret, OIDC client secret, MAS-Synapse secret. Verified: new as_token accepted by Synapse, new hs_token accepted by the appservice route (wrong token 403), LiveKit accepts the new key and rejects a bad signature, OIDC and MAS-Synapse secrets agree on both sides, Matrix tests pass. Local dev box files reseeded. Remaining: MAS encryption and signing keys (protect stored data and sessions), database password fc_password (also in tracked conf.d/10-cga.yaml and the MAS database URI), delete /srv/wos/secrets-backup-20261104-200947 on Defiant after sign-off."
+        },
+        {
+          "date": "2026-11-04",
+          "note": "Database password rolled on Defiant (2d8eabd0). Compose, patroni, ETL and matrix:setup now require DB_PASSWORD from .env; Synapse DB conf is an untracked file with a tracked .example. Role changed first, then .env, Synapse conf and MAS database URI; ETL recreated; matrix, mas, horizon, scheduler restarted. Verified: app, ETL and MAS/Synapse connect, old password refused over the network, site 200. Remaining: MAS encryption and signing keys, APP_KEY (data migration), old .env.bak-* files and secrets-backup folders on Defiant, git history still holds the old dev values."
         }
       ]
     },
