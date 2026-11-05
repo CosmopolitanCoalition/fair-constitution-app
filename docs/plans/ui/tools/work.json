@@ -18868,14 +18868,16 @@
       "phase": "N5",
       "order": 71,
       "kind": "ops",
-      "status": "blocked",
-      "blocker": "operator",
+      "status": "open",
+      "blocker": "none",
       "done_when": "Matrix, LiveKit, OIDC and any other key seen in logs or config output is replaced on every box, and the old values stop working.",
       "depends_on": [
         "W-0488"
       ],
       "detail": "Operator does this later and enters the values himself. The desk lists every credential and the file that holds it, prepares the steps, and does not handle the new values.",
-      "evidence": [],
+      "evidence": [
+        "scripts/ops/rotate_node_secrets.py"
+      ],
       "sources": [
         {
           "list": "operator",
@@ -18888,6 +18890,10 @@
         {
           "date": "2026-11-03",
           "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        },
+        {
+          "date": "2026-11-04",
+          "note": "Operator ordered the roll. Code first: config/matrix.php reads env only, .env.example holds empty variables, tracked files hold no values (d7664d9a). Then rolled on Defiant: appservice as/hs tokens, LiveKit key and secret, OIDC client secret, MAS-Synapse secret. Verified: new as_token accepted by Synapse, new hs_token accepted by the appservice route (wrong token 403), LiveKit accepts the new key and rejects a bad signature, OIDC and MAS-Synapse secrets agree on both sides, Matrix tests pass. Local dev box files reseeded. Remaining: MAS encryption and signing keys (protect stored data and sessions), database password fc_password (also in tracked conf.d/10-cga.yaml and the MAS database URI), delete /srv/wos/secrets-backup-20261104-200947 on Defiant after sign-off."
         }
       ]
     },
@@ -18897,13 +18903,17 @@
       "phase": "N1",
       "order": 72,
       "kind": "build",
-      "status": "open",
+      "status": "done",
       "blocker": "none",
       "done_when": "An operator screen shows which node kits this box runs (Individual always on, Household, Organization, Community as simulation or real) and the scope of each. The choice is stored on instance_settings and read by the app. A pin covers the operator gate.",
       "depends_on": [],
       "detail": "Proposed columns hosted_node_types and node_scopes on instance_settings (JSON). No fresh-node wizard. Scope vocabulary follows the 2026-11-02 ruling: free-form rules inside four contexts on the civic roles.",
       "evidence": [
-        "docs/architecture/NODE_PARADIGM.md"
+        "docs/architecture/NODE_PARADIGM.md",
+        "app/Services/Node/NodeProfileService.php",
+        "app/Http/Controllers/Operator/NodeProfileController.php",
+        "resources/js/Pages/Operator/NodeProfile.vue",
+        "tests/Unit/NodeProfileServiceTest.php"
       ],
       "sources": [
         {
@@ -18917,6 +18927,10 @@
         {
           "date": "2026-11-03",
           "note": "Added from the operator node rulings of 2026-11-02 and 2026-11-03. Roadmap draft for operator review and refinement."
+        },
+        {
+          "date": "2026-11-04",
+          "note": "Built and deployed to Defiant: migration applied, 5 unit tests pass, routes registered, bundle built, unsigned request redirects to login. Visual check in Edge not yet done."
         }
       ]
     },
