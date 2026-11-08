@@ -20,6 +20,22 @@ the separate Claude storage/monitoring/shutdown loop is left alone.
 
 ---
 
+## Voyager plan interface (operator ruling 2026-11-08)
+
+Voyager (Jarvis, the personal assistant) and Defiant (Statecraft) are two flows with separate orders.
+This project owns the Defiant order. The Voyager plan lives in the General Assistant project (`plan/jarvis_rubric.html`).
+The operator relays between the two sessions. Do not message the other session directly.
+
+- Jarvis is the operator's own assistant. It is not synced with Statecraft.
+- Statecraft imports Voyager's features without Voyager's data: no credentials, media, transcripts or memory.
+- All multi-user, household and multi-node features are built here, on the Statecraft permission system, in the multi-community demo.
+- Later Voyager returns as a Defiant client and onboards a Statecraft-derived assistant. Defiant declares "ready" first (W-0540).
+- Public access uses Cloudflare Tunnel where possible. Defiant gives the answer. Voyager follows.
+- The file Voyager reviews is `docs/architecture/VOYAGER_INTERFACE_PLAN.md`. Keep it current with the code.
+- Both sides keep working until usage runs out and resume on reset. The operator tests in the world where a step blocks.
+
+---
+
 ## SESSION START — READ THESE DOCS FIRST
 
 At the start of every session, run the document extraction script and read the outputs:
